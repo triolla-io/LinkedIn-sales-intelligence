@@ -1,0 +1,131 @@
+import { NextRequest, NextResponse } from "next/server";
+import { withTenant } from "@/lib/tenancy/with-tenant";
+import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+const COMPANY_SIZE_BUCKETS: Record<string, [number, number]> = {
+  "1-10": [1, 10],
+  "11-50": [11, 50],
+  "51-200": [51, 200],
+  "201-1000": [201, 1000],
+  "1001-10000": [1001, 10000],
+  "10001+": [10001, Number.MAX_SAFE_INTEGER],
+};
+
+const querySchema = z.object({
+  seniority: z.array(z.string()).optional(),
+  function: z.array(z.string()).optional(),
+  companySizeBuckets: z.array(z.string()).optional(),
+  company: z.array(z.string()).optional(),
+  location: z.array(z.string()).optional(),
+  connectedFrom: z.string().optional(),
+  connectedTo: z.string().optional(),
+  hasEmail: z.enum(["true", "false"]).optional(),
+  hasPhone: z.enum(["true", "false"]).optional(),
+  q: z.string().optional(),
+  cursor: z.string().optional(),
+  limit: z.coerce.number().min(1).max(200).default(50),
+});
+
+function parseArrayParam(raw: string | null): string[] | undefined {
+  if (!raw) return undefined;
+  return raw.split(",").filter(Boolean);
+}
+
+export const GET = withTenant(async (req, ctx) => {
+  const url = req.nextUrl;
+
+  const raw = {
+    seniority: parseArrayParam(url.searchParams.get("seniority")),
+    function: parseArrayParam(url.searchParams.get("function")),
+    companySizeBuckets: parseArrayParam(url.searchParams.get("companySizeBuckets")),
+    company: parseArrayParam(url.searchParams.get("company")),
+    location: parseArrayParam(url.searchParams.get("location")),
+    connectedFrom: url.searchParams.get("connectedFrom") ?? undefined,
+    connectedTo: url.searchParams.get("connectedTo") ?? undefined,
+    hasEmail: (url.searchParams.get("hasEmail") as "true" | "false") ?? undefined,
+    hasPhone: (url.searchParams.get("hasPhone") as "true" | "false") ?? undefined,
+    q: url.searchParams.get("q") ?? undefined,
+    cursor: url.searchParams.get("cursor") ?? undefined,
+    limit: url.searchParams.get("limit") ?? 50,
+  };
+
+  const parsed = querySchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid query params" }, { status: 400 });
+  }
+
+  const params = parsed.data;
+
+  // Build company size OR conditions
+  const sizeConditions =
+    params.companySizeBuckets
+      ?.map((bucket) => COMPANY_SIZE_BUCKETS[bucket])
+      .filter(Boolean)
+      .map(([min, max]) => ({ companySize: { gte: min, lte: max } })) ?? [];
+
+  const where: any = {
+    ownerId: ctx.effectiveUserId,
+    removedAt: null,
+    ...(params.seniority?.length ? { seniority: { in: params.seniority as any } } : {}),
+    ...(params.function?.length ? { function: { in: params.function as any } } : {}),
+    ...(params.company?.length ? { currentCompany: { in: params.company } } : {}),
+    ...(params.location?.length ? { location: { in: params.location } } : {}),
+    ...(params.connectedFrom || params.connectedTo
+      ? {
+          connectedAt: {
+            ...(params.connectedFrom ? { gte: new Date(params.connectedFrom) } : {}),
+            ...(params.connectedTo ? { lte: new Date(params.connectedTo) } : {}),
+          },
+        }
+      : {}),
+    ...(params.hasEmail === "true" ? { email: { not: null } } : {}),
+    ...(params.hasEmail === "false" ? { email: null } : {}),
+    ...(params.hasPhone === "true" ? { phone: { not: null } } : {}),
+    ...(params.hasPhone === "false" ? { phone: null } : {}),
+    ...(params.q
+      ? {
+          OR: [
+            { fullName: { contains: params.q, mode: "insensitive" } },
+            { headline: { contains: params.q, mode: "insensitive" } },
+            { currentCompany: { contains: params.q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+    ...(sizeConditions.length ? { OR: sizeConditions } : {}),
+  };
+
+  const [items, totalApprox] = await Promise.all([
+    prisma.contact.findMany({
+      where,
+      orderBy: [{ lastSyncedAt: "desc" }, { id: "desc" }],
+      take: params.limit + 1,
+      ...(params.cursor ? { cursor: { id: params.cursor }, skip: 1 } : {}),
+      select: {
+        id: true,
+        linkedinUrl: true,
+        fullName: true,
+        headline: true,
+        currentTitle: true,
+        currentCompany: true,
+        companySize: true,
+        seniority: true,
+        function: true,
+        location: true,
+        profilePicUrl: true,
+        connectedAt: true,
+        lastSyncedAt: true,
+        email: true,
+        phone: true,
+        enrichedAt: true,
+      },
+    }),
+    prisma.contact.count({ where }),
+  ]);
+
+  const hasMore = items.length > params.limit;
+  const data = hasMore ? items.slice(0, params.limit) : items;
+  const nextCursor = hasMore ? data[data.length - 1]?.id : null;
+
+  return NextResponse.json({ items: data, nextCursor, totalApprox });
+});
