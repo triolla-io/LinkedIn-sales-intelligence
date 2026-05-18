@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import type { Organization, User } from "@/app/generated/prisma";
+import type { Organization, User } from "@/lib/generated/prisma";
 
 export type TenantCtx = {
   user: User;
