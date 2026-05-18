@@ -15,6 +15,8 @@ export type RawConnection = {
   fullName: string;
   headline?: string;
   connectedAt?: string;
+  currentTitle?: string;
+  currentCompany?: string;
 };
 
 export type RawProfile = {

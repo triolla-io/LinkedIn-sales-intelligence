@@ -11,6 +11,7 @@ extractor dedupes by href.
 """
 
 from __future__ import annotations
+import re
 from typing import Any
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
@@ -23,6 +24,38 @@ def _public_id_from_url(href: str) -> str:
     if len(parts) >= 2 and parts[-2] == "in":
         return parts[-1]
     return ""
+
+
+_SEP_PATTERNS = [
+    r"\s+at\s+",
+    r"\s+@\s*",
+    r"@",
+    r"\s+בחברה\s+",
+    r"\s+chez\s+",
+    r"\s+bei\s+",
+]
+_SEPARATOR_RE = re.compile("|".join(f"(?:{p})" for p in _SEP_PATTERNS))
+
+
+def parse_company_from_headline(headline: str) -> tuple[str, str]:
+    """
+    Best-effort split of a LinkedIn headline into (title, company).
+    Examples:
+      'CEO at Acme'                 → ('CEO', 'Acme')
+      'Talent Partner @ Hello Heart'→ ('Talent Partner', 'Hello Heart')
+      'Sourcing specialist@Scoutech'→ ('Sourcing specialist', 'Scoutech')
+      'Software Engineer'           → ('Software Engineer', '')
+    Company portion is truncated at common separators (|, ,, • , -).
+    """
+    if not headline:
+        return ("", "")
+    parts = _SEPARATOR_RE.split(headline, maxsplit=1)
+    if len(parts) < 2:
+        return (headline.strip(), "")
+    title = parts[0].strip()
+    rest = parts[1].strip()
+    company = re.split(r"\s*[|•,\-—]\s*", rest, maxsplit=1)[0].strip()
+    return (title, company)
 
 
 def extract_connections(html: str) -> list[dict[str, Any]]:
@@ -57,11 +90,14 @@ def extract_connections(html: str) -> list[dict[str, Any]]:
         if existing and existing["fullName"] and existing["headline"]:
             continue
 
+        title, company = parse_company_from_headline(headline)
         by_url[clean_url] = {
             "urn": f"urn:li:fs_miniProfile:{public_id}",
             "profileUrl": clean_url + "/",
             "fullName": full_name,
             "headline": headline,
+            "currentTitle": title,
+            "currentCompany": company,
         }
 
     return list(by_url.values())

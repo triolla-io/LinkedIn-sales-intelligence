@@ -11,9 +11,10 @@ export const syncFull = inngest.createFunction(
   {
     id: "sync-full",
     concurrency: { limit: 5 },
+    triggers: [{ event: "sync.full" as const }],
   },
-  { event: "sync.full" },
-  async ({ event, step }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async ({ event, step }: any) => {
     const { userId } = event.data as { userId: string };
 
     // Step 1: load session
@@ -42,10 +43,10 @@ export const syncFull = inngest.createFunction(
       const newUrns: string[] = [];
 
       do {
-        const { items, nextCursor } = await step.run(
+        const { items, nextCursor } = (await step.run(
           `fetch-connections-page-${cursor ?? "start"}`,
           () => mcp.getConnections({ cursor: cursor ?? undefined })
-        );
+        )) as { items: { urn: string; profileUrl: string; fullName: string; headline?: string; connectedAt?: string }[]; nextCursor: string | null };
 
         const now = new Date();
         await step.run(`upsert-connections-${cursor ?? "start"}`, async () => {
@@ -58,12 +59,16 @@ export const syncFull = inngest.createFunction(
                 linkedinUrl: conn.profileUrl,
                 fullName: conn.fullName,
                 headline: conn.headline,
+                currentTitle: conn.currentTitle || null,
+                currentCompany: conn.currentCompany || null,
                 connectedAt: conn.connectedAt ? new Date(conn.connectedAt) : null,
                 lastSyncedAt: now,
               },
               update: {
                 fullName: conn.fullName,
                 headline: conn.headline,
+                currentTitle: conn.currentTitle || undefined,
+                currentCompany: conn.currentCompany || undefined,
                 lastSyncedAt: now,
                 removedAt: null,
               },
@@ -81,40 +86,24 @@ export const syncFull = inngest.createFunction(
         cursor = nextCursor;
       } while (cursor !== null && total < MAX_PROFILES_PER_RUN);
 
-      // Step 4: enrich new contacts with profiles
+      await mcp.close();
+
+      // Step 4: fan out profile enrichment as separate background events
+      // so sync completes fast and contacts appear in the UI immediately.
       const newContacts = await step.run("find-new-contacts", () =>
         prisma.contact.findMany({
           where: { ownerId: userId, currentTitle: null, linkedinUrn: { in: newUrns } },
-          select: { id: true, linkedinUrn: true },
+          select: { id: true },
           take: MAX_PROFILES_PER_RUN,
         })
       );
 
-      for (const contact of newContacts) {
-        const profile = await step.run(`get-profile-${contact.id}`, () =>
-          mcp.getProfile(contact.linkedinUrn)
-        );
-
-        const { seniority, function: fn } = classify(profile.currentTitle ?? "");
-
-        await step.run(`update-profile-${contact.id}`, () =>
-          prisma.contact.update({
-            where: { id: contact.id },
-            data: {
-              currentTitle: profile.currentTitle,
-              currentCompany: profile.currentCompany,
-              currentCompanyId: profile.currentCompanyId,
-              companySize: profile.companySize,
-              location: profile.location,
-              profilePicUrl: profile.profilePicUrl,
-              seniority,
-              function: fn,
-            },
-          })
-        );
+      if (newContacts.length > 0) {
+        await step.sendEvent("fan-out-profile-enrichment", newContacts.map((c: { id: string }) => ({
+          name: "profile.enrich" as const,
+          data: { contactId: c.id, userId },
+        })));
       }
-
-      await mcp.close();
 
       // Step 5: mark job succeeded
       await step.run("finish-job", () =>
