@@ -34,3 +34,17 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## LinkedIn Session Setup (one-time)
+
+LinkedIn blocks programmatic logins, so the sync uses a real browser
+session that you authenticate once:
+
+```bash
+~/.local/bin/uvx --from git+https://github.com/stickerdaniel/linkedin-mcp-server linkedin-mcp-server --login
+```
+
+Chrome opens, you sign in (including 2FA/captcha if prompted), then close
+the window. The session is saved to `~/.linkedin-mcp/profile/` and reused
+by every subsequent sync. Re-run this command when the session expires
+(usually after several weeks).
