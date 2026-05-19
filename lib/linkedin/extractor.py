@@ -86,11 +86,20 @@ def extract_connections(html: str) -> list[dict[str, Any]]:
         if len(text_paragraphs) > 1:
             headline = text_paragraphs[1].get_text(strip=True)
 
+        # p[2] on some cards is the company name shown separately from the headline
+        company_line = ""
+        if len(text_paragraphs) > 2:
+            company_line = text_paragraphs[2].get_text(strip=True)
+
         existing = by_url.get(clean_url)
         if existing and existing["fullName"] and existing["headline"]:
             continue
 
         title, company = parse_company_from_headline(headline)
+        # If headline parsing didn't yield a company, try the dedicated company line
+        if not company and company_line:
+            company = company_line
+
         by_url[clean_url] = {
             "urn": f"urn:li:fs_miniProfile:{public_id}",
             "profileUrl": clean_url + "/",
