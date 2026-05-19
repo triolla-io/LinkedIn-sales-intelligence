@@ -72,19 +72,19 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
   if (!contact) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-[#0a1422] border border-[#1a2d40] rounded-xl shadow-2xl w-full max-w-lg">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#152030]">
           <div>
-            <h2 className="font-semibold text-gray-900">Send Message</h2>
-            <p className="text-sm text-gray-500">To: {contact.fullName}</p>
+            <h2 className="font-semibold text-white text-sm">Send Message</h2>
+            <p className="text-xs text-[#5b7fa6] mt-0.5">To: {contact.fullName}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-[#5b7fa6] hover:text-white hover:bg-[#152030] p-1.5 rounded-md transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -92,8 +92,8 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
         <div className="px-5 py-4 space-y-4">
           {/* Impersonation notice */}
           {impersonatedUserName && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-md">
-              <span className="text-sm text-yellow-800">
+            <div className="flex items-center gap-2 px-3 py-2 bg-[#f0a928]/10 border border-[#f0a928]/20 rounded-lg">
+              <span className="text-xs text-[#f0a928]">
                 Sending as <strong>{impersonatedUserName}</strong>
               </span>
             </div>
@@ -101,7 +101,7 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
 
           {/* Template picker */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-[11px] font-semibold text-[#5b7fa6] uppercase tracking-widest mb-2">
               Template (optional)
             </label>
             <TemplatePicker onSelect={handleTemplateSelect} />
@@ -109,7 +109,7 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
 
           {/* Message body */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-[11px] font-semibold text-[#5b7fa6] uppercase tracking-widest mb-2">
               Message
             </label>
             <textarea
@@ -117,13 +117,15 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
               onChange={(e) => setBody(e.target.value)}
               rows={6}
               placeholder="Type your message..."
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full bg-[#07101c] border border-[#1a2d40] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#2d4a62] resize-none focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors font-mono leading-relaxed"
             />
           </div>
 
           {/* Error */}
           {error && (
-            <p className="text-sm text-red-500">{error}</p>
+            <p className="text-xs text-red-400 bg-red-400/10 px-3 py-2 rounded-lg border border-red-400/20">
+              {error}
+            </p>
           )}
 
           {/* Rate limit */}
@@ -136,15 +138,17 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
 
           {/* Success */}
           {sent && (
-            <p className="text-sm text-green-600 font-medium">Message queued successfully!</p>
+            <p className="text-xs text-emerald-400 bg-emerald-400/10 px-3 py-2 rounded-lg border border-emerald-400/20 font-medium">
+              Message queued successfully!
+            </p>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-[#152030]">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+            className="px-4 py-2 text-sm text-[#5b7fa6] hover:text-white hover:bg-[#152030] rounded-lg transition-colors"
           >
             Cancel
           </button>
@@ -152,16 +156,16 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
             onClick={handleSend}
             disabled={loading || isRateLimited || sent}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
+              "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
               loading || isRateLimited || sent
-                ? "bg-blue-400 text-white cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
+                ? "bg-[#1585ff]/50 text-white/70 cursor-not-allowed"
+                : "bg-[#1585ff] text-white hover:bg-[#1070d9]"
             )}
           >
             {loading ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
             ) : (
-              <Send className="w-4 h-4" />
+              <Send className="w-3.5 h-3.5" />
             )}
             {sent ? "Sent!" : "Send Message"}
           </button>
