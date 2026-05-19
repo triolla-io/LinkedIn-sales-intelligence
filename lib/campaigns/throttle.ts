@@ -1,11 +1,14 @@
 import { Redis } from "@upstash/redis";
 
+const UPSTASH_CONFIGURED = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+
 const HOUR_LIMIT = 20;
 const DAY_LIMIT  = 80;
 
 export type QuotaResult = { ok: true } | { ok: false; retryAfterSec: number; reason: "hour" | "day" };
 
 export async function checkSendQuota(userId: string): Promise<QuotaResult> {
+  if (!UPSTASH_CONFIGURED) return { ok: true };
   const redis = Redis.fromEnv();
   const hourKey = `li:send:${userId}:h:${Math.floor(Date.now() / 3_600_000)}`;
   const dayKey  = `li:send:${userId}:d:${Math.floor(Date.now() / 86_400_000)}`;

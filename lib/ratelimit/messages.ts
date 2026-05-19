@@ -1,6 +1,8 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
+const UPSTASH_CONFIGURED = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+
 function getRedis() {
   return new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL!,
@@ -9,6 +11,7 @@ function getRedis() {
 }
 
 export async function checkDailyLimit(userId: string): Promise<{ allowed: boolean; retryAfter?: number }> {
+  if (!UPSTASH_CONFIGURED) return { allowed: true };
   const ratelimit = new Ratelimit({
     redis: getRedis(),
     limiter: Ratelimit.slidingWindow(20, "24 h"),
@@ -20,6 +23,7 @@ export async function checkDailyLimit(userId: string): Promise<{ allowed: boolea
 }
 
 export async function checkSpacingLimit(userId: string): Promise<{ allowed: boolean; retryAfter?: number }> {
+  if (!UPSTASH_CONFIGURED) return { allowed: true };
   const ratelimit = new Ratelimit({
     redis: getRedis(),
     limiter: Ratelimit.fixedWindow(1, "3 m"),
