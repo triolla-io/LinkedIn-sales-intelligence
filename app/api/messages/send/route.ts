@@ -19,6 +19,16 @@ export async function POST(req: NextRequest) {
   return withTenant(async (req, ctx) => {
     const parsed = schema.parse(await req.json());
 
+    const linkedinSession = await prisma.linkedinSession.findUnique({
+      where: { userId: ctx.effectiveUserId },
+    });
+    if (!linkedinSession || linkedinSession.status !== "ACTIVE") {
+      return NextResponse.json(
+        { error: "LINKEDIN_NOT_CONNECTED", message: "Connect your LinkedIn account before sending messages." },
+        { status: 403 }
+      );
+    }
+
     const contact = await prisma.contact.findFirst({
       where: { id: parsed.contactId, ownerId: ctx.effectiveUserId },
     });
