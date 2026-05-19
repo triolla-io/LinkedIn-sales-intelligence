@@ -16,7 +16,7 @@ export const sendMessage = inngest.createFunction(
     if (!sentMessage) throw new Error(`SentMessage ${messageId} not found`);
 
     try {
-      const username = extractUsername(sentMessage.contact.linkedinUrl);
+      const username = extractUsername(sentMessage.contact.linkedinUrl, sentMessage.contact.linkedinUrn);
       const profileUrn = extractProfileUrn(sentMessage.contact.linkedinUrn);
       await mcpSendMessage(username, sentMessage.body, profileUrn);
       await prisma.sentMessage.update({

@@ -32,10 +32,16 @@ export async function mcpSendMessage(
   });
 }
 
-export function extractUsername(linkedinUrl: string): string {
-  const m = linkedinUrl.match(/linkedin\.com\/in\/([^/?#]+)/);
-  if (m) return m[1];
-  throw new Error(`Cannot extract LinkedIn username from URL: ${linkedinUrl}`);
+export function extractUsername(linkedinUrl: string, linkedinUrn?: string): string {
+  // Try URL first
+  const fromUrl = linkedinUrl.match(/linkedin\.com\/in\/([^/?#]+)/)?.[1];
+  if (fromUrl) return fromUrl;
+  // Fall back to vanity slug from URN (e.g. urn:li:fs_miniProfile:may-tishler)
+  if (linkedinUrn) {
+    const slug = linkedinUrn.split(":").at(-1);
+    if (slug && !slug.startsWith("ACo") && slug.length > 2) return slug;
+  }
+  throw new Error(`Cannot extract LinkedIn username from URL "${linkedinUrl}" or URN "${linkedinUrn}"`);
 }
 
 export function extractProfileUrn(linkedinUrn: string): string | undefined {

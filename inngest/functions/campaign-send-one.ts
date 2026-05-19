@@ -32,7 +32,7 @@ export async function campaignSendOneHandler({ event }: any) {
   });
 
   try {
-    const username = extractUsername(recipient.contact.linkedinUrl);
+    const username = extractUsername(recipient.contact.linkedinUrl, recipient.contact.linkedinUrn);
     const profileUrn = extractProfileUrn(recipient.contact.linkedinUrn);
     await mcpSendMessage(username, recipient.renderedBody ?? "", profileUrn);
 
