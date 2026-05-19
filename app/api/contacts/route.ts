@@ -141,6 +141,12 @@ export const GET = withTenant(async (req, ctx) => {
         email: true,
         phone: true,
         enrichedAt: true,
+        company: {
+          select: {
+            staffCount: true,
+            industry: true,
+          },
+        },
       },
     }),
     prisma.contact.count({ where }),

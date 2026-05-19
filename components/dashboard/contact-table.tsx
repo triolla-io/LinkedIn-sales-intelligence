@@ -12,6 +12,7 @@ export type Contact = {
   currentTitle?: string | null;
   currentCompany?: string | null;
   companySize?: number | null;
+  company?: { staffCount: number | null; industry: string | null } | null;
   seniority?: string | null;
   function?: string | null;
   location?: string | null;
@@ -218,7 +219,11 @@ export default function ContactTable({
           {virtualItems.map((virtualRow) => {
             const contact = contacts[virtualRow.index];
             const isSelected = selectedIds.has(contact.id);
-            const empInfo = contact.companySize ? employeePct(contact.companySize) : null;
+            // Prefer enriched company.staffCount, fall back to legacy companySize
+            const staffCount = contact.company?.staffCount ?? contact.companySize ?? null;
+            const empInfo = staffCount ? employeePct(staffCount) : null;
+            // Prefer enriched company.industry, fall back to contact.industry
+            const industry = contact.company?.industry ?? contact.industry ?? null;
 
             return (
               <div
@@ -312,8 +317,8 @@ export default function ContactTable({
 
                 {/* Industry */}
                 <div className="min-w-0">
-                  {contact.industry
-                    ? <TooltipCell text={contact.industry} className="text-xs text-[#5c7d9e]" />
+                  {industry
+                    ? <TooltipCell text={industry} className="text-xs text-[#5c7d9e]" />
                     : <span className="text-[#25405e]">—</span>
                   }
                 </div>
