@@ -47,7 +47,7 @@ export const syncFull = inngest.createFunction(
         const { items, nextCursor } = (await step.run(
           `fetch-connections-page-${cursor ?? "start"}`,
           () => mcp.getConnections({ cursor: cursor ?? undefined })
-        )) as { items: { urn: string; profileUrl: string; fullName: string; headline?: string; connectedAt?: string }[]; nextCursor: string | null };
+        )) as { items: { urn: string; profileUrl: string; fullName: string; headline?: string; currentTitle?: string; currentCompany?: string; connectedAt?: string }[]; nextCursor: string | null };
 
         const now = new Date();
         await step.run(`upsert-connections-${cursor ?? "start"}`, async () => {
