@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw, Wifi, WifiOff, AlertCircle, Users, Shield, LogIn, LogOut, UserPlus, Copy, Check, Mail } from "lucide-react";
+import { RefreshCw, Wifi, WifiOff, AlertCircle, Users, Shield, LogIn, LogOut, UserPlus, Copy, Check, Mail, Sparkles } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 type LinkedinStatus = "ACTIVE" | "EXPIRED" | "DISCONNECTED";
@@ -53,6 +53,21 @@ export default function AdminClient() {
   const [inviting, setInviting] = useState(false);
   const [inviteResult, setInviteResult] = useState<{ url?: string; sent?: boolean; error?: string } | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const [enriching, setEnriching] = useState(false);
+  const [enrichDone, setEnrichDone] = useState(false);
+
+  async function triggerWebEnrich() {
+    setEnriching(true);
+    setEnrichDone(false);
+    try {
+      await fetch("/api/admin/enrich-companies", { method: "POST" });
+      setEnrichDone(true);
+      setTimeout(() => setEnrichDone(false), 4000);
+    } finally {
+      setEnriching(false);
+    }
+  }
 
   async function sendInvite() {
     if (!inviteEmail.includes("@")) return;
@@ -135,6 +150,15 @@ export default function AdminClient() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={triggerWebEnrich}
+            disabled={enriching}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-[#25405e] text-[#5c7d9e] hover:border-[#1585ff]/40 hover:text-[#9ecfff] transition-all"
+            title="Search the web to fill in missing employee counts and industries"
+          >
+            {enriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+            {enrichDone ? "Enrichment started!" : enriching ? "Starting…" : "Enrich companies"}
+          </button>
           {impersonating && (
             <button
               onClick={stopImpersonation}

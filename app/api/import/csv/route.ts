@@ -199,10 +199,10 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       });
     }
 
-    // Trigger company enrichment
+    // Trigger web-based company enrichment (free, no LinkedIn needed)
     await inngest.send({
-      name: "companies.enrich" as const,
-      data: { slugs: [...bySlug.keys()] },
+      name: "companies.enrich-web" as const,
+      data: {},
     });
   }
 
