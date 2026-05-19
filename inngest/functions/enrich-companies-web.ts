@@ -3,8 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { enrichCompanyViaGemini } from "@/lib/enrichment/gemini-search";
 import { publish } from "@/lib/linkedin/sse-bus";
 
-const MIN_CONTACTS_FOR_ENRICHMENT = 2;  // only enrich companies where you have 2+ contacts
-
 const BATCH = 20;       // companies per Inngest step
 const CONCURRENCY = 3;  // parallel Apollo calls (respect rate limits)
 
@@ -19,10 +17,9 @@ export const enrichCompaniesWeb = inngest.createFunction(
   async ({ event, step }: any) => {
     const orgId: string | undefined = event.data?.orgId;
 
-    // Load companies needing enrichment, filtered to those with N+ contacts
-    // (high-priority target accounts). Most-connected first.
-    const companies = await step.run("load-unenriched", async () => {
-      const rows = await prisma.company.findMany({
+    // Load ALL companies needing enrichment, most-connected first
+    const companies = await step.run("load-unenriched", () =>
+      prisma.company.findMany({
         where: {
           staffCount: null,
           name: { not: "" },
@@ -35,10 +32,8 @@ export const enrichCompaniesWeb = inngest.createFunction(
           _count: { select: { contacts: true } },
         },
         orderBy: { contacts: { _count: "desc" } },
-      });
-      // Skip one-off companies (1 contact) — they're not worth Gemini calls
-      return rows.filter((r: { _count: { contacts: number } }) => r._count.contacts >= MIN_CONTACTS_FOR_ENRICHMENT);
-    });
+      }),
+    );
 
     // Capture the set of owners affected by this run so we can notify them via SSE
     const ownerIds = await step.run("load-affected-owners", async () => {
