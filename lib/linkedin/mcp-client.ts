@@ -155,7 +155,7 @@ export class LinkedinMcp {
         ["--from", "patchright", "--with", "beautifulsoup4", "python", "lib/linkedin/connections_scraper.py"],
         {
           cwd: process.cwd(),
-          env: { ...process.env, PYTHONPATH: process.cwd() },
+          env: { ...process.env, PYTHONPATH: process.cwd(), LINKEDIN_HEADLESS: "1" },
         }
       );
       let stdout = "";
@@ -192,6 +192,10 @@ export class LinkedinMcp {
   }
 
   async sendMessage(urn: string, body: string): Promise<{ messageId: string }> {
+    if (process.env.LINKEDIN_SEND_MODE === "mock") {
+      return { messageId: `mock-${urn}-${Date.now()}` };
+    }
+
     if (this.mockData) {
       return { messageId: `mock-msg-${Date.now()}` };
     }
