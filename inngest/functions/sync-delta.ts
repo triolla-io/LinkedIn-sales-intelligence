@@ -4,6 +4,7 @@ import { decryptCookie } from "@/lib/linkedin/cookie-crypto";
 import { LinkedinMcp, RateLimitError } from "@/lib/linkedin/mcp-client";
 import { classify } from "@/lib/classifier/seniority";
 import { publish } from "@/lib/linkedin/sse-bus";
+import { slugifyCompany } from "@/lib/linkedin/slug-utils";
 
 const MAX_PROFILES_PER_RUN = 200;
 const PROFILE_STALE_DAYS = 30;
@@ -122,10 +123,16 @@ export const syncDelta = inngest.createFunction(
         })
       );
 
+      const enrichedCompanyMap = new Map<string, string>(); // slug → displayName
+
       for (const contact of toEnrich) {
         const profile = await step.run(`get-profile-${contact.id}`, () =>
           mcp.getProfile(contact.linkedinUrn)
         );
+        if (profile.currentCompany) {
+          const slug = slugifyCompany(profile.currentCompany);
+          if (slug) enrichedCompanyMap.set(slug, profile.currentCompany);
+        }
         const { seniority, function: fn } = classify(profile.currentTitle ?? "");
         await step.run(`update-profile-${contact.id}`, () =>
           prisma.contact.update({
@@ -147,6 +154,52 @@ export const syncDelta = inngest.createFunction(
 
       await mcp.close();
 
+      const newCompanySlugs = await step.run("stub-companies", async () => {
+        if (enrichedCompanyMap.size === 0) return [];
+
+        await prisma.$transaction(
+          [...enrichedCompanyMap].map(([slug, name]) =>
+            prisma.company.upsert({
+              where: { universalName: slug },
+              update: {},
+              create: { universalName: slug, name },
+            })
+          )
+        );
+        return [...enrichedCompanyMap.keys()];
+      });
+
+      await step.run("link-contacts-to-companies", async () => {
+        if (newCompanySlugs.length === 0) return;
+
+        // Only link contacts whose profile was just enriched
+        const enrichedContacts = await prisma.contact.findMany({
+          where: {
+            ownerId: userId,
+            id: { in: toEnrich.map((c: { id: string }) => c.id) },
+            currentCompany: { not: null },
+          },
+          select: { id: true, currentCompany: true },
+        });
+
+        const companyRows = await prisma.company.findMany({
+          where: { universalName: { in: newCompanySlugs } },
+          select: { id: true, universalName: true },
+        });
+        const idBySlug = new Map(companyRows.map((r) => [r.universalName, r.id]));
+
+        for (const contact of enrichedContacts) {
+          if (!contact.currentCompany) continue;
+          const slug = slugifyCompany(contact.currentCompany);
+          const companyId = slug ? (idBySlug.get(slug) ?? null) : null;
+          if (!companyId) continue;
+          await prisma.contact.update({
+            where: { id: contact.id },
+            data: { companyId },
+          });
+        }
+      });
+
       await step.run("finish-job", () =>
         prisma.syncJob.update({
           where: { id: job.id },
@@ -160,6 +213,22 @@ export const syncDelta = inngest.createFunction(
           data: { lastValidatedAt: new Date() },
         })
       );
+
+      if (newCompanySlugs.length > 0) {
+        // Only re-enrich companies that don't have staffCount yet
+        const alreadyEnriched = await prisma.company.findMany({
+          where: { universalName: { in: newCompanySlugs }, staffCount: { not: null } },
+          select: { universalName: true },
+        });
+        const enrichedSet = new Set(alreadyEnriched.map((r: { universalName: string }) => r.universalName));
+        const toEnrichSlugs = newCompanySlugs.filter((s: string) => !enrichedSet.has(s));
+        if (toEnrichSlugs.length > 0) {
+          await step.sendEvent("emit-companies-enrich", {
+            name: "companies.enrich" as const,
+            data: { slugs: toEnrichSlugs },
+          });
+        }
+      }
 
       publish(userId, { type: "linkedin:sync-done", data: { new: newUrns.length, removed: removedUrns.length } });
 
