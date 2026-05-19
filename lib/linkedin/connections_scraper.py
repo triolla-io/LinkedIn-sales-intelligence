@@ -53,14 +53,14 @@ async def scrape() -> dict:
 
             async def scroll_once():
                 await page.mouse.wheel(0, 8000)
-                await page.wait_for_timeout(1500)
+                await page.wait_for_timeout(3000)  # 3s — LinkedIn needs time to lazy-load
 
             async def count_items() -> int:
                 return await page.evaluate(
                     f"() => document.querySelectorAll(\"{CARD_SELECTOR}\").length"
                 )
 
-            await scroll_until_stable(scroll_once, count_items, max_scrolls=200, stable_rounds=3)
+            await scroll_until_stable(scroll_once, count_items, max_scrolls=500, stable_rounds=6)
             html = await page.content()
             connections = extract_connections(html)
             return {"connections": connections, "error": None}
