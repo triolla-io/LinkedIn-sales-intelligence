@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Zap, RefreshCw, X, Send, Download } from "lucide-react";
+import { Zap, RefreshCw, X, Send, Download, Megaphone } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Contact } from "./contact-table";
+import { NewCampaignModal } from "./new-campaign-modal";
 
 interface BulkEnrichBarProps {
   selectedIds: string[];
@@ -21,6 +22,7 @@ export default function BulkEnrichBar({
   const [enriching, setEnriching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [campaignOpen, setCampaignOpen] = useState(false);
 
   const N = selectedIds.length;
 
@@ -114,6 +116,12 @@ export default function BulkEnrichBar({
         </div>
       )}
 
+      <NewCampaignModal
+        open={campaignOpen}
+        onClose={() => setCampaignOpen(false)}
+        contactIds={selectedIds}
+      />
+
       {/* Floating toolbar — slides up from bottom */}
       <div
         className={cn(
@@ -164,6 +172,13 @@ export default function BulkEnrichBar({
               >
                 {enriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
                 Enrich
+              </button>
+              <button
+                onClick={() => setCampaignOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1585ff] border border-[#1585ff]/30 hover:bg-[#1585ff]/10 hover:border-[#1585ff]/50 rounded-md transition-all"
+              >
+                <Megaphone className="w-3.5 h-3.5" />
+                Send Campaign
               </button>
               <button
                 onClick={exportCsv}
