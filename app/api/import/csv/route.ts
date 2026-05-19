@@ -5,6 +5,7 @@ import { classify } from "@/lib/classifier/seniority";
 import { slugifyCompany } from "@/lib/linkedin/slug-utils";
 import { inngest } from "@/inngest/client";
 import * as XLSX from "xlsx";
+import { diffContacts, type IncomingContact } from "@/lib/csv/diff";
 
 /**
  * POST /api/import/csv
@@ -115,14 +116,35 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     return NextResponse.json({ error: "No valid contacts found in CSV" }, { status: 400 });
   }
 
-  // Upsert contacts
+  // Upsert contacts via diff-first strategy
   const userId = ctx.effectiveUserId;
-  let created = 0;
-  let updated = 0;
 
-  for (const c of contacts) {
+  // Load existing contacts for this user — only the fields we compare
+  const existingRows = await prisma.contact.findMany({
+    where: { ownerId: userId, removedAt: null },
+    select: { linkedinUrn: true, fullName: true, currentTitle: true, currentCompany: true },
+  });
+  const existingMap = new Map(
+    existingRows.map((r: { linkedinUrn: string; fullName: string; currentTitle: string | null; currentCompany: string | null }) =>
+      [r.linkedinUrn, { fullName: r.fullName, currentTitle: r.currentTitle, currentCompany: r.currentCompany }] as const,
+    ),
+  );
+
+  const incoming: IncomingContact[] = contacts.map((c) => ({
+    linkedinUrn: c.linkedinUrn,
+    fullName: c.fullName,
+    currentTitle: c.currentTitle,
+    currentCompany: c.currentCompany,
+  }));
+
+  const diff = diffContacts(existingMap, incoming);
+
+  // Apply ADD + UPDATE in one pass (UNCHANGED rows are skipped entirely)
+  const unchangedSet = new Set(diff.unchanged);
+  const toUpsert = contacts.filter((c) => !unchangedSet.has(c.linkedinUrn));
+  for (const c of toUpsert) {
     const { seniority, function: fn } = classify(c.currentTitle ?? "");
-    const result = await prisma.contact.upsert({
+    await prisma.contact.upsert({
       where: { ownerId_linkedinUrn: { ownerId: userId, linkedinUrn: c.linkedinUrn } },
       create: {
         ownerId: userId,
@@ -146,13 +168,23 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
         function: fn,
         connectedAt: c.connectedAt || undefined,
         lastSyncedAt: new Date(),
+        removedAt: null,  // un-soft-remove if they came back
       },
-      select: { id: true, createdAt: true, updatedAt: true },
     });
-    // createdAt === updatedAt means it was just created
-    if (result.createdAt.getTime() === result.updatedAt.getTime()) created++;
-    else updated++;
   }
+
+  // Soft-remove contacts that vanished from this CSV
+  if (diff.removed.length > 0) {
+    await prisma.contact.updateMany({
+      where: { ownerId: userId, linkedinUrn: { in: diff.removed } },
+      data: { removedAt: new Date() },
+    });
+  }
+
+  const created = diff.added.length;
+  const updated = diff.updated.length;
+  const removed = diff.removed.length;
+  const unchanged = diff.unchanged.length;
 
   // Stub Company rows and link contacts
   const companyNames = [
@@ -165,7 +197,17 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     if (slug) bySlug.set(slug, name);
   }
 
+  let newCompanies = 0;
+
   if (bySlug.size > 0) {
+    // Count how many of these slugs are brand new (not in DB yet)
+    const existingCompanies = await prisma.company.findMany({
+      where: { universalName: { in: [...bySlug.keys()] } },
+      select: { universalName: true },
+    });
+    const existingSlugs = new Set(existingCompanies.map((r: { universalName: string }) => r.universalName));
+    newCompanies = [...bySlug.keys()].filter((s) => !existingSlugs.has(s)).length;
+
     // Upsert stub company rows
     const CHUNK = 50;
     const entries = [...bySlug.entries()];
@@ -199,15 +241,43 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       });
     }
 
-    // Web enrichment not auto-triggered — run manually from Admin when ready
+    // Auto-trigger Apollo enrichment for any companies that still need data
+    // (the function itself filters staffCount=null, so re-runs cost zero credits)
+    const meForOrg = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { orgId: true },
+    });
+    if (meForOrg) {
+      await inngest.send({
+        name: "companies.enrich-web" as const,
+        data: { orgId: meForOrg.orgId },
+      });
+    }
   }
+
+  // Persist import history
+  await prisma.import.create({
+    data: {
+      ownerId: userId,
+      fileName: file.name,
+      totalRows: contacts.length,
+      added: created,
+      updated,
+      removed,
+      companies: bySlug.size,
+      newCompanies,
+    },
+  });
 
   return NextResponse.json({
     ok: true,
     imported: contacts.length,
-    created,
+    added: created,
     updated,
+    removed,
+    unchanged,
     companies: bySlug.size,
+    newCompanies,
   });
 });
 
