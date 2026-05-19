@@ -10,8 +10,11 @@ Env:
                          Defaults to ~/.linkedin-mcp/profile
 
 LinkedIn uses virtual scrolling — cards enter and leave the DOM as the user
-scrolls. We extract data after every scroll step and accumulate into a deduped
-set, so nothing is missed.
+scrolls. We:
+  1. Click the page to give focus, then press End to scroll
+  2. Extract the currently-visible cards after each scroll step
+  3. Accumulate into a deduped set by profile URL
+  4. Stop after MAX_STABLE_ROUNDS consecutive rounds with no new profiles
 """
 
 from __future__ import annotations
@@ -23,8 +26,8 @@ from pathlib import Path
 DEFAULT_PROFILE_DIR = Path.home() / ".linkedin-mcp" / "profile"
 CONNECTIONS_URL = "https://www.linkedin.com/mynetwork/invite-connect/connections/"
 CARD_SELECTOR = "a[data-view-name='connections-profile']"
-MAX_STABLE_ROUNDS = 6   # stop after this many scrolls with no new connections
-MAX_SCROLLS = 500
+MAX_STABLE_ROUNDS = 8
+MAX_SCROLLS = 1000
 
 
 async def scrape() -> dict:
@@ -51,17 +54,38 @@ async def scrape() -> dict:
             if "/login" in page.url or "/checkpoint" in page.url:
                 return {
                     "connections": [],
-                    "error": "LinkedIn session expired. Re-run `linkedin-mcp-server --login`.",
+                    "error": "LinkedIn session expired. Re-connect via the app.",
                 }
 
-            await page.wait_for_selector(CARD_SELECTOR, timeout=20_000)
-            await page.wait_for_timeout(2000)  # let first batch settle
+            # Wait for connection cards to appear
+            try:
+                await page.wait_for_selector(CARD_SELECTOR, timeout=20_000)
+            except Exception:
+                # Selector may have changed — try to proceed anyway
+                pass
+            await page.wait_for_timeout(2000)
 
-            # Accumulate connections across all scroll positions (virtual scroll fix)
             seen_urls: dict[str, dict] = {}
             stable_rounds = 0
 
-            for _ in range(MAX_SCROLLS):
+            # Extract round 0 before any interaction
+            html = await page.content()
+            for conn in extract_connections(html):
+                url = conn.get("profileUrl", "")
+                if url:
+                    seen_urls[url] = conn
+
+            for step in range(MAX_SCROLLS):
+                # Scroll the last visible connection card into view.
+                # This triggers LinkedIn's IntersectionObserver sentinel to load
+                # the next batch — more reliable than wheel/keyboard scroll.
+                await page.evaluate("""() => {
+                    const cards = document.querySelectorAll("a[data-view-name='connections-profile']");
+                    if (!cards.length) return;
+                    cards[cards.length - 1].scrollIntoView({behavior: 'instant', block: 'end'});
+                }""")
+                await page.wait_for_timeout(3000)
+
                 html = await page.content()
                 batch = extract_connections(html)
                 new_this_round = 0
@@ -77,9 +101,6 @@ async def scrape() -> dict:
                         break
                 else:
                     stable_rounds = 0
-
-                await page.mouse.wheel(0, 8000)
-                await page.wait_for_timeout(2500)
 
             return {"connections": list(seen_urls.values()), "error": None}
         finally:
