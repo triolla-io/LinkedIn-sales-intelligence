@@ -81,10 +81,34 @@ def handle_get_profile(client: Linkedin, urn: str) -> dict:
     }
 
 
-def handle_send_message(client: Linkedin, urn: str, body: str) -> dict:
+def resolve_profile_id(client: Linkedin, urn: str) -> str:
+    """Return the base64 profile ID needed by the messaging API.
+
+    The stored URN may contain either:
+    - A real base64 profile ID: urn:li:fs_miniProfile:ACoAABcJ...  (starts with ACo, 20+ chars)
+    - A vanity slug from HTML scraping: urn:li:fs_miniProfile:yuvalbaror1
+    - A CSV import URN: urn:li:csv_import:...
+
+    In the latter two cases we resolve via a profile lookup.
+    """
     urn_id = extract_urn_id(urn)
-    client.send_message(message_body=body, recipients=[urn_id])
-    return {"messageId": f"sent-{urn_id}"}
+    # Proper LinkedIn base64 profile IDs start with "ACo" and are long
+    if urn_id.startswith("ACo") and len(urn_id) > 20:
+        return urn_id
+    # Vanity slug or import URN — resolve to actual entityUrn
+    profile = client.get_profile(public_id=urn_id) or {}
+    entity_urn = profile.get("entityUrn", "")
+    if entity_urn:
+        return extract_urn_id(entity_urn)
+    raise ValueError(f"Could not resolve LinkedIn profile ID for URN: {urn}")
+
+
+def handle_send_message(client: Linkedin, urn: str, body: str) -> dict:
+    profile_id = resolve_profile_id(client, urn)
+    error = client.send_message(message_body=body, recipients=[profile_id])
+    if error is True:
+        raise ValueError(f"LinkedIn API rejected the message (recipient: {profile_id})")
+    return {"messageId": f"sent-{profile_id}"}
 
 
 def handle_validate(client: Linkedin) -> dict:
