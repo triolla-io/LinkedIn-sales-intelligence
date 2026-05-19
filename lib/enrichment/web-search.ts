@@ -96,8 +96,10 @@ export async function enrichCompanyFromWeb(name: string): Promise<WebEnrichResul
           if (count) result.staffCount = count;
         }
 
-        if (label === "industry" || label === "type" || label === "sector") {
-          result.industry = result.industry ?? (parseIndustry(value) || value.split(",")[0].trim() || null);
+        // "industry" label only — skip "type" which returns "Public company" / "Subsidiary" etc.
+        if (label === "industry" || label === "sector") {
+          const parsed = parseIndustry(value);
+          if (parsed) result.industry = result.industry ?? parsed;
         }
 
         if (label === "website" || label === "homepage") {
