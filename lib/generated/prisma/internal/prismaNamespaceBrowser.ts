@@ -63,7 +63,10 @@ export const ModelName = {
   SyncJob: 'SyncJob',
   SavedView: 'SavedView',
   AuditEvent: 'AuditEvent',
-  EnrichmentSpend: 'EnrichmentSpend'
+  EnrichmentSpend: 'EnrichmentSpend',
+  Company: 'Company',
+  Campaign: 'Campaign',
+  CampaignRecipient: 'CampaignRecipient'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -137,6 +140,7 @@ export const UserScalarFieldEnum = {
   emailVerified: 'emailVerified',
   name: 'name',
   image: 'image',
+  title: 'title',
   role: 'role',
   createdAt: 'createdAt'
 } as const
@@ -182,7 +186,8 @@ export const ContactScalarFieldEnum = {
   enrichedAt: 'enrichedAt',
   enrichmentSource: 'enrichmentSource',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  companyId: 'companyId'
 } as const
 
 export type ContactScalarFieldEnum = (typeof ContactScalarFieldEnum)[keyof typeof ContactScalarFieldEnum]
@@ -266,6 +271,56 @@ export const EnrichmentSpendScalarFieldEnum = {
 export type EnrichmentSpendScalarFieldEnum = (typeof EnrichmentSpendScalarFieldEnum)[keyof typeof EnrichmentSpendScalarFieldEnum]
 
 
+export const CompanyScalarFieldEnum = {
+  id: 'id',
+  universalName: 'universalName',
+  name: 'name',
+  industry: 'industry',
+  staffCount: 'staffCount',
+  website: 'website',
+  description: 'description',
+  lastEnrichedAt: 'lastEnrichedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CompanyScalarFieldEnum = (typeof CompanyScalarFieldEnum)[keyof typeof CompanyScalarFieldEnum]
+
+
+export const CampaignScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  orgId: 'orgId',
+  name: 'name',
+  channel: 'channel',
+  templateId: 'templateId',
+  status: 'status',
+  filterJson: 'filterJson',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CampaignScalarFieldEnum = (typeof CampaignScalarFieldEnum)[keyof typeof CampaignScalarFieldEnum]
+
+
+export const CampaignRecipientScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  contactId: 'contactId',
+  status: 'status',
+  renderedBody: 'renderedBody',
+  sentMessageId: 'sentMessageId',
+  errorMessage: 'errorMessage',
+  attemptCount: 'attemptCount',
+  scheduledAt: 'scheduledAt',
+  sentAt: 'sentAt'
+} as const
+
+export type CampaignRecipientScalarFieldEnum = (typeof CampaignRecipientScalarFieldEnum)[keyof typeof CampaignRecipientScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -279,6 +334,14 @@ export const JsonNullValueInput = {
 } as const
 
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {

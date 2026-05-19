@@ -106,3 +106,18 @@ export type AuditEvent = Prisma.AuditEventModel
  * 
  */
 export type EnrichmentSpend = Prisma.EnrichmentSpendModel
+/**
+ * Model Company
+ * 
+ */
+export type Company = Prisma.CompanyModel
+/**
+ * Model Campaign
+ * 
+ */
+export type Campaign = Prisma.CampaignModel
+/**
+ * Model CampaignRecipient
+ * 
+ */
+export type CampaignRecipient = Prisma.CampaignRecipientModel

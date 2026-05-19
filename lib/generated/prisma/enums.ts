@@ -82,3 +82,35 @@ export const MessageStatus = {
 } as const
 
 export type MessageStatus = (typeof MessageStatus)[keyof typeof MessageStatus]
+
+
+export const CampaignChannel = {
+  LINKEDIN: 'LINKEDIN',
+  EMAIL: 'EMAIL',
+  WHATSAPP: 'WHATSAPP'
+} as const
+
+export type CampaignChannel = (typeof CampaignChannel)[keyof typeof CampaignChannel]
+
+
+export const CampaignStatus = {
+  DRAFT: 'DRAFT',
+  QUEUED: 'QUEUED',
+  RUNNING: 'RUNNING',
+  PAUSED: 'PAUSED',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type CampaignStatus = (typeof CampaignStatus)[keyof typeof CampaignStatus]
+
+
+export const RecipientStatus = {
+  PENDING: 'PENDING',
+  SENDING: 'SENDING',
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+  SKIPPED: 'SKIPPED'
+} as const
+
+export type RecipientStatus = (typeof RecipientStatus)[keyof typeof RecipientStatus]

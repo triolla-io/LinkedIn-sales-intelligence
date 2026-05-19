@@ -31,6 +31,7 @@ export type UserMinAggregateOutputType = {
   emailVerified: Date | null
   name: string | null
   image: string | null
+  title: string | null
   role: $Enums.Role | null
   createdAt: Date | null
 }
@@ -42,6 +43,7 @@ export type UserMaxAggregateOutputType = {
   emailVerified: Date | null
   name: string | null
   image: string | null
+  title: string | null
   role: $Enums.Role | null
   createdAt: Date | null
 }
@@ -53,6 +55,7 @@ export type UserCountAggregateOutputType = {
   emailVerified: number
   name: number
   image: number
+  title: number
   role: number
   createdAt: number
   _all: number
@@ -66,6 +69,7 @@ export type UserMinAggregateInputType = {
   emailVerified?: true
   name?: true
   image?: true
+  title?: true
   role?: true
   createdAt?: true
 }
@@ -77,6 +81,7 @@ export type UserMaxAggregateInputType = {
   emailVerified?: true
   name?: true
   image?: true
+  title?: true
   role?: true
   createdAt?: true
 }
@@ -88,6 +93,7 @@ export type UserCountAggregateInputType = {
   emailVerified?: true
   name?: true
   image?: true
+  title?: true
   role?: true
   createdAt?: true
   _all?: true
@@ -172,6 +178,7 @@ export type UserGroupByOutputType = {
   emailVerified: Date | null
   name: string
   image: string | null
+  title: string | null
   role: $Enums.Role
   createdAt: Date
   _count: UserCountAggregateOutputType | null
@@ -204,6 +211,7 @@ export type UserWhereInput = {
   emailVerified?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   name?: Prisma.StringFilter<"User"> | string
   image?: Prisma.StringNullableFilter<"User"> | string | null
+  title?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   org?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -218,6 +226,7 @@ export type UserWhereInput = {
   templates?: Prisma.MessageTemplateListRelationFilter
   auditActed?: Prisma.AuditEventListRelationFilter
   auditTargeted?: Prisma.AuditEventListRelationFilter
+  campaigns?: Prisma.CampaignListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -227,6 +236,7 @@ export type UserOrderByWithRelationInput = {
   emailVerified?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
+  title?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   org?: Prisma.OrganizationOrderByWithRelationInput
@@ -241,6 +251,7 @@ export type UserOrderByWithRelationInput = {
   templates?: Prisma.MessageTemplateOrderByRelationAggregateInput
   auditActed?: Prisma.AuditEventOrderByRelationAggregateInput
   auditTargeted?: Prisma.AuditEventOrderByRelationAggregateInput
+  campaigns?: Prisma.CampaignOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -253,6 +264,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   emailVerified?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   name?: Prisma.StringFilter<"User"> | string
   image?: Prisma.StringNullableFilter<"User"> | string | null
+  title?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   org?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -267,6 +279,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   templates?: Prisma.MessageTemplateListRelationFilter
   auditActed?: Prisma.AuditEventListRelationFilter
   auditTargeted?: Prisma.AuditEventListRelationFilter
+  campaigns?: Prisma.CampaignListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -276,6 +289,7 @@ export type UserOrderByWithAggregationInput = {
   emailVerified?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
+  title?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
@@ -293,6 +307,7 @@ export type UserScalarWhereWithAggregatesInput = {
   emailVerified?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   name?: Prisma.StringWithAggregatesFilter<"User"> | string
   image?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  title?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   role?: Prisma.EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
@@ -303,6 +318,7 @@ export type UserCreateInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -317,6 +333,7 @@ export type UserCreateInput = {
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -326,6 +343,7 @@ export type UserUncheckedCreateInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
@@ -339,6 +357,7 @@ export type UserUncheckedCreateInput = {
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUpdateInput = {
@@ -347,6 +366,7 @@ export type UserUpdateInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -361,6 +381,7 @@ export type UserUpdateInput = {
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -370,6 +391,7 @@ export type UserUncheckedUpdateInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
@@ -383,6 +405,7 @@ export type UserUncheckedUpdateInput = {
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -392,6 +415,7 @@ export type UserCreateManyInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
 }
@@ -402,6 +426,7 @@ export type UserUpdateManyMutationInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -413,6 +438,7 @@ export type UserUncheckedUpdateManyInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -439,6 +465,7 @@ export type UserCountOrderByAggregateInput = {
   emailVerified?: Prisma.SortOrder
   name?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  title?: Prisma.SortOrder
   role?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -450,6 +477,7 @@ export type UserMaxOrderByAggregateInput = {
   emailVerified?: Prisma.SortOrder
   name?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  title?: Prisma.SortOrder
   role?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -461,6 +489,7 @@ export type UserMinOrderByAggregateInput = {
   emailVerified?: Prisma.SortOrder
   name?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  title?: Prisma.SortOrder
   role?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -676,12 +705,27 @@ export type UserUpdateOneWithoutAuditTargetedNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuditTargetedInput, Prisma.UserUpdateWithoutAuditTargetedInput>, Prisma.UserUncheckedUpdateWithoutAuditTargetedInput>
 }
 
+export type UserCreateNestedOneWithoutCampaignsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCampaignsInput, Prisma.UserUncheckedCreateWithoutCampaignsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCampaignsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutCampaignsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCampaignsInput, Prisma.UserUncheckedCreateWithoutCampaignsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCampaignsInput
+  upsert?: Prisma.UserUpsertWithoutCampaignsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCampaignsInput, Prisma.UserUpdateWithoutCampaignsInput>, Prisma.UserUncheckedUpdateWithoutCampaignsInput>
+}
+
 export type UserCreateWithoutAccountsInput = {
   id?: string
   email: string
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -695,6 +739,7 @@ export type UserCreateWithoutAccountsInput = {
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -704,6 +749,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -716,6 +762,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -740,6 +787,7 @@ export type UserUpdateWithoutAccountsInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -753,6 +801,7 @@ export type UserUpdateWithoutAccountsInput = {
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -762,6 +811,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -774,6 +824,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -782,6 +833,7 @@ export type UserCreateWithoutSessionsInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -795,6 +847,7 @@ export type UserCreateWithoutSessionsInput = {
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -804,6 +857,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
@@ -816,6 +870,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -840,6 +895,7 @@ export type UserUpdateWithoutSessionsInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -853,6 +909,7 @@ export type UserUpdateWithoutSessionsInput = {
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -862,6 +919,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
@@ -874,6 +932,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutOrgInput = {
@@ -882,6 +941,7 @@ export type UserCreateWithoutOrgInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -895,6 +955,7 @@ export type UserCreateWithoutOrgInput = {
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutOrgInput = {
@@ -903,6 +964,7 @@ export type UserUncheckedCreateWithoutOrgInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
@@ -916,6 +978,7 @@ export type UserUncheckedCreateWithoutOrgInput = {
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutOrgInput = {
@@ -954,6 +1017,7 @@ export type UserScalarWhereInput = {
   emailVerified?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   name?: Prisma.StringFilter<"User"> | string
   image?: Prisma.StringNullableFilter<"User"> | string | null
+  title?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
 }
@@ -964,6 +1028,7 @@ export type UserCreateWithoutLinkedinSessionInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -977,6 +1042,7 @@ export type UserCreateWithoutLinkedinSessionInput = {
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutLinkedinSessionInput = {
@@ -986,6 +1052,7 @@ export type UserUncheckedCreateWithoutLinkedinSessionInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
@@ -998,6 +1065,7 @@ export type UserUncheckedCreateWithoutLinkedinSessionInput = {
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutLinkedinSessionInput = {
@@ -1022,6 +1090,7 @@ export type UserUpdateWithoutLinkedinSessionInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -1035,6 +1104,7 @@ export type UserUpdateWithoutLinkedinSessionInput = {
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
@@ -1044,6 +1114,7 @@ export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
@@ -1056,6 +1127,7 @@ export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutContactsInput = {
@@ -1064,6 +1136,7 @@ export type UserCreateWithoutContactsInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -1077,6 +1150,7 @@ export type UserCreateWithoutContactsInput = {
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutContactsInput = {
@@ -1086,6 +1160,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
@@ -1098,6 +1173,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutContactsInput = {
@@ -1122,6 +1198,7 @@ export type UserUpdateWithoutContactsInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -1135,6 +1212,7 @@ export type UserUpdateWithoutContactsInput = {
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactsInput = {
@@ -1144,6 +1222,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
@@ -1156,6 +1235,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutTemplatesInput = {
@@ -1164,6 +1244,7 @@ export type UserCreateWithoutTemplatesInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -1177,6 +1258,7 @@ export type UserCreateWithoutTemplatesInput = {
   savedViews?: Prisma.SavedViewCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutTemplatesInput = {
@@ -1186,6 +1268,7 @@ export type UserUncheckedCreateWithoutTemplatesInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
@@ -1198,6 +1281,7 @@ export type UserUncheckedCreateWithoutTemplatesInput = {
   savedViews?: Prisma.SavedViewUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutTemplatesInput = {
@@ -1222,6 +1306,7 @@ export type UserUpdateWithoutTemplatesInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -1235,6 +1320,7 @@ export type UserUpdateWithoutTemplatesInput = {
   savedViews?: Prisma.SavedViewUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTemplatesInput = {
@@ -1244,6 +1330,7 @@ export type UserUncheckedUpdateWithoutTemplatesInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
@@ -1256,6 +1343,7 @@ export type UserUncheckedUpdateWithoutTemplatesInput = {
   savedViews?: Prisma.SavedViewUncheckedUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSentMessagesInput = {
@@ -1264,6 +1352,7 @@ export type UserCreateWithoutSentMessagesInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -1277,6 +1366,7 @@ export type UserCreateWithoutSentMessagesInput = {
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSentMessagesInput = {
@@ -1286,6 +1376,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
@@ -1298,6 +1389,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSentMessagesInput = {
@@ -1311,6 +1403,7 @@ export type UserCreateWithoutActedMessagesInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -1324,6 +1417,7 @@ export type UserCreateWithoutActedMessagesInput = {
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutActedMessagesInput = {
@@ -1333,6 +1427,7 @@ export type UserUncheckedCreateWithoutActedMessagesInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
@@ -1345,6 +1440,7 @@ export type UserUncheckedCreateWithoutActedMessagesInput = {
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutActedMessagesInput = {
@@ -1369,6 +1465,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -1382,6 +1479,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentMessagesInput = {
@@ -1391,6 +1489,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
@@ -1403,6 +1502,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutActedMessagesInput = {
@@ -1422,6 +1522,7 @@ export type UserUpdateWithoutActedMessagesInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -1435,6 +1536,7 @@ export type UserUpdateWithoutActedMessagesInput = {
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActedMessagesInput = {
@@ -1444,6 +1546,7 @@ export type UserUncheckedUpdateWithoutActedMessagesInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
@@ -1456,6 +1559,7 @@ export type UserUncheckedUpdateWithoutActedMessagesInput = {
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSyncJobsInput = {
@@ -1464,6 +1568,7 @@ export type UserCreateWithoutSyncJobsInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -1477,6 +1582,7 @@ export type UserCreateWithoutSyncJobsInput = {
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSyncJobsInput = {
@@ -1486,6 +1592,7 @@ export type UserUncheckedCreateWithoutSyncJobsInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
@@ -1498,6 +1605,7 @@ export type UserUncheckedCreateWithoutSyncJobsInput = {
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSyncJobsInput = {
@@ -1522,6 +1630,7 @@ export type UserUpdateWithoutSyncJobsInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -1535,6 +1644,7 @@ export type UserUpdateWithoutSyncJobsInput = {
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSyncJobsInput = {
@@ -1544,6 +1654,7 @@ export type UserUncheckedUpdateWithoutSyncJobsInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
@@ -1556,6 +1667,7 @@ export type UserUncheckedUpdateWithoutSyncJobsInput = {
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSavedViewsInput = {
@@ -1564,6 +1676,7 @@ export type UserCreateWithoutSavedViewsInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -1577,6 +1690,7 @@ export type UserCreateWithoutSavedViewsInput = {
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSavedViewsInput = {
@@ -1586,6 +1700,7 @@ export type UserUncheckedCreateWithoutSavedViewsInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
@@ -1598,6 +1713,7 @@ export type UserUncheckedCreateWithoutSavedViewsInput = {
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSavedViewsInput = {
@@ -1622,6 +1738,7 @@ export type UserUpdateWithoutSavedViewsInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -1635,6 +1752,7 @@ export type UserUpdateWithoutSavedViewsInput = {
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSavedViewsInput = {
@@ -1644,6 +1762,7 @@ export type UserUncheckedUpdateWithoutSavedViewsInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
@@ -1656,6 +1775,7 @@ export type UserUncheckedUpdateWithoutSavedViewsInput = {
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutAuditActedInput = {
@@ -1664,6 +1784,7 @@ export type UserCreateWithoutAuditActedInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -1677,6 +1798,7 @@ export type UserCreateWithoutAuditActedInput = {
   savedViews?: Prisma.SavedViewCreateNestedManyWithoutOwnerInput
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAuditActedInput = {
@@ -1686,6 +1808,7 @@ export type UserUncheckedCreateWithoutAuditActedInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
@@ -1698,6 +1821,7 @@ export type UserUncheckedCreateWithoutAuditActedInput = {
   savedViews?: Prisma.SavedViewUncheckedCreateNestedManyWithoutOwnerInput
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAuditActedInput = {
@@ -1711,6 +1835,7 @@ export type UserCreateWithoutAuditTargetedInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -1724,6 +1849,7 @@ export type UserCreateWithoutAuditTargetedInput = {
   savedViews?: Prisma.SavedViewCreateNestedManyWithoutOwnerInput
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAuditTargetedInput = {
@@ -1733,6 +1859,7 @@ export type UserUncheckedCreateWithoutAuditTargetedInput = {
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
@@ -1745,6 +1872,7 @@ export type UserUncheckedCreateWithoutAuditTargetedInput = {
   savedViews?: Prisma.SavedViewUncheckedCreateNestedManyWithoutOwnerInput
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAuditTargetedInput = {
@@ -1769,6 +1897,7 @@ export type UserUpdateWithoutAuditActedInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -1782,6 +1911,7 @@ export type UserUpdateWithoutAuditActedInput = {
   savedViews?: Prisma.SavedViewUpdateManyWithoutOwnerNestedInput
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditActedInput = {
@@ -1791,6 +1921,7 @@ export type UserUncheckedUpdateWithoutAuditActedInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
@@ -1803,6 +1934,7 @@ export type UserUncheckedUpdateWithoutAuditActedInput = {
   savedViews?: Prisma.SavedViewUncheckedUpdateManyWithoutOwnerNestedInput
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutAuditTargetedInput = {
@@ -1822,6 +1954,7 @@ export type UserUpdateWithoutAuditTargetedInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -1835,6 +1968,7 @@ export type UserUpdateWithoutAuditTargetedInput = {
   savedViews?: Prisma.SavedViewUpdateManyWithoutOwnerNestedInput
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditTargetedInput = {
@@ -1844,6 +1978,7 @@ export type UserUncheckedUpdateWithoutAuditTargetedInput = {
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
@@ -1856,26 +1991,81 @@ export type UserUncheckedUpdateWithoutAuditTargetedInput = {
   savedViews?: Prisma.SavedViewUncheckedUpdateManyWithoutOwnerNestedInput
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
-export type UserCreateManyOrgInput = {
+export type UserCreateWithoutCampaignsInput = {
   id?: string
   email: string
   emailVerified?: Date | string | null
   name: string
   image?: string | null
+  title?: string | null
   role?: $Enums.Role
   createdAt?: Date | string
+  org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageCreateNestedManyWithoutActorInput
+  syncJobs?: Prisma.SyncJobCreateNestedManyWithoutUserInput
+  savedViews?: Prisma.SavedViewCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
 }
 
-export type UserUpdateWithoutOrgInput = {
+export type UserUncheckedCreateWithoutCampaignsInput = {
+  id?: string
+  orgId: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  createdAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutActorInput
+  syncJobs?: Prisma.SyncJobUncheckedCreateNestedManyWithoutUserInput
+  savedViews?: Prisma.SavedViewUncheckedCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+}
+
+export type UserCreateOrConnectWithoutCampaignsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCampaignsInput, Prisma.UserUncheckedCreateWithoutCampaignsInput>
+}
+
+export type UserUpsertWithoutCampaignsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCampaignsInput, Prisma.UserUncheckedUpdateWithoutCampaignsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCampaignsInput, Prisma.UserUncheckedCreateWithoutCampaignsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCampaignsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCampaignsInput, Prisma.UserUncheckedUpdateWithoutCampaignsInput>
+}
+
+export type UserUpdateWithoutCampaignsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
@@ -1889,12 +2079,14 @@ export type UserUpdateWithoutOrgInput = {
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
 }
 
-export type UserUncheckedUpdateWithoutOrgInput = {
+export type UserUncheckedUpdateWithoutCampaignsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
@@ -1910,12 +2102,70 @@ export type UserUncheckedUpdateWithoutOrgInput = {
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
 }
 
+export type UserCreateManyOrgInput = {
+  id?: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  createdAt?: Date | string
+}
+
+export type UserUpdateWithoutOrgInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUpdateManyWithoutActorNestedInput
+  syncJobs?: Prisma.SyncJobUpdateManyWithoutUserNestedInput
+  savedViews?: Prisma.SavedViewUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOrgInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutActorNestedInput
+  syncJobs?: Prisma.SyncJobUncheckedUpdateManyWithoutUserNestedInput
+  savedViews?: Prisma.SavedViewUncheckedUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+}
+
 export type UserUncheckedUpdateManyWithoutOrgInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1936,6 +2186,7 @@ export type UserCountOutputType = {
   templates: number
   auditActed: number
   auditTargeted: number
+  campaigns: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1949,6 +2200,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   templates?: boolean | UserCountOutputTypeCountTemplatesArgs
   auditActed?: boolean | UserCountOutputTypeCountAuditActedArgs
   auditTargeted?: boolean | UserCountOutputTypeCountAuditTargetedArgs
+  campaigns?: boolean | UserCountOutputTypeCountCampaignsArgs
 }
 
 /**
@@ -2031,6 +2283,13 @@ export type UserCountOutputTypeCountAuditTargetedArgs<ExtArgs extends runtime.Ty
   where?: Prisma.AuditEventWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountCampaignsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CampaignWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2039,6 +2298,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   emailVerified?: boolean
   name?: boolean
   image?: boolean
+  title?: boolean
   role?: boolean
   createdAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -2053,6 +2313,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   templates?: boolean | Prisma.User$templatesArgs<ExtArgs>
   auditActed?: boolean | Prisma.User$auditActedArgs<ExtArgs>
   auditTargeted?: boolean | Prisma.User$auditTargetedArgs<ExtArgs>
+  campaigns?: boolean | Prisma.User$campaignsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2063,6 +2324,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   emailVerified?: boolean
   name?: boolean
   image?: boolean
+  title?: boolean
   role?: boolean
   createdAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -2075,6 +2337,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   emailVerified?: boolean
   name?: boolean
   image?: boolean
+  title?: boolean
   role?: boolean
   createdAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -2087,11 +2350,12 @@ export type UserSelectScalar = {
   emailVerified?: boolean
   name?: boolean
   image?: boolean
+  title?: boolean
   role?: boolean
   createdAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "email" | "emailVerified" | "name" | "image" | "role" | "createdAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "email" | "emailVerified" | "name" | "image" | "title" | "role" | "createdAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -2105,6 +2369,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   templates?: boolean | Prisma.User$templatesArgs<ExtArgs>
   auditActed?: boolean | Prisma.User$auditActedArgs<ExtArgs>
   auditTargeted?: boolean | Prisma.User$auditTargetedArgs<ExtArgs>
+  campaigns?: boolean | Prisma.User$campaignsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2129,6 +2394,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     templates: Prisma.$MessageTemplatePayload<ExtArgs>[]
     auditActed: Prisma.$AuditEventPayload<ExtArgs>[]
     auditTargeted: Prisma.$AuditEventPayload<ExtArgs>[]
+    campaigns: Prisma.$CampaignPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2137,6 +2403,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     emailVerified: Date | null
     name: string
     image: string | null
+    title: string | null
     role: $Enums.Role
     createdAt: Date
   }, ExtArgs["result"]["user"]>
@@ -2545,6 +2812,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   templates<T extends Prisma.User$templatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$templatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessageTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditActed<T extends Prisma.User$auditActedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditActedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditTargeted<T extends Prisma.User$auditTargetedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditTargetedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  campaigns<T extends Prisma.User$campaignsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$campaignsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2580,6 +2848,7 @@ export interface UserFieldRefs {
   readonly emailVerified: Prisma.FieldRef<"User", 'DateTime'>
   readonly name: Prisma.FieldRef<"User", 'String'>
   readonly image: Prisma.FieldRef<"User", 'String'>
+  readonly title: Prisma.FieldRef<"User", 'String'>
   readonly role: Prisma.FieldRef<"User", 'Role'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
 }
@@ -3239,6 +3508,30 @@ export type User$auditTargetedArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.AuditEventScalarFieldEnum | Prisma.AuditEventScalarFieldEnum[]
+}
+
+/**
+ * User.campaigns
+ */
+export type User$campaignsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Campaign
+   */
+  select?: Prisma.CampaignSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Campaign
+   */
+  omit?: Prisma.CampaignOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignInclude<ExtArgs> | null
+  where?: Prisma.CampaignWhereInput
+  orderBy?: Prisma.CampaignOrderByWithRelationInput | Prisma.CampaignOrderByWithRelationInput[]
+  cursor?: Prisma.CampaignWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CampaignScalarFieldEnum | Prisma.CampaignScalarFieldEnum[]
 }
 
 /**

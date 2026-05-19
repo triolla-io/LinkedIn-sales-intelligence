@@ -123,6 +123,7 @@ model User {
   emailVerified DateTime?
   name          String
   image         String?
+  title         String?
   role          Role      @default(SALESPERSON)
   createdAt     DateTime  @default(now())
 
@@ -138,6 +139,7 @@ model User {
   templates       MessageTemplate[]
   auditActed      AuditEvent[]      @relation("AuditActor")
   auditTargeted   AuditEvent[]      @relation("AuditTarget")
+  campaigns       Campaign[]
 }
 
 model LinkedinSession {
@@ -185,8 +187,9 @@ model Contact {
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id])
 
-  owner    User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  messages SentMessage[]
+  owner              User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  messages           SentMessage[]
+  campaignRecipients CampaignRecipient[]
 
   @@unique([ownerId, linkedinUrn])
   @@index([ownerId, seniority])
@@ -203,8 +206,9 @@ model MessageTemplate {
   name    String
   body    String
 
-  owner    User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  messages SentMessage[]
+  owner     User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  messages  SentMessage[]
+  campaigns Campaign[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -221,10 +225,11 @@ model SentMessage {
   status       MessageStatus @default(QUEUED)
   errorMessage String?
 
-  sender   User             @relation("SentBySender", fields: [senderId], references: [id])
-  actor    User             @relation("ActedByActor", fields: [actorId], references: [id])
-  contact  Contact          @relation(fields: [contactId], references: [id])
-  template MessageTemplate? @relation(fields: [templateId], references: [id])
+  sender            User              @relation("SentBySender", fields: [senderId], references: [id])
+  actor             User              @relation("ActedByActor", fields: [actorId], references: [id])
+  contact           Contact           @relation(fields: [contactId], references: [id])
+  template          MessageTemplate?  @relation(fields: [templateId], references: [id])
+  campaignRecipient CampaignRecipient?
 
   @@index([senderId, sentAt])
   @@index([contactId])
@@ -301,4 +306,72 @@ model Company {
 
   @@index([industry])
   @@index([staffCount])
+}
+
+// ─── Campaign enums ───────────────────────────────────────────────────────────
+
+enum CampaignChannel {
+  LINKEDIN
+  EMAIL
+  WHATSAPP
+}
+
+enum CampaignStatus {
+  DRAFT
+  QUEUED
+  RUNNING
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum RecipientStatus {
+  PENDING
+  SENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+// ─── Campaign models ──────────────────────────────────────────────────────────
+
+model Campaign {
+  id          String           @id @default(cuid())
+  ownerId     String
+  orgId       String?
+  name        String
+  channel     CampaignChannel
+  templateId  String
+  status      CampaignStatus   @default(DRAFT)
+  filterJson  Json?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  owner      User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  template   MessageTemplate     @relation(fields: [templateId], references: [id])
+  recipients CampaignRecipient[]
+
+  @@index([ownerId, status])
+}
+
+model CampaignRecipient {
+  id            String          @id @default(cuid())
+  campaignId    String
+  contactId     String
+  status        RecipientStatus @default(PENDING)
+  renderedBody  String?
+  sentMessageId String?         @unique
+  errorMessage  String?
+  attemptCount  Int             @default(0)
+  scheduledAt   DateTime?
+  sentAt        DateTime?
+
+  campaign    Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contact     Contact      @relation(fields: [contactId], references: [id])
+  sentMessage SentMessage? @relation(fields: [sentMessageId], references: [id])
+
+  @@unique([campaignId, contactId])
+  @@index([campaignId, status])
 }
