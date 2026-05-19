@@ -1,27 +1,41 @@
+const APOLLO_HEADERS = () => ({
+  "Content-Type": "application/json",
+  "X-Api-Key": process.env.APOLLO_API_KEY ?? "",
+});
+
 export async function matchOrganization(name: string): Promise<{
   staffCount: number | null;
   industry: string | null;
   website: string | null;
   description: string | null;
 }> {
-  const res = await fetch("https://api.apollo.io/v1/organizations/enrich", {
+  const empty = { staffCount: null, industry: null, website: null, description: null };
+
+  // Step 1: search by name to get domain
+  const searchRes = await fetch("https://api.apollo.io/v1/mixed_companies/search", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.APOLLO_API_KEY}`,
-    },
-    body: JSON.stringify({ name }),
+    headers: APOLLO_HEADERS(),
+    body: JSON.stringify({ q_organization_name: name, page: 1, per_page: 1 }),
   });
+  if (!searchRes.ok) return empty;
+  const searchData = await searchRes.json();
+  const account = searchData.accounts?.[0];
+  const domain = account?.primary_domain || account?.domain || account?.website_url?.replace(/^https?:\/\//, "").split("/")[0];
+  if (!domain) return empty;
 
-  if (res.status === 404 || res.status === 422) {
-    return { staffCount: null, industry: null, website: null, description: null };
-  }
-  if (res.status === 429) throw new Error("Apollo rate limit");
-  if (!res.ok) throw new Error(`Apollo org enrich ${res.status}`);
+  // Step 2: enrich by domain to get full company data
+  const enrichRes = await fetch("https://api.apollo.io/v1/organizations/enrich", {
+    method: "POST",
+    headers: APOLLO_HEADERS(),
+    body: JSON.stringify({ domain }),
+  });
+  if (enrichRes.status === 422 || enrichRes.status === 404) return empty;
+  if (enrichRes.status === 429) throw new Error("Apollo rate limit");
+  if (!enrichRes.ok) return empty;
 
-  const data = await res.json();
-  const org = data.organization;
-  if (!org) return { staffCount: null, industry: null, website: null, description: null };
+  const enrichData = await enrichRes.json();
+  const org = enrichData.organization;
+  if (!org) return empty;
 
   return {
     staffCount: org.estimated_num_employees ?? null,
@@ -53,7 +67,7 @@ export async function matchPerson(input: {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.APOLLO_API_KEY}`,
+        "X-Api-Key": process.env.APOLLO_API_KEY ?? "",
       },
       body,
     });
