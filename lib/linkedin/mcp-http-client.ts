@@ -33,15 +33,15 @@ export async function mcpSendMessage(
 }
 
 export function extractUsername(linkedinUrl: string, linkedinUrn?: string): string {
-  // Try URL first
-  const fromUrl = linkedinUrl.match(/linkedin\.com\/in\/([^/?#]+)/)?.[1];
-  if (fromUrl) return fromUrl;
-  // Fall back to vanity slug from URN (e.g. urn:li:fs_miniProfile:may-tishler)
-  if (linkedinUrn) {
+  // Try URL — must have a non-empty slug after /in/
+  const fromUrl = linkedinUrl.match(/linkedin\.com\/in\/([^/?#\s]+)/)?.[1];
+  if (fromUrl && fromUrl.length > 1) return fromUrl;
+  // Fall back to vanity slug from URN — only works if NOT a csv_import or base64 ID
+  if (linkedinUrn && !linkedinUrn.includes("csv_import")) {
     const slug = linkedinUrn.split(":").at(-1);
     if (slug && !slug.startsWith("ACo") && slug.length > 2) return slug;
   }
-  throw new Error(`Cannot extract LinkedIn username from URL "${linkedinUrl}" or URN "${linkedinUrn}"`);
+  throw new Error(`Contact has no valid LinkedIn profile URL. This contact was likely imported from CSV without a profile link and cannot receive LinkedIn messages.`);
 }
 
 export function extractProfileUrn(linkedinUrn: string): string | undefined {
