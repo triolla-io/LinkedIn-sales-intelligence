@@ -8,6 +8,13 @@ export const GET = withTenant(async (_req, ctx) => {
 
   const contact = await prisma.contact.findFirst({
     where: { id, ownerId: ctx.effectiveUserId, removedAt: null },
+    include: {
+      messages: {
+        orderBy: { sentAt: "desc" },
+        take: 20,
+        select: { id: true, body: true, sentAt: true, status: true },
+      },
+    },
   });
 
   if (!contact) {

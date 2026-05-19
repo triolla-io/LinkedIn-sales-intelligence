@@ -1,12 +1,17 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
+import { publish } from "@/lib/linkedin/sse-bus";
 import { spawn } from "child_process";
 import * as path from "path";
 
 const UVX = process.env.UVX_PATH ?? "uvx";
 const SCRAPER = path.join(process.cwd(), "lib/linkedin/profile_scraper.py");
+const BATCH_SIZE = 100;
 
-async function runProfileScraper(contacts: { id: string; profileUrl: string }[]): Promise<
+async function runProfileScraper(
+  contacts: { id: string; profileUrl: string }[],
+  onProgress?: (done: number) => void,
+): Promise<
   { id: string; location?: string; industry?: string; employees?: number; error?: string }[]
 > {
   return new Promise((resolve, reject) => {
@@ -16,14 +21,24 @@ async function runProfileScraper(contacts: { id: string; profileUrl: string }[])
     });
 
     let stdout = "";
+    let progressCount = 0;
+    let lineBuf = "";
     proc.stdout.on("data", (b) => {
-      stdout += b.toString();
-      // Stream progress lines to console
-      const lines = b.toString().trim().split("\n");
+      const chunk = b.toString();
+      stdout += chunk;
+      lineBuf += chunk;
+      const lines = lineBuf.split("\n");
+      lineBuf = lines.pop() ?? "";
       for (const line of lines) {
-        if (line.includes("progress") || line.includes("company")) {
-          try { console.log("[profile-enrich]", JSON.parse(line)); } catch {}
-        }
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (parsed.progress) {
+            progressCount++;
+            onProgress?.(progressCount);
+          }
+        } catch {}
       }
     });
     proc.stderr.on("data", () => {}); // suppress patchright noise
@@ -59,20 +74,28 @@ export const enrichProfiles = inngest.createFunction(
       prisma.contact.findMany({
         where: {
           ownerId: userId,
-          OR: [{ location: null }, { industry: null }],
+          OR: [{ location: null }, { industry: null }, { companySize: null }],
         },
         select: { id: true, linkedinUrl: true },
-        take: 100,
+        take: BATCH_SIZE,
       })
     );
 
-    if (!contacts.length) return { skipped: true, reason: "all contacts already enriched" };
+    if (!contacts.length) {
+      publish(userId, { type: "linkedin:enrich-done", data: { updated: 0 } });
+      return { skipped: true, reason: "all contacts already enriched" };
+    }
 
     const input = contacts
       .filter((c: any) => c.linkedinUrl)
       .map((c: any) => ({ id: c.id, profileUrl: c.linkedinUrl }));
 
-    const results = await step.run("scrape-profiles", () => runProfileScraper(input));
+    const total = input.length;
+    const results = await step.run("scrape-profiles", () =>
+      runProfileScraper(input, (done) => {
+        publish(userId, { type: "linkedin:enrich-progress", data: { done, total } });
+      }),
+    );
 
     const updated = await step.run("save-enrichments", async () => {
       let count = 0;
@@ -90,6 +113,15 @@ export const enrichProfiles = inngest.createFunction(
       }
       return count;
     });
+
+    if (contacts.length === BATCH_SIZE) {
+      await step.sendEvent("chain-next-batch", {
+        name: "profiles.enrich" as const,
+        data: { userId },
+      });
+    } else {
+      publish(userId, { type: "linkedin:enrich-done", data: { updated } });
+    }
 
     return { success: true, total: contacts.length, updated };
   }

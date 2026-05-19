@@ -148,21 +148,24 @@ export const syncFull = inngest.createFunction(
         }
       });
 
-      // Step 4: fan out profile enrichment as separate background events
-      // so sync completes fast and contacts appear in the UI immediately.
-      const newContacts = await step.run("find-new-contacts", () =>
-        prisma.contact.findMany({
-          where: { ownerId: userId, currentTitle: null, linkedinUrn: { in: newUrns } },
-          select: { id: true },
-          take: MAX_PROFILES_PER_RUN,
+      // Step 4: trigger profile enrichment for any contacts still missing
+      // location / industry / companySize. enrich-profiles chains itself
+      // in 100-contact batches until all are processed.
+      const needsEnrich = await step.run("count-needs-enrich", () =>
+        prisma.contact.count({
+          where: {
+            ownerId: userId,
+            OR: [{ location: null }, { industry: null }, { companySize: null }],
+          },
         })
       );
 
-      if (newContacts.length > 0) {
-        await step.sendEvent("fan-out-profile-enrichment", newContacts.map((c: { id: string }) => ({
-          name: "profile.enrich" as const,
-          data: { contactId: c.id, userId },
-        })));
+      if (needsEnrich > 0) {
+        await step.sendEvent("emit-profiles-enrich", {
+          name: "profiles.enrich" as const,
+          data: { userId, total: needsEnrich },
+        });
+        publish(userId, { type: "linkedin:enrich-started", data: { total: needsEnrich } });
       }
 
       // Step 5: mark job succeeded

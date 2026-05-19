@@ -32,23 +32,23 @@ export default function LinkedinConnectPage() {
   }
 
   return (
-    <div className="min-h-full bg-[#07101c] p-8">
+    <div className="min-h-full bg-[#0f1e2e] p-8">
       <div className="max-w-lg">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-xs text-[#3d5875] hover:text-[#8cbfff] transition-colors mb-8"
+          className="inline-flex items-center gap-1.5 text-xs text-[#5c7d9e] hover:text-[#9ecfff] transition-colors mb-8"
         >
           <ArrowLeft className="w-3 h-3" />
           Back to dashboard
         </Link>
 
-        <p className="text-xs font-mono text-[#3d5875] uppercase tracking-widest mb-2">LinkedIn</p>
-        <h1 className="text-2xl font-semibold text-[#dce6f5] mb-1">Connect your account</h1>
-        <p className="text-[#3d5875] text-sm mb-8">
+        <p className="text-xs font-mono text-[#5c7d9e] uppercase tracking-widest mb-2">LinkedIn</p>
+        <h1 className="text-2xl font-semibold text-[#eaf2fd] mb-1">Connect your account</h1>
+        <p className="text-[#5c7d9e] text-sm mb-8">
           Click the button below. A LinkedIn login window will open — sign in, and we'll handle the rest automatically.
         </p>
 
-        <div className="rounded-xl border border-[#1a2f47] bg-[#0c1826] p-6 space-y-5">
+        <div className="rounded-xl border border-[#25405e] bg-[#1a2d3f] p-6 space-y-5">
 
           {state === "idle" && (
             <button
@@ -65,11 +65,11 @@ export default function LinkedinConnectPage() {
               <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#1585ff]/10 border border-[#1585ff]/20">
                 <RefreshCw className="w-4 h-4 text-[#1585ff] animate-spin shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-[#8cbfff]">Waiting for you to log in…</p>
-                  <p className="text-xs text-[#3d5875] mt-0.5">A browser window should have opened. Sign in to LinkedIn there.</p>
+                  <p className="text-sm font-medium text-[#9ecfff]">Waiting for you to log in…</p>
+                  <p className="text-xs text-[#5c7d9e] mt-0.5">A browser window should have opened. Sign in to LinkedIn there.</p>
                 </div>
               </div>
-              <p className="text-xs text-[#2a3f55] text-center">
+              <p className="text-xs text-[#456078] text-center">
                 Don't see a window? Make sure your taskbar is visible.
               </p>
             </div>
@@ -109,7 +109,7 @@ export default function LinkedinConnectPage() {
           )}
         </div>
 
-        <p className="text-xs text-[#2a3f55] mt-6 text-center">
+        <p className="text-xs text-[#456078] mt-6 text-center">
           Your cookie is encrypted before storage and never sent to third parties.
         </p>
       </div>

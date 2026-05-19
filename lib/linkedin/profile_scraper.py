@@ -12,7 +12,7 @@ Env:
 """
 
 from __future__ import annotations
-import asyncio, json, os, re, sys
+import asyncio, json, os, random, re, sys
 from pathlib import Path
 
 DEFAULT_PROFILE_DIR = Path.home() / ".linkedin-mcp" / "profile"
@@ -70,7 +70,7 @@ async def scrape(contacts: list[dict]) -> list[dict]:
                     print(json.dumps({"error": "session_expired"}), flush=True)
                     await ctx.close()
                     return []
-                await page.wait_for_timeout(1500)
+                await page.wait_for_timeout(random.randint(2000, 4000))
                 html = await page.content()
 
                 # Extract location via JS — more reliable than regex on obfuscated classes
@@ -119,7 +119,7 @@ async def scrape(contacts: list[dict]) -> list[dict]:
                     wait_until="domcontentloaded",
                     timeout=20_000,
                 )
-                await page.wait_for_timeout(1500)
+                await page.wait_for_timeout(random.randint(2000, 4000))
                 html = await page.content()
 
                 # Extract industry via JS

@@ -66,6 +66,17 @@ async def run() -> dict:
     if not li_at:
         return {"li_at": None, "JSESSIONID": None, "error": "Timed out waiting for login. Please try again."}
 
+    # Persist ALL linkedin.com cookies so voyager_client.py can inject them
+    # into a fresh browser context without holding the profile lock.
+    import time as _time
+    cookie_cache = PROFILE_DIR / "voyager_cookies.json"
+    # Re-read the full cookie set (not just li_at + JSESSIONID) right before closing
+    all_cookies_full = {c["name"]: c["value"] for c in await ctx.cookies("https://www.linkedin.com")}
+    cookie_cache.write_text(json.dumps({
+        "cookies": all_cookies_full,
+        "saved_at": _time.time(),
+    }))
+
     return {"li_at": li_at, "JSESSIONID": jsessionid or "", "error": None}
 
 

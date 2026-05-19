@@ -1,59 +1,86 @@
 "use client";
 
 import { useState } from "react";
-import { Zap, RefreshCw, X } from "lucide-react";
+import { Zap, RefreshCw, X, Send, Download } from "lucide-react";
 import { cn } from "@/lib/cn";
+import type { Contact } from "./contact-table";
 
 interface BulkEnrichBarProps {
   selectedIds: string[];
-  orgId?: string;
+  selectedContacts: Contact[];
   onDone?: () => void;
+  onMessage?: (contact: Contact) => void;
 }
 
-export default function BulkEnrichBar({ selectedIds, onDone }: BulkEnrichBarProps) {
-  const [loading, setLoading] = useState(false);
+export default function BulkEnrichBar({
+  selectedIds,
+  selectedContacts,
+  onDone,
+  onMessage,
+}: BulkEnrichBarProps) {
+  const [enriching, setEnriching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const N = selectedIds.length;
 
   async function doEnrich() {
     setShowConfirm(false);
-    setLoading(true);
+    setEnriching(true);
     setError(null);
-    setProgress({ done: 0, total: N });
-
     try {
       const res = await fetch("/api/contacts/bulk-enrich", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contactIds: selectedIds }),
       });
-
       if (!res.ok) {
-        if (res.status === 402) {
-          setError("Credit limit reached");
-        } else {
-          setError("Enrichment failed. Please try again.");
-        }
+        setError(res.status === 402 ? "Credit limit reached" : "Enrichment failed");
         return;
       }
-
-      setProgress({ done: N, total: N });
       onDone?.();
     } catch {
-      setError("Network error. Please try again.");
+      setError("Network error");
     } finally {
-      setLoading(false);
+      setEnriching(false);
     }
   }
 
-  function handleClick() {
-    if (N > 50) {
-      setShowConfirm(true);
-    } else {
-      doEnrich();
+  function handleEnrich() {
+    if (N > 50) setShowConfirm(true);
+    else doEnrich();
+  }
+
+  function exportCsv() {
+    const headers = [
+      "Name", "Title", "Company", "Email", "Phone", "Location", "Industry", "Seniority", "LinkedIn",
+    ];
+    const rows = selectedContacts.map((c) => [
+      c.fullName,
+      c.currentTitle ?? "",
+      c.currentCompany ?? "",
+      c.email ?? "",
+      c.phone ?? "",
+      c.location ?? "",
+      c.industry ?? "",
+      c.seniority ?? "",
+      c.linkedinUrl,
+    ]);
+    const csv = [headers, ...rows]
+      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `contacts-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleLinkedInMessage() {
+    if (selectedContacts.length === 1 && onMessage) {
+      onMessage(selectedContacts[0]);
     }
   }
 
@@ -63,22 +90,22 @@ export default function BulkEnrichBar({ selectedIds, onDone }: BulkEnrichBarProp
     <>
       {/* Confirm dialog */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-96 max-w-[90vw]">
-            <h3 className="font-semibold text-gray-900 mb-2">Enrich {N} contacts?</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              You are about to enrich {N} contacts. This will consume credits for each contact.
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-[#1a2d3f] border border-[#25405e] rounded-xl shadow-2xl p-6 w-96 max-w-[90vw]">
+            <h3 className="font-semibold text-[#eaf2fd] mb-2">Enrich {N} contacts?</h3>
+            <p className="text-sm text-[#5c7d9e] mb-5">
+              This will consume credits for each contact that gets enriched.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                className="px-4 py-2 text-sm text-[#5c7d9e] hover:text-[#7a9aba] border border-[#25405e] rounded-md transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={doEnrich}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 text-sm bg-[#f0a928] hover:bg-[#f5b840] text-[#0f1e2e] font-medium rounded-md transition-colors"
               >
                 Confirm Enrich
               </button>
@@ -87,39 +114,74 @@ export default function BulkEnrichBar({ selectedIds, onDone }: BulkEnrichBarProp
         </div>
       )}
 
-      {/* Sticky bar */}
-      <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg px-4 py-3 flex items-center justify-between z-30">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-gray-700">
-            {N} contact{N !== 1 ? "s" : ""} selected
-          </span>
-          {error && (
-            <span className="text-sm text-red-500">{error}</span>
-          )}
-          {loading && progress && (
-            <span className="text-sm text-blue-600">
-              Enriching... {progress.done}/{progress.total}
-            </span>
-          )}
-        </div>
+      {/* Floating toolbar — slides up from bottom */}
+      <div
+        className={cn(
+          "fixed bottom-0 left-[240px] right-0 z-30",
+          "transition-transform duration-200 ease-out",
+          N > 0 ? "translate-y-0" : "translate-y-full"
+        )}
+      >
+        <div className="mx-6 mb-5">
+          <div className="flex items-center justify-between gap-4 bg-[#1a2d3f] border border-[#25405e] rounded-xl px-5 py-3 shadow-2xl shadow-black/40">
+            {/* Left: count + error */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-mono text-[#eaf2fd]">
+                <span className="text-[#1585ff] font-semibold">{N}</span>
+                {" "}selected
+              </span>
+              {error && (
+                <span className="text-xs text-red-400 font-mono">{error}</span>
+              )}
+              {enriching && (
+                <span className="flex items-center gap-1.5 text-xs text-[#5c7d9e]">
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  Enriching…
+                </span>
+              )}
+            </div>
 
-        <button
-          onClick={handleClick}
-          disabled={loading}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
-            loading
-              ? "bg-blue-400 text-white cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700"
-          )}
-        >
-          {loading ? (
-            <RefreshCw className="w-4 h-4 animate-spin" />
-          ) : (
-            <Zap className="w-4 h-4" />
-          )}
-          Enrich {N} contacts
-        </button>
+            {/* Right: actions */}
+            <div className="flex items-center gap-2">
+              {N === 1 && (
+                <button
+                  onClick={handleLinkedInMessage}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#eaf2fd] border border-[#25405e] hover:border-[#1585ff]/40 hover:bg-[#1c3048] rounded-md transition-all"
+                >
+                  <Send className="w-3.5 h-3.5 text-[#1585ff]" />
+                  Send LinkedIn Message
+                </button>
+              )}
+              <button
+                onClick={handleEnrich}
+                disabled={enriching}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all",
+                  enriching
+                    ? "text-[#5c7d9e] border border-[#1e3248] cursor-not-allowed"
+                    : "text-[#f0a928] border border-[#f0a928]/30 hover:bg-[#f0a928]/10 hover:border-[#f0a928]/50"
+                )}
+              >
+                {enriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+                Enrich
+              </button>
+              <button
+                onClick={exportCsv}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/30 rounded-md transition-all"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Export CSV
+              </button>
+              <button
+                onClick={onDone}
+                className="p-1.5 text-[#456078] hover:text-[#5c7d9e] transition-colors ml-1"
+                title="Deselect all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );

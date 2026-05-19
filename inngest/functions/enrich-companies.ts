@@ -19,7 +19,7 @@ function runScraper(slugs: string[]): Promise<VoyagerCompany[]> {
     const child = spawn(
       uvxPath,
       ["--from", "patchright", "--with", "aiohttp", "python", "lib/linkedin/voyager_companies.py"],
-      { cwd, env: { ...process.env, PYTHONPATH: cwd } },
+      { cwd, env: { ...process.env, PYTHONPATH: cwd, LINKEDIN_HEADLESS: "1" } },
     );
     let stdout = "";
     let stderr = "";

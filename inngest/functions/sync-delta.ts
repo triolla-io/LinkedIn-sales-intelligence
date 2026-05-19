@@ -230,6 +230,23 @@ export const syncDelta = inngest.createFunction(
         }
       }
 
+      const needsEnrich = await step.run("count-needs-enrich", () =>
+        prisma.contact.count({
+          where: {
+            ownerId: userId,
+            OR: [{ location: null }, { industry: null }, { companySize: null }],
+          },
+        })
+      );
+
+      if (needsEnrich > 0) {
+        await step.sendEvent("emit-profiles-enrich", {
+          name: "profiles.enrich" as const,
+          data: { userId, total: needsEnrich },
+        });
+        publish(userId, { type: "linkedin:enrich-started", data: { total: needsEnrich } });
+      }
+
       publish(userId, { type: "linkedin:sync-done", data: { new: newUrns.length, removed: removedUrns.length } });
 
       return { success: true, new: newUrns.length, removed: removedUrns.length };

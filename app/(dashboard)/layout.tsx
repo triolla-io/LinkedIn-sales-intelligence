@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Sidebar from "@/components/dashboard/sidebar";
 import ImpersonationBanner from "@/components/dashboard/impersonation-banner";
+import EnrichmentProgress from "@/components/dashboard/enrichment-progress";
 
 export default async function DashboardLayout({
   children,
@@ -37,14 +38,15 @@ export default async function DashboardLayout({
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <div className="w-[280px] shrink-0">
+    <div className="flex h-screen bg-[#0f1e2e]">
+      <div className="w-[240px] shrink-0">
         <Sidebar user={user} />
       </div>
       <div className="flex-1 flex flex-col overflow-hidden">
         {impersonatedUser && (
           <ImpersonationBanner name={impersonatedUser.name} />
         )}
+        <EnrichmentProgress />
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
