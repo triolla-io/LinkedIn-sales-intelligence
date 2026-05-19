@@ -9,6 +9,7 @@ import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
 import ComposeModal from "@/components/dashboard/compose-modal";
 import BackfillEnrichButton from "@/components/dashboard/backfill-enrich-button";
+import EnrichBanner from "@/components/dashboard/enrich-banner";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -170,6 +171,7 @@ function ContactsContent() {
 
       {/* Main content */}
       <div className="flex-1 min-w-0 flex flex-col">
+        <EnrichBanner />
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-[#1e3248] bg-[#162333] sticky top-0 z-10">
           <div className="flex items-center gap-3">

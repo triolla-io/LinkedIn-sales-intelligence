@@ -1,6 +1,7 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { matchOrganization } from "@/lib/apollo/client";
+import { publish } from "@/lib/linkedin/sse-bus";
 
 const BATCH = 20;       // companies per Inngest step
 const CONCURRENCY = 3;  // parallel Apollo calls (respect rate limits)
@@ -34,6 +35,28 @@ export const enrichCompaniesWeb = inngest.createFunction(
         orderBy: { contacts: { _count: "desc" } },
       }),
     );
+
+    // Capture the set of owners affected by this run so we can notify them via SSE
+    const ownerIds = await step.run("load-affected-owners", async () => {
+      if (companies.length === 0) return [] as string[];
+      const rows = await prisma.contact.findMany({
+        where: { companyId: { in: companies.map((c: { id: string }) => c.id) } },
+        distinct: ["ownerId"],
+        select: { ownerId: true },
+      });
+      return rows.map((r: { ownerId: string }) => r.ownerId);
+    });
+
+    function notify(payload: { processed: number; total: number; done?: boolean }) {
+      for (const uid of ownerIds) {
+        publish(uid, {
+          type: payload.done ? "linkedin:enrich-done" : "linkedin:enrich-progress",
+          data: payload,
+        });
+      }
+    }
+
+    notify({ processed: 0, total: companies.length });
 
     if (companies.length === 0) return { enriched: 0, total: 0, skipped: 0 };
 
@@ -90,7 +113,10 @@ export const enrichCompaniesWeb = inngest.createFunction(
 
       totalEnriched += enriched;
       totalSkipped += skipped;
+      notify({ processed: i + batch.length, total: companies.length });
     }
+
+    notify({ processed: companies.length, total: companies.length, done: true });
 
     return { enriched: totalEnriched, skipped: totalSkipped, total: companies.length };
   },
