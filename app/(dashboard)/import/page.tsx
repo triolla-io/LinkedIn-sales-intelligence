@@ -7,9 +7,12 @@ import { cn } from "@/lib/cn";
 
 type ImportResult = {
   imported: number;
-  created: number;
+  added: number;
   updated: number;
+  removed: number;
+  unchanged: number;
   companies: number;
+  newCompanies: number;
 };
 
 type State = "idle" | "dragging" | "uploading" | "done" | "error";
@@ -158,11 +161,26 @@ export default function ImportPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <StatCard icon={FileSpreadsheet} label="Total contacts" value={result.imported} />
-              <StatCard icon={Users} label="New contacts" value={result.created} />
-              <StatCard icon={Building2} label="Companies found" value={result.companies} />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <StatCard icon={FileSpreadsheet} label="Total in file" value={result.imported} />
+              <StatCard icon={Users} label="New contacts" value={result.added} />
+              <StatCard icon={Users} label="Updated" value={result.updated} accent="info" />
+              <StatCard icon={Users} label="Removed" value={result.removed} accent={result.removed > 0 ? "warn" : undefined} />
+              <StatCard icon={Building2} label="Companies in file" value={result.companies} />
+              <StatCard icon={Building2} label="New companies" value={result.newCompanies} accent="info" />
             </div>
+
+            {result.newCompanies > 0 && (
+              <div className="px-4 py-3 rounded-lg bg-[#1585ff]/8 border border-[#1585ff]/20 text-xs text-[#9ecfff]">
+                Enriching {result.newCompanies} new companies in the background — employee counts and industries will appear in the table as they come in.
+              </div>
+            )}
+
+            {result.unchanged > 0 && (
+              <p className="text-xs text-[#456078] text-center">
+                {result.unchanged.toLocaleString()} contacts were already up to date — skipped.
+              </p>
+            )}
 
             <div className="flex gap-3">
               <Link
@@ -185,11 +203,26 @@ export default function ImportPage() {
   );
 }
 
-function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: number }) {
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  accent,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: number;
+  accent?: "info" | "warn";
+}) {
+  const colorByAccent: Record<NonNullable<typeof accent>, { ring: string; text: string }> = {
+    info: { ring: "border-[#1585ff]/30", text: "text-[#9ecfff]" },
+    warn: { ring: "border-amber-500/30", text: "text-amber-400" },
+  };
+  const c = accent ? colorByAccent[accent] : { ring: "border-[#25405e]", text: "text-[#eaf2fd]" };
   return (
-    <div className="rounded-xl border border-[#25405e] bg-[#1a2d3f] p-4 text-center">
+    <div className={`rounded-xl border ${c.ring} bg-[#1a2d3f] p-4 text-center`}>
       <Icon className="w-5 h-5 text-[#5c7d9e] mx-auto mb-2" />
-      <p className="text-xl font-semibold text-[#eaf2fd]">{value.toLocaleString()}</p>
+      <p className={`text-xl font-semibold ${c.text}`}>{value.toLocaleString()}</p>
       <p className="text-xs text-[#5c7d9e] mt-0.5">{label}</p>
     </div>
   );
