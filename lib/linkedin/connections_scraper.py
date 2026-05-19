@@ -21,6 +21,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import subprocess
 from pathlib import Path
 
 DEFAULT_PROFILE_DIR = Path.home() / ".linkedin-mcp" / "profile"
@@ -28,6 +29,16 @@ CONNECTIONS_URL = "https://www.linkedin.com/mynetwork/invite-connect/connections
 CARD_SELECTOR = "a[data-view-name='connections-profile']"
 MAX_STABLE_ROUNDS = 8
 MAX_SCROLLS = 1000
+
+
+def _kill_stale_chrome(profile_dir: Path) -> None:
+    """Kill any Chrome process already holding the profile lock."""
+    subprocess.run(
+        ["pkill", "-f", str(profile_dir)],
+        capture_output=True,
+    )
+    # Brief pause so the OS releases the profile lock file
+    import time; time.sleep(1)
 
 
 async def scrape() -> dict:
@@ -40,6 +51,8 @@ async def scrape() -> dict:
             "connections": [],
             "error": f"Profile dir not found: {profile_dir}. Run `linkedin-mcp-server --login` first.",
         }
+
+    _kill_stale_chrome(profile_dir)
 
     async with async_playwright() as p:
         headless = os.environ.get("LINKEDIN_HEADLESS", "0") == "1"
