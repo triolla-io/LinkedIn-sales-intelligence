@@ -18,7 +18,7 @@ describe("resolveAudience", () => {
 
   it("resolves by explicit contactIds", async () => {
     const mockFindMany = vi.mocked(prisma.contact.findMany);
-    mockFindMany.mockResolvedValue([{ id: "c1" }, { id: "c2" }]);
+    mockFindMany.mockResolvedValue([{ id: "c1" }, { id: "c2" }] as any);
     const result = await resolveAudience("user1", { contactIds: ["c1", "c2"] });
     expect(result).toEqual(["c1", "c2"]);
     expect(mockFindMany).toHaveBeenCalledWith(
@@ -28,7 +28,7 @@ describe("resolveAudience", () => {
 
   it("resolves by filter with companySizeMin and companySizeMax", async () => {
     const mockFindMany = vi.mocked(prisma.contact.findMany);
-    mockFindMany.mockResolvedValue([{ id: "c1" }]);
+    mockFindMany.mockResolvedValue([{ id: "c1" }] as any);
     const result = await resolveAudience("user1", { filter: { companySizeMin: 10, companySizeMax: 300 } });
     expect(result).toEqual(["c1"]);
     expect(mockFindMany).toHaveBeenCalledWith(

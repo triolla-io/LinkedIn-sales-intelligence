@@ -42,7 +42,7 @@ export async function campaignSendOneHandler({ event }: any) {
     return;
   }
 
-  let mcp: InstanceType<typeof LinkedinMcp> | null = null;
+  let mcp: LinkedinMcp | null = null;
   try {
     mcp = await LinkedinMcp.open(decryptCookie(session.encryptedCookie));
     await mcp.sendMessage(recipient.contact.linkedinUrn, recipient.renderedBody ?? "");

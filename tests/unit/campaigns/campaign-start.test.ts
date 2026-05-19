@@ -79,7 +79,7 @@ describe("campaignStartHandler", () => {
     expect(calls[0][0].data.renderedBody).toContain("Alice");
     expect(calls[0][0].data.renderedBody).toContain("Daniel");
     // 2 send-one events emitted
-    const sentEvents = sendMock.mock.calls.map((c: [{ name: string }]) => c[0]);
+    const sentEvents = sendMock.mock.calls.map((c: { name: string }[]) => c[0]);
     expect(sentEvents.filter((e: { name: string }) => e.name === "campaign.send-one")).toHaveLength(2);
     // Campaign updated to RUNNING
     expect(mockCampaignUpdate).toHaveBeenCalledWith(
@@ -107,7 +107,7 @@ describe("campaignStartHandler", () => {
     expect(createCall.status).toBe("SKIPPED");
     expect(createCall.errorMessage).toContain("missing_variable");
     // No send-one emitted for skipped
-    const sentEvents = sendMock.mock.calls.map((c: [{ name: string }]) => c[0]);
+    const sentEvents = sendMock.mock.calls.map((c: { name: string }[]) => c[0]);
     expect(sentEvents.filter((e: { name: string }) => e.name === "campaign.send-one")).toHaveLength(0);
   });
 });
