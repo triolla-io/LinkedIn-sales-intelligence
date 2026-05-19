@@ -1,8 +1,7 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
-import { LinkedinMcp } from "@/lib/linkedin/mcp-client";
-import { decryptCookie } from "@/lib/linkedin/cookie-crypto";
 import { publish } from "@/lib/linkedin/sse-bus";
+import { mcpSendMessage, extractUsername, extractProfileUrn } from "@/lib/linkedin/mcp-http-client";
 
 export const sendMessage = inngest.createFunction(
   { id: "send-message", triggers: [{ event: "message.send" as const }] },
@@ -12,22 +11,14 @@ export const sendMessage = inngest.createFunction(
 
     const sentMessage = await prisma.sentMessage.findUnique({
       where: { id: messageId },
-      include: {
-        sender: { include: { linkedinSession: true } },
-        contact: true,
-      },
+      include: { contact: true },
     });
-
     if (!sentMessage) throw new Error(`SentMessage ${messageId} not found`);
 
-    const session = sentMessage.sender.linkedinSession;
-    if (!session) throw new Error("No LinkedIn session for sender");
-
-    let mcp: LinkedinMcp | null = null;
     try {
-      const cookie = decryptCookie(session.encryptedCookie);
-      mcp = await LinkedinMcp.open(cookie);
-      await mcp.sendMessage(sentMessage.contact.linkedinUrn, sentMessage.body, sentMessage.contact.linkedinUrl);
+      const username = extractUsername(sentMessage.contact.linkedinUrl);
+      const profileUrn = extractProfileUrn(sentMessage.contact.linkedinUrn);
+      await mcpSendMessage(username, sentMessage.body, profileUrn);
       await prisma.sentMessage.update({
         where: { id: messageId },
         data: { status: "SENT", sentAt: new Date() },
@@ -38,8 +29,6 @@ export const sendMessage = inngest.createFunction(
         where: { id: messageId },
         data: { status: "FAILED", errorMessage: msg },
       });
-    } finally {
-      await mcp?.close();
     }
 
     publish(sentMessage.senderId, { type: "message:sent", data: { messageId } });

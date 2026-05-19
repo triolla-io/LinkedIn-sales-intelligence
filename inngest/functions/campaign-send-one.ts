@@ -1,9 +1,8 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
-import { LinkedinMcp, RateLimitError } from "@/lib/linkedin/mcp-client";
-import { decryptCookie } from "@/lib/linkedin/cookie-crypto";
 import { checkSendQuota } from "@/lib/campaigns/throttle";
 import { publish } from "@/lib/linkedin/sse-bus";
+import { mcpSendMessage, extractUsername, extractProfileUrn } from "@/lib/linkedin/mcp-http-client";
 
 const MAX_ATTEMPTS = 3;
 
@@ -14,7 +13,7 @@ export async function campaignSendOneHandler({ event }: any) {
   const recipient = await prisma.campaignRecipient.findUnique({
     where: { id: recipientId },
     include: {
-      campaign: { include: { owner: { include: { linkedinSession: true } } } },
+      campaign: true,
       contact: true,
     },
   });
@@ -32,20 +31,10 @@ export async function campaignSendOneHandler({ event }: any) {
     data: { status: "SENDING", attemptCount: { increment: 1 } },
   });
 
-  const session = recipient.campaign.owner.linkedinSession;
-  if (!session) {
-    await prisma.campaignRecipient.update({
-      where: { id: recipientId },
-      data: { status: "FAILED", errorMessage: "not_authenticated" },
-    });
-    await pauseCampaign(recipient.campaignId, recipient.campaign.ownerId, "not_authenticated");
-    return;
-  }
-
-  let mcp: LinkedinMcp | null = null;
   try {
-    mcp = await LinkedinMcp.open(decryptCookie(session.encryptedCookie));
-    await mcp.sendMessage(recipient.contact.linkedinUrn, recipient.renderedBody ?? "", recipient.contact.linkedinUrl);
+    const username = extractUsername(recipient.contact.linkedinUrl);
+    const profileUrn = extractProfileUrn(recipient.contact.linkedinUrn);
+    await mcpSendMessage(username, recipient.renderedBody ?? "", profileUrn);
 
     const sent = await prisma.sentMessage.create({
       data: {
@@ -64,11 +53,6 @@ export async function campaignSendOneHandler({ event }: any) {
     });
     publish(recipient.campaign.ownerId, { type: "campaign:sent", data: { recipientId, campaignId: recipient.campaignId } });
   } catch (err) {
-    if (err instanceof RateLimitError) {
-      await prisma.campaignRecipient.update({ where: { id: recipientId }, data: { status: "PENDING" } });
-      await pauseCampaign(recipient.campaignId, recipient.campaign.ownerId, "rate_limit");
-      return;
-    }
     const message = err instanceof Error ? err.message : String(err);
     const shouldRetry = recipient.attemptCount + 1 < MAX_ATTEMPTS;
     await prisma.campaignRecipient.update({
@@ -79,7 +63,6 @@ export async function campaignSendOneHandler({ event }: any) {
       await inngest.send({ name: "campaign.send-one", data: { recipientId } });
     }
   } finally {
-    await mcp?.close();
     await inngest.send({ name: "campaign.finalize", data: { campaignId: recipient.campaignId } });
   }
 }
@@ -87,11 +70,7 @@ export async function campaignSendOneHandler({ event }: any) {
 async function pauseCampaign(campaignId: string, actorId: string, reason: string) {
   await prisma.campaign.update({ where: { id: campaignId }, data: { status: "PAUSED" } });
   await prisma.auditEvent.create({
-    data: {
-      actorId,
-      action: "campaign.paused",
-      payload: { reason, campaignId },
-    },
+    data: { actorId, action: "campaign.paused", payload: { reason, campaignId } },
   });
 }
 

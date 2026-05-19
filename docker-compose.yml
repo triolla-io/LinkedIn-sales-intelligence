@@ -11,5 +11,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  linkedin-mcp:
+    image: stickerdaniel/linkedin-mcp-server:latest
+    restart: unless-stopped
+    ports:
+      - "8765:8000"
+    volumes:
+      - ~/.linkedin-mcp:/home/pwuser/.linkedin-mcp
+    environment:
+      - LOG_LEVEL=WARNING
+    command: ["--transport", "streamable-http", "--host", "0.0.0.0", "--port", "8000"]
+
 volumes:
   postgres_data:
