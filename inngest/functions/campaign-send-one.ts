@@ -45,7 +45,7 @@ export async function campaignSendOneHandler({ event }: any) {
   let mcp: LinkedinMcp | null = null;
   try {
     mcp = await LinkedinMcp.open(decryptCookie(session.encryptedCookie));
-    await mcp.sendMessage(recipient.contact.linkedinUrn, recipient.renderedBody ?? "");
+    await mcp.sendMessage(recipient.contact.linkedinUrn, recipient.renderedBody ?? "", recipient.contact.linkedinUrl);
 
     const sent = await prisma.sentMessage.create({
       data: {

@@ -27,7 +27,7 @@ export const sendMessage = inngest.createFunction(
     try {
       const cookie = decryptCookie(session.encryptedCookie);
       mcp = await LinkedinMcp.open(cookie);
-      await mcp.sendMessage(sentMessage.contact.linkedinUrn, sentMessage.body);
+      await mcp.sendMessage(sentMessage.contact.linkedinUrn, sentMessage.body, sentMessage.contact.linkedinUrl);
       await prisma.sentMessage.update({
         where: { id: messageId },
         data: { status: "SENT", sentAt: new Date() },

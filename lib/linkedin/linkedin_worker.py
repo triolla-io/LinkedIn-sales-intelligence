@@ -81,37 +81,56 @@ def handle_get_profile(client: Linkedin, urn: str) -> dict:
     }
 
 
-def resolve_profile_id(client: Linkedin, urn: str) -> str:
-    """Return the best available profile ID for the messaging API.
-
-    Tries strategies in order:
-    1. Base64 profile ID (ACoAAA...) — use directly, no lookup needed
-    2. Vanity slug — try get_profile() to get the real entityUrn; fall back to slug on any error
-    """
-    urn_id = extract_urn_id(urn)
-    # Already a proper base64 profile ID
-    if urn_id.startswith("ACo") and len(urn_id) > 20:
-        return urn_id
-    # Try to resolve vanity slug → real profile ID via API lookup
-    try:
-        profile = client.get_profile(public_id=urn_id) or {}
-        entity_urn = profile.get("entityUrn", "")
-        if entity_urn:
-            resolved = extract_urn_id(entity_urn)
-            if resolved.startswith("ACo") and len(resolved) > 20:
-                return resolved
-    except Exception:
-        pass  # fall through to using slug directly
-    # Fall back: pass slug/urn_id directly — works for many linkedin_api versions
-    return urn_id
+def handle_send_message(_client: Linkedin, urn: str, body: str, profile_url: str = "") -> dict:
+    """Send a LinkedIn message via browser automation (most reliable approach)."""
+    import asyncio
+    asyncio.run(_browser_send_message(profile_url or _profile_url_from_urn(urn), body))
+    return {"messageId": f"sent-{extract_urn_id(urn)}"}
 
 
-def handle_send_message(client: Linkedin, urn: str, body: str) -> dict:
-    profile_id = resolve_profile_id(client, urn)
-    error = client.send_message(message_body=body, recipients=[profile_id])
-    if error is True:
-        raise ValueError(f"LinkedIn API rejected the message (recipient: {profile_id})")
-    return {"messageId": f"sent-{profile_id}"}
+def _profile_url_from_urn(urn: str) -> str:
+    slug = extract_urn_id(urn)
+    return f"https://www.linkedin.com/in/{slug}/"
+
+
+async def _browser_send_message(profile_url: str, body: str) -> None:
+    import os, random
+    from pathlib import Path
+    from patchright.async_api import async_playwright
+
+    profile_dir = Path(os.environ.get("LINKEDIN_PROFILE_DIR", "~/.linkedin-mcp/profile")).expanduser()
+    headless = os.environ.get("LINKEDIN_HEADLESS", "1") == "1"
+
+    async with async_playwright() as p:
+        ctx = await p.chromium.launch_persistent_context(
+            str(profile_dir), headless=headless,
+            viewport={"width": 1280, "height": 900},
+        )
+        page = ctx.pages[0] if ctx.pages else await ctx.new_page()
+        try:
+            await page.goto(profile_url.rstrip("/") + "/", wait_until="domcontentloaded", timeout=30_000)
+            if "/login" in page.url or "/checkpoint" in page.url:
+                raise RuntimeError("LinkedIn session expired. Re-connect via the app.")
+
+            # Click the Message button on the profile
+            await page.wait_for_timeout(random.randint(1500, 2500))
+            msg_btn = page.get_by_role("button", name="Message").first
+            await msg_btn.wait_for(timeout=10_000)
+            await msg_btn.click()
+
+            # Wait for message compose box
+            compose = page.locator("div.msg-form__contenteditable, div[contenteditable=true][role=textbox]").first
+            await compose.wait_for(timeout=10_000)
+            await compose.click()
+            await compose.fill(body)
+            await page.wait_for_timeout(random.randint(500, 1000))
+
+            # Send
+            send_btn = page.get_by_role("button", name="Send").first
+            await send_btn.click()
+            await page.wait_for_timeout(1000)
+        finally:
+            await ctx.close()
 
 
 def handle_validate(client: Linkedin) -> dict:

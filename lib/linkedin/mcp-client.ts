@@ -67,7 +67,7 @@ export class LinkedinMcp {
     const instance = new LinkedinMcp();
     instance.openedAt = Date.now();
 
-    const proc = spawn(UVX_PATH, ["--from", "linkedin-api", "python", WORKER_SCRIPT], {
+    const proc = spawn(UVX_PATH, ["--from", "linkedin-api", "--with", "patchright", "python", WORKER_SCRIPT], {
       env: {
         ...process.env,
         LINKEDIN_USERNAME: process.env.LINKEDIN_USERNAME ?? "",
@@ -191,7 +191,7 @@ export class LinkedinMcp {
     return (await this.call({ cmd: "get_profile", urn })) as RawProfile;
   }
 
-  async sendMessage(urn: string, body: string): Promise<{ messageId: string }> {
+  async sendMessage(urn: string, body: string, profileUrl?: string): Promise<{ messageId: string }> {
     if (process.env.LINKEDIN_SEND_MODE === "mock") {
       return { messageId: `mock-${urn}-${Date.now()}` };
     }
@@ -201,7 +201,7 @@ export class LinkedinMcp {
     }
 
     await this.beforeCall();
-    return (await this.call({ cmd: "send_message", urn, body })) as { messageId: string };
+    return (await this.call({ cmd: "send_message", urn, body, profileUrl: profileUrl ?? "" })) as { messageId: string };
   }
 
   async validateCookie(): Promise<boolean> {
