@@ -227,6 +227,7 @@ export type UserWhereInput = {
   auditActed?: Prisma.AuditEventListRelationFilter
   auditTargeted?: Prisma.AuditEventListRelationFilter
   campaigns?: Prisma.CampaignListRelationFilter
+  imports?: Prisma.ImportListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -252,6 +253,7 @@ export type UserOrderByWithRelationInput = {
   auditActed?: Prisma.AuditEventOrderByRelationAggregateInput
   auditTargeted?: Prisma.AuditEventOrderByRelationAggregateInput
   campaigns?: Prisma.CampaignOrderByRelationAggregateInput
+  imports?: Prisma.ImportOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -280,6 +282,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   auditActed?: Prisma.AuditEventListRelationFilter
   auditTargeted?: Prisma.AuditEventListRelationFilter
   campaigns?: Prisma.CampaignListRelationFilter
+  imports?: Prisma.ImportListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -334,6 +337,7 @@ export type UserCreateInput = {
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -358,6 +362,7 @@ export type UserUncheckedCreateInput = {
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUpdateInput = {
@@ -382,6 +387,7 @@ export type UserUpdateInput = {
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -406,6 +412,7 @@ export type UserUncheckedUpdateInput = {
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -719,6 +726,20 @@ export type UserUpdateOneRequiredWithoutCampaignsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCampaignsInput, Prisma.UserUpdateWithoutCampaignsInput>, Prisma.UserUncheckedUpdateWithoutCampaignsInput>
 }
 
+export type UserCreateNestedOneWithoutImportsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutImportsInput, Prisma.UserUncheckedCreateWithoutImportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutImportsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutImportsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutImportsInput, Prisma.UserUncheckedCreateWithoutImportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutImportsInput
+  upsert?: Prisma.UserUpsertWithoutImportsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutImportsInput, Prisma.UserUpdateWithoutImportsInput>, Prisma.UserUncheckedUpdateWithoutImportsInput>
+}
+
 export type UserCreateWithoutAccountsInput = {
   id?: string
   email: string
@@ -740,6 +761,7 @@ export type UserCreateWithoutAccountsInput = {
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -763,6 +785,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -802,6 +825,7 @@ export type UserUpdateWithoutAccountsInput = {
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -825,6 +849,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -848,6 +873,7 @@ export type UserCreateWithoutSessionsInput = {
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -871,6 +897,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -910,6 +937,7 @@ export type UserUpdateWithoutSessionsInput = {
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -933,6 +961,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutOrgInput = {
@@ -956,6 +985,7 @@ export type UserCreateWithoutOrgInput = {
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutOrgInput = {
@@ -979,6 +1009,7 @@ export type UserUncheckedCreateWithoutOrgInput = {
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutOrgInput = {
@@ -1043,6 +1074,7 @@ export type UserCreateWithoutLinkedinSessionInput = {
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutLinkedinSessionInput = {
@@ -1066,6 +1098,7 @@ export type UserUncheckedCreateWithoutLinkedinSessionInput = {
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutLinkedinSessionInput = {
@@ -1105,6 +1138,7 @@ export type UserUpdateWithoutLinkedinSessionInput = {
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
@@ -1128,6 +1162,7 @@ export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutContactsInput = {
@@ -1151,6 +1186,7 @@ export type UserCreateWithoutContactsInput = {
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutContactsInput = {
@@ -1174,6 +1210,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutContactsInput = {
@@ -1213,6 +1250,7 @@ export type UserUpdateWithoutContactsInput = {
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactsInput = {
@@ -1236,6 +1274,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutTemplatesInput = {
@@ -1259,6 +1298,7 @@ export type UserCreateWithoutTemplatesInput = {
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutTemplatesInput = {
@@ -1282,6 +1322,7 @@ export type UserUncheckedCreateWithoutTemplatesInput = {
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutTemplatesInput = {
@@ -1321,6 +1362,7 @@ export type UserUpdateWithoutTemplatesInput = {
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTemplatesInput = {
@@ -1344,6 +1386,7 @@ export type UserUncheckedUpdateWithoutTemplatesInput = {
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSentMessagesInput = {
@@ -1367,6 +1410,7 @@ export type UserCreateWithoutSentMessagesInput = {
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSentMessagesInput = {
@@ -1390,6 +1434,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSentMessagesInput = {
@@ -1418,6 +1463,7 @@ export type UserCreateWithoutActedMessagesInput = {
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutActedMessagesInput = {
@@ -1441,6 +1487,7 @@ export type UserUncheckedCreateWithoutActedMessagesInput = {
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutActedMessagesInput = {
@@ -1480,6 +1527,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentMessagesInput = {
@@ -1503,6 +1551,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutActedMessagesInput = {
@@ -1537,6 +1586,7 @@ export type UserUpdateWithoutActedMessagesInput = {
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActedMessagesInput = {
@@ -1560,6 +1610,7 @@ export type UserUncheckedUpdateWithoutActedMessagesInput = {
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSyncJobsInput = {
@@ -1583,6 +1634,7 @@ export type UserCreateWithoutSyncJobsInput = {
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSyncJobsInput = {
@@ -1606,6 +1658,7 @@ export type UserUncheckedCreateWithoutSyncJobsInput = {
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSyncJobsInput = {
@@ -1645,6 +1698,7 @@ export type UserUpdateWithoutSyncJobsInput = {
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSyncJobsInput = {
@@ -1668,6 +1722,7 @@ export type UserUncheckedUpdateWithoutSyncJobsInput = {
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSavedViewsInput = {
@@ -1691,6 +1746,7 @@ export type UserCreateWithoutSavedViewsInput = {
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSavedViewsInput = {
@@ -1714,6 +1770,7 @@ export type UserUncheckedCreateWithoutSavedViewsInput = {
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSavedViewsInput = {
@@ -1753,6 +1810,7 @@ export type UserUpdateWithoutSavedViewsInput = {
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSavedViewsInput = {
@@ -1776,6 +1834,7 @@ export type UserUncheckedUpdateWithoutSavedViewsInput = {
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutAuditActedInput = {
@@ -1799,6 +1858,7 @@ export type UserCreateWithoutAuditActedInput = {
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAuditActedInput = {
@@ -1822,6 +1882,7 @@ export type UserUncheckedCreateWithoutAuditActedInput = {
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAuditActedInput = {
@@ -1850,6 +1911,7 @@ export type UserCreateWithoutAuditTargetedInput = {
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAuditTargetedInput = {
@@ -1873,6 +1935,7 @@ export type UserUncheckedCreateWithoutAuditTargetedInput = {
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAuditTargetedInput = {
@@ -1912,6 +1975,7 @@ export type UserUpdateWithoutAuditActedInput = {
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditActedInput = {
@@ -1935,6 +1999,7 @@ export type UserUncheckedUpdateWithoutAuditActedInput = {
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutAuditTargetedInput = {
@@ -1969,6 +2034,7 @@ export type UserUpdateWithoutAuditTargetedInput = {
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditTargetedInput = {
@@ -1992,6 +2058,7 @@ export type UserUncheckedUpdateWithoutAuditTargetedInput = {
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutCampaignsInput = {
@@ -2015,6 +2082,7 @@ export type UserCreateWithoutCampaignsInput = {
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutCampaignsInput = {
@@ -2038,6 +2106,7 @@ export type UserUncheckedCreateWithoutCampaignsInput = {
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
   auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
   auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutCampaignsInput = {
@@ -2077,6 +2146,7 @@ export type UserUpdateWithoutCampaignsInput = {
   templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCampaignsInput = {
@@ -2100,6 +2170,119 @@ export type UserUncheckedUpdateWithoutCampaignsInput = {
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserCreateWithoutImportsInput = {
+  id?: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  createdAt?: Date | string
+  org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageCreateNestedManyWithoutActorInput
+  syncJobs?: Prisma.SyncJobCreateNestedManyWithoutUserInput
+  savedViews?: Prisma.SavedViewCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+}
+
+export type UserUncheckedCreateWithoutImportsInput = {
+  id?: string
+  orgId: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  createdAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutActorInput
+  syncJobs?: Prisma.SyncJobUncheckedCreateNestedManyWithoutUserInput
+  savedViews?: Prisma.SavedViewUncheckedCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+export type UserCreateOrConnectWithoutImportsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutImportsInput, Prisma.UserUncheckedCreateWithoutImportsInput>
+}
+
+export type UserUpsertWithoutImportsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutImportsInput, Prisma.UserUncheckedUpdateWithoutImportsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutImportsInput, Prisma.UserUncheckedCreateWithoutImportsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutImportsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutImportsInput, Prisma.UserUncheckedUpdateWithoutImportsInput>
+}
+
+export type UserUpdateWithoutImportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUpdateManyWithoutActorNestedInput
+  syncJobs?: Prisma.SyncJobUpdateManyWithoutUserNestedInput
+  savedViews?: Prisma.SavedViewUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutImportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutActorNestedInput
+  syncJobs?: Prisma.SyncJobUncheckedUpdateManyWithoutUserNestedInput
+  savedViews?: Prisma.SavedViewUncheckedUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateManyOrgInput = {
@@ -2134,6 +2317,7 @@ export type UserUpdateWithoutOrgInput = {
   auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrgInput = {
@@ -2157,6 +2341,7 @@ export type UserUncheckedUpdateWithoutOrgInput = {
   auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutOrgInput = {
@@ -2187,6 +2372,7 @@ export type UserCountOutputType = {
   auditActed: number
   auditTargeted: number
   campaigns: number
+  imports: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2201,6 +2387,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   auditActed?: boolean | UserCountOutputTypeCountAuditActedArgs
   auditTargeted?: boolean | UserCountOutputTypeCountAuditTargetedArgs
   campaigns?: boolean | UserCountOutputTypeCountCampaignsArgs
+  imports?: boolean | UserCountOutputTypeCountImportsArgs
 }
 
 /**
@@ -2290,6 +2477,13 @@ export type UserCountOutputTypeCountCampaignsArgs<ExtArgs extends runtime.Types.
   where?: Prisma.CampaignWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountImportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ImportWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2314,6 +2508,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   auditActed?: boolean | Prisma.User$auditActedArgs<ExtArgs>
   auditTargeted?: boolean | Prisma.User$auditTargetedArgs<ExtArgs>
   campaigns?: boolean | Prisma.User$campaignsArgs<ExtArgs>
+  imports?: boolean | Prisma.User$importsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2370,6 +2565,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   auditActed?: boolean | Prisma.User$auditActedArgs<ExtArgs>
   auditTargeted?: boolean | Prisma.User$auditTargetedArgs<ExtArgs>
   campaigns?: boolean | Prisma.User$campaignsArgs<ExtArgs>
+  imports?: boolean | Prisma.User$importsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2395,6 +2591,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     auditActed: Prisma.$AuditEventPayload<ExtArgs>[]
     auditTargeted: Prisma.$AuditEventPayload<ExtArgs>[]
     campaigns: Prisma.$CampaignPayload<ExtArgs>[]
+    imports: Prisma.$ImportPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2813,6 +3010,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   auditActed<T extends Prisma.User$auditActedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditActedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditTargeted<T extends Prisma.User$auditTargetedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditTargetedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   campaigns<T extends Prisma.User$campaignsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$campaignsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  imports<T extends Prisma.User$importsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$importsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ImportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3532,6 +3730,30 @@ export type User$campaignsArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.CampaignScalarFieldEnum | Prisma.CampaignScalarFieldEnum[]
+}
+
+/**
+ * User.imports
+ */
+export type User$importsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Import
+   */
+  select?: Prisma.ImportSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Import
+   */
+  omit?: Prisma.ImportOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ImportInclude<ExtArgs> | null
+  where?: Prisma.ImportWhereInput
+  orderBy?: Prisma.ImportOrderByWithRelationInput | Prisma.ImportOrderByWithRelationInput[]
+  cursor?: Prisma.ImportWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ImportScalarFieldEnum | Prisma.ImportScalarFieldEnum[]
 }
 
 /**

@@ -400,7 +400,8 @@ export const ModelName = {
   Company: 'Company',
   Campaign: 'Campaign',
   CampaignRecipient: 'CampaignRecipient',
-  Invite: 'Invite'
+  Invite: 'Invite',
+  Import: 'Import'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -416,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "linkedinSession" | "contact" | "messageTemplate" | "sentMessage" | "syncJob" | "savedView" | "auditEvent" | "enrichmentSpend" | "company" | "campaign" | "campaignRecipient" | "invite"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "linkedinSession" | "contact" | "messageTemplate" | "sentMessage" | "syncJob" | "savedView" | "auditEvent" | "enrichmentSpend" | "company" | "campaign" | "campaignRecipient" | "invite" | "import"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1678,6 +1679,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Import: {
+      payload: Prisma.$ImportPayload<ExtArgs>
+      fields: Prisma.ImportFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ImportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ImportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportPayload>
+        }
+        findFirst: {
+          args: Prisma.ImportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ImportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportPayload>
+        }
+        findMany: {
+          args: Prisma.ImportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportPayload>[]
+        }
+        create: {
+          args: Prisma.ImportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportPayload>
+        }
+        createMany: {
+          args: Prisma.ImportCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ImportCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportPayload>[]
+        }
+        delete: {
+          args: Prisma.ImportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportPayload>
+        }
+        update: {
+          args: Prisma.ImportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportPayload>
+        }
+        deleteMany: {
+          args: Prisma.ImportDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ImportUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ImportUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportPayload>[]
+        }
+        upsert: {
+          args: Prisma.ImportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportPayload>
+        }
+        aggregate: {
+          args: Prisma.ImportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateImport>
+        }
+        groupBy: {
+          args: Prisma.ImportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImportGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ImportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImportCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1965,6 +2040,22 @@ export const InviteScalarFieldEnum = {
 } as const
 
 export type InviteScalarFieldEnum = (typeof InviteScalarFieldEnum)[keyof typeof InviteScalarFieldEnum]
+
+
+export const ImportScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  fileName: 'fileName',
+  totalRows: 'totalRows',
+  added: 'added',
+  updated: 'updated',
+  removed: 'removed',
+  companies: 'companies',
+  newCompanies: 'newCompanies',
+  createdAt: 'createdAt'
+} as const
+
+export type ImportScalarFieldEnum = (typeof ImportScalarFieldEnum)[keyof typeof ImportScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2357,6 +2448,7 @@ export type GlobalOmitConfig = {
   campaign?: Prisma.CampaignOmit
   campaignRecipient?: Prisma.CampaignRecipientOmit
   invite?: Prisma.InviteOmit
+  import?: Prisma.ImportOmit
 }
 
 /* Types for Logging */

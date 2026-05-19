@@ -141,6 +141,7 @@ model User {
   auditActed      AuditEvent[]      @relation("AuditActor")
   auditTargeted   AuditEvent[]      @relation("AuditTarget")
   campaigns       Campaign[]
+  imports         Import[]
 }
 
 model LinkedinSession {
@@ -392,4 +393,21 @@ model Invite {
 
   @@index([token])
   @@index([orgId])
+}
+
+model Import {
+  id          String   @id @default(cuid())
+  ownerId    String
+  fileName   String
+  totalRows  Int      // raw rows in the uploaded file
+  added      Int      // contacts that did not previously exist
+  updated    Int      // contacts that existed and were refreshed
+  removed    Int      // contacts present in DB but absent from this CSV (soft-removed)
+  companies  Int      // unique non-empty company strings in this CSV
+  newCompanies Int    // companies created (didn't exist in DB before this import)
+  createdAt  DateTime @default(now())
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, createdAt])
 }

@@ -102,3 +102,8 @@ export type CampaignRecipient = Prisma.CampaignRecipientModel
  * 
  */
 export type Invite = Prisma.InviteModel
+/**
+ * Model Import
+ * 
+ */
+export type Import = Prisma.ImportModel

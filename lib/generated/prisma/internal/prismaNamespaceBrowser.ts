@@ -67,7 +67,8 @@ export const ModelName = {
   Company: 'Company',
   Campaign: 'Campaign',
   CampaignRecipient: 'CampaignRecipient',
-  Invite: 'Invite'
+  Invite: 'Invite',
+  Import: 'Import'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -334,6 +335,22 @@ export const InviteScalarFieldEnum = {
 } as const
 
 export type InviteScalarFieldEnum = (typeof InviteScalarFieldEnum)[keyof typeof InviteScalarFieldEnum]
+
+
+export const ImportScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  fileName: 'fileName',
+  totalRows: 'totalRows',
+  added: 'added',
+  updated: 'updated',
+  removed: 'removed',
+  companies: 'companies',
+  newCompanies: 'newCompanies',
+  createdAt: 'createdAt'
+} as const
+
+export type ImportScalarFieldEnum = (typeof ImportScalarFieldEnum)[keyof typeof ImportScalarFieldEnum]
 
 
 export const SortOrder = {
