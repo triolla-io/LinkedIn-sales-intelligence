@@ -10,7 +10,11 @@ vi.mock("@upstash/redis", () => ({
 }));
 
 describe("checkSendQuota", () => {
-  beforeEach(() => { incr.mockReset(); expire.mockReset(); get.mockReset(); });
+  beforeEach(() => {
+    incr.mockReset(); expire.mockReset(); get.mockReset();
+    process.env.UPSTASH_REDIS_REST_URL = "http://test";
+    process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";
+  });
 
   it("returns ok when under both limits", async () => {
     incr.mockResolvedValueOnce(5).mockResolvedValueOnce(10);
