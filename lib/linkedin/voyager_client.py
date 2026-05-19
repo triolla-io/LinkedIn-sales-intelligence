@@ -22,6 +22,14 @@ UA = (
 )
 
 _cookie_cache: dict[str, str] | None = None
+_cookie_lock: asyncio.Lock | None = None
+
+
+def _get_lock() -> asyncio.Lock:
+    global _cookie_lock
+    if _cookie_lock is None:
+        _cookie_lock = asyncio.Lock()
+    return _cookie_lock
 
 
 class SessionExpiredError(RuntimeError):
@@ -40,11 +48,22 @@ async def _extract_cookies() -> dict[str, str]:
     global _cookie_cache
     if _cookie_cache:
         return _cookie_cache
+    async with _get_lock():
+        # Re-check after acquiring lock — another coroutine may have populated it.
+        if _cookie_cache:
+            return _cookie_cache
+        return await _do_extract_cookies()
+
+
+async def _do_extract_cookies() -> dict[str, str]:
+    global _cookie_cache
     from patchright.async_api import async_playwright
 
     profile = _profile_dir()
     if not profile.exists():
-        raise SessionExpiredError(f"Profile not found: {profile}. Run linkedin-mcp-server --login.")
+        raise SessionExpiredError(
+            f"Profile not found: {profile}. Run linkedin-mcp-server --login."
+        )
 
     async with async_playwright() as p:
         ctx = await p.chromium.launch_persistent_context(str(profile), headless=False)
