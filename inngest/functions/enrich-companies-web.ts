@@ -1,7 +1,9 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
-import { matchOrganization } from "@/lib/apollo/client";
+import { enrichCompanyViaGemini } from "@/lib/enrichment/gemini-search";
 import { publish } from "@/lib/linkedin/sse-bus";
+
+const MIN_CONTACTS_FOR_ENRICHMENT = 2;  // only enrich companies where you have 2+ contacts
 
 const BATCH = 20;       // companies per Inngest step
 const CONCURRENCY = 3;  // parallel Apollo calls (respect rate limits)
@@ -17,10 +19,10 @@ export const enrichCompaniesWeb = inngest.createFunction(
   async ({ event, step }: any) => {
     const orgId: string | undefined = event.data?.orgId;
 
-    // Load companies needing enrichment, sorted by number of contacts
-    // (most-connected companies first = most useful data early)
-    const companies = await step.run("load-unenriched", () =>
-      prisma.company.findMany({
+    // Load companies needing enrichment, filtered to those with N+ contacts
+    // (high-priority target accounts). Most-connected first.
+    const companies = await step.run("load-unenriched", async () => {
+      const rows = await prisma.company.findMany({
         where: {
           staffCount: null,
           name: { not: "" },
@@ -33,8 +35,10 @@ export const enrichCompaniesWeb = inngest.createFunction(
           _count: { select: { contacts: true } },
         },
         orderBy: { contacts: { _count: "desc" } },
-      }),
-    );
+      });
+      // Skip one-off companies (1 contact) — they're not worth Gemini calls
+      return rows.filter((r: { _count: { contacts: number } }) => r._count.contacts >= MIN_CONTACTS_FOR_ENRICHMENT);
+    });
 
     // Capture the set of owners affected by this run so we can notify them via SSE
     const ownerIds = await step.run("load-affected-owners", async () => {
@@ -85,8 +89,12 @@ export const enrichCompaniesWeb = inngest.createFunction(
               }
 
               try {
-                const result = await matchOrganization(company.name || company.universalName);
-                if (result.staffCount != null || result.industry || result.description) {
+                const result = await enrichCompanyViaGemini(company.name || company.universalName);
+                // Only save high/low confidence results — skip "none"
+                if (
+                  result.confidence !== "none" &&
+                  (result.staffCount != null || result.industry || result.description)
+                ) {
                   await prisma.company.update({
                     where: { id: company.id },
                     data: {
@@ -100,8 +108,8 @@ export const enrichCompaniesWeb = inngest.createFunction(
                   batchEnriched++;
                 }
               } catch (e: any) {
-                if (e?.message?.includes("rate limit")) throw e; // let Inngest retry
-                // Other errors (404, timeout) — skip silently
+                if (e?.message?.includes("rate limit") || e?.message?.includes("429")) throw e;
+                // Other errors (timeout, parse failure) — skip silently
               }
             }),
           );
