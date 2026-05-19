@@ -66,7 +66,8 @@ export const ModelName = {
   EnrichmentSpend: 'EnrichmentSpend',
   Company: 'Company',
   Campaign: 'Campaign',
-  CampaignRecipient: 'CampaignRecipient'
+  CampaignRecipient: 'CampaignRecipient',
+  Invite: 'Invite'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -319,6 +320,20 @@ export const CampaignRecipientScalarFieldEnum = {
 } as const
 
 export type CampaignRecipientScalarFieldEnum = (typeof CampaignRecipientScalarFieldEnum)[keyof typeof CampaignRecipientScalarFieldEnum]
+
+
+export const InviteScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  email: 'email',
+  token: 'token',
+  role: 'role',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type InviteScalarFieldEnum = (typeof InviteScalarFieldEnum)[keyof typeof InviteScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -114,6 +114,7 @@ model Organization {
 
   users            User[]
   enrichmentSpends EnrichmentSpend[]
+  invites          Invite[]
 }
 
 model User {
@@ -374,4 +375,21 @@ model CampaignRecipient {
 
   @@unique([campaignId, contactId])
   @@index([campaignId, status])
+}
+
+
+model Invite {
+  id        String   @id @default(cuid())
+  orgId     String
+  email     String
+  token     String   @unique
+  role      Role     @default(SALESPERSON)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([orgId])
 }

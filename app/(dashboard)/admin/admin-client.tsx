@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw, Wifi, WifiOff, AlertCircle, Users, Shield, LogIn, LogOut } from "lucide-react";
+import { RefreshCw, Wifi, WifiOff, AlertCircle, Users, Shield, LogIn, LogOut, UserPlus, Copy, Check, Mail } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 type LinkedinStatus = "ACTIVE" | "EXPIRED" | "DISCONNECTED";
@@ -47,6 +47,39 @@ export default function AdminClient() {
   const [error, setError] = useState<string | null>(null);
   const [impersonating, setImpersonating] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Invite state
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [inviteResult, setInviteResult] = useState<{ url?: string; sent?: boolean; error?: string } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  async function sendInvite() {
+    if (!inviteEmail.includes("@")) return;
+    setInviting(true);
+    setInviteResult(null);
+    try {
+      const res = await fetch("/api/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: inviteEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setInviteResult({ error: data.error }); return; }
+      setInviteResult(data.inviteUrl ? { url: data.inviteUrl } : { sent: true });
+      setInviteEmail("");
+    } catch {
+      setInviteResult({ error: "Failed to send invite" });
+    } finally {
+      setInviting(false);
+    }
+  }
+
+  function copyLink(url: string) {
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   async function load() {
     setLoading(true);
@@ -121,6 +154,61 @@ export default function AdminClient() {
             Refresh
           </button>
         </div>
+      </div>
+
+      {/* Invite member */}
+      <div className="rounded-xl border border-[#25405e] bg-[#1a2d3f] p-5 mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <UserPlus className="w-4 h-4 text-[#5c7d9e]" />
+          <p className="text-sm font-medium text-[#eaf2fd]">Invite a team member</p>
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="email"
+            value={inviteEmail}
+            onChange={(e) => { setInviteEmail(e.target.value); setInviteResult(null); }}
+            onKeyDown={(e) => e.key === "Enter" && sendInvite()}
+            placeholder="colleague@company.com"
+            className="flex-1 px-3 py-2 bg-[#0f1e2e] border border-[#25405e] rounded-lg text-sm text-[#eaf2fd] placeholder-[#456078] focus:outline-none focus:border-[#1585ff]/50 focus:ring-1 focus:ring-[#1585ff]/20"
+          />
+          <button
+            onClick={sendInvite}
+            disabled={inviting || !inviteEmail.includes("@")}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1585ff] hover:bg-[#3090ff] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-all"
+          >
+            {inviting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+            {inviting ? "Sending…" : "Send invite"}
+          </button>
+        </div>
+
+        {inviteResult?.sent && (
+          <div className="mt-3 flex items-center gap-2 text-xs text-emerald-400">
+            <Check className="w-3.5 h-3.5" />
+            Invitation sent — they'll get an email with a sign-in link.
+          </div>
+        )}
+
+        {inviteResult?.url && (
+          <div className="mt-3 p-3 rounded-lg bg-[#0f1e2e] border border-[#25405e]">
+            <p className="text-xs text-[#5c7d9e] mb-2">
+              <span className="text-amber-400 font-medium">No email key configured</span> — share this link manually:
+            </p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 text-xs text-[#9ecfff] truncate font-mono">{inviteResult.url}</code>
+              <button
+                onClick={() => copyLink(inviteResult.url!)}
+                className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#25405e] hover:border-[#2a4060] text-xs text-[#5c7d9e] hover:text-[#9ecfff] transition-all"
+              >
+                {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                {copied ? "Copied" : "Copy"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {inviteResult?.error && (
+          <p className="mt-2 text-xs text-red-400">{inviteResult.error}</p>
+        )}
       </div>
 
       {impersonating && (

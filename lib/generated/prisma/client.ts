@@ -121,3 +121,8 @@ export type Campaign = Prisma.CampaignModel
  * 
  */
 export type CampaignRecipient = Prisma.CampaignRecipientModel
+/**
+ * Model Invite
+ * 
+ */
+export type Invite = Prisma.InviteModel
