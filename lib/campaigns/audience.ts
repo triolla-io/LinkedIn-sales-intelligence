@@ -10,7 +10,7 @@ export async function resolveAudience(userId: string, spec: AudienceSpec): Promi
       where: { ownerId: userId, id: { in: spec.contactIds }, removedAt: null },
       select: { id: true },
     });
-    return rows.map((r) => r.id);
+    return rows.map((r: { id: string }) => r.id);
   }
   const f = spec.filter;
   const companySizeFilter: { gte?: number; lte?: number } = {};
@@ -28,5 +28,5 @@ export async function resolveAudience(userId: string, spec: AudienceSpec): Promi
     },
     select: { id: true },
   });
-  return rows.map((r) => r.id);
+  return rows.map((r: { id: string }) => r.id);
 }

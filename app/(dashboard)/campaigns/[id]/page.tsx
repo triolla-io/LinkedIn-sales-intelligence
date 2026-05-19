@@ -21,12 +21,14 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
 
   const serialized = {
     ...campaign,
-    recipients: campaign.recipients.map((r) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recipients: (campaign!.recipients as any[]).map((r: { sentAt: Date | null; scheduledAt: Date | null }) => ({
       ...r,
       sentAt: r.sentAt ? r.sentAt.toISOString() : null,
       scheduledAt: r.scheduledAt ? r.scheduledAt.toISOString() : null,
     })),
   };
 
-  return <CampaignDetailClient initial={serialized} />;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return <CampaignDetailClient initial={serialized as any} />;
 }
