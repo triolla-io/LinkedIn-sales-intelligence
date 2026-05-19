@@ -8,6 +8,10 @@ LinkedIn connections scraper. Uses Patchright with a profile saved via
 Env:
   LINKEDIN_PROFILE_DIR — path to the saved browser profile directory.
                          Defaults to ~/.linkedin-mcp/profile
+
+LinkedIn uses virtual scrolling — cards enter and leave the DOM as the user
+scrolls. We extract data after every scroll step and accumulate into a deduped
+set, so nothing is missed.
 """
 
 from __future__ import annotations
@@ -19,12 +23,13 @@ from pathlib import Path
 DEFAULT_PROFILE_DIR = Path.home() / ".linkedin-mcp" / "profile"
 CONNECTIONS_URL = "https://www.linkedin.com/mynetwork/invite-connect/connections/"
 CARD_SELECTOR = "a[data-view-name='connections-profile']"
+MAX_STABLE_ROUNDS = 6   # stop after this many scrolls with no new connections
+MAX_SCROLLS = 500
 
 
 async def scrape() -> dict:
     from patchright.async_api import async_playwright
     from lib.linkedin.extractor import extract_connections
-    from lib.linkedin.auto_scroll import scroll_until_stable
 
     profile_dir = Path(os.environ.get("LINKEDIN_PROFILE_DIR", str(DEFAULT_PROFILE_DIR))).expanduser()
     if not profile_dir.exists():
@@ -50,20 +55,33 @@ async def scrape() -> dict:
                 }
 
             await page.wait_for_selector(CARD_SELECTOR, timeout=20_000)
+            await page.wait_for_timeout(2000)  # let first batch settle
 
-            async def scroll_once():
+            # Accumulate connections across all scroll positions (virtual scroll fix)
+            seen_urls: dict[str, dict] = {}
+            stable_rounds = 0
+
+            for _ in range(MAX_SCROLLS):
+                html = await page.content()
+                batch = extract_connections(html)
+                new_this_round = 0
+                for conn in batch:
+                    url = conn.get("profileUrl", "")
+                    if url and url not in seen_urls:
+                        seen_urls[url] = conn
+                        new_this_round += 1
+
+                if new_this_round == 0:
+                    stable_rounds += 1
+                    if stable_rounds >= MAX_STABLE_ROUNDS:
+                        break
+                else:
+                    stable_rounds = 0
+
                 await page.mouse.wheel(0, 8000)
-                await page.wait_for_timeout(3000)  # 3s — LinkedIn needs time to lazy-load
+                await page.wait_for_timeout(2500)
 
-            async def count_items() -> int:
-                return await page.evaluate(
-                    f"() => document.querySelectorAll(\"{CARD_SELECTOR}\").length"
-                )
-
-            await scroll_until_stable(scroll_once, count_items, max_scrolls=500, stable_rounds=6)
-            html = await page.content()
-            connections = extract_connections(html)
-            return {"connections": connections, "error": None}
+            return {"connections": list(seen_urls.values()), "error": None}
         finally:
             await ctx.close()
 
