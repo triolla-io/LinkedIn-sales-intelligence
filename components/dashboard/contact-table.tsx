@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Mail, Phone } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -31,6 +31,9 @@ interface ContactTableProps {
   onMessage: (contact: Contact) => void;
   onOpenDrawer: (contact: Contact) => void;
   loading: boolean;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  loadingMore?: boolean;
 }
 
 const SENIORITY_BADGE: Record<string, string> = {
@@ -132,6 +135,9 @@ export default function ContactTable({
   onMessage,
   onOpenDrawer,
   loading,
+  onLoadMore,
+  hasMore,
+  loadingMore,
 }: ContactTableProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const allSelected = contacts.length > 0 && contacts.every((c) => selectedIds.has(c.id));
@@ -142,6 +148,16 @@ export default function ContactTable({
     estimateSize: () => ROW_HEIGHT,
     overscan: 10,
   });
+
+  // Infinite scroll — load more when within 10 rows of the bottom
+  useEffect(() => {
+    if (!hasMore || !onLoadMore || loadingMore) return;
+    const range = virtualizer.range;
+    if (!range) return;
+    if (range.endIndex >= contacts.length - 10) {
+      onLoadMore();
+    }
+  }, [virtualizer.range, contacts.length, hasMore, onLoadMore, loadingMore]);
 
   if (loading) {
     return (

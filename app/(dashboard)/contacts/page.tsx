@@ -234,20 +234,10 @@ function ContactsContent() {
             onMessage={setComposeContact}
             onOpenDrawer={setDrawerContact}
             loading={loading}
+            onLoadMore={loadMore}
+            hasMore={!!nextCursor}
+            loadingMore={loadingMore}
           />
-
-          {nextCursor && (
-            <div className="flex justify-center pb-16">
-              <button
-                onClick={loadMore}
-                disabled={loadingMore}
-                className="flex items-center gap-2 px-4 py-2 text-xs font-mono text-[#5c7d9e] border border-[#1e3248] rounded-md hover:border-[#25405e] hover:text-[#7a9aba] transition-colors"
-              >
-                {loadingMore && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                Load more
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
