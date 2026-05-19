@@ -18,12 +18,17 @@ export function NewCampaignModal({
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [linkedinConnected, setLinkedinConnected] = useState<boolean | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     if (!open) return;
     setName("");
     setError(null);
+    fetch("/api/linkedin/session")
+      .then((r) => r.json())
+      .then((d) => setLinkedinConnected(d.status === "ACTIVE"))
+      .catch(() => setLinkedinConnected(false));
     fetch("/api/templates")
       .then((r) => r.json())
       .then((j) => {
@@ -74,6 +79,13 @@ export function NewCampaignModal({
           Sending to {contactIds.length} contact{contactIds.length === 1 ? "" : "s"} via LinkedIn.
         </p>
 
+        {linkedinConnected === false && (
+          <div className="mt-3 rounded bg-amber-900/30 border border-amber-700/50 px-3 py-2 text-sm text-amber-400">
+            LinkedIn not connected.{" "}
+            <a href="/linkedin-connect" className="underline hover:text-amber-300">Connect your account →</a>
+            {" "}You won&apos;t be able to send until it&apos;s connected.
+          </div>
+        )}
         {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
 
         <label className="mt-4 block text-xs uppercase tracking-wide text-slate-500">Campaign name</label>
@@ -110,7 +122,7 @@ export function NewCampaignModal({
           </button>
           <button
             onClick={submit}
-            disabled={!name.trim() || !templateId || busy}
+            disabled={!name.trim() || !templateId || busy || linkedinConnected === false}
             className="rounded bg-[#1585ff] px-3 py-1.5 text-sm text-white disabled:opacity-50 hover:bg-blue-500"
           >
             {busy ? "Starting…" : "Send Campaign"}

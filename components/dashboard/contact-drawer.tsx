@@ -58,6 +58,14 @@ function formatDate(iso: string): string {
 export default function ContactDrawer({ contact, onClose, onEnrich, onMessage }: ContactDrawerProps) {
   const [messages, setMessages] = useState<MessageRecord[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [linkedinStatus, setLinkedinStatus] = useState<"ACTIVE" | "DISCONNECTED" | "loading">("loading");
+
+  useEffect(() => {
+    fetch("/api/linkedin/session")
+      .then((r) => r.json())
+      .then((d) => setLinkedinStatus(d.status === "ACTIVE" ? "ACTIVE" : "DISCONNECTED"))
+      .catch(() => setLinkedinStatus("DISCONNECTED"));
+  }, []);
 
   useEffect(() => {
     if (!contact) return;
@@ -135,13 +143,33 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onMessage }:
             <div className="flex-1 overflow-y-auto">
               {/* Primary CTA */}
               <div className="p-4 border-b border-[#1e3248]">
-                <button
-                  onClick={() => onMessage(contact)}
-                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#1585ff] hover:bg-[#3090ff] text-white text-sm font-medium transition-colors"
-                >
-                  <Send className="w-4 h-4" />
-                  Send LinkedIn Message
-                </button>
+                {linkedinStatus === "ACTIVE" ? (
+                  <button
+                    onClick={() => onMessage(contact)}
+                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#1585ff] hover:bg-[#3090ff] text-white text-sm font-medium transition-colors"
+                  >
+                    <Send className="w-4 h-4" />
+                    Send LinkedIn Message
+                  </button>
+                ) : linkedinStatus === "loading" ? (
+                  <button disabled className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#1e3248] text-[#456078] text-sm font-medium cursor-wait">
+                    <Send className="w-4 h-4" />
+                    Checking LinkedIn…
+                  </button>
+                ) : (
+                  <div className="space-y-2">
+                    <button disabled className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#1e3248] text-[#456078] text-sm font-medium cursor-not-allowed opacity-60">
+                      <Send className="w-4 h-4" />
+                      Send LinkedIn Message
+                    </button>
+                    <p className="text-xs text-center text-amber-400">
+                      LinkedIn not connected.{" "}
+                      <a href="/linkedin-connect" className="underline hover:text-amber-300">
+                        Connect your account →
+                      </a>
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Contact details */}
