@@ -49,7 +49,12 @@ export function NewCampaignModal({
       });
       const json = await res.json();
       if (!res.ok) { setError(json.error ?? "Failed to create campaign"); return; }
-      await fetch(`/api/campaigns/${json.campaign.id}/start`, { method: "POST" });
+      const startRes = await fetch(`/api/campaigns/${json.campaign.id}/start`, { method: "POST" });
+      if (!startRes.ok) {
+        const startJson = await startRes.json();
+        setError(startJson.error ?? "Failed to start campaign");
+        return;
+      }
       router.push(`/campaigns/${json.campaign.id}`);
     } catch {
       setError("Network error");

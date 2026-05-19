@@ -23,6 +23,12 @@ export async function campaignStartHandler({ event }: any) {
     include: { template: true, owner: { include: { org: true } } },
   });
   if (!campaign) throw new Error(`Campaign ${campaignId} not found`);
+  if (campaign.status !== "QUEUED") return; // idempotency guard: skip if already processed
+
+  await prisma.campaign.update({
+    where: { id: campaignId },
+    data: { status: "RUNNING", startedAt: new Date() },
+  });
 
   const spec: AudienceSpec = (campaign.filterJson as AudienceSpec) ?? { contactIds: [] };
   const contactIds = await resolveAudience(campaign.ownerId, spec);
@@ -46,6 +52,7 @@ export async function campaignStartHandler({ event }: any) {
     const { body, missing } = renderTemplate(campaign.template.body, { recipient, sender });
     const status = missing.length > 0 ? "SKIPPED" : "PENDING";
     const errorMessage = missing.length > 0 ? `missing_variable:${missing.join(",")}` : null;
+    // scheduledAt stored for display; actual dispatch is immediate (Inngest throttle + Redis quota handles pacing)
     const scheduledAt = new Date(cursor);
     cursor += jitterSeconds() * 1000;
 
@@ -60,11 +67,6 @@ export async function campaignStartHandler({ event }: any) {
       });
     }
   }
-
-  await prisma.campaign.update({
-    where: { id: campaignId },
-    data: { status: "RUNNING", startedAt: new Date() },
-  });
 }
 
 export const campaignStart = inngest.createFunction(

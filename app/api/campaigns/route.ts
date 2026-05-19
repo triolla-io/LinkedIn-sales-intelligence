@@ -10,6 +10,9 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   if (!name || !templateId) {
     return NextResponse.json({ error: "name and templateId required" }, { status: 400 });
   }
+  if (!contactIds && filter === undefined) {
+    return NextResponse.json({ error: "contactIds or filter required" }, { status: 400 });
+  }
   const tpl = await prisma.messageTemplate.findFirst({ where: { id: templateId, ownerId: ctx.effectiveUserId } });
   if (!tpl) return NextResponse.json({ error: "template not found" }, { status: 404 });
 

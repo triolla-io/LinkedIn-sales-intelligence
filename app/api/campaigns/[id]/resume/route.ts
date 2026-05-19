@@ -3,21 +3,21 @@ import { prisma } from "@/lib/prisma";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { inngest } from "@/inngest/client";
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
-  const { id } = params instanceof Promise ? await params : params;
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return withTenant(async (_req: NextRequest, ctx) => {
-    const campaign = await prisma.campaign.findFirst({ where: { id, ownerId: ctx.effectiveUserId } });
-    if (!campaign) return NextResponse.json({ error: "not found" }, { status: 404 });
-    if (campaign.status !== "PAUSED") return NextResponse.json({ error: "campaign must be PAUSED to resume" }, { status: 409 });
-
-    await prisma.campaign.update({ where: { id }, data: { status: "RUNNING" } });
-
-    const pendingRecipients = await prisma.campaignRecipient.findMany({
-      where: { campaignId: id, status: "PENDING" },
+    const updated = await prisma.campaign.updateMany({
+      where: { id, ownerId: ctx.effectiveUserId, status: "PAUSED" },
+      data: { status: "RUNNING" },
     });
+    if (updated.count === 0) return NextResponse.json({ error: "campaign not PAUSED or not found" }, { status: 409 });
 
-    for (const recipient of pendingRecipients) {
-      await inngest.send({ name: "campaign.send-one", data: { recipientId: recipient.id } });
+    const pending = await prisma.campaignRecipient.findMany({
+      where: { campaignId: id, status: "PENDING" },
+      select: { id: true },
+    });
+    for (const r of pending) {
+      await inngest.send({ name: "campaign.send-one", data: { recipientId: r.id } });
     }
 
     return NextResponse.json({ ok: true });

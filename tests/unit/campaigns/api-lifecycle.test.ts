@@ -9,12 +9,13 @@ vi.mock("@/lib/auth", () => ({ auth: mockAuth }));
 
 const mockCampaignFindFirst = vi.hoisted(() => vi.fn());
 const mockCampaignUpdate = vi.hoisted(() => vi.fn());
+const mockCampaignUpdateMany = vi.hoisted(() => vi.fn());
 const mockRecipientFindMany = vi.hoisted(() => vi.fn());
 const mockUserFindUnique = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    campaign: { findFirst: mockCampaignFindFirst, update: mockCampaignUpdate },
+    campaign: { findFirst: mockCampaignFindFirst, update: mockCampaignUpdate, updateMany: mockCampaignUpdateMany },
     campaignRecipient: { findMany: mockRecipientFindMany },
     user: { findUnique: mockUserFindUnique },
   },
@@ -36,6 +37,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   sendMock.mockResolvedValue({});
   mockCampaignUpdate.mockResolvedValue({});
+  mockCampaignUpdateMany.mockResolvedValue({ count: 1 });
   mockRecipientFindMany.mockResolvedValue([]);
   mockAuth.mockResolvedValue({ user: { id: "user1" } });
   mockUserFindUnique.mockResolvedValue(USER);
@@ -44,7 +46,7 @@ beforeEach(() => {
 describe("start route", () => {
   it("transitions DRAFT -> QUEUED and emits campaign.start", async () => {
     mockCampaignFindFirst.mockResolvedValue({ id: "camp1", ownerId: "user1", status: "DRAFT" });
-    const res = await startRoute(makeReq(), { params: { id: "camp1" } });
+    const res = await startRoute(makeReq(), { params: Promise.resolve({ id: "camp1" }) });
     expect(res.status).toBe(200);
     expect(mockCampaignUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: { status: "QUEUED" } }));
     expect(sendMock).toHaveBeenCalledWith(expect.objectContaining({ name: "campaign.start" }));
@@ -52,7 +54,7 @@ describe("start route", () => {
 
   it("returns 409 if not DRAFT", async () => {
     mockCampaignFindFirst.mockResolvedValue({ id: "camp1", status: "RUNNING" });
-    const res = await startRoute(makeReq(), { params: { id: "camp1" } });
+    const res = await startRoute(makeReq(), { params: Promise.resolve({ id: "camp1" }) });
     expect(res.status).toBe(409);
   });
 });
@@ -60,7 +62,7 @@ describe("start route", () => {
 describe("pause route", () => {
   it("transitions RUNNING -> PAUSED", async () => {
     mockCampaignFindFirst.mockResolvedValue({ id: "camp1", ownerId: "user1", status: "RUNNING" });
-    const res = await pauseRoute(makeReq(), { params: { id: "camp1" } });
+    const res = await pauseRoute(makeReq(), { params: Promise.resolve({ id: "camp1" }) });
     expect(res.status).toBe(200);
     expect(mockCampaignUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: { status: "PAUSED" } }));
   });
@@ -68,25 +70,32 @@ describe("pause route", () => {
 
 describe("resume route", () => {
   it("transitions PAUSED -> RUNNING and re-emits pending recipients", async () => {
-    mockCampaignFindFirst.mockResolvedValue({ id: "camp1", ownerId: "user1", status: "PAUSED" });
+    mockCampaignUpdateMany.mockResolvedValue({ count: 1 });
     mockRecipientFindMany.mockResolvedValue([{ id: "rec1" }]);
-    const res = await resumeRoute(makeReq(), { params: { id: "camp1" } });
+    const res = await resumeRoute(makeReq(), { params: Promise.resolve({ id: "camp1" }) });
     expect(res.status).toBe(200);
+    expect(mockCampaignUpdateMany).toHaveBeenCalledWith(expect.objectContaining({ data: { status: "RUNNING" } }));
     expect(sendMock).toHaveBeenCalledWith(expect.objectContaining({ name: "campaign.send-one" }));
+  });
+
+  it("returns 409 if campaign not PAUSED or not found", async () => {
+    mockCampaignUpdateMany.mockResolvedValue({ count: 0 });
+    const res = await resumeRoute(makeReq(), { params: Promise.resolve({ id: "camp1" }) });
+    expect(res.status).toBe(409);
   });
 });
 
 describe("cancel route", () => {
   it("cancels a RUNNING campaign", async () => {
     mockCampaignFindFirst.mockResolvedValue({ id: "camp1", ownerId: "user1", status: "RUNNING" });
-    const res = await cancelRoute(makeReq(), { params: { id: "camp1" } });
+    const res = await cancelRoute(makeReq(), { params: Promise.resolve({ id: "camp1" }) });
     expect(res.status).toBe(200);
     expect(mockCampaignUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: "CANCELLED" }) }));
   });
 
   it("returns 409 if already CANCELLED", async () => {
     mockCampaignFindFirst.mockResolvedValue({ id: "camp1", status: "CANCELLED" });
-    const res = await cancelRoute(makeReq(), { params: { id: "camp1" } });
+    const res = await cancelRoute(makeReq(), { params: Promise.resolve({ id: "camp1" }) });
     expect(res.status).toBe(409);
   });
 });

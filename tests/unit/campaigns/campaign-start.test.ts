@@ -56,6 +56,7 @@ describe("campaignStartHandler", () => {
     mockCampaignFindUnique.mockResolvedValue({
       id: "camp1",
       ownerId: "user1",
+      status: "QUEUED",
       filterJson: { contactIds: ["contact1", "contact2"] },
       template: { body: "Hi {{firstName}}, this is {{senderFirstName}}" },
       owner: { name: "Daniel Levi", title: "CEO", org: { name: "Triolla" } },
@@ -91,6 +92,7 @@ describe("campaignStartHandler", () => {
     mockCampaignFindUnique.mockResolvedValue({
       id: "camp1",
       ownerId: "user1",
+      status: "QUEUED",
       filterJson: { contactIds: ["contact1"] },
       template: { body: "Hi {{firstName}}" },
       owner: { name: "Daniel Levi", title: "CEO", org: { name: "Triolla" } },
