@@ -65,18 +65,27 @@ export default function ImportPage() {
         <p className="text-xs font-mono text-[#5c7d9e] uppercase tracking-widest mb-2">Import</p>
         <h1 className="text-2xl font-semibold text-[#eaf2fd] mb-1">Upload LinkedIn CSV</h1>
         <p className="text-[#5c7d9e] text-sm mb-8">
-          Export your connections from LinkedIn Settings → Data Privacy → Get a copy of your data, then upload the CSV here.
+          Already requested your archive? LinkedIn will email you when it's ready — just download and drop the <span className="font-mono text-[#9ecfff]">Connections.csv</span> file below.
         </p>
+
+        {/* Already waiting banner */}
+        <div className="rounded-xl border border-[#1585ff]/30 bg-[#1585ff]/8 px-5 py-4 mb-5 flex items-start gap-3">
+          <span className="text-lg mt-0.5">⏳</span>
+          <div>
+            <p className="text-sm font-medium text-[#9ecfff]">Archive requested — waiting for LinkedIn's email</p>
+            <p className="text-xs text-[#5c7d9e] mt-0.5">LinkedIn usually sends the download link within 10–30 minutes. Once you get the email, download the zip, extract <span className="font-mono">Connections.csv</span>, and upload it here.</p>
+          </div>
+        </div>
 
         {/* How to export */}
         <div className="rounded-xl border border-[#25405e] bg-[#1a2d3f] p-5 mb-6">
-          <p className="text-xs font-medium text-[#9ecfff] mb-3">How to export from LinkedIn</p>
+          <p className="text-xs font-medium text-[#9ecfff] mb-3">Steps (for next time)</p>
           <ol className="space-y-1.5 text-xs text-[#5c7d9e]">
-            <li><span className="text-[#7a9aba]">1.</span> Go to <span className="font-mono text-[#9ecfff]">linkedin.com/settings</span></li>
-            <li><span className="text-[#7a9aba]">2.</span> Data Privacy → Get a copy of your data</li>
-            <li><span className="text-[#7a9aba]">3.</span> Select <strong className="text-[#eaf2fd]">Connections</strong> and request archive</li>
-            <li><span className="text-[#7a9aba]">4.</span> LinkedIn emails you a download link (usually within minutes)</li>
-            <li><span className="text-[#7a9aba]">5.</span> Download and upload the <span className="font-mono text-[#9ecfff]">Connections.csv</span> file here</li>
+            <li><span className="text-[#7a9aba]">1.</span> Go to <span className="font-mono text-[#9ecfff]">linkedin.com/settings</span> → Data Privacy → Download my data</li>
+            <li><span className="text-[#7a9aba]">2.</span> Select <strong className="text-[#eaf2fd]">"Download larger data archive"</strong> → Request archive</li>
+            <li><span className="text-[#7a9aba]">3.</span> Wait for the email from LinkedIn (10–30 min)</li>
+            <li><span className="text-[#7a9aba]">4.</span> Download the zip → extract → find <span className="font-mono text-[#9ecfff]">Connections.csv</span></li>
+            <li><span className="text-[#7a9aba]">5.</span> Drop it below ↓</li>
           </ol>
         </div>
 
