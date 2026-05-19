@@ -4,6 +4,7 @@ import { decryptCookie } from "@/lib/linkedin/cookie-crypto";
 import { LinkedinMcp, RateLimitError } from "@/lib/linkedin/mcp-client";
 import { classify } from "@/lib/classifier/seniority";
 import { publish } from "@/lib/linkedin/sse-bus";
+import { slugifyCompany } from "@/lib/linkedin/slug-utils";
 
 const MAX_PROFILES_PER_RUN = 200;
 
@@ -93,6 +94,60 @@ export const syncFull = inngest.createFunction(
 
       await mcp.close();
 
+      // Step A: stub company rows for all unique currentCompany strings
+      const companySlugs = await step.run("stub-companies", async () => {
+        const synced = await prisma.contact.findMany({
+          where: { ownerId: userId, linkedinUrn: { in: newUrns }, currentCompany: { not: null } },
+          select: { currentCompany: true },
+        });
+
+        const bySlug = new Map<string, string>();
+        for (const c of synced) {
+          if (!c.currentCompany) continue;
+          const slug = slugifyCompany(c.currentCompany);
+          if (slug) bySlug.set(slug, c.currentCompany);
+        }
+        if (bySlug.size === 0) return [];
+
+        await prisma.$transaction(
+          [...bySlug].map(([slug, name]) =>
+            prisma.company.upsert({
+              where: { universalName: slug },
+              update: {},
+              create: { universalName: slug, name },
+            })
+          )
+        );
+        return [...bySlug.keys()];
+      });
+
+      // Step B: set companyId on each contact
+      await step.run("link-contacts-to-companies", async () => {
+        if (companySlugs.length === 0) return;
+
+        const synced = await prisma.contact.findMany({
+          where: { ownerId: userId, linkedinUrn: { in: newUrns }, currentCompany: { not: null } },
+          select: { id: true, currentCompany: true },
+        });
+
+        const companyRows = await prisma.company.findMany({
+          where: { universalName: { in: companySlugs } },
+          select: { id: true, universalName: true },
+        });
+        const idBySlug = new Map(companyRows.map((r) => [r.universalName, r.id]));
+
+        for (const contact of synced) {
+          if (!contact.currentCompany) continue;
+          const slug = slugifyCompany(contact.currentCompany);
+          const companyId = slug ? (idBySlug.get(slug) ?? null) : null;
+          if (!companyId) continue;
+          await prisma.contact.update({
+            where: { id: contact.id },
+            data: { companyId },
+          });
+        }
+      });
+
       // Step 4: fan out profile enrichment as separate background events
       // so sync completes fast and contacts appear in the UI immediately.
       const newContacts = await step.run("find-new-contacts", () =>
@@ -117,6 +172,13 @@ export const syncFull = inngest.createFunction(
           data: { status: "SUCCEEDED", finishedAt: new Date(), totalItems: total, processedItems: total },
         })
       );
+
+      if (companySlugs.length > 0) {
+        await step.sendEvent("emit-companies-enrich", {
+          name: "companies.enrich" as const,
+          data: { slugs: companySlugs },
+        });
+      }
 
       publish(userId, { type: "linkedin:sync-done", data: { total } });
 
