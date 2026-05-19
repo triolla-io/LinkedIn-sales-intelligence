@@ -11,6 +11,9 @@ export type Filters = {
   titleSearch: string[];
   industry: string[];
   companySizeBuckets: string[];
+
+  connectedFrom: string;
+  connectedTo: string;
   hasEmail?: boolean;
   hasPhone?: boolean;
 };
@@ -22,6 +25,9 @@ export const DEFAULT_FILTERS: Filters = {
   titleSearch: [],
   industry: [],
   companySizeBuckets: [],
+
+  connectedFrom: "",
+  connectedTo: "",
 };
 
 const COMPANY_SIZE_BUCKETS = [
@@ -37,45 +43,65 @@ const COMPANY_SIZE_BUCKETS = [
 type PillDef = { label: string; filterKey: "titleSearch" | "function"; value: string };
 
 const ROLE_PILLS: PillDef[] = [
-  { label: "CEO",             filterKey: "titleSearch", value: "CEO" },
-  { label: "COO",             filterKey: "titleSearch", value: "COO" },
-  { label: "CFO",             filterKey: "titleSearch", value: "CFO" },
-  { label: "CTO",             filterKey: "titleSearch", value: "CTO" },
-  { label: "Founder",         filterKey: "titleSearch", value: "Founder" },
-  { label: "HR",              filterKey: "function",    value: "HR" },
-  { label: "CMO",             filterKey: "titleSearch", value: "CMO" },
-  { label: "CPO",             filterKey: "titleSearch", value: "CPO" },
-  { label: "Sales",           filterKey: "function",    value: "SALES" },
-  { label: "Product Manager", filterKey: "titleSearch", value: "Product Manager" },
+  { label: "CEO", filterKey: "titleSearch", value: "CEO" },
+  { label: "COO", filterKey: "titleSearch", value: "COO" },
+  { label: "CFO", filterKey: "titleSearch", value: "CFO" },
+  { label: "CTO", filterKey: "titleSearch", value: "CTO" },
+  { label: "Founder", filterKey: "titleSearch", value: "Founder" },
+  { label: "HR", filterKey: "function", value: "HR" },
+  { label: "CMO", filterKey: "titleSearch", value: "CMO" },
+  { label: "CPO", filterKey: "titleSearch", value: "CPO" },
+  { label: "Sales", filterKey: "function", value: "SALES" },
+  { label: "PM", filterKey: "titleSearch", value: "Product Manager" },
 ];
 
 const INDUSTRY_PILLS = [
-  "SaaS", "Fintech", "Healthcare",
-  "Real Estate", "E-commerce",
-  "Education", "Media", "Manufacturing",
+  "SaaS", "Fintech", "Healthcare", "Real Estate",
+  "E-commerce", "Education", "Media", "Manufacturing",
 ];
+
 
 function Section({
   title,
   children,
   defaultOpen = true,
+  activeCount = 0,
 }: {
   title: string;
   children: React.ReactNode;
   defaultOpen?: boolean;
+  activeCount?: number;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="border-b border-gray-100 last:border-0">
+    <div className="border-b border-[#1e3248] last:border-0">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center justify-between w-full px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700"
+        className="flex items-center justify-between w-full px-4 py-2.5 text-[10px] font-mono font-semibold text-[#456078] uppercase tracking-widest hover:text-[#5c7d9e] transition-colors"
       >
-        {title}
+        <span className="flex items-center gap-2">
+          {title}
+          {activeCount > 0 && (
+            <span className="px-1 py-0.5 rounded bg-[#1585ff]/15 text-[#1585ff] text-[9px] font-mono">
+              {activeCount}
+            </span>
+          )}
+        </span>
         {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
       </button>
       {open && <div className="px-4 pb-4">{children}</div>}
     </div>
+  );
+}
+
+function ActivePill({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-[#1585ff]/15 text-[#1585ff] border border-[#1585ff]/20">
+      {label}
+      <button onClick={onRemove} className="hover:text-white transition-colors">
+        <X className="w-2.5 h-2.5" />
+      </button>
+    </span>
   );
 }
 
@@ -93,6 +119,9 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
     filters.function.length ||
     filters.titleSearch.length ||
     filters.companySizeBuckets.length ||
+    filters.industry.length ||
+    filters.connectedFrom ||
+    filters.connectedTo ||
     filters.hasEmail ||
     filters.hasPhone;
 
@@ -113,21 +142,21 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
   }
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-gray-200">
+    <div className="flex flex-col h-full bg-[#162333] border-r border-[#1e3248]">
       {/* Search */}
-      <div className="p-4 border-b border-gray-100">
+      <div className="p-4 border-b border-[#1e3248]">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#456078]" />
           <input
             type="text"
             placeholder="Search contacts…"
             value={filters.q}
             onChange={(e) => onChange({ ...filters, q: e.target.value })}
-            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-9 pr-3 py-2 bg-[#101c2a] border border-[#1e3248] rounded-md text-sm text-[#eaf2fd] placeholder-[#456078] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
           />
           {filters.q && (
             <button onClick={() => onChange({ ...filters, q: "" })} className="absolute right-2 top-1/2 -translate-y-1/2">
-              <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+              <X className="w-3.5 h-3.5 text-[#456078] hover:text-[#5c7d9e]" />
             </button>
           )}
         </div>
@@ -135,24 +164,37 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
 
       <div className="flex-1 overflow-y-auto">
         {/* Company Size */}
-        <Section title="Company Size (employees)">
-          <div className="space-y-2">
-            {COMPANY_SIZE_BUCKETS.map((b) => (
-              <label key={b.value} className="flex items-center gap-2 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={filters.companySizeBuckets.includes(b.value)}
-                  onChange={() => toggle("companySizeBuckets", b.value)}
-                  className="rounded border-gray-300 text-blue-600"
-                />
-                <span className="text-sm text-gray-700 group-hover:text-gray-900">{b.label}</span>
-              </label>
-            ))}
+        <Section title="Company Size" activeCount={filters.companySizeBuckets.length}>
+          <div className="space-y-1.5">
+            {COMPANY_SIZE_BUCKETS.map((b) => {
+              const active = filters.companySizeBuckets.includes(b.value);
+              return (
+                <label key={b.value} className="flex items-center gap-2.5 cursor-pointer group">
+                  <div
+                    className={cn(
+                      "w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all",
+                      active
+                        ? "bg-[#1585ff] border-[#1585ff]"
+                        : "bg-transparent border-[#25405e] group-hover:border-[#2a4060]"
+                    )}
+                    onClick={() => toggle("companySizeBuckets", b.value)}
+                  >
+                    {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 rotate-[-45deg]" />}
+                  </div>
+                  <span className={cn(
+                    "text-xs transition-colors",
+                    active ? "text-[#9ecfff]" : "text-[#5c7d9e] group-hover:text-[#7a9aba]"
+                  )}>
+                    {b.label}
+                  </span>
+                </label>
+              );
+            })}
           </div>
         </Section>
 
         {/* Role / Title */}
-        <Section title="Role / Title">
+        <Section title="Role / Title" activeCount={filters.titleSearch.length + filters.function.length}>
           <div className="flex flex-wrap gap-1.5 mb-3">
             {ROLE_PILLS.map((pill) => {
               const active = (filters[pill.filterKey] as string[]).includes(pill.value);
@@ -161,10 +203,10 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                   key={pill.label}
                   onClick={() => toggle(pill.filterKey, pill.value)}
                   className={cn(
-                    "px-2.5 py-1 rounded-full text-xs font-medium border transition-colors",
+                    "px-2 py-0.5 rounded text-xs font-medium border transition-all",
                     active
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600"
+                      ? "bg-[#1585ff]/15 text-[#1585ff] border-[#1585ff]/30"
+                      : "bg-transparent text-[#5c7d9e] border-[#25405e] hover:border-[#2a4060] hover:text-[#7a9aba]"
                   )}
                 >
                   {pill.label}
@@ -172,39 +214,35 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
               );
             })}
           </div>
-          {/* Custom title input */}
           <input
             type="text"
             placeholder="Custom title + Enter…"
             value={customTitle}
             onChange={(e) => setCustomTitle(e.target.value)}
             onKeyDown={addCustomTitle}
-            className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-1.5 bg-[#101c2a] border border-[#1e3248] rounded-md text-xs text-[#eaf2fd] placeholder-[#456078] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
           />
-          {filters.titleSearch.filter((t) => !ROLE_PILLS.some((p) => p.value === t)).map((t) => (
-            <div key={t} className="flex items-center gap-1 mt-1.5">
-              <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-600 text-white border border-blue-600">
-                {t}
-              </span>
-              <button onClick={() => toggle("titleSearch", t)}>
-                <X className="w-3 h-3 text-gray-400 hover:text-gray-600" />
-              </button>
-            </div>
-          ))}
+          <div className="flex flex-wrap gap-1 mt-2">
+            {filters.titleSearch
+              .filter((t) => !ROLE_PILLS.some((p) => p.value === t))
+              .map((t) => (
+                <ActivePill key={t} label={t} onRemove={() => toggle("titleSearch", t)} />
+              ))}
+          </div>
         </Section>
 
         {/* Industry */}
-        <Section title="Industry" defaultOpen={false}>
+        <Section title="Industry" defaultOpen={false} activeCount={filters.industry.length}>
           <div className="flex flex-wrap gap-1.5">
             {INDUSTRY_PILLS.map((i) => (
               <button
                 key={i}
                 onClick={() => toggle("industry", i)}
                 className={cn(
-                  "px-2.5 py-1 rounded-full text-xs font-medium border transition-colors",
+                  "px-2 py-0.5 rounded text-xs font-medium border transition-all",
                   filters.industry.includes(i)
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600"
+                    ? "bg-[#1585ff]/15 text-[#1585ff] border-[#1585ff]/30"
+                    : "bg-transparent text-[#5c7d9e] border-[#25405e] hover:border-[#2a4060] hover:text-[#7a9aba]"
                 )}
               >
                 {i}
@@ -213,37 +251,86 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
           </div>
         </Section>
 
-        {/* Contact info */}
-        <Section title="Contact Info">
+        {/* Connected Date */}
+        <Section
+          title="Connected Date"
+          defaultOpen={false}
+          activeCount={filters.connectedFrom || filters.connectedTo ? 1 : 0}
+        >
           <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <div>
+              <label className="block text-[10px] font-mono text-[#456078] uppercase tracking-widest mb-1">
+                From
+              </label>
               <input
-                type="checkbox"
-                checked={!!filters.hasEmail}
-                onChange={() => onChange({ ...filters, hasEmail: filters.hasEmail ? undefined : true })}
-                className="rounded border-gray-300 text-blue-600"
+                type="date"
+                value={filters.connectedFrom}
+                onChange={(e) => onChange({ ...filters, connectedFrom: e.target.value })}
+                className="w-full px-3 py-1.5 bg-[#101c2a] border border-[#1e3248] rounded-md text-xs text-[#eaf2fd] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors [color-scheme:dark]"
               />
-              <span className="text-sm text-gray-700">Has email</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
+            </div>
+            <div>
+              <label className="block text-[10px] font-mono text-[#456078] uppercase tracking-widest mb-1">
+                To
+              </label>
               <input
-                type="checkbox"
-                checked={!!filters.hasPhone}
-                onChange={() => onChange({ ...filters, hasPhone: filters.hasPhone ? undefined : true })}
-                className="rounded border-gray-300 text-blue-600"
+                type="date"
+                value={filters.connectedTo}
+                onChange={(e) => onChange({ ...filters, connectedTo: e.target.value })}
+                className="w-full px-3 py-1.5 bg-[#101c2a] border border-[#1e3248] rounded-md text-xs text-[#eaf2fd] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors [color-scheme:dark]"
               />
-              <span className="text-sm text-gray-700">Has phone</span>
-            </label>
+            </div>
+            {(filters.connectedFrom || filters.connectedTo) && (
+              <button
+                onClick={() => onChange({ ...filters, connectedFrom: "", connectedTo: "" })}
+                className="text-xs text-[#5c7d9e] hover:text-[#7a9aba] flex items-center gap-1"
+              >
+                <X className="w-3 h-3" /> Clear dates
+              </button>
+            )}
+          </div>
+        </Section>
+
+        {/* Contact info */}
+        <Section title="Contact Info" activeCount={(filters.hasEmail ? 1 : 0) + (filters.hasPhone ? 1 : 0)}>
+          <div className="space-y-1.5">
+            {[
+              { key: "hasEmail" as const, label: "Has email" },
+              { key: "hasPhone" as const, label: "Has phone" },
+            ].map(({ key, label }) => {
+              const active = !!filters[key];
+              return (
+                <label key={key} className="flex items-center gap-2.5 cursor-pointer group">
+                  <div
+                    className={cn(
+                      "w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all",
+                      active
+                        ? "bg-[#1585ff] border-[#1585ff]"
+                        : "bg-transparent border-[#25405e] group-hover:border-[#2a4060]"
+                    )}
+                    onClick={() => onChange({ ...filters, [key]: active ? undefined : true })}
+                  >
+                    {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 rotate-[-45deg]" />}
+                  </div>
+                  <span className={cn(
+                    "text-xs transition-colors",
+                    active ? "text-[#9ecfff]" : "text-[#5c7d9e] group-hover:text-[#7a9aba]"
+                  )}>
+                    {label}
+                  </span>
+                </label>
+              );
+            })}
           </div>
         </Section>
       </div>
 
       {/* Clear all */}
       {hasFilters && (
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-3 border-t border-[#1e3248]">
           <button
             onClick={() => onChange(DEFAULT_FILTERS)}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-mono text-[#5c7d9e] hover:text-[#7a9aba] border border-[#1e3248] hover:border-[#25405e] rounded-md transition-colors"
           >
             <X className="w-3 h-3" />
             Clear all filters
