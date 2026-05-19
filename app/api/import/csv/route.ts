@@ -4,28 +4,52 @@ import { prisma } from "@/lib/prisma";
 import { classify } from "@/lib/classifier/seniority";
 import { slugifyCompany } from "@/lib/linkedin/slug-utils";
 import { inngest } from "@/inngest/client";
+import * as XLSX from "xlsx";
 
 /**
  * POST /api/import/csv
- * Accepts a LinkedIn connections CSV export (multipart/form-data, field "file").
+ * Accepts a LinkedIn connections export as CSV or XLSX (multipart/form-data, field "file").
  *
- * LinkedIn CSV columns (may vary by locale):
+ * LinkedIn columns (may vary by locale):
  *   First Name, Last Name, URL, Email Address, Company, Position, Connected On
  */
+
+/** Convert file to array of row objects regardless of format */
+async function parseFile(file: File): Promise<{ header: string[]; rows: string[][] }> {
+  const isXlsx = file.name.endsWith(".xlsx") || file.name.endsWith(".xls") ||
+    file.type.includes("spreadsheet") || file.type.includes("excel");
+
+  if (isXlsx) {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: "array" });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1, defval: "" }) as string[][];
+    const [header, ...rows] = data.filter((r) => r.some((c) => c !== ""));
+    return { header: (header ?? []).map(String), rows: rows.map((r) => r.map(String)) };
+  }
+
+  // CSV path
+  const text = await file.text();
+  const lines = text.split(/\r?\n/).filter(Boolean);
+  const header = parseCsvLine(lines[0]).map((h) => h.replace(/^"|"$/g, "").trim());
+  const rows = lines.slice(1).map(parseCsvLine);
+  return { header, rows };
+}
+
 export const POST = withTenant(async (req: NextRequest, ctx) => {
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
   if (!file) return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
 
-  const text = await file.text();
-  const lines = text.split(/\r?\n/).filter(Boolean);
-  if (lines.length < 2) return NextResponse.json({ error: "CSV appears empty" }, { status: 400 });
+  const { header, rows } = await parseFile(file);
+  if (!header.length || !rows.length) {
+    return NextResponse.json({ error: "File appears empty" }, { status: 400 });
+  }
 
-  // Parse header — LinkedIn uses several header variants, normalise to lowercase
-  const header = lines[0].split(",").map((h) => h.replace(/^"|"$/g, "").trim().toLowerCase());
+  const headerLower = header.map((h) => h.toLowerCase());
   const col = (names: string[]) => {
     for (const n of names) {
-      const i = header.indexOf(n);
+      const i = headerLower.indexOf(n);
       if (i !== -1) return i;
     }
     return -1;
@@ -44,7 +68,6 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   }
 
   // Parse rows
-  const dataLines = lines.slice(1);
   const contacts: {
     fullName: string;
     linkedinUrl: string;
@@ -55,9 +78,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     connectedAt: Date | null;
   }[] = [];
 
-  for (const line of dataLines) {
-    // Handle quoted fields with commas inside
-    const cells = parseCsvLine(line);
+  for (const cells of rows) {
     const get = (i: number) => (i >= 0 ? (cells[i] ?? "").replace(/^"|"$/g, "").trim() : "");
 
     const firstName = get(iFirstName);

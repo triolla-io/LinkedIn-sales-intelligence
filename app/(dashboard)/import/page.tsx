@@ -107,7 +107,7 @@ export default function ImportPage() {
             <input
               ref={inputRef}
               type="file"
-              accept=".csv"
+              accept=".csv,.xlsx,.xls"
               className="hidden"
               onChange={onFileChange}
             />
@@ -140,7 +140,7 @@ export default function ImportPage() {
                   <p className="text-sm font-medium text-[#eaf2fd]">
                     {state === "dragging" ? "Drop it here" : "Drop your CSV here"}
                   </p>
-                  <p className="text-xs text-[#5c7d9e] mt-1">or click to browse — only .csv files</p>
+                  <p className="text-xs text-[#5c7d9e] mt-1">or click to browse — .csv or .xlsx</p>
                 </div>
               </>
             )}
