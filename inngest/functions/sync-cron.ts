@@ -2,9 +2,9 @@ import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 
 export const syncCron = inngest.createFunction(
-  { id: "sync-cron" },
-  { cron: "0 * * * *" }, // every hour
-  async ({ step }) => {
+  { id: "sync-cron", triggers: [{ cron: "0 * * * *" as const }] },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async ({ step }: any) => {
     const users = await step.run("find-due-users", async () => {
       const now = new Date();
       // Load all users with active LinkedIn sessions
@@ -28,7 +28,7 @@ export const syncCron = inngest.createFunction(
 
     await step.sendEvent(
       "dispatch-delta-syncs",
-      users.map((u) => ({ name: "sync.delta", data: { userId: u.userId } }))
+      (users as { userId: string }[]).map((u) => ({ name: "sync.delta", data: { userId: u.userId } }))
     );
 
     return { dispatched: users.length };

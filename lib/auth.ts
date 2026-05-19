@@ -17,44 +17,40 @@ declare module "next-auth" {
   }
 }
 
+// Custom adapter: extends PrismaAdapter to atomically create Org + User
+// on first sign-in (NextAuth calls createUser when no account exists yet).
+const baseAdapter = PrismaAdapter(prisma);
+const adapter = {
+  ...baseAdapter,
+  createUser: async (data: { email: string; name?: string | null; image?: string | null; emailVerified: Date | null }) => {
+    const org = await prisma.organization.create({
+      data: { name: `${data.name ?? data.email}'s Org` },
+    });
+    return prisma.user.create({
+      data: {
+        email: data.email,
+        name: data.name ?? data.email,
+        image: data.image,
+        emailVerified: data.emailVerified,
+        orgId: org.id,
+        role: "SALESPERSON",
+      },
+    });
+  },
+};
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  adapter: adapter as any,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
   session: { strategy: "jwt" },
   callbacks: {
-    async signIn({ user }) {
-      if (!user.email) return false;
-
-      const existing = await prisma.user.findUnique({
-        where: { email: user.email },
-      });
-
-      if (!existing) {
-        // First sign-in: bootstrap org + user atomically
-        await prisma.$transaction(async (tx) => {
-          const org = await tx.organization.create({
-            data: { name: `${user.name ?? user.email}'s Org` },
-          });
-          await tx.user.create({
-            data: {
-              email: user.email!,
-              name: user.name ?? user.email!,
-              image: user.image,
-              orgId: org.id,
-              role: "SALESPERSON",
-            },
-          });
-        });
-      }
-
-      return true;
-    },
-
     async jwt({ token, user }) {
       if (user?.email) {
         const dbUser = await prisma.user.findUnique({

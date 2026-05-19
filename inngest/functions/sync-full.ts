@@ -51,6 +51,7 @@ export const syncFull = inngest.createFunction(
         const now = new Date();
         await step.run(`upsert-connections-${cursor ?? "start"}`, async () => {
           for (const conn of items) {
+            const { seniority, function: fn } = classify(conn.currentTitle || conn.headline || "");
             const result = await prisma.contact.upsert({
               where: { ownerId_linkedinUrn: { ownerId: userId, linkedinUrn: conn.urn } },
               create: {
@@ -61,6 +62,8 @@ export const syncFull = inngest.createFunction(
                 headline: conn.headline,
                 currentTitle: conn.currentTitle || null,
                 currentCompany: conn.currentCompany || null,
+                seniority,
+                function: fn,
                 connectedAt: conn.connectedAt ? new Date(conn.connectedAt) : null,
                 lastSyncedAt: now,
               },
@@ -69,6 +72,8 @@ export const syncFull = inngest.createFunction(
                 headline: conn.headline,
                 currentTitle: conn.currentTitle || undefined,
                 currentCompany: conn.currentCompany || undefined,
+                seniority,
+                function: fn,
                 lastSyncedAt: now,
                 removedAt: null,
               },

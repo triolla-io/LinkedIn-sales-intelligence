@@ -18,6 +18,8 @@ const querySchema = z.object({
   companySizeBuckets: z.array(z.string()).optional(),
   company: z.array(z.string()).optional(),
   location: z.array(z.string()).optional(),
+  titleSearch: z.array(z.string()).optional(),
+  industry: z.array(z.string()).optional(),
   connectedFrom: z.string().optional(),
   connectedTo: z.string().optional(),
   hasEmail: z.enum(["true", "false"]).optional(),
@@ -41,6 +43,8 @@ export const GET = withTenant(async (req, ctx) => {
     companySizeBuckets: parseArrayParam(url.searchParams.get("companySizeBuckets")),
     company: parseArrayParam(url.searchParams.get("company")),
     location: parseArrayParam(url.searchParams.get("location")),
+    titleSearch: parseArrayParam(url.searchParams.get("titleSearch")),
+    industry: parseArrayParam(url.searchParams.get("industry")),
     connectedFrom: url.searchParams.get("connectedFrom") ?? undefined,
     connectedTo: url.searchParams.get("connectedTo") ?? undefined,
     hasEmail: (url.searchParams.get("hasEmail") as "true" | "false") ?? undefined,
@@ -89,7 +93,25 @@ export const GET = withTenant(async (req, ctx) => {
             { fullName: { contains: params.q, mode: "insensitive" } },
             { headline: { contains: params.q, mode: "insensitive" } },
             { currentCompany: { contains: params.q, mode: "insensitive" } },
+            { currentTitle: { contains: params.q, mode: "insensitive" } },
           ],
+        }
+      : {}),
+    ...(params.titleSearch?.length
+      ? {
+          OR: params.titleSearch.map((t) => ({
+            OR: [
+              { currentTitle: { contains: t, mode: "insensitive" as const } },
+              { headline: { contains: t, mode: "insensitive" as const } },
+            ],
+          })),
+        }
+      : {}),
+    ...(params.industry?.length
+      ? {
+          OR: params.industry.map((i) => ({
+            industry: { contains: i, mode: "insensitive" as const },
+          })),
         }
       : {}),
     ...(sizeConditions.length ? { OR: sizeConditions } : {}),
@@ -112,6 +134,7 @@ export const GET = withTenant(async (req, ctx) => {
         seniority: true,
         function: true,
         location: true,
+        industry: true,
         profilePicUrl: true,
         connectedAt: true,
         lastSyncedAt: true,

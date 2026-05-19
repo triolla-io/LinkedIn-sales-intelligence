@@ -12,9 +12,10 @@ export const syncDelta = inngest.createFunction(
   {
     id: "sync-delta",
     concurrency: { limit: 10 },
+    triggers: [{ event: "sync.delta" as const }],
   },
-  { event: "sync.delta" },
-  async ({ event, step }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async ({ event, step }: any) => {
     const { userId } = event.data as { userId: string };
 
     const session = await step.run("load-session", () =>
@@ -56,10 +57,10 @@ export const syncDelta = inngest.createFunction(
       const fetchedUrns = new Set<string>();
 
       do {
-        const { items, nextCursor } = await step.run(
+        const { items, nextCursor } = (await step.run(
           `fetch-connections-${cursor ?? "start"}`,
           () => mcp.getConnections({ cursor: cursor ?? undefined })
-        );
+        )) as { items: { urn: string }[]; nextCursor: string | null };
         items.forEach((c) => fetchedUrns.add(c.urn));
         total += items.length;
         cursor = nextCursor;
@@ -73,7 +74,9 @@ export const syncDelta = inngest.createFunction(
         })
       );
 
-      const existingMap = new Map(existing.map((c) => [c.linkedinUrn, c]));
+      const existingMap = new Map(
+        (existing as { id: string; linkedinUrn: string; lastSyncedAt: Date }[]).map((c) => [c.linkedinUrn, c])
+      );
 
       // New contacts = in fetched but not in DB
       const newUrns = [...fetchedUrns].filter((urn) => !existingMap.has(urn));
@@ -85,7 +88,7 @@ export const syncDelta = inngest.createFunction(
       if (removedUrns.length > 0) {
         await step.run("soft-remove", () =>
           prisma.contact.updateMany({
-            where: { ownerId: userId, linkedinUrn: { in: removedUrns } },
+            where: { ownerId: userId, linkedinUrn: { in: removedUrns as string[] } },
             data: { removedAt: new Date() },
           })
         );

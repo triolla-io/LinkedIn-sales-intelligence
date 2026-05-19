@@ -117,13 +117,14 @@ model Organization {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  orgId     String
-  email     String   @unique
-  name      String
-  image     String?
-  role      Role     @default(SALESPERSON)
-  createdAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  orgId         String
+  email         String    @unique
+  emailVerified DateTime?
+  name          String
+  image         String?
+  role          Role      @default(SALESPERSON)
+  createdAt     DateTime  @default(now())
 
   org             Organization      @relation(fields: [orgId], references: [id])
   accounts        Account[]
@@ -166,6 +167,7 @@ model Contact {
   seniority        Seniority?
   function         Function?
   location         String?
+  industry         String?
   profilePicUrl    String?
   connectedAt      DateTime?
   lastSyncedAt     DateTime

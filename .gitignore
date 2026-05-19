@@ -43,4 +43,30 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/lib/generated/prisma
+# lib/generated/prisma is intentionally NOT gitignored
+# Turbopack skips gitignored dirs; generated client must be visible to the bundler.
+# Files are regenerated via `npm run db:gen` (also runs on postinstall).
+
+# python (LinkedIn worker / scraper)
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# editors / OS
+.idea/
+.vscode/
+Thumbs.db
+
+# logs
+*.log
+
+# stale prisma output (canonical client lives at lib/generated/prisma)
+/app/generated/

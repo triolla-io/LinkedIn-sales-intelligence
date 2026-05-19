@@ -41,6 +41,7 @@ describe("classify — function", () => {
     ["Head of Product", "PRODUCT"],
     ["HR Manager", "HR"],
     ["Talent Acquisition Specialist", "HR"],
+    ["Technical Recruiter", "HR"],
     ["CFO", "FINANCE"],
     ["FP&A Analyst", "FINANCE"],
     ["Director of Operations", "OPERATIONS"],
