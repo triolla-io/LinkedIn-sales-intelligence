@@ -46,11 +46,14 @@ export const enrichCompaniesWeb = inngest.createFunction(
           const fetched = await Promise.all(
             chunk.map(async (company: { id: string; name: string; universalName: string }) => {
               const result = await enrichCompanyFromWeb(company.name || company.universalName);
-              if (result.staffCount || result.industry || result.description) {
+              // Sanity-check: Postgres Int max is 2,147,483,647; no company has >5M employees
+              const safeStaffCount = (result.staffCount && result.staffCount <= 5_000_000)
+                ? result.staffCount : null;
+              if (safeStaffCount || result.industry || result.description) {
                 await prisma.company.update({
                   where: { id: company.id },
                   data: {
-                    staffCount: result.staffCount ?? undefined,
+                    staffCount: safeStaffCount ?? undefined,
                     industry: result.industry ?? undefined,
                     website: result.website ?? undefined,
                     description: result.description ?? undefined,
