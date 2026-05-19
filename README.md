@@ -48,3 +48,35 @@ Chrome opens, you sign in (including 2FA/captcha if prompted), then close
 the window. The session is saved to `~/.linkedin-mcp/profile/` and reused
 by every subsequent sync. Re-run this command when the session expires
 (usually after several weeks).
+
+## Company Enrichment
+
+After every connection sync, the app enriches contacts with company data via LinkedIn's Voyager API — no Apollo credits required.
+
+### How it works
+
+1. **Sync** (`sync.full` or `sync.delta` event) — the existing DOM scraper fetches connections and upserts contacts. Each contact's `currentCompany` string (e.g. `"Microsoft"`) is slugified and stored as a stub `Company` row (`universalName = "microsoft"`).
+
+2. **Enrich** (`companies.enrich` event) — the `enrich-companies` Inngest function calls `lib/linkedin/voyager_companies.py`, which hits:
+   ```
+   GET /voyager/api/organization/companies?q=universalName&universalName={slug}
+   ```
+   This returns `staffCount` (exact integer) and `industries` (e.g. `["Software Development"]`).
+
+3. **Filter** — contacts can now be filtered by:
+   - `staffCount BETWEEN 30 AND 500`
+   - `industry = "Fintech"` (or any industry string)
+
+### Configuration
+
+| Env var | Default | Purpose |
+|---|---|---|
+| `LINKEDIN_PROFILE_DIR` | `~/.linkedin-mcp/profile` | Path to the Patchright browser profile used to extract `li_at` + `JSESSIONID` cookies |
+
+### Session management
+
+The company scraper opens a Patchright browser with the linkedin-mcp persistent profile to extract cookies. If the session has expired, the scraper exits with `SESSION_EXPIRED` and the Inngest function fails (retries 2×). Re-run `linkedin-mcp-server --login` to restore the session.
+
+### Slug matching
+
+Company names are slugified before lookup: `"Google LLC"` → `"google-llc"`. If LinkedIn's `universalName` differs (e.g., `"google"` not `"google-llc"`), the API returns an empty response and the Company row stays with `staffCount: null`. This is expected for edge cases — partial enrichment is acceptable.
