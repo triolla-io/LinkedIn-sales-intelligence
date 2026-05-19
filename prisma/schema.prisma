@@ -182,6 +182,9 @@ model Contact {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
   owner    User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   messages SentMessage[]
 
@@ -190,6 +193,7 @@ model Contact {
   @@index([ownerId, function])
   @@index([ownerId, companySize])
   @@index([ownerId, removedAt])
+  @@index([ownerId, companyId])
 }
 
 model MessageTemplate {
@@ -279,4 +283,22 @@ model EnrichmentSpend {
   org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@unique([orgId, month])
+}
+
+model Company {
+  id             String    @id @default(cuid())
+  universalName  String    @unique // slug used to look up via Voyager (e.g. "microsoft")
+  name           String
+  industry       String?
+  staffCount     Int? // exact headcount from Voyager (e.g. 231227)
+  website        String?
+  description    String?   @db.Text
+  lastEnrichedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  contacts Contact[]
+
+  @@index([industry])
+  @@index([staffCount])
 }
