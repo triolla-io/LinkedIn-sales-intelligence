@@ -82,25 +82,28 @@ def handle_get_profile(client: Linkedin, urn: str) -> dict:
 
 
 def resolve_profile_id(client: Linkedin, urn: str) -> str:
-    """Return the base64 profile ID needed by the messaging API.
+    """Return the best available profile ID for the messaging API.
 
-    The stored URN may contain either:
-    - A real base64 profile ID: urn:li:fs_miniProfile:ACoAABcJ...  (starts with ACo, 20+ chars)
-    - A vanity slug from HTML scraping: urn:li:fs_miniProfile:yuvalbaror1
-    - A CSV import URN: urn:li:csv_import:...
-
-    In the latter two cases we resolve via a profile lookup.
+    Tries strategies in order:
+    1. Base64 profile ID (ACoAAA...) — use directly, no lookup needed
+    2. Vanity slug — try get_profile() to get the real entityUrn; fall back to slug on any error
     """
     urn_id = extract_urn_id(urn)
-    # Proper LinkedIn base64 profile IDs start with "ACo" and are long
+    # Already a proper base64 profile ID
     if urn_id.startswith("ACo") and len(urn_id) > 20:
         return urn_id
-    # Vanity slug or import URN — resolve to actual entityUrn
-    profile = client.get_profile(public_id=urn_id) or {}
-    entity_urn = profile.get("entityUrn", "")
-    if entity_urn:
-        return extract_urn_id(entity_urn)
-    raise ValueError(f"Could not resolve LinkedIn profile ID for URN: {urn}")
+    # Try to resolve vanity slug → real profile ID via API lookup
+    try:
+        profile = client.get_profile(public_id=urn_id) or {}
+        entity_urn = profile.get("entityUrn", "")
+        if entity_urn:
+            resolved = extract_urn_id(entity_urn)
+            if resolved.startswith("ACo") and len(resolved) > 20:
+                return resolved
+    except Exception:
+        pass  # fall through to using slug directly
+    # Fall back: pass slug/urn_id directly — works for many linkedin_api versions
+    return urn_id
 
 
 def handle_send_message(client: Linkedin, urn: str, body: str) -> dict:
