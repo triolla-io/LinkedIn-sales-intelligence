@@ -1,78 +1,97 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
-import { enrichCompanyFromWeb } from "@/lib/enrichment/web-search";
+import { matchOrganization } from "@/lib/apollo/client";
 
-const BATCH = 50;    // companies per step
-const CONCURRENCY = 8; // parallel fetches
+const BATCH = 20;       // companies per Inngest step
+const CONCURRENCY = 3;  // parallel Apollo calls (respect rate limits)
 
 export const enrichCompaniesWeb = inngest.createFunction(
   {
     id: "enrich-companies-web",
-    name: "Enrich companies via web search (DuckDuckGo)",
+    name: "Enrich companies via Apollo (DB-first cache)",
     concurrency: { limit: 1 },
     retries: 1,
     triggers: [{ event: "companies.enrich-web" as const }],
   },
   async ({ event, step }: any) => {
-    // Optional: scope to a specific org, or run for all
     const orgId: string | undefined = event.data?.orgId;
 
-    // Load all companies that still need enrichment
+    // Load companies needing enrichment, sorted by number of contacts
+    // (most-connected companies first = most useful data early)
     const companies = await step.run("load-unenriched", () =>
       prisma.company.findMany({
         where: {
           staffCount: null,
-          ...(orgId
-            ? { contacts: { some: { owner: { orgId } } } }
-            : {}),
+          name: { not: "" },
+          ...(orgId ? { contacts: { some: { owner: { orgId } } } } : {}),
         },
-        select: { id: true, universalName: true, name: true },
+        select: {
+          id: true,
+          universalName: true,
+          name: true,
+          _count: { select: { contacts: true } },
+        },
+        orderBy: { contacts: { _count: "desc" } },
       }),
     );
 
-    if (companies.length === 0) return { enriched: 0, total: 0 };
+    if (companies.length === 0) return { enriched: 0, total: 0, skipped: 0 };
 
     let totalEnriched = 0;
+    let totalSkipped = 0;
 
-    // Process in batches to keep steps short
     for (let i = 0; i < companies.length; i += BATCH) {
       const batch = companies.slice(i, i + BATCH);
 
-      const enriched = await step.run(`enrich-batch-${i}`, async () => {
-        // Fetch in parallel with concurrency cap
-        const results: number[] = [];
+      const { enriched, skipped } = await step.run(`enrich-batch-${i}`, async () => {
+        let batchEnriched = 0;
+        let batchSkipped = 0;
+
         for (let j = 0; j < batch.length; j += CONCURRENCY) {
           const chunk = batch.slice(j, j + CONCURRENCY);
-          const fetched = await Promise.all(
+          await Promise.all(
             chunk.map(async (company: { id: string; name: string; universalName: string }) => {
-              const result = await enrichCompanyFromWeb(company.name || company.universalName);
-              // Sanity-check: Postgres Int max is 2,147,483,647; no company has >5M employees
-              const safeStaffCount = (result.staffCount && result.staffCount <= 5_000_000)
-                ? result.staffCount : null;
-              if (safeStaffCount || result.industry || result.description) {
-                await prisma.company.update({
-                  where: { id: company.id },
-                  data: {
-                    staffCount: safeStaffCount ?? undefined,
-                    industry: result.industry ?? undefined,
-                    website: result.website ?? undefined,
-                    description: result.description ?? undefined,
-                    lastEnrichedAt: new Date(),
-                  },
-                });
-                return 1;
+              // DB-first: re-check in case another batch already enriched it
+              const fresh = await prisma.company.findUnique({
+                where: { id: company.id },
+                select: { staffCount: true },
+              });
+              if (fresh?.staffCount != null) {
+                batchSkipped++;
+                return;
               }
-              return 0;
+
+              try {
+                const result = await matchOrganization(company.name || company.universalName);
+                if (result.staffCount != null || result.industry || result.description) {
+                  await prisma.company.update({
+                    where: { id: company.id },
+                    data: {
+                      staffCount: result.staffCount ?? undefined,
+                      industry: result.industry ?? undefined,
+                      website: result.website ?? undefined,
+                      description: result.description ?? undefined,
+                      lastEnrichedAt: new Date(),
+                    },
+                  });
+                  batchEnriched++;
+                }
+              } catch (e: any) {
+                if (e?.message?.includes("rate limit")) throw e; // let Inngest retry
+                // Other errors (404, timeout) — skip silently
+              }
             }),
           );
-          fetched.forEach((n: number) => results.push(n));
+          // Brief pause between chunks to respect Apollo rate limits
+          await new Promise((r) => setTimeout(r, 300));
         }
-        return results.reduce((a: number, b: number) => a + b, 0);
+        return { enriched: batchEnriched, skipped: batchSkipped };
       });
 
       totalEnriched += enriched;
+      totalSkipped += skipped;
     }
 
-    return { enriched: totalEnriched, total: companies.length };
+    return { enriched: totalEnriched, skipped: totalSkipped, total: companies.length };
   },
 );

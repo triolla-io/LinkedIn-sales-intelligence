@@ -1,3 +1,36 @@
+export async function matchOrganization(name: string): Promise<{
+  staffCount: number | null;
+  industry: string | null;
+  website: string | null;
+  description: string | null;
+}> {
+  const res = await fetch("https://api.apollo.io/v1/organizations/enrich", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.APOLLO_API_KEY}`,
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  if (res.status === 404 || res.status === 422) {
+    return { staffCount: null, industry: null, website: null, description: null };
+  }
+  if (res.status === 429) throw new Error("Apollo rate limit");
+  if (!res.ok) throw new Error(`Apollo org enrich ${res.status}`);
+
+  const data = await res.json();
+  const org = data.organization;
+  if (!org) return { staffCount: null, industry: null, website: null, description: null };
+
+  return {
+    staffCount: org.estimated_num_employees ?? null,
+    industry: org.industry ?? null,
+    website: org.website_url ?? null,
+    description: org.short_description ?? null,
+  };
+}
+
 export async function matchPerson(input: {
   name: string;
   company?: string;
