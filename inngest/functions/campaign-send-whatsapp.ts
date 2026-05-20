@@ -26,7 +26,11 @@ export async function campaignSendWhatsappHandler({ event }: any) {
     prefix: "wa:send:",
   });
   if (!quota.ok) {
-    await inngest.send({ name: "campaign.send-whatsapp", data: { recipientId } });
+    await inngest.send({
+      name: "campaign.send-whatsapp",
+      data: { recipientId },
+      ts: Date.now() + quota.retryAfterSec * 1000,
+    });
     return;
   }
 

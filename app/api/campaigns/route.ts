@@ -22,6 +22,9 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   }
 
   const resolvedChannel = channel === "WHATSAPP" ? "WHATSAPP" : "LINKEDIN";
+  const resolvedDailyLimit = dailyLimit != null
+    ? Math.min(500, Math.max(10, Math.floor(dailyLimit)))
+    : null;
 
   const tpl = await prisma.messageTemplate.findFirst({ where: { id: templateId, ownerId: ctx.effectiveUserId } });
   if (!tpl) return NextResponse.json({ error: "template not found" }, { status: 404 });
@@ -49,7 +52,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       templateId,
       status: "DRAFT",
       filterJson: filterJson as never,
-      dailyLimit: resolvedChannel === "WHATSAPP" && dailyLimit ? dailyLimit : null,
+      dailyLimit: resolvedChannel === "WHATSAPP" ? resolvedDailyLimit : null,
     },
   });
   return NextResponse.json({ campaign }, { status: 201 });
