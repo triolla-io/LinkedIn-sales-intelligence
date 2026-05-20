@@ -45,7 +45,7 @@ export const GET = withTenant(async (req: NextRequest, ctx) => {
 
   return NextResponse.json({
     list: { id: list.id, name: list.name, memberCount: list._count.members, createdAt: list.createdAt },
-    contacts: members.map((m) => m.contact),
+    contacts: members.map((m: { contact: unknown }) => m.contact),
     page,
     pageSize,
     total: list._count.members,
