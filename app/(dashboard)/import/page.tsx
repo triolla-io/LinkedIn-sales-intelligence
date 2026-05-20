@@ -15,6 +15,13 @@ type ImportResult = {
   newCompanies: number;
 };
 
+type CompaniesResult = {
+  companiesUpserted: number;
+  companiesSkipped: number;
+  contactsBackfilled: number;
+  totalContacts: number;
+};
+
 type State = "idle" | "dragging" | "uploading" | "done" | "error";
 
 export default function ImportPage() {
@@ -23,6 +30,12 @@ export default function ImportPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [fileName, setFileName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [compState, setCompState] = useState<State>("idle");
+  const [compResult, setCompResult] = useState<CompaniesResult | null>(null);
+  const [compError, setCompError] = useState("");
+  const [compFileName, setCompFileName] = useState("");
+  const compInputRef = useRef<HTMLInputElement>(null);
 
   const upload = useCallback(async (file: File) => {
     setFileName(file.name);
@@ -36,9 +49,27 @@ export default function ImportPage() {
       if (!res.ok) { setErrorMsg(data.error ?? "Import failed"); setState("error"); return; }
       setResult(data);
       setState("done");
-    } catch (e) {
+    } catch {
       setErrorMsg("Network error. Please try again.");
       setState("error");
+    }
+  }, []);
+
+  const uploadCompanies = useCallback(async (file: File) => {
+    setCompFileName(file.name);
+    setCompState("uploading");
+    setCompError("");
+    const form = new FormData();
+    form.append("file", file);
+    try {
+      const res = await fetch("/api/import/companies", { method: "POST", body: form });
+      const data = await res.json();
+      if (!res.ok) { setCompError(data.error ?? "Import failed"); setCompState("error"); return; }
+      setCompResult(data);
+      setCompState("done");
+    } catch {
+      setCompError("Network error. Please try again.");
+      setCompState("error");
     }
   }, []);
 
@@ -54,6 +85,18 @@ export default function ImportPage() {
     if (file) upload(file);
   }, [upload]);
 
+  const onCompDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setCompState("idle");
+    const file = e.dataTransfer.files[0];
+    if (file) uploadCompanies(file);
+  }, [uploadCompanies]);
+
+  const onCompFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadCompanies(file);
+  }, [uploadCompanies]);
+
   return (
     <div className="min-h-full bg-[#f6f5f3] p-8">
       <div className="max-w-2xl">
@@ -65,6 +108,7 @@ export default function ImportPage() {
           Back to contacts
         </Link>
 
+        {/* ── Section 1: LinkedIn connections ── */}
         <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-2">Import</p>
         <h1 className="text-2xl font-semibold text-[#111110] mb-1">Upload LinkedIn CSV</h1>
         <p className="text-[#6b6866] text-sm mb-8">
@@ -141,7 +185,7 @@ export default function ImportPage() {
           </div>
         )}
 
-        {/* Success */}
+        {/* Success — connections */}
         {state === "done" && result && (
           <div className="space-y-4">
             <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-emerald-50 border border-emerald-200">
@@ -185,6 +229,112 @@ export default function ImportPage() {
                 className="px-4 py-2.5 rounded-lg border border-[#e5e3df] text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] text-sm transition-all"
               >
                 Import another
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Divider ── */}
+        <div className="flex items-center gap-3 my-10">
+          <div className="flex-1 h-px bg-[#e5e3df]" />
+          <span className="text-xs text-[#9b9895]">or</span>
+          <div className="flex-1 h-px bg-[#e5e3df]" />
+        </div>
+
+        {/* ── Section 2: Company size data ── */}
+        <h2 className="text-lg font-semibold text-[#111110] mb-1">Upload company size data</h2>
+        <p className="text-[#6b6866] text-sm mb-6">
+          Have a <span className="font-mono text-[#1585ff]">unique_companies.csv</span> with <span className="font-mono">Company</span> and <span className="font-mono">Company_Size</span> columns? Drop it here to fill in employee counts and industries across all your contacts automatically.
+        </p>
+
+        {compState !== "done" && (
+          <div
+            onDragOver={(e) => { e.preventDefault(); setCompState("dragging"); }}
+            onDragLeave={() => setCompState("idle")}
+            onDrop={onCompDrop}
+            onClick={() => compInputRef.current?.click()}
+            className={cn(
+              "rounded-xl border-2 border-dashed p-10 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all",
+              compState === "dragging"
+                ? "border-[#1585ff] bg-[#1585ff]/5"
+                : "border-[#d4d0cc] bg-white hover:border-[#9b9895] hover:bg-[#f8f7f5]",
+              compState === "uploading" && "pointer-events-none opacity-60"
+            )}
+          >
+            <input
+              ref={compInputRef}
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={onCompFileChange}
+            />
+
+            {compState === "uploading" ? (
+              <>
+                <RefreshCw className="w-8 h-8 text-[#1585ff] animate-spin" />
+                <div className="text-center">
+                  <p className="text-sm font-medium text-[#111110]">Processing {compFileName}…</p>
+                  <p className="text-xs text-[#6b6866] mt-1">Seeding companies and backfilling contacts</p>
+                </div>
+              </>
+            ) : compState === "error" ? (
+              <>
+                <AlertCircle className="w-8 h-8 text-red-500" />
+                <div className="text-center">
+                  <p className="text-sm font-medium text-red-500">{compError}</p>
+                  <p className="text-xs text-[#6b6866] mt-1">Click to try again</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={cn(
+                  "w-14 h-14 rounded-2xl flex items-center justify-center transition-all",
+                  compState === "dragging" ? "bg-[#1585ff]/10" : "bg-[#f3f2ef]"
+                )}>
+                  <Building2 className={cn("w-6 h-6", compState === "dragging" ? "text-[#1585ff]" : "text-[#9b9895]")} />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-[#111110]">
+                    {compState === "dragging" ? "Drop it here" : "Drop unique_companies.csv here"}
+                  </p>
+                  <p className="text-xs text-[#6b6866] mt-1">or click to browse — .csv only</p>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Success — companies */}
+        {compState === "done" && compResult && (
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-emerald-50 border border-emerald-200">
+              <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-emerald-700">Company data applied!</p>
+                <p className="text-xs text-emerald-600/80 mt-0.5">
+                  Employee counts and industries have been filled in across your contacts.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <StatCard icon={Building2} label="Companies upserted" value={compResult.companiesUpserted} />
+              <StatCard icon={Users} label="Contacts backfilled" value={compResult.contactsBackfilled} accent="info" />
+              <StatCard icon={Users} label="Total contacts" value={compResult.totalContacts} />
+            </div>
+
+            <div className="flex gap-3">
+              <Link
+                href="/contacts"
+                className="flex-1 text-center px-4 py-2.5 rounded-lg bg-[#1585ff] hover:bg-[#0a70e0] text-white text-sm font-medium transition-all"
+              >
+                View contacts →
+              </Link>
+              <button
+                onClick={() => { setCompState("idle"); setCompResult(null); setCompFileName(""); if (compInputRef.current) compInputRef.current.value = ""; }}
+                className="px-4 py-2.5 rounded-lg border border-[#e5e3df] text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] text-sm transition-all"
+              >
+                Upload again
               </button>
             </div>
           </div>

@@ -68,7 +68,7 @@ export default function ListPopover({ contactIds, onClose, anchorRef }: ListPopo
   return (
     <div
       ref={popoverRef}
-      className="absolute z-50 mt-1 w-56 bg-white border border-[#e5e3df] rounded-xl shadow-2xl shadow-black/10 py-1 overflow-hidden"
+      className="absolute z-50 bottom-full mb-2 w-56 bg-white border border-[#e5e3df] rounded-xl shadow-2xl shadow-black/10 py-1 overflow-hidden"
     >
       {loading ? (
         <div className="flex items-center justify-center py-4">

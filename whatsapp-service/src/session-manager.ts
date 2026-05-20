@@ -50,7 +50,11 @@ export async function initSession(userId: string): Promise<void> {
 
   const { state, saveCreds } = await useMultiFileAuthState(dir);
 
-  const socket = makeWASocket({ auth: state, printQRInTerminal: false });
+  const socket = makeWASocket({
+    auth: state,
+    printQRInTerminal: false,
+    browser: ["Mac OS", "Safari", "10.15.7"],
+  });
 
   const entry: SessionEntry = {
     socket,

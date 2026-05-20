@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Zap, RefreshCw, X, Send, Download, Megaphone, Bookmark } from "lucide-react";
+import { Zap, RefreshCw, X, Download, Megaphone, Bookmark } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Contact } from "./contact-table";
 import { NewCampaignModal } from "./new-campaign-modal";
@@ -11,14 +11,12 @@ interface BulkEnrichBarProps {
   selectedIds: string[];
   selectedContacts: Contact[];
   onDone?: () => void;
-  onMessage?: (contact: Contact) => void;
 }
 
 export default function BulkEnrichBar({
   selectedIds,
   selectedContacts,
   onDone,
-  onMessage,
 }: BulkEnrichBarProps) {
   const [enriching, setEnriching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,12 +79,6 @@ export default function BulkEnrichBar({
     a.download = `contacts-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }
-
-  function handleLinkedInMessage() {
-    if (selectedContacts.length === 1 && onMessage) {
-      onMessage(selectedContacts[0]);
-    }
   }
 
   if (N === 0) return null;
@@ -154,15 +146,6 @@ export default function BulkEnrichBar({
 
             {/* Right: actions */}
             <div className="flex items-center gap-2">
-              {N === 1 && (
-                <button
-                  onClick={handleLinkedInMessage}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#111110] border border-[#e5e3df] hover:border-blue-200 hover:bg-[#eff5ff] hover:text-[#1585ff] rounded-md transition-all"
-                >
-                  <Send className="w-3.5 h-3.5 text-[#1585ff]" />
-                  Send LinkedIn Message
-                </button>
-              )}
               <div className="relative">
                 <button
                   ref={listBtnRef}

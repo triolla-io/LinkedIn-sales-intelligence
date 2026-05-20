@@ -123,7 +123,6 @@ export default function ListDetailPage() {
           onToggle={() => {}}
           onSelectAll={() => {}}
           onEnrich={() => {}}
-          onMessage={() => {}}
           onOpenDrawer={() => {}}
           loading={loading}
           page={page}

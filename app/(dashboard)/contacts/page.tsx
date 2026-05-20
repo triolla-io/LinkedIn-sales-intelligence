@@ -7,7 +7,6 @@ import FilterSidebar, { type Filters, DEFAULT_FILTERS } from "@/components/dashb
 import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
 import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
-import ComposeModal from "@/components/dashboard/compose-modal";
 import BackfillEnrichButton from "@/components/dashboard/backfill-enrich-button";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -86,7 +85,6 @@ function ContactsContent() {
   const [newThisWeek, setNewThisWeek] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [composeContact, setComposeContact] = useState<Contact | null>(null);
   const [drawerContact, setDrawerContact] = useState<Contact | null>(null);
   const tableWrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -224,7 +222,6 @@ function ContactsContent() {
                 )
               }
               onEnrich={handleEnrich}
-              onMessage={setComposeContact}
               onOpenDrawer={setDrawerContact}
               loading={loading}
               page={page}
@@ -242,7 +239,6 @@ function ContactsContent() {
         contact={drawerContact}
         onClose={() => setDrawerContact(null)}
         onEnrich={handleEnrich}
-        onMessage={(c) => { setComposeContact(c); setDrawerContact(null); }}
       />
 
       {/* Bulk action bar */}
@@ -251,14 +247,9 @@ function ContactsContent() {
           selectedIds={Array.from(selectedIds)}
           selectedContacts={selectedContacts}
           onDone={() => { setSelectedIds(new Set()); fetchData(); }}
-          onMessage={(c) => { setComposeContact(c); setSelectedIds(new Set()); }}
         />
       )}
 
-      {/* Compose modal */}
-      {composeContact && (
-        <ComposeModal contact={composeContact} onClose={() => setComposeContact(null)} />
-      )}
     </div>
   );
 }

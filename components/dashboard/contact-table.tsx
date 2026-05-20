@@ -28,7 +28,6 @@ interface ContactTableProps {
   onToggle: (id: string) => void;
   onSelectAll: () => void;
   onEnrich: (id: string) => void;
-  onMessage: (contact: Contact) => void;
   onOpenDrawer: (contact: Contact) => void;
   loading: boolean;
   page: number;
@@ -139,7 +138,6 @@ export default function ContactTable({
   onToggle,
   onSelectAll,
   onEnrich,
-  onMessage,
   onOpenDrawer,
   loading,
   page,

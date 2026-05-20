@@ -9,7 +9,6 @@ import {
   MapPin,
   Building2,
   Zap,
-  Send,
   Users,
   Clock,
   Plus,
@@ -30,7 +29,6 @@ interface ContactDrawerProps {
   contact: Contact | null;
   onClose: () => void;
   onEnrich: (id: string) => void;
-  onMessage: (contact: Contact) => void;
 }
 
 const SENIORITY_COLOR: Record<string, string> = {
@@ -58,20 +56,12 @@ function formatDate(iso: string): string {
   }).format(new Date(iso));
 }
 
-export default function ContactDrawer({ contact, onClose, onEnrich, onMessage }: ContactDrawerProps) {
+export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDrawerProps) {
   const [messages, setMessages] = useState<MessageRecord[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
-  const [linkedinStatus, setLinkedinStatus] = useState<"ACTIVE" | "DISCONNECTED" | "loading">("loading");
   const [contactLists, setContactLists] = useState<{ id: string; name: string }[]>([]);
   const [showListPopover, setShowListPopover] = useState(false);
   const addListBtnRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    fetch("/api/linkedin/session")
-      .then((r) => r.json())
-      .then((d) => setLinkedinStatus(d.status === "ACTIVE" ? "ACTIVE" : "DISCONNECTED"))
-      .catch(() => setLinkedinStatus("DISCONNECTED"));
-  }, []);
 
   useEffect(() => {
     if (!contact) return;
@@ -152,37 +142,6 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onMessage }:
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto">
-              {/* Primary CTA */}
-              <div className="p-4 border-b border-[#e5e3df]">
-                {linkedinStatus === "ACTIVE" ? (
-                  <button
-                    onClick={() => onMessage(contact)}
-                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#1585ff] hover:bg-[#0a70e0] text-white text-sm font-medium transition-colors"
-                  >
-                    <Send className="w-4 h-4" />
-                    Send LinkedIn Message
-                  </button>
-                ) : linkedinStatus === "loading" ? (
-                  <button disabled className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#f3f2ef] text-[#9b9895] text-sm font-medium cursor-wait">
-                    <Send className="w-4 h-4" />
-                    Checking LinkedIn…
-                  </button>
-                ) : (
-                  <div className="space-y-2">
-                    <button disabled className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#f3f2ef] text-[#9b9895] text-sm font-medium cursor-not-allowed opacity-60">
-                      <Send className="w-4 h-4" />
-                      Send LinkedIn Message
-                    </button>
-                    <p className="text-xs text-center text-amber-600">
-                      LinkedIn not connected.{" "}
-                      <a href="/linkedin-connect" className="underline hover:text-amber-700">
-                        Connect your account →
-                      </a>
-                    </p>
-                  </div>
-                )}
-              </div>
-
               {/* Contact details */}
               <div className="p-4 space-y-4 border-b border-[#e5e3df]">
                 <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">
