@@ -2,7 +2,6 @@ import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { checkSendQuota } from "@/lib/campaigns/throttle";
 import { publish } from "@/lib/linkedin/sse-bus";
-import { mcpSendMessage, extractUsername, extractProfileUrn } from "@/lib/linkedin/mcp-http-client";
 
 const MAX_ATTEMPTS = 3;
 
@@ -33,26 +32,7 @@ export async function campaignSendOneHandler({ event }: any) {
   });
 
   try {
-    const username = extractUsername(recipient.contact.linkedinUrl, recipient.contact.linkedinUrn);
-    const profileUrn = extractProfileUrn(recipient.contact.linkedinUrn);
-    await mcpSendMessage(username, recipient.renderedBody ?? "", profileUrn);
-
-    const sent = await prisma.sentMessage.create({
-      data: {
-        senderId: recipient.campaign.ownerId,
-        actorId: recipient.campaign.ownerId,
-        contactId: recipient.contactId,
-        templateId: recipient.campaign.templateId,
-        body: recipient.renderedBody ?? "",
-        status: "SENT",
-        sentAt: new Date(),
-      },
-    });
-    await prisma.campaignRecipient.update({
-      where: { id: recipientId },
-      data: { status: "SENT", sentMessageId: sent.id, sentAt: new Date() },
-    });
-    publish(recipient.campaign.ownerId, { type: "campaign:sent", data: { recipientId, campaignId: recipient.campaignId } });
+    throw new Error("LinkedIn MCP client removed — reconnect the LinkedIn MCP service to restore sending");
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     const shouldRetry = recipient.attemptCount + 1 < MAX_ATTEMPTS;

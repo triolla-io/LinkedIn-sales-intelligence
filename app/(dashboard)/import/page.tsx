@@ -71,15 +71,6 @@ export default function ImportPage() {
           Already requested your archive? LinkedIn will email you when it's ready — just download and drop the <span className="font-mono text-[#1585ff]">Connections.csv</span> file below.
         </p>
 
-        {/* Already waiting banner */}
-        <div className="rounded-xl border border-blue-200 bg-blue-50 px-5 py-4 mb-5 flex items-start gap-3">
-          <span className="text-lg mt-0.5">⏳</span>
-          <div>
-            <p className="text-sm font-medium text-blue-700">Archive requested — waiting for LinkedIn's email</p>
-            <p className="text-xs text-blue-600/80 mt-0.5">LinkedIn usually sends the download link within 10–30 minutes. Once you get the email, download the zip, extract <span className="font-mono">Connections.csv</span>, and upload it here.</p>
-          </div>
-        </div>
-
         {/* How to export */}
         <div className="rounded-xl border border-[#e5e3df] bg-white p-5 mb-6">
           <p className="text-xs font-medium text-[#6b6866] mb-3">Steps (for next time)</p>

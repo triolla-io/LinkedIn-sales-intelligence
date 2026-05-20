@@ -269,10 +269,10 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       select: { orgId: true },
     });
     if (meForOrg) {
-      await inngest.send({
+      inngest.send({
         name: "companies.enrich-web" as const,
         data: { orgId: meForOrg.orgId },
-      });
+      }).catch(() => {});
     }
   }
 

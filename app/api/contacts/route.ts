@@ -20,8 +20,6 @@ const querySchema = z.object({
   location: z.array(z.string()).optional(),
   titleSearch: z.array(z.string()).optional(),
   industry: z.array(z.string()).optional(),
-  connectedFrom: z.string().optional(),
-  connectedTo: z.string().optional(),
   hasEmail: z.enum(["true", "false"]).optional(),
   hasPhone: z.enum(["true", "false"]).optional(),
   q: z.string().optional(),
@@ -48,8 +46,6 @@ export const GET = withTenant(async (req, ctx) => {
     location: parseArrayParam(url.searchParams.get("location")),
     titleSearch: parseArrayParam(url.searchParams.get("titleSearch")),
     industry: parseArrayParam(url.searchParams.get("industry")),
-    connectedFrom: url.searchParams.get("connectedFrom") ?? undefined,
-    connectedTo: url.searchParams.get("connectedTo") ?? undefined,
     hasEmail: (url.searchParams.get("hasEmail") as "true" | "false") ?? undefined,
     hasPhone: (url.searchParams.get("hasPhone") as "true" | "false") ?? undefined,
     q: url.searchParams.get("q") ?? undefined,
@@ -81,14 +77,6 @@ export const GET = withTenant(async (req, ctx) => {
     ...(params.function?.length ? { function: { in: params.function as any } } : {}),
     ...(params.company?.length ? { currentCompany: { in: params.company } } : {}),
     ...(params.location?.length ? { location: { in: params.location } } : {}),
-    ...(params.connectedFrom || params.connectedTo
-      ? {
-          connectedAt: {
-            ...(params.connectedFrom ? { gte: new Date(params.connectedFrom) } : {}),
-            ...(params.connectedTo ? { lte: new Date(params.connectedTo) } : {}),
-          },
-        }
-      : {}),
     ...(params.hasEmail === "true" ? { email: { not: null } } : {}),
     ...(params.hasEmail === "false" ? { email: null } : {}),
     ...(params.hasPhone === "true" ? { phone: { not: null } } : {}),
@@ -149,7 +137,6 @@ export const GET = withTenant(async (req, ctx) => {
     location: true,
     industry: true,
     profilePicUrl: true,
-    connectedAt: true,
     lastSyncedAt: true,
     email: true,
     phone: true,
