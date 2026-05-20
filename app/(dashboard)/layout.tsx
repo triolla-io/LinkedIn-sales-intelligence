@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Sidebar from "@/components/dashboard/sidebar";
 import ImpersonationBanner from "@/components/dashboard/impersonation-banner";
-import EnrichmentProgress from "@/components/dashboard/enrichment-progress";
 
 export default async function DashboardLayout({
   children,
@@ -46,7 +45,6 @@ export default async function DashboardLayout({
         {impersonatedUser && (
           <ImpersonationBanner name={impersonatedUser.name} />
         )}
-        <EnrichmentProgress />
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>

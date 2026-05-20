@@ -9,7 +9,6 @@ import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
 import ComposeModal from "@/components/dashboard/compose-modal";
 import BackfillEnrichButton from "@/components/dashboard/backfill-enrich-button";
-import EnrichBanner from "@/components/dashboard/enrich-banner";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -40,6 +39,7 @@ function buildContactsUrl(filters: Filters, page: number, pageSize: number) {
   if (filters.connectedTo) params.set("connectedTo", filters.connectedTo);
   if (filters.hasEmail) params.set("hasEmail", "true");
   if (filters.hasPhone) params.set("hasPhone", "true");
+  if (filters.listId) params.set("listId", filters.listId);
   params.set("page", String(page));
   params.set("pageSize", String(pageSize));
   return `/api/contacts?${params.toString()}`;
@@ -75,6 +75,7 @@ function ContactsContent() {
     connectedTo: searchParams.get("connectedTo") ?? "",
     hasEmail: searchParams.get("hasEmail") === "true" ? true : undefined,
     hasPhone: searchParams.get("hasPhone") === "true" ? true : undefined,
+    listId: searchParams.get("listId") ?? undefined,
   }));
 
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -87,9 +88,6 @@ function ContactsContent() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [composeContact, setComposeContact] = useState<Contact | null>(null);
   const [drawerContact, setDrawerContact] = useState<Contact | null>(null);
-  const [syncing, setSyncing] = useState(false);
-  const [syncDone, setSyncDone] = useState(false);
-
   const tableWrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = tableWrapperRef.current;
@@ -123,6 +121,7 @@ function ContactsContent() {
     if (filters.connectedTo) params.set("connectedTo", filters.connectedTo);
     if (filters.hasEmail) params.set("hasEmail", "true");
     if (filters.hasPhone) params.set("hasPhone", "true");
+    if (filters.listId) params.set("listId", filters.listId);
     router.replace(`/contacts?${params.toString()}`, { scroll: false });
   }, [filters, router]);
 
@@ -154,20 +153,6 @@ function ContactsContent() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  async function triggerSync() {
-    setSyncing(true);
-    setSyncDone(false);
-    try {
-      await fetch("/api/sync/trigger", { method: "POST" });
-      setSyncDone(true);
-      setTimeout(() => setSyncDone(false), 3000);
-    } catch (e) {
-      console.error("Sync trigger failed:", e);
-    } finally {
-      setSyncing(false);
-    }
-  }
-
   function handleEnrich(id: string) {
     fetch(`/api/contacts/${id}/enrich`, { method: "POST" }).then(() => fetchData()).catch(() => {});
   }
@@ -184,7 +169,6 @@ function ContactsContent() {
 
       {/* Main content */}
       <div className="flex-1 min-w-0 flex flex-col">
-        <EnrichBanner />
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
           <div className="flex items-center gap-3">
@@ -204,14 +188,6 @@ function ContactsContent() {
             >
               <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
               Refresh
-            </button>
-            <button
-              onClick={triggerSync}
-              disabled={syncing}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={cn("w-3.5 h-3.5", syncing && "animate-spin")} />
-              {syncDone ? "Sync queued!" : syncing ? "Starting…" : "Sync LinkedIn"}
             </button>
           </div>
         </div>
