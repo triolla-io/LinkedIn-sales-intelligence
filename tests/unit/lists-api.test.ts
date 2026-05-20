@@ -42,3 +42,40 @@ describe("parseCreateBody", () => {
     expect(parseCreateBody(null)).toBeNull();
   });
 });
+
+// Inline pure helpers for enrich route logic
+function buildEnrichFilter(listId: string, _existingEnrichedIds: string[]): object {
+  return {
+    lists: { some: { listId } },
+    email: null,
+  };
+}
+
+function sliceTobudget(ids: string[], creditsRemaining: number): string[] {
+  return ids.slice(0, creditsRemaining);
+}
+
+describe("buildEnrichFilter", () => {
+  it("filters list members without email", () => {
+    expect(buildEnrichFilter("list-1", [])).toEqual({
+      lists: { some: { listId: "list-1" } },
+      email: null,
+    });
+  });
+  it("uses the correct listId", () => {
+    const result = buildEnrichFilter("list-abc", []) as Record<string, unknown>;
+    expect((result.lists as { some: { listId: string } }).some.listId).toBe("list-abc");
+  });
+});
+
+describe("sliceTobudget", () => {
+  it("returns all IDs when budget is sufficient", () => {
+    expect(sliceTobudget(["a", "b", "c"], 10)).toEqual(["a", "b", "c"]);
+  });
+  it("slices to budget limit", () => {
+    expect(sliceTobudget(["a", "b", "c", "d"], 2)).toEqual(["a", "b"]);
+  });
+  it("returns empty when budget is zero", () => {
+    expect(sliceTobudget(["a"], 0)).toEqual([]);
+  });
+});
