@@ -56,7 +56,6 @@ export async function matchPerson(input: {
     organization_name: input.company,
     linkedin_url: input.linkedinUrl,
     reveal_personal_emails: true,
-    reveal_phone_number: true,
   });
 
   const delays = [1000, 2000, 4000];
