@@ -3,6 +3,22 @@ import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 import { inngest } from "@/inngest/client";
 
+export const GET = withTenant(async (req: NextRequest, ctx) => {
+  const listId = req.nextUrl.pathname.split("/").at(-2)!;
+
+  const list = await prisma.contactList.findFirst({
+    where: { id: listId, ownerId: ctx.effectiveUserId },
+  });
+  if (!list) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const [total, withEmail] = await Promise.all([
+    prisma.contactListMember.count({ where: { listId } }),
+    prisma.contact.count({ where: { lists: { some: { listId } }, email: { not: null } } }),
+  ]);
+
+  return NextResponse.json({ total, withEmail });
+});
+
 export const POST = withTenant(async (req: NextRequest, ctx) => {
   const listId = req.nextUrl.pathname.split("/").at(-2)!;
 

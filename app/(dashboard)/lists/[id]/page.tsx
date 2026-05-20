@@ -24,11 +24,16 @@ export default function ListDetailPage() {
   const [campaignOpen, setCampaignOpen] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [enriching, setEnriching] = useState(false);
-  const [enrichResult, setEnrichResult] = useState<{ queued: number; skipped: number; creditsRemaining: number } | null>(null);
+  const [enrichProgress, setEnrichProgress] = useState<{ done: number; target: number } | null>(null);
+  const [enrichDone, setEnrichDone] = useState(false);
   const [enrichError, setEnrichError] = useState<string | null>(null);
   const clearTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
-  useEffect(() => () => clearTimeout(clearTimerRef.current), []);
+  useEffect(() => () => {
+    clearTimeout(clearTimerRef.current);
+    clearInterval(pollRef.current);
+  }, []);
 
   const fetchList = useCallback(async (pg = page) => {
     setLoading(true);
@@ -72,23 +77,53 @@ export default function ListDetailPage() {
   }
 
   async function enrichList() {
+    clearInterval(pollRef.current);
     setEnriching(true);
-    setEnrichResult(null);
+    setEnrichProgress(null);
+    setEnrichDone(false);
     setEnrichError(null);
     try {
-      const res = await fetch(`/api/lists/${id}/enrich`, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) {
-        setEnrichError(data.error === "BUDGET_EXHAUSTED" ? "Budget exhausted" : "Enrichment failed");
-      } else {
-        setEnrichResult(data);
+      const [statusRes, postRes] = await Promise.all([
+        fetch(`/api/lists/${id}/enrich`),
+        fetch(`/api/lists/${id}/enrich`, { method: "POST" }),
+      ]);
+      const postData = await postRes.json();
+      if (!postRes.ok) {
+        setEnrichError(postData.error === "BUDGET_EXHAUSTED" ? "Budget exhausted" : "Enrichment failed");
+        return;
       }
+      const { queued } = postData;
+      if (queued === 0) {
+        setEnrichDone(true);
+        clearTimeout(clearTimerRef.current);
+        clearTimerRef.current = setTimeout(() => setEnrichDone(false), 4000);
+        return;
+      }
+      const statusData = await statusRes.json();
+      const baseline = statusData.withEmail ?? 0;
+      setEnrichProgress({ done: 0, target: queued });
+
+      pollRef.current = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/lists/${id}/enrich`);
+          if (!res.ok) return;
+          const { withEmail } = await res.json();
+          const done = Math.min(withEmail - baseline, queued);
+          setEnrichProgress({ done, target: queued });
+          if (done >= queued) {
+            clearInterval(pollRef.current);
+            setEnrichProgress(null);
+            setEnrichDone(true);
+            fetchList(page);
+            clearTimeout(clearTimerRef.current);
+            clearTimerRef.current = setTimeout(() => setEnrichDone(false), 4000);
+          }
+        } catch { /* ignore poll errors */ }
+      }, 3000);
     } catch {
       setEnrichError("Network error");
     } finally {
       setEnriching(false);
-      clearTimeout(clearTimerRef.current);
-      clearTimerRef.current = setTimeout(() => { setEnrichResult(null); setEnrichError(null); }, 4000);
     }
   }
 
@@ -133,18 +168,21 @@ export default function ListDetailPage() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          {(enrichResult || enrichError) && (
-            <span className={`text-xs font-mono ${enrichError ? "text-red-400" : "text-emerald-600"}`}>
-              {enrichError
-                ? enrichError
-                : enrichResult
-                ? enrichResult.queued === 0 ? "All enriched" : `${enrichResult.queued} queued`
-                : null}
+          {enrichError && (
+            <span className="text-xs font-mono text-red-400">{enrichError}</span>
+          )}
+          {enrichDone && !enrichError && (
+            <span className="text-xs font-mono text-emerald-600">Done</span>
+          )}
+          {enrichProgress && (
+            <span className="text-xs font-mono text-amber-600 flex items-center gap-1">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              {enrichProgress.done} / {enrichProgress.target}
             </span>
           )}
           <button
             onClick={enrichList}
-            disabled={total === 0 || enriching}
+            disabled={total === 0 || enriching || !!enrichProgress}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-600 border border-amber-300 hover:bg-amber-50 hover:border-amber-400 rounded-md transition-all disabled:opacity-40"
           >
             {enriching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
