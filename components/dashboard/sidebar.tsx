@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Users, FileText, Shield, LogOut, LayoutDashboard, Upload, BookMarked } from "lucide-react";
+import { Users, FileText, Shield, LogOut, LayoutDashboard, Upload, BookMarked, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 interface SidebarProps {
@@ -20,6 +20,7 @@ const navItems = [
   { href: "/lists", label: "Lists", icon: BookMarked },
   { href: "/templates", label: "Templates", icon: FileText },
   { href: "/import", label: "Import CSV", icon: Upload },
+  { href: "/whatsapp-connect", label: "WhatsApp", icon: MessageCircle },
 ];
 
 const adminItems = [

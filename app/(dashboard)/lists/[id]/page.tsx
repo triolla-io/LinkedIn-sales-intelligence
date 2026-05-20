@@ -146,7 +146,7 @@ export default function ListDetailPage() {
       <NewCampaignModal
         open={campaignOpen}
         onClose={() => setCampaignOpen(false)}
-        listId={id}
+        contactIds={contacts.map((c) => c.id)}
       />
     </div>
   );
