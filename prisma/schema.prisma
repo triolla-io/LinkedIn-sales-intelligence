@@ -348,6 +348,7 @@ model Campaign {
   templateId  String
   status      CampaignStatus   @default(DRAFT)
   filterJson  Json?
+  dailyLimit  Int?
   startedAt   DateTime?
   completedAt DateTime?
   createdAt   DateTime         @default(now())
