@@ -4,13 +4,14 @@ import { withTenant } from "@/lib/tenancy/with-tenant";
 
 export const POST = withTenant(async (req: NextRequest, ctx) => {
   const body = await req.json();
-  const { name, templateId, channel, contactIds, listId, filter } = body as {
+  const { name, templateId, contactIds, listId, filter, channel, dailyLimit } = body as {
     name?: string;
     templateId?: string;
-    channel?: "EMAIL" | "WHATSAPP";
     contactIds?: string[];
     listId?: string;
     filter?: unknown;
+    channel?: string;
+    dailyLimit?: number;
   };
 
   if (!name || !templateId) {
@@ -20,10 +21,11 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     return NextResponse.json({ error: "contactIds, listId, or filter required" }, { status: 400 });
   }
 
+  const resolvedChannel = channel === "WHATSAPP" ? "WHATSAPP" : "LINKEDIN";
+
   const tpl = await prisma.messageTemplate.findFirst({ where: { id: templateId, ownerId: ctx.effectiveUserId } });
   if (!tpl) return NextResponse.json({ error: "template not found" }, { status: 404 });
 
-  // Resolve listId → contactIds at creation time
   let resolvedContactIds = contactIds;
   if (listId && !resolvedContactIds) {
     const list = await prisma.contactList.findFirst({
@@ -34,7 +36,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       where: { listId },
       select: { contactId: true },
     });
-    resolvedContactIds = members.map((m: { contactId: string }) => m.contactId);
+    resolvedContactIds = members.map((m) => m.contactId);
   }
 
   const filterJson = resolvedContactIds ? { contactIds: resolvedContactIds } : { filter };
@@ -43,10 +45,11 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       ownerId: ctx.effectiveUserId,
       orgId: ctx.org.id,
       name,
-      channel: channel ?? "EMAIL",
+      channel: resolvedChannel,
       templateId,
       status: "DRAFT",
       filterJson: filterJson as never,
+      dailyLimit: resolvedChannel === "WHATSAPP" && dailyLimit ? dailyLimit : null,
     },
   });
   return NextResponse.json({ campaign }, { status: 201 });
