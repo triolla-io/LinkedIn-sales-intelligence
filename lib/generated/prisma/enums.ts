@@ -66,7 +66,17 @@ export const MessageStatus = {
 export type MessageStatus = (typeof MessageStatus)[keyof typeof MessageStatus]
 
 
+export const SessionStatus = {
+  ACTIVE: 'ACTIVE',
+  EXPIRED: 'EXPIRED',
+  DISCONNECTED: 'DISCONNECTED'
+} as const
+
+export type SessionStatus = (typeof SessionStatus)[keyof typeof SessionStatus]
+
+
 export const CampaignChannel = {
+  LINKEDIN: 'LINKEDIN',
   EMAIL: 'EMAIL',
   WHATSAPP: 'WHATSAPP'
 } as const

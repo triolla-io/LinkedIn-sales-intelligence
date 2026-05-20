@@ -36,7 +36,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       where: { listId },
       select: { contactId: true },
     });
-    resolvedContactIds = members.map((m) => m.contactId);
+    resolvedContactIds = members.map((m: { contactId: string }) => m.contactId);
   }
 
   const filterJson = resolvedContactIds ? { contactIds: resolvedContactIds } : { filter };

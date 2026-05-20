@@ -308,6 +308,23 @@ export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
   _max?: Prisma.NestedJsonFilter<$PrismaModel>
 }
 
+export type EnumSessionStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.SessionStatus | Prisma.EnumSessionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.SessionStatus[] | Prisma.ListEnumSessionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SessionStatus[] | Prisma.ListEnumSessionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSessionStatusFilter<$PrismaModel> | $Enums.SessionStatus
+}
+
+export type EnumSessionStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SessionStatus | Prisma.EnumSessionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.SessionStatus[] | Prisma.ListEnumSessionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SessionStatus[] | Prisma.ListEnumSessionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSessionStatusWithAggregatesFilter<$PrismaModel> | $Enums.SessionStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSessionStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSessionStatusFilter<$PrismaModel>
+}
+
 export type EnumCampaignChannelFilter<$PrismaModel = never> = {
   equals?: $Enums.CampaignChannel | Prisma.EnumCampaignChannelFieldRefInput<$PrismaModel>
   in?: $Enums.CampaignChannel[] | Prisma.ListEnumCampaignChannelFieldRefInput<$PrismaModel>
@@ -688,6 +705,23 @@ export type NestedJsonFilterBase<$PrismaModel = never> = {
   gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+}
+
+export type NestedEnumSessionStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.SessionStatus | Prisma.EnumSessionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.SessionStatus[] | Prisma.ListEnumSessionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SessionStatus[] | Prisma.ListEnumSessionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSessionStatusFilter<$PrismaModel> | $Enums.SessionStatus
+}
+
+export type NestedEnumSessionStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SessionStatus | Prisma.EnumSessionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.SessionStatus[] | Prisma.ListEnumSessionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SessionStatus[] | Prisma.ListEnumSessionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSessionStatusWithAggregatesFilter<$PrismaModel> | $Enums.SessionStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSessionStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSessionStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumCampaignChannelFilter<$PrismaModel = never> = {

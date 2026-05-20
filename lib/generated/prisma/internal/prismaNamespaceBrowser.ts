@@ -62,6 +62,7 @@ export const ModelName = {
   SavedView: 'SavedView',
   AuditEvent: 'AuditEvent',
   EnrichmentSpend: 'EnrichmentSpend',
+  LinkedinSession: 'LinkedinSession',
   Company: 'Company',
   Campaign: 'Campaign',
   CampaignRecipient: 'CampaignRecipient',
@@ -240,6 +241,20 @@ export const EnrichmentSpendScalarFieldEnum = {
 } as const
 
 export type EnrichmentSpendScalarFieldEnum = (typeof EnrichmentSpendScalarFieldEnum)[keyof typeof EnrichmentSpendScalarFieldEnum]
+
+
+export const LinkedinSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  encryptedCookie: 'encryptedCookie',
+  cookieExpiresAt: 'cookieExpiresAt',
+  lastValidatedAt: 'lastValidatedAt',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LinkedinSessionScalarFieldEnum = (typeof LinkedinSessionScalarFieldEnum)[keyof typeof LinkedinSessionScalarFieldEnum]
 
 
 export const CompanyScalarFieldEnum = {

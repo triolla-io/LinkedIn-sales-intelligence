@@ -395,6 +395,7 @@ export const ModelName = {
   SavedView: 'SavedView',
   AuditEvent: 'AuditEvent',
   EnrichmentSpend: 'EnrichmentSpend',
+  LinkedinSession: 'LinkedinSession',
   Company: 'Company',
   Campaign: 'Campaign',
   CampaignRecipient: 'CampaignRecipient',
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1235,6 +1236,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    LinkedinSession: {
+      payload: Prisma.$LinkedinSessionPayload<ExtArgs>
+      fields: Prisma.LinkedinSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LinkedinSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LinkedinSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.LinkedinSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LinkedinSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>
+        }
+        findMany: {
+          args: Prisma.LinkedinSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>[]
+        }
+        create: {
+          args: Prisma.LinkedinSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>
+        }
+        createMany: {
+          args: Prisma.LinkedinSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LinkedinSessionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>[]
+        }
+        delete: {
+          args: Prisma.LinkedinSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>
+        }
+        update: {
+          args: Prisma.LinkedinSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.LinkedinSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LinkedinSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LinkedinSessionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>[]
+        }
+        upsert: {
+          args: Prisma.LinkedinSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.LinkedinSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLinkedinSession>
+        }
+        groupBy: {
+          args: Prisma.LinkedinSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LinkedinSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LinkedinSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LinkedinSessionCountAggregateOutputType> | number
+        }
+      }
+    }
     Company: {
       payload: Prisma.$CompanyPayload<ExtArgs>
       fields: Prisma.CompanyFieldRefs
@@ -1947,6 +2022,20 @@ export const EnrichmentSpendScalarFieldEnum = {
 export type EnrichmentSpendScalarFieldEnum = (typeof EnrichmentSpendScalarFieldEnum)[keyof typeof EnrichmentSpendScalarFieldEnum]
 
 
+export const LinkedinSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  encryptedCookie: 'encryptedCookie',
+  cookieExpiresAt: 'cookieExpiresAt',
+  lastValidatedAt: 'lastValidatedAt',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LinkedinSessionScalarFieldEnum = (typeof LinkedinSessionScalarFieldEnum)[keyof typeof LinkedinSessionScalarFieldEnum]
+
+
 export const CompanyScalarFieldEnum = {
   id: 'id',
   universalName: 'universalName',
@@ -2215,6 +2304,20 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
+ * Reference to a field of type 'SessionStatus'
+ */
+export type EnumSessionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SessionStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'SessionStatus[]'
+ */
+export type ListEnumSessionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SessionStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'CampaignChannel'
  */
 export type EnumCampaignChannelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CampaignChannel'>
@@ -2390,6 +2493,7 @@ export type GlobalOmitConfig = {
   savedView?: Prisma.SavedViewOmit
   auditEvent?: Prisma.AuditEventOmit
   enrichmentSpend?: Prisma.EnrichmentSpendOmit
+  linkedinSession?: Prisma.LinkedinSessionOmit
   company?: Prisma.CompanyOmit
   campaign?: Prisma.CampaignOmit
   campaignRecipient?: Prisma.CampaignRecipientOmit

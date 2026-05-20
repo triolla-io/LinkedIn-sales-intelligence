@@ -97,6 +97,11 @@ export type AuditEvent = Prisma.AuditEventModel
  */
 export type EnrichmentSpend = Prisma.EnrichmentSpendModel
 /**
+ * Model LinkedinSession
+ * 
+ */
+export type LinkedinSession = Prisma.LinkedinSessionModel
+/**
  * Model Company
  * 
  */
