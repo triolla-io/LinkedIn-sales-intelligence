@@ -26,7 +26,7 @@ export const GET = withTenant(async (req: NextRequest, ctx) => {
       },
       include: { list: true },
     });
-    const lists = memberships.map((m) => ({ id: m.list.id, name: m.list.name, memberCount: 0 }));
+    const lists = memberships.map((m: { list: { id: string; name: string } }) => ({ id: m.list.id, name: m.list.name, memberCount: 0 }));
     return NextResponse.json({ lists });
   }
 
@@ -36,7 +36,7 @@ export const GET = withTenant(async (req: NextRequest, ctx) => {
     include: { _count: { select: { members: true } } },
   });
   return NextResponse.json({
-    lists: lists.map((l) => ({
+    lists: lists.map((l: { id: string; name: string; createdAt: Date; _count: { members: number } }) => ({
       id: l.id,
       name: l.name,
       memberCount: l._count.members,
