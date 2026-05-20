@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Megaphone, Pencil, Check, Loader2, Zap } from "lucide-react";
 import Link from "next/link";
@@ -26,6 +26,9 @@ export default function ListDetailPage() {
   const [enriching, setEnriching] = useState(false);
   const [enrichResult, setEnrichResult] = useState<{ queued: number; skipped: number; creditsRemaining: number } | null>(null);
   const [enrichError, setEnrichError] = useState<string | null>(null);
+  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => () => clearTimeout(clearTimerRef.current), []);
 
   const fetchList = useCallback(async (pg = page) => {
     setLoading(true);
@@ -84,7 +87,8 @@ export default function ListDetailPage() {
       setEnrichError("Network error");
     } finally {
       setEnriching(false);
-      setTimeout(() => { setEnrichResult(null); setEnrichError(null); }, 4000);
+      clearTimeout(clearTimerRef.current);
+      clearTimerRef.current = setTimeout(() => { setEnrichResult(null); setEnrichError(null); }, 4000);
     }
   }
 
@@ -133,9 +137,9 @@ export default function ListDetailPage() {
             <span className={`text-xs font-mono ${enrichError ? "text-red-400" : "text-emerald-600"}`}>
               {enrichError
                 ? enrichError
-                : enrichResult!.queued === 0
-                ? "All enriched"
-                : `${enrichResult!.queued} queued`}
+                : enrichResult
+                ? enrichResult.queued === 0 ? "All enriched" : `${enrichResult.queued} queued`
+                : null}
             </span>
           )}
           <button
