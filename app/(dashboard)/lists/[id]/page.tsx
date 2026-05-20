@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Megaphone, Pencil, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Megaphone, Pencil, Check, Loader2, Zap } from "lucide-react";
 import Link from "next/link";
 import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
 import { NewCampaignModal } from "@/components/dashboard/new-campaign-modal";
@@ -23,6 +23,9 @@ export default function ListDetailPage() {
   const [savingName, setSavingName] = useState(false);
   const [campaignOpen, setCampaignOpen] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [enriching, setEnriching] = useState(false);
+  const [enrichResult, setEnrichResult] = useState<{ queued: number; skipped: number; creditsRemaining: number } | null>(null);
+  const [enrichError, setEnrichError] = useState<string | null>(null);
 
   const fetchList = useCallback(async (pg = page) => {
     setLoading(true);
@@ -65,6 +68,26 @@ export default function ListDetailPage() {
     setRemovingId(null);
   }
 
+  async function enrichList() {
+    setEnriching(true);
+    setEnrichResult(null);
+    setEnrichError(null);
+    try {
+      const res = await fetch(`/api/lists/${id}/enrich`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setEnrichError(data.error === "BUDGET_EXHAUSTED" ? "Budget exhausted" : "Enrichment failed");
+      } else {
+        setEnrichResult(data);
+      }
+    } catch {
+      setEnrichError("Network error");
+    } finally {
+      setEnriching(false);
+      setTimeout(() => { setEnrichResult(null); setEnrichError(null); }, 4000);
+    }
+  }
+
   const totalPages = Math.ceil(total / pageSize) || 1;
 
   if (!list && !loading) return null;
@@ -105,14 +128,33 @@ export default function ListDetailPage() {
             <span className="text-xs font-mono text-[#9b9895]">{total} contacts</span>
           )}
         </div>
-        <button
-          onClick={() => setCampaignOpen(true)}
-          disabled={total === 0}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1585ff] border border-[#1585ff]/30 hover:bg-[#1585ff]/5 hover:border-[#1585ff]/50 rounded-md transition-all disabled:opacity-40"
-        >
-          <Megaphone className="w-3.5 h-3.5" />
-          Launch Campaign
-        </button>
+        <div className="flex items-center gap-2">
+          {(enrichResult || enrichError) && (
+            <span className={`text-xs font-mono ${enrichError ? "text-red-400" : "text-emerald-600"}`}>
+              {enrichError
+                ? enrichError
+                : enrichResult!.queued === 0
+                ? "All enriched"
+                : `${enrichResult!.queued} queued`}
+            </span>
+          )}
+          <button
+            onClick={enrichList}
+            disabled={total === 0 || enriching}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-600 border border-amber-300 hover:bg-amber-50 hover:border-amber-400 rounded-md transition-all disabled:opacity-40"
+          >
+            {enriching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+            Enrich
+          </button>
+          <button
+            onClick={() => setCampaignOpen(true)}
+            disabled={total === 0}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1585ff] border border-[#1585ff]/30 hover:bg-[#1585ff]/5 hover:border-[#1585ff]/50 rounded-md transition-all disabled:opacity-40"
+          >
+            <Megaphone className="w-3.5 h-3.5" />
+            Launch Campaign
+          </button>
+        </div>
       </div>
 
       {/* Table */}
@@ -122,7 +164,6 @@ export default function ListDetailPage() {
           selectedIds={new Set()}
           onToggle={() => {}}
           onSelectAll={() => {}}
-          onEnrich={() => {}}
           onOpenDrawer={() => {}}
           loading={loading}
           page={page}
