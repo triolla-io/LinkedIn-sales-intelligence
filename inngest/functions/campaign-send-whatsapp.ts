@@ -26,10 +26,7 @@ export async function campaignSendWhatsappHandler({ event }: any) {
     prefix: "wa:send:",
   });
   if (!quota.ok) {
-    await inngest.send({
-      name: "campaign.send-one",
-      data: { recipientId },
-    });
+    await inngest.send({ name: "campaign.send-whatsapp", data: { recipientId } });
     return;
   }
 
@@ -59,7 +56,7 @@ export async function campaignSendWhatsappHandler({ event }: any) {
   });
 
   try {
-    const { messageId } = await waClient.send(
+    await waClient.send(
       recipient.campaign.ownerId,
       phone,
       recipient.renderedBody ?? ""
@@ -85,7 +82,6 @@ export async function campaignSendWhatsappHandler({ event }: any) {
       data: { recipientId, campaignId: recipient.campaignId },
     });
 
-    void messageId;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     const shouldRetry = recipient.attemptCount + 1 < MAX_ATTEMPTS;
@@ -97,7 +93,7 @@ export async function campaignSendWhatsappHandler({ event }: any) {
       },
     });
     if (shouldRetry) {
-      await inngest.send({ name: "campaign.send-one", data: { recipientId } });
+      await inngest.send({ name: "campaign.send-whatsapp", data: { recipientId } });
     }
   } finally {
     await inngest.send({ name: "campaign.finalize", data: { campaignId: recipient.campaignId } });
@@ -105,6 +101,6 @@ export async function campaignSendWhatsappHandler({ event }: any) {
 }
 
 export const campaignSendWhatsapp = inngest.createFunction(
-  { id: "campaign-send-whatsapp", triggers: [{ event: "campaign.send-one" as const }] },
+  { id: "campaign-send-whatsapp", triggers: [{ event: "campaign.send-whatsapp" as const }] },
   campaignSendWhatsappHandler
 );

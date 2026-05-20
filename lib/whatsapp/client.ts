@@ -15,9 +15,12 @@ export const waClient = {
   },
 
   async disconnect(userId: string): Promise<void> {
-    await fetch(`${WHATSAPP_SERVICE_URL}/session/${userId}/disconnect`, {
+    const res = await fetch(`${WHATSAPP_SERVICE_URL}/session/${userId}/disconnect`, {
       method: "POST",
     });
+    if (!res.ok && res.status !== 204) {
+      throw new Error(`WhatsApp disconnect failed: ${res.status}`);
+    }
   },
 
   async send(
