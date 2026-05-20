@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Users, FileText, Shield, LogOut, LayoutDashboard, Wifi, Upload } from "lucide-react";
+import { Users, FileText, Shield, LogOut, LayoutDashboard, Upload, BookMarked } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 interface SidebarProps {
@@ -17,6 +17,7 @@ interface SidebarProps {
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/contacts", label: "Contacts", icon: Users },
+  { href: "/lists", label: "Lists", icon: BookMarked },
   { href: "/templates", label: "Templates", icon: FileText },
   { href: "/import", label: "Import CSV", icon: Upload },
   { href: "/linkedin-connect", label: "LinkedIn", icon: Wifi },

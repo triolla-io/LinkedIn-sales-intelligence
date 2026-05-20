@@ -8,10 +8,12 @@ export function NewCampaignModal({
   open,
   onClose,
   contactIds,
+  listId,
 }: {
   open: boolean;
   onClose: () => void;
-  contactIds: string[];
+  contactIds?: string[];
+  listId?: string;
 }) {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [templateId, setTemplateId] = useState("");
@@ -50,7 +52,7 @@ export function NewCampaignModal({
       const res = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name, templateId, contactIds }),
+        body: JSON.stringify({ name, templateId, ...(listId ? { listId } : { contactIds }) }),
       });
       const json = await res.json();
       if (!res.ok) { setError(json.error ?? "Failed to create campaign"); return; }
@@ -76,7 +78,9 @@ export function NewCampaignModal({
       >
         <h2 className="text-lg font-semibold text-[#111110]">New campaign</h2>
         <p className="mt-1 text-sm text-[#9b9895]">
-          Sending to {contactIds.length} contact{contactIds.length === 1 ? "" : "s"} via LinkedIn.
+          {listId
+            ? "Sending to contacts in this list via LinkedIn."
+            : `Sending to ${contactIds?.length ?? 0} contact${(contactIds?.length ?? 0) === 1 ? "" : "s"} via LinkedIn.`}
         </p>
 
         {linkedinConnected === false && (
@@ -122,7 +126,7 @@ export function NewCampaignModal({
           </button>
           <button
             onClick={submit}
-            disabled={!name.trim() || !templateId || busy || linkedinConnected === false}
+            disabled={!name.trim() || !templateId || busy || linkedinConnected === false || (!listId && !contactIds?.length)}
             className="rounded-lg bg-[#1585ff] px-3 py-1.5 text-sm text-white disabled:opacity-50 hover:bg-[#0a70e0] transition-colors"
           >
             {busy ? "Starting…" : "Send Campaign"}

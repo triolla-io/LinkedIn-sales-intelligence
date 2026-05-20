@@ -36,6 +36,7 @@ interface ContactTableProps {
   total: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+  extraRowAction?: (contact: Contact) => React.ReactNode;
 }
 
 const SENIORITY_BADGE: Record<string, string> = {
@@ -129,6 +130,7 @@ function SkeletonRow({ cols }: { cols: string }) {
 
 // checkbox | name | company | title | employees | seniority | industry | contact-icons
 const COLS = "20px minmax(0,1.8fr) minmax(0,1.2fr) minmax(0,1.4fr) 90px 80px minmax(0,1.2fr) 48px";
+const COLS_WITH_ACTION = COLS + " 56px";
 const ROW_HEIGHT = 56;
 
 export default function ContactTable({
@@ -145,8 +147,10 @@ export default function ContactTable({
   total,
   pageSize,
   onPageChange,
+  extraRowAction,
 }: ContactTableProps) {
   const allSelected = contacts.length > 0 && contacts.every((c) => selectedIds.has(c.id));
+  const cols = extraRowAction ? COLS_WITH_ACTION : COLS;
 
   const firstItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const lastItem = Math.min(page * pageSize, total);
@@ -156,7 +160,7 @@ export default function ContactTable({
       {/* Header row */}
       <div
         className="grid items-center gap-3 px-4 py-2.5 bg-[#f8f7f5] border-b border-[#e5e3df] text-[10px] font-mono text-[#9b9895] uppercase tracking-widest shrink-0"
-        style={{ gridTemplateColumns: COLS }}
+        style={{ gridTemplateColumns: cols }}
       >
         {loading ? (
           <div className="w-3.5 h-3.5 bg-[#e5e3df] rounded" />
@@ -175,13 +179,14 @@ export default function ContactTable({
         <span>Seniority</span>
         <span>Industry</span>
         <span />
+        {extraRowAction && <span />}
       </div>
 
       {/* Rows — no overflow/scroll */}
       <div className="flex-1 overflow-hidden">
         {loading ? (
           Array.from({ length: pageSize || 8 }).map((_, i) => (
-            <SkeletonRow key={i} cols={COLS} />
+            <SkeletonRow key={i} cols={cols} />
           ))
         ) : contacts.length === 0 ? (
           <div className="flex items-center justify-center h-full">
@@ -202,7 +207,7 @@ export default function ContactTable({
                   "grid items-center gap-3 px-4 border-b border-[#e5e3df]/70 cursor-pointer transition-colors group",
                   isSelected ? "bg-[#eff5ff]" : "hover:bg-[#f8f7f5]"
                 )}
-                style={{ gridTemplateColumns: COLS, height: ROW_HEIGHT }}
+                style={{ gridTemplateColumns: cols, height: ROW_HEIGHT }}
               >
                 <input
                   type="checkbox"
@@ -281,6 +286,12 @@ export default function ContactTable({
                     <Phone className={cn("w-3.5 h-3.5", contact.phone ? "text-emerald-500" : "text-[#d4d0cc]")} />
                   </span>
                 </div>
+
+                {extraRowAction && (
+                  <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
+                    {extraRowAction(contact)}
+                  </div>
+                )}
               </div>
             );
           })
