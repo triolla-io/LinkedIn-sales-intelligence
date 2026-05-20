@@ -2,36 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw, Wifi, WifiOff, AlertCircle, Users, Shield, LogIn, LogOut, UserPlus, Copy, Check, Mail, Sparkles } from "lucide-react";
+import { RefreshCw, Users, Shield, LogIn, LogOut, UserPlus, Copy, Check, Mail, Sparkles } from "lucide-react";
 import { cn } from "@/lib/cn";
 
-type LinkedinStatus = "ACTIVE" | "EXPIRED" | "DISCONNECTED";
 type UserRow = {
   id: string;
   name: string;
   email: string;
   role: string;
-  linkedinStatus: LinkedinStatus;
-  lastValidatedAt: string | null;
   contactCount: number;
   lastSyncedAt: string | null;
   creditsConsumed: number;
 };
-
-function StatusBadge({ status }: { status: LinkedinStatus }) {
-  const cfg = {
-    ACTIVE: { label: "Active", cls: "text-emerald-600 bg-emerald-50 border-emerald-200", Icon: Wifi },
-    EXPIRED: { label: "Expired", cls: "text-amber-600 bg-amber-50 border-amber-200", Icon: AlertCircle },
-    DISCONNECTED: { label: "Disconnected", cls: "text-stone-500 bg-stone-100 border-stone-200", Icon: WifiOff },
-  }[status];
-
-  return (
-    <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-xs font-medium", cfg.cls)}>
-      <cfg.Icon className="w-3 h-3" />
-      {cfg.label}
-    </span>
-  );
-}
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -111,8 +93,6 @@ export default function AdminClient() {
 
   useEffect(() => { load(); }, []);
 
-  const activeCount = users.filter((u) => u.linkedinStatus === "ACTIVE").length;
-
   async function startImpersonation(userId: string) {
     setActionLoading(userId);
     try {
@@ -145,7 +125,7 @@ export default function AdminClient() {
           <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-1">Admin</p>
           <h1 className="text-2xl font-semibold text-[#111110]">Team Overview</h1>
           <p className="text-[#6b6866] text-sm mt-1">
-            {loading ? "Loading…" : `${users.length} salespeople · ${activeCount} LinkedIn active`}
+            {loading ? "Loading…" : `${users.length} salespeople`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -254,9 +234,9 @@ export default function AdminClient() {
         {/* Table header */}
         <div
           className="grid items-center gap-4 px-5 py-3 border-b border-[#e5e3df] bg-[#f8f7f5]"
-          style={{ gridTemplateColumns: "1fr 140px 90px 130px 80px 130px 120px" }}
+          style={{ gridTemplateColumns: "1fr 90px 130px 80px 120px" }}
         >
-          {["Salesperson", "LinkedIn", "Contacts", "Last Synced", "Role", "Validated", ""].map((h) => (
+          {["Salesperson", "Contacts", "Last Synced", "Role", ""].map((h) => (
             <span key={h} className="text-xs font-mono text-[#9b9895] uppercase tracking-widest">{h}</span>
           ))}
         </div>
@@ -282,17 +262,12 @@ export default function AdminClient() {
                     ? "bg-amber-50 border-l-2 border-l-amber-300"
                     : idx % 2 === 0 ? "hover:bg-[#f8f7f5]" : "bg-[#fafaf9] hover:bg-[#f8f7f5]"
                 )}
-                style={{ gridTemplateColumns: "1fr 140px 90px 130px 80px 130px 120px" }}
+                style={{ gridTemplateColumns: "1fr 90px 130px 80px 120px" }}
               >
                 {/* Name / email */}
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-[#111110] truncate">{u.name}</p>
                   <p className="text-xs text-[#9b9895] truncate">{u.email}</p>
-                </div>
-
-                {/* LinkedIn status */}
-                <div>
-                  <StatusBadge status={u.linkedinStatus} />
                 </div>
 
                 {/* Contacts */}
@@ -315,9 +290,6 @@ export default function AdminClient() {
                     : "Sales"
                   }
                 </span>
-
-                {/* Last validated */}
-                <p className="text-xs text-[#9b9895] font-mono">{formatDate(u.lastValidatedAt)}</p>
 
                 {/* Send as / impersonate */}
                 <div className="flex justify-end">

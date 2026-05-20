@@ -10,19 +10,10 @@ interface AdminUser {
   name: string;
   email: string;
   role: string;
-  linkedinStatus: string;
-  lastValidatedAt: string | null;
   contactCount: number;
   lastSyncedAt: string | null;
   creditsConsumed: number;
 }
-
-const LINKEDIN_STATUS_STYLES: Record<string, string> = {
-  ACTIVE: "bg-green-100 text-green-700",
-  EXPIRED: "bg-red-100 text-red-700",
-  DISCONNECTED: "bg-gray-100 text-gray-600",
-  INVALID: "bg-red-100 text-red-700",
-};
 
 const ROLE_STYLES: Record<string, string> = {
   SUPER_ADMIN: "bg-purple-100 text-purple-700",
@@ -128,7 +119,6 @@ export default function AdminUsersPage() {
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">LinkedIn</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Contacts</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Last Synced</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Credits</th>
@@ -138,7 +128,7 @@ export default function AdminUsersPage() {
             <tbody>
               {users.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-8 text-gray-500 text-sm">
+                  <td colSpan={7} className="text-center py-8 text-gray-500 text-sm">
                     No users found
                   </td>
                 </tr>
@@ -157,14 +147,6 @@ export default function AdminUsersPage() {
                         ROLE_STYLES[user.role] ?? "bg-gray-100 text-gray-600"
                       )}>
                         {user.role}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={cn(
-                        "inline-block px-2 py-0.5 rounded-full text-xs font-medium",
-                        LINKEDIN_STATUS_STYLES[user.linkedinStatus] ?? "bg-gray-100 text-gray-600"
-                      )}>
-                        {user.linkedinStatus}
                       </span>
                     </td>
                     <td className="px-4 py-3">

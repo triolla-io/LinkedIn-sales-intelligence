@@ -13,7 +13,6 @@ export async function GET(req: NextRequest) {
     const users = await prisma.user.findMany({
       where: { orgId: ctx.org.id },
       include: {
-        linkedinSession: { select: { status: true, lastValidatedAt: true } },
         _count: { select: { contacts: true } },
       },
       orderBy: { createdAt: "asc" },
@@ -36,8 +35,6 @@ export async function GET(req: NextRequest) {
         name: u.name,
         email: u.email,
         role: u.role,
-        linkedinStatus: u.linkedinSession?.status ?? "DISCONNECTED",
-        lastValidatedAt: u.linkedinSession?.lastValidatedAt ?? null,
         contactCount: u._count.contacts,
         lastSyncedAt: syncMap[u.id] ?? null,
         creditsConsumed: spend?.credits ?? 0,

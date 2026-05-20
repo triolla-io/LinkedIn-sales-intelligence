@@ -10,7 +10,6 @@ interface UserDetails {
   name: string;
   email: string;
   role: string;
-  linkedinStatus: string;
   contactCount: number;
   lastSyncedAt: string | null;
   creditsConsumed: number;
@@ -78,10 +77,6 @@ export default function AdminUserDetailPage({
           <div>
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Role</p>
             <p className="text-sm text-gray-900">{user.role}</p>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">LinkedIn Status</p>
-            <p className="text-sm text-gray-900">{user.linkedinStatus}</p>
           </div>
           <div>
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Contacts</p>
