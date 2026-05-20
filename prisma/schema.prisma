@@ -270,6 +270,7 @@ model Company {
 // ─── Campaign enums ───────────────────────────────────────────────────────────
 
 enum CampaignChannel {
+  LINKEDIN
   EMAIL
   WHATSAPP
 }
