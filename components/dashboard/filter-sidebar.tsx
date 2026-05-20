@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Search, X, ChevronDown, ChevronUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Search, X, ChevronDown, ChevronUp, BookMarked } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export type Filters = {
@@ -11,11 +11,11 @@ export type Filters = {
   titleSearch: string[];
   industry: string[];
   companySizeBuckets: string[];
-
   connectedFrom: string;
   connectedTo: string;
   hasEmail?: boolean;
   hasPhone?: boolean;
+  listId?: string;
 };
 
 export const DEFAULT_FILTERS: Filters = {
@@ -25,9 +25,9 @@ export const DEFAULT_FILTERS: Filters = {
   titleSearch: [],
   industry: [],
   companySizeBuckets: [],
-
   connectedFrom: "",
   connectedTo: "",
+  listId: undefined,
 };
 
 const COMPANY_SIZE_BUCKETS = [
@@ -112,6 +112,14 @@ interface FilterSidebarProps {
 
 export default function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
   const [customTitle, setCustomTitle] = useState("");
+  const [lists, setLists] = useState<{ id: string; name: string; memberCount: number }[]>([]);
+
+  useEffect(() => {
+    fetch("/api/lists")
+      .then((r) => r.json())
+      .then((d) => setLists(d.lists ?? []))
+      .catch(() => {});
+  }, []);
 
   const hasFilters =
     filters.q ||
@@ -123,7 +131,8 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
     filters.connectedFrom ||
     filters.connectedTo ||
     filters.hasEmail ||
-    filters.hasPhone;
+    filters.hasPhone ||
+    filters.listId;
 
   function toggle<K extends keyof Filters>(key: K, value: string) {
     const arr = filters[key] as string[];
@@ -163,6 +172,38 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
       </div>
 
       <div className="flex-1 overflow-y-auto">
+        {/* Lists */}
+        {lists.length > 0 && (
+          <div className="border-b border-[#e5e3df] px-4 py-3">
+            <p className="text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest mb-2 flex items-center gap-1.5">
+              <BookMarked className="w-3 h-3" />
+              Lists
+            </p>
+            <div className="space-y-0.5">
+              {lists.map((list) => (
+                <button
+                  key={list.id}
+                  onClick={() =>
+                    onChange({
+                      ...filters,
+                      listId: filters.listId === list.id ? undefined : list.id,
+                    })
+                  }
+                  className={cn(
+                    "w-full flex items-center justify-between px-2 py-1.5 rounded-md text-xs transition-colors text-left",
+                    filters.listId === list.id
+                      ? "bg-[#1585ff]/10 text-[#1585ff] font-medium"
+                      : "text-[#6b6866] hover:bg-[#f3f2ef] hover:text-[#111110]"
+                  )}
+                >
+                  <span className="truncate">{list.name}</span>
+                  <span className="shrink-0 text-[#9b9895] font-mono text-[10px]">{list.memberCount}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Company Size */}
         <Section title="Company Size" activeCount={filters.companySizeBuckets.length}>
           <div className="space-y-1.5">

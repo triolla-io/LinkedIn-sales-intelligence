@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   X,
   ExternalLink,
@@ -12,9 +12,12 @@ import {
   Send,
   Users,
   Clock,
+  Plus,
+  X as XIcon,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Contact } from "./contact-table";
+import ListPopover from "./list-popover";
 
 interface MessageRecord {
   id: string;
@@ -59,6 +62,9 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onMessage }:
   const [messages, setMessages] = useState<MessageRecord[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [linkedinStatus, setLinkedinStatus] = useState<"ACTIVE" | "DISCONNECTED" | "loading">("loading");
+  const [contactLists, setContactLists] = useState<{ id: string; name: string }[]>([]);
+  const [showListPopover, setShowListPopover] = useState(false);
+  const addListBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     fetch("/api/linkedin/session")
@@ -78,6 +84,12 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onMessage }:
       })
       .catch(() => {})
       .finally(() => setLoadingMessages(false));
+
+    setContactLists([]);
+    fetch(`/api/lists?contactId=${contact.id}`)
+      .then((r) => r.json())
+      .then((d) => setContactLists(d.lists ?? []))
+      .catch(() => {});
   }, [contact?.id]);
 
   useEffect(() => {
@@ -289,6 +301,63 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onMessage }:
                   <ExternalLink className="w-3.5 h-3.5" />
                   View on LinkedIn
                 </a>
+              </div>
+
+              {/* Lists */}
+              <div className="p-4 border-b border-[#e5e3df]">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Lists</p>
+                  <div className="relative">
+                    <button
+                      ref={addListBtnRef}
+                      onClick={() => setShowListPopover((v) => !v)}
+                      className="flex items-center gap-1 text-xs text-[#9b9895] hover:text-[#1585ff] transition-colors"
+                    >
+                      <Plus className="w-3 h-3" />
+                      Add
+                    </button>
+                    {showListPopover && contact && (
+                      <ListPopover
+                        contactIds={[contact.id]}
+                        onClose={() => {
+                          setShowListPopover(false);
+                          // Refresh list membership
+                          fetch(`/api/lists?contactId=${contact.id}`)
+                            .then((r) => r.json())
+                            .then((d) => setContactLists(d.lists ?? []));
+                        }}
+                        anchorRef={addListBtnRef as React.RefObject<HTMLElement>}
+                      />
+                    )}
+                  </div>
+                </div>
+                {contactLists.length === 0 ? (
+                  <p className="text-xs text-[#9b9895]">Not in any list</p>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {contactLists.map((list) => (
+                      <span
+                        key={list.id}
+                        className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#1585ff]/10 border border-[#1585ff]/20 text-xs text-[#1585ff]"
+                      >
+                        {list.name}
+                        <button
+                          onClick={async () => {
+                            await fetch(`/api/lists/${list.id}/members`, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ remove: [contact!.id] }),
+                            });
+                            setContactLists((prev) => prev.filter((l) => l.id !== list.id));
+                          }}
+                          className="hover:text-red-400 transition-colors"
+                        >
+                          <XIcon className="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Message history */}

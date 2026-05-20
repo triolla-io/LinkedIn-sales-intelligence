@@ -163,6 +163,23 @@ export default function BulkEnrichBar({
                   Send LinkedIn Message
                 </button>
               )}
+              <div className="relative">
+                <button
+                  ref={listBtnRef}
+                  onClick={() => setShowListPopover((v) => !v)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#6b6866] border border-[#e5e3df] hover:bg-[#f8f7f5] hover:border-[#9b9895] rounded-md transition-all"
+                >
+                  <Bookmark className="w-3.5 h-3.5" />
+                  Save to List
+                </button>
+                {showListPopover && (
+                  <ListPopover
+                    contactIds={selectedIds}
+                    onClose={() => setShowListPopover(false)}
+                    anchorRef={listBtnRef as React.RefObject<HTMLElement>}
+                  />
+                )}
+              </div>
               <button
                 onClick={handleEnrich}
                 disabled={enriching}
