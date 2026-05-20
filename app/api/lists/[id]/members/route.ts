@@ -13,6 +13,15 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   const add: string[] = Array.isArray(body.add) ? body.add : [];
   const remove: string[] = Array.isArray(body.remove) ? body.remove : [];
 
+  if (add.length) {
+    const owned = await prisma.contact.count({
+      where: { id: { in: add }, ownerId: ctx.effectiveUserId },
+    });
+    if (owned !== add.length) {
+      return NextResponse.json({ error: "One or more contacts not found" }, { status: 404 });
+    }
+  }
+
   await prisma.$transaction([
     ...(add.length
       ? [

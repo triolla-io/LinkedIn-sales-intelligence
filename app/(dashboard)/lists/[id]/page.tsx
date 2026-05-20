@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Megaphone, Pencil, Check, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -24,7 +24,7 @@ export default function ListDetailPage() {
   const [campaignOpen, setCampaignOpen] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
-  async function fetchList(pg = page) {
+  const fetchList = useCallback(async (pg = page) => {
     setLoading(true);
     const res = await fetch(`/api/lists/${id}?page=${pg}&pageSize=${pageSize}`);
     if (!res.ok) { router.push("/lists"); return; }
@@ -33,9 +33,9 @@ export default function ListDetailPage() {
     setContacts(data.contacts);
     setTotal(data.total);
     setLoading(false);
-  }
+  }, [id, page, router]);
 
-  useEffect(() => { fetchList(page); }, [id, page]);
+  useEffect(() => { fetchList(page); }, [id, page, fetchList]);
 
   async function saveName() {
     if (!nameInput.trim() || !list) return;

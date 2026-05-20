@@ -12,8 +12,8 @@ export const GET = withTenant(async (req: NextRequest, ctx) => {
   });
   if (!list) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const page = Number(req.nextUrl.searchParams.get("page") ?? 1);
-  const pageSize = Number(req.nextUrl.searchParams.get("pageSize") ?? 20);
+  const page = Math.max(1, Number(req.nextUrl.searchParams.get("page") ?? 1));
+  const pageSize = Math.min(200, Math.max(1, Number(req.nextUrl.searchParams.get("pageSize") ?? 20)));
 
   const members = await prisma.contactListMember.findMany({
     where: { listId: id },
