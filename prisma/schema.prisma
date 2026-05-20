@@ -15,12 +15,6 @@ enum Role {
   SUPER_ADMIN
 }
 
-enum SessionStatus {
-  ACTIVE
-  EXPIRED
-  DISCONNECTED
-}
-
 enum Seniority {
   C_LEVEL
   VP
@@ -40,12 +34,6 @@ enum Function {
   OPERATIONS
   LEGAL
   OTHER
-}
-
-enum SyncType {
-  FULL
-  DELTA
-  ENRICH
 }
 
 enum JobStatus {
@@ -131,11 +119,9 @@ model User {
   org             Organization      @relation(fields: [orgId], references: [id])
   accounts        Account[]
   sessions        Session[]
-  linkedinSession LinkedinSession?
   contacts        Contact[]
   sentMessages    SentMessage[]     @relation("SentBySender")
   actedMessages   SentMessage[]     @relation("ActedByActor")
-  syncJobs        SyncJob[]
   savedViews      SavedView[]
   templates       MessageTemplate[]
   auditActed      AuditEvent[]      @relation("AuditActor")
@@ -143,19 +129,6 @@ model User {
   campaigns       Campaign[]
   imports         Import[]
   contactLists    ContactList[]
-}
-
-model LinkedinSession {
-  id              String        @id @default(cuid())
-  userId          String        @unique
-  encryptedCookie String
-  cookieExpiresAt DateTime?
-  lastValidatedAt DateTime?
-  status          SessionStatus @default(DISCONNECTED)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Contact {
@@ -174,7 +147,6 @@ model Contact {
   location         String?
   industry         String?
   profilePicUrl    String?
-  connectedAt      DateTime?
   lastSyncedAt     DateTime
   removedAt        DateTime?
 
@@ -239,23 +211,6 @@ model SentMessage {
   @@index([contactId])
 }
 
-model SyncJob {
-  id             String    @id @default(cuid())
-  userId         String
-  type           SyncType
-  status         JobStatus @default(QUEUED)
-  totalItems     Int?
-  processedItems Int       @default(0)
-  startedAt      DateTime?
-  finishedAt     DateTime?
-  errorMessage   String?
-  createdAt      DateTime  @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, status])
-}
-
 model SavedView {
   id         String   @id @default(cuid())
   ownerId    String
@@ -315,7 +270,6 @@ model Company {
 // ─── Campaign enums ───────────────────────────────────────────────────────────
 
 enum CampaignChannel {
-  LINKEDIN
   EMAIL
   WHATSAPP
 }

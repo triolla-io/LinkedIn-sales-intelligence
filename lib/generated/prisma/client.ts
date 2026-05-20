@@ -67,11 +67,6 @@ export type Organization = Prisma.OrganizationModel
  */
 export type User = Prisma.UserModel
 /**
- * Model LinkedinSession
- * 
- */
-export type LinkedinSession = Prisma.LinkedinSessionModel
-/**
  * Model Contact
  * 
  */
@@ -86,11 +81,6 @@ export type MessageTemplate = Prisma.MessageTemplateModel
  * 
  */
 export type SentMessage = Prisma.SentMessageModel
-/**
- * Model SyncJob
- * 
- */
-export type SyncJob = Prisma.SyncJobModel
 /**
  * Model SavedView
  * 

@@ -56,11 +56,9 @@ export const ModelName = {
   VerificationToken: 'VerificationToken',
   Organization: 'Organization',
   User: 'User',
-  LinkedinSession: 'LinkedinSession',
   Contact: 'Contact',
   MessageTemplate: 'MessageTemplate',
   SentMessage: 'SentMessage',
-  SyncJob: 'SyncJob',
   SavedView: 'SavedView',
   AuditEvent: 'AuditEvent',
   EnrichmentSpend: 'EnrichmentSpend',
@@ -152,20 +150,6 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
-export const LinkedinSessionScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  encryptedCookie: 'encryptedCookie',
-  cookieExpiresAt: 'cookieExpiresAt',
-  lastValidatedAt: 'lastValidatedAt',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type LinkedinSessionScalarFieldEnum = (typeof LinkedinSessionScalarFieldEnum)[keyof typeof LinkedinSessionScalarFieldEnum]
-
-
 export const ContactScalarFieldEnum = {
   id: 'id',
   ownerId: 'ownerId',
@@ -182,7 +166,6 @@ export const ContactScalarFieldEnum = {
   location: 'location',
   industry: 'industry',
   profilePicUrl: 'profilePicUrl',
-  connectedAt: 'connectedAt',
   lastSyncedAt: 'lastSyncedAt',
   removedAt: 'removedAt',
   email: 'email',
@@ -223,22 +206,6 @@ export const SentMessageScalarFieldEnum = {
 } as const
 
 export type SentMessageScalarFieldEnum = (typeof SentMessageScalarFieldEnum)[keyof typeof SentMessageScalarFieldEnum]
-
-
-export const SyncJobScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  type: 'type',
-  status: 'status',
-  totalItems: 'totalItems',
-  processedItems: 'processedItems',
-  startedAt: 'startedAt',
-  finishedAt: 'finishedAt',
-  errorMessage: 'errorMessage',
-  createdAt: 'createdAt'
-} as const
-
-export type SyncJobScalarFieldEnum = (typeof SyncJobScalarFieldEnum)[keyof typeof SyncJobScalarFieldEnum]
 
 
 export const SavedViewScalarFieldEnum = {
@@ -300,6 +267,7 @@ export const CampaignScalarFieldEnum = {
   templateId: 'templateId',
   status: 'status',
   filterJson: 'filterJson',
+  dailyLimit: 'dailyLimit',
   startedAt: 'startedAt',
   completedAt: 'completedAt',
   createdAt: 'createdAt',

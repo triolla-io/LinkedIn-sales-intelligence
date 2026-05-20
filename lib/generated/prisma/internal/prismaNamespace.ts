@@ -389,11 +389,9 @@ export const ModelName = {
   VerificationToken: 'VerificationToken',
   Organization: 'Organization',
   User: 'User',
-  LinkedinSession: 'LinkedinSession',
   Contact: 'Contact',
   MessageTemplate: 'MessageTemplate',
   SentMessage: 'SentMessage',
-  SyncJob: 'SyncJob',
   SavedView: 'SavedView',
   AuditEvent: 'AuditEvent',
   EnrichmentSpend: 'EnrichmentSpend',
@@ -419,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "linkedinSession" | "contact" | "messageTemplate" | "sentMessage" | "syncJob" | "savedView" | "auditEvent" | "enrichmentSpend" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -793,80 +791,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    LinkedinSession: {
-      payload: Prisma.$LinkedinSessionPayload<ExtArgs>
-      fields: Prisma.LinkedinSessionFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.LinkedinSessionFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.LinkedinSessionFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>
-        }
-        findFirst: {
-          args: Prisma.LinkedinSessionFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.LinkedinSessionFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>
-        }
-        findMany: {
-          args: Prisma.LinkedinSessionFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>[]
-        }
-        create: {
-          args: Prisma.LinkedinSessionCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>
-        }
-        createMany: {
-          args: Prisma.LinkedinSessionCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.LinkedinSessionCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>[]
-        }
-        delete: {
-          args: Prisma.LinkedinSessionDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>
-        }
-        update: {
-          args: Prisma.LinkedinSessionUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>
-        }
-        deleteMany: {
-          args: Prisma.LinkedinSessionDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.LinkedinSessionUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.LinkedinSessionUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>[]
-        }
-        upsert: {
-          args: Prisma.LinkedinSessionUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedinSessionPayload>
-        }
-        aggregate: {
-          args: Prisma.LinkedinSessionAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateLinkedinSession>
-        }
-        groupBy: {
-          args: Prisma.LinkedinSessionGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.LinkedinSessionGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.LinkedinSessionCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.LinkedinSessionCountAggregateOutputType> | number
-        }
-      }
-    }
     Contact: {
       payload: Prisma.$ContactPayload<ExtArgs>
       fields: Prisma.ContactFieldRefs
@@ -1086,80 +1010,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.SentMessageCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.SentMessageCountAggregateOutputType> | number
-        }
-      }
-    }
-    SyncJob: {
-      payload: Prisma.$SyncJobPayload<ExtArgs>
-      fields: Prisma.SyncJobFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.SyncJobFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.SyncJobFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>
-        }
-        findFirst: {
-          args: Prisma.SyncJobFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.SyncJobFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>
-        }
-        findMany: {
-          args: Prisma.SyncJobFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>[]
-        }
-        create: {
-          args: Prisma.SyncJobCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>
-        }
-        createMany: {
-          args: Prisma.SyncJobCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.SyncJobCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>[]
-        }
-        delete: {
-          args: Prisma.SyncJobDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>
-        }
-        update: {
-          args: Prisma.SyncJobUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>
-        }
-        deleteMany: {
-          args: Prisma.SyncJobDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.SyncJobUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.SyncJobUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>[]
-        }
-        upsert: {
-          args: Prisma.SyncJobUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>
-        }
-        aggregate: {
-          args: Prisma.SyncJobAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateSyncJob>
-        }
-        groupBy: {
-          args: Prisma.SyncJobGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SyncJobGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.SyncJobCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SyncJobCountAggregateOutputType> | number
         }
       }
     }
@@ -2005,20 +1855,6 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
-export const LinkedinSessionScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  encryptedCookie: 'encryptedCookie',
-  cookieExpiresAt: 'cookieExpiresAt',
-  lastValidatedAt: 'lastValidatedAt',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type LinkedinSessionScalarFieldEnum = (typeof LinkedinSessionScalarFieldEnum)[keyof typeof LinkedinSessionScalarFieldEnum]
-
-
 export const ContactScalarFieldEnum = {
   id: 'id',
   ownerId: 'ownerId',
@@ -2035,7 +1871,6 @@ export const ContactScalarFieldEnum = {
   location: 'location',
   industry: 'industry',
   profilePicUrl: 'profilePicUrl',
-  connectedAt: 'connectedAt',
   lastSyncedAt: 'lastSyncedAt',
   removedAt: 'removedAt',
   email: 'email',
@@ -2076,22 +1911,6 @@ export const SentMessageScalarFieldEnum = {
 } as const
 
 export type SentMessageScalarFieldEnum = (typeof SentMessageScalarFieldEnum)[keyof typeof SentMessageScalarFieldEnum]
-
-
-export const SyncJobScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  type: 'type',
-  status: 'status',
-  totalItems: 'totalItems',
-  processedItems: 'processedItems',
-  startedAt: 'startedAt',
-  finishedAt: 'finishedAt',
-  errorMessage: 'errorMessage',
-  createdAt: 'createdAt'
-} as const
-
-export type SyncJobScalarFieldEnum = (typeof SyncJobScalarFieldEnum)[keyof typeof SyncJobScalarFieldEnum]
 
 
 export const SavedViewScalarFieldEnum = {
@@ -2153,6 +1972,7 @@ export const CampaignScalarFieldEnum = {
   templateId: 'templateId',
   status: 'status',
   filterJson: 'filterJson',
+  dailyLimit: 'dailyLimit',
   startedAt: 'startedAt',
   completedAt: 'completedAt',
   createdAt: 'createdAt',
@@ -2339,20 +2159,6 @@ export type ListEnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
- * Reference to a field of type 'SessionStatus'
- */
-export type EnumSessionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SessionStatus'>
-    
-
-
-/**
- * Reference to a field of type 'SessionStatus[]'
- */
-export type ListEnumSessionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SessionStatus[]'>
-    
-
-
-/**
  * Reference to a field of type 'Seniority'
  */
 export type EnumSeniorityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Seniority'>
@@ -2391,34 +2197,6 @@ export type EnumMessageStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'MessageStatus[]'
  */
 export type ListEnumMessageStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MessageStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'SyncType'
- */
-export type EnumSyncTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SyncType'>
-    
-
-
-/**
- * Reference to a field of type 'SyncType[]'
- */
-export type ListEnumSyncTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SyncType[]'>
-    
-
-
-/**
- * Reference to a field of type 'JobStatus'
- */
-export type EnumJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobStatus'>
-    
-
-
-/**
- * Reference to a field of type 'JobStatus[]'
- */
-export type ListEnumJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobStatus[]'>
     
 
 
@@ -2606,11 +2384,9 @@ export type GlobalOmitConfig = {
   verificationToken?: Prisma.VerificationTokenOmit
   organization?: Prisma.OrganizationOmit
   user?: Prisma.UserOmit
-  linkedinSession?: Prisma.LinkedinSessionOmit
   contact?: Prisma.ContactOmit
   messageTemplate?: Prisma.MessageTemplateOmit
   sentMessage?: Prisma.SentMessageOmit
-  syncJob?: Prisma.SyncJobOmit
   savedView?: Prisma.SavedViewOmit
   auditEvent?: Prisma.AuditEventOmit
   enrichmentSpend?: Prisma.EnrichmentSpendOmit

@@ -18,15 +18,6 @@ export const Role = {
 export type Role = (typeof Role)[keyof typeof Role]
 
 
-export const SessionStatus = {
-  ACTIVE: 'ACTIVE',
-  EXPIRED: 'EXPIRED',
-  DISCONNECTED: 'DISCONNECTED'
-} as const
-
-export type SessionStatus = (typeof SessionStatus)[keyof typeof SessionStatus]
-
-
 export const Seniority = {
   C_LEVEL: 'C_LEVEL',
   VP: 'VP',
@@ -54,15 +45,6 @@ export const Function = {
 export type Function = (typeof Function)[keyof typeof Function]
 
 
-export const SyncType = {
-  FULL: 'FULL',
-  DELTA: 'DELTA',
-  ENRICH: 'ENRICH'
-} as const
-
-export type SyncType = (typeof SyncType)[keyof typeof SyncType]
-
-
 export const JobStatus = {
   QUEUED: 'QUEUED',
   RUNNING: 'RUNNING',
@@ -85,7 +67,6 @@ export type MessageStatus = (typeof MessageStatus)[keyof typeof MessageStatus]
 
 
 export const CampaignChannel = {
-  LINKEDIN: 'LINKEDIN',
   EMAIL: 'EMAIL',
   WHATSAPP: 'WHATSAPP'
 } as const
