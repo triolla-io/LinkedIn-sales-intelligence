@@ -68,7 +68,9 @@ export const ModelName = {
   Campaign: 'Campaign',
   CampaignRecipient: 'CampaignRecipient',
   Invite: 'Invite',
-  Import: 'Import'
+  Import: 'Import',
+  ContactList: 'ContactList',
+  ContactListMember: 'ContactListMember'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -351,6 +353,26 @@ export const ImportScalarFieldEnum = {
 } as const
 
 export type ImportScalarFieldEnum = (typeof ImportScalarFieldEnum)[keyof typeof ImportScalarFieldEnum]
+
+
+export const ContactListScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ContactListScalarFieldEnum = (typeof ContactListScalarFieldEnum)[keyof typeof ContactListScalarFieldEnum]
+
+
+export const ContactListMemberScalarFieldEnum = {
+  listId: 'listId',
+  contactId: 'contactId',
+  addedAt: 'addedAt'
+} as const
+
+export type ContactListMemberScalarFieldEnum = (typeof ContactListMemberScalarFieldEnum)[keyof typeof ContactListMemberScalarFieldEnum]
 
 
 export const SortOrder = {

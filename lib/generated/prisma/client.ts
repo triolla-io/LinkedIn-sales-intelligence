@@ -131,3 +131,13 @@ export type Invite = Prisma.InviteModel
  * 
  */
 export type Import = Prisma.ImportModel
+/**
+ * Model ContactList
+ * 
+ */
+export type ContactList = Prisma.ContactListModel
+/**
+ * Model ContactListMember
+ * 
+ */
+export type ContactListMember = Prisma.ContactListMemberModel
