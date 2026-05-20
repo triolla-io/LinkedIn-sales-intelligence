@@ -38,7 +38,7 @@ export default async function DashboardLayout({
   };
 
   return (
-    <div className="flex h-screen bg-[#0f1e2e]">
+    <div className="flex h-screen bg-[#f6f5f3]">
       <div className="w-[240px] shrink-0">
         <Sidebar user={user} />
       </div>

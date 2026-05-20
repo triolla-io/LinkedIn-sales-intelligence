@@ -27,6 +27,8 @@ const querySchema = z.object({
   q: z.string().optional(),
   cursor: z.string().optional(),
   limit: z.coerce.number().min(1).max(200).default(50),
+  page: z.coerce.number().min(1).optional(),
+  pageSize: z.coerce.number().min(1).max(500).optional(),
 });
 
 function parseArrayParam(raw: string | null): string[] | undefined {
@@ -52,6 +54,8 @@ export const GET = withTenant(async (req, ctx) => {
     q: url.searchParams.get("q") ?? undefined,
     cursor: url.searchParams.get("cursor") ?? undefined,
     limit: url.searchParams.get("limit") ?? 50,
+    page: url.searchParams.get("page") ?? undefined,
+    pageSize: url.searchParams.get("pageSize") ?? undefined,
   };
 
   const parsed = querySchema.safeParse(raw);
@@ -117,44 +121,51 @@ export const GET = withTenant(async (req, ctx) => {
     ...(sizeConditions.length ? { OR: sizeConditions } : {}),
   };
 
+  const usePageBased = params.page !== undefined && params.pageSize !== undefined;
+  const pgSize = params.pageSize ?? params.limit;
+  const pgSkip = usePageBased ? (params.page! - 1) * pgSize : 0;
+
+  const orderBy = [{ lastSyncedAt: "desc" as const }, { id: "desc" as const }];
+
+  const sharedSelect = {
+    id: true,
+    linkedinUrl: true,
+    fullName: true,
+    headline: true,
+    currentTitle: true,
+    currentCompany: true,
+    companySize: true,
+    seniority: true,
+    function: true,
+    location: true,
+    industry: true,
+    profilePicUrl: true,
+    connectedAt: true,
+    lastSyncedAt: true,
+    email: true,
+    phone: true,
+    enrichedAt: true,
+    company: { select: { staffCount: true, industry: true } },
+  } as const;
+
   const [items, totalApprox] = await Promise.all([
-    prisma.contact.findMany({
-      where,
-      orderBy: [{ lastSyncedAt: "desc" }, { id: "desc" }],
-      take: params.limit + 1,
-      ...(params.cursor ? { cursor: { id: params.cursor }, skip: 1 } : {}),
-      select: {
-        id: true,
-        linkedinUrl: true,
-        fullName: true,
-        headline: true,
-        currentTitle: true,
-        currentCompany: true,
-        companySize: true,
-        seniority: true,
-        function: true,
-        location: true,
-        industry: true,
-        profilePicUrl: true,
-        connectedAt: true,
-        lastSyncedAt: true,
-        email: true,
-        phone: true,
-        enrichedAt: true,
-        company: {
-          select: {
-            staffCount: true,
-            industry: true,
-          },
-        },
-      },
-    }),
+    usePageBased
+      ? prisma.contact.findMany({ where, orderBy, skip: pgSkip, take: pgSize, select: sharedSelect })
+      : prisma.contact.findMany({
+          where,
+          orderBy,
+          take: params.limit + 1,
+          ...(params.cursor ? { cursor: { id: params.cursor }, skip: 1 } : {}),
+          select: sharedSelect,
+        }),
     prisma.contact.count({ where }),
   ]);
 
-  const hasMore = items.length > params.limit;
-  const data = hasMore ? items.slice(0, params.limit) : items;
-  const nextCursor = hasMore ? data[data.length - 1]?.id : null;
+  const hasMore = usePageBased
+    ? pgSkip + items.length < totalApprox
+    : items.length > params.limit;
+  const data = (!usePageBased && hasMore) ? items.slice(0, params.limit) : items;
+  const nextCursor = (!usePageBased && hasMore) ? data[data.length - 1]?.id : null;
 
   return NextResponse.json({ items: data, nextCursor, totalApprox });
 });

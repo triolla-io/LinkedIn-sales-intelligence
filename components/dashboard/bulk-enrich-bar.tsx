@@ -92,22 +92,22 @@ export default function BulkEnrichBar({
     <>
       {/* Confirm dialog */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-[#1a2d3f] border border-[#25405e] rounded-xl shadow-2xl p-6 w-96 max-w-[90vw]">
-            <h3 className="font-semibold text-[#eaf2fd] mb-2">Enrich {N} contacts?</h3>
-            <p className="text-sm text-[#5c7d9e] mb-5">
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <div className="bg-white border border-[#e5e3df] rounded-xl shadow-2xl p-6 w-96 max-w-[90vw]">
+            <h3 className="font-semibold text-[#111110] mb-2">Enrich {N} contacts?</h3>
+            <p className="text-sm text-[#6b6866] mb-5">
               This will consume credits for each contact that gets enriched.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 text-sm text-[#5c7d9e] hover:text-[#7a9aba] border border-[#25405e] rounded-md transition-colors"
+                className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={doEnrich}
-                className="px-4 py-2 text-sm bg-[#f0a928] hover:bg-[#f5b840] text-[#0f1e2e] font-medium rounded-md transition-colors"
+                className="px-4 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md transition-colors"
               >
                 Confirm Enrich
               </button>
@@ -131,18 +131,18 @@ export default function BulkEnrichBar({
         )}
       >
         <div className="mx-6 mb-5">
-          <div className="flex items-center justify-between gap-4 bg-[#1a2d3f] border border-[#25405e] rounded-xl px-5 py-3 shadow-2xl shadow-black/40">
+          <div className="flex items-center justify-between gap-4 bg-white border border-[#e5e3df] rounded-xl px-5 py-3 shadow-lg">
             {/* Left: count + error */}
             <div className="flex items-center gap-3">
-              <span className="text-sm font-mono text-[#eaf2fd]">
+              <span className="text-sm font-mono text-[#111110]">
                 <span className="text-[#1585ff] font-semibold">{N}</span>
                 {" "}selected
               </span>
               {error && (
-                <span className="text-xs text-red-400 font-mono">{error}</span>
+                <span className="text-xs text-red-500 font-mono">{error}</span>
               )}
               {enriching && (
-                <span className="flex items-center gap-1.5 text-xs text-[#5c7d9e]">
+                <span className="flex items-center gap-1.5 text-xs text-[#9b9895]">
                   <RefreshCw className="w-3 h-3 animate-spin" />
                   Enriching…
                 </span>
@@ -154,7 +154,7 @@ export default function BulkEnrichBar({
               {N === 1 && (
                 <button
                   onClick={handleLinkedInMessage}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#eaf2fd] border border-[#25405e] hover:border-[#1585ff]/40 hover:bg-[#1c3048] rounded-md transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#111110] border border-[#e5e3df] hover:border-blue-200 hover:bg-[#eff5ff] hover:text-[#1585ff] rounded-md transition-all"
                 >
                   <Send className="w-3.5 h-3.5 text-[#1585ff]" />
                   Send LinkedIn Message
@@ -166,8 +166,8 @@ export default function BulkEnrichBar({
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all",
                   enriching
-                    ? "text-[#5c7d9e] border border-[#1e3248] cursor-not-allowed"
-                    : "text-[#f0a928] border border-[#f0a928]/30 hover:bg-[#f0a928]/10 hover:border-[#f0a928]/50"
+                    ? "text-[#9b9895] border border-[#e5e3df] cursor-not-allowed"
+                    : "text-amber-600 border border-amber-200 hover:bg-amber-50 hover:border-amber-300"
                 )}
               >
                 {enriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
@@ -175,21 +175,21 @@ export default function BulkEnrichBar({
               </button>
               <button
                 onClick={() => setCampaignOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1585ff] border border-[#1585ff]/30 hover:bg-[#1585ff]/10 hover:border-[#1585ff]/50 rounded-md transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 hover:bg-blue-50 hover:border-blue-300 rounded-md transition-all"
               >
                 <Megaphone className="w-3.5 h-3.5" />
                 Send Campaign
               </button>
               <button
                 onClick={exportCsv}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/30 rounded-md transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-600 border border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 rounded-md transition-all"
               >
                 <Download className="w-3.5 h-3.5" />
                 Export CSV
               </button>
               <button
                 onClick={onDone}
-                className="p-1.5 text-[#456078] hover:text-[#5c7d9e] transition-colors ml-1"
+                className="p-1.5 text-[#9b9895] hover:text-[#6b6866] transition-colors ml-1"
                 title="Deselect all"
               >
                 <X className="w-4 h-4" />

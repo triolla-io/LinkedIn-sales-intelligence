@@ -142,6 +142,7 @@ model User {
   auditTargeted   AuditEvent[]      @relation("AuditTarget")
   campaigns       Campaign[]
   imports         Import[]
+  contactLists    ContactList[]
 }
 
 model LinkedinSession {
@@ -192,6 +193,7 @@ model Contact {
   owner              User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   messages           SentMessage[]
   campaignRecipients CampaignRecipient[]
+  lists              ContactListMember[]
 
   @@unique([ownerId, linkedinUrn])
   @@index([ownerId, seniority])
@@ -410,4 +412,29 @@ model Import {
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   @@index([ownerId, createdAt])
+}
+
+model ContactList {
+  id        String   @id @default(cuid())
+  ownerId   String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner   User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members ContactListMember[]
+
+  @@index([ownerId])
+}
+
+model ContactListMember {
+  listId    String
+  contactId String
+  addedAt   DateTime @default(now())
+
+  list    ContactList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  contact Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@id([listId, contactId])
+  @@index([contactId])
 }

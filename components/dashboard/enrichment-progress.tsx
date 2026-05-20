@@ -39,14 +39,14 @@ export default function EnrichmentProgress() {
       : 100;
 
   return (
-    <div className="border-b border-[#152030] bg-[#0a1422] px-6 py-2">
-      <div className="flex items-center gap-3 text-sm text-slate-300">
+    <div className="border-b border-[#e5e3df] bg-[#eff5ff] px-6 py-2">
+      <div className="flex items-center gap-3 text-sm text-[#111110]">
         <span className="shrink-0">
           {state.phase === "done"
             ? "Enrichment complete"
             : `Enriching ${state.done} of ${state.total} contacts… (location, industry, company size)`}
         </span>
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#152030]">
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-blue-100">
           <div
             className="h-full bg-[#1585ff] transition-[width] duration-300"
             style={{ width: `${pct}%` }}

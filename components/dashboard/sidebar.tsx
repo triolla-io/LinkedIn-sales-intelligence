@@ -36,20 +36,20 @@ export default function Sidebar({ user }: SidebarProps) {
   }
 
   return (
-    <aside className="flex flex-col h-full bg-[#162333] border-r border-[#1e3248]">
+    <aside className="flex flex-col h-full bg-white border-r border-[#e5e3df]">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-[#1e3248]">
+      <div className="px-5 py-5 border-b border-[#e5e3df]">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 bg-[#1585ff] rounded-lg flex items-center justify-center shrink-0">
             <span className="text-white text-xs font-bold font-mono">SI</span>
           </div>
-          <span className="font-semibold text-[#eaf2fd] text-sm tracking-tight">LinkedIn SI</span>
+          <span className="font-semibold text-[#111110] text-sm tracking-tight">LinkedIn SI</span>
         </div>
       </div>
 
       {/* Main Nav */}
       <nav className="flex-1 px-2.5 py-4 space-y-0.5">
-        <p className="px-2.5 mb-3 text-[10px] font-mono font-semibold text-[#456078] uppercase tracking-widest">
+        <p className="px-2.5 mb-3 text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest">
           Navigation
         </p>
         {navItems.map(({ href, label, icon: Icon }) => {
@@ -63,8 +63,8 @@ export default function Sidebar({ user }: SidebarProps) {
               className={cn(
                 "flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors",
                 active
-                  ? "bg-[#1585ff]/10 text-[#1585ff] font-medium"
-                  : "text-[#5c7d9e] hover:bg-[#1c3048] hover:text-[#9ecfff]"
+                  ? "bg-[#eff5ff] text-[#1585ff] font-medium"
+                  : "text-[#6b6866] hover:bg-[#f3f2ef] hover:text-[#111110]"
               )}
             >
               <Icon className="w-4 h-4 shrink-0" />
@@ -75,7 +75,7 @@ export default function Sidebar({ user }: SidebarProps) {
 
         {isAdmin && (
           <>
-            <p className="px-2.5 mt-5 mb-2 text-[10px] font-mono font-semibold text-[#456078] uppercase tracking-widest">
+            <p className="px-2.5 mt-5 mb-2 text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest">
               Admin
             </p>
             {adminItems.map(({ href, label, icon: Icon }) => {
@@ -87,8 +87,8 @@ export default function Sidebar({ user }: SidebarProps) {
                   className={cn(
                     "flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors",
                     active
-                      ? "bg-[#1585ff]/10 text-[#1585ff] font-medium"
-                      : "text-[#5c7d9e] hover:bg-[#1c3048] hover:text-[#9ecfff]"
+                      ? "bg-[#eff5ff] text-[#1585ff] font-medium"
+                      : "text-[#6b6866] hover:bg-[#f3f2ef] hover:text-[#111110]"
                   )}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
@@ -101,28 +101,28 @@ export default function Sidebar({ user }: SidebarProps) {
       </nav>
 
       {/* User Footer */}
-      <div className="px-2.5 py-4 border-t border-[#1e3248]">
+      <div className="px-2.5 py-4 border-t border-[#e5e3df]">
         <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md">
           {user.image ? (
             <img
               src={user.image}
               alt={user.name}
-              className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-[#25405e]"
+              className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-[#e5e3df]"
             />
           ) : (
-            <div className="w-7 h-7 rounded-full bg-[#25405e] flex items-center justify-center shrink-0">
-              <span className="text-[#9ecfff] text-xs font-mono font-medium">
+            <div className="w-7 h-7 rounded-full bg-[#e5e3df] flex items-center justify-center shrink-0">
+              <span className="text-[#6b6866] text-xs font-mono font-medium">
                 {user.name.charAt(0).toUpperCase()}
               </span>
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-[#eaf2fd] truncate">{user.name}</p>
-            <p className="text-[10px] text-[#5c7d9e] truncate">{user.email}</p>
+            <p className="text-xs font-medium text-[#111110] truncate">{user.name}</p>
+            <p className="text-[10px] text-[#9b9895] truncate">{user.email}</p>
           </div>
           <button
             onClick={handleSignOut}
-            className="text-[#456078] hover:text-[#5c7d9e] transition-colors"
+            className="text-[#c8c5c2] hover:text-[#9b9895] transition-colors"
             title="Sign out"
           >
             <LogOut className="w-3.5 h-3.5" />

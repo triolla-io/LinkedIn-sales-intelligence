@@ -20,9 +20,9 @@ type UserRow = {
 
 function StatusBadge({ status }: { status: LinkedinStatus }) {
   const cfg = {
-    ACTIVE: { label: "Active", cls: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20", Icon: Wifi },
-    EXPIRED: { label: "Expired", cls: "text-amber-400 bg-amber-500/10 border-amber-500/20", Icon: AlertCircle },
-    DISCONNECTED: { label: "Disconnected", cls: "text-[#5c7d9e] bg-[#14223a] border-[#25405e]", Icon: WifiOff },
+    ACTIVE: { label: "Active", cls: "text-emerald-600 bg-emerald-50 border-emerald-200", Icon: Wifi },
+    EXPIRED: { label: "Expired", cls: "text-amber-600 bg-amber-50 border-amber-200", Icon: AlertCircle },
+    DISCONNECTED: { label: "Disconnected", cls: "text-stone-500 bg-stone-100 border-stone-200", Icon: WifiOff },
   }[status];
 
   return (
@@ -48,7 +48,6 @@ export default function AdminClient() {
   const [impersonating, setImpersonating] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  // Invite state
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
   const [inviteResult, setInviteResult] = useState<{ url?: string; sent?: boolean; error?: string } | null>(null);
@@ -140,12 +139,12 @@ export default function AdminClient() {
   }
 
   return (
-    <div className="min-h-full bg-[#0f1e2e] p-8">
+    <div className="min-h-full bg-[#f6f5f3] p-8">
       <div className="mb-8 flex items-start justify-between">
         <div>
-          <p className="text-xs font-mono text-[#5c7d9e] uppercase tracking-widest mb-1">Admin</p>
-          <h1 className="text-2xl font-semibold text-[#eaf2fd]">Team Overview</h1>
-          <p className="text-[#5c7d9e] text-sm mt-1">
+          <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-1">Admin</p>
+          <h1 className="text-2xl font-semibold text-[#111110]">Team Overview</h1>
+          <p className="text-[#6b6866] text-sm mt-1">
             {loading ? "Loading…" : `${users.length} salespeople · ${activeCount} LinkedIn active`}
           </p>
         </div>
@@ -153,7 +152,7 @@ export default function AdminClient() {
           <button
             onClick={triggerWebEnrich}
             disabled={enriching}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-[#25405e] text-[#5c7d9e] hover:border-[#1585ff]/40 hover:text-[#9ecfff] transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-[#e5e3df] text-[#6b6866] hover:border-blue-200 hover:text-[#1585ff] transition-all"
             title="Search the web to fill in missing employee counts and industries"
           >
             {enriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
@@ -163,7 +162,7 @@ export default function AdminClient() {
             <button
               onClick={stopImpersonation}
               disabled={actionLoading === "stop"}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-all"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-amber-200 text-amber-600 hover:bg-amber-50 transition-all"
             >
               <LogOut className="w-3.5 h-3.5" />
               Stop impersonating
@@ -172,7 +171,7 @@ export default function AdminClient() {
           <button
             onClick={load}
             disabled={loading}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-[#25405e] text-[#5c7d9e] hover:text-[#9ecfff] hover:border-[#1585ff]/30 transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-[#e5e3df] text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] transition-all"
           >
             <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
             Refresh
@@ -181,10 +180,10 @@ export default function AdminClient() {
       </div>
 
       {/* Invite member */}
-      <div className="rounded-xl border border-[#25405e] bg-[#1a2d3f] p-5 mb-6">
+      <div className="rounded-xl border border-[#e5e3df] bg-white p-5 mb-6">
         <div className="flex items-center gap-2 mb-4">
-          <UserPlus className="w-4 h-4 text-[#5c7d9e]" />
-          <p className="text-sm font-medium text-[#eaf2fd]">Invite a team member</p>
+          <UserPlus className="w-4 h-4 text-[#9b9895]" />
+          <p className="text-sm font-medium text-[#111110]">Invite a team member</p>
         </div>
         <div className="flex gap-2">
           <input
@@ -193,12 +192,12 @@ export default function AdminClient() {
             onChange={(e) => { setInviteEmail(e.target.value); setInviteResult(null); }}
             onKeyDown={(e) => e.key === "Enter" && sendInvite()}
             placeholder="colleague@company.com"
-            className="flex-1 px-3 py-2 bg-[#0f1e2e] border border-[#25405e] rounded-lg text-sm text-[#eaf2fd] placeholder-[#456078] focus:outline-none focus:border-[#1585ff]/50 focus:ring-1 focus:ring-[#1585ff]/20"
+            className="flex-1 px-3 py-2 bg-[#f8f7f5] border border-[#e5e3df] rounded-lg text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/50 focus:ring-1 focus:ring-[#1585ff]/20"
           />
           <button
             onClick={sendInvite}
             disabled={inviting || !inviteEmail.includes("@")}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1585ff] hover:bg-[#3090ff] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1585ff] hover:bg-[#0a70e0] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-all"
           >
             {inviting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
             {inviting ? "Sending…" : "Send invite"}
@@ -206,22 +205,22 @@ export default function AdminClient() {
         </div>
 
         {inviteResult?.sent && (
-          <div className="mt-3 flex items-center gap-2 text-xs text-emerald-400">
+          <div className="mt-3 flex items-center gap-2 text-xs text-emerald-600">
             <Check className="w-3.5 h-3.5" />
             Invitation sent — they'll get an email with a sign-in link.
           </div>
         )}
 
         {inviteResult?.url && (
-          <div className="mt-3 p-3 rounded-lg bg-[#0f1e2e] border border-[#25405e]">
-            <p className="text-xs text-[#5c7d9e] mb-2">
-              <span className="text-amber-400 font-medium">No email key configured</span> — share this link manually:
+          <div className="mt-3 p-3 rounded-lg bg-[#f8f7f5] border border-[#e5e3df]">
+            <p className="text-xs text-[#6b6866] mb-2">
+              <span className="text-amber-600 font-medium">No email key configured</span> — share this link manually:
             </p>
             <div className="flex items-center gap-2">
-              <code className="flex-1 text-xs text-[#9ecfff] truncate font-mono">{inviteResult.url}</code>
+              <code className="flex-1 text-xs text-[#1585ff] truncate font-mono">{inviteResult.url}</code>
               <button
                 onClick={() => copyLink(inviteResult.url!)}
-                className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#25405e] hover:border-[#2a4060] text-xs text-[#5c7d9e] hover:text-[#9ecfff] transition-all"
+                className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#e5e3df] hover:border-[#9b9895] text-xs text-[#6b6866] hover:text-[#111110] transition-all"
               >
                 {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                 {copied ? "Copied" : "Copy"}
@@ -231,14 +230,14 @@ export default function AdminClient() {
         )}
 
         {inviteResult?.error && (
-          <p className="mt-2 text-xs text-red-400">{inviteResult.error}</p>
+          <p className="mt-2 text-xs text-red-500">{inviteResult.error}</p>
         )}
       </div>
 
       {impersonating && (
-        <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-          <LogIn className="w-4 h-4 text-amber-400 shrink-0" />
-          <p className="text-sm text-amber-400">
+        <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
+          <LogIn className="w-4 h-4 text-amber-600 shrink-0" />
+          <p className="text-sm text-amber-700">
             You are viewing as <strong>{users.find(u => u.id === impersonating)?.name ?? "…"}</strong>.
             All contacts and actions are scoped to their account.
           </p>
@@ -246,30 +245,30 @@ export default function AdminClient() {
       )}
 
       {error && (
-        <div className="mb-6 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+        <div className="mb-6 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-600">
           {error}
         </div>
       )}
 
-      <div className="rounded-xl border border-[#25405e] bg-[#1a2d3f] overflow-hidden">
+      <div className="rounded-xl border border-[#e5e3df] bg-white overflow-hidden">
         {/* Table header */}
         <div
-          className="grid items-center gap-4 px-5 py-3 border-b border-[#25405e] bg-[#0a1420]"
+          className="grid items-center gap-4 px-5 py-3 border-b border-[#e5e3df] bg-[#f8f7f5]"
           style={{ gridTemplateColumns: "1fr 140px 90px 130px 80px 130px 120px" }}
         >
           {["Salesperson", "LinkedIn", "Contacts", "Last Synced", "Role", "Validated", ""].map((h) => (
-            <span key={h} className="text-xs font-mono text-[#5c7d9e] uppercase tracking-widest">{h}</span>
+            <span key={h} className="text-xs font-mono text-[#9b9895] uppercase tracking-widest">{h}</span>
           ))}
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <RefreshCw className="w-5 h-5 text-[#5c7d9e] animate-spin" />
+            <RefreshCw className="w-5 h-5 text-[#9b9895] animate-spin" />
           </div>
         ) : users.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-2">
-            <Users className="w-8 h-8 text-[#25405e]" />
-            <p className="text-sm text-[#5c7d9e]">No team members found.</p>
+            <Users className="w-8 h-8 text-[#d4d0cc]" />
+            <p className="text-sm text-[#9b9895]">No team members found.</p>
           </div>
         ) : (
           users.map((u, idx) => {
@@ -278,17 +277,17 @@ export default function AdminClient() {
               <div
                 key={u.id}
                 className={cn(
-                  "grid items-center gap-4 px-5 py-3.5 border-b border-[#25405e]/60 last:border-0 transition-colors",
+                  "grid items-center gap-4 px-5 py-3.5 border-b border-[#e5e3df]/70 last:border-0 transition-colors",
                   isCurrentImpersonation
-                    ? "bg-amber-500/5 border-l-2 border-l-amber-500/40"
-                    : idx % 2 === 0 ? "hover:bg-[#0f1f30]" : "bg-[#0d1828]/40 hover:bg-[#0f1f30]"
+                    ? "bg-amber-50 border-l-2 border-l-amber-300"
+                    : idx % 2 === 0 ? "hover:bg-[#f8f7f5]" : "bg-[#fafaf9] hover:bg-[#f8f7f5]"
                 )}
                 style={{ gridTemplateColumns: "1fr 140px 90px 130px 80px 130px 120px" }}
               >
                 {/* Name / email */}
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-[#eaf2fd] truncate">{u.name}</p>
-                  <p className="text-xs text-[#5c7d9e] truncate">{u.email}</p>
+                  <p className="text-sm font-medium text-[#111110] truncate">{u.name}</p>
+                  <p className="text-xs text-[#9b9895] truncate">{u.email}</p>
                 </div>
 
                 {/* LinkedIn status */}
@@ -297,19 +296,19 @@ export default function AdminClient() {
                 </div>
 
                 {/* Contacts */}
-                <p className="text-sm font-mono text-[#9ecfff] tabular-nums">
+                <p className="text-sm font-mono text-[#1585ff] tabular-nums">
                   {u.contactCount.toLocaleString()}
                 </p>
 
                 {/* Last synced */}
-                <p className="text-xs text-[#5c7d9e] font-mono">{formatDate(u.lastSyncedAt)}</p>
+                <p className="text-xs text-[#9b9895] font-mono">{formatDate(u.lastSyncedAt)}</p>
 
                 {/* Role */}
                 <span className={cn(
                   "inline-flex items-center gap-1 px-2 py-0.5 rounded border text-xs",
                   u.role === "ADMIN" || u.role === "SUPER_ADMIN"
-                    ? "border-[#1585ff]/30 text-[#1585ff] bg-[#1585ff]/10"
-                    : "border-[#25405e] text-[#5c7d9e]"
+                    ? "border-blue-200 text-blue-600 bg-blue-50"
+                    : "border-[#e5e3df] text-[#6b6866]"
                 )}>
                   {u.role === "ADMIN" || u.role === "SUPER_ADMIN"
                     ? <><Shield className="w-3 h-3" /> Admin</>
@@ -318,7 +317,7 @@ export default function AdminClient() {
                 </span>
 
                 {/* Last validated */}
-                <p className="text-xs text-[#5c7d9e] font-mono">{formatDate(u.lastValidatedAt)}</p>
+                <p className="text-xs text-[#9b9895] font-mono">{formatDate(u.lastValidatedAt)}</p>
 
                 {/* Send as / impersonate */}
                 <div className="flex justify-end">
@@ -326,7 +325,7 @@ export default function AdminClient() {
                     <button
                       onClick={stopImpersonation}
                       disabled={!!actionLoading}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-all"
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md border border-amber-200 text-amber-600 hover:bg-amber-50 transition-all"
                     >
                       <LogOut className="w-3 h-3" />
                       Exit
@@ -335,7 +334,7 @@ export default function AdminClient() {
                     <button
                       onClick={() => startImpersonation(u.id)}
                       disabled={!!actionLoading}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md border border-[#25405e] text-[#5c7d9e] hover:border-[#1585ff]/30 hover:text-[#9ecfff] hover:bg-[#1c3048] transition-all disabled:opacity-40"
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md border border-[#e5e3df] text-[#6b6866] hover:border-blue-200 hover:text-[#1585ff] hover:bg-[#eff5ff] transition-all disabled:opacity-40"
                     >
                       {actionLoading === u.id
                         ? <RefreshCw className="w-3 h-3 animate-spin" />
@@ -351,7 +350,7 @@ export default function AdminClient() {
         )}
       </div>
 
-      <p className="mt-4 text-xs text-[#456078] font-mono">
+      <p className="mt-4 text-xs text-[#9b9895] font-mono">
         "Send as" lets you browse contacts and send messages on behalf of that salesperson.
         A yellow banner will appear while active.
       </p>

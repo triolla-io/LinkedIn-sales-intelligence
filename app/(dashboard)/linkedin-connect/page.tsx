@@ -32,28 +32,28 @@ export default function LinkedinConnectPage() {
   }
 
   return (
-    <div className="min-h-full bg-[#0f1e2e] p-8">
+    <div className="min-h-full bg-[#f6f5f3] p-8">
       <div className="max-w-lg">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-xs text-[#5c7d9e] hover:text-[#9ecfff] transition-colors mb-8"
+          className="inline-flex items-center gap-1.5 text-xs text-[#6b6866] hover:text-[#1585ff] transition-colors mb-8"
         >
           <ArrowLeft className="w-3 h-3" />
           Back to dashboard
         </Link>
 
-        <p className="text-xs font-mono text-[#5c7d9e] uppercase tracking-widest mb-2">LinkedIn</p>
-        <h1 className="text-2xl font-semibold text-[#eaf2fd] mb-1">Connect your account</h1>
-        <p className="text-[#5c7d9e] text-sm mb-8">
+        <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-2">LinkedIn</p>
+        <h1 className="text-2xl font-semibold text-[#111110] mb-1">Connect your account</h1>
+        <p className="text-[#6b6866] text-sm mb-8">
           Click the button below. A LinkedIn login window will open — sign in, and we'll handle the rest automatically.
         </p>
 
-        <div className="rounded-xl border border-[#25405e] bg-[#1a2d3f] p-6 space-y-5">
+        <div className="rounded-xl border border-[#e5e3df] bg-white p-6 space-y-5">
 
           {state === "idle" && (
             <button
               onClick={startLogin}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#1585ff] hover:bg-[#3090ff] text-white text-sm font-medium transition-all"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#1585ff] hover:bg-[#0a70e0] text-white text-sm font-medium transition-all"
             >
               <ExternalLink className="w-4 h-4" />
               Open LinkedIn Login
@@ -62,14 +62,14 @@ export default function LinkedinConnectPage() {
 
           {state === "waiting" && (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#1585ff]/10 border border-[#1585ff]/20">
+              <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-50 border border-blue-200">
                 <RefreshCw className="w-4 h-4 text-[#1585ff] animate-spin shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-[#9ecfff]">Waiting for you to log in…</p>
-                  <p className="text-xs text-[#5c7d9e] mt-0.5">A browser window should have opened. Sign in to LinkedIn there.</p>
+                  <p className="text-sm font-medium text-blue-700">Waiting for you to log in…</p>
+                  <p className="text-xs text-blue-600/80 mt-0.5">A browser window should have opened. Sign in to LinkedIn there.</p>
                 </div>
               </div>
-              <p className="text-xs text-[#456078] text-center">
+              <p className="text-xs text-[#9b9895] text-center">
                 Don't see a window? Make sure your taskbar is visible.
               </p>
             </div>
@@ -77,16 +77,16 @@ export default function LinkedinConnectPage() {
 
           {state === "done" && (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                <Wifi className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                <Wifi className="w-4 h-4 text-emerald-500 shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-emerald-400">Connected!</p>
-                  <p className="text-xs text-emerald-400/70 mt-0.5">LinkedIn session saved. Ready to sync.</p>
+                  <p className="text-sm font-medium text-emerald-700">Connected!</p>
+                  <p className="text-xs text-emerald-600/80 mt-0.5">LinkedIn session saved. Ready to sync.</p>
                 </div>
               </div>
               <Link
                 href="/dashboard"
-                className="block w-full text-center px-4 py-2.5 rounded-lg bg-[#1585ff] hover:bg-[#3090ff] text-white text-sm font-medium transition-all"
+                className="block w-full text-center px-4 py-2.5 rounded-lg bg-[#1585ff] hover:bg-[#0a70e0] text-white text-sm font-medium transition-all"
               >
                 Go to dashboard →
               </Link>
@@ -95,12 +95,12 @@ export default function LinkedinConnectPage() {
 
           {state === "error" && (
             <div className="space-y-4">
-              <div className="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                <p className="text-sm text-red-400">{errorMsg}</p>
+              <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-200">
+                <p className="text-sm text-red-600">{errorMsg}</p>
               </div>
               <button
                 onClick={startLogin}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#1585ff] hover:bg-[#3090ff] text-white text-sm font-medium transition-all"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#1585ff] hover:bg-[#0a70e0] text-white text-sm font-medium transition-all"
               >
                 <ExternalLink className="w-4 h-4" />
                 Try again
@@ -109,7 +109,7 @@ export default function LinkedinConnectPage() {
           )}
         </div>
 
-        <p className="text-xs text-[#456078] mt-6 text-center">
+        <p className="text-xs text-[#9b9895] mt-6 text-center">
           Your cookie is encrypted before storage and never sent to third parties.
         </p>
       </div>

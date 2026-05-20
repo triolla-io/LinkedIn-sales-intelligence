@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, Suspense } from "react";
+import { useCallback, useEffect, useRef, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import StatsBar from "@/components/dashboard/stats-bar";
 import FilterSidebar, { type Filters, DEFAULT_FILTERS } from "@/components/dashboard/filter-sidebar";
@@ -22,7 +22,13 @@ type InsightsData = {
   coverage: { email: number; phone: number };
 };
 
-function buildContactsUrl(filters: Filters, cursor?: string) {
+const ROW_HEIGHT = 56;
+const TABLE_HEADER_H = 37;  // grid header row
+const TABLE_FOOTER_H = 41;  // pagination footer
+const MIN_PAGE_SIZE = 5;
+const DEFAULT_PAGE_SIZE = 15;
+
+function buildContactsUrl(filters: Filters, page: number, pageSize: number) {
   const params = new URLSearchParams();
   if (filters.q) params.set("q", filters.q);
   if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
@@ -34,7 +40,8 @@ function buildContactsUrl(filters: Filters, cursor?: string) {
   if (filters.connectedTo) params.set("connectedTo", filters.connectedTo);
   if (filters.hasEmail) params.set("hasEmail", "true");
   if (filters.hasPhone) params.set("hasPhone", "true");
-  if (cursor) params.set("cursor", cursor);
+  params.set("page", String(page));
+  params.set("pageSize", String(pageSize));
   return `/api/contacts?${params.toString()}`;
 }
 
@@ -64,7 +71,6 @@ function ContactsContent() {
     titleSearch: searchParams.get("titleSearch")?.split(",").filter(Boolean) ?? [],
     industry: searchParams.get("industry")?.split(",").filter(Boolean) ?? [],
     companySizeBuckets: searchParams.get("companySizeBuckets")?.split(",").filter(Boolean) ?? [],
-
     connectedFrom: searchParams.get("connectedFrom") ?? "",
     connectedTo: searchParams.get("connectedTo") ?? "",
     hasEmail: searchParams.get("hasEmail") === "true" ? true : undefined,
@@ -72,16 +78,81 @@ function ContactsContent() {
   }));
 
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [total, setTotal] = useState(0);
   const [insights, setInsights] = useState<InsightsData | null>(null);
   const [newThisWeek, setNewThisWeek] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [composeContact, setComposeContact] = useState<Contact | null>(null);
   const [drawerContact, setDrawerContact] = useState<Contact | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncDone, setSyncDone] = useState(false);
+
+  const tableWrapperRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = tableWrapperRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(([entry]) => {
+      const h = entry.contentRect.height;
+      const rows = Math.max(MIN_PAGE_SIZE, Math.floor((h - TABLE_HEADER_H - TABLE_FOOTER_H) / ROW_HEIGHT));
+      setPageSize(rows);
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  const prevFiltersRef = useRef(filters);
+  useEffect(() => {
+    if (prevFiltersRef.current !== filters) {
+      prevFiltersRef.current = filters;
+      setPage(1);
+    }
+  }, [filters]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.q) params.set("q", filters.q);
+    if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
+    if (filters.function.length) params.set("function", filters.function.join(","));
+    if (filters.titleSearch.length) params.set("titleSearch", filters.titleSearch.join(","));
+    if (filters.industry.length) params.set("industry", filters.industry.join(","));
+    if (filters.companySizeBuckets.length) params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
+    if (filters.connectedFrom) params.set("connectedFrom", filters.connectedFrom);
+    if (filters.connectedTo) params.set("connectedTo", filters.connectedTo);
+    if (filters.hasEmail) params.set("hasEmail", "true");
+    if (filters.hasPhone) params.set("hasPhone", "true");
+    router.replace(`/contacts?${params.toString()}`, { scroll: false });
+  }, [filters, router]);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setSelectedIds(new Set());
+    try {
+      const [contactsRes, insightsRes, weekRes] = await Promise.all([
+        fetch(buildContactsUrl(filters, page, pageSize)),
+        fetch(buildInsightsUrl(filters)),
+        fetch(`/api/contacts?connectedFrom=${sevenDaysAgo()}&limit=1`),
+      ]);
+      if (contactsRes.ok) {
+        const data = await contactsRes.json();
+        setContacts(data.items ?? []);
+        setTotal(data.totalApprox ?? 0);
+      }
+      if (insightsRes.ok) setInsights(await insightsRes.json());
+      if (weekRes.ok) {
+        const weekData = await weekRes.json();
+        setNewThisWeek(weekData.totalApprox ?? 0);
+      }
+    } catch (e) {
+      console.error("Failed to fetch data:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, page, pageSize]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   async function triggerSync() {
     setSyncing(true);
@@ -97,73 +168,15 @@ function ContactsContent() {
     }
   }
 
-  // Sync URL params when filters change
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (filters.q) params.set("q", filters.q);
-    if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
-    if (filters.function.length) params.set("function", filters.function.join(","));
-    if (filters.titleSearch.length) params.set("titleSearch", filters.titleSearch.join(","));
-    if (filters.industry.length) params.set("industry", filters.industry.join(","));
-    if (filters.companySizeBuckets.length) params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
-      if (filters.connectedFrom) params.set("connectedFrom", filters.connectedFrom);
-    if (filters.connectedTo) params.set("connectedTo", filters.connectedTo);
-    if (filters.hasEmail) params.set("hasEmail", "true");
-    if (filters.hasPhone) params.set("hasPhone", "true");
-    router.replace(`/contacts?${params.toString()}`, { scroll: false });
-  }, [filters, router]);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setSelectedIds(new Set());
-    try {
-      const [contactsRes, insightsRes, weekRes] = await Promise.all([
-        fetch(buildContactsUrl(filters)),
-        fetch(buildInsightsUrl(filters)),
-        fetch(`/api/contacts?connectedFrom=${sevenDaysAgo()}&limit=1`),
-      ]);
-      if (contactsRes.ok) {
-        const data = await contactsRes.json();
-        setContacts(data.items ?? []);
-        setNextCursor(data.nextCursor ?? null);
-      }
-      if (insightsRes.ok) setInsights(await insightsRes.json());
-      if (weekRes.ok) {
-        const weekData = await weekRes.json();
-        setNewThisWeek(weekData.totalApprox ?? 0);
-      }
-    } catch (e) {
-      console.error("Failed to fetch data:", e);
-    } finally {
-      setLoading(false);
-    }
-  }, [filters]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
-
-  async function loadMore() {
-    if (!nextCursor || loadingMore) return;
-    setLoadingMore(true);
-    try {
-      const res = await fetch(buildContactsUrl(filters, nextCursor));
-      if (res.ok) {
-        const data = await res.json();
-        setContacts((prev) => [...prev, ...(data.items ?? [])]);
-        setNextCursor(data.nextCursor ?? null);
-      }
-    } finally {
-      setLoadingMore(false);
-    }
-  }
-
   function handleEnrich(id: string) {
     fetch(`/api/contacts/${id}/enrich`, { method: "POST" }).then(() => fetchData()).catch(() => {});
   }
 
+  const totalPages = pageSize > 0 ? Math.ceil(total / pageSize) : 1;
   const selectedContacts = contacts.filter((c) => selectedIds.has(c.id));
 
   return (
-    <div className="flex h-full min-h-screen bg-[#0f1e2e]">
+    <div className="flex h-full min-h-screen bg-[#f6f5f3]">
       {/* Filter Sidebar */}
       <aside className="w-56 shrink-0 sticky top-0 h-screen overflow-y-auto">
         <FilterSidebar filters={filters} onChange={setFilters} />
@@ -173,12 +186,12 @@ function ContactsContent() {
       <div className="flex-1 min-w-0 flex flex-col">
         <EnrichBanner />
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-[#1e3248] bg-[#162333] sticky top-0 z-10">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <h1 className="text-sm font-semibold text-[#eaf2fd] tracking-tight">Contacts</h1>
+            <h1 className="text-sm font-semibold text-[#111110] tracking-tight">Contacts</h1>
             {!loading && (
-              <span className="text-xs font-mono text-[#456078]">
-                {contacts.length.toLocaleString()} shown
+              <span className="text-xs font-mono text-[#9b9895]">
+                {total.toLocaleString()} total
               </span>
             )}
           </div>
@@ -187,7 +200,7 @@ function ContactsContent() {
             <button
               onClick={fetchData}
               disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#5c7d9e] hover:text-[#7a9aba] border border-[#1e3248] hover:border-[#25405e] rounded-md transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors"
             >
               <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
               Refresh
@@ -195,7 +208,7 @@ function ContactsContent() {
             <button
               onClick={triggerSync}
               disabled={syncing}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white bg-[#1585ff] hover:bg-[#3090ff] rounded-md transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors disabled:opacity-50"
             >
               <RefreshCw className={cn("w-3.5 h-3.5", syncing && "animate-spin")} />
               {syncDone ? "Sync queued!" : syncing ? "Starting…" : "Sync LinkedIn"}
@@ -203,7 +216,7 @@ function ContactsContent() {
           </div>
         </div>
 
-        <div className="p-5 space-y-4 flex-1 flex flex-col">
+        <div className="px-5 pt-4 pb-0 flex flex-col flex-1 min-h-0 gap-4">
           {/* Stats strip */}
           {insights && (
             <StatsBar
@@ -215,31 +228,36 @@ function ContactsContent() {
             />
           )}
 
-          <ContactTable
-            contacts={contacts}
-            selectedIds={selectedIds}
-            onToggle={(id) =>
-              setSelectedIds((prev) => {
-                const next = new Set(prev);
-                next.has(id) ? next.delete(id) : next.add(id);
-                return next;
-              })
-            }
-            onSelectAll={() =>
-              setSelectedIds(
-                contacts.every((c) => selectedIds.has(c.id))
-                  ? new Set()
-                  : new Set(contacts.map((c) => c.id))
-              )
-            }
-            onEnrich={handleEnrich}
-            onMessage={setComposeContact}
-            onOpenDrawer={setDrawerContact}
-            loading={loading}
-            onLoadMore={loadMore}
-            hasMore={!!nextCursor}
-            loadingMore={loadingMore}
-          />
+          {/* Table — takes remaining height, no scroll */}
+          <div ref={tableWrapperRef} className="flex-1 min-h-0 flex flex-col pb-4">
+            <ContactTable
+              contacts={contacts}
+              selectedIds={selectedIds}
+              onToggle={(id) =>
+                setSelectedIds((prev) => {
+                  const next = new Set(prev);
+                  next.has(id) ? next.delete(id) : next.add(id);
+                  return next;
+                })
+              }
+              onSelectAll={() =>
+                setSelectedIds(
+                  contacts.every((c) => selectedIds.has(c.id))
+                    ? new Set()
+                    : new Set(contacts.map((c) => c.id))
+                )
+              }
+              onEnrich={handleEnrich}
+              onMessage={setComposeContact}
+              onOpenDrawer={setDrawerContact}
+              loading={loading}
+              page={page}
+              totalPages={totalPages}
+              total={total}
+              pageSize={pageSize}
+              onPageChange={setPage}
+            />
+          </div>
         </div>
       </div>
 
@@ -272,8 +290,8 @@ function ContactsContent() {
 export default function ContactsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#0f1e2e] flex items-center justify-center">
-        <p className="text-xs font-mono text-[#456078]">Loading…</p>
+      <div className="min-h-screen bg-[#f6f5f3] flex items-center justify-center">
+        <p className="text-xs font-mono text-[#9b9895]">Loading…</p>
       </div>
     }>
       <ContactsContent />

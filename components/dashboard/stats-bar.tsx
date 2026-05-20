@@ -23,33 +23,33 @@ interface StatProps {
   sub?: string;
   clickable?: boolean;
   onClick?: () => void;
-  accent?: "blue" | "amber" | "white";
+  accent?: "blue" | "amber" | "neutral";
 }
 
-function Stat({ label, value, sub, clickable, onClick, accent = "white" }: StatProps) {
+function Stat({ label, value, sub, clickable, onClick, accent = "neutral" }: StatProps) {
   const valueColor = {
     blue: "text-[#1585ff]",
-    amber: "text-[#f0a928]",
-    white: "text-[#eaf2fd]",
+    amber: "text-amber-600",
+    neutral: "text-[#111110]",
   }[accent];
 
   return (
     <button
       onClick={clickable ? onClick : undefined}
       className={cn(
-        "flex flex-col px-5 py-3 border-r border-[#1e3248] last:border-0 min-w-0 shrink-0",
-        clickable && "hover:bg-[#1c3048] transition-colors cursor-pointer"
+        "flex flex-col px-5 py-3 border-r border-[#e5e3df] last:border-0 min-w-0 shrink-0",
+        clickable && "hover:bg-[#f8f7f5] transition-colors cursor-pointer"
       )}
       style={{ cursor: clickable ? "pointer" : "default" }}
     >
-      <span className="text-[10px] font-mono text-[#456078] uppercase tracking-widest whitespace-nowrap">
+      <span className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest whitespace-nowrap">
         {label}
       </span>
       <div className="flex items-baseline gap-2 mt-0.5">
         <span className={cn("text-2xl font-semibold font-mono tabular-nums leading-none", valueColor)}>
           {typeof value === "number" ? value.toLocaleString() : value}
         </span>
-        {sub && <span className="text-[10px] text-[#5c7d9e] font-mono">{sub}</span>}
+        {sub && <span className="text-[10px] text-[#9b9895] font-mono">{sub}</span>}
       </div>
     </button>
   );
@@ -62,7 +62,7 @@ export default function StatsBar({ insights, newThisWeek, onFilterCLevel }: Stat
   );
 
   return (
-    <div className="flex items-stretch bg-[#162333] border border-[#1e3248] rounded-lg overflow-hidden shrink-0">
+    <div className="flex items-stretch bg-white border border-[#e5e3df] rounded-lg overflow-hidden shrink-0">
       <Stat label="Total" value={insights.total} />
       <Stat
         label="Reachable"
@@ -78,7 +78,7 @@ export default function StatsBar({ insights, newThisWeek, onFilterCLevel }: Stat
         onClick={onFilterCLevel}
         accent="amber"
       />
-      <Stat label="New this week" value={newThisWeek} accent="white" />
+      <Stat label="New this week" value={newThisWeek} accent="neutral" />
     </div>
   );
 }

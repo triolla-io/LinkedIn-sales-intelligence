@@ -29,20 +29,20 @@ export default function EnrichBanner() {
   const pct = progress.total === 0 ? 100 : Math.round((progress.processed / progress.total) * 100);
 
   return (
-    <div className="mx-4 mt-4 flex items-center gap-3 px-4 py-2.5 rounded-lg bg-[#1585ff]/10 border border-[#1585ff]/20">
+    <div className="mx-4 mt-4 flex items-center gap-3 px-4 py-2.5 rounded-lg bg-blue-50 border border-blue-200">
       <Sparkles className="w-4 h-4 text-[#1585ff] shrink-0 animate-pulse" />
       <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between text-xs text-[#9ecfff]">
+        <div className="flex items-center justify-between text-xs text-blue-700">
           <span>Enriching companies via Apollo…</span>
-          <span className="font-mono text-[#5c7d9e]">{progress.processed} / {progress.total}</span>
+          <span className="font-mono text-blue-500">{progress.processed} / {progress.total}</span>
         </div>
-        <div className="mt-1 h-1 rounded-full bg-[#1585ff]/10 overflow-hidden">
+        <div className="mt-1 h-1 rounded-full bg-blue-100 overflow-hidden">
           <div className="h-full bg-[#1585ff] transition-all" style={{ width: `${pct}%` }} />
         </div>
       </div>
       <button
         onClick={() => setDismissed(true)}
-        className="text-[#5c7d9e] hover:text-[#9ecfff] transition-colors"
+        className="text-blue-400 hover:text-blue-600 transition-colors"
         aria-label="Hide"
       >
         <X className="w-3.5 h-3.5" />

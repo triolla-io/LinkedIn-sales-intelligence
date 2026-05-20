@@ -74,15 +74,15 @@ function Section({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="border-b border-[#1e3248] last:border-0">
+    <div className="border-b border-[#e5e3df] last:border-0">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center justify-between w-full px-4 py-2.5 text-[10px] font-mono font-semibold text-[#456078] uppercase tracking-widest hover:text-[#5c7d9e] transition-colors"
+        className="flex items-center justify-between w-full px-4 py-2.5 text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest hover:text-[#6b6866] transition-colors"
       >
         <span className="flex items-center gap-2">
           {title}
           {activeCount > 0 && (
-            <span className="px-1 py-0.5 rounded bg-[#1585ff]/15 text-[#1585ff] text-[9px] font-mono">
+            <span className="px-1 py-0.5 rounded bg-[#1585ff]/10 text-[#1585ff] text-[9px] font-mono">
               {activeCount}
             </span>
           )}
@@ -96,9 +96,9 @@ function Section({
 
 function ActivePill({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-[#1585ff]/15 text-[#1585ff] border border-[#1585ff]/20">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-[#1585ff]/10 text-[#1585ff] border border-[#1585ff]/20">
       {label}
-      <button onClick={onRemove} className="hover:text-white transition-colors">
+      <button onClick={onRemove} className="hover:text-[#0a65c7] transition-colors">
         <X className="w-2.5 h-2.5" />
       </button>
     </span>
@@ -142,21 +142,21 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#162333] border-r border-[#1e3248]">
+    <div className="flex flex-col h-full bg-white border-r border-[#e5e3df]">
       {/* Search */}
-      <div className="p-4 border-b border-[#1e3248]">
+      <div className="p-4 border-b border-[#e5e3df]">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#456078]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9b9895]" />
           <input
             type="text"
             placeholder="Search contacts…"
             value={filters.q}
             onChange={(e) => onChange({ ...filters, q: e.target.value })}
-            className="w-full pl-9 pr-3 py-2 bg-[#101c2a] border border-[#1e3248] rounded-md text-sm text-[#eaf2fd] placeholder-[#456078] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+            className="w-full pl-9 pr-3 py-2 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
           />
           {filters.q && (
             <button onClick={() => onChange({ ...filters, q: "" })} className="absolute right-2 top-1/2 -translate-y-1/2">
-              <X className="w-3.5 h-3.5 text-[#456078] hover:text-[#5c7d9e]" />
+              <X className="w-3.5 h-3.5 text-[#9b9895] hover:text-[#6b6866]" />
             </button>
           )}
         </div>
@@ -175,15 +175,15 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                       "w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all",
                       active
                         ? "bg-[#1585ff] border-[#1585ff]"
-                        : "bg-transparent border-[#25405e] group-hover:border-[#2a4060]"
+                        : "bg-white border-[#d4d0cc] group-hover:border-[#9b9895]"
                     )}
                     onClick={() => toggle("companySizeBuckets", b.value)}
                   >
-                    {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 rotate-[-45deg]" />}
+                    {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 -rotate-45" />}
                   </div>
                   <span className={cn(
                     "text-xs transition-colors",
-                    active ? "text-[#9ecfff]" : "text-[#5c7d9e] group-hover:text-[#7a9aba]"
+                    active ? "text-[#1585ff]" : "text-[#6b6866] group-hover:text-[#111110]"
                   )}>
                     {b.label}
                   </span>
@@ -205,8 +205,8 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                   className={cn(
                     "px-2 py-0.5 rounded text-xs font-medium border transition-all",
                     active
-                      ? "bg-[#1585ff]/15 text-[#1585ff] border-[#1585ff]/30"
-                      : "bg-transparent text-[#5c7d9e] border-[#25405e] hover:border-[#2a4060] hover:text-[#7a9aba]"
+                      ? "bg-[#1585ff]/10 text-[#1585ff] border-[#1585ff]/30"
+                      : "bg-white text-[#6b6866] border-[#d4d0cc] hover:border-[#9b9895] hover:text-[#111110]"
                   )}
                 >
                   {pill.label}
@@ -220,7 +220,7 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
             value={customTitle}
             onChange={(e) => setCustomTitle(e.target.value)}
             onKeyDown={addCustomTitle}
-            className="w-full px-3 py-1.5 bg-[#101c2a] border border-[#1e3248] rounded-md text-xs text-[#eaf2fd] placeholder-[#456078] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+            className="w-full px-3 py-1.5 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-xs text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
           />
           <div className="flex flex-wrap gap-1 mt-2">
             {filters.titleSearch
@@ -241,8 +241,8 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                 className={cn(
                   "px-2 py-0.5 rounded text-xs font-medium border transition-all",
                   filters.industry.includes(i)
-                    ? "bg-[#1585ff]/15 text-[#1585ff] border-[#1585ff]/30"
-                    : "bg-transparent text-[#5c7d9e] border-[#25405e] hover:border-[#2a4060] hover:text-[#7a9aba]"
+                    ? "bg-[#1585ff]/10 text-[#1585ff] border-[#1585ff]/30"
+                    : "bg-white text-[#6b6866] border-[#d4d0cc] hover:border-[#9b9895] hover:text-[#111110]"
                 )}
               >
                 {i}
@@ -259,31 +259,31 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
         >
           <div className="space-y-2">
             <div>
-              <label className="block text-[10px] font-mono text-[#456078] uppercase tracking-widest mb-1">
+              <label className="block text-[10px] font-mono text-[#9b9895] uppercase tracking-widest mb-1">
                 From
               </label>
               <input
                 type="date"
                 value={filters.connectedFrom}
                 onChange={(e) => onChange({ ...filters, connectedFrom: e.target.value })}
-                className="w-full px-3 py-1.5 bg-[#101c2a] border border-[#1e3248] rounded-md text-xs text-[#eaf2fd] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors [color-scheme:dark]"
+                className="w-full px-3 py-1.5 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-xs text-[#111110] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
               />
             </div>
             <div>
-              <label className="block text-[10px] font-mono text-[#456078] uppercase tracking-widest mb-1">
+              <label className="block text-[10px] font-mono text-[#9b9895] uppercase tracking-widest mb-1">
                 To
               </label>
               <input
                 type="date"
                 value={filters.connectedTo}
                 onChange={(e) => onChange({ ...filters, connectedTo: e.target.value })}
-                className="w-full px-3 py-1.5 bg-[#101c2a] border border-[#1e3248] rounded-md text-xs text-[#eaf2fd] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors [color-scheme:dark]"
+                className="w-full px-3 py-1.5 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-xs text-[#111110] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
               />
             </div>
             {(filters.connectedFrom || filters.connectedTo) && (
               <button
                 onClick={() => onChange({ ...filters, connectedFrom: "", connectedTo: "" })}
-                className="text-xs text-[#5c7d9e] hover:text-[#7a9aba] flex items-center gap-1"
+                className="text-xs text-[#6b6866] hover:text-[#111110] flex items-center gap-1"
               >
                 <X className="w-3 h-3" /> Clear dates
               </button>
@@ -306,15 +306,15 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                       "w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all",
                       active
                         ? "bg-[#1585ff] border-[#1585ff]"
-                        : "bg-transparent border-[#25405e] group-hover:border-[#2a4060]"
+                        : "bg-white border-[#d4d0cc] group-hover:border-[#9b9895]"
                     )}
                     onClick={() => onChange({ ...filters, [key]: active ? undefined : true })}
                   >
-                    {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 rotate-[-45deg]" />}
+                    {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 -rotate-45" />}
                   </div>
                   <span className={cn(
                     "text-xs transition-colors",
-                    active ? "text-[#9ecfff]" : "text-[#5c7d9e] group-hover:text-[#7a9aba]"
+                    active ? "text-[#1585ff]" : "text-[#6b6866] group-hover:text-[#111110]"
                   )}>
                     {label}
                   </span>
@@ -327,10 +327,10 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
 
       {/* Clear all */}
       {hasFilters && (
-        <div className="p-3 border-t border-[#1e3248]">
+        <div className="p-3 border-t border-[#e5e3df]">
           <button
             onClick={() => onChange(DEFAULT_FILTERS)}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-mono text-[#5c7d9e] hover:text-[#7a9aba] border border-[#1e3248] hover:border-[#25405e] rounded-md transition-colors"
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-mono text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors"
           >
             <X className="w-3 h-3" />
             Clear all filters

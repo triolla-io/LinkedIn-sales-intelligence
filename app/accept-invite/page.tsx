@@ -15,7 +15,6 @@ function AcceptInviteContent() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Fetch invite info
   useEffect(() => {
     if (!token) { setState("error"); setErrorMsg("Invalid invite link."); return; }
     fetch(`/api/invite/info?token=${token}`)
@@ -28,7 +27,6 @@ function AcceptInviteContent() {
       .catch(() => { setState("error"); setErrorMsg("Failed to load invite."); });
   }, [token]);
 
-  // After login, accept the invite
   useEffect(() => {
     if (status !== "authenticated" || state !== "ready") return;
     setState("accepting");
@@ -50,7 +48,7 @@ function AcceptInviteContent() {
     return (
       <div className="flex flex-col items-center gap-3">
         <RefreshCw className="w-8 h-8 text-[#1585ff] animate-spin" />
-        <p className="text-sm text-[#5c7d9e]">{state === "accepting" ? "Setting up your account…" : "Loading…"}</p>
+        <p className="text-sm text-[#6b6866]">{state === "accepting" ? "Setting up your account…" : "Loading…"}</p>
       </div>
     );
   }
@@ -58,8 +56,8 @@ function AcceptInviteContent() {
   if (state === "error") {
     return (
       <div className="flex flex-col items-center gap-3 text-center">
-        <AlertCircle className="w-8 h-8 text-red-400" />
-        <p className="text-sm text-red-400">{errorMsg}</p>
+        <AlertCircle className="w-8 h-8 text-red-500" />
+        <p className="text-sm text-red-500">{errorMsg}</p>
       </div>
     );
   }
@@ -67,25 +65,24 @@ function AcceptInviteContent() {
   if (state === "done") {
     return (
       <div className="flex flex-col items-center gap-3 text-center">
-        <CheckCircle className="w-8 h-8 text-emerald-400" />
-        <p className="text-sm text-emerald-400 font-medium">You're in! Redirecting…</p>
+        <CheckCircle className="w-8 h-8 text-emerald-500" />
+        <p className="text-sm text-emerald-600 font-medium">You're in! Redirecting…</p>
       </div>
     );
   }
 
-  // ready — prompt to sign in
   return (
     <div className="flex flex-col items-center gap-5 text-center">
       <div>
-        <p className="text-xs font-mono text-[#5c7d9e] uppercase tracking-widest mb-1">Invitation</p>
-        <h1 className="text-xl font-semibold text-[#eaf2fd] mb-2">You've been invited</h1>
-        <p className="text-sm text-[#5c7d9e]">
-          Sign in with <span className="text-[#9ecfff] font-medium">{inviteEmail}</span> to accept.
+        <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-1">Invitation</p>
+        <h1 className="text-xl font-semibold text-[#111110] mb-2">You've been invited</h1>
+        <p className="text-sm text-[#6b6866]">
+          Sign in with <span className="text-[#1585ff] font-medium">{inviteEmail}</span> to accept.
         </p>
       </div>
       <button
         onClick={() => signIn("google", { callbackUrl: `/accept-invite?token=${token}` })}
-        className="flex items-center gap-2.5 px-5 py-2.5 rounded-lg bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-all shadow"
+        className="flex items-center gap-2.5 px-5 py-2.5 rounded-lg bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-all shadow border border-[#e5e3df]"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -95,15 +92,15 @@ function AcceptInviteContent() {
         </svg>
         Continue with Google
       </button>
-      <p className="text-xs text-[#456078]">Make sure to sign in with the email address that received this invite.</p>
+      <p className="text-xs text-[#9b9895]">Make sure to sign in with the email address that received this invite.</p>
     </div>
   );
 }
 
 export default function AcceptInvitePage() {
   return (
-    <div className="min-h-screen bg-[#0f1e2e] flex items-center justify-center p-8">
-      <div className="w-full max-w-sm bg-[#1a2d3f] rounded-2xl border border-[#25405e] p-8">
+    <div className="min-h-screen bg-[#f6f5f3] flex items-center justify-center p-8">
+      <div className="w-full max-w-sm bg-white rounded-2xl border border-[#e5e3df] p-8 shadow-sm">
         <div className="w-10 h-10 bg-[#1585ff] rounded-xl flex items-center justify-center mb-6 mx-auto">
           <span className="text-white text-sm font-bold font-mono">SI</span>
         </div>

@@ -2,6 +2,7 @@ export type ContactSnapshot = {
   fullName: string;
   currentTitle: string | null;
   currentCompany: string | null;
+  companySize: number | null;
 };
 
 export type IncomingContact = ContactSnapshot & { linkedinUrn: string };
@@ -17,7 +18,8 @@ function isSameSnapshot(a: ContactSnapshot, b: ContactSnapshot): boolean {
   return (
     (a.fullName ?? "") === (b.fullName ?? "") &&
     (a.currentTitle ?? "") === (b.currentTitle ?? "") &&
-    (a.currentCompany ?? "") === (b.currentCompany ?? "")
+    (a.currentCompany ?? "") === (b.currentCompany ?? "") &&
+    (a.companySize ?? null) === (b.companySize ?? null)
   );
 }
 

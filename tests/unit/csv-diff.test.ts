@@ -3,9 +3,9 @@ import { diffContacts } from "@/lib/csv/diff";
 
 describe("diffContacts", () => {
   it("classifies brand-new linkedinUrns as added", () => {
-    const existing = new Map<string, { fullName: string; currentTitle: string | null; currentCompany: string | null }>();
+    const existing = new Map<string, { fullName: string; currentTitle: string | null; currentCompany: string | null; companySize: number | null }>();
     const incoming = [
-      { linkedinUrn: "urn:1", fullName: "Alice", currentTitle: "CEO", currentCompany: "Acme" },
+      { linkedinUrn: "urn:1", fullName: "Alice", currentTitle: "CEO", currentCompany: "Acme", companySize: null },
     ];
     const result = diffContacts(existing, incoming);
     expect(result.added).toEqual(["urn:1"]);
@@ -16,10 +16,10 @@ describe("diffContacts", () => {
 
   it("classifies same name+title+company as unchanged", () => {
     const existing = new Map([
-      ["urn:1", { fullName: "Alice", currentTitle: "CEO", currentCompany: "Acme" }],
+      ["urn:1", { fullName: "Alice", currentTitle: "CEO", currentCompany: "Acme", companySize: null }],
     ]);
     const incoming = [
-      { linkedinUrn: "urn:1", fullName: "Alice", currentTitle: "CEO", currentCompany: "Acme" },
+      { linkedinUrn: "urn:1", fullName: "Alice", currentTitle: "CEO", currentCompany: "Acme", companySize: null },
     ];
     const result = diffContacts(existing, incoming);
     expect(result.unchanged).toEqual(["urn:1"]);
@@ -29,10 +29,10 @@ describe("diffContacts", () => {
 
   it("classifies same urn but different title as updated", () => {
     const existing = new Map([
-      ["urn:1", { fullName: "Alice", currentTitle: "CTO", currentCompany: "Acme" }],
+      ["urn:1", { fullName: "Alice", currentTitle: "CTO", currentCompany: "Acme", companySize: null }],
     ]);
     const incoming = [
-      { linkedinUrn: "urn:1", fullName: "Alice", currentTitle: "CEO", currentCompany: "Acme" },
+      { linkedinUrn: "urn:1", fullName: "Alice", currentTitle: "CEO", currentCompany: "Acme", companySize: null },
     ];
     const result = diffContacts(existing, incoming);
     expect(result.updated).toEqual(["urn:1"]);
@@ -40,11 +40,11 @@ describe("diffContacts", () => {
 
   it("classifies existing urns missing from incoming as removed", () => {
     const existing = new Map([
-      ["urn:1", { fullName: "Alice", currentTitle: "CEO", currentCompany: "Acme" }],
-      ["urn:2", { fullName: "Bob",   currentTitle: "CFO", currentCompany: "Beta" }],
+      ["urn:1", { fullName: "Alice", currentTitle: "CEO", currentCompany: "Acme", companySize: null }],
+      ["urn:2", { fullName: "Bob",   currentTitle: "CFO", currentCompany: "Beta",  companySize: null }],
     ]);
     const incoming = [
-      { linkedinUrn: "urn:1", fullName: "Alice", currentTitle: "CEO", currentCompany: "Acme" },
+      { linkedinUrn: "urn:1", fullName: "Alice", currentTitle: "CEO", currentCompany: "Acme", companySize: null },
     ];
     const result = diffContacts(existing, incoming);
     expect(result.removed).toEqual(["urn:2"]);

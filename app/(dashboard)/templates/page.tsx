@@ -18,7 +18,7 @@ function HighlightedBody({ text }: { text: string }) {
     <>
       {parts.map((part, i) =>
         /^{{[^}]+}}$/.test(part) ? (
-          <span key={i} className="text-[#f0a928] font-mono bg-[#f0a928]/10 px-1 rounded text-xs">
+          <span key={i} className="text-amber-600 font-mono bg-amber-50 px-1 rounded text-xs">
             {part}
           </span>
         ) : (
@@ -62,7 +62,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-[11px] font-semibold text-[#5b7fa6] uppercase tracking-widest mb-2">
+        <label className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
           Template Name
         </label>
         <input
@@ -70,11 +70,11 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Initial Outreach"
-          className="w-full bg-[#07101c] border border-[#1a2d40] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#2d4a62] focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+          className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-lg px-3 py-2.5 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
         />
       </div>
       <div>
-        <label className="block text-[11px] font-semibold text-[#5b7fa6] uppercase tracking-widest mb-2">
+        <label className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
           Message Body
         </label>
         <textarea
@@ -82,7 +82,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
           onChange={(e) => setBody(e.target.value)}
           rows={6}
           placeholder={"Hi {{firstName}},\n\nI noticed you're at {{company}}..."}
-          className="w-full bg-[#07101c] border border-[#1a2d40] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#2d4a62] resize-none focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors font-mono leading-relaxed"
+          className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-lg px-3 py-2.5 text-sm text-[#111110] placeholder-[#c8c5c2] resize-none focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors font-mono leading-relaxed"
         />
         <div className="mt-2 flex flex-wrap gap-1.5">
           {VARIABLE_CHIPS.map((v) => (
@@ -90,7 +90,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
               key={v}
               type="button"
               onClick={() => setBody((b) => b + v)}
-              className="text-[10px] font-mono text-[#f0a928] bg-[#f0a928]/10 border border-[#f0a928]/20 px-2 py-0.5 rounded hover:bg-[#f0a928]/20 transition-colors"
+              className="text-[10px] font-mono text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded hover:bg-amber-100 transition-colors"
             >
               {v}
             </button>
@@ -98,7 +98,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
         </div>
       </div>
       {error && (
-        <p className="text-xs text-red-400 bg-red-400/10 px-3 py-2 rounded-lg border border-red-400/20">
+        <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg border border-red-200">
           {error}
         </p>
       )}
@@ -106,7 +106,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#1070d9] disabled:opacity-60 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0a70e0] disabled:opacity-60 transition-colors"
         >
           {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
           {submitLabel}
@@ -114,7 +114,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm text-[#5b7fa6] hover:text-white hover:bg-[#152030] rounded-lg transition-colors"
+          className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] hover:bg-[#f3f2ef] rounded-lg transition-colors"
         >
           Cancel
         </button>
@@ -186,15 +186,15 @@ export default function TemplatesPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-white tracking-tight">Templates</h1>
-          <p className="text-sm text-[#5b7fa6] mt-1">
+          <h1 className="text-2xl font-semibold text-[#111110] tracking-tight">Templates</h1>
+          <p className="text-sm text-[#6b6866] mt-1">
             Reusable outreach templates with personalization variables
           </p>
         </div>
         {!showCreate && (
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#1070d9] transition-colors shrink-0"
+            className="flex items-center gap-2 px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0a70e0] transition-colors shrink-0"
           >
             <Plus className="w-4 h-4" />
             New Template
@@ -204,10 +204,10 @@ export default function TemplatesPage() {
 
       {/* Create form */}
       {showCreate && (
-        <div className="bg-[#0a1422] border border-[#1585ff]/30 rounded-xl p-5 mb-4">
+        <div className="bg-white border border-[#1585ff]/30 rounded-xl p-5 mb-4">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1 h-4 bg-[#1585ff] rounded-full" />
-            <h3 className="text-sm font-semibold text-white">New Template</h3>
+            <h3 className="text-sm font-semibold text-[#111110]">New Template</h3>
           </div>
           <TemplateForm
             onSubmit={handleCreate}
@@ -221,27 +221,27 @@ export default function TemplatesPage() {
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-[#0a1422] border border-[#1a2d40] rounded-xl p-5 animate-pulse">
-              <div className="h-4 bg-[#152030] rounded w-36 mb-3" />
-              <div className="h-3 bg-[#0f1e2e] rounded w-full mb-2" />
-              <div className="h-3 bg-[#0f1e2e] rounded w-4/5 mb-2" />
-              <div className="h-3 bg-[#0f1e2e] rounded w-2/3" />
+            <div key={i} className="bg-white border border-[#e5e3df] rounded-xl p-5 animate-pulse">
+              <div className="h-4 bg-[#e5e3df] rounded w-36 mb-3" />
+              <div className="h-3 bg-[#f3f2ef] rounded w-full mb-2" />
+              <div className="h-3 bg-[#f3f2ef] rounded w-4/5 mb-2" />
+              <div className="h-3 bg-[#f3f2ef] rounded w-2/3" />
             </div>
           ))}
         </div>
       ) : templates.length === 0 && !showCreate ? (
         /* Empty state */
-        <div className="bg-[#0a1422] border border-[#1a2d40] rounded-xl p-16 text-center">
-          <div className="w-12 h-12 bg-[#0f1e2e] border border-[#1a2d40] rounded-xl flex items-center justify-center mx-auto mb-4">
-            <FileText className="w-5 h-5 text-[#3d5a73]" />
+        <div className="bg-white border border-[#e5e3df] rounded-xl p-16 text-center">
+          <div className="w-12 h-12 bg-[#f3f2ef] border border-[#e5e3df] rounded-xl flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-5 h-5 text-[#9b9895]" />
           </div>
-          <p className="text-white font-medium mb-1">No templates yet</p>
-          <p className="text-[#5b7fa6] text-sm mb-5">
+          <p className="text-[#111110] font-medium mb-1">No templates yet</p>
+          <p className="text-[#6b6866] text-sm mb-5">
             Create reusable outreach templates with personalization variables
           </p>
           <button
             onClick={() => setShowCreate(true)}
-            className="text-sm text-[#1585ff] hover:text-[#4da3ff] transition-colors"
+            className="text-sm text-[#1585ff] hover:text-[#0a70e0] transition-colors"
           >
             Create your first template →
           </button>
@@ -251,13 +251,13 @@ export default function TemplatesPage() {
           {templates.map((template) => (
             <div
               key={template.id}
-              className="bg-[#0a1422] border border-[#1a2d40] rounded-xl p-5 group hover:border-[#1f3a52] transition-colors"
+              className="bg-white border border-[#e5e3df] rounded-xl p-5 group hover:border-[#9b9895] transition-colors"
             >
               {editingId === template.id ? (
                 <>
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 h-4 bg-[#f0a928] rounded-full" />
-                    <h3 className="text-sm font-semibold text-white">Editing Template</h3>
+                    <div className="w-1 h-4 bg-amber-500 rounded-full" />
+                    <h3 className="text-sm font-semibold text-[#111110]">Editing Template</h3>
                   </div>
                   <TemplateForm
                     initial={{ name: template.name, body: template.body }}
@@ -270,8 +270,8 @@ export default function TemplatesPage() {
                 <>
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-medium text-white text-sm">{template.name}</h3>
-                      <p className="text-[10px] text-[#3d5a73] mt-0.5 font-mono uppercase tracking-wider">
+                      <h3 className="font-medium text-[#111110] text-sm">{template.name}</h3>
+                      <p className="text-[10px] text-[#9b9895] mt-0.5 font-mono uppercase tracking-wider">
                         {new Date(template.createdAt).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -282,7 +282,7 @@ export default function TemplatesPage() {
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => setEditingId(template.id)}
-                        className="p-1.5 text-[#5b7fa6] hover:text-white hover:bg-[#152030] rounded-md transition-colors"
+                        className="p-1.5 text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef] rounded-md transition-colors"
                         title="Edit"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -290,7 +290,7 @@ export default function TemplatesPage() {
                       <button
                         onClick={() => handleDelete(template.id)}
                         disabled={deletingId === template.id}
-                        className="p-1.5 text-[#5b7fa6] hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors disabled:opacity-50"
+                        className="p-1.5 text-[#9b9895] hover:text-red-500 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
                         title="Delete"
                       >
                         {deletingId === template.id ? (
@@ -301,7 +301,7 @@ export default function TemplatesPage() {
                       </button>
                     </div>
                   </div>
-                  <p className="text-sm text-[#8ba3b8] font-mono leading-relaxed whitespace-pre-wrap line-clamp-4">
+                  <p className="text-sm text-[#6b6866] font-mono leading-relaxed whitespace-pre-wrap line-clamp-4">
                     <HighlightedBody text={template.body} />
                   </p>
                 </>

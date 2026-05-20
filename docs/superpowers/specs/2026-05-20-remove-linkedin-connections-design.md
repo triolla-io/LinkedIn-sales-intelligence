@@ -106,9 +106,9 @@ The `slugifyCompany` function is used by the CSV import route and company enrich
 - `app/(dashboard)/admin/users/page.tsx` — remove LinkedIn status display
 - `app/(dashboard)/admin/[userId]/page.tsx` — remove LinkedIn status display
 
-### Components
-- `components/dashboard/enrich-banner.tsx` — remove SSE event listeners for `linkedin:enrich-progress` / `linkedin:enrich-done`; remove EventSource subscription entirely if no other events remain
-- `components/dashboard/enrichment-progress.tsx` — remove LinkedIn enrichment progress display if it is solely LinkedIn-driven
+### Components (delete entirely)
+- `components/dashboard/enrich-banner.tsx` — 100% LinkedIn SSE events; also connects to `/api/sse/stream` which does not exist (already broken)
+- `components/dashboard/enrichment-progress.tsx` — 100% LinkedIn SSE events from `/api/sync/status` (being deleted)
 
 ### CSV & utils
 - `app/api/import/csv/route.ts` — update slug-utils import path
