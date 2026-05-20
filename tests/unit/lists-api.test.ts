@@ -44,7 +44,7 @@ describe("parseCreateBody", () => {
 });
 
 // Inline pure helpers for enrich route logic
-function buildEnrichFilter(listId: string, _existingEnrichedIds: string[]): object {
+function buildEnrichFilter(listId: string): object {
   return {
     lists: { some: { listId } },
     email: null,
@@ -57,13 +57,13 @@ function sliceTobudget(ids: string[], creditsRemaining: number): string[] {
 
 describe("buildEnrichFilter", () => {
   it("filters list members without email", () => {
-    expect(buildEnrichFilter("list-1", [])).toEqual({
+    expect(buildEnrichFilter("list-1")).toEqual({
       lists: { some: { listId: "list-1" } },
       email: null,
     });
   });
   it("uses the correct listId", () => {
-    const result = buildEnrichFilter("list-abc", []) as Record<string, unknown>;
+    const result = buildEnrichFilter("list-abc") as Record<string, unknown>;
     expect((result.lists as { some: { listId: string } }).some.listId).toBe("list-abc");
   });
 });
