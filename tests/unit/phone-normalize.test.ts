@@ -10,8 +10,8 @@ describe("normalizePhone", () => {
     expect(normalizePhone("+1 650-555-1234")).toBe("+16505551234");
   });
 
-  it("adds leading + if missing", () => {
-    expect(normalizePhone("16505551234")).toBe("+16505551234");
+  it("returns null for number without + prefix", () => {
+    expect(normalizePhone("16505551234")).toBeNull();
   });
 
   it("handles Israeli mobile numbers", () => {
