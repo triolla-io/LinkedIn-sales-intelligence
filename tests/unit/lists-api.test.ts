@@ -52,7 +52,7 @@ function buildEnrichFilter(listId: string): object {
 }
 
 function sliceTobudget(ids: string[], creditsRemaining: number): string[] {
-  return ids.slice(0, creditsRemaining);
+  return ids.slice(0, Math.max(0, creditsRemaining));
 }
 
 describe("buildEnrichFilter", () => {
@@ -77,5 +77,8 @@ describe("sliceTobudget", () => {
   });
   it("returns empty when budget is zero", () => {
     expect(sliceTobudget(["a"], 0)).toEqual([]);
+  });
+  it("returns empty for negative creditsRemaining", () => {
+    expect(sliceTobudget(["a", "b", "c"], -1)).toEqual([]);
   });
 });

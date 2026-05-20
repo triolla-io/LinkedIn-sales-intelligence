@@ -34,12 +34,16 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   const toEnrich = unenriched.map((c) => c.id).slice(0, creditsRemaining);
 
   if (toEnrich.length > 0) {
-    await inngest.send(
-      toEnrich.map((id) => ({
-        name: "enrich.contact" as const,
-        data: { contactId: id, actorId: ctx.user.id },
-      }))
-    );
+    try {
+      await inngest.send(
+        toEnrich.map((id) => ({
+          name: "enrich.contact" as const,
+          data: { contactId: id, actorId: ctx.user.id },
+        }))
+      );
+    } catch {
+      return NextResponse.json({ error: "QUEUE_FAILED" }, { status: 502 });
+    }
   }
 
   return NextResponse.json({
