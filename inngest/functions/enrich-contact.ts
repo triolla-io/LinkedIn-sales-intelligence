@@ -1,7 +1,6 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { matchPerson } from "@/lib/apollo/client";
-import { publish } from "@/lib/linkedin/sse-bus";
 
 export const enrichContact = inngest.createFunction(
   { id: "enrich-contact", triggers: [{ event: "enrich.contact" as const }] },
@@ -63,10 +62,6 @@ export const enrichContact = inngest.createFunction(
         create: { orgId, month, credits: 1 },
         update: { credits: { increment: 1 } },
       });
-    });
-
-    await step.run("publish-sse", async () => {
-      publish(contact.ownerId, { type: "contact:enriched", data: { contactId, email, phone, companySize } });
     });
 
     return { contactId, email, phone, companySize };

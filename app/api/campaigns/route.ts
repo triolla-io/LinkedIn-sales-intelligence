@@ -4,9 +4,10 @@ import { withTenant } from "@/lib/tenancy/with-tenant";
 
 export const POST = withTenant(async (req: NextRequest, ctx) => {
   const body = await req.json();
-  const { name, templateId, contactIds, listId, filter } = body as {
+  const { name, templateId, channel, contactIds, listId, filter } = body as {
     name?: string;
     templateId?: string;
+    channel?: "EMAIL" | "WHATSAPP";
     contactIds?: string[];
     listId?: string;
     filter?: unknown;
@@ -42,7 +43,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       ownerId: ctx.effectiveUserId,
       orgId: ctx.org.id,
       name,
-      channel: "LINKEDIN",
+      channel: channel ?? "EMAIL",
       templateId,
       status: "DRAFT",
       filterJson: filterJson as never,

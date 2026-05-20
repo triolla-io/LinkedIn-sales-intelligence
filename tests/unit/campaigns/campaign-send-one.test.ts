@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const sendMock = vi.hoisted(() => vi.fn());
-const publishMock = vi.hoisted(() => vi.fn());
 const checkSendQuotaMock = vi.hoisted(() => vi.fn());
-const mcpSendMessageMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/inngest/client", () => ({
   inngest: { createFunction: (_opts: unknown, fn: unknown) => fn, send: sendMock },
@@ -12,12 +10,6 @@ vi.mock("@/lib/campaigns/throttle", () => ({
   checkSendQuota: checkSendQuotaMock,
   jitterSeconds: () => 1,
 }));
-vi.mock("@/lib/linkedin/mcp-http-client", () => ({
-  mcpSendMessage: mcpSendMessageMock,
-  extractUsername: (url: string) => url.match(/\/in\/([^/?#]+)/)?.[1] ?? "unknown",
-  extractProfileUrn: () => undefined,
-}));
-vi.mock("@/lib/linkedin/sse-bus", () => ({ publish: publishMock }));
 
 const mockRecipientFindUnique = vi.hoisted(() => vi.fn());
 const mockRecipientUpdate = vi.hoisted(() => vi.fn());
@@ -43,7 +35,7 @@ const makeRecipient = (overrides = {}) => ({
   contactId: "contact1",
   campaignId: "camp1",
   attemptCount: 0,
-  campaign: { id: "camp1", ownerId: "user1", templateId: "tpl1", status: "RUNNING" },
+  campaign: { id: "camp1", ownerId: "user1", templateId: "tpl1", status: "RUNNING", channel: "LINKEDIN" },
   contact: { linkedinUrn: "urn:li:fs_miniProfile:abc", linkedinUrl: "https://linkedin.com/in/alice/" },
   ...overrides,
 });
@@ -52,7 +44,6 @@ describe("campaignSendOneHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     checkSendQuotaMock.mockResolvedValue({ ok: true });
-    mcpSendMessageMock.mockResolvedValue(undefined);
     mockRecipientUpdate.mockResolvedValue({});
     mockSentMessageCreate.mockResolvedValue({ id: "sent1", status: "SENT" });
     mockCampaignUpdate.mockResolvedValue({});
@@ -60,18 +51,26 @@ describe("campaignSendOneHandler", () => {
     sendMock.mockResolvedValue({});
   });
 
-  it("sends message, marks SENT, writes SentMessage, publishes SSE", async () => {
-    mockRecipientFindUnique.mockResolvedValue(makeRecipient());
+  it("marks FAILED (after max attempts) when channel not yet implemented", async () => {
+    mockRecipientFindUnique.mockResolvedValue(makeRecipient({ attemptCount: 2 }));
 
     await campaignSendOneHandler({ event: { data: { recipientId: "rec1" } } });
 
-    expect(mcpSendMessageMock).toHaveBeenCalledWith("alice", "Hello Alice", undefined);
     expect(mockRecipientUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ status: "SENT" }) })
+      expect.objectContaining({ data: expect.objectContaining({ status: "FAILED" }) })
     );
-    expect(mockSentMessageCreate).toHaveBeenCalledOnce();
-    expect(publishMock).toHaveBeenCalledWith("user1", expect.objectContaining({ type: "campaign:sent" }));
     expect(sendMock).toHaveBeenCalledWith(expect.objectContaining({ name: "campaign.finalize" }));
+  });
+
+  it("marks PENDING and retries when channel not implemented and attempts remain", async () => {
+    mockRecipientFindUnique.mockResolvedValue(makeRecipient({ attemptCount: 0 }));
+
+    await campaignSendOneHandler({ event: { data: { recipientId: "rec1" } } });
+
+    expect(mockRecipientUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ status: "PENDING" }) })
+    );
+    expect(sendMock).toHaveBeenCalledWith(expect.objectContaining({ name: "campaign.send-one" }));
   });
 
   it("re-emits and returns early when quota exceeded", async () => {
@@ -81,25 +80,14 @@ describe("campaignSendOneHandler", () => {
     await campaignSendOneHandler({ event: { data: { recipientId: "rec1" } } });
 
     expect(sendMock).toHaveBeenCalledWith(expect.objectContaining({ name: "campaign.send-one" }));
-    expect(mcpSendMessageMock).not.toHaveBeenCalled();
-    expect(mockSentMessageCreate).not.toHaveBeenCalled();
-  });
-
-  it("marks FAILED and retries on MCP error", async () => {
-    mcpSendMessageMock.mockRejectedValue(new Error("MCP connection refused"));
-    mockRecipientFindUnique.mockResolvedValue(makeRecipient());
-
-    await campaignSendOneHandler({ event: { data: { recipientId: "rec1" } } });
-
-    expect(mockRecipientUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ status: "PENDING", errorMessage: "MCP connection refused" }) })
+    expect(mockRecipientUpdate).not.toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ status: "SENDING" }) })
     );
-    expect(sendMock).toHaveBeenCalledWith(expect.objectContaining({ name: "campaign.send-one" }));
   });
 
   it("returns early if recipient not PENDING or campaign not RUNNING", async () => {
     mockRecipientFindUnique.mockResolvedValue(makeRecipient({ status: "SENT" }));
     await campaignSendOneHandler({ event: { data: { recipientId: "rec1" } } });
-    expect(mcpSendMessageMock).not.toHaveBeenCalled();
+    expect(checkSendQuotaMock).not.toHaveBeenCalled();
   });
 });

@@ -16,7 +16,6 @@ export async function campaignSendOneHandler({ event }: any) {
     },
   });
   if (!recipient || recipient.status !== "PENDING") return;
-  if (recipient.campaign.channel !== "LINKEDIN") return;
   if (recipient.campaign.status !== "RUNNING") return;
 
   const quota = await checkSendQuota(recipient.campaign.ownerId);

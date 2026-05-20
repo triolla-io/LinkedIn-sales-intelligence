@@ -166,7 +166,6 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
         seniority,
         function: fn,
         industry,
-        connectedAt: c.connectedAt,
         lastSyncedAt: new Date(),
       },
       update: {
@@ -178,7 +177,6 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
         seniority,
         function: fn,
         industry: industry || undefined,
-        connectedAt: c.connectedAt || undefined,
         lastSyncedAt: new Date(),
         removedAt: null,  // un-soft-remove if they came back
       },

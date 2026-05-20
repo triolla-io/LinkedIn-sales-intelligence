@@ -12,14 +12,12 @@ const mockCampaignUpdate = vi.hoisted(() => vi.fn());
 const mockCampaignUpdateMany = vi.hoisted(() => vi.fn());
 const mockRecipientFindMany = vi.hoisted(() => vi.fn());
 const mockUserFindUnique = vi.hoisted(() => vi.fn());
-const mockLinkedinSessionFindUnique = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     campaign: { findFirst: mockCampaignFindFirst, update: mockCampaignUpdate, updateMany: mockCampaignUpdateMany },
     campaignRecipient: { findMany: mockRecipientFindMany },
     user: { findUnique: mockUserFindUnique },
-    linkedinSession: { findUnique: mockLinkedinSessionFindUnique },
   },
 }));
 
@@ -43,7 +41,6 @@ beforeEach(() => {
   mockRecipientFindMany.mockResolvedValue([]);
   mockAuth.mockResolvedValue({ user: { id: "user1" } });
   mockUserFindUnique.mockResolvedValue(USER);
-  mockLinkedinSessionFindUnique.mockResolvedValue({ userId: "user1", status: "ACTIVE" });
 });
 
 describe("start route", () => {

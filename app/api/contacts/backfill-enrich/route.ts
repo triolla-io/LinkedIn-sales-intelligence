@@ -1,7 +1,6 @@
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 import { inngest } from "@/inngest/client";
-import { publish } from "@/lib/linkedin/sse-bus";
 
 export const POST = withTenant(async (_req, { effectiveUserId }) => {
   const total = await prisma.contact.count({
@@ -19,8 +18,6 @@ export const POST = withTenant(async (_req, { effectiveUserId }) => {
     name: "profiles.enrich",
     data: { userId: effectiveUserId, total },
   });
-
-  publish(effectiveUserId, { type: "linkedin:enrich-started", data: { total } });
 
   return { queued: total };
 });
