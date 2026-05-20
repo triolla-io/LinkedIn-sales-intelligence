@@ -20,7 +20,6 @@ const navItems = [
   { href: "/lists", label: "Lists", icon: BookMarked },
   { href: "/templates", label: "Templates", icon: FileText },
   { href: "/import", label: "Import CSV", icon: Upload },
-  { href: "/linkedin-connect", label: "LinkedIn", icon: Wifi },
 ];
 
 const adminItems = [
