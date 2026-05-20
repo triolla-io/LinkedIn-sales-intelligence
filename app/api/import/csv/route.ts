@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 import { classify } from "@/lib/classifier/seniority";
-import { slugifyCompany } from "@/lib/linkedin/slug-utils";
+import { getIndustry } from "@/lib/classifier/industry";
+import { slugifyCompany } from "@/lib/utils/slug-utils";
 import { inngest } from "@/inngest/client";
 import * as XLSX from "xlsx";
 import { diffContacts, type IncomingContact } from "@/lib/csv/diff";
@@ -56,13 +57,14 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     return -1;
   };
 
-  const iFirstName  = col(["first name", "firstname"]);
-  const iLastName   = col(["last name", "lastname"]);
-  const iUrl        = col(["url", "profile url", "linkedin url"]);
-  const iEmail      = col(["email address", "email"]);
-  const iCompany    = col(["company", "company name"]);
-  const iPosition   = col(["position", "title", "job title"]);
-  const iConnected  = col(["connected on", "connected at", "date connected"]);
+  const iFirstName    = col(["first name", "firstname"]);
+  const iLastName     = col(["last name", "lastname"]);
+  const iUrl          = col(["url", "profile url", "linkedin url"]);
+  const iEmail        = col(["email address", "email"]);
+  const iCompany      = col(["company", "company name"]);
+  const iPosition     = col(["position", "title", "job title"]);
+  const iConnected    = col(["connected on", "connected at", "date connected"]);
+  const iCompanySize  = col(["company size"]);
 
   if (iFirstName === -1 && iLastName === -1) {
     return NextResponse.json({ error: "Could not find name columns. Make sure this is a LinkedIn connections CSV." }, { status: 400 });
@@ -77,6 +79,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     currentCompany: string | null;
     currentTitle: string | null;
     connectedAt: Date | null;
+    companySize: number | null;
   }[] = [];
 
   for (const cells of rows) {
@@ -95,11 +98,13 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       ? `urn:li:csv_import:${publicId}`
       : `urn:li:csv_import:${Buffer.from(fullName).toString("base64")}`;
 
-    const email       = get(iEmail) || null;
-    const company     = get(iCompany) || null;
-    const position    = get(iPosition) || null;
+    const email        = get(iEmail) || null;
+    const company      = get(iCompany) || null;
+    const position     = get(iPosition) || null;
     const connectedRaw = get(iConnected);
-    const connectedAt = connectedRaw ? new Date(connectedRaw) : null;
+    const connectedAt  = connectedRaw ? new Date(connectedRaw) : null;
+    const sizeRaw      = get(iCompanySize);
+    const companySize  = sizeRaw ? (parseInt(sizeRaw, 10) || null) : null;
 
     contacts.push({
       fullName,
@@ -109,6 +114,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       currentCompany: company,
       currentTitle: position,
       connectedAt: connectedAt && !isNaN(connectedAt.getTime()) ? connectedAt : null,
+      companySize,
     });
   }
 
@@ -122,11 +128,11 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   // Load existing contacts for this user — only the fields we compare
   const existingRows = await prisma.contact.findMany({
     where: { ownerId: userId, removedAt: null },
-    select: { linkedinUrn: true, fullName: true, currentTitle: true, currentCompany: true },
+    select: { linkedinUrn: true, fullName: true, currentTitle: true, currentCompany: true, companySize: true },
   });
   const existingMap = new Map(
-    existingRows.map((r: { linkedinUrn: string; fullName: string; currentTitle: string | null; currentCompany: string | null }) =>
-      [r.linkedinUrn, { fullName: r.fullName, currentTitle: r.currentTitle, currentCompany: r.currentCompany }] as const,
+    existingRows.map((r: { linkedinUrn: string; fullName: string; currentTitle: string | null; currentCompany: string | null; companySize: number | null }) =>
+      [r.linkedinUrn, { fullName: r.fullName, currentTitle: r.currentTitle, currentCompany: r.currentCompany, companySize: r.companySize }] as const,
     ),
   );
 
@@ -135,6 +141,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     fullName: c.fullName,
     currentTitle: c.currentTitle,
     currentCompany: c.currentCompany,
+    companySize: c.companySize,
   }));
 
   const diff = diffContacts(existingMap, incoming);
@@ -144,6 +151,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   const toUpsert = contacts.filter((c) => !unchangedSet.has(c.linkedinUrn));
   for (const c of toUpsert) {
     const { seniority, function: fn } = classify(c.currentTitle ?? "");
+    const industry = getIndustry(c.currentCompany ?? "") || undefined;
     await prisma.contact.upsert({
       where: { ownerId_linkedinUrn: { ownerId: userId, linkedinUrn: c.linkedinUrn } },
       create: {
@@ -154,8 +162,10 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
         email: c.email,
         currentTitle: c.currentTitle,
         currentCompany: c.currentCompany,
+        companySize: c.companySize,
         seniority,
         function: fn,
+        industry,
         connectedAt: c.connectedAt,
         lastSyncedAt: new Date(),
       },
@@ -164,8 +174,10 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
         email: c.email || undefined,
         currentTitle: c.currentTitle || undefined,
         currentCompany: c.currentCompany || undefined,
+        companySize: c.companySize ?? undefined,
         seniority,
         function: fn,
+        industry: industry || undefined,
         connectedAt: c.connectedAt || undefined,
         lastSyncedAt: new Date(),
         removedAt: null,  // un-soft-remove if they came back
@@ -187,14 +199,17 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   const unchanged = diff.unchanged.length;
 
   // Stub Company rows and link contacts
-  const companyNames = [
-    ...new Set(contacts.map((c) => c.currentCompany).filter(Boolean) as string[]),
-  ];
-
-  const bySlug = new Map<string, string>();
-  for (const name of companyNames) {
-    const slug = slugifyCompany(name);
-    if (slug) bySlug.set(slug, name);
+  // Build a map from slug → { name, staffCount, industry } using first occurrence per company
+  const bySlug = new Map<string, { name: string; staffCount: number | null; industry: string | null }>();
+  for (const c of contacts) {
+    if (!c.currentCompany) continue;
+    const slug = slugifyCompany(c.currentCompany);
+    if (!slug || bySlug.has(slug)) continue;
+    bySlug.set(slug, {
+      name: c.currentCompany,
+      staffCount: c.companySize,
+      industry: getIndustry(c.currentCompany) || null,
+    });
   }
 
   let newCompanies = 0;
@@ -208,16 +223,24 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     const existingSlugs = new Set(existingCompanies.map((r: { universalName: string }) => r.universalName));
     newCompanies = [...bySlug.keys()].filter((s) => !existingSlugs.has(s)).length;
 
-    // Upsert stub company rows
+    // Upsert stub company rows — write staffCount + industry if we have them
     const CHUNK = 50;
     const entries = [...bySlug.entries()];
     for (let i = 0; i < entries.length; i += CHUNK) {
       await prisma.$transaction(
-        entries.slice(i, i + CHUNK).map(([slug, name]) =>
+        entries.slice(i, i + CHUNK).map(([slug, info]) =>
           prisma.company.upsert({
             where: { universalName: slug },
-            update: {},
-            create: { universalName: slug, name },
+            update: {
+              ...(info.staffCount != null ? { staffCount: info.staffCount } : {}),
+              ...(info.industry ? { industry: info.industry } : {}),
+            },
+            create: {
+              universalName: slug,
+              name: info.name,
+              ...(info.staffCount != null ? { staffCount: info.staffCount } : {}),
+              ...(info.industry ? { industry: info.industry } : {}),
+            },
           }),
         ),
       );

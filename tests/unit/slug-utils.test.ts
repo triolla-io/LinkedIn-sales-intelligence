@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { slugifyCompany } from "@/lib/linkedin/slug-utils";
+import { slugifyCompany } from "@/lib/utils/slug-utils";
 
 describe("slugifyCompany", () => {
   it.each([
