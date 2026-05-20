@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Zap, RefreshCw, X, Send, Download, Megaphone } from "lucide-react";
+import { useState, useRef } from "react";
+import { Zap, RefreshCw, X, Send, Download, Megaphone, Bookmark } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Contact } from "./contact-table";
 import { NewCampaignModal } from "./new-campaign-modal";
+import ListPopover from "./list-popover";
 
 interface BulkEnrichBarProps {
   selectedIds: string[];
@@ -23,6 +24,8 @@ export default function BulkEnrichBar({
   const [error, setError] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [campaignOpen, setCampaignOpen] = useState(false);
+  const [showListPopover, setShowListPopover] = useState(false);
+  const listBtnRef = useRef<HTMLButtonElement>(null);
 
   const N = selectedIds.length;
 

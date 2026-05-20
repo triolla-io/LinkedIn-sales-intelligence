@@ -29,6 +29,7 @@ const querySchema = z.object({
   limit: z.coerce.number().min(1).max(200).default(50),
   page: z.coerce.number().min(1).optional(),
   pageSize: z.coerce.number().min(1).max(500).optional(),
+  listId: z.string().optional(),
 });
 
 function parseArrayParam(raw: string | null): string[] | undefined {
@@ -56,6 +57,7 @@ export const GET = withTenant(async (req, ctx) => {
     limit: url.searchParams.get("limit") ?? 50,
     page: url.searchParams.get("page") ?? undefined,
     pageSize: url.searchParams.get("pageSize") ?? undefined,
+    listId: url.searchParams.get("listId") ?? undefined,
   };
 
   const parsed = querySchema.safeParse(raw);
@@ -119,6 +121,13 @@ export const GET = withTenant(async (req, ctx) => {
         }
       : {}),
     ...(sizeConditions.length ? { OR: sizeConditions } : {}),
+    ...(params.listId
+      ? {
+          lists: {
+            some: { listId: params.listId },
+          },
+        }
+      : {}),
   };
 
   const usePageBased = params.page !== undefined && params.pageSize !== undefined;

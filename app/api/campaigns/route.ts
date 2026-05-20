@@ -4,19 +4,39 @@ import { withTenant } from "@/lib/tenancy/with-tenant";
 
 export const POST = withTenant(async (req: NextRequest, ctx) => {
   const body = await req.json();
-  const { name, templateId, contactIds, filter } = body as {
-    name?: string; templateId?: string; contactIds?: string[]; filter?: unknown;
+  const { name, templateId, contactIds, listId, filter } = body as {
+    name?: string;
+    templateId?: string;
+    contactIds?: string[];
+    listId?: string;
+    filter?: unknown;
   };
+
   if (!name || !templateId) {
     return NextResponse.json({ error: "name and templateId required" }, { status: 400 });
   }
-  if (!contactIds && filter === undefined) {
-    return NextResponse.json({ error: "contactIds or filter required" }, { status: 400 });
+  if (!contactIds && !listId && filter === undefined) {
+    return NextResponse.json({ error: "contactIds, listId, or filter required" }, { status: 400 });
   }
+
   const tpl = await prisma.messageTemplate.findFirst({ where: { id: templateId, ownerId: ctx.effectiveUserId } });
   if (!tpl) return NextResponse.json({ error: "template not found" }, { status: 404 });
 
-  const filterJson = contactIds ? { contactIds } : { filter };
+  // Resolve listId → contactIds at creation time
+  let resolvedContactIds = contactIds;
+  if (listId && !resolvedContactIds) {
+    const list = await prisma.contactList.findFirst({
+      where: { id: listId, ownerId: ctx.effectiveUserId },
+    });
+    if (!list) return NextResponse.json({ error: "list not found" }, { status: 404 });
+    const members = await prisma.contactListMember.findMany({
+      where: { listId },
+      select: { contactId: true },
+    });
+    resolvedContactIds = members.map((m) => m.contactId);
+  }
+
+  const filterJson = resolvedContactIds ? { contactIds: resolvedContactIds } : { filter };
   const campaign = await prisma.campaign.create({
     data: {
       ownerId: ctx.effectiveUserId,
