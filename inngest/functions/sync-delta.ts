@@ -3,8 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { decryptCookie } from "@/lib/linkedin/cookie-crypto";
 import { LinkedinMcp, RateLimitError } from "@/lib/linkedin/mcp-client";
 import { classify } from "@/lib/classifier/seniority";
+import { getIndustry } from "@/lib/classifier/industry";
 import { publish } from "@/lib/linkedin/sse-bus";
-import { slugifyCompany } from "@/lib/linkedin/slug-utils";
+import { slugifyCompany } from "@/lib/utils/slug-utils";
 
 const MAX_PROFILES_PER_RUN = 200;
 const PROFILE_STALE_DAYS = 30;
@@ -134,6 +135,7 @@ export const syncDelta = inngest.createFunction(
           if (slug) enrichedCompanyMap.set(slug, profile.currentCompany);
         }
         const { seniority, function: fn } = classify(profile.currentTitle ?? "");
+        const industry = getIndustry(profile.currentCompany ?? "") || undefined;
         await step.run(`update-profile-${contact.id}`, () =>
           prisma.contact.update({
             where: { id: contact.id },
@@ -146,6 +148,7 @@ export const syncDelta = inngest.createFunction(
               profilePicUrl: profile.profilePicUrl,
               seniority,
               function: fn,
+              industry: industry || undefined,
               lastSyncedAt: new Date(),
             },
           })

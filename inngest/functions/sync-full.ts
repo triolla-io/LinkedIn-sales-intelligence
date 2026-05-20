@@ -3,8 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { decryptCookie } from "@/lib/linkedin/cookie-crypto";
 import { LinkedinMcp, RateLimitError } from "@/lib/linkedin/mcp-client";
 import { classify } from "@/lib/classifier/seniority";
+import { getIndustry } from "@/lib/classifier/industry";
 import { publish } from "@/lib/linkedin/sse-bus";
-import { slugifyCompany } from "@/lib/linkedin/slug-utils";
+import { slugifyCompany } from "@/lib/utils/slug-utils";
 
 const MAX_PROFILES_PER_RUN = 200;
 
@@ -53,6 +54,7 @@ export const syncFull = inngest.createFunction(
         await step.run(`upsert-connections-${cursor ?? "start"}`, async () => {
           for (const conn of items) {
             const { seniority, function: fn } = classify(conn.currentTitle || conn.headline || "");
+            const industry = getIndustry(conn.currentCompany ?? "") || undefined;
             const result = await prisma.contact.upsert({
               where: { ownerId_linkedinUrn: { ownerId: userId, linkedinUrn: conn.urn } },
               create: {
@@ -65,6 +67,7 @@ export const syncFull = inngest.createFunction(
                 currentCompany: conn.currentCompany || null,
                 seniority,
                 function: fn,
+                industry,
                 connectedAt: conn.connectedAt ? new Date(conn.connectedAt) : null,
                 lastSyncedAt: now,
               },
@@ -75,6 +78,7 @@ export const syncFull = inngest.createFunction(
                 currentCompany: conn.currentCompany || undefined,
                 seniority,
                 function: fn,
+                industry: industry || undefined,
                 lastSyncedAt: now,
                 removedAt: null,
               },
