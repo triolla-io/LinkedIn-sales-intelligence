@@ -38,19 +38,21 @@ export const enrichContact = inngest.createFunction(
 
     await step.run("save-results", async () => {
       const { email, phone, companySize, currentCompany, industry } = result;
+      const protected_ = new Set(contact.manualFields as string[]);
+
+      const patch: Record<string, unknown> = {};
+      if (!protected_.has("email") && email) patch.email = email;
+      if (!protected_.has("phone") && phone) patch.phone = phone;
+      if (companySize) patch.companySize = companySize;
+      if (!protected_.has("currentCompany") && currentCompany && !contact.currentCompany)
+        patch.currentCompany = currentCompany;
+      if (!protected_.has("industry") && industry && !contact.industry)
+        patch.industry = industry;
+      patch.enrichedAt = new Date();
+      patch.enrichmentSource = "apollo";
+
       await prisma.$transaction([
-        prisma.contact.update({
-          where: { id: contactId },
-          data: {
-            ...(email ? { email } : {}),
-            ...(phone ? { phone } : {}),
-            ...(companySize ? { companySize } : {}),
-            ...(currentCompany && !contact.currentCompany ? { currentCompany } : {}),
-            ...(industry && !contact.industry ? { industry } : {}),
-            enrichedAt: new Date(),
-            enrichmentSource: "apollo",
-          },
-        }),
+        prisma.contact.update({ where: { id: contactId }, data: patch }),
         prisma.enrichmentSpend.upsert({
           where: { orgId_month: { orgId, month } },
           create: { orgId, month, credits: 1 },
