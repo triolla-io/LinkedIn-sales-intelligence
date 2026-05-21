@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/cn";
 import type { Contact } from "./contact-table";
 import ListPopover from "./list-popover";
+import EditContactModal from "./edit-contact-modal";
 
 interface MessageRecord {
   id: string;
@@ -61,7 +62,14 @@ export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDra
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [contactLists, setContactLists] = useState<{ id: string; name: string }[]>([]);
   const [showListPopover, setShowListPopover] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [localContact, setLocalContact] = useState<Contact | null>(contact);
   const addListBtnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setLocalContact(contact);
+    setShowEdit(false);
+  }, [contact?.id]);
 
   useEffect(() => {
     if (!contact) return;
@@ -112,23 +120,23 @@ export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDra
           visible ? "translate-x-0" : "translate-x-full"
         )}
       >
-        {!contact ? null : (
+        {!contact || !localContact ? null : (
           <>
             {/* Header */}
             <div className="flex items-start justify-between px-5 py-4 border-b border-[#e5e3df]">
               <div className="flex-1 min-w-0 pr-3">
-                <h2 className="text-base font-semibold text-[#111110] truncate">{contact.fullName}</h2>
-                {contact.currentTitle && (
-                  <p className="text-sm text-[#6b6866] truncate mt-0.5">{contact.currentTitle}</p>
+                <h2 className="text-base font-semibold text-[#111110] truncate">{localContact.fullName}</h2>
+                {localContact.currentTitle && (
+                  <p className="text-sm text-[#6b6866] truncate mt-0.5">{localContact.currentTitle}</p>
                 )}
-                {contact.seniority && (
+                {localContact.seniority && (
                   <span
                     className={cn(
                       "inline-block mt-1.5 px-2 py-0.5 rounded border text-xs font-medium",
-                      SENIORITY_COLOR[contact.seniority] ?? SENIORITY_COLOR.OTHER
+                      SENIORITY_COLOR[localContact.seniority] ?? SENIORITY_COLOR.OTHER
                     )}
                   >
-                    {contact.seniority.replace(/_/g, " ")}
+                    {localContact.seniority.replace(/_/g, " ")}
                   </span>
                 )}
               </div>
@@ -144,20 +152,28 @@ export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDra
             <div className="flex-1 overflow-y-auto">
               {/* Contact details */}
               <div className="p-4 space-y-4 border-b border-[#e5e3df]">
-                <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">
-                  Contact Details
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">
+                    Contact Details
+                  </p>
+                  <button
+                    onClick={() => setShowEdit(true)}
+                    className="text-xs text-[#9b9895] hover:text-[#1585ff] transition-colors"
+                  >
+                    Edit
+                  </button>
+                </div>
 
-                {contact.email ? (
+                {localContact.email ? (
                   <div className="flex items-center gap-2.5">
                     <Mail className="w-4 h-4 text-[#1585ff] shrink-0" />
                     <div>
                       <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Email</p>
                       <a
-                        href={`mailto:${contact.email}`}
+                        href={`mailto:${localContact.email}`}
                         className="text-sm text-[#1585ff] hover:text-[#0a70e0] transition-colors font-mono"
                       >
-                        {contact.email}
+                        {localContact.email}
                       </a>
                     </div>
                   </div>
@@ -168,16 +184,16 @@ export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDra
                   </div>
                 )}
 
-                {contact.phone ? (
+                {localContact.phone ? (
                   <div className="flex items-center gap-2.5">
                     <Phone className="w-4 h-4 text-emerald-500 shrink-0" />
                     <div>
                       <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Phone</p>
                       <a
-                        href={`tel:${contact.phone}`}
+                        href={`tel:${localContact.phone}`}
                         className="text-sm text-[#111110] hover:text-black transition-colors font-mono"
                       >
-                        {contact.phone}
+                        {localContact.phone}
                       </a>
                     </div>
                   </div>
@@ -188,9 +204,9 @@ export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDra
                   </div>
                 )}
 
-                {(!contact.email && !contact.phone) && (
+                {(!localContact.email && !localContact.phone) && (
                   <button
-                    onClick={() => onEnrich(contact.id)}
+                    onClick={() => onEnrich(localContact.id)}
                     className="flex items-center gap-2 mt-1 px-3 py-1.5 text-xs text-[#6b6866] border border-[#e5e3df] hover:border-amber-300 hover:text-amber-600 rounded-md transition-all"
                   >
                     <Zap className="w-3 h-3" />
@@ -205,61 +221,63 @@ export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDra
                   Professional
                 </p>
                 <div className="space-y-3">
-                  {contact.currentCompany && (
+                  {localContact.currentCompany && (
                     <div className="flex items-center gap-2.5">
                       <Building2 className="w-4 h-4 text-[#9b9895] shrink-0" />
                       <div className="min-w-0">
                         <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Company</p>
-                        <p className="text-sm text-[#111110] truncate">{contact.currentCompany}</p>
+                        <p className="text-sm text-[#111110] truncate">{localContact.currentCompany}</p>
                       </div>
                     </div>
                   )}
-                  {contact.companySize && (
+                  {localContact.companySize && (
                     <div className="flex items-center gap-2.5">
                       <Users className="w-4 h-4 text-[#9b9895] shrink-0" />
                       <div>
                         <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Employees</p>
-                        <p className="text-sm font-mono text-[#111110]">{contact.companySize.toLocaleString()}</p>
+                        <p className="text-sm font-mono text-[#111110]">{localContact.companySize.toLocaleString()}</p>
                       </div>
                     </div>
                   )}
-                  {contact.location && (
+                  {localContact.location && (
                     <div className="flex items-center gap-2.5">
                       <MapPin className="w-4 h-4 text-[#9b9895] shrink-0" />
                       <div>
                         <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Location</p>
-                        <p className="text-sm text-[#111110]">{contact.location}</p>
+                        <p className="text-sm text-[#111110]">{localContact.location}</p>
                       </div>
                     </div>
                   )}
-                  {contact.industry && (
+                  {localContact.industry && (
                     <div>
                       <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest mb-0.5">Industry</p>
-                      <p className="text-sm text-[#111110]">{contact.industry}</p>
+                      <p className="text-sm text-[#111110]">{localContact.industry}</p>
                     </div>
                   )}
-                  {contact.lastSyncedAt && (
+                  {localContact.lastSyncedAt && (
                     <div className="flex items-center gap-2.5">
                       <Clock className="w-4 h-4 text-[#9b9895] shrink-0" />
                       <div>
                         <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Last synced</p>
                         <p className="text-xs font-mono text-[#9b9895]">
-                          {formatDate(contact.lastSyncedAt)}
+                          {formatDate(localContact.lastSyncedAt)}
                         </p>
                       </div>
                     </div>
                   )}
                 </div>
 
-                <a
-                  href={contact.linkedinUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 mt-2 text-xs text-[#9b9895] hover:text-[#1585ff] transition-colors"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  View on LinkedIn
-                </a>
+                {localContact.linkedinUrl && localContact.linkedinUrl.includes("/in/") && localContact.linkedinUrl.split("/in/")[1] && (
+                  <a
+                    href={localContact.linkedinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 mt-2 text-xs text-[#9b9895] hover:text-[#1585ff] transition-colors"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    View on LinkedIn
+                  </a>
+                )}
               </div>
 
               {/* Lists */}
@@ -275,13 +293,13 @@ export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDra
                       <Plus className="w-3 h-3" />
                       Add
                     </button>
-                    {showListPopover && contact && (
+                    {showListPopover && localContact && (
                       <ListPopover
-                        contactIds={[contact.id]}
+                        contactIds={[localContact.id]}
                         onClose={() => {
                           setShowListPopover(false);
                           // Refresh list membership
-                          fetch(`/api/lists?contactId=${contact.id}`)
+                          fetch(`/api/lists?contactId=${localContact.id}`)
                             .then((r) => r.json())
                             .then((d) => setContactLists(d.lists ?? []));
                         }}
@@ -305,7 +323,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDra
                             await fetch(`/api/lists/${list.id}/members`, {
                               method: "POST",
                               headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ remove: [contact!.id] }),
+                              body: JSON.stringify({ remove: [localContact!.id] }),
                             });
                             setContactLists((prev) => prev.filter((l) => l.id !== list.id));
                           }}
@@ -363,6 +381,17 @@ export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDra
                 )}
               </div>
             </div>
+
+            {showEdit && localContact && (
+              <EditContactModal
+                contact={localContact}
+                onClose={() => setShowEdit(false)}
+                onSaved={(updated) => {
+                  setLocalContact(updated);
+                  setShowEdit(false);
+                }}
+              />
+            )}
           </>
         )}
       </div>
