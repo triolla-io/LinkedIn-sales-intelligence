@@ -93,11 +93,14 @@ export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDra
   useEffect(() => {
     if (!contact) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        if (showEdit) return;  // let the modal's listener handle it
+        onClose();
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [contact, onClose]);
+  }, [contact, onClose, showEdit]);
 
   const visible = !!contact;
 
