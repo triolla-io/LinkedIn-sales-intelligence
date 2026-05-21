@@ -162,6 +162,7 @@ model Contact {
   phone            String?
   enrichedAt       DateTime?
   enrichmentSource String?
+  manualFields     String[]  @default([])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
