@@ -136,6 +136,7 @@ model User {
   imports         Import[]
   contactLists    ContactList[]
   linkedinSession LinkedinSession?
+  sequences       Sequence[]
 }
 
 model Contact {
@@ -174,6 +175,7 @@ model Contact {
   messages           SentMessage[]
   campaignRecipients CampaignRecipient[]
   lists              ContactListMember[]
+  sequenceEnrollments SequenceEnrollment[]
 
   @@unique([ownerId, linkedinUrn])
   @@index([ownerId, seniority])
@@ -190,9 +192,10 @@ model MessageTemplate {
   name    String
   body    String
 
-  owner     User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  messages  SentMessage[]
-  campaigns Campaign[]
+  owner         User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  messages      SentMessage[]
+  campaigns     Campaign[]
+  sequenceSteps SequenceStep[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -209,11 +212,12 @@ model SentMessage {
   status       MessageStatus @default(QUEUED)
   errorMessage String?
 
-  sender            User              @relation("SentBySender", fields: [senderId], references: [id])
-  actor             User              @relation("ActedByActor", fields: [actorId], references: [id])
-  contact           Contact           @relation(fields: [contactId], references: [id])
-  template          MessageTemplate?  @relation(fields: [templateId], references: [id])
-  campaignRecipient CampaignRecipient?
+  sender                User                   @relation("SentBySender", fields: [senderId], references: [id])
+  actor                 User                   @relation("ActedByActor", fields: [actorId], references: [id])
+  contact               Contact                @relation(fields: [contactId], references: [id])
+  template              MessageTemplate?       @relation(fields: [templateId], references: [id])
+  campaignRecipient     CampaignRecipient?
+  sequenceStepExecution SequenceStepExecution?
 
   @@index([senderId, sentAt])
   @@index([contactId])
@@ -313,6 +317,21 @@ enum RecipientStatus {
   SKIPPED
 }
 
+enum SequenceStatus {
+  DRAFT
+  QUEUED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  UNSUBSCRIBED
+}
+
 // ─── Campaign models ──────────────────────────────────────────────────────────
 
 model Campaign {
@@ -399,8 +418,9 @@ model ContactList {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  owner   User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  members ContactListMember[]
+  owner     User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members   ContactListMember[]
+  sequences Sequence[]
 
   @@index([ownerId])
 }
@@ -415,4 +435,79 @@ model ContactListMember {
 
   @@id([listId, contactId])
   @@index([contactId])
+}
+
+// ─── Sequence models ──────────────────────────────────────────────────────────
+
+model Sequence {
+  id            String         @id @default(cuid())
+  ownerId       String
+  orgId         String?
+  name          String
+  contactListId String
+  status        SequenceStatus @default(DRAFT)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  owner       User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  contactList ContactList          @relation(fields: [contactListId], references: [id])
+  steps       SequenceStep[]
+  enrollments SequenceEnrollment[]
+
+  @@index([ownerId, status])
+}
+
+model SequenceStep {
+  id         String          @id @default(cuid())
+  sequenceId String
+  stepNumber Int
+  dayOffset  Int
+  channel    CampaignChannel
+  templateId String
+  subject    String?
+  createdAt  DateTime        @default(now())
+
+  sequence   Sequence                @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  template   MessageTemplate         @relation(fields: [templateId], references: [id])
+  executions SequenceStepExecution[]
+
+  @@unique([sequenceId, stepNumber])
+  @@index([sequenceId])
+}
+
+model SequenceEnrollment {
+  id         String           @id @default(cuid())
+  sequenceId String
+  contactId  String
+  status     EnrollmentStatus @default(ACTIVE)
+  enrolledAt DateTime         @default(now())
+
+  sequence   Sequence                @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  contact    Contact                 @relation(fields: [contactId], references: [id])
+  executions SequenceStepExecution[]
+
+  @@unique([sequenceId, contactId])
+  @@index([sequenceId, status])
+}
+
+model SequenceStepExecution {
+  id            String          @id @default(cuid())
+  enrollmentId  String
+  stepId        String
+  status        RecipientStatus @default(PENDING)
+  scheduledAt   DateTime
+  sentAt        DateTime?
+  renderedBody  String?
+  errorMessage  String?
+  attemptCount  Int             @default(0)
+  sentMessageId String?         @unique
+
+  enrollment  SequenceEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  step        SequenceStep       @relation(fields: [stepId], references: [id])
+  sentMessage SentMessage?       @relation(fields: [sentMessageId], references: [id])
+
+  @@unique([enrollmentId, stepId])
+  @@index([status, scheduledAt])
 }
