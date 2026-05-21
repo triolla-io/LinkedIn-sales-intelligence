@@ -228,6 +228,7 @@ export type UserWhereInput = {
   imports?: Prisma.ImportListRelationFilter
   contactLists?: Prisma.ContactListListRelationFilter
   linkedinSession?: Prisma.XOR<Prisma.LinkedinSessionNullableScalarRelationFilter, Prisma.LinkedinSessionWhereInput> | null
+  sequences?: Prisma.SequenceListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -254,6 +255,7 @@ export type UserOrderByWithRelationInput = {
   imports?: Prisma.ImportOrderByRelationAggregateInput
   contactLists?: Prisma.ContactListOrderByRelationAggregateInput
   linkedinSession?: Prisma.LinkedinSessionOrderByWithRelationInput
+  sequences?: Prisma.SequenceOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -283,6 +285,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   imports?: Prisma.ImportListRelationFilter
   contactLists?: Prisma.ContactListListRelationFilter
   linkedinSession?: Prisma.XOR<Prisma.LinkedinSessionNullableScalarRelationFilter, Prisma.LinkedinSessionWhereInput> | null
+  sequences?: Prisma.SequenceListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -338,6 +341,7 @@ export type UserCreateInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -363,6 +367,7 @@ export type UserUncheckedCreateInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUpdateInput = {
@@ -388,6 +393,7 @@ export type UserUpdateInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -413,6 +419,7 @@ export type UserUncheckedUpdateInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -740,6 +747,20 @@ export type UserUpdateOneRequiredWithoutContactListsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutContactListsInput, Prisma.UserUpdateWithoutContactListsInput>, Prisma.UserUncheckedUpdateWithoutContactListsInput>
 }
 
+export type UserCreateNestedOneWithoutSequencesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSequencesInput, Prisma.UserUncheckedCreateWithoutSequencesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSequencesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutSequencesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSequencesInput, Prisma.UserUncheckedCreateWithoutSequencesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSequencesInput
+  upsert?: Prisma.UserUpsertWithoutSequencesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSequencesInput, Prisma.UserUpdateWithoutSequencesInput>, Prisma.UserUncheckedUpdateWithoutSequencesInput>
+}
+
 export type UserCreateWithoutAccountsInput = {
   id?: string
   email: string
@@ -762,6 +783,7 @@ export type UserCreateWithoutAccountsInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -786,6 +808,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -826,6 +849,7 @@ export type UserUpdateWithoutAccountsInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -850,6 +874,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -874,6 +899,7 @@ export type UserCreateWithoutSessionsInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -898,6 +924,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -938,6 +965,7 @@ export type UserUpdateWithoutSessionsInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -962,6 +990,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutOrgInput = {
@@ -986,6 +1015,7 @@ export type UserCreateWithoutOrgInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutOrgInput = {
@@ -1010,6 +1040,7 @@ export type UserUncheckedCreateWithoutOrgInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutOrgInput = {
@@ -1075,6 +1106,7 @@ export type UserCreateWithoutContactsInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutContactsInput = {
@@ -1099,6 +1131,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutContactsInput = {
@@ -1139,6 +1172,7 @@ export type UserUpdateWithoutContactsInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactsInput = {
@@ -1163,6 +1197,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutTemplatesInput = {
@@ -1187,6 +1222,7 @@ export type UserCreateWithoutTemplatesInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutTemplatesInput = {
@@ -1211,6 +1247,7 @@ export type UserUncheckedCreateWithoutTemplatesInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutTemplatesInput = {
@@ -1251,6 +1288,7 @@ export type UserUpdateWithoutTemplatesInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTemplatesInput = {
@@ -1275,6 +1313,7 @@ export type UserUncheckedUpdateWithoutTemplatesInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSentMessagesInput = {
@@ -1299,6 +1338,7 @@ export type UserCreateWithoutSentMessagesInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSentMessagesInput = {
@@ -1323,6 +1363,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSentMessagesInput = {
@@ -1352,6 +1393,7 @@ export type UserCreateWithoutActedMessagesInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutActedMessagesInput = {
@@ -1376,6 +1418,7 @@ export type UserUncheckedCreateWithoutActedMessagesInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutActedMessagesInput = {
@@ -1416,6 +1459,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentMessagesInput = {
@@ -1440,6 +1484,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutActedMessagesInput = {
@@ -1475,6 +1520,7 @@ export type UserUpdateWithoutActedMessagesInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActedMessagesInput = {
@@ -1499,6 +1545,7 @@ export type UserUncheckedUpdateWithoutActedMessagesInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSavedViewsInput = {
@@ -1523,6 +1570,7 @@ export type UserCreateWithoutSavedViewsInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSavedViewsInput = {
@@ -1547,6 +1595,7 @@ export type UserUncheckedCreateWithoutSavedViewsInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSavedViewsInput = {
@@ -1587,6 +1636,7 @@ export type UserUpdateWithoutSavedViewsInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSavedViewsInput = {
@@ -1611,6 +1661,7 @@ export type UserUncheckedUpdateWithoutSavedViewsInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutAuditActedInput = {
@@ -1635,6 +1686,7 @@ export type UserCreateWithoutAuditActedInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAuditActedInput = {
@@ -1659,6 +1711,7 @@ export type UserUncheckedCreateWithoutAuditActedInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAuditActedInput = {
@@ -1688,6 +1741,7 @@ export type UserCreateWithoutAuditTargetedInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAuditTargetedInput = {
@@ -1712,6 +1766,7 @@ export type UserUncheckedCreateWithoutAuditTargetedInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAuditTargetedInput = {
@@ -1752,6 +1807,7 @@ export type UserUpdateWithoutAuditActedInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditActedInput = {
@@ -1776,6 +1832,7 @@ export type UserUncheckedUpdateWithoutAuditActedInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutAuditTargetedInput = {
@@ -1811,6 +1868,7 @@ export type UserUpdateWithoutAuditTargetedInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditTargetedInput = {
@@ -1835,6 +1893,7 @@ export type UserUncheckedUpdateWithoutAuditTargetedInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutLinkedinSessionInput = {
@@ -1859,6 +1918,7 @@ export type UserCreateWithoutLinkedinSessionInput = {
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutLinkedinSessionInput = {
@@ -1883,6 +1943,7 @@ export type UserUncheckedCreateWithoutLinkedinSessionInput = {
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutLinkedinSessionInput = {
@@ -1923,6 +1984,7 @@ export type UserUpdateWithoutLinkedinSessionInput = {
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
@@ -1947,6 +2009,7 @@ export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutCampaignsInput = {
@@ -1971,6 +2034,7 @@ export type UserCreateWithoutCampaignsInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutCampaignsInput = {
@@ -1995,6 +2059,7 @@ export type UserUncheckedCreateWithoutCampaignsInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutCampaignsInput = {
@@ -2035,6 +2100,7 @@ export type UserUpdateWithoutCampaignsInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCampaignsInput = {
@@ -2059,6 +2125,7 @@ export type UserUncheckedUpdateWithoutCampaignsInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutImportsInput = {
@@ -2083,6 +2150,7 @@ export type UserCreateWithoutImportsInput = {
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutImportsInput = {
@@ -2107,6 +2175,7 @@ export type UserUncheckedCreateWithoutImportsInput = {
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutImportsInput = {
@@ -2147,6 +2216,7 @@ export type UserUpdateWithoutImportsInput = {
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutImportsInput = {
@@ -2171,6 +2241,7 @@ export type UserUncheckedUpdateWithoutImportsInput = {
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutContactListsInput = {
@@ -2195,6 +2266,7 @@ export type UserCreateWithoutContactListsInput = {
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutContactListsInput = {
@@ -2219,6 +2291,7 @@ export type UserUncheckedCreateWithoutContactListsInput = {
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutContactListsInput = {
@@ -2259,6 +2332,7 @@ export type UserUpdateWithoutContactListsInput = {
   campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactListsInput = {
@@ -2282,6 +2356,123 @@ export type UserUncheckedUpdateWithoutContactListsInput = {
   auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserCreateWithoutSequencesInput = {
+  id?: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  createdAt?: Date | string
+  org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutSequencesInput = {
+  id?: string
+  orgId: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  createdAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewUncheckedCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutSequencesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSequencesInput, Prisma.UserUncheckedCreateWithoutSequencesInput>
+}
+
+export type UserUpsertWithoutSequencesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSequencesInput, Prisma.UserUncheckedUpdateWithoutSequencesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSequencesInput, Prisma.UserUncheckedCreateWithoutSequencesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSequencesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSequencesInput, Prisma.UserUncheckedUpdateWithoutSequencesInput>
+}
+
+export type UserUpdateWithoutSequencesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSequencesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUncheckedUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
 }
 
@@ -2318,6 +2509,7 @@ export type UserUpdateWithoutOrgInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrgInput = {
@@ -2342,6 +2534,7 @@ export type UserUncheckedUpdateWithoutOrgInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutOrgInput = {
@@ -2373,6 +2566,7 @@ export type UserCountOutputType = {
   campaigns: number
   imports: number
   contactLists: number
+  sequences: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2388,6 +2582,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   campaigns?: boolean | UserCountOutputTypeCountCampaignsArgs
   imports?: boolean | UserCountOutputTypeCountImportsArgs
   contactLists?: boolean | UserCountOutputTypeCountContactListsArgs
+  sequences?: boolean | UserCountOutputTypeCountSequencesArgs
 }
 
 /**
@@ -2484,6 +2679,13 @@ export type UserCountOutputTypeCountContactListsArgs<ExtArgs extends runtime.Typ
   where?: Prisma.ContactListWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSequencesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SequenceWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2509,6 +2711,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   imports?: boolean | Prisma.User$importsArgs<ExtArgs>
   contactLists?: boolean | Prisma.User$contactListsArgs<ExtArgs>
   linkedinSession?: boolean | Prisma.User$linkedinSessionArgs<ExtArgs>
+  sequences?: boolean | Prisma.User$sequencesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2566,6 +2769,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   imports?: boolean | Prisma.User$importsArgs<ExtArgs>
   contactLists?: boolean | Prisma.User$contactListsArgs<ExtArgs>
   linkedinSession?: boolean | Prisma.User$linkedinSessionArgs<ExtArgs>
+  sequences?: boolean | Prisma.User$sequencesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2592,6 +2796,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     imports: Prisma.$ImportPayload<ExtArgs>[]
     contactLists: Prisma.$ContactListPayload<ExtArgs>[]
     linkedinSession: Prisma.$LinkedinSessionPayload<ExtArgs> | null
+    sequences: Prisma.$SequencePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3011,6 +3216,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   imports<T extends Prisma.User$importsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$importsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ImportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   contactLists<T extends Prisma.User$contactListsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$contactListsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContactListPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   linkedinSession<T extends Prisma.User$linkedinSessionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$linkedinSessionArgs<ExtArgs>>): Prisma.Prisma__LinkedinSessionClient<runtime.Types.Result.GetResult<Prisma.$LinkedinSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  sequences<T extends Prisma.User$sequencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sequencesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SequencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3754,6 +3960,30 @@ export type User$linkedinSessionArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   include?: Prisma.LinkedinSessionInclude<ExtArgs> | null
   where?: Prisma.LinkedinSessionWhereInput
+}
+
+/**
+ * User.sequences
+ */
+export type User$sequencesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Sequence
+   */
+  select?: Prisma.SequenceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Sequence
+   */
+  omit?: Prisma.SequenceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SequenceInclude<ExtArgs> | null
+  where?: Prisma.SequenceWhereInput
+  orderBy?: Prisma.SequenceOrderByWithRelationInput | Prisma.SequenceOrderByWithRelationInput[]
+  cursor?: Prisma.SequenceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SequenceScalarFieldEnum | Prisma.SequenceScalarFieldEnum[]
 }
 
 /**

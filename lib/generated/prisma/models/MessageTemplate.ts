@@ -201,6 +201,7 @@ export type MessageTemplateWhereInput = {
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   messages?: Prisma.SentMessageListRelationFilter
   campaigns?: Prisma.CampaignListRelationFilter
+  sequenceSteps?: Prisma.SequenceStepListRelationFilter
 }
 
 export type MessageTemplateOrderByWithRelationInput = {
@@ -214,6 +215,7 @@ export type MessageTemplateOrderByWithRelationInput = {
   owner?: Prisma.UserOrderByWithRelationInput
   messages?: Prisma.SentMessageOrderByRelationAggregateInput
   campaigns?: Prisma.CampaignOrderByRelationAggregateInput
+  sequenceSteps?: Prisma.SequenceStepOrderByRelationAggregateInput
 }
 
 export type MessageTemplateWhereUniqueInput = Prisma.AtLeast<{
@@ -230,6 +232,7 @@ export type MessageTemplateWhereUniqueInput = Prisma.AtLeast<{
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   messages?: Prisma.SentMessageListRelationFilter
   campaigns?: Prisma.CampaignListRelationFilter
+  sequenceSteps?: Prisma.SequenceStepListRelationFilter
 }, "id">
 
 export type MessageTemplateOrderByWithAggregationInput = {
@@ -268,6 +271,7 @@ export type MessageTemplateCreateInput = {
   owner: Prisma.UserCreateNestedOneWithoutTemplatesInput
   messages?: Prisma.SentMessageCreateNestedManyWithoutTemplateInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutTemplateInput
+  sequenceSteps?: Prisma.SequenceStepCreateNestedManyWithoutTemplateInput
 }
 
 export type MessageTemplateUncheckedCreateInput = {
@@ -280,6 +284,7 @@ export type MessageTemplateUncheckedCreateInput = {
   updatedAt?: Date | string
   messages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutTemplateInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutTemplateInput
+  sequenceSteps?: Prisma.SequenceStepUncheckedCreateNestedManyWithoutTemplateInput
 }
 
 export type MessageTemplateUpdateInput = {
@@ -292,6 +297,7 @@ export type MessageTemplateUpdateInput = {
   owner?: Prisma.UserUpdateOneRequiredWithoutTemplatesNestedInput
   messages?: Prisma.SentMessageUpdateManyWithoutTemplateNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutTemplateNestedInput
+  sequenceSteps?: Prisma.SequenceStepUpdateManyWithoutTemplateNestedInput
 }
 
 export type MessageTemplateUncheckedUpdateInput = {
@@ -304,6 +310,7 @@ export type MessageTemplateUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messages?: Prisma.SentMessageUncheckedUpdateManyWithoutTemplateNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutTemplateNestedInput
+  sequenceSteps?: Prisma.SequenceStepUncheckedUpdateManyWithoutTemplateNestedInput
 }
 
 export type MessageTemplateCreateManyInput = {
@@ -457,6 +464,20 @@ export type MessageTemplateUpdateOneRequiredWithoutCampaignsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.MessageTemplateUpdateToOneWithWhereWithoutCampaignsInput, Prisma.MessageTemplateUpdateWithoutCampaignsInput>, Prisma.MessageTemplateUncheckedUpdateWithoutCampaignsInput>
 }
 
+export type MessageTemplateCreateNestedOneWithoutSequenceStepsInput = {
+  create?: Prisma.XOR<Prisma.MessageTemplateCreateWithoutSequenceStepsInput, Prisma.MessageTemplateUncheckedCreateWithoutSequenceStepsInput>
+  connectOrCreate?: Prisma.MessageTemplateCreateOrConnectWithoutSequenceStepsInput
+  connect?: Prisma.MessageTemplateWhereUniqueInput
+}
+
+export type MessageTemplateUpdateOneRequiredWithoutSequenceStepsNestedInput = {
+  create?: Prisma.XOR<Prisma.MessageTemplateCreateWithoutSequenceStepsInput, Prisma.MessageTemplateUncheckedCreateWithoutSequenceStepsInput>
+  connectOrCreate?: Prisma.MessageTemplateCreateOrConnectWithoutSequenceStepsInput
+  upsert?: Prisma.MessageTemplateUpsertWithoutSequenceStepsInput
+  connect?: Prisma.MessageTemplateWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MessageTemplateUpdateToOneWithWhereWithoutSequenceStepsInput, Prisma.MessageTemplateUpdateWithoutSequenceStepsInput>, Prisma.MessageTemplateUncheckedUpdateWithoutSequenceStepsInput>
+}
+
 export type MessageTemplateCreateWithoutOwnerInput = {
   id?: string
   orgId?: string | null
@@ -466,6 +487,7 @@ export type MessageTemplateCreateWithoutOwnerInput = {
   updatedAt?: Date | string
   messages?: Prisma.SentMessageCreateNestedManyWithoutTemplateInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutTemplateInput
+  sequenceSteps?: Prisma.SequenceStepCreateNestedManyWithoutTemplateInput
 }
 
 export type MessageTemplateUncheckedCreateWithoutOwnerInput = {
@@ -477,6 +499,7 @@ export type MessageTemplateUncheckedCreateWithoutOwnerInput = {
   updatedAt?: Date | string
   messages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutTemplateInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutTemplateInput
+  sequenceSteps?: Prisma.SequenceStepUncheckedCreateNestedManyWithoutTemplateInput
 }
 
 export type MessageTemplateCreateOrConnectWithoutOwnerInput = {
@@ -527,6 +550,7 @@ export type MessageTemplateCreateWithoutMessagesInput = {
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutTemplatesInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutTemplateInput
+  sequenceSteps?: Prisma.SequenceStepCreateNestedManyWithoutTemplateInput
 }
 
 export type MessageTemplateUncheckedCreateWithoutMessagesInput = {
@@ -538,6 +562,7 @@ export type MessageTemplateUncheckedCreateWithoutMessagesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutTemplateInput
+  sequenceSteps?: Prisma.SequenceStepUncheckedCreateNestedManyWithoutTemplateInput
 }
 
 export type MessageTemplateCreateOrConnectWithoutMessagesInput = {
@@ -565,6 +590,7 @@ export type MessageTemplateUpdateWithoutMessagesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutTemplatesNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutTemplateNestedInput
+  sequenceSteps?: Prisma.SequenceStepUpdateManyWithoutTemplateNestedInput
 }
 
 export type MessageTemplateUncheckedUpdateWithoutMessagesInput = {
@@ -576,6 +602,7 @@ export type MessageTemplateUncheckedUpdateWithoutMessagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutTemplateNestedInput
+  sequenceSteps?: Prisma.SequenceStepUncheckedUpdateManyWithoutTemplateNestedInput
 }
 
 export type MessageTemplateCreateWithoutCampaignsInput = {
@@ -587,6 +614,7 @@ export type MessageTemplateCreateWithoutCampaignsInput = {
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutTemplatesInput
   messages?: Prisma.SentMessageCreateNestedManyWithoutTemplateInput
+  sequenceSteps?: Prisma.SequenceStepCreateNestedManyWithoutTemplateInput
 }
 
 export type MessageTemplateUncheckedCreateWithoutCampaignsInput = {
@@ -598,6 +626,7 @@ export type MessageTemplateUncheckedCreateWithoutCampaignsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   messages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutTemplateInput
+  sequenceSteps?: Prisma.SequenceStepUncheckedCreateNestedManyWithoutTemplateInput
 }
 
 export type MessageTemplateCreateOrConnectWithoutCampaignsInput = {
@@ -625,6 +654,7 @@ export type MessageTemplateUpdateWithoutCampaignsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutTemplatesNestedInput
   messages?: Prisma.SentMessageUpdateManyWithoutTemplateNestedInput
+  sequenceSteps?: Prisma.SequenceStepUpdateManyWithoutTemplateNestedInput
 }
 
 export type MessageTemplateUncheckedUpdateWithoutCampaignsInput = {
@@ -636,6 +666,71 @@ export type MessageTemplateUncheckedUpdateWithoutCampaignsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messages?: Prisma.SentMessageUncheckedUpdateManyWithoutTemplateNestedInput
+  sequenceSteps?: Prisma.SequenceStepUncheckedUpdateManyWithoutTemplateNestedInput
+}
+
+export type MessageTemplateCreateWithoutSequenceStepsInput = {
+  id?: string
+  orgId?: string | null
+  name: string
+  body: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  owner: Prisma.UserCreateNestedOneWithoutTemplatesInput
+  messages?: Prisma.SentMessageCreateNestedManyWithoutTemplateInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutTemplateInput
+}
+
+export type MessageTemplateUncheckedCreateWithoutSequenceStepsInput = {
+  id?: string
+  ownerId: string
+  orgId?: string | null
+  name: string
+  body: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  messages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutTemplateInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutTemplateInput
+}
+
+export type MessageTemplateCreateOrConnectWithoutSequenceStepsInput = {
+  where: Prisma.MessageTemplateWhereUniqueInput
+  create: Prisma.XOR<Prisma.MessageTemplateCreateWithoutSequenceStepsInput, Prisma.MessageTemplateUncheckedCreateWithoutSequenceStepsInput>
+}
+
+export type MessageTemplateUpsertWithoutSequenceStepsInput = {
+  update: Prisma.XOR<Prisma.MessageTemplateUpdateWithoutSequenceStepsInput, Prisma.MessageTemplateUncheckedUpdateWithoutSequenceStepsInput>
+  create: Prisma.XOR<Prisma.MessageTemplateCreateWithoutSequenceStepsInput, Prisma.MessageTemplateUncheckedCreateWithoutSequenceStepsInput>
+  where?: Prisma.MessageTemplateWhereInput
+}
+
+export type MessageTemplateUpdateToOneWithWhereWithoutSequenceStepsInput = {
+  where?: Prisma.MessageTemplateWhereInput
+  data: Prisma.XOR<Prisma.MessageTemplateUpdateWithoutSequenceStepsInput, Prisma.MessageTemplateUncheckedUpdateWithoutSequenceStepsInput>
+}
+
+export type MessageTemplateUpdateWithoutSequenceStepsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.UserUpdateOneRequiredWithoutTemplatesNestedInput
+  messages?: Prisma.SentMessageUpdateManyWithoutTemplateNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutTemplateNestedInput
+}
+
+export type MessageTemplateUncheckedUpdateWithoutSequenceStepsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  messages?: Prisma.SentMessageUncheckedUpdateManyWithoutTemplateNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutTemplateNestedInput
 }
 
 export type MessageTemplateCreateManyOwnerInput = {
@@ -656,6 +751,7 @@ export type MessageTemplateUpdateWithoutOwnerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messages?: Prisma.SentMessageUpdateManyWithoutTemplateNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutTemplateNestedInput
+  sequenceSteps?: Prisma.SequenceStepUpdateManyWithoutTemplateNestedInput
 }
 
 export type MessageTemplateUncheckedUpdateWithoutOwnerInput = {
@@ -667,6 +763,7 @@ export type MessageTemplateUncheckedUpdateWithoutOwnerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messages?: Prisma.SentMessageUncheckedUpdateManyWithoutTemplateNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutTemplateNestedInput
+  sequenceSteps?: Prisma.SequenceStepUncheckedUpdateManyWithoutTemplateNestedInput
 }
 
 export type MessageTemplateUncheckedUpdateManyWithoutOwnerInput = {
@@ -686,11 +783,13 @@ export type MessageTemplateUncheckedUpdateManyWithoutOwnerInput = {
 export type MessageTemplateCountOutputType = {
   messages: number
   campaigns: number
+  sequenceSteps: number
 }
 
 export type MessageTemplateCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   messages?: boolean | MessageTemplateCountOutputTypeCountMessagesArgs
   campaigns?: boolean | MessageTemplateCountOutputTypeCountCampaignsArgs
+  sequenceSteps?: boolean | MessageTemplateCountOutputTypeCountSequenceStepsArgs
 }
 
 /**
@@ -717,6 +816,13 @@ export type MessageTemplateCountOutputTypeCountCampaignsArgs<ExtArgs extends run
   where?: Prisma.CampaignWhereInput
 }
 
+/**
+ * MessageTemplateCountOutputType without action
+ */
+export type MessageTemplateCountOutputTypeCountSequenceStepsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SequenceStepWhereInput
+}
+
 
 export type MessageTemplateSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -729,6 +835,7 @@ export type MessageTemplateSelect<ExtArgs extends runtime.Types.Extensions.Inter
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   messages?: boolean | Prisma.MessageTemplate$messagesArgs<ExtArgs>
   campaigns?: boolean | Prisma.MessageTemplate$campaignsArgs<ExtArgs>
+  sequenceSteps?: boolean | Prisma.MessageTemplate$sequenceStepsArgs<ExtArgs>
   _count?: boolean | Prisma.MessageTemplateCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["messageTemplate"]>
 
@@ -769,6 +876,7 @@ export type MessageTemplateInclude<ExtArgs extends runtime.Types.Extensions.Inte
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   messages?: boolean | Prisma.MessageTemplate$messagesArgs<ExtArgs>
   campaigns?: boolean | Prisma.MessageTemplate$campaignsArgs<ExtArgs>
+  sequenceSteps?: boolean | Prisma.MessageTemplate$sequenceStepsArgs<ExtArgs>
   _count?: boolean | Prisma.MessageTemplateCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MessageTemplateIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -784,6 +892,7 @@ export type $MessageTemplatePayload<ExtArgs extends runtime.Types.Extensions.Int
     owner: Prisma.$UserPayload<ExtArgs>
     messages: Prisma.$SentMessagePayload<ExtArgs>[]
     campaigns: Prisma.$CampaignPayload<ExtArgs>[]
+    sequenceSteps: Prisma.$SequenceStepPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1190,6 +1299,7 @@ export interface Prisma__MessageTemplateClient<T, Null = never, ExtArgs extends 
   owner<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   messages<T extends Prisma.MessageTemplate$messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MessageTemplate$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SentMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   campaigns<T extends Prisma.MessageTemplate$campaignsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MessageTemplate$campaignsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sequenceSteps<T extends Prisma.MessageTemplate$sequenceStepsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MessageTemplate$sequenceStepsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SequenceStepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1672,6 +1782,30 @@ export type MessageTemplate$campaignsArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.CampaignScalarFieldEnum | Prisma.CampaignScalarFieldEnum[]
+}
+
+/**
+ * MessageTemplate.sequenceSteps
+ */
+export type MessageTemplate$sequenceStepsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SequenceStep
+   */
+  select?: Prisma.SequenceStepSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SequenceStep
+   */
+  omit?: Prisma.SequenceStepOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SequenceStepInclude<ExtArgs> | null
+  where?: Prisma.SequenceStepWhereInput
+  orderBy?: Prisma.SequenceStepOrderByWithRelationInput | Prisma.SequenceStepOrderByWithRelationInput[]
+  cursor?: Prisma.SequenceStepWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SequenceStepScalarFieldEnum | Prisma.SequenceStepScalarFieldEnum[]
 }
 
 /**

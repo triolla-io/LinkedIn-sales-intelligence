@@ -69,7 +69,11 @@ export const ModelName = {
   Invite: 'Invite',
   Import: 'Import',
   ContactList: 'ContactList',
-  ContactListMember: 'ContactListMember'
+  ContactListMember: 'ContactListMember',
+  Sequence: 'Sequence',
+  SequenceStep: 'SequenceStep',
+  SequenceEnrollment: 'SequenceEnrollment',
+  SequenceStepExecution: 'SequenceStepExecution'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -173,6 +177,7 @@ export const ContactScalarFieldEnum = {
   phone: 'phone',
   enrichedAt: 'enrichedAt',
   enrichmentSource: 'enrichmentSource',
+  manualFields: 'manualFields',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   companyId: 'companyId'
@@ -283,6 +288,7 @@ export const CampaignScalarFieldEnum = {
   status: 'status',
   filterJson: 'filterJson',
   dailyLimit: 'dailyLimit',
+  subject: 'subject',
   startedAt: 'startedAt',
   completedAt: 'completedAt',
   createdAt: 'createdAt',
@@ -356,6 +362,64 @@ export const ContactListMemberScalarFieldEnum = {
 } as const
 
 export type ContactListMemberScalarFieldEnum = (typeof ContactListMemberScalarFieldEnum)[keyof typeof ContactListMemberScalarFieldEnum]
+
+
+export const SequenceScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  orgId: 'orgId',
+  name: 'name',
+  contactListId: 'contactListId',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SequenceScalarFieldEnum = (typeof SequenceScalarFieldEnum)[keyof typeof SequenceScalarFieldEnum]
+
+
+export const SequenceStepScalarFieldEnum = {
+  id: 'id',
+  sequenceId: 'sequenceId',
+  stepNumber: 'stepNumber',
+  dayOffset: 'dayOffset',
+  channel: 'channel',
+  templateId: 'templateId',
+  subject: 'subject',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SequenceStepScalarFieldEnum = (typeof SequenceStepScalarFieldEnum)[keyof typeof SequenceStepScalarFieldEnum]
+
+
+export const SequenceEnrollmentScalarFieldEnum = {
+  id: 'id',
+  sequenceId: 'sequenceId',
+  contactId: 'contactId',
+  status: 'status',
+  enrolledAt: 'enrolledAt'
+} as const
+
+export type SequenceEnrollmentScalarFieldEnum = (typeof SequenceEnrollmentScalarFieldEnum)[keyof typeof SequenceEnrollmentScalarFieldEnum]
+
+
+export const SequenceStepExecutionScalarFieldEnum = {
+  id: 'id',
+  enrollmentId: 'enrollmentId',
+  stepId: 'stepId',
+  status: 'status',
+  scheduledAt: 'scheduledAt',
+  sentAt: 'sentAt',
+  renderedBody: 'renderedBody',
+  errorMessage: 'errorMessage',
+  attemptCount: 'attemptCount',
+  sentMessageId: 'sentMessageId'
+} as const
+
+export type SequenceStepExecutionScalarFieldEnum = (typeof SequenceStepExecutionScalarFieldEnum)[keyof typeof SequenceStepExecutionScalarFieldEnum]
 
 
 export const SortOrder = {

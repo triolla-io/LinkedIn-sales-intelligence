@@ -402,7 +402,11 @@ export const ModelName = {
   Invite: 'Invite',
   Import: 'Import',
   ContactList: 'ContactList',
-  ContactListMember: 'ContactListMember'
+  ContactListMember: 'ContactListMember',
+  Sequence: 'Sequence',
+  SequenceStep: 'SequenceStep',
+  SequenceEnrollment: 'SequenceEnrollment',
+  SequenceStepExecution: 'SequenceStepExecution'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -418,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1828,6 +1832,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Sequence: {
+      payload: Prisma.$SequencePayload<ExtArgs>
+      fields: Prisma.SequenceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SequenceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequencePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SequenceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequencePayload>
+        }
+        findFirst: {
+          args: Prisma.SequenceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequencePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SequenceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequencePayload>
+        }
+        findMany: {
+          args: Prisma.SequenceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequencePayload>[]
+        }
+        create: {
+          args: Prisma.SequenceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequencePayload>
+        }
+        createMany: {
+          args: Prisma.SequenceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SequenceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequencePayload>[]
+        }
+        delete: {
+          args: Prisma.SequenceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequencePayload>
+        }
+        update: {
+          args: Prisma.SequenceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequencePayload>
+        }
+        deleteMany: {
+          args: Prisma.SequenceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SequenceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SequenceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequencePayload>[]
+        }
+        upsert: {
+          args: Prisma.SequenceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequencePayload>
+        }
+        aggregate: {
+          args: Prisma.SequenceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSequence>
+        }
+        groupBy: {
+          args: Prisma.SequenceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SequenceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SequenceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SequenceCountAggregateOutputType> | number
+        }
+      }
+    }
+    SequenceStep: {
+      payload: Prisma.$SequenceStepPayload<ExtArgs>
+      fields: Prisma.SequenceStepFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SequenceStepFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SequenceStepFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepPayload>
+        }
+        findFirst: {
+          args: Prisma.SequenceStepFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SequenceStepFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepPayload>
+        }
+        findMany: {
+          args: Prisma.SequenceStepFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepPayload>[]
+        }
+        create: {
+          args: Prisma.SequenceStepCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepPayload>
+        }
+        createMany: {
+          args: Prisma.SequenceStepCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SequenceStepCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepPayload>[]
+        }
+        delete: {
+          args: Prisma.SequenceStepDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepPayload>
+        }
+        update: {
+          args: Prisma.SequenceStepUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepPayload>
+        }
+        deleteMany: {
+          args: Prisma.SequenceStepDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SequenceStepUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SequenceStepUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepPayload>[]
+        }
+        upsert: {
+          args: Prisma.SequenceStepUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepPayload>
+        }
+        aggregate: {
+          args: Prisma.SequenceStepAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSequenceStep>
+        }
+        groupBy: {
+          args: Prisma.SequenceStepGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SequenceStepGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SequenceStepCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SequenceStepCountAggregateOutputType> | number
+        }
+      }
+    }
+    SequenceEnrollment: {
+      payload: Prisma.$SequenceEnrollmentPayload<ExtArgs>
+      fields: Prisma.SequenceEnrollmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SequenceEnrollmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceEnrollmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SequenceEnrollmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceEnrollmentPayload>
+        }
+        findFirst: {
+          args: Prisma.SequenceEnrollmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceEnrollmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SequenceEnrollmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceEnrollmentPayload>
+        }
+        findMany: {
+          args: Prisma.SequenceEnrollmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceEnrollmentPayload>[]
+        }
+        create: {
+          args: Prisma.SequenceEnrollmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceEnrollmentPayload>
+        }
+        createMany: {
+          args: Prisma.SequenceEnrollmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SequenceEnrollmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceEnrollmentPayload>[]
+        }
+        delete: {
+          args: Prisma.SequenceEnrollmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceEnrollmentPayload>
+        }
+        update: {
+          args: Prisma.SequenceEnrollmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceEnrollmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.SequenceEnrollmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SequenceEnrollmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SequenceEnrollmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceEnrollmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.SequenceEnrollmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceEnrollmentPayload>
+        }
+        aggregate: {
+          args: Prisma.SequenceEnrollmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSequenceEnrollment>
+        }
+        groupBy: {
+          args: Prisma.SequenceEnrollmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SequenceEnrollmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SequenceEnrollmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SequenceEnrollmentCountAggregateOutputType> | number
+        }
+      }
+    }
+    SequenceStepExecution: {
+      payload: Prisma.$SequenceStepExecutionPayload<ExtArgs>
+      fields: Prisma.SequenceStepExecutionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SequenceStepExecutionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepExecutionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SequenceStepExecutionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepExecutionPayload>
+        }
+        findFirst: {
+          args: Prisma.SequenceStepExecutionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepExecutionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SequenceStepExecutionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepExecutionPayload>
+        }
+        findMany: {
+          args: Prisma.SequenceStepExecutionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepExecutionPayload>[]
+        }
+        create: {
+          args: Prisma.SequenceStepExecutionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepExecutionPayload>
+        }
+        createMany: {
+          args: Prisma.SequenceStepExecutionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SequenceStepExecutionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepExecutionPayload>[]
+        }
+        delete: {
+          args: Prisma.SequenceStepExecutionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepExecutionPayload>
+        }
+        update: {
+          args: Prisma.SequenceStepExecutionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepExecutionPayload>
+        }
+        deleteMany: {
+          args: Prisma.SequenceStepExecutionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SequenceStepExecutionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SequenceStepExecutionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepExecutionPayload>[]
+        }
+        upsert: {
+          args: Prisma.SequenceStepExecutionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SequenceStepExecutionPayload>
+        }
+        aggregate: {
+          args: Prisma.SequenceStepExecutionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSequenceStepExecution>
+        }
+        groupBy: {
+          args: Prisma.SequenceStepExecutionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SequenceStepExecutionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SequenceStepExecutionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SequenceStepExecutionCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1952,6 +2252,7 @@ export const ContactScalarFieldEnum = {
   phone: 'phone',
   enrichedAt: 'enrichedAt',
   enrichmentSource: 'enrichmentSource',
+  manualFields: 'manualFields',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   companyId: 'companyId'
@@ -2062,6 +2363,7 @@ export const CampaignScalarFieldEnum = {
   status: 'status',
   filterJson: 'filterJson',
   dailyLimit: 'dailyLimit',
+  subject: 'subject',
   startedAt: 'startedAt',
   completedAt: 'completedAt',
   createdAt: 'createdAt',
@@ -2135,6 +2437,64 @@ export const ContactListMemberScalarFieldEnum = {
 } as const
 
 export type ContactListMemberScalarFieldEnum = (typeof ContactListMemberScalarFieldEnum)[keyof typeof ContactListMemberScalarFieldEnum]
+
+
+export const SequenceScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  orgId: 'orgId',
+  name: 'name',
+  contactListId: 'contactListId',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SequenceScalarFieldEnum = (typeof SequenceScalarFieldEnum)[keyof typeof SequenceScalarFieldEnum]
+
+
+export const SequenceStepScalarFieldEnum = {
+  id: 'id',
+  sequenceId: 'sequenceId',
+  stepNumber: 'stepNumber',
+  dayOffset: 'dayOffset',
+  channel: 'channel',
+  templateId: 'templateId',
+  subject: 'subject',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SequenceStepScalarFieldEnum = (typeof SequenceStepScalarFieldEnum)[keyof typeof SequenceStepScalarFieldEnum]
+
+
+export const SequenceEnrollmentScalarFieldEnum = {
+  id: 'id',
+  sequenceId: 'sequenceId',
+  contactId: 'contactId',
+  status: 'status',
+  enrolledAt: 'enrolledAt'
+} as const
+
+export type SequenceEnrollmentScalarFieldEnum = (typeof SequenceEnrollmentScalarFieldEnum)[keyof typeof SequenceEnrollmentScalarFieldEnum]
+
+
+export const SequenceStepExecutionScalarFieldEnum = {
+  id: 'id',
+  enrollmentId: 'enrollmentId',
+  stepId: 'stepId',
+  status: 'status',
+  scheduledAt: 'scheduledAt',
+  sentAt: 'sentAt',
+  renderedBody: 'renderedBody',
+  errorMessage: 'errorMessage',
+  attemptCount: 'attemptCount',
+  sentMessageId: 'sentMessageId'
+} as const
+
+export type SequenceStepExecutionScalarFieldEnum = (typeof SequenceStepExecutionScalarFieldEnum)[keyof typeof SequenceStepExecutionScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2360,6 +2720,34 @@ export type ListEnumRecipientStatusFieldRefInput<$PrismaModel> = FieldRefInputTy
 
 
 /**
+ * Reference to a field of type 'SequenceStatus'
+ */
+export type EnumSequenceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SequenceStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'SequenceStatus[]'
+ */
+export type ListEnumSequenceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SequenceStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'EnrollmentStatus'
+ */
+export type EnumEnrollmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EnrollmentStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'EnrollmentStatus[]'
+ */
+export type ListEnumEnrollmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EnrollmentStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -2501,6 +2889,10 @@ export type GlobalOmitConfig = {
   import?: Prisma.ImportOmit
   contactList?: Prisma.ContactListOmit
   contactListMember?: Prisma.ContactListMemberOmit
+  sequence?: Prisma.SequenceOmit
+  sequenceStep?: Prisma.SequenceStepOmit
+  sequenceEnrollment?: Prisma.SequenceEnrollmentOmit
+  sequenceStepExecution?: Prisma.SequenceStepExecutionOmit
 }
 
 /* Types for Logging */

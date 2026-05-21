@@ -43,6 +43,7 @@ export type CampaignMinAggregateOutputType = {
   templateId: string | null
   status: $Enums.CampaignStatus | null
   dailyLimit: number | null
+  subject: string | null
   startedAt: Date | null
   completedAt: Date | null
   createdAt: Date | null
@@ -58,6 +59,7 @@ export type CampaignMaxAggregateOutputType = {
   templateId: string | null
   status: $Enums.CampaignStatus | null
   dailyLimit: number | null
+  subject: string | null
   startedAt: Date | null
   completedAt: Date | null
   createdAt: Date | null
@@ -74,6 +76,7 @@ export type CampaignCountAggregateOutputType = {
   status: number
   filterJson: number
   dailyLimit: number
+  subject: number
   startedAt: number
   completedAt: number
   createdAt: number
@@ -99,6 +102,7 @@ export type CampaignMinAggregateInputType = {
   templateId?: true
   status?: true
   dailyLimit?: true
+  subject?: true
   startedAt?: true
   completedAt?: true
   createdAt?: true
@@ -114,6 +118,7 @@ export type CampaignMaxAggregateInputType = {
   templateId?: true
   status?: true
   dailyLimit?: true
+  subject?: true
   startedAt?: true
   completedAt?: true
   createdAt?: true
@@ -130,6 +135,7 @@ export type CampaignCountAggregateInputType = {
   status?: true
   filterJson?: true
   dailyLimit?: true
+  subject?: true
   startedAt?: true
   completedAt?: true
   createdAt?: true
@@ -233,6 +239,7 @@ export type CampaignGroupByOutputType = {
   status: $Enums.CampaignStatus
   filterJson: runtime.JsonValue | null
   dailyLimit: number | null
+  subject: string | null
   startedAt: Date | null
   completedAt: Date | null
   createdAt: Date
@@ -272,6 +279,7 @@ export type CampaignWhereInput = {
   status?: Prisma.EnumCampaignStatusFilter<"Campaign"> | $Enums.CampaignStatus
   filterJson?: Prisma.JsonNullableFilter<"Campaign">
   dailyLimit?: Prisma.IntNullableFilter<"Campaign"> | number | null
+  subject?: Prisma.StringNullableFilter<"Campaign"> | string | null
   startedAt?: Prisma.DateTimeNullableFilter<"Campaign"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"Campaign"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Campaign"> | Date | string
@@ -291,6 +299,7 @@ export type CampaignOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   filterJson?: Prisma.SortOrderInput | Prisma.SortOrder
   dailyLimit?: Prisma.SortOrderInput | Prisma.SortOrder
+  subject?: Prisma.SortOrderInput | Prisma.SortOrder
   startedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -313,6 +322,7 @@ export type CampaignWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumCampaignStatusFilter<"Campaign"> | $Enums.CampaignStatus
   filterJson?: Prisma.JsonNullableFilter<"Campaign">
   dailyLimit?: Prisma.IntNullableFilter<"Campaign"> | number | null
+  subject?: Prisma.StringNullableFilter<"Campaign"> | string | null
   startedAt?: Prisma.DateTimeNullableFilter<"Campaign"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"Campaign"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Campaign"> | Date | string
@@ -332,6 +342,7 @@ export type CampaignOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   filterJson?: Prisma.SortOrderInput | Prisma.SortOrder
   dailyLimit?: Prisma.SortOrderInput | Prisma.SortOrder
+  subject?: Prisma.SortOrderInput | Prisma.SortOrder
   startedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -356,6 +367,7 @@ export type CampaignScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumCampaignStatusWithAggregatesFilter<"Campaign"> | $Enums.CampaignStatus
   filterJson?: Prisma.JsonNullableWithAggregatesFilter<"Campaign">
   dailyLimit?: Prisma.IntNullableWithAggregatesFilter<"Campaign"> | number | null
+  subject?: Prisma.StringNullableWithAggregatesFilter<"Campaign"> | string | null
   startedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Campaign"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Campaign"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Campaign"> | Date | string
@@ -370,6 +382,7 @@ export type CampaignCreateInput = {
   status?: $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: number | null
+  subject?: string | null
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
@@ -389,6 +402,7 @@ export type CampaignUncheckedCreateInput = {
   status?: $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: number | null
+  subject?: string | null
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
@@ -404,6 +418,7 @@ export type CampaignUpdateInput = {
   status?: Prisma.EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -423,6 +438,7 @@ export type CampaignUncheckedUpdateInput = {
   status?: Prisma.EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -440,6 +456,7 @@ export type CampaignCreateManyInput = {
   status?: $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: number | null
+  subject?: string | null
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
@@ -454,6 +471,7 @@ export type CampaignUpdateManyMutationInput = {
   status?: Prisma.EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -470,6 +488,7 @@ export type CampaignUncheckedUpdateManyInput = {
   status?: Prisma.EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -496,6 +515,7 @@ export type CampaignCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   filterJson?: Prisma.SortOrder
   dailyLimit?: Prisma.SortOrder
+  subject?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -515,6 +535,7 @@ export type CampaignMaxOrderByAggregateInput = {
   templateId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   dailyLimit?: Prisma.SortOrder
+  subject?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -530,6 +551,7 @@ export type CampaignMinOrderByAggregateInput = {
   templateId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   dailyLimit?: Prisma.SortOrder
+  subject?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -659,6 +681,7 @@ export type CampaignCreateWithoutOwnerInput = {
   status?: $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: number | null
+  subject?: string | null
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
@@ -676,6 +699,7 @@ export type CampaignUncheckedCreateWithoutOwnerInput = {
   status?: $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: number | null
+  subject?: string | null
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
@@ -722,6 +746,7 @@ export type CampaignScalarWhereInput = {
   status?: Prisma.EnumCampaignStatusFilter<"Campaign"> | $Enums.CampaignStatus
   filterJson?: Prisma.JsonNullableFilter<"Campaign">
   dailyLimit?: Prisma.IntNullableFilter<"Campaign"> | number | null
+  subject?: Prisma.StringNullableFilter<"Campaign"> | string | null
   startedAt?: Prisma.DateTimeNullableFilter<"Campaign"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"Campaign"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Campaign"> | Date | string
@@ -736,6 +761,7 @@ export type CampaignCreateWithoutTemplateInput = {
   status?: $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: number | null
+  subject?: string | null
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
@@ -753,6 +779,7 @@ export type CampaignUncheckedCreateWithoutTemplateInput = {
   status?: $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: number | null
+  subject?: string | null
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
@@ -794,6 +821,7 @@ export type CampaignCreateWithoutRecipientsInput = {
   status?: $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: number | null
+  subject?: string | null
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
@@ -812,6 +840,7 @@ export type CampaignUncheckedCreateWithoutRecipientsInput = {
   status?: $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: number | null
+  subject?: string | null
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
@@ -842,6 +871,7 @@ export type CampaignUpdateWithoutRecipientsInput = {
   status?: Prisma.EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -860,6 +890,7 @@ export type CampaignUncheckedUpdateWithoutRecipientsInput = {
   status?: Prisma.EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -875,6 +906,7 @@ export type CampaignCreateManyOwnerInput = {
   status?: $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: number | null
+  subject?: string | null
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
@@ -889,6 +921,7 @@ export type CampaignUpdateWithoutOwnerInput = {
   status?: Prisma.EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -906,6 +939,7 @@ export type CampaignUncheckedUpdateWithoutOwnerInput = {
   status?: Prisma.EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -922,6 +956,7 @@ export type CampaignUncheckedUpdateManyWithoutOwnerInput = {
   status?: Prisma.EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -937,6 +972,7 @@ export type CampaignCreateManyTemplateInput = {
   status?: $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: number | null
+  subject?: string | null
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
@@ -951,6 +987,7 @@ export type CampaignUpdateWithoutTemplateInput = {
   status?: Prisma.EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -968,6 +1005,7 @@ export type CampaignUncheckedUpdateWithoutTemplateInput = {
   status?: Prisma.EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -984,6 +1022,7 @@ export type CampaignUncheckedUpdateManyWithoutTemplateInput = {
   status?: Prisma.EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
   filterJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   dailyLimit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1031,6 +1070,7 @@ export type CampaignSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   status?: boolean
   filterJson?: boolean
   dailyLimit?: boolean
+  subject?: boolean
   startedAt?: boolean
   completedAt?: boolean
   createdAt?: boolean
@@ -1051,6 +1091,7 @@ export type CampaignSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   status?: boolean
   filterJson?: boolean
   dailyLimit?: boolean
+  subject?: boolean
   startedAt?: boolean
   completedAt?: boolean
   createdAt?: boolean
@@ -1069,6 +1110,7 @@ export type CampaignSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   status?: boolean
   filterJson?: boolean
   dailyLimit?: boolean
+  subject?: boolean
   startedAt?: boolean
   completedAt?: boolean
   createdAt?: boolean
@@ -1087,13 +1129,14 @@ export type CampaignSelectScalar = {
   status?: boolean
   filterJson?: boolean
   dailyLimit?: boolean
+  subject?: boolean
   startedAt?: boolean
   completedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CampaignOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "orgId" | "name" | "channel" | "templateId" | "status" | "filterJson" | "dailyLimit" | "startedAt" | "completedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["campaign"]>
+export type CampaignOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "orgId" | "name" | "channel" | "templateId" | "status" | "filterJson" | "dailyLimit" | "subject" | "startedAt" | "completedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["campaign"]>
 export type CampaignInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   template?: boolean | Prisma.MessageTemplateDefaultArgs<ExtArgs>
@@ -1126,6 +1169,7 @@ export type $CampaignPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     status: $Enums.CampaignStatus
     filterJson: runtime.JsonValue | null
     dailyLimit: number | null
+    subject: string | null
     startedAt: Date | null
     completedAt: Date | null
     createdAt: Date
@@ -1565,6 +1609,7 @@ export interface CampaignFieldRefs {
   readonly status: Prisma.FieldRef<"Campaign", 'CampaignStatus'>
   readonly filterJson: Prisma.FieldRef<"Campaign", 'Json'>
   readonly dailyLimit: Prisma.FieldRef<"Campaign", 'Int'>
+  readonly subject: Prisma.FieldRef<"Campaign", 'String'>
   readonly startedAt: Prisma.FieldRef<"Campaign", 'DateTime'>
   readonly completedAt: Prisma.FieldRef<"Campaign", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Campaign", 'DateTime'>

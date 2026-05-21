@@ -219,6 +219,7 @@ export type SentMessageWhereInput = {
   contact?: Prisma.XOR<Prisma.ContactScalarRelationFilter, Prisma.ContactWhereInput>
   template?: Prisma.XOR<Prisma.MessageTemplateNullableScalarRelationFilter, Prisma.MessageTemplateWhereInput> | null
   campaignRecipient?: Prisma.XOR<Prisma.CampaignRecipientNullableScalarRelationFilter, Prisma.CampaignRecipientWhereInput> | null
+  sequenceStepExecution?: Prisma.XOR<Prisma.SequenceStepExecutionNullableScalarRelationFilter, Prisma.SequenceStepExecutionWhereInput> | null
 }
 
 export type SentMessageOrderByWithRelationInput = {
@@ -236,6 +237,7 @@ export type SentMessageOrderByWithRelationInput = {
   contact?: Prisma.ContactOrderByWithRelationInput
   template?: Prisma.MessageTemplateOrderByWithRelationInput
   campaignRecipient?: Prisma.CampaignRecipientOrderByWithRelationInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionOrderByWithRelationInput
 }
 
 export type SentMessageWhereUniqueInput = Prisma.AtLeast<{
@@ -256,6 +258,7 @@ export type SentMessageWhereUniqueInput = Prisma.AtLeast<{
   contact?: Prisma.XOR<Prisma.ContactScalarRelationFilter, Prisma.ContactWhereInput>
   template?: Prisma.XOR<Prisma.MessageTemplateNullableScalarRelationFilter, Prisma.MessageTemplateWhereInput> | null
   campaignRecipient?: Prisma.XOR<Prisma.CampaignRecipientNullableScalarRelationFilter, Prisma.CampaignRecipientWhereInput> | null
+  sequenceStepExecution?: Prisma.XOR<Prisma.SequenceStepExecutionNullableScalarRelationFilter, Prisma.SequenceStepExecutionWhereInput> | null
 }, "id">
 
 export type SentMessageOrderByWithAggregationInput = {
@@ -299,6 +302,7 @@ export type SentMessageCreateInput = {
   contact: Prisma.ContactCreateNestedOneWithoutMessagesInput
   template?: Prisma.MessageTemplateCreateNestedOneWithoutMessagesInput
   campaignRecipient?: Prisma.CampaignRecipientCreateNestedOneWithoutSentMessageInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionCreateNestedOneWithoutSentMessageInput
 }
 
 export type SentMessageUncheckedCreateInput = {
@@ -312,6 +316,7 @@ export type SentMessageUncheckedCreateInput = {
   status?: $Enums.MessageStatus
   errorMessage?: string | null
   campaignRecipient?: Prisma.CampaignRecipientUncheckedCreateNestedOneWithoutSentMessageInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedCreateNestedOneWithoutSentMessageInput
 }
 
 export type SentMessageUpdateInput = {
@@ -325,6 +330,7 @@ export type SentMessageUpdateInput = {
   contact?: Prisma.ContactUpdateOneRequiredWithoutMessagesNestedInput
   template?: Prisma.MessageTemplateUpdateOneWithoutMessagesNestedInput
   campaignRecipient?: Prisma.CampaignRecipientUpdateOneWithoutSentMessageNestedInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUpdateOneWithoutSentMessageNestedInput
 }
 
 export type SentMessageUncheckedUpdateInput = {
@@ -338,6 +344,7 @@ export type SentMessageUncheckedUpdateInput = {
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   campaignRecipient?: Prisma.CampaignRecipientUncheckedUpdateOneWithoutSentMessageNestedInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedUpdateOneWithoutSentMessageNestedInput
 }
 
 export type SentMessageCreateManyInput = {
@@ -611,6 +618,22 @@ export type SentMessageUpdateOneWithoutCampaignRecipientNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SentMessageUpdateToOneWithWhereWithoutCampaignRecipientInput, Prisma.SentMessageUpdateWithoutCampaignRecipientInput>, Prisma.SentMessageUncheckedUpdateWithoutCampaignRecipientInput>
 }
 
+export type SentMessageCreateNestedOneWithoutSequenceStepExecutionInput = {
+  create?: Prisma.XOR<Prisma.SentMessageCreateWithoutSequenceStepExecutionInput, Prisma.SentMessageUncheckedCreateWithoutSequenceStepExecutionInput>
+  connectOrCreate?: Prisma.SentMessageCreateOrConnectWithoutSequenceStepExecutionInput
+  connect?: Prisma.SentMessageWhereUniqueInput
+}
+
+export type SentMessageUpdateOneWithoutSequenceStepExecutionNestedInput = {
+  create?: Prisma.XOR<Prisma.SentMessageCreateWithoutSequenceStepExecutionInput, Prisma.SentMessageUncheckedCreateWithoutSequenceStepExecutionInput>
+  connectOrCreate?: Prisma.SentMessageCreateOrConnectWithoutSequenceStepExecutionInput
+  upsert?: Prisma.SentMessageUpsertWithoutSequenceStepExecutionInput
+  disconnect?: Prisma.SentMessageWhereInput | boolean
+  delete?: Prisma.SentMessageWhereInput | boolean
+  connect?: Prisma.SentMessageWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SentMessageUpdateToOneWithWhereWithoutSequenceStepExecutionInput, Prisma.SentMessageUpdateWithoutSequenceStepExecutionInput>, Prisma.SentMessageUncheckedUpdateWithoutSequenceStepExecutionInput>
+}
+
 export type SentMessageCreateWithoutSenderInput = {
   id?: string
   body: string
@@ -621,6 +644,7 @@ export type SentMessageCreateWithoutSenderInput = {
   contact: Prisma.ContactCreateNestedOneWithoutMessagesInput
   template?: Prisma.MessageTemplateCreateNestedOneWithoutMessagesInput
   campaignRecipient?: Prisma.CampaignRecipientCreateNestedOneWithoutSentMessageInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionCreateNestedOneWithoutSentMessageInput
 }
 
 export type SentMessageUncheckedCreateWithoutSenderInput = {
@@ -633,6 +657,7 @@ export type SentMessageUncheckedCreateWithoutSenderInput = {
   status?: $Enums.MessageStatus
   errorMessage?: string | null
   campaignRecipient?: Prisma.CampaignRecipientUncheckedCreateNestedOneWithoutSentMessageInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedCreateNestedOneWithoutSentMessageInput
 }
 
 export type SentMessageCreateOrConnectWithoutSenderInput = {
@@ -655,6 +680,7 @@ export type SentMessageCreateWithoutActorInput = {
   contact: Prisma.ContactCreateNestedOneWithoutMessagesInput
   template?: Prisma.MessageTemplateCreateNestedOneWithoutMessagesInput
   campaignRecipient?: Prisma.CampaignRecipientCreateNestedOneWithoutSentMessageInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionCreateNestedOneWithoutSentMessageInput
 }
 
 export type SentMessageUncheckedCreateWithoutActorInput = {
@@ -667,6 +693,7 @@ export type SentMessageUncheckedCreateWithoutActorInput = {
   status?: $Enums.MessageStatus
   errorMessage?: string | null
   campaignRecipient?: Prisma.CampaignRecipientUncheckedCreateNestedOneWithoutSentMessageInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedCreateNestedOneWithoutSentMessageInput
 }
 
 export type SentMessageCreateOrConnectWithoutActorInput = {
@@ -736,6 +763,7 @@ export type SentMessageCreateWithoutContactInput = {
   actor: Prisma.UserCreateNestedOneWithoutActedMessagesInput
   template?: Prisma.MessageTemplateCreateNestedOneWithoutMessagesInput
   campaignRecipient?: Prisma.CampaignRecipientCreateNestedOneWithoutSentMessageInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionCreateNestedOneWithoutSentMessageInput
 }
 
 export type SentMessageUncheckedCreateWithoutContactInput = {
@@ -748,6 +776,7 @@ export type SentMessageUncheckedCreateWithoutContactInput = {
   status?: $Enums.MessageStatus
   errorMessage?: string | null
   campaignRecipient?: Prisma.CampaignRecipientUncheckedCreateNestedOneWithoutSentMessageInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedCreateNestedOneWithoutSentMessageInput
 }
 
 export type SentMessageCreateOrConnectWithoutContactInput = {
@@ -786,6 +815,7 @@ export type SentMessageCreateWithoutTemplateInput = {
   actor: Prisma.UserCreateNestedOneWithoutActedMessagesInput
   contact: Prisma.ContactCreateNestedOneWithoutMessagesInput
   campaignRecipient?: Prisma.CampaignRecipientCreateNestedOneWithoutSentMessageInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionCreateNestedOneWithoutSentMessageInput
 }
 
 export type SentMessageUncheckedCreateWithoutTemplateInput = {
@@ -798,6 +828,7 @@ export type SentMessageUncheckedCreateWithoutTemplateInput = {
   status?: $Enums.MessageStatus
   errorMessage?: string | null
   campaignRecipient?: Prisma.CampaignRecipientUncheckedCreateNestedOneWithoutSentMessageInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedCreateNestedOneWithoutSentMessageInput
 }
 
 export type SentMessageCreateOrConnectWithoutTemplateInput = {
@@ -836,6 +867,7 @@ export type SentMessageCreateWithoutCampaignRecipientInput = {
   actor: Prisma.UserCreateNestedOneWithoutActedMessagesInput
   contact: Prisma.ContactCreateNestedOneWithoutMessagesInput
   template?: Prisma.MessageTemplateCreateNestedOneWithoutMessagesInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionCreateNestedOneWithoutSentMessageInput
 }
 
 export type SentMessageUncheckedCreateWithoutCampaignRecipientInput = {
@@ -848,6 +880,7 @@ export type SentMessageUncheckedCreateWithoutCampaignRecipientInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedCreateNestedOneWithoutSentMessageInput
 }
 
 export type SentMessageCreateOrConnectWithoutCampaignRecipientInput = {
@@ -876,6 +909,7 @@ export type SentMessageUpdateWithoutCampaignRecipientInput = {
   actor?: Prisma.UserUpdateOneRequiredWithoutActedMessagesNestedInput
   contact?: Prisma.ContactUpdateOneRequiredWithoutMessagesNestedInput
   template?: Prisma.MessageTemplateUpdateOneWithoutMessagesNestedInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUpdateOneWithoutSentMessageNestedInput
 }
 
 export type SentMessageUncheckedUpdateWithoutCampaignRecipientInput = {
@@ -888,6 +922,75 @@ export type SentMessageUncheckedUpdateWithoutCampaignRecipientInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedUpdateOneWithoutSentMessageNestedInput
+}
+
+export type SentMessageCreateWithoutSequenceStepExecutionInput = {
+  id?: string
+  body: string
+  sentAt?: Date | string
+  status?: $Enums.MessageStatus
+  errorMessage?: string | null
+  sender: Prisma.UserCreateNestedOneWithoutSentMessagesInput
+  actor: Prisma.UserCreateNestedOneWithoutActedMessagesInput
+  contact: Prisma.ContactCreateNestedOneWithoutMessagesInput
+  template?: Prisma.MessageTemplateCreateNestedOneWithoutMessagesInput
+  campaignRecipient?: Prisma.CampaignRecipientCreateNestedOneWithoutSentMessageInput
+}
+
+export type SentMessageUncheckedCreateWithoutSequenceStepExecutionInput = {
+  id?: string
+  senderId: string
+  actorId: string
+  contactId: string
+  templateId?: string | null
+  body: string
+  sentAt?: Date | string
+  status?: $Enums.MessageStatus
+  errorMessage?: string | null
+  campaignRecipient?: Prisma.CampaignRecipientUncheckedCreateNestedOneWithoutSentMessageInput
+}
+
+export type SentMessageCreateOrConnectWithoutSequenceStepExecutionInput = {
+  where: Prisma.SentMessageWhereUniqueInput
+  create: Prisma.XOR<Prisma.SentMessageCreateWithoutSequenceStepExecutionInput, Prisma.SentMessageUncheckedCreateWithoutSequenceStepExecutionInput>
+}
+
+export type SentMessageUpsertWithoutSequenceStepExecutionInput = {
+  update: Prisma.XOR<Prisma.SentMessageUpdateWithoutSequenceStepExecutionInput, Prisma.SentMessageUncheckedUpdateWithoutSequenceStepExecutionInput>
+  create: Prisma.XOR<Prisma.SentMessageCreateWithoutSequenceStepExecutionInput, Prisma.SentMessageUncheckedCreateWithoutSequenceStepExecutionInput>
+  where?: Prisma.SentMessageWhereInput
+}
+
+export type SentMessageUpdateToOneWithWhereWithoutSequenceStepExecutionInput = {
+  where?: Prisma.SentMessageWhereInput
+  data: Prisma.XOR<Prisma.SentMessageUpdateWithoutSequenceStepExecutionInput, Prisma.SentMessageUncheckedUpdateWithoutSequenceStepExecutionInput>
+}
+
+export type SentMessageUpdateWithoutSequenceStepExecutionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sender?: Prisma.UserUpdateOneRequiredWithoutSentMessagesNestedInput
+  actor?: Prisma.UserUpdateOneRequiredWithoutActedMessagesNestedInput
+  contact?: Prisma.ContactUpdateOneRequiredWithoutMessagesNestedInput
+  template?: Prisma.MessageTemplateUpdateOneWithoutMessagesNestedInput
+  campaignRecipient?: Prisma.CampaignRecipientUpdateOneWithoutSentMessageNestedInput
+}
+
+export type SentMessageUncheckedUpdateWithoutSequenceStepExecutionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  senderId?: Prisma.StringFieldUpdateOperationsInput | string
+  actorId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactId?: Prisma.StringFieldUpdateOperationsInput | string
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  campaignRecipient?: Prisma.CampaignRecipientUncheckedUpdateOneWithoutSentMessageNestedInput
 }
 
 export type SentMessageCreateManySenderInput = {
@@ -922,6 +1025,7 @@ export type SentMessageUpdateWithoutSenderInput = {
   contact?: Prisma.ContactUpdateOneRequiredWithoutMessagesNestedInput
   template?: Prisma.MessageTemplateUpdateOneWithoutMessagesNestedInput
   campaignRecipient?: Prisma.CampaignRecipientUpdateOneWithoutSentMessageNestedInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUpdateOneWithoutSentMessageNestedInput
 }
 
 export type SentMessageUncheckedUpdateWithoutSenderInput = {
@@ -934,6 +1038,7 @@ export type SentMessageUncheckedUpdateWithoutSenderInput = {
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   campaignRecipient?: Prisma.CampaignRecipientUncheckedUpdateOneWithoutSentMessageNestedInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedUpdateOneWithoutSentMessageNestedInput
 }
 
 export type SentMessageUncheckedUpdateManyWithoutSenderInput = {
@@ -957,6 +1062,7 @@ export type SentMessageUpdateWithoutActorInput = {
   contact?: Prisma.ContactUpdateOneRequiredWithoutMessagesNestedInput
   template?: Prisma.MessageTemplateUpdateOneWithoutMessagesNestedInput
   campaignRecipient?: Prisma.CampaignRecipientUpdateOneWithoutSentMessageNestedInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUpdateOneWithoutSentMessageNestedInput
 }
 
 export type SentMessageUncheckedUpdateWithoutActorInput = {
@@ -969,6 +1075,7 @@ export type SentMessageUncheckedUpdateWithoutActorInput = {
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   campaignRecipient?: Prisma.CampaignRecipientUncheckedUpdateOneWithoutSentMessageNestedInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedUpdateOneWithoutSentMessageNestedInput
 }
 
 export type SentMessageUncheckedUpdateManyWithoutActorInput = {
@@ -1003,6 +1110,7 @@ export type SentMessageUpdateWithoutContactInput = {
   actor?: Prisma.UserUpdateOneRequiredWithoutActedMessagesNestedInput
   template?: Prisma.MessageTemplateUpdateOneWithoutMessagesNestedInput
   campaignRecipient?: Prisma.CampaignRecipientUpdateOneWithoutSentMessageNestedInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUpdateOneWithoutSentMessageNestedInput
 }
 
 export type SentMessageUncheckedUpdateWithoutContactInput = {
@@ -1015,6 +1123,7 @@ export type SentMessageUncheckedUpdateWithoutContactInput = {
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   campaignRecipient?: Prisma.CampaignRecipientUncheckedUpdateOneWithoutSentMessageNestedInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedUpdateOneWithoutSentMessageNestedInput
 }
 
 export type SentMessageUncheckedUpdateManyWithoutContactInput = {
@@ -1049,6 +1158,7 @@ export type SentMessageUpdateWithoutTemplateInput = {
   actor?: Prisma.UserUpdateOneRequiredWithoutActedMessagesNestedInput
   contact?: Prisma.ContactUpdateOneRequiredWithoutMessagesNestedInput
   campaignRecipient?: Prisma.CampaignRecipientUpdateOneWithoutSentMessageNestedInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUpdateOneWithoutSentMessageNestedInput
 }
 
 export type SentMessageUncheckedUpdateWithoutTemplateInput = {
@@ -1061,6 +1171,7 @@ export type SentMessageUncheckedUpdateWithoutTemplateInput = {
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   campaignRecipient?: Prisma.CampaignRecipientUncheckedUpdateOneWithoutSentMessageNestedInput
+  sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedUpdateOneWithoutSentMessageNestedInput
 }
 
 export type SentMessageUncheckedUpdateManyWithoutTemplateInput = {
@@ -1091,6 +1202,7 @@ export type SentMessageSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
   template?: boolean | Prisma.SentMessage$templateArgs<ExtArgs>
   campaignRecipient?: boolean | Prisma.SentMessage$campaignRecipientArgs<ExtArgs>
+  sequenceStepExecution?: boolean | Prisma.SentMessage$sequenceStepExecutionArgs<ExtArgs>
 }, ExtArgs["result"]["sentMessage"]>
 
 export type SentMessageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1144,6 +1256,7 @@ export type SentMessageInclude<ExtArgs extends runtime.Types.Extensions.Internal
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
   template?: boolean | Prisma.SentMessage$templateArgs<ExtArgs>
   campaignRecipient?: boolean | Prisma.SentMessage$campaignRecipientArgs<ExtArgs>
+  sequenceStepExecution?: boolean | Prisma.SentMessage$sequenceStepExecutionArgs<ExtArgs>
 }
 export type SentMessageIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sender?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1166,6 +1279,7 @@ export type $SentMessagePayload<ExtArgs extends runtime.Types.Extensions.Interna
     contact: Prisma.$ContactPayload<ExtArgs>
     template: Prisma.$MessageTemplatePayload<ExtArgs> | null
     campaignRecipient: Prisma.$CampaignRecipientPayload<ExtArgs> | null
+    sequenceStepExecution: Prisma.$SequenceStepExecutionPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1576,6 +1690,7 @@ export interface Prisma__SentMessageClient<T, Null = never, ExtArgs extends runt
   contact<T extends Prisma.ContactDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ContactDefaultArgs<ExtArgs>>): Prisma.Prisma__ContactClient<runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   template<T extends Prisma.SentMessage$templateArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SentMessage$templateArgs<ExtArgs>>): Prisma.Prisma__MessageTemplateClient<runtime.Types.Result.GetResult<Prisma.$MessageTemplatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   campaignRecipient<T extends Prisma.SentMessage$campaignRecipientArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SentMessage$campaignRecipientArgs<ExtArgs>>): Prisma.Prisma__CampaignRecipientClient<runtime.Types.Result.GetResult<Prisma.$CampaignRecipientPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  sequenceStepExecution<T extends Prisma.SentMessage$sequenceStepExecutionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SentMessage$sequenceStepExecutionArgs<ExtArgs>>): Prisma.Prisma__SequenceStepExecutionClient<runtime.Types.Result.GetResult<Prisma.$SequenceStepExecutionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2050,6 +2165,25 @@ export type SentMessage$campaignRecipientArgs<ExtArgs extends runtime.Types.Exte
    */
   include?: Prisma.CampaignRecipientInclude<ExtArgs> | null
   where?: Prisma.CampaignRecipientWhereInput
+}
+
+/**
+ * SentMessage.sequenceStepExecution
+ */
+export type SentMessage$sequenceStepExecutionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SequenceStepExecution
+   */
+  select?: Prisma.SequenceStepExecutionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SequenceStepExecution
+   */
+  omit?: Prisma.SequenceStepExecutionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SequenceStepExecutionInclude<ExtArgs> | null
+  where?: Prisma.SequenceStepExecutionWhereInput
 }
 
 /**

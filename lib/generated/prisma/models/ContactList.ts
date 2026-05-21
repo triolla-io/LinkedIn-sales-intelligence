@@ -184,6 +184,7 @@ export type ContactListWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"ContactList"> | Date | string
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   members?: Prisma.ContactListMemberListRelationFilter
+  sequences?: Prisma.SequenceListRelationFilter
 }
 
 export type ContactListOrderByWithRelationInput = {
@@ -194,6 +195,7 @@ export type ContactListOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   owner?: Prisma.UserOrderByWithRelationInput
   members?: Prisma.ContactListMemberOrderByRelationAggregateInput
+  sequences?: Prisma.SequenceOrderByRelationAggregateInput
 }
 
 export type ContactListWhereUniqueInput = Prisma.AtLeast<{
@@ -207,6 +209,7 @@ export type ContactListWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"ContactList"> | Date | string
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   members?: Prisma.ContactListMemberListRelationFilter
+  sequences?: Prisma.SequenceListRelationFilter
 }, "id">
 
 export type ContactListOrderByWithAggregationInput = {
@@ -238,6 +241,7 @@ export type ContactListCreateInput = {
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutContactListsInput
   members?: Prisma.ContactListMemberCreateNestedManyWithoutListInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutContactListInput
 }
 
 export type ContactListUncheckedCreateInput = {
@@ -247,6 +251,7 @@ export type ContactListUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.ContactListMemberUncheckedCreateNestedManyWithoutListInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutContactListInput
 }
 
 export type ContactListUpdateInput = {
@@ -256,6 +261,7 @@ export type ContactListUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutContactListsNestedInput
   members?: Prisma.ContactListMemberUpdateManyWithoutListNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutContactListNestedInput
 }
 
 export type ContactListUncheckedUpdateInput = {
@@ -265,6 +271,7 @@ export type ContactListUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.ContactListMemberUncheckedUpdateManyWithoutListNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutContactListNestedInput
 }
 
 export type ContactListCreateManyInput = {
@@ -385,12 +392,27 @@ export type ContactListUpdateOneRequiredWithoutMembersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ContactListUpdateToOneWithWhereWithoutMembersInput, Prisma.ContactListUpdateWithoutMembersInput>, Prisma.ContactListUncheckedUpdateWithoutMembersInput>
 }
 
+export type ContactListCreateNestedOneWithoutSequencesInput = {
+  create?: Prisma.XOR<Prisma.ContactListCreateWithoutSequencesInput, Prisma.ContactListUncheckedCreateWithoutSequencesInput>
+  connectOrCreate?: Prisma.ContactListCreateOrConnectWithoutSequencesInput
+  connect?: Prisma.ContactListWhereUniqueInput
+}
+
+export type ContactListUpdateOneRequiredWithoutSequencesNestedInput = {
+  create?: Prisma.XOR<Prisma.ContactListCreateWithoutSequencesInput, Prisma.ContactListUncheckedCreateWithoutSequencesInput>
+  connectOrCreate?: Prisma.ContactListCreateOrConnectWithoutSequencesInput
+  upsert?: Prisma.ContactListUpsertWithoutSequencesInput
+  connect?: Prisma.ContactListWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ContactListUpdateToOneWithWhereWithoutSequencesInput, Prisma.ContactListUpdateWithoutSequencesInput>, Prisma.ContactListUncheckedUpdateWithoutSequencesInput>
+}
+
 export type ContactListCreateWithoutOwnerInput = {
   id?: string
   name: string
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.ContactListMemberCreateNestedManyWithoutListInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutContactListInput
 }
 
 export type ContactListUncheckedCreateWithoutOwnerInput = {
@@ -399,6 +421,7 @@ export type ContactListUncheckedCreateWithoutOwnerInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.ContactListMemberUncheckedCreateNestedManyWithoutListInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutContactListInput
 }
 
 export type ContactListCreateOrConnectWithoutOwnerInput = {
@@ -444,6 +467,7 @@ export type ContactListCreateWithoutMembersInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutContactListsInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutContactListInput
 }
 
 export type ContactListUncheckedCreateWithoutMembersInput = {
@@ -452,6 +476,7 @@ export type ContactListUncheckedCreateWithoutMembersInput = {
   name: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutContactListInput
 }
 
 export type ContactListCreateOrConnectWithoutMembersInput = {
@@ -476,6 +501,7 @@ export type ContactListUpdateWithoutMembersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutContactListsNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutContactListNestedInput
 }
 
 export type ContactListUncheckedUpdateWithoutMembersInput = {
@@ -484,6 +510,59 @@ export type ContactListUncheckedUpdateWithoutMembersInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutContactListNestedInput
+}
+
+export type ContactListCreateWithoutSequencesInput = {
+  id?: string
+  name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  owner: Prisma.UserCreateNestedOneWithoutContactListsInput
+  members?: Prisma.ContactListMemberCreateNestedManyWithoutListInput
+}
+
+export type ContactListUncheckedCreateWithoutSequencesInput = {
+  id?: string
+  ownerId: string
+  name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.ContactListMemberUncheckedCreateNestedManyWithoutListInput
+}
+
+export type ContactListCreateOrConnectWithoutSequencesInput = {
+  where: Prisma.ContactListWhereUniqueInput
+  create: Prisma.XOR<Prisma.ContactListCreateWithoutSequencesInput, Prisma.ContactListUncheckedCreateWithoutSequencesInput>
+}
+
+export type ContactListUpsertWithoutSequencesInput = {
+  update: Prisma.XOR<Prisma.ContactListUpdateWithoutSequencesInput, Prisma.ContactListUncheckedUpdateWithoutSequencesInput>
+  create: Prisma.XOR<Prisma.ContactListCreateWithoutSequencesInput, Prisma.ContactListUncheckedCreateWithoutSequencesInput>
+  where?: Prisma.ContactListWhereInput
+}
+
+export type ContactListUpdateToOneWithWhereWithoutSequencesInput = {
+  where?: Prisma.ContactListWhereInput
+  data: Prisma.XOR<Prisma.ContactListUpdateWithoutSequencesInput, Prisma.ContactListUncheckedUpdateWithoutSequencesInput>
+}
+
+export type ContactListUpdateWithoutSequencesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.UserUpdateOneRequiredWithoutContactListsNestedInput
+  members?: Prisma.ContactListMemberUpdateManyWithoutListNestedInput
+}
+
+export type ContactListUncheckedUpdateWithoutSequencesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.ContactListMemberUncheckedUpdateManyWithoutListNestedInput
 }
 
 export type ContactListCreateManyOwnerInput = {
@@ -499,6 +578,7 @@ export type ContactListUpdateWithoutOwnerInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.ContactListMemberUpdateManyWithoutListNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutContactListNestedInput
 }
 
 export type ContactListUncheckedUpdateWithoutOwnerInput = {
@@ -507,6 +587,7 @@ export type ContactListUncheckedUpdateWithoutOwnerInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.ContactListMemberUncheckedUpdateManyWithoutListNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutContactListNestedInput
 }
 
 export type ContactListUncheckedUpdateManyWithoutOwnerInput = {
@@ -523,10 +604,12 @@ export type ContactListUncheckedUpdateManyWithoutOwnerInput = {
 
 export type ContactListCountOutputType = {
   members: number
+  sequences: number
 }
 
 export type ContactListCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   members?: boolean | ContactListCountOutputTypeCountMembersArgs
+  sequences?: boolean | ContactListCountOutputTypeCountSequencesArgs
 }
 
 /**
@@ -546,6 +629,13 @@ export type ContactListCountOutputTypeCountMembersArgs<ExtArgs extends runtime.T
   where?: Prisma.ContactListMemberWhereInput
 }
 
+/**
+ * ContactListCountOutputType without action
+ */
+export type ContactListCountOutputTypeCountSequencesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SequenceWhereInput
+}
+
 
 export type ContactListSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -555,6 +645,7 @@ export type ContactListSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   updatedAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   members?: boolean | Prisma.ContactList$membersArgs<ExtArgs>
+  sequences?: boolean | Prisma.ContactList$sequencesArgs<ExtArgs>
   _count?: boolean | Prisma.ContactListCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["contactList"]>
 
@@ -588,6 +679,7 @@ export type ContactListOmit<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type ContactListInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   members?: boolean | Prisma.ContactList$membersArgs<ExtArgs>
+  sequences?: boolean | Prisma.ContactList$sequencesArgs<ExtArgs>
   _count?: boolean | Prisma.ContactListCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ContactListIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -602,6 +694,7 @@ export type $ContactListPayload<ExtArgs extends runtime.Types.Extensions.Interna
   objects: {
     owner: Prisma.$UserPayload<ExtArgs>
     members: Prisma.$ContactListMemberPayload<ExtArgs>[]
+    sequences: Prisma.$SequencePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1005,6 +1098,7 @@ export interface Prisma__ContactListClient<T, Null = never, ExtArgs extends runt
   readonly [Symbol.toStringTag]: "PrismaPromise"
   owner<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   members<T extends Prisma.ContactList$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ContactList$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContactListMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sequences<T extends Prisma.ContactList$sequencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ContactList$sequencesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SequencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1461,6 +1555,30 @@ export type ContactList$membersArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.ContactListMemberScalarFieldEnum | Prisma.ContactListMemberScalarFieldEnum[]
+}
+
+/**
+ * ContactList.sequences
+ */
+export type ContactList$sequencesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Sequence
+   */
+  select?: Prisma.SequenceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Sequence
+   */
+  omit?: Prisma.SequenceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SequenceInclude<ExtArgs> | null
+  where?: Prisma.SequenceWhereInput
+  orderBy?: Prisma.SequenceOrderByWithRelationInput | Prisma.SequenceOrderByWithRelationInput[]
+  cursor?: Prisma.SequenceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SequenceScalarFieldEnum | Prisma.SequenceScalarFieldEnum[]
 }
 
 /**

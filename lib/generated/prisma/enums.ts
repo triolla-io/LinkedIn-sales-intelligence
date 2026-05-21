@@ -105,3 +105,24 @@ export const RecipientStatus = {
 } as const
 
 export type RecipientStatus = (typeof RecipientStatus)[keyof typeof RecipientStatus]
+
+
+export const SequenceStatus = {
+  DRAFT: 'DRAFT',
+  QUEUED: 'QUEUED',
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type SequenceStatus = (typeof SequenceStatus)[keyof typeof SequenceStatus]
+
+
+export const EnrollmentStatus = {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  UNSUBSCRIBED: 'UNSUBSCRIBED'
+} as const
+
+export type EnrollmentStatus = (typeof EnrollmentStatus)[keyof typeof EnrollmentStatus]

@@ -136,3 +136,23 @@ export type ContactList = Prisma.ContactListModel
  * 
  */
 export type ContactListMember = Prisma.ContactListMemberModel
+/**
+ * Model Sequence
+ * 
+ */
+export type Sequence = Prisma.SequenceModel
+/**
+ * Model SequenceStep
+ * 
+ */
+export type SequenceStep = Prisma.SequenceStepModel
+/**
+ * Model SequenceEnrollment
+ * 
+ */
+export type SequenceEnrollment = Prisma.SequenceEnrollmentModel
+/**
+ * Model SequenceStepExecution
+ * 
+ */
+export type SequenceStepExecution = Prisma.SequenceStepExecutionModel
