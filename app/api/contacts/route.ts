@@ -141,6 +141,7 @@ export const GET = withTenant(async (req, ctx) => {
     email: true,
     phone: true,
     enrichedAt: true,
+    manualFields: true,
     company: { select: { staffCount: true, industry: true } },
   } as const;
 
