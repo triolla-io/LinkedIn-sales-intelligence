@@ -8,6 +8,9 @@ import { campaignSendOne } from "@/inngest/functions/campaign-send-one";
 import { campaignSendWhatsapp } from "@/inngest/functions/campaign-send-whatsapp";
 import { campaignSendEmail } from "@/inngest/functions/campaign-send-email";
 import { campaignFinalize } from "@/inngest/functions/campaign-finalize";
+import { sequenceStart } from "@/inngest/functions/sequence-start";
+import { sequenceTick } from "@/inngest/functions/sequence-tick";
+import { sequenceSendExecution } from "@/inngest/functions/sequence-send-execution";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -20,5 +23,8 @@ export const { GET, POST, PUT } = serve({
     campaignSendWhatsapp,
     campaignSendEmail,
     campaignFinalize,
+    sequenceStart,
+    sequenceTick,
+    sequenceSendExecution,
   ],
 });
