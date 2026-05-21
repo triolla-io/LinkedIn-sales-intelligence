@@ -1,5 +1,6 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
+import { publish } from "@/lib/linkedin/sse-bus";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function campaignFinalizeHandler({ event }: any) {
@@ -13,6 +14,10 @@ export async function campaignFinalizeHandler({ event }: any) {
   await prisma.campaign.update({
     where: { id: campaignId },
     data: { status: "COMPLETED", completedAt: new Date() },
+  });
+  publish(campaign.ownerId, {
+    type: "campaign:update",
+    data: { campaignId },
   });
 }
 

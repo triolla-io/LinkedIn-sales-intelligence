@@ -1,4 +1,4 @@
-import type { Seniority, Function as OccFunction } from "@/lib/generated/prisma";
+import type { Seniority, Function as OccFunction } from "@/lib/generated/prisma/client";
 
 type Classification = { seniority: Seniority; function: OccFunction };
 

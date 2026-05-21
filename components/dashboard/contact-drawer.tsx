@@ -298,6 +298,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDra
                     </button>
                     {showListPopover && localContact && (
                       <ListPopover
+                        placement="down"
                         contactIds={[localContact.id]}
                         onClose={() => {
                           setShowListPopover(false);

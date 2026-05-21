@@ -1,0 +1,90 @@
+<h2>Where should the edit UI live?</h2>
+<p class="subtitle">Three different patterns for editing a contact's details</p>
+
+<div class="cards">
+
+  <!-- Option A: Inline editing -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#fafaf9;border-bottom:1px solid #e5e3df">
+      <div style="font-size:11px;font-weight:600;color:#9b9895;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Contact Details</div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:10px;color:#9b9895;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Email</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="border:1.5px solid #1585ff;border-radius:5px;padding:4px 8px;font-size:12px;color:#111110;font-family:monospace;flex:1">jane@acme.com</div>
+          <span style="font-size:10px;color:#1585ff">✓</span>
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:10px;color:#9b9895;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Phone</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="font-size:12px;color:#9b9895;font-style:italic">No phone — click to add</div>
+          <span style="font-size:11px;color:#ccc">✏️</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:#9b9895;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Title</div>
+        <div style="font-size:12px;color:#111110">VP of Engineering</div>
+        <span style="font-size:10px;color:#bbb">click to edit</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Inline / click-to-edit</h3>
+      <p>Each field is individually editable. Click a value (or placeholder) to turn it into an input. Saves on blur or Enter. No mode switch — direct manipulation.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Edit mode toggle -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#fafaf9;border-bottom:1px solid #e5e3df">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:600;color:#9b9895;text-transform:uppercase;letter-spacing:.08em">Contact Details</div>
+        <button style="font-size:11px;background:#1585ff;color:white;border:none;border-radius:4px;padding:3px 10px;cursor:pointer">Edit</button>
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:10px;color:#9b9895;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Email</div>
+        <div style="font-size:12px;color:#1585ff;font-family:monospace">jane@acme.com</div>
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:10px;color:#9b9895;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Phone</div>
+        <div style="font-size:12px;color:#9b9895;font-style:italic">No phone on record</div>
+      </div>
+      <div style="font-size:10px;color:#aaa;margin-top:10px">→ "Edit" switches the whole section to form inputs with Save / Cancel</div>
+    </div>
+    <div class="card-body">
+      <h3>B — Edit mode toggle</h3>
+      <p>An "Edit" button switches the Contact Details section into a form. All editable fields become inputs at once. Save / Cancel commit or discard.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Edit modal -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#fafaf9;border-bottom:1px solid #e5e3df;position:relative;min-height:140px">
+      <div style="margin-bottom:8px;opacity:0.35">
+        <div style="font-size:10px;color:#9b9895;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Email</div>
+        <div style="font-size:12px;color:#1585ff;font-family:monospace">jane@acme.com</div>
+      </div>
+      <div style="position:absolute;inset:8px;background:white;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.18);border:1px solid #e5e3df;padding:12px">
+        <div style="font-size:12px;font-weight:600;color:#111110;margin-bottom:10px">Edit Contact</div>
+        <div style="margin-bottom:8px">
+          <div style="font-size:10px;color:#9b9895;margin-bottom:2px">Email</div>
+          <div style="border:1px solid #d1cfcb;border-radius:4px;padding:4px 8px;font-size:11px;font-family:monospace;color:#111110">jane@acme.com</div>
+        </div>
+        <div style="margin-bottom:8px">
+          <div style="font-size:10px;color:#9b9895;margin-bottom:2px">Phone</div>
+          <div style="border:1px solid #d1cfcb;border-radius:4px;padding:4px 8px;font-size:11px;color:#9b9895">+1 (555) ...</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:10px">
+          <button style="flex:1;font-size:11px;background:#1585ff;color:white;border:none;border-radius:4px;padding:4px">Save</button>
+          <button style="font-size:11px;background:#f3f2ef;color:#6b6866;border:none;border-radius:4px;padding:4px 8px">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Edit modal</h3>
+      <p>A separate modal opens over the drawer with a full form. Keeps the read view clean, but adds an extra layer of navigation.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px">Click to select your preferred approach, then let me know in the terminal.</p>

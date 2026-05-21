@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { inngest } from "@/inngest/client";
 import { waClient } from "@/lib/whatsapp/client";
+import { hasGmailScope } from "@/lib/gmail/client";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,6 +17,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       if (status !== "CONNECTED") {
         return NextResponse.json(
           { error: "WHATSAPP_NOT_CONNECTED", message: "Connect your WhatsApp account before starting this campaign." },
+          { status: 403 }
+        );
+      }
+    }
+
+    if (campaign.channel === "EMAIL") {
+      const account = await prisma.account.findFirst({
+        where: { userId: ctx.effectiveUserId, provider: "google" },
+        select: { scope: true },
+      });
+      if (!hasGmailScope(account?.scope ?? null)) {
+        return NextResponse.json(
+          { error: "GMAIL_NOT_AUTHORIZED", message: "Re-authorize your Google account to enable Gmail sending." },
           { status: 403 }
         );
       }

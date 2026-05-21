@@ -16,7 +16,6 @@ export function NewCampaignModal({
   const [templates, setTemplates] = useState<Template[]>([]);
   const [templateId, setTemplateId] = useState("");
   const [name, setName] = useState("");
-  const [dailyLimit, setDailyLimit] = useState(100);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [whatsappConnected, setWhatsappConnected] = useState<boolean | null>(null);
@@ -29,8 +28,6 @@ export function NewCampaignModal({
     if (!open) return;
     setName("");
     setError(null);
-    setDailyLimit(100);
-
     setChannel("WHATSAPP");
     setSubject("");
 
@@ -70,7 +67,6 @@ export function NewCampaignModal({
           templateId,
           contactIds,
           channel,
-          dailyLimit,
           ...(channel === "EMAIL" ? { subject } : {}),
         }),
       });
@@ -158,17 +154,6 @@ export function NewCampaignModal({
             />
           </>
         )}
-
-        <label className="mt-4 block text-xs uppercase tracking-wide text-[#9b9895] font-mono">Daily limit</label>
-        <input
-          type="number"
-          min={10}
-          max={500}
-          value={dailyLimit}
-          onChange={(e) => setDailyLimit(Math.min(500, Math.max(10, parseInt(e.target.value) || 10)))}
-          className="mt-1 w-full rounded-lg bg-[#f8f7f5] border border-[#e5e3df] px-3 py-2 text-[#111110] focus:outline-none focus:ring-1 focus:ring-[#1585ff] text-sm"
-        />
-        <p className="mt-1 text-xs text-[#9b9895]">Messages per day (10–500). Lower = safer from bans.</p>
 
         <label className="mt-4 block text-xs uppercase tracking-wide text-[#9b9895] font-mono">Template</label>
         <select

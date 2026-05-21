@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
-import type { Role } from "@/lib/generated/prisma";
+import type { Role } from "@/lib/generated/prisma/client";
 
 declare module "next-auth" {
   interface Session {
@@ -58,7 +58,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   session: { strategy: "jwt" },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user?.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: user.email },
@@ -68,6 +68,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.id = dbUser.id;
           token.orgId = dbUser.orgId;
           token.role = dbUser.role;
+
+          // PrismaAdapter doesn't implement updateAccount, so we sync the
+          // OAuth tokens/scope ourselves on every sign-in (including re-auth).
+          if (account?.provider) {
+            await prisma.account.updateMany({
+              where: { userId: dbUser.id, provider: account.provider },
+              data: {
+                ...(account.access_token != null && { access_token: account.access_token }),
+                ...(account.refresh_token != null && { refresh_token: account.refresh_token }),
+                ...(account.expires_at != null && { expires_at: account.expires_at }),
+                ...(account.scope != null && { scope: account.scope }),
+              },
+            });
+          }
         }
       }
       return token;

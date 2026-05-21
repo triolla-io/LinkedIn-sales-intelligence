@@ -87,6 +87,11 @@ export async function campaignSendEmailHandler({ event }: any) {
     });
     if (shouldRetry) {
       await inngest.send({ name: "campaign.send-email", data: { recipientId } });
+    } else {
+      publish(recipient.campaign.ownerId, {
+        type: "campaign:update",
+        data: { recipientId, campaignId: recipient.campaignId },
+      });
     }
   } finally {
     await inngest.send({ name: "campaign.finalize", data: { campaignId: recipient.campaignId } });

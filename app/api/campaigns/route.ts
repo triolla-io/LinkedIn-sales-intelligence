@@ -4,14 +4,14 @@ import { withTenant } from "@/lib/tenancy/with-tenant";
 
 export const POST = withTenant(async (req: NextRequest, ctx) => {
   const body = await req.json();
-  const { name, templateId, contactIds, listId, filter, channel, dailyLimit } = body as {
+  const { name, templateId, contactIds, listId, filter, channel, subject } = body as {
     name?: string;
     templateId?: string;
     contactIds?: string[];
     listId?: string;
     filter?: unknown;
     channel?: string;
-    dailyLimit?: number;
+    subject?: string;
   };
 
   if (!name || !templateId) {
@@ -21,10 +21,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     return NextResponse.json({ error: "contactIds, listId, or filter required" }, { status: 400 });
   }
 
-  const resolvedChannel = channel === "WHATSAPP" ? "WHATSAPP" : "LINKEDIN";
-  const resolvedDailyLimit = dailyLimit != null
-    ? Math.min(500, Math.max(10, Math.floor(dailyLimit)))
-    : null;
+  const resolvedChannel = channel === "EMAIL" ? "EMAIL" : channel === "WHATSAPP" ? "WHATSAPP" : "LINKEDIN";
 
   const tpl = await prisma.messageTemplate.findFirst({ where: { id: templateId, ownerId: ctx.effectiveUserId } });
   if (!tpl) return NextResponse.json({ error: "template not found" }, { status: 404 });
@@ -52,7 +49,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       templateId,
       status: "DRAFT",
       filterJson: filterJson as never,
-      dailyLimit: resolvedChannel === "WHATSAPP" ? resolvedDailyLimit : null,
+      ...(resolvedChannel === "EMAIL" && subject ? { subject } : {}),
     },
   });
   return NextResponse.json({ campaign }, { status: 201 });

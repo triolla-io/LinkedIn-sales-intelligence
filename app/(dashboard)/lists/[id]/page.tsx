@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Megaphone, Pencil, Check, Loader2, Zap } from "lucide-react";
 import Link from "next/link";
 import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
+import ContactDrawer from "@/components/dashboard/contact-drawer";
+import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
 import { NewCampaignModal } from "@/components/dashboard/new-campaign-modal";
 
 type ListDetail = { id: string; name: string; memberCount: number; createdAt: string };
@@ -22,6 +24,8 @@ export default function ListDetailPage() {
   const [nameInput, setNameInput] = useState("");
   const [savingName, setSavingName] = useState(false);
   const [campaignOpen, setCampaignOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [drawerContact, setDrawerContact] = useState<Contact | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [enriching, setEnriching] = useState(false);
   const [enrichProgress, setEnrichProgress] = useState<{ done: number; target: number } | null>(null);
@@ -37,6 +41,7 @@ export default function ListDetailPage() {
 
   const fetchList = useCallback(async (pg = page) => {
     setLoading(true);
+    setSelectedIds(new Set());
     const res = await fetch(`/api/lists/${id}?page=${pg}&pageSize=${pageSize}`);
     if (!res.ok) { router.push("/lists"); return; }
     const data = await res.json();
@@ -206,10 +211,22 @@ export default function ListDetailPage() {
       <div className="px-5 pt-4 pb-4 flex flex-col flex-1 min-h-0">
         <ContactTable
           contacts={contacts}
-          selectedIds={new Set()}
-          onToggle={() => {}}
-          onSelectAll={() => {}}
-          onOpenDrawer={() => {}}
+          selectedIds={selectedIds}
+          onToggle={(id) =>
+            setSelectedIds((prev) => {
+              const next = new Set(prev);
+              next.has(id) ? next.delete(id) : next.add(id);
+              return next;
+            })
+          }
+          onSelectAll={() =>
+            setSelectedIds(
+              contacts.every((c) => selectedIds.has(c.id))
+                ? new Set()
+                : new Set(contacts.map((c) => c.id))
+            )
+          }
+          onOpenDrawer={setDrawerContact}
           loading={loading}
           page={page}
           totalPages={totalPages}
@@ -233,6 +250,24 @@ export default function ListDetailPage() {
         onClose={() => setCampaignOpen(false)}
         contactIds={contacts.map((c) => c.id)}
       />
+
+      <ContactDrawer
+        contact={drawerContact}
+        onClose={() => setDrawerContact(null)}
+        onEnrich={(contactId) =>
+          fetch(`/api/contacts/${contactId}/enrich`, { method: "POST" })
+            .then(() => fetchList(page))
+            .catch(() => {})
+        }
+      />
+
+      {selectedIds.size > 0 && (
+        <BulkEnrichBar
+          selectedIds={Array.from(selectedIds)}
+          selectedContacts={contacts.filter((c) => selectedIds.has(c.id))}
+          onDone={() => { setSelectedIds(new Set()); fetchList(page); }}
+        />
+      )}
     </div>
   );
 }

@@ -9,9 +9,10 @@ interface ListPopoverProps {
   contactIds: string[];
   onClose: () => void;
   anchorRef: React.RefObject<HTMLElement>;
+  placement?: "up" | "down";
 }
 
-export default function ListPopover({ contactIds, onClose, anchorRef }: ListPopoverProps) {
+export default function ListPopover({ contactIds, onClose, anchorRef, placement = "up" }: ListPopoverProps) {
   const [lists, setLists] = useState<ListSummary[]>([]);
   const [newName, setNewName] = useState("");
   const [busy, setBusy] = useState<string | null>(null); // listId or "new"
@@ -68,7 +69,7 @@ export default function ListPopover({ contactIds, onClose, anchorRef }: ListPopo
   return (
     <div
       ref={popoverRef}
-      className="absolute z-50 bottom-full mb-2 w-56 bg-white border border-[#e5e3df] rounded-xl shadow-2xl shadow-black/10 py-1 overflow-hidden"
+      className={`absolute z-50 right-0 w-56 bg-white border border-[#e5e3df] rounded-xl shadow-2xl shadow-black/10 py-1 overflow-hidden ${placement === "up" ? "bottom-full mb-2" : "top-full mt-2"}`}
     >
       {loading ? (
         <div className="flex items-center justify-center py-4">

@@ -7,7 +7,6 @@ import FilterSidebar, { type Filters, DEFAULT_FILTERS } from "@/components/dashb
 import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
 import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
-import BackfillEnrichButton from "@/components/dashboard/backfill-enrich-button";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -34,8 +33,6 @@ function buildContactsUrl(filters: Filters, page: number, pageSize: number) {
   if (filters.titleSearch.length) params.set("titleSearch", filters.titleSearch.join(","));
   if (filters.industry.length) params.set("industry", filters.industry.join(","));
   if (filters.companySizeBuckets.length) params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
-  if (filters.connectedFrom) params.set("connectedFrom", filters.connectedFrom);
-  if (filters.connectedTo) params.set("connectedTo", filters.connectedTo);
   if (filters.hasEmail) params.set("hasEmail", "true");
   if (filters.hasPhone) params.set("hasPhone", "true");
   if (filters.listId) params.set("listId", filters.listId);
@@ -70,8 +67,6 @@ function ContactsContent() {
     titleSearch: searchParams.get("titleSearch")?.split(",").filter(Boolean) ?? [],
     industry: searchParams.get("industry")?.split(",").filter(Boolean) ?? [],
     companySizeBuckets: searchParams.get("companySizeBuckets")?.split(",").filter(Boolean) ?? [],
-    connectedFrom: searchParams.get("connectedFrom") ?? "",
-    connectedTo: searchParams.get("connectedTo") ?? "",
     hasEmail: searchParams.get("hasEmail") === "true" ? true : undefined,
     hasPhone: searchParams.get("hasPhone") === "true" ? true : undefined,
     listId: searchParams.get("listId") ?? undefined,
@@ -115,8 +110,6 @@ function ContactsContent() {
     if (filters.titleSearch.length) params.set("titleSearch", filters.titleSearch.join(","));
     if (filters.industry.length) params.set("industry", filters.industry.join(","));
     if (filters.companySizeBuckets.length) params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
-    if (filters.connectedFrom) params.set("connectedFrom", filters.connectedFrom);
-    if (filters.connectedTo) params.set("connectedTo", filters.connectedTo);
     if (filters.hasEmail) params.set("hasEmail", "true");
     if (filters.hasPhone) params.set("hasPhone", "true");
     if (filters.listId) params.set("listId", filters.listId);
@@ -178,7 +171,6 @@ function ContactsContent() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <BackfillEnrichButton />
             <button
               onClick={fetchData}
               disabled={loading}

@@ -37,7 +37,7 @@ export function CampaignDetailClient({ initial }: { initial: Campaign }) {
     es.addEventListener("message", async (e: MessageEvent) => {
       try {
         const payload = JSON.parse(e.data as string);
-        if (payload.type === "campaign:sent" && payload.data.campaignId === campaign.id) {
+        if ((payload.type === "campaign:sent" || payload.type === "campaign:update") && payload.data.campaignId === campaign.id) {
           const res = await fetch(`/api/campaigns/${campaign.id}`);
           const json = await res.json();
           setCampaign(json.campaign);
@@ -117,7 +117,8 @@ export function CampaignDetailClient({ initial }: { initial: Campaign }) {
               <th className="pr-4 font-mono text-[10px] uppercase tracking-widest">Title</th>
               <th className="pr-4 font-mono text-[10px] uppercase tracking-widest">Company</th>
               <th className="pr-4 font-mono text-[10px] uppercase tracking-widest">Status</th>
-              <th className="font-mono text-[10px] uppercase tracking-widest">Sent</th>
+              <th className="pr-4 font-mono text-[10px] uppercase tracking-widest">Sent</th>
+              <th className="font-mono text-[10px] uppercase tracking-widest">Error</th>
             </tr>
           </thead>
           <tbody>
@@ -127,7 +128,8 @@ export function CampaignDetailClient({ initial }: { initial: Campaign }) {
                 <td className="pr-4">{r.contact.currentTitle ?? "—"}</td>
                 <td className="pr-4">{r.contact.currentCompany ?? "—"}</td>
                 <td className={`pr-4 font-medium ${STATUS_COLORS[r.status] ?? ""}`}>{r.status}</td>
-                <td>{r.sentAt ? new Date(r.sentAt).toLocaleString() : "—"}</td>
+                <td className="pr-4">{r.sentAt ? new Date(r.sentAt).toLocaleString() : "—"}</td>
+                <td className="text-red-500 text-xs">{r.errorMessage ?? ""}</td>
               </tr>
             ))}
             {campaign.recipients.length === 0 && (

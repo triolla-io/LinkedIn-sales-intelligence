@@ -59,7 +59,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
 
   const iFirstName    = col(["first name", "firstname"]);
   const iLastName     = col(["last name", "lastname"]);
-  const iUrl          = col(["url", "profile url", "linkedin url"]);
+  const iUrl          = col(["url", "profile url", "linkedin url", "linkedin member url", "member url", "linkedin profile url"]);
   const iEmail        = col(["email address", "email"]);
   const iCompany      = col(["company", "company name"]);
   const iPosition     = col(["position", "title", "job title"]);

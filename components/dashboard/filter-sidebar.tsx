@@ -11,8 +11,6 @@ export type Filters = {
   titleSearch: string[];
   industry: string[];
   companySizeBuckets: string[];
-  connectedFrom: string;
-  connectedTo: string;
   hasEmail?: boolean;
   hasPhone?: boolean;
   listId?: string;
@@ -25,8 +23,6 @@ export const DEFAULT_FILTERS: Filters = {
   titleSearch: [],
   industry: [],
   companySizeBuckets: [],
-  connectedFrom: "",
-  connectedTo: "",
   listId: undefined,
 };
 
@@ -128,8 +124,6 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
     filters.titleSearch.length ||
     filters.companySizeBuckets.length ||
     filters.industry.length ||
-    filters.connectedFrom ||
-    filters.connectedTo ||
     filters.hasEmail ||
     filters.hasPhone ||
     filters.listId;
@@ -289,46 +283,6 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                 {i}
               </button>
             ))}
-          </div>
-        </Section>
-
-        {/* Connected Date */}
-        <Section
-          title="Connected Date"
-          defaultOpen={false}
-          activeCount={filters.connectedFrom || filters.connectedTo ? 1 : 0}
-        >
-          <div className="space-y-2">
-            <div>
-              <label className="block text-[10px] font-mono text-[#9b9895] uppercase tracking-widest mb-1">
-                From
-              </label>
-              <input
-                type="date"
-                value={filters.connectedFrom}
-                onChange={(e) => onChange({ ...filters, connectedFrom: e.target.value })}
-                className="w-full px-3 py-1.5 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-xs text-[#111110] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-mono text-[#9b9895] uppercase tracking-widest mb-1">
-                To
-              </label>
-              <input
-                type="date"
-                value={filters.connectedTo}
-                onChange={(e) => onChange({ ...filters, connectedTo: e.target.value })}
-                className="w-full px-3 py-1.5 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-xs text-[#111110] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
-              />
-            </div>
-            {(filters.connectedFrom || filters.connectedTo) && (
-              <button
-                onClick={() => onChange({ ...filters, connectedFrom: "", connectedTo: "" })}
-                className="text-xs text-[#6b6866] hover:text-[#111110] flex items-center gap-1"
-              >
-                <X className="w-3 h-3" /> Clear dates
-              </button>
-            )}
           </div>
         </Section>
 
