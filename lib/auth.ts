@@ -1,5 +1,4 @@
 import NextAuth from "next-auth";
-import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@/lib/generated/prisma/client";
@@ -44,19 +43,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: adapter as any,
   providers: [
-    Google({
+    {
+      id: "google",
+      name: "Google",
+      type: "oauth",
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       allowDangerousEmailAccountLinking: true,
-      checks: ["pkce"],
       authorization: {
+        url: "https://accounts.google.com/o/oauth2/v2/auth",
         params: {
           scope: "openid email profile https://www.googleapis.com/auth/gmail.send",
           access_type: "offline",
           prompt: "consent",
+          response_type: "code",
         },
       },
-    }),
+      token: "https://oauth2.googleapis.com/token",
+      userinfo: "https://openidconnect.googleapis.com/v1/userinfo",
+      profile(profile: { sub: string; name: string; email: string; picture: string }) {
+        return { id: profile.sub, name: profile.name, email: profile.email, image: profile.picture };
+      },
+    },
   ],
   session: { strategy: "jwt" },
   callbacks: {
