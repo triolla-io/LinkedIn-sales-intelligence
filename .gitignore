@@ -68,5 +68,8 @@ Thumbs.db
 # logs
 *.log
 
+# database backups (never commit — may contain secrets)
+db-backups/
+
 # stale prisma output (canonical client lives at lib/generated/prisma)
 /app/generated/
