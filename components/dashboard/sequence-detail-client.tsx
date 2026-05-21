@@ -6,13 +6,13 @@ import { ArrowLeft, Play, Pause, RotateCcw, XCircle, Mail, MessageSquare } from 
 
 type StepExecution = {
   status: string;
-  sentAt: string | null;
+  sentAt: Date | string | null;
   step: { stepNumber: number; channel: string; dayOffset: number };
 };
 type Enrollment = {
   id: string;
   status: string;
-  enrolledAt: string;
+  enrolledAt: Date | string;
   contact: { fullName: string; currentTitle: string | null; currentCompany: string | null };
   executions: StepExecution[];
 };
@@ -28,9 +28,9 @@ type Sequence = {
   id: string;
   name: string;
   status: string;
-  startedAt: string | null;
-  completedAt: string | null;
-  createdAt: string;
+  startedAt: Date | string | null;
+  completedAt: Date | string | null;
+  createdAt: Date | string;
   contactList: { name: string };
   steps: SequenceStep[];
   enrollments: Enrollment[];

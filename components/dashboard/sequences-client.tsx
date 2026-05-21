@@ -10,7 +10,7 @@ type Sequence = {
   id: string;
   name: string;
   status: string;
-  createdAt: string;
+  createdAt: Date | string;
   steps: Step[];
   contactList: { name: string };
   _count: { enrollments: number };
