@@ -40,6 +40,7 @@ const adapter = {
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: adapter as any,
   providers: [
