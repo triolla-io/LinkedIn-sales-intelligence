@@ -20,6 +20,7 @@ export type Contact = {
   phone?: string | null;
   lastSyncedAt: string;
   linkedinUrl: string;
+  manualFields?: string[];
 };
 
 interface ContactTableProps {
@@ -27,7 +28,7 @@ interface ContactTableProps {
   selectedIds: Set<string>;
   onToggle: (id: string) => void;
   onSelectAll: () => void;
-  onEnrich: (id: string) => void;
+  onEnrich?: (id: string) => void;
   onOpenDrawer: (contact: Contact) => void;
   loading: boolean;
   page: number;
@@ -154,7 +155,7 @@ export default function ContactTable({
   const lastItem = Math.min(page * pageSize, total);
 
   return (
-    <div className="rounded-xl border border-[#e5e3df] bg-white overflow-hidden flex flex-col flex-1 min-h-0">
+    <div className="rounded-xl border border-[#e5e3df] bg-white overflow-hidden flex flex-col">
       {/* Header row */}
       <div
         className="grid items-center gap-3 px-4 py-2.5 bg-[#f8f7f5] border-b border-[#e5e3df] text-[10px] font-mono text-[#9b9895] uppercase tracking-widest shrink-0"
@@ -180,14 +181,14 @@ export default function ContactTable({
         {extraRowAction && <span />}
       </div>
 
-      {/* Rows — no overflow/scroll */}
-      <div className="flex-1 overflow-hidden">
+      {/* Rows */}
+      <div className="overflow-hidden">
         {loading ? (
           Array.from({ length: pageSize || 8 }).map((_, i) => (
             <SkeletonRow key={i} cols={cols} />
           ))
         ) : contacts.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center justify-center py-16">
             <p className="text-sm text-[#9b9895] font-mono">No contacts match your filters.</p>
           </div>
         ) : (
