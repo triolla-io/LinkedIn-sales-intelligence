@@ -3,11 +3,12 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --ignore-scripts
 COPY prisma ./prisma
-RUN npx prisma generate
+RUN npx prisma generate && echo "export * from './client';" > ./lib/generated/prisma/index.ts
 
 FROM node:22.15-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/lib/generated/prisma ./lib/generated/prisma
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
