@@ -29,14 +29,15 @@ function parseSteps(input: unknown): Array<{
     subject: string | null;
   }> = [];
   const seenNumbers = new Set<number>();
-  let prevOffset = -1;
+  let prevOffset: number | null = null;
   for (const raw of input as RawStep[]) {
     if (typeof raw.stepNumber !== "number" || typeof raw.dayOffset !== "number") return null;
+    if (!Number.isInteger(raw.dayOffset) || raw.dayOffset < 0) return null;
     if (typeof raw.templateId !== "string" || !raw.templateId) return null;
     if (raw.channel !== "EMAIL" && raw.channel !== "WHATSAPP") return null;
     if (raw.channel === "EMAIL" && (typeof raw.subject !== "string" || !raw.subject)) return null;
     if (seenNumbers.has(raw.stepNumber)) return null;
-    if (raw.dayOffset < prevOffset) return null;
+    if (prevOffset !== null && raw.dayOffset < prevOffset) return null;
     seenNumbers.add(raw.stepNumber);
     prevOffset = raw.dayOffset;
     steps.push({
@@ -149,6 +150,18 @@ describe("parseSteps", () => {
   it("returns null when templateId is missing", () => {
     expect(
       parseSteps([{ stepNumber: 1, dayOffset: 0, channel: "WHATSAPP", templateId: "" }])
+    ).toBeNull();
+  });
+
+  it("returns null for negative dayOffset", () => {
+    expect(
+      parseSteps([{ stepNumber: 1, dayOffset: -1, channel: "WHATSAPP", templateId: "t1" }])
+    ).toBeNull();
+  });
+
+  it("returns null for fractional dayOffset", () => {
+    expect(
+      parseSteps([{ stepNumber: 1, dayOffset: 1.5, channel: "WHATSAPP", templateId: "t1" }])
     ).toBeNull();
   });
 });

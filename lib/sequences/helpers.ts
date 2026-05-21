@@ -14,14 +14,15 @@ export function parseSteps(input: unknown): ParsedStep[] | null {
   if (!Array.isArray(input) || input.length === 0) return null;
   const steps: ParsedStep[] = [];
   const seenNumbers = new Set<number>();
-  let prevOffset = -1;
+  let prevOffset: number | null = null;
   for (const raw of input as Record<string, unknown>[]) {
     if (typeof raw.stepNumber !== "number" || typeof raw.dayOffset !== "number") return null;
+    if (!Number.isInteger(raw.dayOffset) || raw.dayOffset < 0) return null;
     if (typeof raw.templateId !== "string" || !raw.templateId) return null;
     if (raw.channel !== "EMAIL" && raw.channel !== "WHATSAPP") return null;
     if (raw.channel === "EMAIL" && (typeof raw.subject !== "string" || !raw.subject)) return null;
     if (seenNumbers.has(raw.stepNumber)) return null;
-    if (raw.dayOffset < prevOffset) return null;
+    if (prevOffset !== null && raw.dayOffset < prevOffset) return null;
     seenNumbers.add(raw.stepNumber);
     prevOffset = raw.dayOffset;
     steps.push({
