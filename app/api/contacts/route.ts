@@ -70,6 +70,38 @@ export const GET = withTenant(async (req, ctx) => {
       .filter(Boolean)
       .map(([min, max]) => ({ companySize: { gte: min, lte: max } })) ?? [];
 
+  const andClauses: any[] = [];
+  if (params.q) {
+    andClauses.push({
+      OR: [
+        { fullName: { contains: params.q, mode: "insensitive" } },
+        { headline: { contains: params.q, mode: "insensitive" } },
+        { currentCompany: { contains: params.q, mode: "insensitive" } },
+        { currentTitle: { contains: params.q, mode: "insensitive" } },
+      ],
+    });
+  }
+  if (params.titleSearch?.length) {
+    andClauses.push({
+      OR: params.titleSearch.map((t) => ({
+        OR: [
+          { currentTitle: { contains: t, mode: "insensitive" as const } },
+          { headline: { contains: t, mode: "insensitive" as const } },
+        ],
+      })),
+    });
+  }
+  if (params.industry?.length) {
+    andClauses.push({
+      OR: params.industry.map((i) => ({
+        industry: { contains: i, mode: "insensitive" as const },
+      })),
+    });
+  }
+  if (sizeConditions.length) {
+    andClauses.push({ OR: sizeConditions });
+  }
+
   const where: any = {
     ownerId: ctx.effectiveUserId,
     removedAt: null,
@@ -81,34 +113,7 @@ export const GET = withTenant(async (req, ctx) => {
     ...(params.hasEmail === "false" ? { email: null } : {}),
     ...(params.hasPhone === "true" ? { phone: { not: null } } : {}),
     ...(params.hasPhone === "false" ? { phone: null } : {}),
-    ...(params.q
-      ? {
-          OR: [
-            { fullName: { contains: params.q, mode: "insensitive" } },
-            { headline: { contains: params.q, mode: "insensitive" } },
-            { currentCompany: { contains: params.q, mode: "insensitive" } },
-            { currentTitle: { contains: params.q, mode: "insensitive" } },
-          ],
-        }
-      : {}),
-    ...(params.titleSearch?.length
-      ? {
-          OR: params.titleSearch.map((t) => ({
-            OR: [
-              { currentTitle: { contains: t, mode: "insensitive" as const } },
-              { headline: { contains: t, mode: "insensitive" as const } },
-            ],
-          })),
-        }
-      : {}),
-    ...(params.industry?.length
-      ? {
-          OR: params.industry.map((i) => ({
-            industry: { contains: i, mode: "insensitive" as const },
-          })),
-        }
-      : {}),
-    ...(sizeConditions.length ? { OR: sizeConditions } : {}),
+    ...(andClauses.length ? { AND: andClauses } : {}),
     ...(params.listId
       ? {
           lists: {
