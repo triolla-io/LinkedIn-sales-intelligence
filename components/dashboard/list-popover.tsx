@@ -21,8 +21,9 @@ export default function ListPopover({ contactIds, onClose, anchorRef, placement 
 
   useEffect(() => {
     fetch("/api/lists")
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d) => setLists(d.lists ?? []))
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
