@@ -452,7 +452,7 @@ model Sequence {
   updatedAt     DateTime       @updatedAt
 
   owner       User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  contactList ContactList          @relation(fields: [contactListId], references: [id])
+  contactList ContactList          @relation(fields: [contactListId], references: [id], onDelete: Cascade)
   steps       SequenceStep[]
   enrollments SequenceEnrollment[]
 
@@ -468,6 +468,7 @@ model SequenceStep {
   templateId String
   subject    String?
   createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
 
   sequence   Sequence                @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
   template   MessageTemplate         @relation(fields: [templateId], references: [id])
@@ -485,7 +486,7 @@ model SequenceEnrollment {
   enrolledAt DateTime         @default(now())
 
   sequence   Sequence                @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
-  contact    Contact                 @relation(fields: [contactId], references: [id])
+  contact    Contact                 @relation(fields: [contactId], references: [id], onDelete: Cascade)
   executions SequenceStepExecution[]
 
   @@unique([sequenceId, contactId])
