@@ -22,5 +22,36 @@ services:
       - LOG_LEVEL=WARNING
     command: ["--transport", "streamable-http", "--host", "0.0.0.0", "--port", "8000"]
 
+  whatsapp-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.whatsapp
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    volumes:
+      - whatsapp_sessions:/data/whatsapp-sessions
+    environment:
+      - WHATSAPP_SERVICE_PORT=3002
+      - WHATSAPP_SESSIONS_DIR=/data/whatsapp-sessions
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - whatsapp-service
+    environment:
+      - NODE_ENV=production
+      - WHATSAPP_SERVICE_URL=http://whatsapp-service:3002
+      # Set remaining vars via .env or Coolify environment config:
+      # DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL, GOOGLE_CLIENT_ID,
+      # GOOGLE_CLIENT_SECRET, INNGEST_EVENT_KEY, INNGEST_SIGNING_KEY,
+      # APOLLO_API_KEY, LINKEDIN_COOKIE_ENC_KEY, RESEND_API_KEY
+
 volumes:
   postgres_data:
+  whatsapp_sessions:
