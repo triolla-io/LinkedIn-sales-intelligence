@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Contact } from "./contact-table";
@@ -11,7 +11,9 @@ interface EditContactModalProps {
   onSaved: (updated: Contact) => void;
 }
 
-const FIELDS: { key: keyof Contact; label: string; type?: string }[] = [
+type EditableField = "email" | "phone" | "currentTitle" | "currentCompany" | "location" | "headline";
+
+const FIELDS: { key: EditableField; label: string; type?: string }[] = [
   { key: "email", label: "Email", type: "email" },
   { key: "phone", label: "Phone", type: "tel" },
   { key: "currentTitle", label: "Title" },
@@ -21,8 +23,8 @@ const FIELDS: { key: keyof Contact; label: string; type?: string }[] = [
 ];
 
 export default function EditContactModal({ contact, onClose, onSaved }: EditContactModalProps) {
-  const [form, setForm] = useState<Record<string, string>>(() => {
-    const initial: Record<string, string> = {};
+  const [form, setForm] = useState<Record<EditableField, string>>(() => {
+    const initial = {} as Record<EditableField, string>;
     for (const { key } of FIELDS) {
       initial[key] = (contact[key] as string | null | undefined) ?? "";
     }
@@ -31,7 +33,23 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const initialValues = useRef<Record<EditableField, string>>(
+    Object.fromEntries(
+      FIELDS.map(({ key }) => [key, (contact[key] as string | null | undefined) ?? ""])
+    ) as Record<EditableField, string>
+  );
+
+  const isDirty = FIELDS.some(({ key }) => form[key] !== initialValues.current[key]);
+
   const manualSet = new Set(contact.manualFields ?? []);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   async function handleSave() {
     setSaving(true);
@@ -39,7 +57,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
     try {
       const body: Record<string, string | null> = {};
       for (const { key } of FIELDS) {
-        body[key] = form[key] || null;
+        body[key] = form[key].trim() === "" ? null : form[key].trim();
       }
       const res = await fetch(`/api/contacts/${contact.id}`, {
         method: "PATCH",
@@ -49,7 +67,6 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
       if (!res.ok) throw new Error("Save failed");
       const updated = await res.json();
       onSaved({ ...contact, ...updated });
-      onClose();
     } catch {
       setError("Failed to save. Please try again.");
     } finally {
@@ -63,10 +80,15 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
       <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
 
       {/* Dialog */}
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm bg-white rounded-xl shadow-2xl border border-[#e5e3df]">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-contact-dialog-title"
+        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm bg-white rounded-xl shadow-2xl border border-[#e5e3df]"
+      >
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e3df]">
-          <h3 className="text-sm font-semibold text-[#111110]">Edit Contact</h3>
-          <button onClick={onClose} className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
+          <h3 id="edit-contact-dialog-title" className="text-sm font-semibold text-[#111110]">Edit Contact</h3>
+          <button onClick={onClose} aria-label="Close" className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -75,7 +97,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
           {FIELDS.map(({ key, label, type }) => (
             <div key={key}>
               <div className="flex items-center gap-1.5 mb-1">
-                <label className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">
+                <label htmlFor={key} className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">
                   {label}
                 </label>
                 {manualSet.has(key) && (
@@ -85,6 +107,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
                 )}
               </div>
               <input
+                id={key}
                 type={type ?? "text"}
                 value={form[key]}
                 onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
@@ -106,10 +129,10 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
           </button>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || !isDirty}
             className={cn(
               "px-4 py-2 text-sm font-medium text-white bg-[#1585ff] rounded-lg transition-colors",
-              saving ? "opacity-60 cursor-not-allowed" : "hover:bg-[#0a70e0]"
+              saving || !isDirty ? "opacity-60 cursor-not-allowed" : "hover:bg-[#0a70e0]"
             )}
           >
             {saving ? "Saving…" : "Save"}
