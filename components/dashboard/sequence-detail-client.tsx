@@ -67,7 +67,7 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
         return;
       }
       const nextStatus: Record<string, string> = {
-        start: "ACTIVE",
+        start: "QUEUED",
         pause: "PAUSED",
         resume: "ACTIVE",
         cancel: "CANCELLED",

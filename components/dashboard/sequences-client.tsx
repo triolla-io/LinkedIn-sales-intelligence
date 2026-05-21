@@ -17,7 +17,7 @@ type Sequence = {
   _count: { enrollments: number };
 };
 type List = { id: string; name: string };
-type Template = { id: string; name: string; body: string };
+type Template = { id: string; name: string };
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: "bg-[#f3f2ef] text-[#6b6866]",

@@ -416,7 +416,8 @@ export const SequenceStepExecutionScalarFieldEnum = {
   renderedBody: 'renderedBody',
   errorMessage: 'errorMessage',
   attemptCount: 'attemptCount',
-  sentMessageId: 'sentMessageId'
+  sentMessageId: 'sentMessageId',
+  updatedAt: 'updatedAt'
 } as const
 
 export type SequenceStepExecutionScalarFieldEnum = (typeof SequenceStepExecutionScalarFieldEnum)[keyof typeof SequenceStepExecutionScalarFieldEnum]

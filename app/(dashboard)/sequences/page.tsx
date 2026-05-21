@@ -26,7 +26,7 @@ export default async function SequencesPage() {
   const templates = await prisma.messageTemplate.findMany({
     where: { ownerId: session.user.id },
     orderBy: { name: "asc" },
-    select: { id: true, name: true, body: true },
+    select: { id: true, name: true },
   });
 
   return <SequencesClient sequences={sequences} lists={lists} templates={templates} />;

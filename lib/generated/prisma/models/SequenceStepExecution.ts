@@ -45,6 +45,7 @@ export type SequenceStepExecutionMinAggregateOutputType = {
   errorMessage: string | null
   attemptCount: number | null
   sentMessageId: string | null
+  updatedAt: Date | null
 }
 
 export type SequenceStepExecutionMaxAggregateOutputType = {
@@ -58,6 +59,7 @@ export type SequenceStepExecutionMaxAggregateOutputType = {
   errorMessage: string | null
   attemptCount: number | null
   sentMessageId: string | null
+  updatedAt: Date | null
 }
 
 export type SequenceStepExecutionCountAggregateOutputType = {
@@ -71,6 +73,7 @@ export type SequenceStepExecutionCountAggregateOutputType = {
   errorMessage: number
   attemptCount: number
   sentMessageId: number
+  updatedAt: number
   _all: number
 }
 
@@ -94,6 +97,7 @@ export type SequenceStepExecutionMinAggregateInputType = {
   errorMessage?: true
   attemptCount?: true
   sentMessageId?: true
+  updatedAt?: true
 }
 
 export type SequenceStepExecutionMaxAggregateInputType = {
@@ -107,6 +111,7 @@ export type SequenceStepExecutionMaxAggregateInputType = {
   errorMessage?: true
   attemptCount?: true
   sentMessageId?: true
+  updatedAt?: true
 }
 
 export type SequenceStepExecutionCountAggregateInputType = {
@@ -120,6 +125,7 @@ export type SequenceStepExecutionCountAggregateInputType = {
   errorMessage?: true
   attemptCount?: true
   sentMessageId?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -220,6 +226,7 @@ export type SequenceStepExecutionGroupByOutputType = {
   errorMessage: string | null
   attemptCount: number
   sentMessageId: string | null
+  updatedAt: Date
   _count: SequenceStepExecutionCountAggregateOutputType | null
   _avg: SequenceStepExecutionAvgAggregateOutputType | null
   _sum: SequenceStepExecutionSumAggregateOutputType | null
@@ -256,6 +263,7 @@ export type SequenceStepExecutionWhereInput = {
   errorMessage?: Prisma.StringNullableFilter<"SequenceStepExecution"> | string | null
   attemptCount?: Prisma.IntFilter<"SequenceStepExecution"> | number
   sentMessageId?: Prisma.StringNullableFilter<"SequenceStepExecution"> | string | null
+  updatedAt?: Prisma.DateTimeFilter<"SequenceStepExecution"> | Date | string
   enrollment?: Prisma.XOR<Prisma.SequenceEnrollmentScalarRelationFilter, Prisma.SequenceEnrollmentWhereInput>
   step?: Prisma.XOR<Prisma.SequenceStepScalarRelationFilter, Prisma.SequenceStepWhereInput>
   sentMessage?: Prisma.XOR<Prisma.SentMessageNullableScalarRelationFilter, Prisma.SentMessageWhereInput> | null
@@ -272,6 +280,7 @@ export type SequenceStepExecutionOrderByWithRelationInput = {
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   sentMessageId?: Prisma.SortOrderInput | Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   enrollment?: Prisma.SequenceEnrollmentOrderByWithRelationInput
   step?: Prisma.SequenceStepOrderByWithRelationInput
   sentMessage?: Prisma.SentMessageOrderByWithRelationInput
@@ -292,6 +301,7 @@ export type SequenceStepExecutionWhereUniqueInput = Prisma.AtLeast<{
   renderedBody?: Prisma.StringNullableFilter<"SequenceStepExecution"> | string | null
   errorMessage?: Prisma.StringNullableFilter<"SequenceStepExecution"> | string | null
   attemptCount?: Prisma.IntFilter<"SequenceStepExecution"> | number
+  updatedAt?: Prisma.DateTimeFilter<"SequenceStepExecution"> | Date | string
   enrollment?: Prisma.XOR<Prisma.SequenceEnrollmentScalarRelationFilter, Prisma.SequenceEnrollmentWhereInput>
   step?: Prisma.XOR<Prisma.SequenceStepScalarRelationFilter, Prisma.SequenceStepWhereInput>
   sentMessage?: Prisma.XOR<Prisma.SentMessageNullableScalarRelationFilter, Prisma.SentMessageWhereInput> | null
@@ -308,6 +318,7 @@ export type SequenceStepExecutionOrderByWithAggregationInput = {
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   sentMessageId?: Prisma.SortOrderInput | Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.SequenceStepExecutionCountOrderByAggregateInput
   _avg?: Prisma.SequenceStepExecutionAvgOrderByAggregateInput
   _max?: Prisma.SequenceStepExecutionMaxOrderByAggregateInput
@@ -329,6 +340,7 @@ export type SequenceStepExecutionScalarWhereWithAggregatesInput = {
   errorMessage?: Prisma.StringNullableWithAggregatesFilter<"SequenceStepExecution"> | string | null
   attemptCount?: Prisma.IntWithAggregatesFilter<"SequenceStepExecution"> | number
   sentMessageId?: Prisma.StringNullableWithAggregatesFilter<"SequenceStepExecution"> | string | null
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"SequenceStepExecution"> | Date | string
 }
 
 export type SequenceStepExecutionCreateInput = {
@@ -339,6 +351,7 @@ export type SequenceStepExecutionCreateInput = {
   renderedBody?: string | null
   errorMessage?: string | null
   attemptCount?: number
+  updatedAt?: Date | string
   enrollment: Prisma.SequenceEnrollmentCreateNestedOneWithoutExecutionsInput
   step: Prisma.SequenceStepCreateNestedOneWithoutExecutionsInput
   sentMessage?: Prisma.SentMessageCreateNestedOneWithoutSequenceStepExecutionInput
@@ -355,6 +368,7 @@ export type SequenceStepExecutionUncheckedCreateInput = {
   errorMessage?: string | null
   attemptCount?: number
   sentMessageId?: string | null
+  updatedAt?: Date | string
 }
 
 export type SequenceStepExecutionUpdateInput = {
@@ -365,6 +379,7 @@ export type SequenceStepExecutionUpdateInput = {
   renderedBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   enrollment?: Prisma.SequenceEnrollmentUpdateOneRequiredWithoutExecutionsNestedInput
   step?: Prisma.SequenceStepUpdateOneRequiredWithoutExecutionsNestedInput
   sentMessage?: Prisma.SentMessageUpdateOneWithoutSequenceStepExecutionNestedInput
@@ -381,6 +396,7 @@ export type SequenceStepExecutionUncheckedUpdateInput = {
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type SequenceStepExecutionCreateManyInput = {
@@ -394,6 +410,7 @@ export type SequenceStepExecutionCreateManyInput = {
   errorMessage?: string | null
   attemptCount?: number
   sentMessageId?: string | null
+  updatedAt?: Date | string
 }
 
 export type SequenceStepExecutionUpdateManyMutationInput = {
@@ -404,6 +421,7 @@ export type SequenceStepExecutionUpdateManyMutationInput = {
   renderedBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type SequenceStepExecutionUncheckedUpdateManyInput = {
@@ -417,6 +435,7 @@ export type SequenceStepExecutionUncheckedUpdateManyInput = {
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type SequenceStepExecutionNullableScalarRelationFilter = {
@@ -450,6 +469,7 @@ export type SequenceStepExecutionCountOrderByAggregateInput = {
   errorMessage?: Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   sentMessageId?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type SequenceStepExecutionAvgOrderByAggregateInput = {
@@ -467,6 +487,7 @@ export type SequenceStepExecutionMaxOrderByAggregateInput = {
   errorMessage?: Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   sentMessageId?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type SequenceStepExecutionMinOrderByAggregateInput = {
@@ -480,6 +501,7 @@ export type SequenceStepExecutionMinOrderByAggregateInput = {
   errorMessage?: Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   sentMessageId?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type SequenceStepExecutionSumOrderByAggregateInput = {
@@ -610,6 +632,7 @@ export type SequenceStepExecutionCreateWithoutSentMessageInput = {
   renderedBody?: string | null
   errorMessage?: string | null
   attemptCount?: number
+  updatedAt?: Date | string
   enrollment: Prisma.SequenceEnrollmentCreateNestedOneWithoutExecutionsInput
   step: Prisma.SequenceStepCreateNestedOneWithoutExecutionsInput
 }
@@ -624,6 +647,7 @@ export type SequenceStepExecutionUncheckedCreateWithoutSentMessageInput = {
   renderedBody?: string | null
   errorMessage?: string | null
   attemptCount?: number
+  updatedAt?: Date | string
 }
 
 export type SequenceStepExecutionCreateOrConnectWithoutSentMessageInput = {
@@ -650,6 +674,7 @@ export type SequenceStepExecutionUpdateWithoutSentMessageInput = {
   renderedBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   enrollment?: Prisma.SequenceEnrollmentUpdateOneRequiredWithoutExecutionsNestedInput
   step?: Prisma.SequenceStepUpdateOneRequiredWithoutExecutionsNestedInput
 }
@@ -664,6 +689,7 @@ export type SequenceStepExecutionUncheckedUpdateWithoutSentMessageInput = {
   renderedBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type SequenceStepExecutionCreateWithoutStepInput = {
@@ -674,6 +700,7 @@ export type SequenceStepExecutionCreateWithoutStepInput = {
   renderedBody?: string | null
   errorMessage?: string | null
   attemptCount?: number
+  updatedAt?: Date | string
   enrollment: Prisma.SequenceEnrollmentCreateNestedOneWithoutExecutionsInput
   sentMessage?: Prisma.SentMessageCreateNestedOneWithoutSequenceStepExecutionInput
 }
@@ -688,6 +715,7 @@ export type SequenceStepExecutionUncheckedCreateWithoutStepInput = {
   errorMessage?: string | null
   attemptCount?: number
   sentMessageId?: string | null
+  updatedAt?: Date | string
 }
 
 export type SequenceStepExecutionCreateOrConnectWithoutStepInput = {
@@ -730,6 +758,7 @@ export type SequenceStepExecutionScalarWhereInput = {
   errorMessage?: Prisma.StringNullableFilter<"SequenceStepExecution"> | string | null
   attemptCount?: Prisma.IntFilter<"SequenceStepExecution"> | number
   sentMessageId?: Prisma.StringNullableFilter<"SequenceStepExecution"> | string | null
+  updatedAt?: Prisma.DateTimeFilter<"SequenceStepExecution"> | Date | string
 }
 
 export type SequenceStepExecutionCreateWithoutEnrollmentInput = {
@@ -740,6 +769,7 @@ export type SequenceStepExecutionCreateWithoutEnrollmentInput = {
   renderedBody?: string | null
   errorMessage?: string | null
   attemptCount?: number
+  updatedAt?: Date | string
   step: Prisma.SequenceStepCreateNestedOneWithoutExecutionsInput
   sentMessage?: Prisma.SentMessageCreateNestedOneWithoutSequenceStepExecutionInput
 }
@@ -754,6 +784,7 @@ export type SequenceStepExecutionUncheckedCreateWithoutEnrollmentInput = {
   errorMessage?: string | null
   attemptCount?: number
   sentMessageId?: string | null
+  updatedAt?: Date | string
 }
 
 export type SequenceStepExecutionCreateOrConnectWithoutEnrollmentInput = {
@@ -792,6 +823,7 @@ export type SequenceStepExecutionCreateManyStepInput = {
   errorMessage?: string | null
   attemptCount?: number
   sentMessageId?: string | null
+  updatedAt?: Date | string
 }
 
 export type SequenceStepExecutionUpdateWithoutStepInput = {
@@ -802,6 +834,7 @@ export type SequenceStepExecutionUpdateWithoutStepInput = {
   renderedBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   enrollment?: Prisma.SequenceEnrollmentUpdateOneRequiredWithoutExecutionsNestedInput
   sentMessage?: Prisma.SentMessageUpdateOneWithoutSequenceStepExecutionNestedInput
 }
@@ -816,6 +849,7 @@ export type SequenceStepExecutionUncheckedUpdateWithoutStepInput = {
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type SequenceStepExecutionUncheckedUpdateManyWithoutStepInput = {
@@ -828,6 +862,7 @@ export type SequenceStepExecutionUncheckedUpdateManyWithoutStepInput = {
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type SequenceStepExecutionCreateManyEnrollmentInput = {
@@ -840,6 +875,7 @@ export type SequenceStepExecutionCreateManyEnrollmentInput = {
   errorMessage?: string | null
   attemptCount?: number
   sentMessageId?: string | null
+  updatedAt?: Date | string
 }
 
 export type SequenceStepExecutionUpdateWithoutEnrollmentInput = {
@@ -850,6 +886,7 @@ export type SequenceStepExecutionUpdateWithoutEnrollmentInput = {
   renderedBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   step?: Prisma.SequenceStepUpdateOneRequiredWithoutExecutionsNestedInput
   sentMessage?: Prisma.SentMessageUpdateOneWithoutSequenceStepExecutionNestedInput
 }
@@ -864,6 +901,7 @@ export type SequenceStepExecutionUncheckedUpdateWithoutEnrollmentInput = {
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type SequenceStepExecutionUncheckedUpdateManyWithoutEnrollmentInput = {
@@ -876,6 +914,7 @@ export type SequenceStepExecutionUncheckedUpdateManyWithoutEnrollmentInput = {
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentMessageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -891,6 +930,7 @@ export type SequenceStepExecutionSelect<ExtArgs extends runtime.Types.Extensions
   errorMessage?: boolean
   attemptCount?: boolean
   sentMessageId?: boolean
+  updatedAt?: boolean
   enrollment?: boolean | Prisma.SequenceEnrollmentDefaultArgs<ExtArgs>
   step?: boolean | Prisma.SequenceStepDefaultArgs<ExtArgs>
   sentMessage?: boolean | Prisma.SequenceStepExecution$sentMessageArgs<ExtArgs>
@@ -907,6 +947,7 @@ export type SequenceStepExecutionSelectCreateManyAndReturn<ExtArgs extends runti
   errorMessage?: boolean
   attemptCount?: boolean
   sentMessageId?: boolean
+  updatedAt?: boolean
   enrollment?: boolean | Prisma.SequenceEnrollmentDefaultArgs<ExtArgs>
   step?: boolean | Prisma.SequenceStepDefaultArgs<ExtArgs>
   sentMessage?: boolean | Prisma.SequenceStepExecution$sentMessageArgs<ExtArgs>
@@ -923,6 +964,7 @@ export type SequenceStepExecutionSelectUpdateManyAndReturn<ExtArgs extends runti
   errorMessage?: boolean
   attemptCount?: boolean
   sentMessageId?: boolean
+  updatedAt?: boolean
   enrollment?: boolean | Prisma.SequenceEnrollmentDefaultArgs<ExtArgs>
   step?: boolean | Prisma.SequenceStepDefaultArgs<ExtArgs>
   sentMessage?: boolean | Prisma.SequenceStepExecution$sentMessageArgs<ExtArgs>
@@ -939,9 +981,10 @@ export type SequenceStepExecutionSelectScalar = {
   errorMessage?: boolean
   attemptCount?: boolean
   sentMessageId?: boolean
+  updatedAt?: boolean
 }
 
-export type SequenceStepExecutionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "enrollmentId" | "stepId" | "status" | "scheduledAt" | "sentAt" | "renderedBody" | "errorMessage" | "attemptCount" | "sentMessageId", ExtArgs["result"]["sequenceStepExecution"]>
+export type SequenceStepExecutionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "enrollmentId" | "stepId" | "status" | "scheduledAt" | "sentAt" | "renderedBody" | "errorMessage" | "attemptCount" | "sentMessageId" | "updatedAt", ExtArgs["result"]["sequenceStepExecution"]>
 export type SequenceStepExecutionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   enrollment?: boolean | Prisma.SequenceEnrollmentDefaultArgs<ExtArgs>
   step?: boolean | Prisma.SequenceStepDefaultArgs<ExtArgs>
@@ -976,6 +1019,7 @@ export type $SequenceStepExecutionPayload<ExtArgs extends runtime.Types.Extensio
     errorMessage: string | null
     attemptCount: number
     sentMessageId: string | null
+    updatedAt: Date
   }, ExtArgs["result"]["sequenceStepExecution"]>
   composites: {}
 }
@@ -1412,6 +1456,7 @@ export interface SequenceStepExecutionFieldRefs {
   readonly errorMessage: Prisma.FieldRef<"SequenceStepExecution", 'String'>
   readonly attemptCount: Prisma.FieldRef<"SequenceStepExecution", 'Int'>
   readonly sentMessageId: Prisma.FieldRef<"SequenceStepExecution", 'String'>
+  readonly updatedAt: Prisma.FieldRef<"SequenceStepExecution", 'DateTime'>
 }
     
 

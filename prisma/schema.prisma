@@ -504,6 +504,7 @@ model SequenceStepExecution {
   errorMessage  String?
   attemptCount  Int             @default(0)
   sentMessageId String?         @unique
+  updatedAt     DateTime        @updatedAt
 
   enrollment  SequenceEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   step        SequenceStep       @relation(fields: [stepId], references: [id])

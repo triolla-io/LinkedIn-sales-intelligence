@@ -4,7 +4,7 @@ import { useState } from "react";
 import { X, Plus, Trash2, Mail, MessageSquare, ChevronUp, ChevronDown } from "lucide-react";
 
 type List = { id: string; name: string };
-type Template = { id: string; name: string; body: string };
+type Template = { id: string; name: string };
 
 type Step = {
   key: string;
