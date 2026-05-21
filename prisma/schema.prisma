@@ -324,6 +324,7 @@ model Campaign {
   status      CampaignStatus   @default(DRAFT)
   filterJson  Json?
   dailyLimit  Int?
+  subject    String?
   startedAt   DateTime?
   completedAt DateTime?
   createdAt   DateTime         @default(now())
