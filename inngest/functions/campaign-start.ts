@@ -61,9 +61,14 @@ export async function campaignStartHandler({ event }: any) {
     });
 
     if (status === "PENDING") {
-      const eventName = campaign.channel === "WHATSAPP" ? "campaign.send-whatsapp" : "campaign.send-one";
+      const eventName =
+        campaign.channel === "WHATSAPP"
+          ? "campaign.send-whatsapp"
+          : campaign.channel === "EMAIL"
+          ? "campaign.send-email"
+          : "campaign.send-one";
       await inngest.send({
-        name: eventName as "campaign.send-one" | "campaign.send-whatsapp",
+        name: eventName as "campaign.send-one" | "campaign.send-whatsapp" | "campaign.send-email",
         data: { recipientId: recipientRow.id },
       });
     }

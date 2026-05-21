@@ -6,6 +6,7 @@ import { enrichCompaniesWeb } from "@/inngest/functions/enrich-companies-web";
 import { campaignStart } from "@/inngest/functions/campaign-start";
 import { campaignSendOne } from "@/inngest/functions/campaign-send-one";
 import { campaignSendWhatsapp } from "@/inngest/functions/campaign-send-whatsapp";
+import { campaignSendEmail } from "@/inngest/functions/campaign-send-email";
 import { campaignFinalize } from "@/inngest/functions/campaign-finalize";
 
 export const { GET, POST, PUT } = serve({
@@ -17,6 +18,7 @@ export const { GET, POST, PUT } = serve({
     campaignStart,
     campaignSendOne,
     campaignSendWhatsapp,
+    campaignSendEmail,
     campaignFinalize,
   ],
 });
