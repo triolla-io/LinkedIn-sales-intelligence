@@ -101,6 +101,34 @@ export default function NewSequenceModal({
     }
   }
 
+  if (lists.length === 0 || templates.length === 0) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-[#111110]">New Sequence</h2>
+            <button onClick={onClose} className="text-[#9b9895] hover:text-[#111110] transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <p className="text-sm text-[#6b6866]">
+            {lists.length === 0
+              ? "You need at least one contact list before creating a sequence. Create a list first."
+              : "You need at least one message template before creating a sequence. Create a template first."}
+          </p>
+          <div className="flex justify-end mt-5">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">

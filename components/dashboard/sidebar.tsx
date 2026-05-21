@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Users, FileText, Shield, LogOut, LayoutDashboard, Upload, BookMarked, MessageCircle, Send, GitBranch } from "lucide-react";
+import { Users, FileText, Shield, LogOut, LayoutDashboard, Upload, BookMarked, MessageCircle, GitBranch } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 interface SidebarProps {
@@ -21,7 +21,6 @@ const navItems = [
   { href: "/sequences", label: "Sequences", icon: GitBranch },
   { href: "/templates", label: "Templates", icon: FileText },
   { href: "/import", label: "Import CSV", icon: Upload },
-  { href: "/campaigns", label: "Campaigns", icon: Send },
   { href: "/whatsapp-connect", label: "WhatsApp", icon: MessageCircle },
 ];
 

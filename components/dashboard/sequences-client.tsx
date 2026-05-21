@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GitBranch, Plus } from "lucide-react";
 import NewSequenceModal from "./new-sequence-modal";
@@ -36,6 +37,7 @@ export default function SequencesClient({
   lists: List[];
   templates: Template[];
 }) {
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
 
   return (
@@ -115,7 +117,7 @@ export default function SequencesClient({
           onClose={() => setShowModal(false)}
           onCreated={() => {
             setShowModal(false);
-            window.location.reload();
+            router.refresh();
           }}
         />
       )}

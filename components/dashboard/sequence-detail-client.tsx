@@ -162,25 +162,27 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
         <h2 className="text-sm font-semibold text-[#111110] mb-4">Steps</h2>
         <div className="flex gap-3 overflow-x-auto pb-2">
           {sequence.steps.map((step, i) => (
-            <div key={step.id} className="flex items-start gap-3 shrink-0">
-              <div className="flex flex-col items-center">
-                <div className="w-8 h-8 rounded-full border-2 border-[#1585ff] bg-[#eff5ff] flex items-center justify-center shrink-0">
-                  {step.channel === "EMAIL" ? (
-                    <Mail className="w-3.5 h-3.5 text-[#1585ff]" />
-                  ) : (
-                    <MessageSquare className="w-3.5 h-3.5 text-[#1585ff]" />
+            <div key={step.id} className="flex items-start gap-0 shrink-0">
+              <div className="flex flex-col items-start">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full border-2 border-[#1585ff] bg-[#eff5ff] flex items-center justify-center shrink-0">
+                    {step.channel === "EMAIL" ? (
+                      <Mail className="w-3.5 h-3.5 text-[#1585ff]" />
+                    ) : (
+                      <MessageSquare className="w-3.5 h-3.5 text-[#1585ff]" />
+                    )}
+                  </div>
+                  {i < sequence.steps.length - 1 && (
+                    <div className="h-0.5 w-8 bg-[#e5e3df]" />
                   )}
                 </div>
-                {i < sequence.steps.length - 1 && (
-                  <div className="w-0.5 h-6 bg-[#e5e3df] mt-1" />
-                )}
-              </div>
-              <div className="min-w-[140px]">
-                <p className="text-xs font-semibold text-[#111110]">
-                  Day {step.dayOffset + 1} — {step.channel === "EMAIL" ? "Email" : "WhatsApp"}
-                </p>
-                <p className="text-xs text-[#6b6866] mt-0.5">{step.template.name}</p>
-                {step.subject && <p className="text-xs text-[#9b9895] mt-0.5 italic">&ldquo;{step.subject}&rdquo;</p>}
+                <div className="min-w-[140px] mt-2 pr-4">
+                  <p className="text-xs font-semibold text-[#111110]">
+                    Day {step.dayOffset + 1} — {step.channel === "EMAIL" ? "Email" : "WhatsApp"}
+                  </p>
+                  <p className="text-xs text-[#6b6866] mt-0.5">{step.template.name}</p>
+                  {step.subject && <p className="text-xs text-[#9b9895] mt-0.5 italic">&ldquo;{step.subject}&rdquo;</p>}
+                </div>
               </div>
             </div>
           ))}
