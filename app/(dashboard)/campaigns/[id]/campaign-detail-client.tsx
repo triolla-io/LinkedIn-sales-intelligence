@@ -47,6 +47,19 @@ export function CampaignDetailClient({ initial }: { initial: Campaign }) {
     return () => es.close();
   }, [campaign.id]);
 
+  useEffect(() => {
+    const active = ["QUEUED", "RUNNING"].includes(campaign.status);
+    if (!active) return;
+    const interval = setInterval(async () => {
+      const res = await fetch(`/api/campaigns/${campaign.id}`);
+      if (res.ok) {
+        const json = await res.json();
+        setCampaign(json.campaign);
+      }
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [campaign.id, campaign.status]);
+
   const counts = campaign.recipients.reduce<Record<string, number>>((acc, r) => {
     acc[r.status] = (acc[r.status] ?? 0) + 1;
     return acc;

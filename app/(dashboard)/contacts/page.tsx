@@ -231,6 +231,10 @@ function ContactsContent() {
         contact={drawerContact}
         onClose={() => setDrawerContact(null)}
         onEnrich={handleEnrich}
+        onSaved={(updated) => {
+          setDrawerContact(updated);
+          setContacts((prev) => prev.map((c) => c.id === updated.id ? updated : c));
+        }}
       />
 
       {/* Bulk action bar */}

@@ -30,6 +30,7 @@ interface ContactDrawerProps {
   contact: Contact | null;
   onClose: () => void;
   onEnrich: (id: string) => void;
+  onSaved?: (updated: Contact) => void;
 }
 
 const SENIORITY_COLOR: Record<string, string> = {
@@ -57,7 +58,7 @@ function formatDate(iso: string): string {
   }).format(new Date(iso));
 }
 
-export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDrawerProps) {
+export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: ContactDrawerProps) {
   const [messages, setMessages] = useState<MessageRecord[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [contactLists, setContactLists] = useState<{ id: string; name: string }[]>([]);
@@ -394,6 +395,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDra
                 onSaved={(updated) => {
                   setLocalContact(updated);
                   setShowEdit(false);
+                  onSaved?.(updated);
                 }}
               />
             )}
