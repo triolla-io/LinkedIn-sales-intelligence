@@ -304,8 +304,9 @@ export default function ContactDrawer({ contact, onClose, onEnrich }: ContactDra
                           setShowListPopover(false);
                           // Refresh list membership
                           fetch(`/api/lists?contactId=${localContact.id}`)
-                            .then((r) => r.json())
-                            .then((d) => setContactLists(d.lists ?? []));
+                            .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+                            .then((d) => setContactLists(d.lists ?? []))
+                            .catch(() => {});
                         }}
                         anchorRef={addListBtnRef as React.RefObject<HTMLElement>}
                       />

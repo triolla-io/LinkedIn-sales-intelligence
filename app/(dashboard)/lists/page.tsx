@@ -12,12 +12,15 @@ export default function ListsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function fetchLists() {
-    const res = await fetch("/api/lists");
-    if (res.ok) {
-      const data = await res.json();
-      setLists(data.lists ?? []);
+    try {
+      const res = await fetch("/api/lists");
+      if (res.ok) {
+        const data = await res.json();
+        setLists(data.lists ?? []);
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   useEffect(() => { fetchLists(); }, []);
