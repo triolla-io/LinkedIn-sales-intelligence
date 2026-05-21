@@ -83,13 +83,16 @@ export default function ListDetailPage() {
     setEnrichDone(false);
     setEnrichError(null);
     try {
-      const [statusRes, postRes] = await Promise.all([
-        fetch(`/api/lists/${id}/enrich`),
-        fetch(`/api/lists/${id}/enrich`, { method: "POST" }),
-      ]);
+      const statusRes = await fetch(`/api/lists/${id}/enrich`);
+      const statusData = await statusRes.json();
+      const baseline = statusData.withEmail ?? 0;
+
+      const postRes = await fetch(`/api/lists/${id}/enrich`, { method: "POST" });
       const postData = await postRes.json();
       if (!postRes.ok) {
         setEnrichError(postData.error === "BUDGET_EXHAUSTED" ? "Budget exhausted" : "Enrichment failed");
+        clearTimeout(clearTimerRef.current);
+        clearTimerRef.current = setTimeout(() => setEnrichError(null), 4000);
         return;
       }
       const { queued } = postData;
@@ -99,8 +102,6 @@ export default function ListDetailPage() {
         clearTimerRef.current = setTimeout(() => setEnrichDone(false), 4000);
         return;
       }
-      const statusData = await statusRes.json();
-      const baseline = statusData.withEmail ?? 0;
       setEnrichProgress({ done: 0, target: queued });
 
       pollRef.current = setInterval(async () => {
@@ -122,6 +123,8 @@ export default function ListDetailPage() {
       }, 3000);
     } catch {
       setEnrichError("Network error");
+      clearTimeout(clearTimerRef.current);
+      clearTimerRef.current = setTimeout(() => setEnrichError(null), 4000);
     } finally {
       setEnriching(false);
     }

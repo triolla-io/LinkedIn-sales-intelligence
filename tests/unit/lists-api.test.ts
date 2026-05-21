@@ -62,9 +62,10 @@ describe("buildEnrichFilter", () => {
       email: null,
     });
   });
-  it("uses the correct listId", () => {
-    const result = buildEnrichFilter("list-abc") as Record<string, unknown>;
-    expect((result.lists as { some: { listId: string } }).some.listId).toBe("list-abc");
+  it("filters to unenriched contacts only (email: null)", () => {
+    const result = buildEnrichFilter("list-1") as Record<string, unknown>;
+    expect(result).toEqual({ lists: { some: { listId: "list-1" } }, email: null });
+    expect(Object.keys(result)).toHaveLength(2);
   });
 });
 
