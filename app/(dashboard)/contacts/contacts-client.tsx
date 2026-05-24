@@ -207,7 +207,7 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
 
   return (
     <div className="flex h-full min-h-screen bg-[#f6f5f3]">
-      <aside className="shrink-0 sticky top-0 h-screen overflow-y-auto">
+      <aside className="shrink-0 sticky top-0 h-screen">
         <FilterSidebar filters={filters} onChange={setFilters} />
       </aside>
 

@@ -164,7 +164,7 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
   if (collapsed) {
     return (
       <div
-        className="flex flex-col items-center justify-start pt-4 gap-3 bg-white border-r border-[#e5e3df] transition-[width] duration-200 ease-in-out"
+        className="flex flex-col items-center justify-start pt-4 gap-3 h-full bg-white border-r border-[#e5e3df] transition-[width] duration-200 ease-in-out"
         style={{ width: 32 }}
       >
         {activeCount > 0 && (
