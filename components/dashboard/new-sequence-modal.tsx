@@ -12,6 +12,8 @@ type Step = {
   templateId: string;
   subject: string;
   dayOffset: number;
+  sendHour: number;
+  sendMinute: number;
 };
 
 function uid() {
@@ -32,7 +34,7 @@ export default function NewSequenceModal({
   const [name, setName] = useState("");
   const [listId, setListId] = useState(lists[0]?.id ?? "");
   const [steps, setSteps] = useState<Step[]>([
-    { key: uid(), channel: "EMAIL", templateId: templates[0]?.id ?? "", subject: "", dayOffset: 0 },
+    { key: uid(), channel: "EMAIL", templateId: templates[0]?.id ?? "", subject: "", dayOffset: 0, sendHour: 9, sendMinute: 0 },
   ]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +43,7 @@ export default function NewSequenceModal({
     const lastOffset = steps[steps.length - 1]?.dayOffset ?? 0;
     setSteps((prev) => [
       ...prev,
-      { key: uid(), channel: "EMAIL", templateId: templates[0]?.id ?? "", subject: "", dayOffset: lastOffset + 2 },
+      { key: uid(), channel: "EMAIL", templateId: templates[0]?.id ?? "", subject: "", dayOffset: lastOffset + 2, sendHour: 9, sendMinute: 0 },
     ]);
   }
 
@@ -74,6 +76,8 @@ export default function NewSequenceModal({
           channel: s.channel,
           templateId: s.templateId,
           subject: s.channel === "EMAIL" ? s.subject.trim() : undefined,
+          sendHour: s.sendHour,
+          sendMinute: s.sendMinute,
         })),
       };
       const res = await fetch("/api/sequences", {
@@ -215,6 +219,34 @@ export default function NewSequenceModal({
                         </button>
                       )}
                     </div>
+                  </div>
+
+                  {/* Time picker */}
+                  <div className="flex items-center gap-1.5 text-xs text-[#6b6866]">
+                    <span>Send at</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={23}
+                      value={String(step.sendHour).padStart(2, "0")}
+                      onChange={(e) => {
+                        const v = parseInt(e.target.value, 10);
+                        updateStep(step.key, { sendHour: isNaN(v) ? 9 : Math.min(23, Math.max(0, v)) });
+                      }}
+                      className="w-10 border border-[#e5e3df] rounded px-1.5 py-1 text-center font-mono text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
+                    />
+                    <span className="font-mono text-[#6b6866]">:</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={59}
+                      value={String(step.sendMinute).padStart(2, "0")}
+                      onChange={(e) => {
+                        const v = parseInt(e.target.value, 10);
+                        updateStep(step.key, { sendMinute: isNaN(v) ? 0 : Math.min(59, Math.max(0, v)) });
+                      }}
+                      className="w-10 border border-[#e5e3df] rounded px-1.5 py-1 text-center font-mono text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
+                    />
                   </div>
 
                   {/* Channel toggle */}
