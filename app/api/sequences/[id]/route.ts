@@ -17,7 +17,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             contact: { select: { fullName: true, currentTitle: true, currentCompany: true } },
             executions: {
               orderBy: { step: { stepNumber: "asc" } },
-              select: { status: true, sentAt: true, step: { select: { stepNumber: true, channel: true } } },
+              select: {
+                status: true,
+                sentAt: true,
+                scheduledAt: true,
+                step: { select: { stepNumber: true, channel: true } },
+              },
             },
           },
         },
