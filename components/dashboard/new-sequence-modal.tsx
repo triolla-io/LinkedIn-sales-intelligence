@@ -233,7 +233,7 @@ export default function NewSequenceModal({
                         const v = parseInt(e.target.value, 10);
                         updateStep(step.key, { sendHour: isNaN(v) ? 9 : Math.min(23, Math.max(0, v)) });
                       }}
-                      className="w-10 border border-[#e5e3df] rounded px-1.5 py-1 text-center font-mono text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
+                      className="w-14 border border-[#e5e3df] rounded px-1.5 py-1 text-center font-mono text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
                     />
                     <span className="font-mono text-[#6b6866]">:</span>
                     <input
@@ -245,7 +245,7 @@ export default function NewSequenceModal({
                         const v = parseInt(e.target.value, 10);
                         updateStep(step.key, { sendMinute: isNaN(v) ? 0 : Math.min(59, Math.max(0, v)) });
                       }}
-                      className="w-10 border border-[#e5e3df] rounded px-1.5 py-1 text-center font-mono text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
+                      className="w-14 border border-[#e5e3df] rounded px-1.5 py-1 text-center font-mono text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
                     />
                   </div>
 

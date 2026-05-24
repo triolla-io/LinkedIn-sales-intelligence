@@ -202,6 +202,17 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
                   <p className="text-xs font-semibold text-[#111110]">
                     Day {step.dayOffset + 1} — {step.channel === "EMAIL" ? "Email" : "WhatsApp"}
                   </p>
+                  {sequence.startedAt && (
+                    <p className="text-[10px] text-[#9b9895] mt-0.5">
+                      {new Date(
+                        new Date(sequence.startedAt).getTime() + step.dayOffset * 86_400_000
+                      ).toLocaleDateString("he-IL", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        timeZone: "Asia/Jerusalem",
+                      })}
+                    </p>
+                  )}
                   <p className="text-xs text-[#6b6866] mt-0.5">{step.template.name}</p>
                   {step.subject && <p className="text-xs text-[#9b9895] mt-0.5 italic">&ldquo;{step.subject}&rdquo;</p>}
                 </div>
