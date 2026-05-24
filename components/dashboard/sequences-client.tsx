@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GitBranch, Plus } from "lucide-react";
 import NewSequenceModal from "./new-sequence-modal";
+import AutoRefresher from "@/components/auto-refresher";
 
 type Step = { stepNumber: number; channel: string; dayOffset: number };
 type Sequence = {
@@ -42,6 +43,7 @@ export default function SequencesClient({
 
   return (
     <div className="p-8">
+      <AutoRefresher />
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold text-[#111110]">Sequences</h1>
