@@ -196,13 +196,18 @@ function ContactsContent() {
     setExporting(true);
     try {
       const res = await fetch(buildExportUrl(filters));
-      if (!res.ok) return;
+      if (!res.ok) {
+        console.error("Export failed:", res.status);
+        return;
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `contacts-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } finally {
       setExporting(false);
@@ -237,7 +242,7 @@ function ContactsContent() {
               disabled={exporting || loading}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-emerald-600 border border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Download className={cn("w-3.5 h-3.5", exporting && "animate-bounce")} />
+              <Download className={cn("w-3.5 h-3.5", exporting && "animate-spin")} />
               {exporting ? "Exporting…" : "Export CSV"}
             </button>
             <button
