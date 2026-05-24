@@ -1,21 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function useCollapsed(key: string): [boolean, () => void] {
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem(key) === "true";
-    }
-    return false;
-  });
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(key);
+    if (stored !== null) setCollapsed(stored === "true");
+  }, [key]);
 
   function toggle() {
-    setCollapsed((prev) => {
-      const next = !prev;
-      localStorage.setItem(key, String(next));
-      return next;
-    });
+    const next = !collapsed;
+    localStorage.setItem(key, String(next));
+    setCollapsed(next);
   }
 
   return [collapsed, toggle];

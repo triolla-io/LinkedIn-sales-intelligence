@@ -12,9 +12,10 @@ describe("useCollapsed", () => {
     expect(result.current[0]).toBe(false);
   });
 
-  it("reads initial value from localStorage", () => {
+  it("reads initial value from localStorage", async () => {
     localStorage.setItem("test-key", "true");
     const { result } = renderHook(() => useCollapsed("test-key"));
+    await act(async () => {}); // flush effects
     expect(result.current[0]).toBe(true);
   });
 
@@ -25,9 +26,10 @@ describe("useCollapsed", () => {
     expect(localStorage.getItem("test-key")).toBe("true");
   });
 
-  it("toggle from true to false clears localStorage", () => {
+  it("toggle from true to false clears localStorage", async () => {
     localStorage.setItem("test-key", "true");
     const { result } = renderHook(() => useCollapsed("test-key"));
+    await act(async () => {}); // flush effects
     act(() => { result.current[1](); });
     expect(result.current[0]).toBe(false);
     expect(localStorage.getItem("test-key")).toBe("false");
