@@ -1,6 +1,7 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { matchPerson } from "@/lib/apollo/client";
+import { checkBudget, incrementBudget } from "@/lib/apollo/budget";
 
 export const enrichContact = inngest.createFunction(
   { id: "enrich-contact", triggers: [{ event: "enrich.contact" as const }] },
@@ -8,7 +9,7 @@ export const enrichContact = inngest.createFunction(
   async ({ event, step }: any) => {
     const { contactId } = event.data as { contactId: string; actorId: string };
 
-    const { contact, orgId, month } = await step.run("load-and-check", async () => {
+    const { contact, orgId } = await step.run("load-and-check", async () => {
       const c = await prisma.contact.findUnique({
         where: { id: contactId },
         include: { owner: { include: { org: true } } },
@@ -16,16 +17,10 @@ export const enrichContact = inngest.createFunction(
       if (!c) throw new Error(`Contact ${contactId} not found`);
 
       const orgId = c.owner.orgId;
-      const month = new Date().toISOString().slice(0, 7);
-      const spend = await prisma.enrichmentSpend.findUnique({
-        where: { orgId_month: { orgId, month } },
-      });
-      const credits = spend?.credits ?? 0;
-      if (credits >= c.owner.org.monthlyApolloBudget) {
-        throw new Error("BUDGET_EXHAUSTED");
-      }
+      const budget = await checkBudget(orgId, c.owner.org.monthlyApolloBudget);
+      if (!budget.allowed) throw new Error("BUDGET_EXHAUSTED");
 
-      return { contact: c, orgId, month };
+      return { contact: c, orgId };
     });
 
     const result = await step.run("match-person", async () => {
@@ -37,10 +32,16 @@ export const enrichContact = inngest.createFunction(
     });
 
     await step.run("save-results", async () => {
-      const { email, phone, companySize, currentCompany, industry } = result;
+      const { email, phone, companySize, currentCompany, industry, raw } = result;
       const protected_ = new Set(contact.manualFields as string[]);
 
-      const patch: Record<string, unknown> = {};
+      const patch: Record<string, unknown> = {
+        enrichedAt: new Date(),
+        enrichmentSource: "apollo",
+        enrichmentRanAt: new Date(),
+        enrichmentError: null,
+        enrichmentLog: raw ?? null,
+      };
       if (!protected_.has("email") && email) patch.email = email;
       if (!protected_.has("phone") && phone) patch.phone = phone;
       if (companySize) patch.companySize = companySize;
@@ -48,17 +49,9 @@ export const enrichContact = inngest.createFunction(
         patch.currentCompany = currentCompany;
       if (!protected_.has("industry") && industry && !contact.industry)
         patch.industry = industry;
-      patch.enrichedAt = new Date();
-      patch.enrichmentSource = "apollo";
 
-      await prisma.$transaction([
-        prisma.contact.update({ where: { id: contactId }, data: patch }),
-        prisma.enrichmentSpend.upsert({
-          where: { orgId_month: { orgId, month } },
-          create: { orgId, month, credits: 1 },
-          update: { credits: { increment: 1 } },
-        }),
-      ]);
+      await prisma.contact.update({ where: { id: contactId }, data: patch });
+      await incrementBudget(orgId);
     });
 
     const { email, phone, companySize } = result;
