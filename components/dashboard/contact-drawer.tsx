@@ -15,11 +15,16 @@ import {
   RefreshCw,
   CheckCircle2,
   X as XIcon,
+  ChevronDown,
+  ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Contact } from "./contact-table";
 import ListPopover from "./list-popover";
 import EditContactModal from "./edit-contact-modal";
+import { toast } from "@/lib/toast";
+import { displayCompanySize } from "@/lib/contacts/display";
 
 interface MessageRecord {
   id: string;
@@ -35,6 +40,15 @@ interface ContactDrawerProps {
   onSaved?: (updated: Contact) => void;
 }
 
+// Local contact state extends the shared Contact type with enrichment-detail fields
+// returned inline from the sync enrich route.
+interface LocalContact extends Contact {
+  enrichmentSource?: string | null;
+  enrichmentLog?: unknown;
+  enrichmentRanAt?: string | null;
+  enrichmentError?: string | null;
+}
+
 const SENIORITY_COLOR: Record<string, string> = {
   C_LEVEL: "text-amber-700 bg-amber-50 border-amber-200",
   VP: "text-blue-600 bg-blue-50 border-blue-200",
@@ -44,10 +58,16 @@ const SENIORITY_COLOR: Record<string, string> = {
   OTHER: "text-stone-500 bg-stone-100 border-stone-200",
 };
 
-
 function formatDate(iso: string): string {
   return new Intl.DateTimeFormat("en-US", {
     month: "short", day: "numeric", year: "numeric",
+  }).format(new Date(iso));
+}
+
+function formatDateTime(iso: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+    hour: "numeric", minute: "2-digit",
   }).format(new Date(iso));
 }
 
@@ -57,84 +77,152 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
   const [contactLists, setContactLists] = useState<{ id: string; name: string }[]>([]);
   const [showListPopover, setShowListPopover] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
-  const [localContact, setLocalContact] = useState<Contact | null>(contact);
-  const [enrichState, setEnrichState] = useState<"idle" | "queuing" | "searching" | "done" | "error">("idle");
+  const [localContact, setLocalContact] = useState<LocalContact | null>(contact);
+  const [enrichState, setEnrichState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [enrichError, setEnrichError] = useState<string | null>(null);
-  const [noDataFound, setNoDataFound] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [mobilePending, setMobilePending] = useState(false);
+  const [showEnrichDetails, setShowEnrichDetails] = useState(false);
+  const [showRawLog, setShowRawLog] = useState(false);
+  const mobilePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const addListBtnRef = useRef<HTMLButtonElement>(null);
 
+  // Reset state when the contact changes
   useEffect(() => {
     setLocalContact(contact);
     setShowEdit(false);
     setEnrichState("idle");
     setEnrichError(null);
-    setNoDataFound(false);
-    if (pollRef.current) clearInterval(pollRef.current);
+    setMobilePending(false);
+    setShowEnrichDetails(false);
+    setShowRawLog(false);
+    if (mobilePollRef.current) {
+      clearInterval(mobilePollRef.current);
+      mobilePollRef.current = null;
+    }
   }, [contact?.id]);
 
+  // Cleanup mobile poll on unmount
   useEffect(() => {
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+    return () => {
+      if (mobilePollRef.current) clearInterval(mobilePollRef.current);
+    };
   }, []);
+
+  // Auto-poll for mobile phone when mobilePending is true (max 10 × 30s = 5min)
+  useEffect(() => {
+    if (!mobilePending || !localContact) return;
+    if (mobilePollRef.current) clearInterval(mobilePollRef.current);
+
+    let attempts = 0;
+    mobilePollRef.current = setInterval(async () => {
+      attempts++;
+      try {
+        const r = await fetch(`/api/contacts/${localContact.id}`);
+        if (!r.ok) return;
+        const data = await r.json();
+        if (data.phone && data.phone !== localContact.phone) {
+          clearInterval(mobilePollRef.current!);
+          mobilePollRef.current = null;
+          setLocalContact((prev) => prev ? { ...prev, phone: data.phone } : prev);
+          setMobilePending(false);
+          toast.success(`${localContact.fullName} · Mobile phone received`, "Webhook delivered the mobile number.");
+        }
+      } catch {
+        // ignore transient errors
+      }
+      if (attempts >= 10) {
+        clearInterval(mobilePollRef.current!);
+        mobilePollRef.current = null;
+        setMobilePending(false);
+      }
+    }, 30_000);
+
+    return () => {
+      if (mobilePollRef.current) {
+        clearInterval(mobilePollRef.current);
+        mobilePollRef.current = null;
+      }
+    };
+  }, [mobilePending, localContact?.id]);
 
   async function handleEnrich() {
     if (!localContact) return;
-    setEnrichState("queuing");
+    setEnrichState("loading");
     setEnrichError(null);
-    setNoDataFound(false);
 
     try {
       const res = await fetch(`/api/contacts/${localContact.id}/enrich`, { method: "POST" });
+
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setEnrichError(res.status === 402 || data?.error === "BUDGET_EXHAUSTED" ? "Credit limit reached" : "Enrichment failed");
+        const msg =
+          res.status === 402 || data?.error === "BUDGET_EXHAUSTED"
+            ? "Credit limit reached"
+            : res.status === 502
+            ? `Apollo error: ${data?.detail ?? "network error"}`
+            : "Enrichment failed";
+        setEnrichError(msg);
         setEnrichState("error");
+        toast.error("Enrichment failed", msg);
         return;
       }
 
-      setEnrichState("searching");
-      const contactId = localContact.id;
-      let attempts = 0;
+      const data = await res.json();
 
-      pollRef.current = setInterval(async () => {
-        attempts++;
-        if (attempts > 20) {
-          clearInterval(pollRef.current!);
-          setEnrichError("Enrichment timed out — try again shortly");
-          setEnrichState("error");
-          return;
-        }
-        try {
-          const r = await fetch(`/api/contacts/${contactId}`);
-          if (!r.ok) return;
-          const data = await r.json();
-          if (data.enrichedAt) {
-            clearInterval(pollRef.current!);
-            setLocalContact((prev) =>
-              prev
-                ? {
-                    ...prev,
-                    email: data.email ?? prev.email,
-                    phone: data.phone ?? prev.phone,
-                    currentCompany: data.currentCompany ?? prev.currentCompany,
-                    companySize: data.companySize ?? prev.companySize,
-                    industry: data.industry ?? prev.industry,
-                    location: data.location ?? prev.location,
-                  }
-                : prev
-            );
-            const found = !!(data.email || data.phone);
-            setNoDataFound(!found);
-            setEnrichState("done");
-            onEnrich(contactId);
-          }
-        } catch {
-          // ignore transient poll errors
-        }
-      }, 3000);
+      // Merge response into localContact
+      setLocalContact((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          email: data.email ?? prev.email,
+          phone: data.phone ?? prev.phone,
+          companySize: data.companySize ?? prev.companySize,
+          currentCompany: data.currentCompany ?? prev.currentCompany,
+          industry: data.industry ?? prev.industry,
+          enrichedAt: data.enrichmentRanAt ?? prev.enrichedAt,
+          enrichmentSource: data.source,
+          enrichmentLog: data.enrichmentLog ?? prev.enrichmentLog,
+          enrichmentRanAt: data.enrichmentRanAt ?? prev.enrichmentRanAt,
+          enrichmentError: null,
+        };
+      });
+
+      setEnrichState("done");
+      onEnrich(localContact.id);
+
+      if (data.mobilePending) {
+        setMobilePending(true);
+      }
+
+      // Fire appropriate toast
+      if (data.source === "cache") {
+        toast.info(
+          `${localContact.fullName} · Already enriched`,
+          "Data loaded from org cache."
+        );
+      } else if (!data.email && !data.phone) {
+        toast.info(
+          `${localContact.fullName} · Apollo had no data`,
+          "No email or phone found for this profile."
+        );
+      } else {
+        const found: string[] = [];
+        const missing: string[] = [];
+        if (data.email) found.push("email");
+        else missing.push("email");
+        if (data.phone) found.push("work phone");
+        else if (data.mobilePending) missing.push("mobile (verifying…)");
+        else missing.push("phone");
+
+        const foundStr = found.length ? `Found: ${found.join(", ")}` : "";
+        const missingStr = missing.length ? `Missing: ${missing.join(", ")}` : "";
+        const body = [foundStr, missingStr].filter(Boolean).join(" · ");
+        toast.success(`${localContact.fullName} enriched`, body);
+      }
     } catch {
       setEnrichError("Network error");
       setEnrichState("error");
+      toast.error("Enrichment failed", "Network error — check your connection.");
     }
   }
 
@@ -161,7 +249,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
     if (!contact) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        if (showEdit) return;  // let the modal's listener handle it
+        if (showEdit) return;
         onClose();
       }
     }
@@ -267,6 +355,14 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                       </a>
                     </div>
                   </div>
+                ) : mobilePending ? (
+                  <div className="flex items-center gap-2.5">
+                    <Phone className="w-4 h-4 text-amber-400 shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Phone</p>
+                      <p className="text-xs text-amber-500 font-mono">Mobile verifying via webhook…</p>
+                    </div>
+                  </div>
                 ) : (
                   <div className="flex items-center gap-2.5 opacity-40">
                     <Phone className="w-4 h-4 text-[#9b9895] shrink-0" />
@@ -274,7 +370,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                   </div>
                 )}
 
-                {!localContact.email && !localContact.phone && (
+                {!localContact.email && !localContact.phone && !mobilePending && (
                   <div className="mt-1 space-y-1.5">
                     {enrichState === "idle" && (
                       <button
@@ -285,13 +381,13 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                         Enrich contact
                       </button>
                     )}
-                    {(enrichState === "queuing" || enrichState === "searching") && (
+                    {enrichState === "loading" && (
                       <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-blue-600 border border-blue-100 bg-blue-50 rounded-md">
                         <RefreshCw className="w-3 h-3 animate-spin" />
-                        {enrichState === "queuing" ? "Queuing…" : "Searching Apollo…"}
+                        Searching Apollo…
                       </div>
                     )}
-                    {enrichState === "done" && noDataFound && (
+                    {enrichState === "done" && (
                       <p className="text-xs text-[#9b9895] px-1">No contact data found in Apollo.</p>
                     )}
                     {enrichState === "error" && (
@@ -308,11 +404,23 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                     )}
                   </div>
                 )}
-                {enrichState === "done" && !noDataFound && (
+
+                {enrichState === "done" && (localContact.email || localContact.phone) && (
                   <div className="flex items-center gap-1.5 mt-1 px-1 text-xs text-emerald-600">
                     <CheckCircle2 className="w-3 h-3" />
                     Enriched successfully
                   </div>
+                )}
+
+                {/* Enrich button for contacts that already have some data */}
+                {(localContact.email || localContact.phone) && enrichState === "idle" && (
+                  <button
+                    onClick={handleEnrich}
+                    className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#9b9895] border border-[#e5e3df] hover:border-amber-300 hover:text-amber-600 rounded-md transition-all"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Re-enrich
+                  </button>
                 )}
               </div>
 
@@ -331,15 +439,24 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                       </div>
                     </div>
                   )}
-                  {localContact.companySize && (
-                    <div className="flex items-center gap-2.5">
-                      <Users className="w-4 h-4 text-[#9b9895] shrink-0" />
-                      <div>
-                        <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Employees</p>
-                        <p className="text-sm font-mono text-[#111110]">{localContact.companySize.toLocaleString()}</p>
+                  {(() => {
+                    const { value: empCount, source: empSource } = displayCompanySize(localContact);
+                    if (!empCount) return null;
+                    return (
+                      <div className="flex items-center gap-2.5">
+                        <Users className="w-4 h-4 text-[#9b9895] shrink-0" />
+                        <div>
+                          <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Employees</p>
+                          <p className="text-sm font-mono text-[#111110]">
+                            {empCount.toLocaleString()}
+                            <span className="ml-1.5 text-[10px] text-[#9b9895] font-sans">
+                              (from {empSource === "apollo" ? "Apollo" : "LinkedIn"})
+                            </span>
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                   {localContact.location && (
                     <div className="flex items-center gap-2.5">
                       <MapPin className="w-4 h-4 text-[#9b9895] shrink-0" />
@@ -381,6 +498,75 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                 )}
               </div>
 
+              {/* Enrichment Details (collapsed by default) */}
+              {localContact.enrichmentRanAt && (
+                <div className="border-b border-[#e5e3df]">
+                  <button
+                    onClick={() => setShowEnrichDetails((v) => !v)}
+                    className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#f8f7f5] transition-colors"
+                  >
+                    <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">
+                      Enrichment Details
+                    </p>
+                    {showEnrichDetails ? (
+                      <ChevronDown className="w-3.5 h-3.5 text-[#9b9895]" />
+                    ) : (
+                      <ChevronRight className="w-3.5 h-3.5 text-[#9b9895]" />
+                    )}
+                  </button>
+
+                  {showEnrichDetails && (
+                    <div className="px-4 pb-4 space-y-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs text-[#9b9895]">
+                          Last attempt: {formatDateTime(localContact.enrichmentRanAt)}
+                        </span>
+                        {localContact.enrichmentSource && (
+                          <span
+                            className={cn(
+                              "px-1.5 py-0.5 rounded text-[10px] font-mono font-medium",
+                              localContact.enrichmentSource === "apollo"
+                                ? "bg-blue-50 text-blue-600 border border-blue-200"
+                                : "bg-violet-50 text-violet-600 border border-violet-200"
+                            )}
+                          >
+                            {localContact.enrichmentSource === "apollo" ? "Apollo (fresh)" : "Cache"}
+                          </span>
+                        )}
+                      </div>
+
+                      {localContact.enrichmentError && (
+                        <div className="flex items-start gap-2 p-2.5 rounded-md bg-red-50 border border-red-200">
+                          <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />
+                          <p className="text-xs text-red-600 leading-snug">{localContact.enrichmentError}</p>
+                        </div>
+                      )}
+
+                      {!!localContact.enrichmentLog && (
+                        <div>
+                          <button
+                            onClick={() => setShowRawLog((v) => !v)}
+                            className="flex items-center gap-1 text-xs text-[#9b9895] hover:text-[#1585ff] transition-colors"
+                          >
+                            {showRawLog ? (
+                              <ChevronDown className="w-3 h-3" />
+                            ) : (
+                              <ChevronRight className="w-3 h-3" />
+                            )}
+                            Show raw Apollo response
+                          </button>
+                          {showRawLog && (
+                            <pre className="mt-2 p-2.5 rounded-md bg-[#f8f7f5] border border-[#e5e3df] text-[10px] text-[#6b6866] overflow-x-auto max-h-64 leading-relaxed">
+                              {JSON.stringify(localContact.enrichmentLog, null, 2)}
+                            </pre>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Lists */}
               <div className="p-4 border-b border-[#e5e3df]">
                 <div className="flex items-center justify-between mb-2">
@@ -400,7 +586,6 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                         contactIds={[localContact.id]}
                         onClose={() => {
                           setShowListPopover(false);
-                          // Refresh list membership
                           fetch(`/api/lists?contactId=${localContact.id}`)
                             .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
                             .then((d) => setContactLists(d.lists ?? []))
