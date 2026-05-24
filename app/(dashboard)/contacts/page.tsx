@@ -1,338 +1,111 @@
-"use client";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import ContactsClient from "./contacts-client";
 
-import { useCallback, useEffect, useRef, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
-import StatsBar from "@/components/dashboard/stats-bar";
-import FilterSidebar, { type Filters, DEFAULT_FILTERS } from "@/components/dashboard/filter-sidebar";
-import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
-import ContactDrawer from "@/components/dashboard/contact-drawer";
-import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
-import { RefreshCw, Download } from "lucide-react";
-import { cn } from "@/lib/cn";
-
-type InsightsData = {
-  total: number;
-  bySeniority: Record<string, number>;
-  byFunction: Record<string, number>;
-  topCompanies: { name: string; count: number }[];
-  companySizeHistogram: { bucket: string; count: number }[];
-  coverage: { email: number; phone: number };
-};
-
-const ROW_HEIGHT = 56;
-const TABLE_HEADER_H = 37;  // grid header row
-const TABLE_FOOTER_H = 41;  // pagination footer
-const MIN_PAGE_SIZE = 5;
 const DEFAULT_PAGE_SIZE = 15;
+import type { Contact } from "@/components/dashboard/contact-table";
 
-function buildContactsUrl(filters: Filters, page: number, pageSize: number) {
-  const params = new URLSearchParams();
-  if (filters.q) params.set("q", filters.q);
-  if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
-  if (filters.function.length) params.set("function", filters.function.join(","));
-  if (filters.titleSearch.length) params.set("titleSearch", filters.titleSearch.join(","));
-  if (filters.industry.length) params.set("industry", filters.industry.join(","));
-  if (filters.companySizeBuckets.length) params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
-  if (filters.hasEmail) params.set("hasEmail", "true");
-  if (filters.hasPhone) params.set("hasPhone", "true");
-  if (filters.listId) params.set("listId", filters.listId);
-  params.set("page", String(page));
-  params.set("pageSize", String(pageSize));
-  return `/api/contacts?${params.toString()}`;
-}
+const SHARED_SELECT = {
+  id: true,
+  linkedinUrl: true,
+  fullName: true,
+  headline: true,
+  currentTitle: true,
+  currentCompany: true,
+  companySize: true,
+  seniority: true,
+  function: true,
+  location: true,
+  industry: true,
+  profilePicUrl: true,
+  lastSyncedAt: true,
+  email: true,
+  phone: true,
+  enrichedAt: true,
+  manualFields: true,
+  company: { select: { staffCount: true, industry: true } },
+} as const;
 
-function buildInsightsUrl(filters: Filters) {
-  const params = new URLSearchParams();
-  if (filters.q) params.set("q", filters.q);
-  if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
-  if (filters.function.length) params.set("function", filters.function.join(","));
-  return `/api/insights?${params.toString()}`;
-}
+export default async function ContactsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/sign-in");
 
-function buildExportUrl(filters: Filters) {
-  const params = new URLSearchParams();
-  if (filters.q) params.set("q", filters.q);
-  if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
-  if (filters.function.length) params.set("function", filters.function.join(","));
-  if (filters.titleSearch.length) params.set("titleSearch", filters.titleSearch.join(","));
-  if (filters.industry.length) params.set("industry", filters.industry.join(","));
-  if (filters.companySizeBuckets.length) params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
-  if (filters.hasEmail) params.set("hasEmail", "true");
-  if (filters.hasPhone) params.set("hasPhone", "true");
-  if (filters.listId) params.set("listId", filters.listId);
-  return `/api/contacts/export?${params.toString()}`;
-}
+  const sp = await searchParams;
 
-function sevenDaysAgo(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 7);
-  return d.toISOString().slice(0, 10);
-}
+  function sp2arr(key: string): string[] {
+    const v = sp[key];
+    if (!v) return [];
+    return (Array.isArray(v) ? v : v.split(",")).filter(Boolean);
+  }
 
-function ContactsContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const q = typeof sp.q === "string" ? sp.q : undefined;
+  const seniority = sp2arr("seniority");
+  const fn = sp2arr("function");
+  const titleSearch = sp2arr("titleSearch");
+  const industry = sp2arr("industry");
+  const hasEmail = sp.hasEmail === "true";
+  const hasPhone = sp.hasPhone === "true";
+  const listId = typeof sp.listId === "string" ? sp.listId : undefined;
 
-  const [filters, setFilters] = useState<Filters>(() => ({
-    ...DEFAULT_FILTERS,
-    q: searchParams.get("q") ?? "",
-    seniority: searchParams.get("seniority")?.split(",").filter(Boolean) ?? [],
-    function: searchParams.get("function")?.split(",").filter(Boolean) ?? [],
-    titleSearch: searchParams.get("titleSearch")?.split(",").filter(Boolean) ?? [],
-    industry: searchParams.get("industry")?.split(",").filter(Boolean) ?? [],
-    companySizeBuckets: searchParams.get("companySizeBuckets")?.split(",").filter(Boolean) ?? [],
-    hasEmail: searchParams.get("hasEmail") === "true" ? true : undefined,
-    hasPhone: searchParams.get("hasPhone") === "true" ? true : undefined,
-    listId: searchParams.get("listId") ?? undefined,
-  }));
-
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const [total, setTotal] = useState(0);
-  const [insights, setInsights] = useState<InsightsData | null>(null);
-  const [newThisWeek, setNewThisWeek] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [exporting, setExporting] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [drawerContact, setDrawerContact] = useState<Contact | null>(null);
-  const tableWrapperRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = tableWrapperRef.current;
-    if (!el) return;
-    let timer: ReturnType<typeof setTimeout>;
-    const obs = new ResizeObserver(([entry]) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        const h = entry.contentRect.height;
-        const rows = Math.max(MIN_PAGE_SIZE, Math.floor((h - TABLE_HEADER_H - TABLE_FOOTER_H) / ROW_HEIGHT));
-        setPageSize(rows);
-      }, 100);
+  const andClauses: any[] = [];
+  if (q) {
+    andClauses.push({
+      OR: [
+        { fullName: { contains: q, mode: "insensitive" } },
+        { headline: { contains: q, mode: "insensitive" } },
+        { currentCompany: { contains: q, mode: "insensitive" } },
+        { currentTitle: { contains: q, mode: "insensitive" } },
+      ],
     });
-    obs.observe(el);
-    return () => { obs.disconnect(); clearTimeout(timer); };
-  }, []);
-
-  const prevFiltersRef = useRef(filters);
-  useEffect(() => {
-    if (prevFiltersRef.current !== filters) {
-      prevFiltersRef.current = filters;
-      setPage(1);
-    }
-  }, [filters]);
-
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (filters.q) params.set("q", filters.q);
-    if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
-    if (filters.function.length) params.set("function", filters.function.join(","));
-    if (filters.titleSearch.length) params.set("titleSearch", filters.titleSearch.join(","));
-    if (filters.industry.length) params.set("industry", filters.industry.join(","));
-    if (filters.companySizeBuckets.length) params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
-    if (filters.hasEmail) params.set("hasEmail", "true");
-    if (filters.hasPhone) params.set("hasPhone", "true");
-    if (filters.listId) params.set("listId", filters.listId);
-    router.replace(`/contacts?${params.toString()}`, { scroll: false });
-  }, [filters, router]);
-
-  const hasLoadedOnce = useRef(false);
-  const abortRef = useRef<AbortController | null>(null);
-  const fetchData = useCallback(async () => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    const { signal } = controller;
-
-    if (hasLoadedOnce.current) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-    setSelectedIds(new Set());
-    try {
-      const [contactsRes, insightsRes, weekRes] = await Promise.all([
-        fetch(buildContactsUrl(filters, page, pageSize), { signal }),
-        fetch(buildInsightsUrl(filters), { signal }),
-        fetch(`/api/contacts?connectedFrom=${sevenDaysAgo()}&limit=1`, { signal }),
-      ]);
-      if (contactsRes.ok) {
-        const data = await contactsRes.json();
-        setContacts(data.items ?? []);
-        setTotal(data.totalApprox ?? 0);
-        hasLoadedOnce.current = true;
-      }
-      if (insightsRes.ok) setInsights(await insightsRes.json());
-      if (weekRes.ok) {
-        const weekData = await weekRes.json();
-        setNewThisWeek(weekData.totalApprox ?? 0);
-      }
-    } catch (e) {
-      if ((e as Error)?.name === "AbortError") return;
-      console.error("Failed to fetch data:", e);
-    } finally {
-      if (!signal.aborted) {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    }
-  }, [filters, page, pageSize]);
-
-  useAutoRefresh(fetchData, 30_000);
-
-  // Re-fetch whenever filters, page, or pageSize change (useAutoRefresh only handles intervals/focus)
-  const isMounted = useRef(false);
-  useEffect(() => {
-    if (!isMounted.current) { isMounted.current = true; return; }
-    fetchData();
-  }, [fetchData]);
-
-  function handleEnrich(id: string) {
-    fetch(`/api/contacts/${id}/enrich`, { method: "POST" }).then(() => fetchData()).catch(() => {});
+  }
+  if (titleSearch.length) {
+    andClauses.push({
+      OR: titleSearch.map((t) => ({
+        OR: [
+          { currentTitle: { contains: t, mode: "insensitive" } },
+          { headline: { contains: t, mode: "insensitive" } },
+        ],
+      })),
+    });
+  }
+  if (industry.length) {
+    andClauses.push({
+      OR: industry.map((i) => ({
+        industry: { contains: i, mode: "insensitive" },
+      })),
+    });
   }
 
-  async function handleExport() {
-    setExporting(true);
-    try {
-      const res = await fetch(buildExportUrl(filters));
-      if (!res.ok) {
-        console.error("Export failed:", res.status);
-        return;
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `contacts-${new Date().toISOString().slice(0, 10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } finally {
-      setExporting(false);
-    }
-  }
+  const where: any = {
+    ownerId: session.user.id,
+    removedAt: null,
+    ...(seniority.length ? { seniority: { in: seniority as any } } : {}),
+    ...(fn.length ? { function: { in: fn as any } } : {}),
+    ...(hasEmail ? { email: { not: null } } : {}),
+    ...(hasPhone ? { phone: { not: null } } : {}),
+    ...(andClauses.length ? { AND: andClauses } : {}),
+    ...(listId ? { lists: { some: { listId } } } : {}),
+  };
 
-  const totalPages = pageSize > 0 ? Math.ceil(total / pageSize) : 1;
-  const selectedContacts = contacts.filter((c) => selectedIds.has(c.id));
+  const [contacts, total] = await Promise.all([
+    prisma.contact.findMany({
+      where,
+      orderBy: [{ lastSyncedAt: "desc" }, { id: "desc" }],
+      take: DEFAULT_PAGE_SIZE,
+      select: SHARED_SELECT,
+    }),
+    prisma.contact.count({ where }),
+  ]);
 
   return (
-    <div className="flex h-full min-h-screen bg-[#f6f5f3]">
-      {/* Filter Sidebar */}
-      <aside className="w-56 shrink-0 sticky top-0 h-screen overflow-y-auto">
-        <FilterSidebar filters={filters} onChange={setFilters} />
-      </aside>
-
-      {/* Main content */}
-      <div className="flex-1 min-w-0 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
-          <div className="flex items-center gap-3">
-            <h1 className="text-sm font-semibold text-[#111110] tracking-tight">Contacts</h1>
-            {!loading && (
-              <span className="text-xs font-mono text-[#9b9895]">
-                {total.toLocaleString()} total
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleExport}
-              disabled={exporting || loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-emerald-600 border border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download className={cn("w-3.5 h-3.5", exporting && "animate-spin")} />
-              {exporting ? "Exporting…" : "Export CSV"}
-            </button>
-            <button
-              onClick={fetchData}
-              disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors"
-            >
-              <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
-              Refresh
-            </button>
-          </div>
-        </div>
-
-        <div className="px-5 pt-4 pb-0 flex flex-col flex-1 min-h-0 gap-4">
-          {/* Stats strip */}
-          {insights && (
-            <StatsBar
-              insights={insights}
-              newThisWeek={newThisWeek}
-              onFilterCLevel={() =>
-                setFilters((prev) => ({ ...prev, seniority: ["C_LEVEL"] }))
-              }
-            />
-          )}
-
-          {/* Table — takes remaining height, no scroll */}
-          <div ref={tableWrapperRef} className="flex-1 min-h-0 flex flex-col pb-4">
-            <ContactTable
-              contacts={contacts}
-              selectedIds={selectedIds}
-              onToggle={(id) =>
-                setSelectedIds((prev) => {
-                  const next = new Set(prev);
-                  next.has(id) ? next.delete(id) : next.add(id);
-                  return next;
-                })
-              }
-              onSelectAll={() =>
-                setSelectedIds(
-                  contacts.every((c) => selectedIds.has(c.id))
-                    ? new Set()
-                    : new Set(contacts.map((c) => c.id))
-                )
-              }
-              onEnrich={handleEnrich}
-              onOpenDrawer={setDrawerContact}
-              loading={loading}
-              refreshing={refreshing}
-              page={page}
-              totalPages={totalPages}
-              total={total}
-              pageSize={pageSize}
-              onPageChange={setPage}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Contact drawer */}
-      <ContactDrawer
-        contact={drawerContact}
-        onClose={() => setDrawerContact(null)}
-        onEnrich={handleEnrich}
-        onSaved={(updated) => {
-          setDrawerContact(updated);
-          setContacts((prev) => prev.map((c) => c.id === updated.id ? updated : c));
-        }}
-      />
-
-      {/* Bulk action bar */}
-      {selectedIds.size > 0 && (
-        <BulkEnrichBar
-          selectedIds={Array.from(selectedIds)}
-          selectedContacts={selectedContacts}
-          onDone={() => { setSelectedIds(new Set()); fetchData(); }}
-        />
-      )}
-
-    </div>
-  );
-}
-
-export default function ContactsPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#f6f5f3] flex items-center justify-center">
-        <p className="text-xs font-mono text-[#9b9895]">Loading…</p>
-      </div>
-    }>
-      <ContactsContent />
-    </Suspense>
+    <ContactsClient
+      initialContacts={contacts as unknown as Contact[]}
+      initialTotal={total}
+    />
   );
 }

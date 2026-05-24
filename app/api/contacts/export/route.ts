@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const COMPANY_SIZE_BUCKETS: Record<string, [number, number | null]> = {
   "1-10": [1, 10],
   "11-50": [11, 50],
@@ -140,6 +142,7 @@ export const GET = withTenant(async (req, ctx) => {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": `attachment; filename="contacts-${date}.csv"`,
+        "Cache-Control": "no-store",
       },
     });
   } catch (err) {

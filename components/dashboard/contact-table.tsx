@@ -33,6 +33,7 @@ interface ContactTableProps {
   onEnrich?: (id: string) => void;
   onOpenDrawer: (contact: Contact) => void;
   loading: boolean;
+  refreshing?: boolean;
   page: number;
   totalPages: number;
   total: number;

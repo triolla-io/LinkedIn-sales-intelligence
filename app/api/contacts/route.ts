@@ -3,13 +3,14 @@ import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
-const COMPANY_SIZE_BUCKETS: Record<string, [number, number]> = {
+const COMPANY_SIZE_BUCKETS: Record<string, [number, number | null]> = {
   "1-10": [1, 10],
   "11-50": [11, 50],
   "51-200": [51, 200],
-  "201-1000": [201, 1000],
-  "1001-10000": [1001, 10000],
-  "10001+": [10001, Number.MAX_SAFE_INTEGER],
+  "201-500": [201, 500],
+  "501-1000": [501, 1000],
+  "1001-5000": [1001, 5000],
+  "5001+": [5001, null],
 };
 
 const querySchema = z.object({
@@ -63,12 +64,20 @@ export const GET = withTenant(async (req, ctx) => {
 
   const params = parsed.data;
 
-  // Build company size OR conditions
+  // Build company size OR conditions — match either Apollo's companySize or LinkedIn's staffCount
   const sizeConditions =
     params.companySizeBuckets
       ?.map((bucket) => COMPANY_SIZE_BUCKETS[bucket])
       .filter(Boolean)
-      .map(([min, max]) => ({ companySize: { gte: min, lte: max } })) ?? [];
+      .map(([min, max]) => {
+        const range = max !== null ? { gte: min, lte: max } : { gte: min };
+        return {
+          OR: [
+            { companySize: range },
+            { company: { staffCount: range } },
+          ],
+        };
+      }) ?? [];
 
   const andClauses: any[] = [];
   if (params.q) {

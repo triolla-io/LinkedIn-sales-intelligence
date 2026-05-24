@@ -73,3 +73,6 @@ db-backups/
 
 # stale prisma output (canonical client lives at lib/generated/prisma)
 /app/generated/
+
+# superpowers plans & specs
+docs/superpowers/
