@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import StatsBar from "@/components/dashboard/stats-bar";
 import FilterSidebar, { type Filters, DEFAULT_FILTERS } from "@/components/dashboard/filter-sidebar";
 import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
@@ -142,7 +143,7 @@ function ContactsContent() {
     }
   }, [filters, page, pageSize]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useAutoRefresh(fetchData, 30_000);
 
   function handleEnrich(id: string) {
     fetch(`/api/contacts/${id}/enrich`, { method: "POST" }).then(() => fetchData()).catch(() => {});
