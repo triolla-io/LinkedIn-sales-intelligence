@@ -55,7 +55,7 @@ export async function matchPerson(input: {
     name: input.name,
     organization_name: input.company,
     linkedin_url: input.linkedinUrl,
-    reveal_personal_emails: true,
+    reveal_personal_emails: false,
   });
 
   const delays = [1000, 2000, 4000];
@@ -92,9 +92,16 @@ export async function matchPerson(input: {
     const data = await res.json();
     const person = data.person;
     const org = person?.organization;
+    const phones: { sanitized_number?: string; type?: string }[] = person?.phone_numbers ?? [];
+    const phone =
+      phones.find((p) => p.type === "work_direct")?.sanitized_number ??
+      phones.find((p) => p.type === "work")?.sanitized_number ??
+      phones.find((p) => p.type === "other")?.sanitized_number ??
+      phones.find((p) => p.type === "mobile")?.sanitized_number ??
+      phones[0]?.sanitized_number;
     return {
       email: person?.email ?? undefined,
-      phone: person?.phone_numbers?.[0]?.sanitized_number ?? undefined,
+      phone,
       companySize: org?.estimated_num_employees ?? undefined,
       currentCompany: org?.name ?? undefined,
       industry: org?.industry ?? undefined,
