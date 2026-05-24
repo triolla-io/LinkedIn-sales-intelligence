@@ -68,6 +68,8 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
           channel: s.channel,
           templateId: s.templateId,
           subject: s.subject,
+          sendHour: s.sendHour,
+          sendMinute: s.sendMinute,
         })),
       },
     },
