@@ -7,6 +7,7 @@ import { ArrowLeft, Play, Pause, RotateCcw, XCircle, Mail, MessageSquare } from 
 type StepExecution = {
   status: string;
   sentAt: Date | string | null;
+  scheduledAt: Date | string | null;
   step: { stepNumber: number; channel: string; dayOffset: number };
 };
 type Enrollment = {
@@ -52,6 +53,27 @@ const EXEC_COLORS: Record<string, string> = {
   FAILED: "bg-[#fff3f3] text-[#dc2626]",
   SKIPPED: "bg-[#f3f2ef] text-[#9b9895]",
 };
+
+function formatScheduled(scheduledAt: Date | string | null): string | null {
+  if (!scheduledAt) return null;
+  const d = new Date(scheduledAt);
+  const dateStr = d.toLocaleDateString("he-IL", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "Asia/Jerusalem",
+  });
+  const timeStr = d.toLocaleTimeString("he-IL", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Jerusalem",
+  });
+  const diffMs = d.getTime() - Date.now();
+  if (diffMs < 0) return `${dateStr} ${timeStr} (מאוחר)`;
+  const diffH = Math.round(diffMs / 3_600_000);
+  if (diffH < 24) return `${dateStr} ${timeStr} (בעוד ${diffH} שעות)`;
+  const diffDays = Math.round(diffMs / 86_400_000);
+  return `${dateStr} ${timeStr} (בעוד ${diffDays} ימים)`;
+}
 
 export default function SequenceDetailClient({ sequence }: { sequence: Sequence }) {
   const [status, setStatus] = useState(sequence.status);
@@ -223,9 +245,30 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
                     return (
                       <td key={step.id} className="px-3 py-3 text-center">
                         {exec ? (
-                          <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${EXEC_COLORS[exec.status] ?? ""}`}>
-                            {exec.status}
-                          </span>
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${EXEC_COLORS[exec.status] ?? ""}`}>
+                              {exec.status}
+                            </span>
+                            {exec.status === "PENDING" && exec.scheduledAt && (
+                              <span className="text-[10px] text-[#9b9895] whitespace-nowrap">
+                                {formatScheduled(exec.scheduledAt)}
+                              </span>
+                            )}
+                            {exec.status === "SENT" && exec.sentAt && (
+                              <span className="text-[10px] text-[#9b9895] whitespace-nowrap">
+                                {new Date(exec.sentAt).toLocaleDateString("he-IL", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  timeZone: "Asia/Jerusalem",
+                                })}{" "}
+                                {new Date(exec.sentAt).toLocaleTimeString("he-IL", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  timeZone: "Asia/Jerusalem",
+                                })}
+                              </span>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-[#c8c5c2] text-xs">—</span>
                         )}
