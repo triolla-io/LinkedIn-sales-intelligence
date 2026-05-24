@@ -106,9 +106,10 @@ model Organization {
   monthlyApolloBudget Int      @default(500)
   createdAt           DateTime @default(now())
 
-  users            User[]
-  enrichmentSpends EnrichmentSpend[]
-  invites          Invite[]
+  users             User[]
+  enrichmentSpends  EnrichmentSpend[]
+  invites           Invite[]
+  personEnrichments PersonEnrichment[]
 }
 
 model User {
@@ -164,6 +165,9 @@ model Contact {
   enrichedAt       DateTime?
   enrichmentSource String?
   manualFields     String[]  @default([])
+  enrichmentLog    Json?
+  enrichmentRanAt  DateTime?
+  enrichmentError  String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -259,6 +263,26 @@ model EnrichmentSpend {
   org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@unique([orgId, month])
+}
+
+model PersonEnrichment {
+  id                    String   @id @default(cuid())
+  orgId                 String
+  linkedinUrlNormalized String
+  email                 String?
+  phone                 String?
+  companySize           Int?
+  currentCompany        String?
+  industry              String?
+  rawResponse           Json?
+  enrichedByContactId   String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, linkedinUrlNormalized])
+  @@index([orgId])
 }
 
 model LinkedinSession {
