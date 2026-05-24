@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Mail, Phone, ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { ChevronLeft, ChevronRight, Check, Columns3, GripVertical } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { displayCompanySize } from "@/lib/contacts/display";
 
@@ -86,54 +87,161 @@ interface TooltipCellProps {
 }
 
 function TooltipCell({ text, className, mono = false }: TooltipCellProps) {
-  const [show, setShow] = useState(false);
+  const [rect, setRect] = useState<DOMRect | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   return (
     <div
       ref={ref}
       className="relative min-w-0"
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}
+      onMouseEnter={() => setRect(ref.current?.getBoundingClientRect() ?? null)}
+      onMouseLeave={() => setRect(null)}
     >
       <p className={cn("truncate", mono && "font-mono", className)}>{text}</p>
-      {show && (
-        <div className="absolute bottom-full left-0 mb-1.5 z-50 max-w-xs pointer-events-none">
+      {rect && createPortal(
+        <div
+          className="pointer-events-none fixed z-9999 max-w-xs"
+          style={{ left: rect.left, top: rect.top - 6, transform: "translateY(-100%)" }}
+        >
           <div className="bg-white border border-[#e5e3df] rounded px-2.5 py-1.5 text-xs text-[#111110] shadow-lg whitespace-normal wrap-break-word">
             {text}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
 }
 
-function SkeletonRow({ cols }: { cols: string }) {
+// ── Column system ──────────────────────────────────────────────────────────────
+
+type ColumnId = "name" | "company" | "title" | "email" | "phone" | "employees" | "seniority" | "industry";
+
+interface ColumnDef {
+  id: ColumnId;
+  label: string;
+  width: string;
+  visible: boolean;
+}
+
+const INITIAL_COLUMNS: ColumnDef[] = [
+  { id: "name",      label: "Name",      width: "minmax(0,1.8fr)", visible: true },
+  { id: "company",   label: "Company",   width: "minmax(0,1.2fr)", visible: true },
+  { id: "title",     label: "Title",     width: "minmax(0,1.4fr)", visible: true },
+  { id: "email",     label: "Email",     width: "minmax(0,1.3fr)", visible: true },
+  { id: "phone",     label: "Phone",     width: "minmax(0,1.1fr)", visible: true },
+  { id: "employees", label: "Employees", width: "90px",            visible: true },
+  { id: "seniority", label: "Seniority", width: "80px",            visible: true },
+  { id: "industry",  label: "Industry",  width: "minmax(0,1.2fr)", visible: true },
+];
+
+function buildGridTemplate(visibleCols: ColumnDef[], hasAction: boolean): string {
+  const base = ["20px", ...visibleCols.map((c) => c.width)].join(" ");
+  return hasAction ? base + " 56px" : base;
+}
+
+function renderCell(col: ColumnDef, contact: Contact) {
+  switch (col.id) {
+    case "name":
+      return (
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-[#111110] truncate group-hover:text-black transition-colors">
+            {contact.fullName}
+          </p>
+          {contact.headline && (
+            <p className="text-[11px] text-[#9b9895] truncate mt-0.5">{contact.headline}</p>
+          )}
+        </div>
+      );
+    case "company":
+      return (
+        <div className="min-w-0">
+          {contact.currentCompany
+            ? <TooltipCell text={contact.currentCompany} className="text-sm text-[#1585ff]" />
+            : <span className="text-[#c8c5c2]">—</span>
+          }
+        </div>
+      );
+    case "title":
+      return (
+        <div className="min-w-0">
+          {contact.currentTitle
+            ? <TooltipCell text={contact.currentTitle} className="text-xs text-[#6b6866]" />
+            : <span className="text-[#c8c5c2]">—</span>
+          }
+        </div>
+      );
+    case "email":
+      return (
+        <div className="min-w-0">
+          {contact.email
+            ? <TooltipCell text={contact.email} className="text-xs text-[#6b6866]" mono />
+            : <span className="text-[#c8c5c2]">—</span>
+          }
+        </div>
+      );
+    case "phone":
+      return (
+        <div className="min-w-0">
+          {contact.phone
+            ? <TooltipCell text={contact.phone} className="text-xs text-[#6b6866]" mono />
+            : <span className="text-[#c8c5c2]">—</span>
+          }
+        </div>
+      );
+    case "employees": {
+      const { value: staffCount } = displayCompanySize(contact);
+      const empInfo = staffCount ? employeePct(staffCount) : null;
+      return empInfo ? (
+        <div className="space-y-1">
+          <p className="text-xs font-mono text-[#6b6866] tabular-nums">{empInfo.label}</p>
+          <div className="h-1 rounded-full bg-[#e8f0fe] overflow-hidden">
+            <div className="h-full rounded-full bg-[#1585ff] transition-all" style={{ width: `${empInfo.pct}%` }} />
+          </div>
+        </div>
+      ) : (
+        <span className="text-[#c8c5c2]">—</span>
+      );
+    }
+    case "seniority":
+      return contact.seniority ? (
+        <span className={cn(
+          "inline-block px-1.5 py-0.5 rounded border text-[10px] font-medium whitespace-nowrap",
+          SENIORITY_BADGE[contact.seniority] ?? SENIORITY_BADGE.OTHER
+        )}>
+          {SENIORITY_LABEL[contact.seniority] ?? contact.seniority}
+        </span>
+      ) : (
+        <span className="text-[#c8c5c2]">—</span>
+      );
+    case "industry": {
+      const industry = contact.company?.industry ?? contact.industry ?? null;
+      return (
+        <div className="min-w-0">
+          {industry
+            ? <TooltipCell text={industry} className="text-xs text-[#9b9895]" />
+            : <span className="text-[#c8c5c2]">—</span>
+          }
+        </div>
+      );
+    }
+  }
+}
+
+function SkeletonRow({ cols, colCount }: { cols: string; colCount: number }) {
   return (
     <div
       className="grid items-center gap-3 px-4 border-b border-[#e5e3df]/70 animate-pulse"
       style={{ gridTemplateColumns: cols, height: 56 }}
     >
       <div className="w-3.5 h-3.5 bg-[#e5e3df] rounded" />
-      <div className="space-y-1.5">
-        <div className="h-3.5 bg-[#e5e3df] rounded w-28" />
-        <div className="h-2.5 bg-[#eeece9] rounded w-40" />
-      </div>
-      <div className="h-3.5 bg-[#e5e3df] rounded w-20" />
-      <div className="h-4 bg-[#e5e3df] rounded-full w-14" />
-      <div className="h-3.5 bg-[#e5e3df] rounded w-16" />
-      <div className="h-3.5 bg-[#e5e3df] rounded w-12" />
-      <div className="flex gap-1.5">
-        <div className="h-3.5 w-3.5 bg-[#e5e3df] rounded" />
-        <div className="h-3.5 w-3.5 bg-[#e5e3df] rounded" />
-      </div>
+      {Array.from({ length: colCount }).map((_, i) => (
+        <div key={i} className="h-3.5 bg-[#e5e3df] rounded w-3/4" />
+      ))}
     </div>
   );
 }
 
-// checkbox | name | company | title | employees | seniority | industry | contact-icons
-const COLS = "20px minmax(0,1.8fr) minmax(0,1.2fr) minmax(0,1.4fr) 90px 80px minmax(0,1.2fr) 48px";
-const COLS_WITH_ACTION = COLS + " 56px";
 const ROW_HEIGHT = 56;
 
 export default function ContactTable({
@@ -141,7 +249,6 @@ export default function ContactTable({
   selectedIds,
   onToggle,
   onSelectAll,
-  onEnrich,
   onOpenDrawer,
   loading,
   page,
@@ -151,17 +258,75 @@ export default function ContactTable({
   onPageChange,
   extraRowAction,
 }: ContactTableProps) {
-  const allSelected = contacts.length > 0 && contacts.every((c) => selectedIds.has(c.id));
-  const cols = extraRowAction ? COLS_WITH_ACTION : COLS;
+  const [columns, setColumns] = useState<ColumnDef[]>(INITIAL_COLUMNS);
+  const [showColMenu, setShowColMenu] = useState(false);
+  const [dragColId, setDragColId] = useState<ColumnId | null>(null);
+  const [overColId, setOverColId] = useState<ColumnId | null>(null);
+  const colMenuRef = useRef<HTMLDivElement>(null);
 
+  const visibleCols = columns.filter((c) => c.visible);
+  const cols = buildGridTemplate(visibleCols, !!extraRowAction);
+  const allSelected = contacts.length > 0 && contacts.every((c) => selectedIds.has(c.id));
   const firstItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const lastItem = Math.min(page * pageSize, total);
 
+  // Close column menu on outside click
+  useEffect(() => {
+    if (!showColMenu) return;
+    function handleClick(e: MouseEvent) {
+      if (colMenuRef.current && !colMenuRef.current.contains(e.target as Node)) {
+        setShowColMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showColMenu]);
+
+  function toggleColVisibility(id: ColumnId) {
+    setColumns((prev) => {
+      const visibleCount = prev.filter((c) => c.visible).length;
+      const col = prev.find((c) => c.id === id);
+      if (col?.visible && visibleCount <= 1) return prev;
+      return prev.map((c) => (c.id === id ? { ...c, visible: !c.visible } : c));
+    });
+  }
+
+  function handleDragStart(e: React.DragEvent, id: ColumnId) {
+    e.dataTransfer.effectAllowed = "move";
+    setDragColId(id);
+  }
+
+  function handleDragOver(e: React.DragEvent, id: ColumnId) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (id !== dragColId) setOverColId(id);
+  }
+
+  function handleDrop(targetId: ColumnId) {
+    if (!dragColId || dragColId === targetId) return;
+    setColumns((prev) => {
+      const arr = [...prev];
+      const fromIdx = arr.findIndex((c) => c.id === dragColId);
+      const toIdx = arr.findIndex((c) => c.id === targetId);
+      const [moved] = arr.splice(fromIdx, 1);
+      arr.splice(toIdx, 0, moved);
+      return arr;
+    });
+    setDragColId(null);
+    setOverColId(null);
+  }
+
+  function handleDragEnd() {
+    setDragColId(null);
+    setOverColId(null);
+  }
+
   return (
+    <div className="relative">
     <div className="rounded-xl border border-[#e5e3df] bg-white overflow-hidden flex flex-col">
       {/* Header row */}
       <div
-        className="grid items-center gap-3 px-4 py-2.5 bg-[#f8f7f5] border-b border-[#e5e3df] text-[10px] font-mono text-[#9b9895] uppercase tracking-widest shrink-0"
+        className="grid items-center gap-3 px-4 pr-10 py-2.5 bg-[#f8f7f5] border-b border-[#e5e3df] text-[10px] font-mono text-[#9b9895] uppercase tracking-widest shrink-0"
         style={{ gridTemplateColumns: cols }}
       >
         {loading ? (
@@ -174,13 +339,11 @@ export default function ContactTable({
             className="rounded-sm border-[#d4d0cc] bg-white text-[#1585ff] w-3.5 h-3.5 focus:ring-0 focus:ring-offset-0 cursor-pointer"
           />
         )}
-        <span>Name</span>
-        <span>Company</span>
-        <span>Title</span>
-        <span>Employees</span>
-        <span>Seniority</span>
-        <span>Industry</span>
-        <span />
+
+        {visibleCols.map((col) => (
+          <span key={col.id}>{col.label}</span>
+        ))}
+
         {extraRowAction && <span />}
       </div>
 
@@ -188,7 +351,7 @@ export default function ContactTable({
       <div className="overflow-hidden">
         {loading ? (
           Array.from({ length: pageSize || 8 }).map((_, i) => (
-            <SkeletonRow key={i} cols={cols} />
+            <SkeletonRow key={i} cols={cols} colCount={visibleCols.length} />
           ))
         ) : contacts.length === 0 ? (
           <div className="flex items-center justify-center py-16">
@@ -197,10 +360,6 @@ export default function ContactTable({
         ) : (
           contacts.map((contact) => {
             const isSelected = selectedIds.has(contact.id);
-            const { value: staffCount } = displayCompanySize(contact);
-            const empInfo = staffCount ? employeePct(staffCount) : null;
-            const industry = contact.company?.industry ?? contact.industry ?? null;
-
             return (
               <div
                 key={contact.id}
@@ -219,75 +378,11 @@ export default function ContactTable({
                   className="rounded-sm border-[#d4d0cc] bg-white text-[#1585ff] w-3.5 h-3.5 focus:ring-0 focus:ring-offset-0 cursor-pointer"
                 />
 
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-[#111110] truncate group-hover:text-black transition-colors">
-                    {contact.fullName}
-                  </p>
-                  {contact.headline && (
-                    <p className="text-[11px] text-[#9b9895] truncate mt-0.5">{contact.headline}</p>
-                  )}
-                </div>
-
-                <div className="min-w-0">
-                  {contact.currentCompany
-                    ? <TooltipCell text={contact.currentCompany} className="text-sm text-[#1585ff]" />
-                    : <span className="text-[#c8c5c2]">—</span>
-                  }
-                </div>
-
-                <div className="min-w-0">
-                  {contact.currentTitle
-                    ? <TooltipCell text={contact.currentTitle} className="text-xs text-[#6b6866]" />
-                    : <span className="text-[#c8c5c2]">—</span>
-                  }
-                </div>
-
-                <div className="min-w-0">
-                  {empInfo ? (
-                    <div className="space-y-1">
-                      <p className="text-xs font-mono text-[#6b6866] tabular-nums">{empInfo.label}</p>
-                      <div className="h-1 rounded-full bg-[#e8f0fe] overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-[#1585ff] transition-all"
-                          style={{ width: `${empInfo.pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <span className="text-[#c8c5c2]">—</span>
-                  )}
-                </div>
-
-                <div>
-                  {contact.seniority ? (
-                    <span
-                      className={cn(
-                        "inline-block px-1.5 py-0.5 rounded border text-[10px] font-medium whitespace-nowrap",
-                        SENIORITY_BADGE[contact.seniority] ?? SENIORITY_BADGE.OTHER
-                      )}
-                    >
-                      {SENIORITY_LABEL[contact.seniority] ?? contact.seniority}
-                    </span>
-                  ) : (
-                    <span className="text-[#c8c5c2]">—</span>
-                  )}
-                </div>
-
-                <div className="min-w-0">
-                  {industry
-                    ? <TooltipCell text={industry} className="text-xs text-[#9b9895]" />
-                    : <span className="text-[#c8c5c2]">—</span>
-                  }
-                </div>
-
-                <div className="flex items-center gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
-                  <span title={contact.email ?? "No email"}>
-                    <Mail className={cn("w-3.5 h-3.5", contact.email ? "text-[#1585ff]" : "text-[#d4d0cc]")} />
-                  </span>
-                  <span title={contact.phone ?? "No phone"}>
-                    <Phone className={cn("w-3.5 h-3.5", contact.phone ? "text-emerald-500" : "text-[#d4d0cc]")} />
-                  </span>
-                </div>
+                {visibleCols.map((col) => (
+                  <div key={col.id} className="min-w-0">
+                    {renderCell(col, contact)}
+                  </div>
+                ))}
 
                 {extraRowAction && (
                   <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
@@ -303,7 +398,11 @@ export default function ContactTable({
       {/* Pagination footer */}
       <div className="shrink-0 flex items-center justify-between px-4 py-2 border-t border-[#e5e3df] bg-[#f8f7f5]">
         <span className="text-[11px] font-mono text-[#9b9895]">
-          {loading ? "Loading…" : total > 0 ? `${firstItem.toLocaleString()}–${lastItem.toLocaleString()} of ${total.toLocaleString()}` : "0 results"}
+          {loading
+            ? "Loading…"
+            : total > 0
+            ? `${firstItem.toLocaleString()}–${lastItem.toLocaleString()} of ${total.toLocaleString()}`
+            : "0 results"}
         </span>
         <div className="flex items-center gap-1">
           <button
@@ -325,6 +424,58 @@ export default function ContactTable({
           </button>
         </div>
       </div>
+    </div>
+
+    {/* Column visibility toggle — outside overflow-hidden so the dropdown isn't clipped */}
+    <div ref={colMenuRef} className="absolute right-2 top-0 h-9 flex items-center z-10">
+      <button
+        onClick={() => setShowColMenu((v) => !v)}
+        title="Toggle columns"
+        className={cn(
+          "p-1 rounded transition-colors",
+          showColMenu ? "bg-[#e8f0fe] text-[#1585ff]" : "text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef]"
+        )}
+      >
+        <Columns3 className="w-3.5 h-3.5" />
+      </button>
+
+      {showColMenu && (
+        <div className="absolute top-full right-0 mt-1 z-50 bg-white border border-[#e5e3df] rounded-lg shadow-lg py-1.5 w-52">
+          <p className="text-[9px] font-mono text-[#9b9895] uppercase tracking-widest px-3 pt-0.5 pb-2">
+            Columns
+          </p>
+          {columns.map((col) => (
+            <div
+              key={col.id}
+              draggable
+              onDragStart={(e) => handleDragStart(e, col.id)}
+              onDragOver={(e) => handleDragOver(e, col.id)}
+              onDrop={() => handleDrop(col.id)}
+              onDragEnd={handleDragEnd}
+              className={cn(
+                "flex items-center gap-2 px-2 py-1.5 transition-colors select-none",
+                overColId === col.id && dragColId !== col.id ? "bg-[#e8f0fe]" : "hover:bg-[#f8f7f5]",
+                dragColId === col.id && "opacity-40"
+              )}
+            >
+              <GripVertical className="w-3.5 h-3.5 text-[#c8c5c2] cursor-grab active:cursor-grabbing shrink-0" />
+              <button
+                onClick={() => toggleColVisibility(col.id)}
+                className="flex items-center gap-2 flex-1 min-w-0"
+              >
+                <div className={cn(
+                  "w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-colors",
+                  col.visible ? "bg-[#1585ff] border-[#1585ff]" : "border-[#d4d0cc]"
+                )}>
+                  {col.visible && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                </div>
+                <span className="text-xs text-[#111110] truncate">{col.label}</span>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
     </div>
   );
 }

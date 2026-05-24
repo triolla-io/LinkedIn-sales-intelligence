@@ -58,11 +58,22 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
 
       {/* Main Nav */}
       <nav className="flex-1 px-2.5 py-4 space-y-0.5 overflow-hidden">
-        {!collapsed && (
-          <p className="px-2.5 mb-3 text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest">
-            Navigation
-          </p>
-        )}
+        <div className={cn("flex items-center mb-3", collapsed ? "justify-center" : "justify-between px-2.5")}>
+          {!collapsed && (
+            <p className="text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest">
+              Navigation
+            </p>
+          )}
+          <button
+            onClick={onToggle}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="flex items-center justify-center w-6 h-6 rounded-md text-[#c8c5c2] hover:text-[#6b6866] hover:bg-[#f3f2ef] transition-colors"
+          >
+            {collapsed
+              ? <ChevronRight className="w-3.5 h-3.5" />
+              : <ChevronLeft className="w-3.5 h-3.5" />}
+          </button>
+        </div>
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = href === "/dashboard"
             ? pathname === "/dashboard"
@@ -117,19 +128,6 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
           </>
         )}
       </nav>
-
-      {/* Toggle button */}
-      <div className={cn("px-2.5 py-2 border-t border-[#e5e3df]", collapsed && "flex justify-center")}>
-        <button
-          onClick={onToggle}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="flex items-center justify-center w-7 h-7 rounded-md text-[#c8c5c2] hover:text-[#6b6866] hover:bg-[#f3f2ef] transition-colors"
-        >
-          {collapsed
-            ? <ChevronRight className="w-3.5 h-3.5" />
-            : <ChevronLeft className="w-3.5 h-3.5" />}
-        </button>
-      </div>
 
       {/* User Footer */}
       <div className={cn("px-2.5 py-4 border-t border-[#e5e3df]", collapsed && "flex justify-center")}>

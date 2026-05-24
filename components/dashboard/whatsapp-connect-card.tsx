@@ -1,28 +1,19 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-type WaStatus = "CONNECTED" | "QR_PENDING" | "DISCONNECTED" | "LOADING" | "SERVICE_UNAVAILABLE";
+type WaStatus = "CONNECTED" | "QR_PENDING" | "DISCONNECTED" | "LOADING" | "LINKING" | "SERVICE_UNAVAILABLE";
 
 export function WhatsAppConnectCard() {
   const [status, setStatus] = useState<WaStatus>("LOADING");
   const [phone, setPhone] = useState<string | null>(null);
   const [qr, setQr] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
+  const esRef = useRef<EventSource | null>(null);
 
-  useEffect(() => {
-    fetch("/api/whatsapp/status")
-      .then((r) => r.json())
-      .then((d: { status: WaStatus; phone?: string }) => {
-        setStatus(d.status);
-        if (d.phone) setPhone(d.phone);
-      })
-      .catch(() => setStatus("DISCONNECTED"));
-  }, []);
-
-  useEffect(() => {
-    if (status !== "DISCONNECTED") return;
-
+  function openStream() {
+    if (esRef.current) return;
     const es = new EventSource("/api/whatsapp/qr");
+    esRef.current = es;
 
     es.addEventListener("qr", (e) => {
       const { data } = JSON.parse(e.data) as { data: string };
@@ -36,33 +27,54 @@ export function WhatsAppConnectCard() {
       setPhone(data);
       setQr(null);
       es.close();
+      esRef.current = null;
     });
 
-    es.addEventListener("disconnected", () => {
-      setStatus("DISCONNECTED");
-      es.close();
+    es.addEventListener("disconnected", (e) => {
+      const { data } = JSON.parse(e.data) as { data: string };
+      if (data === "reconnecting") {
+        setQr(null);
+        setStatus("LINKING");
+      } else {
+        es.close();
+        esRef.current = null;
+        setStatus("DISCONNECTED");
+      }
     });
 
-    es.addEventListener("error", () => {
+    const onErr = () => {
       setStatus("SERVICE_UNAVAILABLE");
       es.close();
-    });
-
-    es.onerror = () => {
-      setStatus("SERVICE_UNAVAILABLE");
-      es.close();
+      esRef.current = null;
     };
+    es.addEventListener("error", onErr);
+    es.onerror = onErr;
+  }
 
-    return () => es.close();
-  }, [status]);
+  useEffect(() => {
+    fetch("/api/whatsapp/status")
+      .then((r) => r.json())
+      .then((d: { status: WaStatus; phone?: string }) => {
+        if (d.status === "DISCONNECTED" || d.status === "QR_PENDING") {
+          setStatus("DISCONNECTED");
+          openStream();
+        } else {
+          setStatus(d.status);
+          if (d.phone) setPhone(d.phone);
+        }
+      })
+      .catch(() => { setStatus("DISCONNECTED"); openStream(); });
+    return () => { esRef.current?.close(); esRef.current = null; };
+  }, []);
 
   async function handleDisconnect() {
     setDisconnecting(true);
     await fetch("/api/whatsapp/disconnect", { method: "POST" });
-    setStatus("DISCONNECTED");
     setPhone(null);
     setQr(null);
     setDisconnecting(false);
+    setStatus("DISCONNECTED");
+    openStream();
   }
 
   if (status === "LOADING") {
@@ -84,7 +96,7 @@ export function WhatsAppConnectCard() {
           </div>
         </div>
         <button
-          onClick={() => setStatus("DISCONNECTED")}
+          onClick={() => { setStatus("DISCONNECTED"); openStream(); }}
           className="mt-4 rounded-lg border border-[#e5e3df] px-3 py-1.5 text-sm text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] transition-colors"
         >
           Retry
@@ -110,6 +122,23 @@ export function WhatsAppConnectCard() {
         >
           {disconnecting ? "Disconnecting…" : "Disconnect"}
         </button>
+      </div>
+    );
+  }
+
+  if (status === "LINKING") {
+    return (
+      <div className="rounded-xl border border-[#e5e3df] bg-white p-6">
+        <div className="flex items-center gap-3">
+          <svg className="animate-spin w-4 h-4 text-[#6b6866] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <div>
+            <p className="text-sm font-medium text-[#111110]">Linking device…</p>
+            <p className="text-xs text-[#9b9895] mt-0.5">QR code scanned — waiting for WhatsApp to confirm</p>
+          </div>
+        </div>
       </div>
     );
   }

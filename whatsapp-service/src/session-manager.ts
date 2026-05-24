@@ -23,6 +23,9 @@ interface SessionEntry {
 
 const sessions = new Map<string, SessionEntry>();
 
+// Survives session reinits so SSE streams stay live across QR-scan reconnects
+const persistentListeners = new Map<string, Set<EventListener>>();
+
 export function getStatus(userId: string): { status: SessionStatus; phone?: string } {
   const entry = sessions.get(userId);
   if (!entry) return { status: "DISCONNECTED" };
@@ -30,6 +33,11 @@ export function getStatus(userId: string): { status: SessionStatus; phone?: stri
 }
 
 export function subscribeToEvents(userId: string, listener: EventListener): () => void {
+  if (!persistentListeners.has(userId)) {
+    persistentListeners.set(userId, new Set());
+  }
+  persistentListeners.get(userId)!.add(listener);
+
   const entry = sessions.get(userId);
   if (entry) {
     entry.listeners.add(listener);
@@ -39,7 +47,11 @@ export function subscribeToEvents(userId: string, listener: EventListener): () =
       listener("connected", entry.phone ?? "");
     }
   }
-  return () => sessions.get(userId)?.listeners.delete(listener);
+
+  return () => {
+    persistentListeners.get(userId)?.delete(listener);
+    sessions.get(userId)?.listeners.delete(listener);
+  };
 }
 
 export async function initSession(userId: string): Promise<void> {
@@ -56,10 +68,11 @@ export async function initSession(userId: string): Promise<void> {
     browser: ["Mac OS", "Safari", "10.15.7"],
   });
 
+  // Seed listeners from persistent map so SSE streams subscribed before reinit stay connected
   const entry: SessionEntry = {
     socket,
     status: "DISCONNECTED",
-    listeners: new Set(),
+    listeners: new Set(persistentListeners.get(userId) ?? []),
   };
   sessions.set(userId, entry);
 
@@ -84,16 +97,24 @@ export async function initSession(userId: string): Promise<void> {
 
     if (connection === "close") {
       const code = (lastDisconnect?.error as Boom)?.output?.statusCode;
-      const loggedOut = code === DisconnectReason.loggedOut;
+      const loggedOut =
+        code === DisconnectReason.loggedOut ||
+        code === DisconnectReason.forbidden ||
+        code === DisconnectReason.badSession;
 
       entry.status = "DISCONNECTED";
       entry.listeners.forEach((l) => l("disconnected", loggedOut ? "logged_out" : "reconnecting"));
       sessions.delete(userId);
 
       if (loggedOut) {
+        persistentListeners.delete(userId);
         fs.rmSync(dir, { recursive: true, force: true });
       } else {
-        setTimeout(() => initSession(userId), 3000);
+        setTimeout(() => {
+          initSession(userId).catch((err) =>
+            console.error(`[whatsapp] failed to reinit session for ${userId}:`, err)
+          );
+        }, 3000);
       }
     }
   });
@@ -106,6 +127,7 @@ export async function disconnectSession(userId: string): Promise<void> {
     entry.socket.end(undefined);
     sessions.delete(userId);
   }
+  persistentListeners.delete(userId);
   const dir = path.join(SESSIONS_DIR, userId);
   fs.rmSync(dir, { recursive: true, force: true });
 }

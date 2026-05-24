@@ -33,7 +33,9 @@ app.get("/session/:userId/qr", async (req, res) => {
 
   const cleanup = subscribeToEvents(userId, (event, data) => {
     res.write(`event: ${event}\ndata: ${JSON.stringify({ data })}\n\n`);
-    if (event === "connected" || event === "disconnected") {
+    // Keep the stream open on "reconnecting" so the frontend receives the
+    // subsequent "connected" or new "qr" event after Baileys reinits the session
+    if (event === "connected" || (event === "disconnected" && data === "logged_out")) {
       cleanup();
       res.end();
     }
