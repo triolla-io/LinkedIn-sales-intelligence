@@ -6,7 +6,7 @@ import {
   disconnectSession,
   sendMessage,
   restoreAllSessions,
-} from "./session-manager";
+} from "./session-manager.js";
 
 const app = express();
 app.use(express.json());
