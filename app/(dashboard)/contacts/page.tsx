@@ -8,7 +8,7 @@ import FilterSidebar, { type Filters, DEFAULT_FILTERS } from "@/components/dashb
 import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
 import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Download } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 type InsightsData = {
@@ -50,6 +50,20 @@ function buildInsightsUrl(filters: Filters) {
   return `/api/insights?${params.toString()}`;
 }
 
+function buildExportUrl(filters: Filters) {
+  const params = new URLSearchParams();
+  if (filters.q) params.set("q", filters.q);
+  if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
+  if (filters.function.length) params.set("function", filters.function.join(","));
+  if (filters.titleSearch.length) params.set("titleSearch", filters.titleSearch.join(","));
+  if (filters.industry.length) params.set("industry", filters.industry.join(","));
+  if (filters.companySizeBuckets.length) params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
+  if (filters.hasEmail) params.set("hasEmail", "true");
+  if (filters.hasPhone) params.set("hasPhone", "true");
+  if (filters.listId) params.set("listId", filters.listId);
+  return `/api/contacts/export?${params.toString()}`;
+}
+
 function sevenDaysAgo(): string {
   const d = new Date();
   d.setDate(d.getDate() - 7);
@@ -80,19 +94,25 @@ function ContactsContent() {
   const [insights, setInsights] = useState<InsightsData | null>(null);
   const [newThisWeek, setNewThisWeek] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [drawerContact, setDrawerContact] = useState<Contact | null>(null);
   const tableWrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = tableWrapperRef.current;
     if (!el) return;
+    let timer: ReturnType<typeof setTimeout>;
     const obs = new ResizeObserver(([entry]) => {
-      const h = entry.contentRect.height;
-      const rows = Math.max(MIN_PAGE_SIZE, Math.floor((h - TABLE_HEADER_H - TABLE_FOOTER_H) / ROW_HEIGHT));
-      setPageSize(rows);
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const h = entry.contentRect.height;
+        const rows = Math.max(MIN_PAGE_SIZE, Math.floor((h - TABLE_HEADER_H - TABLE_FOOTER_H) / ROW_HEIGHT));
+        setPageSize(rows);
+      }, 100);
     });
     obs.observe(el);
-    return () => obs.disconnect();
+    return () => { obs.disconnect(); clearTimeout(timer); };
   }, []);
 
   const prevFiltersRef = useRef(filters);
@@ -117,19 +137,31 @@ function ContactsContent() {
     router.replace(`/contacts?${params.toString()}`, { scroll: false });
   }, [filters, router]);
 
+  const hasLoadedOnce = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
   const fetchData = useCallback(async () => {
-    setLoading(true);
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const { signal } = controller;
+
+    if (hasLoadedOnce.current) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     setSelectedIds(new Set());
     try {
       const [contactsRes, insightsRes, weekRes] = await Promise.all([
-        fetch(buildContactsUrl(filters, page, pageSize)),
-        fetch(buildInsightsUrl(filters)),
-        fetch(`/api/contacts?connectedFrom=${sevenDaysAgo()}&limit=1`),
+        fetch(buildContactsUrl(filters, page, pageSize), { signal }),
+        fetch(buildInsightsUrl(filters), { signal }),
+        fetch(`/api/contacts?connectedFrom=${sevenDaysAgo()}&limit=1`, { signal }),
       ]);
       if (contactsRes.ok) {
         const data = await contactsRes.json();
         setContacts(data.items ?? []);
         setTotal(data.totalApprox ?? 0);
+        hasLoadedOnce.current = true;
       }
       if (insightsRes.ok) setInsights(await insightsRes.json());
       if (weekRes.ok) {
@@ -137,16 +169,44 @@ function ContactsContent() {
         setNewThisWeek(weekData.totalApprox ?? 0);
       }
     } catch (e) {
+      if ((e as Error)?.name === "AbortError") return;
       console.error("Failed to fetch data:", e);
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   }, [filters, page, pageSize]);
 
   useAutoRefresh(fetchData, 30_000);
 
+  // Re-fetch whenever filters, page, or pageSize change (useAutoRefresh only handles intervals/focus)
+  const isMounted = useRef(false);
+  useEffect(() => {
+    if (!isMounted.current) { isMounted.current = true; return; }
+    fetchData();
+  }, [fetchData]);
+
   function handleEnrich(id: string) {
     fetch(`/api/contacts/${id}/enrich`, { method: "POST" }).then(() => fetchData()).catch(() => {});
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const res = await fetch(buildExportUrl(filters));
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `contacts-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
   }
 
   const totalPages = pageSize > 0 ? Math.ceil(total / pageSize) : 1;
@@ -172,6 +232,14 @@ function ContactsContent() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleExport}
+              disabled={exporting || loading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-emerald-600 border border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download className={cn("w-3.5 h-3.5", exporting && "animate-bounce")} />
+              {exporting ? "Exporting…" : "Export CSV"}
+            </button>
             <button
               onClick={fetchData}
               disabled={loading}
@@ -217,6 +285,7 @@ function ContactsContent() {
               onEnrich={handleEnrich}
               onOpenDrawer={setDrawerContact}
               loading={loading}
+              refreshing={refreshing}
               page={page}
               totalPages={totalPages}
               total={total}
