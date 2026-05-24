@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Play, Pause, RotateCcw, XCircle, Mail, MessageSquare } from "lucide-react";
+import AutoRefresher from "@/components/auto-refresher";
 
 type StepExecution = {
   status: string;
@@ -107,6 +108,7 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
 
   return (
     <div className="p-8 space-y-6">
+      <AutoRefresher />
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
