@@ -53,7 +53,7 @@ export const sequenceTick = inngest.createFunction(
             enrollmentId: enr.id,
             stepId: firstStep.id,
             status: "PENDING" as const,
-            scheduledAt: computeScheduledAt(enr.enrolledAt, firstStep.dayOffset),
+            scheduledAt: computeScheduledAt(enr.enrolledAt, firstStep.dayOffset, firstStep.sendHour, firstStep.sendMinute),
           })),
           skipDuplicates: true,
         });

@@ -143,7 +143,7 @@ export const sequenceSendExecution = inngest.createFunction(
 async function maybeAdvance(
   enrollmentId: string,
   currentStepId: string,
-  allSteps: Array<{ id: string; stepNumber: number; dayOffset: number }>,
+  allSteps: Array<{ id: string; stepNumber: number; dayOffset: number; sendHour: number; sendMinute: number }>,
   enrolledAt: Date
 ) {
   const currentIndex = allSteps.findIndex((s) => s.id === currentStepId);
@@ -155,7 +155,7 @@ async function maybeAdvance(
         enrollmentId,
         stepId: nextStep.id,
         status: "PENDING",
-        scheduledAt: computeScheduledAt(enrolledAt, nextStep.dayOffset),
+        scheduledAt: computeScheduledAt(enrolledAt, nextStep.dayOffset, nextStep.sendHour, nextStep.sendMinute),
       },
     });
   } else {

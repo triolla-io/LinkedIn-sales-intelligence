@@ -32,7 +32,12 @@ export const sequenceStart = inngest.createFunction(
       const enrollment = await prisma.sequenceEnrollment.create({
         data: { sequenceId, contactId: member.contactId, status: "ACTIVE" },
       });
-      const scheduledAt = computeScheduledAt(enrollment.enrolledAt, firstStep.dayOffset);
+      const scheduledAt = computeScheduledAt(
+        enrollment.enrolledAt,
+        firstStep.dayOffset,
+        firstStep.sendHour,
+        firstStep.sendMinute
+      );
       await prisma.sequenceStepExecution.create({
         data: {
           enrollmentId: enrollment.id,
