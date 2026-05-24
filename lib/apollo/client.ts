@@ -109,3 +109,36 @@ export async function matchPerson(input: {
     };
   }
 }
+
+/**
+ * Fire-and-forget: sends a second Apollo people/match request with
+ * reveal_phone_number: true and our webhook_url. Apollo calls us back
+ * asynchronously (usually within 2–5 minutes) with mobile phone data.
+ *
+ * Errors are silently ignored — this is best-effort.
+ */
+export function requestMobileReveal(input: {
+  name: string;
+  company?: string;
+  linkedinUrl?: string;
+  webhookUrl: string;
+}): void {
+  const body = JSON.stringify({
+    name: input.name,
+    organization_name: input.company,
+    linkedin_url: input.linkedinUrl,
+    reveal_phone_number: true,
+    webhook_url: input.webhookUrl,
+  });
+
+  fetch("https://api.apollo.io/v1/people/match", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Api-Key": process.env.APOLLO_API_KEY ?? "",
+    },
+    body,
+  }).catch(() => {
+    // fire-and-forget — ignore errors
+  });
+}
