@@ -464,6 +464,8 @@ model SequenceStep {
   sequenceId String
   stepNumber Int
   dayOffset  Int
+  sendHour   Int             @default(9)
+  sendMinute Int             @default(0)
   channel    CampaignChannel
   templateId String
   subject    String?

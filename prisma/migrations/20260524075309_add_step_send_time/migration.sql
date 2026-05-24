@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "SequenceStep" ADD COLUMN     "sendHour" INTEGER NOT NULL DEFAULT 9,
+ADD COLUMN     "sendMinute" INTEGER NOT NULL DEFAULT 0;
