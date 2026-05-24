@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Mail, Phone, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { displayCompanySize } from "@/lib/contacts/display";
 
 export type Contact = {
   id: string;
@@ -19,6 +20,7 @@ export type Contact = {
   email?: string | null;
   phone?: string | null;
   lastSyncedAt: string;
+  enrichedAt?: string | null;
   linkedinUrl: string;
   manualFields?: string[];
 };
@@ -194,7 +196,7 @@ export default function ContactTable({
         ) : (
           contacts.map((contact) => {
             const isSelected = selectedIds.has(contact.id);
-            const staffCount = contact.company?.staffCount ?? contact.companySize ?? null;
+            const { value: staffCount } = displayCompanySize(contact);
             const empInfo = staffCount ? employeePct(staffCount) : null;
             const industry = contact.company?.industry ?? contact.industry ?? null;
 
