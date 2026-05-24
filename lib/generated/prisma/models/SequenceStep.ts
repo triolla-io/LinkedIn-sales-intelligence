@@ -29,11 +29,15 @@ export type AggregateSequenceStep = {
 export type SequenceStepAvgAggregateOutputType = {
   stepNumber: number | null
   dayOffset: number | null
+  sendHour: number | null
+  sendMinute: number | null
 }
 
 export type SequenceStepSumAggregateOutputType = {
   stepNumber: number | null
   dayOffset: number | null
+  sendHour: number | null
+  sendMinute: number | null
 }
 
 export type SequenceStepMinAggregateOutputType = {
@@ -41,6 +45,8 @@ export type SequenceStepMinAggregateOutputType = {
   sequenceId: string | null
   stepNumber: number | null
   dayOffset: number | null
+  sendHour: number | null
+  sendMinute: number | null
   channel: $Enums.CampaignChannel | null
   templateId: string | null
   subject: string | null
@@ -53,6 +59,8 @@ export type SequenceStepMaxAggregateOutputType = {
   sequenceId: string | null
   stepNumber: number | null
   dayOffset: number | null
+  sendHour: number | null
+  sendMinute: number | null
   channel: $Enums.CampaignChannel | null
   templateId: string | null
   subject: string | null
@@ -65,6 +73,8 @@ export type SequenceStepCountAggregateOutputType = {
   sequenceId: number
   stepNumber: number
   dayOffset: number
+  sendHour: number
+  sendMinute: number
   channel: number
   templateId: number
   subject: number
@@ -77,11 +87,15 @@ export type SequenceStepCountAggregateOutputType = {
 export type SequenceStepAvgAggregateInputType = {
   stepNumber?: true
   dayOffset?: true
+  sendHour?: true
+  sendMinute?: true
 }
 
 export type SequenceStepSumAggregateInputType = {
   stepNumber?: true
   dayOffset?: true
+  sendHour?: true
+  sendMinute?: true
 }
 
 export type SequenceStepMinAggregateInputType = {
@@ -89,6 +103,8 @@ export type SequenceStepMinAggregateInputType = {
   sequenceId?: true
   stepNumber?: true
   dayOffset?: true
+  sendHour?: true
+  sendMinute?: true
   channel?: true
   templateId?: true
   subject?: true
@@ -101,6 +117,8 @@ export type SequenceStepMaxAggregateInputType = {
   sequenceId?: true
   stepNumber?: true
   dayOffset?: true
+  sendHour?: true
+  sendMinute?: true
   channel?: true
   templateId?: true
   subject?: true
@@ -113,6 +131,8 @@ export type SequenceStepCountAggregateInputType = {
   sequenceId?: true
   stepNumber?: true
   dayOffset?: true
+  sendHour?: true
+  sendMinute?: true
   channel?: true
   templateId?: true
   subject?: true
@@ -212,6 +232,8 @@ export type SequenceStepGroupByOutputType = {
   sequenceId: string
   stepNumber: number
   dayOffset: number
+  sendHour: number
+  sendMinute: number
   channel: $Enums.CampaignChannel
   templateId: string
   subject: string | null
@@ -247,6 +269,8 @@ export type SequenceStepWhereInput = {
   sequenceId?: Prisma.StringFilter<"SequenceStep"> | string
   stepNumber?: Prisma.IntFilter<"SequenceStep"> | number
   dayOffset?: Prisma.IntFilter<"SequenceStep"> | number
+  sendHour?: Prisma.IntFilter<"SequenceStep"> | number
+  sendMinute?: Prisma.IntFilter<"SequenceStep"> | number
   channel?: Prisma.EnumCampaignChannelFilter<"SequenceStep"> | $Enums.CampaignChannel
   templateId?: Prisma.StringFilter<"SequenceStep"> | string
   subject?: Prisma.StringNullableFilter<"SequenceStep"> | string | null
@@ -262,6 +286,8 @@ export type SequenceStepOrderByWithRelationInput = {
   sequenceId?: Prisma.SortOrder
   stepNumber?: Prisma.SortOrder
   dayOffset?: Prisma.SortOrder
+  sendHour?: Prisma.SortOrder
+  sendMinute?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   templateId?: Prisma.SortOrder
   subject?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -281,6 +307,8 @@ export type SequenceStepWhereUniqueInput = Prisma.AtLeast<{
   sequenceId?: Prisma.StringFilter<"SequenceStep"> | string
   stepNumber?: Prisma.IntFilter<"SequenceStep"> | number
   dayOffset?: Prisma.IntFilter<"SequenceStep"> | number
+  sendHour?: Prisma.IntFilter<"SequenceStep"> | number
+  sendMinute?: Prisma.IntFilter<"SequenceStep"> | number
   channel?: Prisma.EnumCampaignChannelFilter<"SequenceStep"> | $Enums.CampaignChannel
   templateId?: Prisma.StringFilter<"SequenceStep"> | string
   subject?: Prisma.StringNullableFilter<"SequenceStep"> | string | null
@@ -296,6 +324,8 @@ export type SequenceStepOrderByWithAggregationInput = {
   sequenceId?: Prisma.SortOrder
   stepNumber?: Prisma.SortOrder
   dayOffset?: Prisma.SortOrder
+  sendHour?: Prisma.SortOrder
+  sendMinute?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   templateId?: Prisma.SortOrder
   subject?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -316,6 +346,8 @@ export type SequenceStepScalarWhereWithAggregatesInput = {
   sequenceId?: Prisma.StringWithAggregatesFilter<"SequenceStep"> | string
   stepNumber?: Prisma.IntWithAggregatesFilter<"SequenceStep"> | number
   dayOffset?: Prisma.IntWithAggregatesFilter<"SequenceStep"> | number
+  sendHour?: Prisma.IntWithAggregatesFilter<"SequenceStep"> | number
+  sendMinute?: Prisma.IntWithAggregatesFilter<"SequenceStep"> | number
   channel?: Prisma.EnumCampaignChannelWithAggregatesFilter<"SequenceStep"> | $Enums.CampaignChannel
   templateId?: Prisma.StringWithAggregatesFilter<"SequenceStep"> | string
   subject?: Prisma.StringNullableWithAggregatesFilter<"SequenceStep"> | string | null
@@ -327,6 +359,8 @@ export type SequenceStepCreateInput = {
   id?: string
   stepNumber: number
   dayOffset: number
+  sendHour?: number
+  sendMinute?: number
   channel: $Enums.CampaignChannel
   subject?: string | null
   createdAt?: Date | string
@@ -341,6 +375,8 @@ export type SequenceStepUncheckedCreateInput = {
   sequenceId: string
   stepNumber: number
   dayOffset: number
+  sendHour?: number
+  sendMinute?: number
   channel: $Enums.CampaignChannel
   templateId: string
   subject?: string | null
@@ -353,6 +389,8 @@ export type SequenceStepUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   stepNumber?: Prisma.IntFieldUpdateOperationsInput | number
   dayOffset?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHour?: Prisma.IntFieldUpdateOperationsInput | number
+  sendMinute?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumCampaignChannelFieldUpdateOperationsInput | $Enums.CampaignChannel
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -367,6 +405,8 @@ export type SequenceStepUncheckedUpdateInput = {
   sequenceId?: Prisma.StringFieldUpdateOperationsInput | string
   stepNumber?: Prisma.IntFieldUpdateOperationsInput | number
   dayOffset?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHour?: Prisma.IntFieldUpdateOperationsInput | number
+  sendMinute?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumCampaignChannelFieldUpdateOperationsInput | $Enums.CampaignChannel
   templateId?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -380,6 +420,8 @@ export type SequenceStepCreateManyInput = {
   sequenceId: string
   stepNumber: number
   dayOffset: number
+  sendHour?: number
+  sendMinute?: number
   channel: $Enums.CampaignChannel
   templateId: string
   subject?: string | null
@@ -391,6 +433,8 @@ export type SequenceStepUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   stepNumber?: Prisma.IntFieldUpdateOperationsInput | number
   dayOffset?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHour?: Prisma.IntFieldUpdateOperationsInput | number
+  sendMinute?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumCampaignChannelFieldUpdateOperationsInput | $Enums.CampaignChannel
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -402,6 +446,8 @@ export type SequenceStepUncheckedUpdateManyInput = {
   sequenceId?: Prisma.StringFieldUpdateOperationsInput | string
   stepNumber?: Prisma.IntFieldUpdateOperationsInput | number
   dayOffset?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHour?: Prisma.IntFieldUpdateOperationsInput | number
+  sendMinute?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumCampaignChannelFieldUpdateOperationsInput | $Enums.CampaignChannel
   templateId?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -429,6 +475,8 @@ export type SequenceStepCountOrderByAggregateInput = {
   sequenceId?: Prisma.SortOrder
   stepNumber?: Prisma.SortOrder
   dayOffset?: Prisma.SortOrder
+  sendHour?: Prisma.SortOrder
+  sendMinute?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   templateId?: Prisma.SortOrder
   subject?: Prisma.SortOrder
@@ -439,6 +487,8 @@ export type SequenceStepCountOrderByAggregateInput = {
 export type SequenceStepAvgOrderByAggregateInput = {
   stepNumber?: Prisma.SortOrder
   dayOffset?: Prisma.SortOrder
+  sendHour?: Prisma.SortOrder
+  sendMinute?: Prisma.SortOrder
 }
 
 export type SequenceStepMaxOrderByAggregateInput = {
@@ -446,6 +496,8 @@ export type SequenceStepMaxOrderByAggregateInput = {
   sequenceId?: Prisma.SortOrder
   stepNumber?: Prisma.SortOrder
   dayOffset?: Prisma.SortOrder
+  sendHour?: Prisma.SortOrder
+  sendMinute?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   templateId?: Prisma.SortOrder
   subject?: Prisma.SortOrder
@@ -458,6 +510,8 @@ export type SequenceStepMinOrderByAggregateInput = {
   sequenceId?: Prisma.SortOrder
   stepNumber?: Prisma.SortOrder
   dayOffset?: Prisma.SortOrder
+  sendHour?: Prisma.SortOrder
+  sendMinute?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   templateId?: Prisma.SortOrder
   subject?: Prisma.SortOrder
@@ -468,6 +522,8 @@ export type SequenceStepMinOrderByAggregateInput = {
 export type SequenceStepSumOrderByAggregateInput = {
   stepNumber?: Prisma.SortOrder
   dayOffset?: Prisma.SortOrder
+  sendHour?: Prisma.SortOrder
+  sendMinute?: Prisma.SortOrder
 }
 
 export type SequenceStepScalarRelationFilter = {
@@ -577,6 +633,8 @@ export type SequenceStepCreateWithoutTemplateInput = {
   id?: string
   stepNumber: number
   dayOffset: number
+  sendHour?: number
+  sendMinute?: number
   channel: $Enums.CampaignChannel
   subject?: string | null
   createdAt?: Date | string
@@ -590,6 +648,8 @@ export type SequenceStepUncheckedCreateWithoutTemplateInput = {
   sequenceId: string
   stepNumber: number
   dayOffset: number
+  sendHour?: number
+  sendMinute?: number
   channel: $Enums.CampaignChannel
   subject?: string | null
   createdAt?: Date | string
@@ -631,6 +691,8 @@ export type SequenceStepScalarWhereInput = {
   sequenceId?: Prisma.StringFilter<"SequenceStep"> | string
   stepNumber?: Prisma.IntFilter<"SequenceStep"> | number
   dayOffset?: Prisma.IntFilter<"SequenceStep"> | number
+  sendHour?: Prisma.IntFilter<"SequenceStep"> | number
+  sendMinute?: Prisma.IntFilter<"SequenceStep"> | number
   channel?: Prisma.EnumCampaignChannelFilter<"SequenceStep"> | $Enums.CampaignChannel
   templateId?: Prisma.StringFilter<"SequenceStep"> | string
   subject?: Prisma.StringNullableFilter<"SequenceStep"> | string | null
@@ -642,6 +704,8 @@ export type SequenceStepCreateWithoutSequenceInput = {
   id?: string
   stepNumber: number
   dayOffset: number
+  sendHour?: number
+  sendMinute?: number
   channel: $Enums.CampaignChannel
   subject?: string | null
   createdAt?: Date | string
@@ -654,6 +718,8 @@ export type SequenceStepUncheckedCreateWithoutSequenceInput = {
   id?: string
   stepNumber: number
   dayOffset: number
+  sendHour?: number
+  sendMinute?: number
   channel: $Enums.CampaignChannel
   templateId: string
   subject?: string | null
@@ -692,6 +758,8 @@ export type SequenceStepCreateWithoutExecutionsInput = {
   id?: string
   stepNumber: number
   dayOffset: number
+  sendHour?: number
+  sendMinute?: number
   channel: $Enums.CampaignChannel
   subject?: string | null
   createdAt?: Date | string
@@ -705,6 +773,8 @@ export type SequenceStepUncheckedCreateWithoutExecutionsInput = {
   sequenceId: string
   stepNumber: number
   dayOffset: number
+  sendHour?: number
+  sendMinute?: number
   channel: $Enums.CampaignChannel
   templateId: string
   subject?: string | null
@@ -732,6 +802,8 @@ export type SequenceStepUpdateWithoutExecutionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   stepNumber?: Prisma.IntFieldUpdateOperationsInput | number
   dayOffset?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHour?: Prisma.IntFieldUpdateOperationsInput | number
+  sendMinute?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumCampaignChannelFieldUpdateOperationsInput | $Enums.CampaignChannel
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -745,6 +817,8 @@ export type SequenceStepUncheckedUpdateWithoutExecutionsInput = {
   sequenceId?: Prisma.StringFieldUpdateOperationsInput | string
   stepNumber?: Prisma.IntFieldUpdateOperationsInput | number
   dayOffset?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHour?: Prisma.IntFieldUpdateOperationsInput | number
+  sendMinute?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumCampaignChannelFieldUpdateOperationsInput | $Enums.CampaignChannel
   templateId?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -757,6 +831,8 @@ export type SequenceStepCreateManyTemplateInput = {
   sequenceId: string
   stepNumber: number
   dayOffset: number
+  sendHour?: number
+  sendMinute?: number
   channel: $Enums.CampaignChannel
   subject?: string | null
   createdAt?: Date | string
@@ -767,6 +843,8 @@ export type SequenceStepUpdateWithoutTemplateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   stepNumber?: Prisma.IntFieldUpdateOperationsInput | number
   dayOffset?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHour?: Prisma.IntFieldUpdateOperationsInput | number
+  sendMinute?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumCampaignChannelFieldUpdateOperationsInput | $Enums.CampaignChannel
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -780,6 +858,8 @@ export type SequenceStepUncheckedUpdateWithoutTemplateInput = {
   sequenceId?: Prisma.StringFieldUpdateOperationsInput | string
   stepNumber?: Prisma.IntFieldUpdateOperationsInput | number
   dayOffset?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHour?: Prisma.IntFieldUpdateOperationsInput | number
+  sendMinute?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumCampaignChannelFieldUpdateOperationsInput | $Enums.CampaignChannel
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -792,6 +872,8 @@ export type SequenceStepUncheckedUpdateManyWithoutTemplateInput = {
   sequenceId?: Prisma.StringFieldUpdateOperationsInput | string
   stepNumber?: Prisma.IntFieldUpdateOperationsInput | number
   dayOffset?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHour?: Prisma.IntFieldUpdateOperationsInput | number
+  sendMinute?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumCampaignChannelFieldUpdateOperationsInput | $Enums.CampaignChannel
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -802,6 +884,8 @@ export type SequenceStepCreateManySequenceInput = {
   id?: string
   stepNumber: number
   dayOffset: number
+  sendHour?: number
+  sendMinute?: number
   channel: $Enums.CampaignChannel
   templateId: string
   subject?: string | null
@@ -813,6 +897,8 @@ export type SequenceStepUpdateWithoutSequenceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   stepNumber?: Prisma.IntFieldUpdateOperationsInput | number
   dayOffset?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHour?: Prisma.IntFieldUpdateOperationsInput | number
+  sendMinute?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumCampaignChannelFieldUpdateOperationsInput | $Enums.CampaignChannel
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -825,6 +911,8 @@ export type SequenceStepUncheckedUpdateWithoutSequenceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   stepNumber?: Prisma.IntFieldUpdateOperationsInput | number
   dayOffset?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHour?: Prisma.IntFieldUpdateOperationsInput | number
+  sendMinute?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumCampaignChannelFieldUpdateOperationsInput | $Enums.CampaignChannel
   templateId?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -837,6 +925,8 @@ export type SequenceStepUncheckedUpdateManyWithoutSequenceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   stepNumber?: Prisma.IntFieldUpdateOperationsInput | number
   dayOffset?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHour?: Prisma.IntFieldUpdateOperationsInput | number
+  sendMinute?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumCampaignChannelFieldUpdateOperationsInput | $Enums.CampaignChannel
   templateId?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -880,6 +970,8 @@ export type SequenceStepSelect<ExtArgs extends runtime.Types.Extensions.Internal
   sequenceId?: boolean
   stepNumber?: boolean
   dayOffset?: boolean
+  sendHour?: boolean
+  sendMinute?: boolean
   channel?: boolean
   templateId?: boolean
   subject?: boolean
@@ -896,6 +988,8 @@ export type SequenceStepSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   sequenceId?: boolean
   stepNumber?: boolean
   dayOffset?: boolean
+  sendHour?: boolean
+  sendMinute?: boolean
   channel?: boolean
   templateId?: boolean
   subject?: boolean
@@ -910,6 +1004,8 @@ export type SequenceStepSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   sequenceId?: boolean
   stepNumber?: boolean
   dayOffset?: boolean
+  sendHour?: boolean
+  sendMinute?: boolean
   channel?: boolean
   templateId?: boolean
   subject?: boolean
@@ -924,6 +1020,8 @@ export type SequenceStepSelectScalar = {
   sequenceId?: boolean
   stepNumber?: boolean
   dayOffset?: boolean
+  sendHour?: boolean
+  sendMinute?: boolean
   channel?: boolean
   templateId?: boolean
   subject?: boolean
@@ -931,7 +1029,7 @@ export type SequenceStepSelectScalar = {
   updatedAt?: boolean
 }
 
-export type SequenceStepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "sequenceId" | "stepNumber" | "dayOffset" | "channel" | "templateId" | "subject" | "createdAt" | "updatedAt", ExtArgs["result"]["sequenceStep"]>
+export type SequenceStepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "sequenceId" | "stepNumber" | "dayOffset" | "sendHour" | "sendMinute" | "channel" | "templateId" | "subject" | "createdAt" | "updatedAt", ExtArgs["result"]["sequenceStep"]>
 export type SequenceStepInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sequence?: boolean | Prisma.SequenceDefaultArgs<ExtArgs>
   template?: boolean | Prisma.MessageTemplateDefaultArgs<ExtArgs>
@@ -959,6 +1057,8 @@ export type $SequenceStepPayload<ExtArgs extends runtime.Types.Extensions.Intern
     sequenceId: string
     stepNumber: number
     dayOffset: number
+    sendHour: number
+    sendMinute: number
     channel: $Enums.CampaignChannel
     templateId: string
     subject: string | null
@@ -1394,6 +1494,8 @@ export interface SequenceStepFieldRefs {
   readonly sequenceId: Prisma.FieldRef<"SequenceStep", 'String'>
   readonly stepNumber: Prisma.FieldRef<"SequenceStep", 'Int'>
   readonly dayOffset: Prisma.FieldRef<"SequenceStep", 'Int'>
+  readonly sendHour: Prisma.FieldRef<"SequenceStep", 'Int'>
+  readonly sendMinute: Prisma.FieldRef<"SequenceStep", 'Int'>
   readonly channel: Prisma.FieldRef<"SequenceStep", 'CampaignChannel'>
   readonly templateId: Prisma.FieldRef<"SequenceStep", 'String'>
   readonly subject: Prisma.FieldRef<"SequenceStep", 'String'>

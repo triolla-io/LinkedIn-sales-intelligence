@@ -5,8 +5,10 @@ import { waClient } from "@/lib/whatsapp/client";
 export const GET = withTenant(async (_req: NextRequest, ctx) => {
   let upstream: Response;
   try {
-    const abort = AbortSignal.timeout(5000);
-    upstream = await fetch(waClient.qrStreamUrl(ctx.effectiveUserId), { signal: abort });
+    const connectAbort = new AbortController();
+    const connectTimeout = setTimeout(() => connectAbort.abort(), 10000);
+    upstream = await fetch(waClient.qrStreamUrl(ctx.effectiveUserId), { signal: connectAbort.signal });
+    clearTimeout(connectTimeout);
   } catch {
     const body = `event: error\ndata: ${JSON.stringify({ error: "whatsapp_service_unavailable" })}\n\n`;
     return new Response(body, {

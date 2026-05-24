@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npx concurrently \"next dev\" \"npx inngest-cli@latest dev --no-discovery -u http://localhost:3000/api/inngest\"",
+    "dev": "npx concurrently \"next dev -p 3001\" \"npx inngest-cli@latest dev -p 8288 --no-discovery -u http://localhost:3001/api/inngest\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

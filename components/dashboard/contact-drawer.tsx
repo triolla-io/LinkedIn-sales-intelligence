@@ -12,6 +12,8 @@ import {
   Users,
   Clock,
   Plus,
+  RefreshCw,
+  CheckCircle2,
   X as XIcon,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -42,15 +44,6 @@ const SENIORITY_COLOR: Record<string, string> = {
   OTHER: "text-stone-500 bg-stone-100 border-stone-200",
 };
 
-function Field({ label, value, mono = false }: { label: string; value?: string | null; mono?: boolean }) {
-  if (!value) return null;
-  return (
-    <div>
-      <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest mb-0.5">{label}</p>
-      <p className={cn("text-sm text-[#111110] break-words", mono && "font-mono")}>{value}</p>
-    </div>
-  );
-}
 
 function formatDate(iso: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -65,12 +58,85 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
   const [showListPopover, setShowListPopover] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [localContact, setLocalContact] = useState<Contact | null>(contact);
+  const [enrichState, setEnrichState] = useState<"idle" | "queuing" | "searching" | "done" | "error">("idle");
+  const [enrichError, setEnrichError] = useState<string | null>(null);
+  const [noDataFound, setNoDataFound] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const addListBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setLocalContact(contact);
     setShowEdit(false);
+    setEnrichState("idle");
+    setEnrichError(null);
+    setNoDataFound(false);
+    if (pollRef.current) clearInterval(pollRef.current);
   }, [contact?.id]);
+
+  useEffect(() => {
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, []);
+
+  async function handleEnrich() {
+    if (!localContact) return;
+    setEnrichState("queuing");
+    setEnrichError(null);
+    setNoDataFound(false);
+
+    try {
+      const res = await fetch(`/api/contacts/${localContact.id}/enrich`, { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setEnrichError(res.status === 402 || data?.error === "BUDGET_EXHAUSTED" ? "Credit limit reached" : "Enrichment failed");
+        setEnrichState("error");
+        return;
+      }
+
+      setEnrichState("searching");
+      const contactId = localContact.id;
+      let attempts = 0;
+
+      pollRef.current = setInterval(async () => {
+        attempts++;
+        if (attempts > 20) {
+          clearInterval(pollRef.current!);
+          setEnrichError("Enrichment timed out — try again shortly");
+          setEnrichState("error");
+          return;
+        }
+        try {
+          const r = await fetch(`/api/contacts/${contactId}`);
+          if (!r.ok) return;
+          const data = await r.json();
+          if (data.enrichedAt) {
+            clearInterval(pollRef.current!);
+            setLocalContact((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    email: data.email ?? prev.email,
+                    phone: data.phone ?? prev.phone,
+                    currentCompany: data.currentCompany ?? prev.currentCompany,
+                    companySize: data.companySize ?? prev.companySize,
+                    industry: data.industry ?? prev.industry,
+                    location: data.location ?? prev.location,
+                  }
+                : prev
+            );
+            const found = !!(data.email || data.phone);
+            setNoDataFound(!found);
+            setEnrichState("done");
+            onEnrich(contactId);
+          }
+        } catch {
+          // ignore transient poll errors
+        }
+      }, 3000);
+    } catch {
+      setEnrichError("Network error");
+      setEnrichState("error");
+    }
+  }
 
   useEffect(() => {
     if (!contact) return;
@@ -208,14 +274,45 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                   </div>
                 )}
 
-                {(!localContact.email && !localContact.phone) && (
-                  <button
-                    onClick={() => onEnrich(localContact.id)}
-                    className="flex items-center gap-2 mt-1 px-3 py-1.5 text-xs text-[#6b6866] border border-[#e5e3df] hover:border-amber-300 hover:text-amber-600 rounded-md transition-all"
-                  >
-                    <Zap className="w-3 h-3" />
-                    Enrich contact
-                  </button>
+                {!localContact.email && !localContact.phone && (
+                  <div className="mt-1 space-y-1.5">
+                    {enrichState === "idle" && (
+                      <button
+                        onClick={handleEnrich}
+                        className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#6b6866] border border-[#e5e3df] hover:border-amber-300 hover:text-amber-600 rounded-md transition-all"
+                      >
+                        <Zap className="w-3 h-3" />
+                        Enrich contact
+                      </button>
+                    )}
+                    {(enrichState === "queuing" || enrichState === "searching") && (
+                      <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-blue-600 border border-blue-100 bg-blue-50 rounded-md">
+                        <RefreshCw className="w-3 h-3 animate-spin" />
+                        {enrichState === "queuing" ? "Queuing…" : "Searching Apollo…"}
+                      </div>
+                    )}
+                    {enrichState === "done" && noDataFound && (
+                      <p className="text-xs text-[#9b9895] px-1">No contact data found in Apollo.</p>
+                    )}
+                    {enrichState === "error" && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-red-500 px-1">{enrichError}</p>
+                        <button
+                          onClick={handleEnrich}
+                          className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#6b6866] border border-[#e5e3df] hover:border-amber-300 hover:text-amber-600 rounded-md transition-all"
+                        >
+                          <Zap className="w-3 h-3" />
+                          Try again
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {enrichState === "done" && !noDataFound && (
+                  <div className="flex items-center gap-1.5 mt-1 px-1 text-xs text-emerald-600">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Enriched successfully
+                  </div>
                 )}
               </div>
 

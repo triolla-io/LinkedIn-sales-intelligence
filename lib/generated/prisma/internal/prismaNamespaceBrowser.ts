@@ -62,6 +62,7 @@ export const ModelName = {
   SavedView: 'SavedView',
   AuditEvent: 'AuditEvent',
   EnrichmentSpend: 'EnrichmentSpend',
+  PersonEnrichment: 'PersonEnrichment',
   LinkedinSession: 'LinkedinSession',
   Company: 'Company',
   Campaign: 'Campaign',
@@ -178,6 +179,9 @@ export const ContactScalarFieldEnum = {
   enrichedAt: 'enrichedAt',
   enrichmentSource: 'enrichmentSource',
   manualFields: 'manualFields',
+  enrichmentLog: 'enrichmentLog',
+  enrichmentRanAt: 'enrichmentRanAt',
+  enrichmentError: 'enrichmentError',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   companyId: 'companyId'
@@ -246,6 +250,24 @@ export const EnrichmentSpendScalarFieldEnum = {
 } as const
 
 export type EnrichmentSpendScalarFieldEnum = (typeof EnrichmentSpendScalarFieldEnum)[keyof typeof EnrichmentSpendScalarFieldEnum]
+
+
+export const PersonEnrichmentScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  linkedinUrlNormalized: 'linkedinUrlNormalized',
+  email: 'email',
+  phone: 'phone',
+  companySize: 'companySize',
+  currentCompany: 'currentCompany',
+  industry: 'industry',
+  rawResponse: 'rawResponse',
+  enrichedByContactId: 'enrichedByContactId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PersonEnrichmentScalarFieldEnum = (typeof PersonEnrichmentScalarFieldEnum)[keyof typeof PersonEnrichmentScalarFieldEnum]
 
 
 export const LinkedinSessionScalarFieldEnum = {
@@ -385,6 +407,8 @@ export const SequenceStepScalarFieldEnum = {
   sequenceId: 'sequenceId',
   stepNumber: 'stepNumber',
   dayOffset: 'dayOffset',
+  sendHour: 'sendHour',
+  sendMinute: 'sendMinute',
   channel: 'channel',
   templateId: 'templateId',
   subject: 'subject',
@@ -431,19 +455,19 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
 export const NullableJsonNullValueInput = {
   DbNull: DbNull,
   JsonNull: JsonNull
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

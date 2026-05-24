@@ -395,6 +395,7 @@ export const ModelName = {
   SavedView: 'SavedView',
   AuditEvent: 'AuditEvent',
   EnrichmentSpend: 'EnrichmentSpend',
+  PersonEnrichment: 'PersonEnrichment',
   LinkedinSession: 'LinkedinSession',
   Company: 'Company',
   Campaign: 'Campaign',
@@ -422,7 +423,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1237,6 +1238,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.EnrichmentSpendCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.EnrichmentSpendCountAggregateOutputType> | number
+        }
+      }
+    }
+    PersonEnrichment: {
+      payload: Prisma.$PersonEnrichmentPayload<ExtArgs>
+      fields: Prisma.PersonEnrichmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PersonEnrichmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonEnrichmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PersonEnrichmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonEnrichmentPayload>
+        }
+        findFirst: {
+          args: Prisma.PersonEnrichmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonEnrichmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PersonEnrichmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonEnrichmentPayload>
+        }
+        findMany: {
+          args: Prisma.PersonEnrichmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonEnrichmentPayload>[]
+        }
+        create: {
+          args: Prisma.PersonEnrichmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonEnrichmentPayload>
+        }
+        createMany: {
+          args: Prisma.PersonEnrichmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PersonEnrichmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonEnrichmentPayload>[]
+        }
+        delete: {
+          args: Prisma.PersonEnrichmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonEnrichmentPayload>
+        }
+        update: {
+          args: Prisma.PersonEnrichmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonEnrichmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.PersonEnrichmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PersonEnrichmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PersonEnrichmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonEnrichmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.PersonEnrichmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonEnrichmentPayload>
+        }
+        aggregate: {
+          args: Prisma.PersonEnrichmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePersonEnrichment>
+        }
+        groupBy: {
+          args: Prisma.PersonEnrichmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PersonEnrichmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PersonEnrichmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PersonEnrichmentCountAggregateOutputType> | number
         }
       }
     }
@@ -2253,6 +2328,9 @@ export const ContactScalarFieldEnum = {
   enrichedAt: 'enrichedAt',
   enrichmentSource: 'enrichmentSource',
   manualFields: 'manualFields',
+  enrichmentLog: 'enrichmentLog',
+  enrichmentRanAt: 'enrichmentRanAt',
+  enrichmentError: 'enrichmentError',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   companyId: 'companyId'
@@ -2321,6 +2399,24 @@ export const EnrichmentSpendScalarFieldEnum = {
 } as const
 
 export type EnrichmentSpendScalarFieldEnum = (typeof EnrichmentSpendScalarFieldEnum)[keyof typeof EnrichmentSpendScalarFieldEnum]
+
+
+export const PersonEnrichmentScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  linkedinUrlNormalized: 'linkedinUrlNormalized',
+  email: 'email',
+  phone: 'phone',
+  companySize: 'companySize',
+  currentCompany: 'currentCompany',
+  industry: 'industry',
+  rawResponse: 'rawResponse',
+  enrichedByContactId: 'enrichedByContactId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PersonEnrichmentScalarFieldEnum = (typeof PersonEnrichmentScalarFieldEnum)[keyof typeof PersonEnrichmentScalarFieldEnum]
 
 
 export const LinkedinSessionScalarFieldEnum = {
@@ -2460,6 +2556,8 @@ export const SequenceStepScalarFieldEnum = {
   sequenceId: 'sequenceId',
   stepNumber: 'stepNumber',
   dayOffset: 'dayOffset',
+  sendHour: 'sendHour',
+  sendMinute: 'sendMinute',
   channel: 'channel',
   templateId: 'templateId',
   subject: 'subject',
@@ -2506,19 +2604,19 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
 export const NullableJsonNullValueInput = {
   DbNull: DbNull,
   JsonNull: JsonNull
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -2637,20 +2735,6 @@ export type ListEnumFunctionFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
 
 
 /**
- * Reference to a field of type 'MessageStatus'
- */
-export type EnumMessageStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MessageStatus'>
-    
-
-
-/**
- * Reference to a field of type 'MessageStatus[]'
- */
-export type ListEnumMessageStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MessageStatus[]'>
-    
-
-
-/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -2661,6 +2745,20 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'MessageStatus'
+ */
+export type EnumMessageStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MessageStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'MessageStatus[]'
+ */
+export type ListEnumMessageStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MessageStatus[]'>
     
 
 
@@ -2882,6 +2980,7 @@ export type GlobalOmitConfig = {
   savedView?: Prisma.SavedViewOmit
   auditEvent?: Prisma.AuditEventOmit
   enrichmentSpend?: Prisma.EnrichmentSpendOmit
+  personEnrichment?: Prisma.PersonEnrichmentOmit
   linkedinSession?: Prisma.LinkedinSessionOmit
   company?: Prisma.CompanyOmit
   campaign?: Prisma.CampaignOmit
