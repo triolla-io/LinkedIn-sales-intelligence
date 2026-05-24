@@ -26,9 +26,11 @@ export const GET = withTenant(async (req, ctx) => {
 
   const q = url.searchParams.get("q") ?? undefined;
   const seniority = parseArrayParam(url.searchParams.get("seniority"));
-  const fn = parseArrayParam(url.searchParams.get("function"));
+  const functionFilter = parseArrayParam(url.searchParams.get("function"));
   const titleSearch = parseArrayParam(url.searchParams.get("titleSearch"));
   const industry = parseArrayParam(url.searchParams.get("industry"));
+  const company = parseArrayParam(url.searchParams.get("company"));
+  const location = parseArrayParam(url.searchParams.get("location"));
   const companySizeBuckets = parseArrayParam(url.searchParams.get("companySizeBuckets"));
   const hasEmail = url.searchParams.get("hasEmail");
   const hasPhone = url.searchParams.get("hasPhone");
@@ -84,55 +86,64 @@ export const GET = withTenant(async (req, ctx) => {
     ownerId: ctx.effectiveUserId,
     removedAt: null,
     ...(seniority?.length ? { seniority: { in: seniority as any } } : {}),
-    ...(fn?.length ? { function: { in: fn as any } } : {}),
+    ...(functionFilter?.length ? { function: { in: functionFilter as any } } : {}),
+    ...(company?.length ? { currentCompany: { in: company } } : {}),
+    ...(location?.length ? { location: { in: location } } : {}),
     ...(hasEmail === "true" ? { email: { not: null } } : {}),
+    ...(hasEmail === "false" ? { email: null } : {}),
     ...(hasPhone === "true" ? { phone: { not: null } } : {}),
+    ...(hasPhone === "false" ? { phone: null } : {}),
     ...(andClauses.length ? { AND: andClauses } : {}),
     ...(listId ? { lists: { some: { listId } } } : {}),
   };
 
-  const rows = await prisma.contact.findMany({
-    where,
-    orderBy: [{ lastSyncedAt: "desc" }, { id: "desc" }],
-    take: 50_000,
-    select: {
-      fullName: true,
-      currentTitle: true,
-      currentCompany: true,
-      email: true,
-      phone: true,
-      location: true,
-      industry: true,
-      seniority: true,
-      linkedinUrl: true,
-    },
-  });
+  try {
+    const rows = await prisma.contact.findMany({
+      where,
+      orderBy: [{ lastSyncedAt: "desc" }, { id: "desc" }],
+      take: 50_000,
+      select: {
+        fullName: true,
+        currentTitle: true,
+        currentCompany: true,
+        email: true,
+        phone: true,
+        location: true,
+        industry: true,
+        seniority: true,
+        linkedinUrl: true,
+      },
+    });
 
-  const headers = ["Name", "Title", "Company", "Email", "Phone", "Location", "Industry", "Seniority", "LinkedIn URL"];
-  const lines = [
-    headers.map(escapeCsv).join(","),
-    ...rows.map((r) =>
-      [
-        r.fullName,
-        r.currentTitle,
-        r.currentCompany,
-        r.email,
-        r.phone,
-        r.location,
-        r.industry,
-        r.seniority,
-        r.linkedinUrl,
-      ]
-        .map(escapeCsv)
-        .join(",")
-    ),
-  ];
+    const headers = ["Name", "Title", "Company", "Email", "Phone", "Location", "Industry", "Seniority", "LinkedIn URL"];
+    const lines = [
+      headers.map(escapeCsv).join(","),
+      ...rows.map((r) =>
+        [
+          r.fullName,
+          r.currentTitle,
+          r.currentCompany,
+          r.email,
+          r.phone,
+          r.location,
+          r.industry,
+          r.seniority,
+          r.linkedinUrl,
+        ]
+          .map(escapeCsv)
+          .join(",")
+      ),
+    ];
 
-  const date = new Date().toISOString().slice(0, 10);
-  return new NextResponse(lines.join("\n"), {
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="contacts-${date}.csv"`,
-    },
-  });
+    const date = new Date().toISOString().slice(0, 10);
+    return new NextResponse(lines.join("\r\n"), {
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="contacts-${date}.csv"`,
+      },
+    });
+  } catch (err) {
+    console.error("Export failed:", err);
+    return NextResponse.json({ error: "Export failed" }, { status: 500 });
+  }
 });
