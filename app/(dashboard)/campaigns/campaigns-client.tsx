@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import AutoRefresher from "@/components/auto-refresher";
 
 type Row = {
   id: string;
@@ -22,6 +23,7 @@ const STATUS_COLORS: Record<string, string> = {
 export function CampaignsClient({ campaigns }: { campaigns: Row[] }) {
   return (
     <div className="p-8 bg-[#f6f5f3] min-h-full">
+      <AutoRefresher />
       <h1 className="text-2xl font-semibold text-[#111110]">Campaigns</h1>
       <div className="mt-6 bg-white border border-[#e5e3df] rounded-xl overflow-hidden">
         <table className="w-full text-sm text-[#6b6866]">

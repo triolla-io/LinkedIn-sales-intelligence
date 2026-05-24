@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import AutoRefresher from "@/components/auto-refresher";
 
 type Recipient = {
   id: string;
@@ -79,6 +80,7 @@ export function CampaignDetailClient({ initial }: { initial: Campaign }) {
 
   return (
     <div className="p-8 bg-[#f6f5f3] min-h-full">
+      <AutoRefresher />
       <div className="mb-2">
         <Link href="/campaigns" className="text-sm text-[#9b9895] hover:text-[#1585ff] transition-colors">← Campaigns</Link>
       </div>
