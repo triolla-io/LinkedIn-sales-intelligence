@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import Sidebar from "@/components/dashboard/sidebar";
+import SidebarShell from "@/components/dashboard/sidebar-shell";
 import ImpersonationBanner from "@/components/dashboard/impersonation-banner";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -39,9 +39,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-[#f6f5f3]">
-      <div className="w-[240px] shrink-0">
-        <Sidebar user={user} />
-      </div>
+      <SidebarShell user={user} />
       <div className="flex-1 flex flex-col overflow-hidden">
         {impersonatedUser && (
           <ImpersonationBanner name={impersonatedUser.name} />
