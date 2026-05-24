@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Plus, Trash2, Mail, MessageSquare, ChevronUp, ChevronDown } from "lucide-react";
+import { X, Plus, Trash2, Mail, MessageSquare } from "lucide-react";
 
 type List = { id: string; name: string };
 type Template = { id: string; name: string };
@@ -18,6 +18,19 @@ type Step = {
 
 function uid() {
   return Math.random().toString(36).slice(2);
+}
+
+function toDateString(dayOffset: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + dayOffset);
+  return d.toISOString().split("T")[0];
+}
+
+function fromDateString(dateStr: string): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const selected = new Date(dateStr + "T00:00:00");
+  return Math.max(0, Math.round((selected.getTime() - today.getTime()) / 86_400_000));
 }
 
 export default function NewSequenceModal({
@@ -192,23 +205,15 @@ export default function NewSequenceModal({
                       Step {index + 1}
                     </span>
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 text-xs text-[#6b6866]">
-                        <span>Day</span>
-                        <button
-                          onClick={() => updateStep(step.key, { dayOffset: Math.max(0, step.dayOffset - 1) })}
-                          className="w-5 h-5 flex items-center justify-center rounded border border-[#e5e3df] bg-white hover:bg-[#f3f2ef]"
-                        >
-                          <ChevronDown className="w-3 h-3" />
-                        </button>
-                        <span className="w-6 text-center font-mono font-medium text-[#111110]">
-                          {step.dayOffset + 1}
-                        </span>
-                        <button
-                          onClick={() => updateStep(step.key, { dayOffset: step.dayOffset + 1 })}
-                          className="w-5 h-5 flex items-center justify-center rounded border border-[#e5e3df] bg-white hover:bg-[#f3f2ef]"
-                        >
-                          <ChevronUp className="w-3 h-3" />
-                        </button>
+                      <div className="flex items-center gap-1.5 text-xs text-[#6b6866]">
+                        <span>Date</span>
+                        <input
+                          type="date"
+                          min={toDateString(0)}
+                          value={toDateString(step.dayOffset)}
+                          onChange={(e) => updateStep(step.key, { dayOffset: fromDateString(e.target.value) })}
+                          className="border border-[#e5e3df] rounded px-2 py-1 text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
+                        />
                       </div>
                       {steps.length > 1 && (
                         <button
