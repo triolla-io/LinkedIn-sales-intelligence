@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import { BookMarked, Trash2, Loader2 } from "lucide-react";
 
 type ListSummary = { id: string; name: string; memberCount: number; createdAt: string };
@@ -23,7 +24,7 @@ export default function ListsPage() {
     }
   }
 
-  useEffect(() => { fetchLists(); }, []);
+  useAutoRefresh(fetchLists, 30_000);
 
   async function deleteList(id: string) {
     setDeletingId(id);
