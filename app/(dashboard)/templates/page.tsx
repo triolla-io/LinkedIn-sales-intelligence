@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import { FileText, Plus, Trash2, Edit2, RefreshCw, Zap } from "lucide-react";
 
 interface Template {
@@ -144,9 +145,7 @@ export default function TemplatesPage() {
     }
   }
 
-  useEffect(() => {
-    fetchTemplates();
-  }, []);
+  useAutoRefresh(fetchTemplates, 30_000);
 
   async function handleCreate(data: { name: string; body: string }) {
     const res = await fetch("/api/templates", {
