@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, X, ChevronDown, ChevronUp, BookMarked } from "lucide-react";
+import { Search, X, ChevronDown, ChevronUp, BookMarked, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useCollapsed } from "@/lib/hooks/use-collapsed";
 
 export type Filters = {
   seniority: string[];
@@ -106,9 +107,24 @@ interface FilterSidebarProps {
   onChange: (f: Filters) => void;
 }
 
+function countActiveFilters(filters: Filters): number {
+  return (
+    (filters.q ? 1 : 0) +
+    filters.seniority.length +
+    filters.function.length +
+    filters.titleSearch.length +
+    filters.industry.length +
+    filters.companySizeBuckets.length +
+    (filters.hasEmail ? 1 : 0) +
+    (filters.hasPhone ? 1 : 0) +
+    (filters.listId ? 1 : 0)
+  );
+}
+
 export default function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
   const [customTitle, setCustomTitle] = useState("");
   const [lists, setLists] = useState<{ id: string; name: string; memberCount: number }[]>([]);
+  const [collapsed, toggleCollapsed] = useCollapsed("filter-sidebar-collapsed");
 
   useEffect(() => {
     fetch("/api/lists")
@@ -127,6 +143,7 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
     filters.hasEmail ||
     filters.hasPhone ||
     filters.listId;
+  const activeCount = countActiveFilters(filters);
 
   function toggle<K extends keyof Filters>(key: K, value: string) {
     const arr = filters[key] as string[];
@@ -144,10 +161,45 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
     }
   }
 
+  if (collapsed) {
+    return (
+      <div
+        className="flex flex-col items-center justify-start pt-4 gap-3 bg-white border-r border-[#e5e3df] transition-[width] duration-200 ease-in-out"
+        style={{ width: 32 }}
+      >
+        {activeCount > 0 && (
+          <span className="w-5 h-5 rounded-full bg-[#1585ff] text-white text-[9px] font-mono font-semibold flex items-center justify-center">
+            {activeCount > 9 ? "9+" : activeCount}
+          </span>
+        )}
+        <button
+          onClick={toggleCollapsed}
+          title="Expand filters"
+          className="flex items-center justify-center w-6 h-6 rounded text-[#9b9895] hover:text-[#6b6866] hover:bg-[#f3f2ef] transition-colors"
+        >
+          <ChevronRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col h-full bg-white border-r border-[#e5e3df]">
+    <div
+      className="flex flex-col h-full bg-white border-r border-[#e5e3df] transition-[width] duration-200 ease-in-out"
+      style={{ width: 224 }}
+    >
       {/* Search */}
       <div className="p-4 border-b border-[#e5e3df]">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="flex-1 text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest">Filters</span>
+          <button
+            onClick={toggleCollapsed}
+            title="Collapse filters"
+            className="flex items-center justify-center w-5 h-5 rounded text-[#c8c5c2] hover:text-[#6b6866] hover:bg-[#f3f2ef] transition-colors"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+        </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9b9895]" />
           <input
