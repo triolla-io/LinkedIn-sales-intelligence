@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Users, ArrowRight, Upload, FileText, Terminal } from "lucide-react";
+import AutoRefresher from "@/components/auto-refresher";
 
 interface Props {
   user: { name: string; email: string; image?: string | null };
@@ -28,6 +29,7 @@ function formatRelative(iso: string): string {
 export default function DashboardClient({ user, contactCount, latestImport }: Props) {
   return (
     <div className="min-h-full bg-[#f6f5f3] p-8">
+      <AutoRefresher />
       <div className="mb-10">
         <p className="text-[#9b9895] text-sm font-mono tracking-widest uppercase mb-1">Dashboard</p>
         <h1 className="text-2xl font-semibold text-[#111110]">
