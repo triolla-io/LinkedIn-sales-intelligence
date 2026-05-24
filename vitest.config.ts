@@ -6,6 +6,11 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "jsdom",
+    environmentOptions: {
+      jsdom: {
+        storageQuota: 10000000,
+      },
+    },
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/unit/**/*.test.ts", "tests/unit/**/*.test.tsx", "tests/integration/**/*.test.ts"],
     exclude: ["tests/e2e/**", "node_modules/**"],
