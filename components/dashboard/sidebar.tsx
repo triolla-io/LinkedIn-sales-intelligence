@@ -23,7 +23,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/contacts", label: "Contacts", icon: Users },
   { href: "/lists", label: "Lists", icon: BookMarked },
-  { href: "/campaigns", label: "קמפיינים", icon: GitBranch },
+  { href: "/campaigns", label: "Campaigns", icon: GitBranch },
   { href: "/templates", label: "Templates", icon: FileText },
   { href: "/import", label: "Import CSV", icon: Upload },
   { href: "/whatsapp-connect", label: "WhatsApp", icon: MessageCircle },

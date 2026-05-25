@@ -31,12 +31,12 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "טיוטה",
-  QUEUED: "ממתין",
-  ACTIVE: "פעיל",
-  PAUSED: "מושהה",
-  COMPLETED: "הושלם",
-  CANCELLED: "בוטל",
+  DRAFT: "Draft",
+  QUEUED: "Queued",
+  ACTIVE: "Active",
+  PAUSED: "Paused",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
 };
 
 function currentStepNumber(enrollments: Sequence["enrollments"]): number | null {
@@ -73,10 +73,10 @@ function StepTimeline({ steps, currentStep }: { steps: Step[]; currentStep: numb
               ) : (
                 <MessageSquare className="w-2.5 h-2.5" />
               )}
-              שלב {step.stepNumber}
+              Step {step.stepNumber}
               {step.dayOffset > 0 && (
                 <span className={isActive ? "text-blue-100" : "text-[#9b9895]"}>
-                  ({step.dayOffset} ימים)
+                  ({step.dayOffset}d)
                 </span>
               )}
             </div>
@@ -113,9 +113,9 @@ export default function CampaignsClient({
       <AutoRefresher />
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-[#111110]">קמפיינים</h1>
+          <h1 className="text-xl font-semibold text-[#111110]">Campaigns</h1>
           <p className="text-sm text-[#6b6866] mt-0.5">
-            שליחת הודעות ממוקדות לרשימות אנשי קשר
+            Targeted outreach to contact lists
           </p>
         </div>
         <button
@@ -123,14 +123,14 @@ export default function CampaignsClient({
           className="flex items-center gap-2 bg-[#1585ff] text-white text-sm font-medium px-3.5 py-2 rounded-lg hover:bg-[#0f6fd4] transition-colors"
         >
           <Plus className="w-4 h-4" />
-          קמפיין חדש
+          New Campaign
         </button>
       </div>
 
       {sequences.length === 0 ? (
         <div className="border border-dashed border-[#e5e3df] rounded-xl p-12 text-center">
-          <p className="text-sm font-medium text-[#111110]">אין קמפיינים עדיין</p>
-          <p className="text-xs text-[#9b9895] mt-1">צור קמפיין כדי להתחיל לשלוח הודעות</p>
+          <p className="text-sm font-medium text-[#111110]">No campaigns yet</p>
+          <p className="text-xs text-[#9b9895] mt-1">Create a campaign to start sending messages</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -161,7 +161,7 @@ export default function CampaignsClient({
                     <p className="text-xs text-[#9b9895] mt-0.5">{seq.contactList.name}</p>
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-xs text-[#6b6866]">
-                        {seq._count.enrollments} רשומים · {seq.steps.length} שלבים
+                        {seq._count.enrollments} enrolled · {seq.steps.length} steps
                       </span>
                     </div>
                     <div className="mt-2">
@@ -173,7 +173,7 @@ export default function CampaignsClient({
                       <button
                         onClick={() => togglePause(seq)}
                         className="p-1.5 text-[#9b9895] hover:text-[#6b6866] hover:bg-[#f3f2ef] rounded transition-colors"
-                        title={canPause ? "השהה" : "המשך"}
+                        title={canPause ? "Pause" : "Resume"}
                       >
                         {canPause ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                       </button>
