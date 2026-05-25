@@ -23,11 +23,11 @@ const QUICK_FILTERS: QuickFilter[] = [
   { label: "CTO", seniority: ["C_LEVEL"], function: ["ENGINEERING"] },
   { label: "VP", seniority: ["VP"] },
   { label: "Director", seniority: ["DIRECTOR"] },
-  { label: "HR / Recruiter", function: ["HR"] },
-  { label: "Engineering", function: ["ENGINEERING"] },
-  { label: "Sales", function: ["SALES"] },
-  { label: "Marketing", function: ["MARKETING"] },
-  { label: "Product", function: ["PRODUCT"] },
+  { label: "HR / גיוס", function: ["HR"] },
+  { label: "הנדסה", function: ["ENGINEERING"] },
+  { label: "מכירות", function: ["SALES"] },
+  { label: "שיווק", function: ["MARKETING"] },
+  { label: "מוצר", function: ["PRODUCT"] },
 ];
 
 function isQuickActive(f: Filters, q: QuickFilter): boolean {
@@ -115,7 +115,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
               : "bg-white text-gray-600 border-gray-300 hover:border-green-400 hover:text-green-600"
           )}
         >
-          Has Email
+          יש אימייל
         </button>
 
         {/* Has Phone */}
@@ -128,7 +128,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
               : "bg-white text-gray-600 border-gray-300 hover:border-green-400 hover:text-green-600"
           )}
         >
-          Has Phone
+          יש טלפון
         </button>
 
         {hasFilters && (
@@ -137,7 +137,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
             className="flex items-center gap-1 px-3 py-1 text-sm text-gray-400 hover:text-gray-600 transition-colors"
           >
             <X className="w-3 h-3" />
-            Clear all
+            נקה
           </button>
         )}
       </div>
@@ -148,7 +148,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
         <input
           ref={inputRef}
           type="text"
-          placeholder='Search by name, company, title… (press "/" to focus)'
+          placeholder='חיפוש לפי שם, חברה, תפקיד...'
           value={filters.q}
           onChange={(e) => onChange({ ...filters, q: e.target.value })}
           className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
