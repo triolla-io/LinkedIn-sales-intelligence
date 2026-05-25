@@ -47,11 +47,13 @@ export async function lookupContact(params: {
 
   try {
     // 1. Try LinkedIn URL
-    const byLinkedin = await searchByProperty(
-      "hs_linkedin_profile_url",
-      params.linkedinUrl
-    );
-    if (byLinkedin) return byLinkedin;
+    if (params.linkedinUrl) {
+      const byLinkedin = await searchByProperty(
+        "hs_linkedin_profile_url",
+        params.linkedinUrl
+      );
+      if (byLinkedin) return byLinkedin;
+    }
 
     // 2. Fallback: name + company
     const nameParts = params.fullName.trim().split(/\s+/);
@@ -93,8 +95,8 @@ export async function lookupContact(params: {
     if (!email && !phone) return null;
 
     return { email, phone };
-  } catch {
-    console.error("[hubspot] lookupContact failed silently");
+  } catch (error) {
+    console.error("[hubspot] lookupContact failed silently", error);
     return null;
   }
 }
