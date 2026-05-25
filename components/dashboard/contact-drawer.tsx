@@ -195,15 +195,18 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
       }
 
       // Fire appropriate toast
-      if (data.source === "cache") {
+      if (!data.email && !data.phone) {
         toast.info(
-          `${localContact.fullName} · Already enriched`,
-          "Data loaded from org cache."
+          `${localContact.fullName} · לא נמצאו נתונים`,
+          data.source === "cache" ? "Apollo כבר נשאל על קשר זה ולא מצא נתונים." : "לא נמצא אימייל או טלפון עבור פרופיל זה."
         );
-      } else if (!data.email && !data.phone) {
+      } else if (data.source === "cache") {
+        const found: string[] = [];
+        if (data.email) found.push("אימייל");
+        if (data.phone) found.push("טלפון");
         toast.info(
-          `${localContact.fullName} · Apollo had no data`,
-          "No email or phone found for this profile."
+          `${localContact.fullName} · נטען מהמטמון`,
+          `נמצא: ${found.join(", ")}`
         );
       } else {
         const found: string[] = [];

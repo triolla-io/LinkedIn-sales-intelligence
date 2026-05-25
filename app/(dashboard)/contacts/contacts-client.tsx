@@ -8,7 +8,8 @@ import FilterSidebar, { type Filters, DEFAULT_FILTERS } from "@/components/dashb
 import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
 import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
-import { RefreshCw, Download } from "lucide-react";
+import CreateContactModal from "@/components/dashboard/create-contact-modal";
+import { RefreshCw, Download, UserPlus } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 type InsightsData = {
@@ -102,6 +103,7 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
   const [exporting, setExporting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [drawerContact, setDrawerContact] = useState<Contact | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const tableWrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -221,6 +223,13 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              הוסף איש קשר
+            </button>
+            <button
               onClick={handleExport}
               disabled={exporting}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-emerald-600 border border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -296,6 +305,17 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
           selectedIds={Array.from(selectedIds)}
           selectedContacts={selectedContacts}
           onDone={() => { setSelectedIds(new Set()); fetchData(); }}
+        />
+      )}
+
+      {showCreateModal && (
+        <CreateContactModal
+          onClose={() => setShowCreateModal(false)}
+          onCreated={(contact) => {
+            setContacts((prev) => [contact, ...prev]);
+            setTotal((prev) => prev + 1);
+            setShowCreateModal(false);
+          }}
         />
       )}
     </div>

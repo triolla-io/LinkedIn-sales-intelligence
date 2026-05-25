@@ -181,3 +181,60 @@ export const GET = withTenant(async (req, ctx) => {
 
   return NextResponse.json({ items: data, nextCursor, totalApprox });
 });
+
+export const POST = withTenant(async (req: NextRequest, ctx) => {
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  }
+  const b = body as Record<string, unknown>;
+  const fullName = typeof b.fullName === "string" ? b.fullName.trim() : "";
+  if (!fullName) {
+    return NextResponse.json({ error: "fullName is required" }, { status: 400 });
+  }
+
+  const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+  const VALID_SENIORITY = ["C_LEVEL", "VP", "DIRECTOR", "MANAGER", "IC", "OTHER"];
+  const seniority = typeof b.seniority === "string" && VALID_SENIORITY.includes(b.seniority)
+    ? b.seniority
+    : null;
+
+  const manualFields: string[] = [];
+  const fields: Record<string, string | null> = {
+    hebrewFirstName: str(b.hebrewFirstName),
+    linkedinUrl: str(b.linkedinUrl),
+    email: str(b.email),
+    phone: str(b.phone),
+    currentTitle: str(b.currentTitle),
+    currentCompany: str(b.currentCompany),
+    location: str(b.location),
+    headline: str(b.headline),
+  };
+  for (const [k, v] of Object.entries(fields)) {
+    if (v !== null) manualFields.push(k);
+  }
+  manualFields.push("fullName");
+
+  const placeholderId = `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  const contact = await prisma.contact.create({
+    data: {
+      ownerId: ctx.effectiveUserId,
+      fullName,
+      linkedinUrl: fields.linkedinUrl ?? `https://linkedin.com/manual/${placeholderId}`,
+      linkedinUrn: placeholderId,
+      hebrewFirstName: fields.hebrewFirstName,
+      email: fields.email,
+      phone: fields.phone,
+      currentTitle: fields.currentTitle,
+      currentCompany: fields.currentCompany,
+      location: fields.location,
+      headline: fields.headline,
+      ...(seniority ? { seniority: seniority as any } : {}),
+      lastSyncedAt: new Date(),
+      manualFields,
+    },
+  });
+
+  return NextResponse.json({ contact }, { status: 201 });
+});

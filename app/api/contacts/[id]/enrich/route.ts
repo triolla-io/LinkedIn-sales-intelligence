@@ -47,7 +47,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       },
     });
 
-    if (cached) {
+    if (cached && (cached.email || cached.phone)) {
       const protected_ = new Set(contact.manualFields as string[]);
       const patch: Record<string, unknown> = {
         enrichedAt: new Date(),
