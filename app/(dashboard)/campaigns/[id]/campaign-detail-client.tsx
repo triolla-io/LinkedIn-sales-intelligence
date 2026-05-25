@@ -46,12 +46,12 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "Draft",
-  QUEUED: "Queued",
-  ACTIVE: "Active",
-  PAUSED: "Paused",
-  COMPLETED: "Completed",
-  CANCELLED: "Cancelled",
+  DRAFT: "טיוטה",
+  QUEUED: "בתור",
+  ACTIVE: "פעיל",
+  PAUSED: "מושהה",
+  COMPLETED: "הושלם",
+  CANCELLED: "בוטל",
 };
 
 const EXEC_COLORS: Record<string, string> = {
@@ -193,7 +193,7 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
           </Link>
           <div>
             <h1 className="text-xl font-semibold text-[#111110]">{sequence.name}</h1>
-            <p className="text-sm text-[#6b6866] mt-0.5">List: {sequence.contactList.name}</p>
+            <p className="text-sm text-[#6b6866] mt-0.5">רשימה: {sequence.contactList.name}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -207,7 +207,7 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
               className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50"
             >
               <Play className="w-3.5 h-3.5" />
-              Start
+              התחל
             </button>
           )}
           {status === "ACTIVE" && (
@@ -217,7 +217,7 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
               className="flex items-center gap-1.5 px-3.5 py-2 bg-[#f3f2ef] text-[#6b6866] text-sm font-medium rounded-lg hover:bg-[#e5e3df] transition-colors disabled:opacity-50"
             >
               <Pause className="w-3.5 h-3.5" />
-              Pause
+              השהה
             </button>
           )}
           {status === "PAUSED" && (
@@ -227,17 +227,17 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
               className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              Resume
+              המשך
             </button>
           )}
           {["ACTIVE", "PAUSED", "QUEUED"].includes(status) && (
             <button
-              onClick={() => { if (confirm("Cancel this campaign?")) doAction("cancel"); }}
+              onClick={() => { if (confirm("בטל את קמפיין זה?")) doAction("cancel"); }}
               disabled={acting}
               className="flex items-center gap-1.5 px-3.5 py-2 bg-[#fff3f3] text-[#dc2626] text-sm font-medium rounded-lg hover:bg-[#fee2e2] transition-colors disabled:opacity-50"
             >
               <XCircle className="w-3.5 h-3.5" />
-              Cancel
+              בטל
             </button>
           )}
         </div>
@@ -246,9 +246,9 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Enrolled", value: sequence.enrollments.length },
-          { label: "Messages sent", value: sentCount },
-          { label: "Steps", value: sequence.steps.length },
+          { label: "רשום", value: sequence.enrollments.length },
+          { label: "הודעות שנשלחו", value: sentCount },
+          { label: "שלבים", value: sequence.steps.length },
         ].map(({ label, value }) => (
           <div key={label} className="border border-[#e5e3df] rounded-xl p-4 bg-white">
             <p className="text-xs text-[#9b9895] uppercase tracking-wider font-semibold">{label}</p>
@@ -259,7 +259,7 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
 
       {/* Step timeline */}
       <div className="border border-[#e5e3df] rounded-xl bg-white p-5">
-        <h2 className="text-sm font-semibold text-[#111110] mb-4">Steps</h2>
+        <h2 className="text-sm font-semibold text-[#111110] mb-4">שלבים</h2>
         <div className="flex gap-3 overflow-x-auto pb-2">
           {sequence.steps.map((step, i) => {
             const isActive = step.stepNumber === activeStep;
@@ -286,9 +286,9 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
                   </div>
                   <div className="min-w-[140px] mt-2 pr-4">
                     <p className="text-xs font-semibold text-[#111110]">
-                      Day {step.dayOffset + 1} — {step.channel === "EMAIL" ? "Email" : "WhatsApp"}
+                      יום {step.dayOffset + 1} — {step.channel === "EMAIL" ? "דוא״ל" : "WhatsApp"}
                       {isActive && (
-                        <span className="ml-1.5 text-[10px] text-[#1585ff] font-medium">← now</span>
+                        <span className="ml-1.5 text-[10px] text-[#1585ff] font-medium">← עכשיו</span>
                       )}
                     </p>
                     <p className="text-xs text-[#6b6866] mt-0.5">{step.template.name}</p>
@@ -308,7 +308,7 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
         <div className="border border-[#e5e3df] rounded-xl overflow-hidden bg-white">
           <div className="px-5 py-3 border-b border-[#e5e3df] bg-[#fafaf9] flex items-center justify-between">
             <h2 className="text-sm font-semibold text-[#111110]">
-              Contacts ({sequence.enrollments.length})
+              אנשי קשר ({sequence.enrollments.length})
             </h2>
             {selectedIds.size > 0 && (
               <button
@@ -317,7 +317,7 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-[#fff3f3] text-[#dc2626] text-xs font-medium rounded-lg hover:bg-[#fee2e2] transition-colors disabled:opacity-50"
               >
                 <X className="w-3 h-3" />
-                Remove from future steps ({selectedIds.size})
+                הסר משלבים עתידיים ({selectedIds.size})
               </button>
             )}
           </div>
@@ -332,7 +332,7 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
                     className="rounded border-[#e5e3df]"
                   />
                 </th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b6866] uppercase tracking-wider">Contact</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b6866] uppercase tracking-wider">איש קשר</th>
                 {sequence.steps.map((step) => (
                   <th
                     key={step.id}
@@ -340,7 +340,7 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
                       step.stepNumber === activeStep ? "text-[#1585ff]" : "text-[#6b6866]"
                     }`}
                   >
-                    Step {step.stepNumber}
+                    שלב {step.stepNumber}
                   </th>
                 ))}
                 <th className="w-10" />
@@ -383,7 +383,7 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
                       onClick={() => removeSingle(enr.id)}
                       disabled={removing}
                       className="p-1 text-[#c8c5c2] hover:text-[#dc2626] hover:bg-[#fff3f3] rounded transition-colors disabled:opacity-50"
-                      title="Remove from future steps"
+                      title="הסר משלבים עתידיים"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
