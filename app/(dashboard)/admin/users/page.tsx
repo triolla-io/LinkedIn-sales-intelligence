@@ -72,7 +72,7 @@ export default function AdminUsersPage() {
     return (
       <div className="p-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
-          {error}
+          {error === "You don't have permission to view this page" ? "אין לך הרשאה לצפות בדף זה" : error}
         </div>
       </div>
     );
@@ -82,8 +82,8 @@ export default function AdminUsersPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Users</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage users in your organization</p>
+          <h1 className="text-2xl font-semibold text-gray-900">משתמשים</h1>
+          <p className="text-sm text-gray-500 mt-1">נהל משתמשים בארגון שלך</p>
         </div>
         <button
           onClick={fetchUsers}
@@ -91,7 +91,7 @@ export default function AdminUsersPage() {
           className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
         >
           <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
-          Refresh
+          רענן
         </button>
       </div>
 
@@ -116,12 +116,12 @@ export default function AdminUsersPage() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Contacts</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Last Synced</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Credits</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">שם</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">אימייל</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">תפקיד</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">אנשי קשר</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">סנכרן אחרון</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">קרדיטים</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -129,7 +129,7 @@ export default function AdminUsersPage() {
               {users.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-8 text-gray-500 text-sm">
-                    No users found
+                    לא נמצאו משתמשים
                   </td>
                 </tr>
               ) : (
@@ -156,7 +156,7 @@ export default function AdminUsersPage() {
                       <p className="text-sm text-gray-500">
                         {user.lastSyncedAt
                           ? new Date(user.lastSyncedAt).toLocaleDateString()
-                          : "Never"}
+                          : "לעולם לא"}
                       </p>
                     </td>
                     <td className="px-4 py-3">
@@ -173,7 +173,7 @@ export default function AdminUsersPage() {
                         ) : (
                           <ExternalLink className="w-3 h-3" />
                         )}
-                        View as
+                        צפה כ
                       </button>
                     </td>
                   </tr>

@@ -122,10 +122,10 @@ export default function AdminClient() {
     <div className="min-h-full bg-[#f6f5f3] p-8">
       <div className="mb-8 flex items-start justify-between">
         <div>
-          <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-1">Admin</p>
-          <h1 className="text-2xl font-semibold text-[#111110]">Team Overview</h1>
+          <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-1">ניהול</p>
+          <h1 className="text-2xl font-semibold text-[#111110]">סקירת הצוות</h1>
           <p className="text-[#6b6866] text-sm mt-1">
-            {loading ? "Loading…" : `${users.length} salespeople`}
+            {loading ? "טוען…" : `${users.length} איש מכירות`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -133,10 +133,10 @@ export default function AdminClient() {
             onClick={triggerWebEnrich}
             disabled={enriching}
             className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-[#e5e3df] text-[#6b6866] hover:border-blue-200 hover:text-[#1585ff] transition-all"
-            title="Search the web to fill in missing employee counts and industries"
+            title="חפש באינטרנט כדי למלא מספרי עובדים וענפים חסרים"
           >
             {enriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-            {enrichDone ? "Enrichment started!" : enriching ? "Starting…" : "Enrich companies"}
+            {enrichDone ? "העשרה התחילה!" : enriching ? "מתחיל…" : "העשר חברות"}
           </button>
           {impersonating && (
             <button
@@ -145,7 +145,7 @@ export default function AdminClient() {
               className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-amber-200 text-amber-600 hover:bg-amber-50 transition-all"
             >
               <LogOut className="w-3.5 h-3.5" />
-              Stop impersonating
+              הפסק התחזות
             </button>
           )}
           <button
@@ -154,7 +154,7 @@ export default function AdminClient() {
             className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-[#e5e3df] text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] transition-all"
           >
             <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
-            Refresh
+            רענן
           </button>
         </div>
       </div>
@@ -163,7 +163,7 @@ export default function AdminClient() {
       <div className="rounded-xl border border-[#e5e3df] bg-white p-5 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <UserPlus className="w-4 h-4 text-[#9b9895]" />
-          <p className="text-sm font-medium text-[#111110]">Invite a team member</p>
+          <p className="text-sm font-medium text-[#111110]">הזמן חברת צוות</p>
         </div>
         <div className="flex gap-2">
           <input
@@ -180,21 +180,21 @@ export default function AdminClient() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1585ff] hover:bg-[#0a70e0] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-all"
           >
             {inviting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
-            {inviting ? "Sending…" : "Send invite"}
+            {inviting ? "שולח…" : "שלח הזמנה"}
           </button>
         </div>
 
         {inviteResult?.sent && (
           <div className="mt-3 flex items-center gap-2 text-xs text-emerald-600">
             <Check className="w-3.5 h-3.5" />
-            Invitation sent — they'll get an email with a sign-in link.
+            הזמנה נשלחה — הם יקבלו אימייל עם קישור כניסה.
           </div>
         )}
 
         {inviteResult?.url && (
           <div className="mt-3 p-3 rounded-lg bg-[#f8f7f5] border border-[#e5e3df]">
             <p className="text-xs text-[#6b6866] mb-2">
-              <span className="text-amber-600 font-medium">No email key configured</span> — share this link manually:
+              <span className="text-amber-600 font-medium">אין מפתח אימייל מוגדר</span> — שתף קישור זה ידנית:
             </p>
             <div className="flex items-center gap-2">
               <code className="flex-1 text-xs text-[#1585ff] truncate font-mono">{inviteResult.url}</code>
@@ -203,7 +203,7 @@ export default function AdminClient() {
                 className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#e5e3df] hover:border-[#9b9895] text-xs text-[#6b6866] hover:text-[#111110] transition-all"
               >
                 {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                {copied ? "Copied" : "Copy"}
+                {copied ? "הועתק" : "העתק"}
               </button>
             </div>
           </div>
@@ -218,8 +218,8 @@ export default function AdminClient() {
         <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
           <LogIn className="w-4 h-4 text-amber-600 shrink-0" />
           <p className="text-sm text-amber-700">
-            You are viewing as <strong>{users.find(u => u.id === impersonating)?.name ?? "…"}</strong>.
-            All contacts and actions are scoped to their account.
+            אתה צופה כ<strong>{users.find(u => u.id === impersonating)?.name ?? "…"}</strong>.
+            כל אנשי הקשר והפעולות מוגבלים לחשבון שלהם.
           </p>
         </div>
       )}
@@ -236,7 +236,7 @@ export default function AdminClient() {
           className="grid items-center gap-4 px-5 py-3 border-b border-[#e5e3df] bg-[#f8f7f5]"
           style={{ gridTemplateColumns: "1fr 90px 130px 80px 120px" }}
         >
-          {["Salesperson", "Contacts", "Last Synced", "Role", ""].map((h) => (
+          {["איש מכירות", "אנשי קשר", "סנכרן אחרון", "תפקיד", ""].map((h) => (
             <span key={h} className="text-xs font-mono text-[#9b9895] uppercase tracking-widest">{h}</span>
           ))}
         </div>
@@ -248,7 +248,7 @@ export default function AdminClient() {
         ) : users.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-2">
             <Users className="w-8 h-8 text-[#d4d0cc]" />
-            <p className="text-sm text-[#9b9895]">No team members found.</p>
+            <p className="text-sm text-[#9b9895]">לא נמצאו חברי צוות.</p>
           </div>
         ) : (
           users.map((u, idx) => {
@@ -286,8 +286,8 @@ export default function AdminClient() {
                     : "border-[#e5e3df] text-[#6b6866]"
                 )}>
                   {u.role === "ADMIN" || u.role === "SUPER_ADMIN"
-                    ? <><Shield className="w-3 h-3" /> Admin</>
-                    : "Sales"
+                    ? <><Shield className="w-3 h-3" /> מנהל</>
+                    : "מכירות"
                   }
                 </span>
 
@@ -300,7 +300,7 @@ export default function AdminClient() {
                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md border border-amber-200 text-amber-600 hover:bg-amber-50 transition-all"
                     >
                       <LogOut className="w-3 h-3" />
-                      Exit
+                      יציאה
                     </button>
                   ) : (
                     <button
@@ -312,7 +312,7 @@ export default function AdminClient() {
                         ? <RefreshCw className="w-3 h-3 animate-spin" />
                         : <LogIn className="w-3 h-3" />
                       }
-                      Send as
+                      שלח כ
                     </button>
                   )}
                 </div>
@@ -323,8 +323,8 @@ export default function AdminClient() {
       </div>
 
       <p className="mt-4 text-xs text-[#9b9895] font-mono">
-        "Send as" lets you browse contacts and send messages on behalf of that salesperson.
-        A yellow banner will appear while active.
+        "שלח כ" מאפשר לך לדפדף באנשי קשר ולשלוח הודעות בשם איש המכירות.
+        שלט צהוב יופיע כאשר הוא פעיל.
       </p>
     </div>
   );
