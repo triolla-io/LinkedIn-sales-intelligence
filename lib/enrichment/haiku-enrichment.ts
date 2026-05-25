@@ -1,6 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const client = new Anthropic();
+let _client: Anthropic | null = null;
+function getClient(): Anthropic | null {
+  if (_client) return _client;
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) return null;
+  _client = new Anthropic();
+  return _client;
+}
 
 export type HaikuInput = {
   id: string;
@@ -31,6 +38,9 @@ export function sizeRangeToMidpoint(range: string): number | null {
 export async function enrichBatch(inputs: HaikuInput[]): Promise<HaikuOutput[]> {
   if (inputs.length === 0) return [];
 
+  const client = getClient();
+  if (!client) return [];
+
   const prompt = `You are a data enrichment assistant for a B2B sales tool.
 
 For each contact in the JSON array below, return an output JSON array with:
@@ -51,8 +61,11 @@ ${JSON.stringify(inputs)}`;
     });
 
     const text = response.content[0]?.type === "text" ? response.content[0].text.trim() : "";
-    return JSON.parse(text) as HaikuOutput[];
-  } catch {
+    const parsed = JSON.parse(text);
+    if (!Array.isArray(parsed)) throw new Error("Haiku response was not an array");
+    return parsed as HaikuOutput[];
+  } catch (err) {
+    console.error("Haiku enrichment failed:", (err as Error).message);
     return [];
   }
 }

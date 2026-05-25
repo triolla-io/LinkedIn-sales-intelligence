@@ -1,34 +1,37 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { notFound, redirect } from "next/navigation";
-import { CampaignDetailClient } from "./campaign-detail-client";
+import { redirect, notFound } from "next/navigation";
+import CampaignDetailClient from "./campaign-detail-client";
 
-export default async function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CampaignDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const session = await auth();
-  if (!session?.user?.id) redirect("/sign-in");
+  if (!session?.user) redirect("/sign-in");
+
   const { id } = await params;
-  const campaign = await prisma.campaign.findFirst({
+
+  const sequence = await prisma.sequence.findFirst({
     where: { id, ownerId: session.user.id },
     include: {
-      template: { select: { name: true } },
-      recipients: {
-        include: { contact: { select: { fullName: true, currentTitle: true, currentCompany: true } } },
-        orderBy: { scheduledAt: "asc" },
+      steps: { orderBy: { stepNumber: "asc" }, include: { template: { select: { name: true } } } },
+      contactList: { select: { name: true } },
+      enrollments: {
+        include: {
+          contact: { select: { fullName: true, currentTitle: true, currentCompany: true } },
+          executions: {
+            orderBy: { step: { stepNumber: "asc" } },
+            include: { step: { select: { stepNumber: true, channel: true, dayOffset: true } } },
+          },
+        },
+        orderBy: { enrolledAt: "asc" },
       },
     },
   });
-  if (!campaign) notFound();
 
-  const serialized = {
-    ...campaign,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recipients: (campaign!.recipients as any[]).map((r: { sentAt: Date | null; scheduledAt: Date | null }) => ({
-      ...r,
-      sentAt: r.sentAt ? r.sentAt.toISOString() : null,
-      scheduledAt: r.scheduledAt ? r.scheduledAt.toISOString() : null,
-    })),
-  };
+  if (!sequence) notFound();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return <CampaignDetailClient initial={serialized as any} />;
+  return <CampaignDetailClient sequence={sequence} />;
 }

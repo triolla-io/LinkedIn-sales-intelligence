@@ -3,11 +3,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Mock the Anthropic SDK before importing the module under test
 const mockCreate = vi.hoisted(() => vi.fn());
 
+const MockAnthropic = vi.hoisted(() => {
+  return class {
+    messages = { create: mockCreate };
+  };
+});
+
 vi.mock("@anthropic-ai/sdk", () => {
   return {
-    default: class {
-      messages = { create: mockCreate };
-    },
+    default: MockAnthropic,
   };
 });
 
@@ -36,6 +40,13 @@ describe("sizeRangeToMidpoint", () => {
 describe("enrichBatch", () => {
   beforeEach(() => {
     mockCreate.mockReset();
+    process.env.ANTHROPIC_API_KEY = "test-key";
+  });
+
+  it("does not call API for empty input", async () => {
+    const result = await enrichBatch([]);
+    expect(mockCreate).not.toHaveBeenCalled();
+    expect(result).toEqual([]);
   });
 
   it("returns Hebrew names and size ranges from Haiku", async () => {
