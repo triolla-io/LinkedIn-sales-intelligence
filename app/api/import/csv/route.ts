@@ -7,6 +7,7 @@ import { slugifyCompany } from "@/lib/utils/slug-utils";
 import { inngest } from "@/inngest/client";
 import * as XLSX from "xlsx";
 import { diffContacts, type IncomingContact } from "@/lib/csv/diff";
+import { lookupContact } from "@/lib/hubspot/client";
 
 /**
  * POST /api/import/csv
@@ -152,6 +153,19 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   for (const c of toUpsert) {
     const { seniority, function: fn } = classify(c.currentTitle ?? "");
     const industry = getIndustry(c.currentCompany ?? "") || undefined;
+
+    // HubSpot lookup — free, no Apollo credits consumed
+    const hubspot = c.email ? null : await lookupContact({
+      linkedinUrl: c.linkedinUrl,
+      fullName: c.fullName,
+      company: c.currentCompany ?? undefined,
+    });
+    const email = c.email ?? hubspot?.email ?? null;
+    const phone = hubspot?.phone ?? null;
+    const enrichmentFields = hubspot?.email || hubspot?.phone
+      ? { enrichmentSource: "hubspot", enrichmentRanAt: new Date(), enrichmentError: null }
+      : {};
+
     await prisma.contact.upsert({
       where: { ownerId_linkedinUrn: { ownerId: userId, linkedinUrn: c.linkedinUrn } },
       create: {
@@ -159,7 +173,8 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
         linkedinUrn: c.linkedinUrn,
         linkedinUrl: c.linkedinUrl,
         fullName: c.fullName,
-        email: c.email,
+        email,
+        phone,
         currentTitle: c.currentTitle,
         currentCompany: c.currentCompany,
         companySize: c.companySize,
@@ -167,10 +182,12 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
         function: fn,
         industry,
         lastSyncedAt: new Date(),
+        ...enrichmentFields,
       },
       update: {
         fullName: c.fullName,
-        email: c.email || undefined,
+        email: email || undefined,
+        phone: phone || undefined,
         currentTitle: c.currentTitle || undefined,
         currentCompany: c.currentCompany || undefined,
         companySize: c.companySize ?? undefined,
@@ -178,7 +195,8 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
         function: fn,
         industry: industry || undefined,
         lastSyncedAt: new Date(),
-        removedAt: null,  // un-soft-remove if they came back
+        removedAt: null,
+        ...enrichmentFields,
       },
     });
   }

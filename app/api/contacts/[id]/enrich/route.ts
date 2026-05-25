@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { matchPerson } from "@/lib/apollo/client";
 import { checkBudget, incrementBudget } from "@/lib/apollo/budget";
+import { lookupContact } from "@/lib/hubspot/client";
 
 /** Normalise a LinkedIn profile URL to its canonical /in/<slug> form. */
 function normalizeLinkedinUrl(url: string): string {
@@ -36,7 +37,38 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       );
     }
 
-    // ── 3. PersonEnrichment cache lookup ──────────────────────────────────
+    // ── 3. HubSpot lookup — free, no budget cost ─────────────────────────
+    const hubspotResult = await lookupContact({
+      linkedinUrl: contact.linkedinUrl,
+      fullName: contact.fullName,
+      company: contact.currentCompany ?? undefined,
+    });
+
+    if (hubspotResult?.email || hubspotResult?.phone) {
+      const protected_ = new Set(contact.manualFields as string[]);
+      const patch: Record<string, unknown> = {
+        enrichedAt: new Date(),
+        enrichmentSource: "hubspot",
+        enrichmentRanAt: new Date(),
+        enrichmentError: null,
+      };
+      if (!protected_.has("email") && hubspotResult.email) patch.email = hubspotResult.email;
+      if (!protected_.has("phone") && hubspotResult.phone) patch.phone = hubspotResult.phone;
+      await prisma.contact.update({ where: { id }, data: patch });
+
+      return NextResponse.json({
+        source: "hubspot",
+        email: hubspotResult.email ?? null,
+        phone: hubspotResult.phone ?? null,
+        companySize: null,
+        currentCompany: null,
+        industry: null,
+        mobilePending: false,
+        creditsRemaining: budget.creditsRemaining,
+      });
+    }
+
+    // ── 4. PersonEnrichment cache lookup ──────────────────────────────────
     const normalizedUrl = normalizeLinkedinUrl(contact.linkedinUrl);
     const cached = await prisma.personEnrichment.findUnique({
       where: {

@@ -194,12 +194,7 @@ function renderCell(col: ColumnDef, contact: Contact) {
       const { value: staffCount } = displayCompanySize(contact);
       const empInfo = staffCount ? employeePct(staffCount) : null;
       return empInfo ? (
-        <div className="space-y-1">
-          <p className="text-xs font-mono text-[#6b6866] tabular-nums">{empInfo.label}</p>
-          <div className="h-1 rounded-full bg-[#e8f0fe] overflow-hidden">
-            <div className="h-full rounded-full bg-[#1585ff] transition-all" style={{ width: `${empInfo.pct}%` }} />
-          </div>
-        </div>
+        <p className="text-xs font-mono text-[#6b6866] tabular-nums">{empInfo.label}</p>
       ) : (
         <span className="text-[#c8c5c2]">—</span>
       );

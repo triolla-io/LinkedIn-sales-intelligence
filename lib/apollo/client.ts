@@ -55,7 +55,7 @@ export async function matchPerson(input: {
     name: input.name,
     organization_name: input.company,
     linkedin_url: input.linkedinUrl,
-    reveal_personal_emails: false,
+    reveal_personal_emails: true,
   });
 
   const delays = [1000, 2000, 4000];
@@ -91,16 +91,27 @@ export async function matchPerson(input: {
 
     const data = await res.json();
     const person = data.person;
+    const contact = person?.contact;
     const org = person?.organization;
-    const phones: { sanitized_number?: string; type?: string }[] = person?.phone_numbers ?? [];
+    const phones: { sanitized_number?: string; type?: string }[] = [
+      ...(person?.phone_numbers ?? []),
+      ...(contact?.phone_numbers ?? []),
+    ];
+    const seen = new Set<string>();
+    const uniquePhones = phones.filter((p) => {
+      if (!p.sanitized_number || seen.has(p.sanitized_number)) return false;
+      seen.add(p.sanitized_number);
+      return true;
+    });
     const phone =
-      phones.find((p) => p.type === "work_direct")?.sanitized_number ??
-      phones.find((p) => p.type === "work")?.sanitized_number ??
-      phones.find((p) => p.type === "other")?.sanitized_number ??
-      phones.find((p) => p.type === "mobile")?.sanitized_number ??
-      phones[0]?.sanitized_number;
+      uniquePhones.find((p) => p.type === "work_direct")?.sanitized_number ??
+      uniquePhones.find((p) => p.type === "work")?.sanitized_number ??
+      uniquePhones.find((p) => p.type === "other")?.sanitized_number ??
+      uniquePhones.find((p) => p.type === "mobile")?.sanitized_number ??
+      uniquePhones[0]?.sanitized_number;
+    const email = person?.email ?? contact?.email ?? undefined;
     return {
-      email: person?.email ?? undefined,
+      email,
       phone,
       companySize: org?.estimated_num_employees ?? undefined,
       currentCompany: org?.name ?? undefined,
