@@ -146,6 +146,7 @@ model Contact {
   linkedinUrn      String
   linkedinUrl      String
   fullName         String
+  hebrewFirstName  String?
   headline         String?
   currentTitle     String?
   currentCompany   String?

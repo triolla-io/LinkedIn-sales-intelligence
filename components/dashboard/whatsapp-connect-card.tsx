@@ -43,26 +43,12 @@ export function WhatsAppConnectCard() {
     });
 
     const onErr = () => {
+      setStatus("SERVICE_UNAVAILABLE");
       es.close();
       esRef.current = null;
-      setTimeout(() => {
-        fetch("/api/whatsapp/status")
-          .then((r) => r.json())
-          .then((d: { status: WaStatus; phone?: string }) => {
-            if (d.status === "CONNECTED") {
-              setStatus("CONNECTED");
-              if (d.phone) setPhone(d.phone);
-            } else if (d.status === "DISCONNECTED" || d.status === "QR_PENDING") {
-              setStatus("DISCONNECTED");
-              openStream();
-            } else {
-              setStatus("SERVICE_UNAVAILABLE");
-            }
-          })
-          .catch(() => setStatus("SERVICE_UNAVAILABLE"));
-      }, 1500);
     };
     es.addEventListener("error", onErr);
+    es.onerror = onErr;
   }
 
   useEffect(() => {

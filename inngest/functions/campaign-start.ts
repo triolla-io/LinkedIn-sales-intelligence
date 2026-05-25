@@ -48,6 +48,7 @@ export async function campaignStartHandler({ event }: any) {
       lastName:  lastName(contact.fullName),
       company:   contact.currentCompany,
       title:     contact.currentTitle,
+      hebrewFirstName: contact.hebrewFirstName,
     };
     const { body, missing } = renderTemplate(campaign.template.body, { recipient, sender });
     const status = missing.length > 0 ? "SKIPPED" : "PENDING";
