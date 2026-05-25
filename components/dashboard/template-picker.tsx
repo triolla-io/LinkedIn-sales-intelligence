@@ -55,7 +55,7 @@ export default function TemplatePicker({ onSelect }: TemplatePickerProps) {
         className="w-full flex items-center justify-between bg-[#f8f7f5] border border-[#e5e3df] rounded-lg px-3 py-2.5 text-sm text-left focus:outline-none focus:border-[#1585ff] hover:border-[#9b9895] disabled:opacity-50 transition-colors"
       >
         <span className={selected ? "text-[#111110]" : "text-[#c8c5c2]"}>
-          {loading ? "Loading templates…" : selected ? selected.name : "Select a template…"}
+          {loading ? "טוען תבניות…" : selected ? selected.name : "בחר תבנית…"}
         </span>
         <ChevronDown
           className={`w-4 h-4 text-[#9b9895] transition-transform shrink-0 ${open ? "rotate-180" : ""}`}
@@ -65,7 +65,7 @@ export default function TemplatePicker({ onSelect }: TemplatePickerProps) {
       {open && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#e5e3df] rounded-lg shadow-lg z-50 overflow-hidden">
           {templates.length === 0 ? (
-            <p className="px-3 py-3 text-xs text-[#9b9895] text-center">No templates yet</p>
+            <p className="px-3 py-3 text-xs text-[#9b9895] text-center">אין תבניות עדיין</p>
           ) : (
             templates.map((t) => (
               <button
