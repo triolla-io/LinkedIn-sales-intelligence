@@ -31,4 +31,22 @@ describe("renderTemplate", () => {
     expect(res.body).toBe("Best, Daniel ");
     expect(res.missing).toEqual([]);
   });
+
+  it("substitutes hebrewFirstName when present", () => {
+    const ctxHebrew = {
+      ...ctx,
+      recipient: { ...ctx.recipient, hebrewFirstName: "אליס" },
+    };
+    expect(renderTemplate("שלום {{hebrewFirstName}}", ctxHebrew).body)
+      .toBe("שלום אליס");
+  });
+
+  it("falls back to firstName when hebrewFirstName is null", () => {
+    const ctxNoHebrew = {
+      ...ctx,
+      recipient: { ...ctx.recipient, hebrewFirstName: null },
+    };
+    expect(renderTemplate("שלום {{hebrewFirstName}}", ctxNoHebrew).body)
+      .toBe("שלום Alice");
+  });
 });
