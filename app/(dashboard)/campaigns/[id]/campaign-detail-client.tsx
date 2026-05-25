@@ -22,6 +22,8 @@ type SequenceStep = {
   id: string;
   stepNumber: number;
   dayOffset: number;
+  sendHour: number;
+  sendMinute: number;
   channel: string;
   subject: string | null;
   template: { name: string };
@@ -260,42 +262,43 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
       {/* Step timeline */}
       <div className="border border-[#e5e3df] rounded-xl bg-white p-5">
         <h2 className="text-sm font-semibold text-[#111110] mb-4">שלבים</h2>
-        <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="flex overflow-x-auto pb-2">
           {sequence.steps.map((step, i) => {
             const isActive = step.stepNumber === activeStep;
+            const timeStr = `${String(step.sendHour).padStart(2, "0")}:${String(step.sendMinute).padStart(2, "0")}`;
             return (
-              <div key={step.id} className="flex items-start gap-0 shrink-0">
-                <div className="flex flex-col items-start">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                        isActive
-                          ? "border-[#1585ff] bg-[#1585ff]"
-                          : "border-[#1585ff] bg-[#eff5ff]"
-                      }`}
-                    >
-                      {step.channel === "EMAIL" ? (
-                        <Mail className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`} />
-                      ) : (
-                        <MessageSquare className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`} />
-                      )}
-                    </div>
-                    {i < sequence.steps.length - 1 && (
-                      <div className="h-0.5 w-8 bg-[#e5e3df]" />
+              <div key={step.id} className="flex flex-col items-center shrink-0 min-w-[160px]">
+                {/* Circle with symmetric connector lines */}
+                <div className="flex items-center w-full">
+                  <div className={`flex-1 h-0.5 ${i > 0 ? "bg-[#e5e3df]" : "bg-transparent"}`} />
+                  <div
+                    className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                      isActive
+                        ? "border-[#1585ff] bg-[#1585ff]"
+                        : "border-[#1585ff] bg-[#eff5ff]"
+                    }`}
+                  >
+                    {step.channel === "EMAIL" ? (
+                      <Mail className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`} />
+                    ) : (
+                      <MessageSquare className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`} />
                     )}
                   </div>
-                  <div className="min-w-[140px] mt-2 pr-4">
-                    <p className="text-xs font-semibold text-[#111110]">
-                      יום {step.dayOffset + 1} — {step.channel === "EMAIL" ? "דוא״ל" : "WhatsApp"}
-                      {isActive && (
-                        <span className="ml-1.5 text-[10px] text-[#1585ff] font-medium">← עכשיו</span>
-                      )}
-                    </p>
-                    <p className="text-xs text-[#6b6866] mt-0.5">{step.template.name}</p>
-                    {step.subject && (
-                      <p className="text-xs text-[#9b9895] mt-0.5 italic">&ldquo;{step.subject}&rdquo;</p>
-                    )}
-                  </div>
+                  <div className={`flex-1 h-0.5 ${i < sequence.steps.length - 1 ? "bg-[#e5e3df]" : "bg-transparent"}`} />
+                </div>
+                {/* Text centered below circle */}
+                <div className="mt-2 text-center px-2 w-full">
+                  <p className="text-xs font-semibold text-[#111110]">
+                    יום {step.dayOffset + 1} — {step.channel === "EMAIL" ? "דוא״ל" : "WhatsApp"}
+                  </p>
+                  <p className="text-[10px] text-[#9b9895] mt-0.5">{timeStr}</p>
+                  {isActive && (
+                    <p className="text-[10px] text-[#1585ff] font-medium mt-0.5">← עכשיו</p>
+                  )}
+                  <p className="text-xs text-[#6b6866] mt-0.5 truncate">{step.template.name}</p>
+                  {step.subject && (
+                    <p className="text-xs text-[#9b9895] mt-0.5 italic truncate">&ldquo;{step.subject}&rdquo;</p>
+                  )}
                 </div>
               </div>
             );

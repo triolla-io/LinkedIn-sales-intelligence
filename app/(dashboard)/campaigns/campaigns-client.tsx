@@ -81,7 +81,7 @@ function StepTimeline({ steps, currentStep }: { steps: Step[]; currentStep: numb
               )}
             </div>
             {i < steps.length - 1 && (
-              <span className="text-[#c8c5c2] text-xs">→</span>
+              <span className="text-[#c8c5c2] text-xs">←</span>
             )}
           </div>
         );
