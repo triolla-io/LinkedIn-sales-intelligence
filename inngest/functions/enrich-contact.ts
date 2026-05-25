@@ -1,7 +1,9 @@
+// inngest/functions/enrich-contact.ts
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { matchPerson } from "@/lib/apollo/client";
 import { checkBudget, incrementBudget } from "@/lib/apollo/budget";
+import { lookupContact } from "@/lib/hubspot/client";
 
 export const enrichContact = inngest.createFunction(
   { id: "enrich-contact", triggers: [{ event: "enrich.contact" as const }] },
@@ -23,6 +25,41 @@ export const enrichContact = inngest.createFunction(
       return { contact: c, orgId };
     });
 
+    // Try HubSpot first — skip Apollo if we already have the data
+    const hubspotResult = await step.run("hubspot-lookup", async () => {
+      return lookupContact({
+        linkedinUrl: contact.linkedinUrl,
+        fullName: contact.fullName,
+        company: contact.currentCompany ?? undefined,
+      });
+    });
+
+    if (hubspotResult?.email || hubspotResult?.phone) {
+      await step.run("save-hubspot-results", async () => {
+        const protected_ = new Set(contact.manualFields as string[]);
+        const patch: Record<string, unknown> = {
+          enrichedAt: new Date(),
+          enrichmentSource: "hubspot",
+          enrichmentRanAt: new Date(),
+          enrichmentError: null,
+          enrichmentLog: null,
+        };
+        if (!protected_.has("email") && hubspotResult.email)
+          patch.email = hubspotResult.email;
+        if (!protected_.has("phone") && hubspotResult.phone)
+          patch.phone = hubspotResult.phone;
+        await prisma.contact.update({ where: { id: contactId }, data: patch });
+      });
+
+      return {
+        contactId,
+        email: hubspotResult.email,
+        phone: hubspotResult.phone,
+        source: "hubspot",
+      };
+    }
+
+    // HubSpot had nothing — fall through to Apollo
     const result = await step.run("match-person", async () => {
       return matchPerson({
         name: contact.fullName,
@@ -55,6 +92,6 @@ export const enrichContact = inngest.createFunction(
     });
 
     const { email, phone, companySize } = result;
-    return { contactId, email, phone, companySize };
+    return { contactId, email, phone, companySize, source: "apollo" };
   }
 );
