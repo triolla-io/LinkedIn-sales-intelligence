@@ -1,13 +1,15 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
-import { enrichBatch, sizeRangeToMidpoint, type HaikuInput } from "@/lib/enrichment/haiku-enrichment";
+import { lookupHebrew } from "@/lib/enrichment/name-lookup";
+import { translateNames, type NameInput } from "@/lib/enrichment/gemini-names";
 
 const BATCH = 20;
+const GEMINI_BATCH = 50;
 
 export const enrichContactsHaiku = inngest.createFunction(
   {
     id: "enrich-contacts-haiku",
-    name: "Enrich contacts via Haiku (Hebrew names + company size)",
+    name: "Enrich contacts — Hebrew names",
     concurrency: { limit: 1 },
     retries: 1,
     triggers: [{ event: "contacts.enrich-haiku" as const }],
@@ -15,17 +17,16 @@ export const enrichContactsHaiku = inngest.createFunction(
   async ({ event, step }: any) => {
     const { ownerId } = event.data as { ownerId: string };
 
-    // Return only IDs to stay under Inngest step output size limit
     const contactIds = await step.run("load-contact-ids", () =>
       prisma.contact.findMany({
-        where: { ownerId, removedAt: null, OR: [{ hebrewFirstName: null }, { companySize: null }] },
+        where: { ownerId, removedAt: null, hebrewFirstName: null },
         select: { id: true },
       }).then((rows: { id: string }[]) => rows.map((r) => r.id)),
     );
 
     if (contactIds.length === 0) return { processed: 0 };
 
-    // Build name cache: firstName → hebrewFirstName (also IDs only passed via step)
+    // Build name cache from contacts already translated
     const nameCache: Record<string, string> = await step.run("build-name-cache", async () => {
       const existing = await prisma.contact.findMany({
         where: { ownerId, hebrewFirstName: { not: null } },
@@ -34,104 +35,78 @@ export const enrichContactsHaiku = inngest.createFunction(
       const cache: Record<string, string> = {};
       for (const c of existing) {
         const fn = c.fullName.trim().split(/\s+/)[0];
-        if (fn && c.hebrewFirstName) cache[fn] = c.hebrewFirstName;
+        if (fn && c.hebrewFirstName) cache[fn.toLowerCase()] = c.hebrewFirstName;
       }
       return cache;
     });
 
-    // Process in batches — each batch loads its own data fresh from DB
-    let fromDb = 0;
-    let fromHaiku = 0;
+    let fromLookup = 0;
+    let fromGemini = 0;
 
     for (let i = 0; i < contactIds.length; i += BATCH) {
       const batchIds = contactIds.slice(i, i + BATCH);
 
-      const batchResult = await step.run(`batch-${i}`, async () => {
+      const result = await step.run(`batch-${i}`, async () => {
         const contacts = await prisma.contact.findMany({
           where: { id: { in: batchIds } },
-          select: {
-            id: true,
-            fullName: true,
-            currentCompany: true,
-            companySize: true,
-            companyId: true,
-            hebrewFirstName: true,
-            company: { select: { id: true, staffCount: true } },
-          },
+          select: { id: true, fullName: true, hebrewFirstName: true },
         });
 
-        let batchFromDb = 0;
-        let batchFromHaiku = 0;
-
-        // Fill from DB first (name cache + Company.staffCount)
-        const needsHaiku: typeof contacts = [];
+        let batchFromLookup = 0;
+        const needsGemini: NameInput[] = [];
 
         for (const c of contacts) {
-          const dbPatch: { hebrewFirstName?: string; companySize?: number } = {};
+          if (c.hebrewFirstName) continue;
 
-          if (!c.hebrewFirstName) {
-            const fn = c.fullName.trim().split(/\s+/)[0];
-            if (fn && nameCache[fn]) dbPatch.hebrewFirstName = nameCache[fn];
+          const firstName = c.fullName.trim().split(/\s+/)[0];
+          const key = firstName.toLowerCase();
+
+          // 1. Check static lookup table
+          const fromTable = lookupHebrew(firstName);
+          if (fromTable) {
+            await prisma.contact.update({ where: { id: c.id }, data: { hebrewFirstName: fromTable } });
+            nameCache[key] = fromTable;
+            batchFromLookup++;
+            continue;
           }
 
-          if (!c.companySize && c.company?.staffCount) {
-            dbPatch.companySize = c.company.staffCount;
+          // 2. Check name cache (previously translated in this run)
+          if (nameCache[key]) {
+            await prisma.contact.update({ where: { id: c.id }, data: { hebrewFirstName: nameCache[key] } });
+            batchFromLookup++;
+            continue;
           }
 
-          if (Object.keys(dbPatch).length > 0) {
-            await prisma.contact.update({ where: { id: c.id }, data: dbPatch });
-            batchFromDb++;
-          }
-
-          const nowHasHebrew = c.hebrewFirstName || dbPatch.hebrewFirstName;
-          const nowHasSize = c.companySize || dbPatch.companySize;
-          if (!nowHasHebrew || !nowHasSize) needsHaiku.push(c);
+          needsGemini.push({ id: c.id, firstName });
         }
 
-        if (needsHaiku.length === 0) return { fromDb: batchFromDb, fromHaiku: 0 };
+        if (needsGemini.length === 0) return { fromLookup: batchFromLookup, fromGemini: 0 };
 
-        // Call Haiku for remaining gaps
-        const inputs: HaikuInput[] = needsHaiku.map((c) => ({
-          id: c.id,
-          firstName: c.fullName.trim().split(/\s+/)[0],
-          company: c.currentCompany,
-          needsHebrew: !c.hebrewFirstName,
-          needsSize: !c.companySize,
-        }));
+        // Translate unknown names in sub-batches of 50
+        let batchFromGemini = 0;
+        for (let j = 0; j < needsGemini.length; j += GEMINI_BATCH) {
+          const chunk = needsGemini.slice(j, j + GEMINI_BATCH);
+          const results = await translateNames(chunk);
 
-        const results = await enrichBatch(inputs);
-
-        for (const r of results) {
-          const contact = needsHaiku.find((c) => c.id === r.id);
-          if (!contact) continue;
-
-          const midpoint = r.companySizeRange ? sizeRangeToMidpoint(r.companySizeRange) : null;
-
-          await prisma.contact.update({
-            where: { id: r.id },
-            data: {
-              ...(r.hebrewFirstName ? { hebrewFirstName: r.hebrewFirstName } : {}),
-              ...(midpoint != null && !contact.companySize ? { companySize: midpoint } : {}),
-            },
-          });
-
-          if (midpoint != null && contact.companyId && !contact.company?.staffCount) {
-            await prisma.company.updateMany({
-              where: { id: contact.companyId, staffCount: null },
-              data: { staffCount: midpoint },
+          for (const r of results) {
+            if (!r.hebrewFirstName) continue;
+            await prisma.contact.update({
+              where: { id: r.id },
+              data: { hebrewFirstName: r.hebrewFirstName },
             });
+            const input = chunk.find((n) => n.id === r.id);
+            if (input) nameCache[input.firstName.toLowerCase()] = r.hebrewFirstName;
+            batchFromGemini++;
           }
-
-          batchFromHaiku++;
         }
 
-        return { fromDb: batchFromDb, fromHaiku: batchFromHaiku };
+        return { fromLookup: batchFromLookup, fromGemini: batchFromGemini };
       });
 
-      fromDb += batchResult.fromDb;
-      fromHaiku += batchResult.fromHaiku;
+      fromLookup += result.fromLookup;
+      fromGemini += result.fromGemini;
     }
 
-    return { processed: contactIds.length, fromDb, fromHaiku };
+    return { processed: contactIds.length, fromLookup, fromGemini };
   },
 );
