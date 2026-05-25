@@ -105,25 +105,25 @@ export default function ImportPage() {
           className="inline-flex items-center gap-1.5 text-xs text-[#6b6866] hover:text-[#1585ff] transition-colors mb-8"
         >
           <ArrowLeft className="w-3 h-3" />
-          Back to contacts
+          חזרה לאנשי קשר
         </Link>
 
         {/* ── Section 1: LinkedIn connections ── */}
-        <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-2">Import</p>
-        <h1 className="text-2xl font-semibold text-[#111110] mb-1">Upload LinkedIn CSV</h1>
+        <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-2">ייבוא נתונים</p>
+        <h1 className="text-2xl font-semibold text-[#111110] mb-1">העלאת CSV של LinkedIn</h1>
         <p className="text-[#6b6866] text-sm mb-8">
-          Already requested your archive? LinkedIn will email you when it's ready — just download and drop the <span className="font-mono text-[#1585ff]">Connections.csv</span> file below.
+          כבר ביקשת את הארכיון שלך? LinkedIn יישלח לך אימייל כשהוא יהיה מוכן — פשוט הורד והעף את קובץ <span className="font-mono text-[#1585ff]">Connections.csv</span> למטה.
         </p>
 
         {/* How to export */}
         <div className="rounded-xl border border-[#e5e3df] bg-white p-5 mb-6">
-          <p className="text-xs font-medium text-[#6b6866] mb-3">Steps (for next time)</p>
+          <p className="text-xs font-medium text-[#6b6866] mb-3">שלבים (בפעם הבאה)</p>
           <ol className="space-y-1.5 text-xs text-[#6b6866]">
-            <li><span className="text-[#9b9895]">1.</span> Go to <span className="font-mono text-[#1585ff]">linkedin.com/settings</span> → Data Privacy → Download my data</li>
-            <li><span className="text-[#9b9895]">2.</span> Select <strong className="text-[#111110]">"Download larger data archive"</strong> → Request archive</li>
-            <li><span className="text-[#9b9895]">3.</span> Wait for the email from LinkedIn (10–30 min)</li>
-            <li><span className="text-[#9b9895]">4.</span> Download the zip → extract → find <span className="font-mono text-[#1585ff]">Connections.csv</span></li>
-            <li><span className="text-[#9b9895]">5.</span> Drop it below ↓</li>
+            <li><span className="text-[#9b9895]">1.</span> עבור ל- <span className="font-mono text-[#1585ff]">linkedin.com/settings</span> → Data Privacy → Download my data</li>
+            <li><span className="text-[#9b9895]">2.</span> בחר <strong className="text-[#111110]">"Download larger data archive"</strong> → Request archive</li>
+            <li><span className="text-[#9b9895]">3.</span> המתן לאימייל מ-LinkedIn (10–30 דק')</li>
+            <li><span className="text-[#9b9895]">4.</span> הורד את ה-zip → חלץ → מצא <span className="font-mono text-[#1585ff]">Connections.csv</span></li>
+            <li><span className="text-[#9b9895]">5.</span> גרור אותו למטה ↓</li>
           </ol>
         </div>
 
@@ -154,8 +154,8 @@ export default function ImportPage() {
               <>
                 <RefreshCw className="w-10 h-10 text-[#1585ff] animate-spin" />
                 <div className="text-center">
-                  <p className="text-sm font-medium text-[#111110]">Importing {fileName}…</p>
-                  <p className="text-xs text-[#6b6866] mt-1">Parsing contacts and creating company stubs</p>
+                  <p className="text-sm font-medium text-[#111110]">מייבא {fileName}…</p>
+                  <p className="text-xs text-[#6b6866] mt-1">ניתוח אנשי קשר ויצירת סדקי חברה</p>
                 </div>
               </>
             ) : state === "error" ? (
@@ -163,7 +163,7 @@ export default function ImportPage() {
                 <AlertCircle className="w-10 h-10 text-red-500" />
                 <div className="text-center">
                   <p className="text-sm font-medium text-red-500">{errorMsg}</p>
-                  <p className="text-xs text-[#6b6866] mt-1">Click to try again</p>
+                  <p className="text-xs text-[#6b6866] mt-1">לחץ כדי לנסות שוב</p>
                 </div>
               </>
             ) : (
@@ -176,9 +176,9 @@ export default function ImportPage() {
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-medium text-[#111110]">
-                    {state === "dragging" ? "Drop it here" : "Drop your CSV here"}
+                    {state === "dragging" ? "גרור לכאן" : "גרור את ה-CSV שלך לכאן"}
                   </p>
-                  <p className="text-xs text-[#6b6866] mt-1">or click to browse — .csv or .xlsx</p>
+                  <p className="text-xs text-[#6b6866] mt-1">או לחץ לעיון — .csv או .xlsx</p>
                 </div>
               </>
             )}
@@ -191,29 +191,29 @@ export default function ImportPage() {
             <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-emerald-50 border border-emerald-200">
               <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-emerald-700">Import complete!</p>
-                <p className="text-xs text-emerald-600/80 mt-0.5">Company size &amp; industry will populate in the background over the next few minutes.</p>
+                <p className="text-sm font-medium text-emerald-700">הייבוא הצליח!</p>
+                <p className="text-xs text-emerald-600/80 mt-0.5">גודל החברה והתעשייה יתמלאו ברקע בדקות הבאות.</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <StatCard icon={FileSpreadsheet} label="Total in file" value={result.imported} />
-              <StatCard icon={Users} label="New contacts" value={result.added} />
-              <StatCard icon={Users} label="Updated" value={result.updated} accent="info" />
-              <StatCard icon={Users} label="Removed" value={result.removed} accent={result.removed > 0 ? "warn" : undefined} />
-              <StatCard icon={Building2} label="Companies in file" value={result.companies} />
-              <StatCard icon={Building2} label="New companies" value={result.newCompanies} accent="info" />
+              <StatCard icon={FileSpreadsheet} label="סך הכל בקובץ" value={result.imported} />
+              <StatCard icon={Users} label="אנשי קשר חדשים" value={result.added} />
+              <StatCard icon={Users} label="עודכנו" value={result.updated} accent="info" />
+              <StatCard icon={Users} label="הוסרו" value={result.removed} accent={result.removed > 0 ? "warn" : undefined} />
+              <StatCard icon={Building2} label="חברות בקובץ" value={result.companies} />
+              <StatCard icon={Building2} label="חברות חדשות" value={result.newCompanies} accent="info" />
             </div>
 
             {result.newCompanies > 0 && (
               <div className="px-4 py-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-700">
-                Enriching {result.newCompanies} new companies in the background — employee counts and industries will appear in the table as they come in.
+                העשרה {result.newCompanies} חברות חדשות ברקע — ספירות עובדים ותעשיות יופיעו בטבלה כשהן מגיעות.
               </div>
             )}
 
             {result.unchanged > 0 && (
               <p className="text-xs text-[#9b9895] text-center">
-                {result.unchanged.toLocaleString()} contacts were already up to date — skipped.
+                {result.unchanged.toLocaleString()} אנשי קשר כבר היו עדכניים — דולגו.
               </p>
             )}
 
@@ -222,13 +222,13 @@ export default function ImportPage() {
                 href="/contacts"
                 className="flex-1 text-center px-4 py-2.5 rounded-lg bg-[#1585ff] hover:bg-[#0a70e0] text-white text-sm font-medium transition-all"
               >
-                View contacts →
+                צפה בהמשכים →
               </Link>
               <button
                 onClick={() => { setState("idle"); setResult(null); setFileName(""); if (inputRef.current) inputRef.current.value = ""; }}
                 className="px-4 py-2.5 rounded-lg border border-[#e5e3df] text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] text-sm transition-all"
               >
-                Import another
+                ייבוא נוסף
               </button>
             </div>
           </div>
@@ -237,14 +237,14 @@ export default function ImportPage() {
         {/* ── Divider ── */}
         <div className="flex items-center gap-3 my-10">
           <div className="flex-1 h-px bg-[#e5e3df]" />
-          <span className="text-xs text-[#9b9895]">or</span>
+          <span className="text-xs text-[#9b9895]">או</span>
           <div className="flex-1 h-px bg-[#e5e3df]" />
         </div>
 
         {/* ── Section 2: Company size data ── */}
-        <h2 className="text-lg font-semibold text-[#111110] mb-1">Upload company size data</h2>
+        <h2 className="text-lg font-semibold text-[#111110] mb-1">העלאת נתוני גודל החברה</h2>
         <p className="text-[#6b6866] text-sm mb-6">
-          Have a <span className="font-mono text-[#1585ff]">unique_companies.csv</span> with <span className="font-mono">Company</span> and <span className="font-mono">Company_Size</span> columns? Drop it here to fill in employee counts and industries across all your contacts automatically.
+          יש לך <span className="font-mono text-[#1585ff]">unique_companies.csv</span> עם עמודות <span className="font-mono">Company</span> ו-<span className="font-mono">Company_Size</span>? גרור אותו לכאן כדי למלא ספירות עובדים ותעשיות בכל אנשי הקשר שלך באופן אוטומטי.
         </p>
 
         {compState !== "done" && (
@@ -273,8 +273,8 @@ export default function ImportPage() {
               <>
                 <RefreshCw className="w-8 h-8 text-[#1585ff] animate-spin" />
                 <div className="text-center">
-                  <p className="text-sm font-medium text-[#111110]">Processing {compFileName}…</p>
-                  <p className="text-xs text-[#6b6866] mt-1">Seeding companies and backfilling contacts</p>
+                  <p className="text-sm font-medium text-[#111110]">מעבד {compFileName}…</p>
+                  <p className="text-xs text-[#6b6866] mt-1">זריעת חברות וספיגת אנשי קשר</p>
                 </div>
               </>
             ) : compState === "error" ? (
@@ -282,7 +282,7 @@ export default function ImportPage() {
                 <AlertCircle className="w-8 h-8 text-red-500" />
                 <div className="text-center">
                   <p className="text-sm font-medium text-red-500">{compError}</p>
-                  <p className="text-xs text-[#6b6866] mt-1">Click to try again</p>
+                  <p className="text-xs text-[#6b6866] mt-1">לחץ כדי לנסות שוב</p>
                 </div>
               </>
             ) : (
@@ -295,9 +295,9 @@ export default function ImportPage() {
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-medium text-[#111110]">
-                    {compState === "dragging" ? "Drop it here" : "Drop unique_companies.csv here"}
+                    {compState === "dragging" ? "גרור לכאן" : "גרור unique_companies.csv לכאן"}
                   </p>
-                  <p className="text-xs text-[#6b6866] mt-1">or click to browse — .csv only</p>
+                  <p className="text-xs text-[#6b6866] mt-1">או לחץ לעיון — רק .csv</p>
                 </div>
               </>
             )}
@@ -310,17 +310,17 @@ export default function ImportPage() {
             <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-emerald-50 border border-emerald-200">
               <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-emerald-700">Company data applied!</p>
+                <p className="text-sm font-medium text-emerald-700">נתוני החברה יושמו!</p>
                 <p className="text-xs text-emerald-600/80 mt-0.5">
-                  Employee counts and industries have been filled in across your contacts.
+                  ספירות עובדים ותעשיות מולאו בכל אנשי הקשר שלך.
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <StatCard icon={Building2} label="Companies upserted" value={compResult.companiesUpserted} />
-              <StatCard icon={Users} label="Contacts backfilled" value={compResult.contactsBackfilled} accent="info" />
-              <StatCard icon={Users} label="Total contacts" value={compResult.totalContacts} />
+              <StatCard icon={Building2} label="חברות שעודכנו" value={compResult.companiesUpserted} />
+              <StatCard icon={Users} label="אנשי קשר שמולאו" value={compResult.contactsBackfilled} accent="info" />
+              <StatCard icon={Users} label="סך אנשי הקשר" value={compResult.totalContacts} />
             </div>
 
             <div className="flex gap-3">
@@ -328,13 +328,13 @@ export default function ImportPage() {
                 href="/contacts"
                 className="flex-1 text-center px-4 py-2.5 rounded-lg bg-[#1585ff] hover:bg-[#0a70e0] text-white text-sm font-medium transition-all"
               >
-                View contacts →
+                צפה בהמשכים →
               </Link>
               <button
                 onClick={() => { setCompState("idle"); setCompResult(null); setCompFileName(""); if (compInputRef.current) compInputRef.current.value = ""; }}
                 className="px-4 py-2.5 rounded-lg border border-[#e5e3df] text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] text-sm transition-all"
               >
-                Upload again
+                העלאה שוב
               </button>
             </div>
           </div>
