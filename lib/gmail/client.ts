@@ -1,14 +1,38 @@
 import { prisma } from "@/lib/prisma";
 
+function encodeSubject(subject: string): string {
+  if (/^[\x00-\x7F]*$/.test(subject)) return subject;
+  return `=?UTF-8?B?${Buffer.from(subject).toString("base64")}?=`;
+}
+
+function isHebrew(text: string): boolean {
+  return /[֐-׿]/.test(text);
+}
+
+function bodyToHtml(body: string): string {
+  const dir = isHebrew(body) ? "rtl" : "ltr";
+  const align = dir === "rtl" ? "right" : "left";
+  const escaped = body
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br>");
+
+  return `<div dir="${dir}" style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#000;text-align:${align};">${escaped}</div>`;
+}
+
 function buildRfc2822(from: string, to: string, subject: string, body: string): string {
+  const html = bodyToHtml(body);
+  const encodedBody = Buffer.from(html).toString("base64");
   return [
     `From: ${from}`,
     `To: ${to}`,
-    `Subject: ${subject}`,
+    `Subject: ${encodeSubject(subject)}`,
     `MIME-Version: 1.0`,
-    `Content-Type: text/plain; charset=utf-8`,
+    `Content-Type: text/html; charset=utf-8`,
+    `Content-Transfer-Encoding: base64`,
     ``,
-    body,
+    encodedBody,
   ].join("\r\n");
 }
 

@@ -273,9 +273,9 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
       {/* Panel */}
       <div
         className={cn(
-          "fixed right-0 top-0 bottom-0 w-[420px] bg-white border-l border-[#e5e3df] z-40 flex flex-col shadow-xl",
+          "fixed left-0 top-0 bottom-0 w-[420px] bg-white border-r border-[#e5e3df] z-40 flex flex-col shadow-xl",
           "transition-transform duration-200 ease-out",
-          visible ? "translate-x-0" : "translate-x-full"
+          visible ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {!contact || !localContact ? null : (
@@ -283,12 +283,18 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
             {/* Header */}
             <div className="flex items-start justify-between px-5 py-4 border-b border-[#e5e3df]">
               <div className="flex-1 min-w-0 pr-3">
-                <h2 className="text-base font-semibold text-[#111110] truncate">{localContact.fullName}</h2>
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <h2 className="text-base font-semibold text-[#111110] truncate">{localContact.fullName}</h2>
+                  {localContact.hebrewFirstName && (
+                    <span className="text-sm text-[#9b9895] shrink-0">{localContact.hebrewFirstName}</span>
+                  )}
+                </div>
                 {localContact.currentTitle && (
                   <p className="text-sm text-[#6b6866] truncate mt-0.5">{localContact.currentTitle}</p>
                 )}
                 {localContact.seniority && (
                   <span
+                    dir="ltr"
                     className={cn(
                       "inline-block mt-1.5 px-2 py-0.5 rounded border text-xs font-medium",
                       SENIORITY_COLOR[localContact.seniority] ?? SENIORITY_COLOR.OTHER
@@ -350,6 +356,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                       <a
                         href={`tel:${localContact.phone}`}
                         className="text-sm text-[#111110] hover:text-black transition-colors font-mono"
+                        style={{ direction: "ltr", unicodeBidi: "isolate", display: "inline-block" }}
                       >
                         {localContact.phone}
                       </a>
@@ -378,7 +385,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                         className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#6b6866] border border-[#e5e3df] hover:border-amber-300 hover:text-amber-600 rounded-md transition-all"
                       >
                         <Zap className="w-3 h-3" />
-                        העשר קשר
+                        טעינת פרטים נוספים
                       </button>
                     )}
                     {enrichState === "loading" && (

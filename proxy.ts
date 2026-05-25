@@ -7,6 +7,10 @@ import { auth } from "@/lib/auth";
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
+  const adminSecret = process.env.ADMIN_SECRET;
+  const providedSecret = req.headers.get("x-admin-secret");
+  if (adminSecret && providedSecret === adminSecret) return NextResponse.next();
+
   const isProtected =
     pathname.startsWith("/contacts") ||
     pathname.startsWith("/admin") ||

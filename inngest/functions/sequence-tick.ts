@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { computeScheduledAt } from "@/lib/sequences/helpers";
 
 export const sequenceTick = inngest.createFunction(
-  { id: "sequence-tick", triggers: [{ cron: "0 * * * *" }] }, // top of every hour
+  { id: "sequence-tick", triggers: [{ cron: "*/5 * * * *" }] },
   async () => {
     const now = new Date();
 

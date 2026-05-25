@@ -30,20 +30,29 @@ ${JSON.stringify(inputs)}
 
 Output format: [{"id":"...","hebrewFirstName":"..."}]`;
 
-  try {
-    const response = await client.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: prompt,
-    });
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const response = await client.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+      });
 
-    const text = (response.text ?? "").trim();
-    const fence = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    const candidate = fence ? fence[1] : text;
-    const parsed = JSON.parse(candidate);
-    if (!Array.isArray(parsed)) throw new Error("Expected array");
-    return parsed as NameOutput[];
-  } catch (err) {
-    console.error("Gemini name translation failed:", (err as Error).message);
-    return [];
+      const text = (response.text ?? "").trim();
+      const fence = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      const candidate = fence ? fence[1] : text;
+      const parsed = JSON.parse(candidate);
+      if (!Array.isArray(parsed)) throw new Error("Expected array");
+      return parsed as NameOutput[];
+    } catch (err) {
+      const msg = (err as Error).message;
+      const is503 = msg.includes("503") || msg.includes("UNAVAILABLE");
+      if (is503 && attempt < 2) {
+        await new Promise((r) => setTimeout(r, (attempt + 1) * 20_000));
+        continue;
+      }
+      console.error("Gemini name translation failed:", msg);
+      return [];
+    }
   }
+  return [];
 }

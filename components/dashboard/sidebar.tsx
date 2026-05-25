@@ -22,7 +22,7 @@ interface SidebarProps {
 const navItems = [
   { href: "/dashboard", label: "דשבורד", icon: LayoutDashboard },
   { href: "/contacts", label: "אנשי קשר", icon: Users },
-  { href: "/lists", label: "רשימות חכמות", icon: BookMarked },
+  { href: "/lists", label: "רשימות תפוצה", icon: BookMarked },
   { href: "/campaigns", label: "קמפיינים", icon: GitBranch },
   { href: "/templates", label: "טמפלטים", icon: FileText },
   { href: "/import", label: "ייבוא נתונים", icon: Upload },

@@ -24,6 +24,7 @@ export type Contact = {
   enrichedAt?: string | null;
   linkedinUrl: string;
   manualFields?: string[];
+  hebrewFirstName?: string | null;
 };
 
 interface ContactTableProps {
@@ -131,7 +132,7 @@ const INITIAL_COLUMNS: ColumnDef[] = [
   { id: "email",     label: "אימייל",    width: "minmax(0,1.3fr)", visible: true },
   { id: "phone",     label: "טלפון",     width: "minmax(0,1.1fr)", visible: true },
   { id: "employees", label: "עובדים",    width: "90px",            visible: true },
-  { id: "seniority", label: "סניוריטי",  width: "80px",            visible: true },
+  { id: "seniority", label: "Seniority",  width: "80px",            visible: true },
   { id: "industry",  label: "ענף",       width: "minmax(0,1.2fr)", visible: true },
 ];
 

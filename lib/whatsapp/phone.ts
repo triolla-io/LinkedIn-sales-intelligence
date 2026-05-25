@@ -4,8 +4,8 @@ export function normalizePhone(input: string): string | null {
   if (!input?.trim()) return null;
   try {
     const cleaned = input.replace(/[\s\-\(\)\.]/g, "");
-    if (!cleaned.startsWith("+")) return null;
-    const parsed = parsePhoneNumber(cleaned);
+    const withPrefix = cleaned.startsWith("+") ? cleaned : `+972${cleaned.replace(/^0/, "")}`;
+    const parsed = parsePhoneNumber(withPrefix);
     if (!parsed?.isValid()) return null;
     return parsed.format("E.164");
   } catch {

@@ -47,7 +47,7 @@ for (let i = 0; i < contacts.length; i += BATCH) {
     const results = await translateNames(needsGemini);
     for (const r of results) {
       if (!r.hebrewFirstName) continue;
-      await prisma.contact.update({ where: { id: r.id }, data: { hebrewFirstName: r.hebrewFirstName } });
+      await prisma.contact.updateMany({ where: { id: r.id }, data: { hebrewFirstName: r.hebrewFirstName } });
       const input = needsGemini.find(n => n.id === r.id);
       if (input) nameCache[input.firstName.toLowerCase()] = r.hebrewFirstName;
       fromGemini++;

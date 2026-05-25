@@ -24,6 +24,7 @@ const SHARED_SELECT = {
   phone: true,
   enrichedAt: true,
   manualFields: true,
+  hebrewFirstName: true,
   company: { select: { staffCount: true, industry: true } },
 } as const;
 
