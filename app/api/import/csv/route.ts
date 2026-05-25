@@ -290,12 +290,6 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     },
   });
 
-  // Trigger Haiku enrichment in background (Hebrew names + company size)
-  inngest.send({
-    name: "contacts.enrich-haiku" as const,
-    data: { ownerId: userId },
-  }).catch(() => {});
-
   return NextResponse.json({
     ok: true,
     imported: contacts.length,
