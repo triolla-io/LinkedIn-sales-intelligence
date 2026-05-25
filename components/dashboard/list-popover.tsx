@@ -79,7 +79,7 @@ export default function ListPopover({ contactIds, onClose, anchorRef, placement 
       ) : (
         <>
           {lists.length === 0 && (
-            <p className="px-3 py-2 text-xs text-[#9b9895]">No lists yet</p>
+            <p className="px-3 py-2 text-xs text-[#9b9895]">אין רשימות</p>
           )}
           {lists.map((list) => (
             <button
@@ -99,7 +99,7 @@ export default function ListPopover({ contactIds, onClose, anchorRef, placement 
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && createAndAdd()}
-                placeholder="New list…"
+                placeholder="שם רשימה חדשה"
                 autoFocus
                 className="flex-1 min-w-0 bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-2 py-1 text-xs text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60"
               />

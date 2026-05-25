@@ -31,9 +31,9 @@ export default function InsightTiles({ insights, onApplyFilter }: InsightTilesPr
     <div className="space-y-3">
       {/* Summary row */}
       <div className="grid grid-cols-3 gap-3">
-        <InsightTile title="Total Contacts" value={insights.total.toLocaleString()} />
-        <InsightTile title="Email Coverage" value={`${insights.coverage.email}%`} />
-        <InsightTile title="Phone Coverage" value={`${insights.coverage.phone}%`} />
+        <InsightTile title="סה״כ אנשי קשר" value={insights.total.toLocaleString()} />
+        <InsightTile title="כיסוי אימייל" value={`${insights.coverage.email}%`} />
+        <InsightTile title="כיסוי טלפון" value={`${insights.coverage.phone}%`} />
       </div>
 
       {/* Seniority + Function breakdowns */}
