@@ -1,5 +1,9 @@
 const HUBSPOT_BASE = "https://api.hubapi.com";
 
+function normalizeLinkedinUrl(url: string): string {
+  return url.toLowerCase().replace(/\/$/, "").replace(/^http:/, "https:");
+}
+
 function headers() {
   return {
     "Content-Type": "application/json",
@@ -50,7 +54,7 @@ export async function lookupContact(params: {
     if (params.linkedinUrl) {
       const byLinkedin = await searchByProperty(
         "hs_linkedin_profile_url",
-        params.linkedinUrl
+        normalizeLinkedinUrl(params.linkedinUrl)
       );
       if (byLinkedin) return byLinkedin;
     }

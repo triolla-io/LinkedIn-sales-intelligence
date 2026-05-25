@@ -1,4 +1,3 @@
-// inngest/functions/enrich-contact.ts
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { matchPerson } from "@/lib/apollo/client";
@@ -11,13 +10,13 @@ export const enrichContact = inngest.createFunction(
   async ({ event, step }: any) => {
     const { contactId } = event.data as { contactId: string; actorId: string };
 
-    const { contact, orgId } = await step.run("load-contact", async () => {
+    const { contact, orgId, monthlyApolloBudget } = await step.run("load-contact", async () => {
       const c = await prisma.contact.findUnique({
         where: { id: contactId },
         include: { owner: { include: { org: true } } },
       });
       if (!c) throw new Error(`Contact ${contactId} not found`);
-      return { contact: c, orgId: c.owner.orgId };
+      return { contact: c, orgId: c.owner.orgId, monthlyApolloBudget: c.owner.org.monthlyApolloBudget };
     });
 
     // Try HubSpot first — skip Apollo if we already have the data
@@ -56,7 +55,7 @@ export const enrichContact = inngest.createFunction(
 
     // HubSpot had nothing — check Apollo budget before calling Apollo
     await step.run("check-apollo-budget", async () => {
-      const budget = await checkBudget(orgId, contact.owner.org.monthlyApolloBudget);
+      const budget = await checkBudget(orgId, monthlyApolloBudget);
       if (!budget.allowed) throw new Error("BUDGET_EXHAUSTED");
     });
 
