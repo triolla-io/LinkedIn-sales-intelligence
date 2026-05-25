@@ -71,7 +71,7 @@ function formatScheduled(scheduledAt: Date | string | null): string | null {
   const diffMs = d.getTime() - Date.now();
   if (diffMs < 0) return `${dateStr} ${timeStr} (מאוחר)`;
   const diffH = Math.round(diffMs / 3_600_000);
-  if (diffH < 24) return `${dateStr} ${timeStr} (בעוד ${diffH} שעות)`;
+  if (diffH < 24) return `${dateStr} ${timeStr} (בעוד ${diffH}h)`;
   const diffDays = Math.round(diffMs / 86_400_000);
   return `${dateStr} ${timeStr} (בעוד ${diffDays} ימים)`;
 }
@@ -117,12 +117,12 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
           </Link>
           <div>
             <h1 className="text-xl font-semibold text-[#111110]">{sequence.name}</h1>
-            <p className="text-sm text-[#6b6866] mt-0.5">List: {sequence.contactList.name}</p>
+            <p className="text-sm text-[#6b6866] mt-0.5">רשימה: {sequence.contactList.name}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[status] ?? ""}`}>
-            {status}
+            {status === "DRAFT" ? "טיוטה" : status === "QUEUED" ? "בתור" : status === "ACTIVE" ? "פעיל" : status === "PAUSED" ? "מושהה" : status === "COMPLETED" ? "הושלם" : status === "CANCELLED" ? "בוטל" : status}
           </span>
           {status === "DRAFT" && (
             <button
@@ -131,7 +131,7 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
               className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50"
             >
               <Play className="w-3.5 h-3.5" />
-              Start
+              התחל
             </button>
           )}
           {status === "ACTIVE" && (
@@ -141,7 +141,7 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
               className="flex items-center gap-1.5 px-3.5 py-2 bg-[#f3f2ef] text-[#6b6866] text-sm font-medium rounded-lg hover:bg-[#e5e3df] transition-colors disabled:opacity-50"
             >
               <Pause className="w-3.5 h-3.5" />
-              Pause
+              השהה
             </button>
           )}
           {status === "PAUSED" && (
@@ -151,17 +151,17 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
               className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              Resume
+              המשך
             </button>
           )}
           {["ACTIVE", "PAUSED", "QUEUED"].includes(status) && (
             <button
-              onClick={() => { if (confirm("Cancel this sequence?")) doAction("cancel"); }}
+              onClick={() => { if (confirm("בטל את הרצף הזה?")) doAction("cancel"); }}
               disabled={acting}
               className="flex items-center gap-1.5 px-3.5 py-2 bg-[#fff3f3] text-[#dc2626] text-sm font-medium rounded-lg hover:bg-[#fee2e2] transition-colors disabled:opacity-50"
             >
               <XCircle className="w-3.5 h-3.5" />
-              Cancel
+              בטל
             </button>
           )}
         </div>
@@ -170,9 +170,9 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Contacts", value: sequence.enrollments.length },
-          { label: "Messages Sent", value: sentCount },
-          { label: "Steps", value: sequence.steps.length },
+          { label: "אנשי קשר", value: sequence.enrollments.length },
+          { label: "הודעות שנשלחו", value: sentCount },
+          { label: "שלבים", value: sequence.steps.length },
         ].map(({ label, value }) => (
           <div key={label} className="border border-[#e5e3df] rounded-xl p-4 bg-white">
             <p className="text-xs text-[#9b9895] uppercase tracking-wider font-semibold">{label}</p>
@@ -183,7 +183,7 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
 
       {/* Step timeline */}
       <div className="border border-[#e5e3df] rounded-xl bg-white p-5">
-        <h2 className="text-sm font-semibold text-[#111110] mb-4">Steps</h2>
+        <h2 className="text-sm font-semibold text-[#111110] mb-4">שלבים</h2>
         <div className="flex gap-3 overflow-x-auto pb-2">
           {sequence.steps.map((step, i) => (
             <div key={step.id} className="flex items-start gap-0 shrink-0">
@@ -202,7 +202,7 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
                 </div>
                 <div className="min-w-[140px] mt-2 pr-4">
                   <p className="text-xs font-semibold text-[#111110]">
-                    Day {step.dayOffset + 1} — {step.channel === "EMAIL" ? "Email" : "WhatsApp"}
+                    יום {step.dayOffset + 1} — {step.channel === "EMAIL" ? "דוא״ל" : "WhatsApp"}
                   </p>
                   {sequence.startedAt && (
                     <p className="text-[10px] text-[#9b9895] mt-0.5">
@@ -229,16 +229,16 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
         <div className="border border-[#e5e3df] rounded-xl overflow-hidden bg-white">
           <div className="px-5 py-3 border-b border-[#e5e3df] bg-[#fafaf9]">
             <h2 className="text-sm font-semibold text-[#111110]">
-              Contacts ({sequence.enrollments.length})
+              אנשי קשר ({sequence.enrollments.length})
             </h2>
           </div>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#f3f2ef]">
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b6866] uppercase tracking-wider">Contact</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b6866] uppercase tracking-wider">איש קשר</th>
                 {sequence.steps.map((step) => (
                   <th key={step.id} className="text-center px-3 py-2.5 text-xs font-semibold text-[#6b6866] uppercase tracking-wider whitespace-nowrap">
-                    Step {step.stepNumber}
+                    שלב {step.stepNumber}
                   </th>
                 ))}
               </tr>
@@ -260,7 +260,7 @@ export default function SequenceDetailClient({ sequence }: { sequence: Sequence 
                         {exec ? (
                           <div className="flex flex-col items-center gap-0.5">
                             <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${EXEC_COLORS[exec.status] ?? ""}`}>
-                              {exec.status}
+                              {exec.status === "PENDING" ? "ממתין" : exec.status === "SENDING" ? "משדר" : exec.status === "SENT" ? "נשלח" : exec.status === "FAILED" ? "נכשל" : exec.status === "SKIPPED" ? "דלוג" : exec.status}
                             </span>
                             {exec.status === "PENDING" && exec.scheduledAt && (
                               <span className="text-[10px] text-[#9b9895] whitespace-nowrap">
