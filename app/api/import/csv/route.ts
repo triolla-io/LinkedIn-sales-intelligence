@@ -9,13 +9,15 @@ import * as XLSX from "xlsx";
 import { diffContacts, type IncomingContact } from "@/lib/csv/diff";
 import { lookupContact } from "@/lib/hubspot/client";
 
+/** Returns empty string if the URL has no real profile slug. */
 function normalizeLinkedinUrl(url: string): string {
   try {
     const u = new URL(url.startsWith("http") ? url : `https://${url}`);
     const path = u.pathname.replace(/\/+$/, "").toLowerCase();
+    if (!/^\/in\/.+/.test(path)) return "";
     return `https://www.linkedin.com${path}`;
   } catch {
-    return url.toLowerCase().replace(/\/+$/, "");
+    return "";
   }
 }
 

@@ -6,14 +6,17 @@ import { matchPerson } from "@/lib/apollo/client";
 import { checkBudget, incrementBudget } from "@/lib/apollo/budget";
 import { lookupContact } from "@/lib/hubspot/client";
 
-/** Normalise a LinkedIn profile URL to its canonical /in/<slug> form. */
+/** Normalise a LinkedIn profile URL to its canonical /in/<slug> form.
+ *  Returns empty string if the URL has no real profile slug. */
 function normalizeLinkedinUrl(url: string): string {
   try {
     const u = new URL(url.startsWith("http") ? url : `https://${url}`);
     const path = u.pathname.replace(/\/+$/, "").toLowerCase();
+    // Must look like /in/<slug> — reject bare /in or shorter paths
+    if (!/^\/in\/.+/.test(path)) return "";
     return `https://www.linkedin.com${path}`;
   } catch {
-    return url.toLowerCase().replace(/\/+$/, "");
+    return "";
   }
 }
 

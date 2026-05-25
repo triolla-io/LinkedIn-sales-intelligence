@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 
+/** Returns empty string if the URL has no real profile slug. */
 function normalizeLinkedinUrl(url: string): string {
   try {
     const u = new URL(url.startsWith("http") ? url : `https://${url}`);
     const path = u.pathname.replace(/\/+$/, "").toLowerCase();
+    if (!/^\/in\/.+/.test(path)) return "";
     return `https://www.linkedin.com${path}`;
   } catch {
-    return url.toLowerCase().replace(/\/+$/, "");
+    return "";
   }
 }
 
