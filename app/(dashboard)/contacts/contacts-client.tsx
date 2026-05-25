@@ -183,8 +183,8 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
     fetchData();
   }, [fetchData]);
 
-  function handleEnrich(id: string) {
-    fetch(`/api/contacts/${id}/enrich`, { method: "POST" }).then(() => fetchData()).catch(() => {});
+  function handleEnrich(_id: string) {
+    fetchData();
   }
 
   async function handleExport() {
