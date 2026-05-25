@@ -6,9 +6,14 @@ function makeSearchResponse(email?: string, phone?: string) {
   return {
     ok: true,
     json: async () => ({
-      results: email || phone
-        ? [{ properties: { email: email ?? null, phone: phone ?? null } }]
-        : [],
+      results: [
+        {
+          properties: {
+            email: email ?? null,
+            phone: phone ?? null,
+          },
+        },
+      ],
     }),
   };
 }
@@ -28,6 +33,7 @@ describe("lookupContact", () => {
   let originalKey: string | undefined;
 
   beforeEach(() => {
+    vi.resetModules();
     originalKey = process.env.HUBSPOT_API_KEY;
     process.env.HUBSPOT_API_KEY = "test-token";
   });
@@ -48,10 +54,8 @@ describe("lookupContact", () => {
   });
 
   it("returns email and phone when found by LinkedIn URL", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(makeSearchResponse("john@example.com", "+972501234567"))
-    );
+    const fetchMock = vi.fn().mockResolvedValue(makeSearchResponse("john@example.com", "+972501234567"));
+    vi.stubGlobal("fetch", fetchMock);
     const { lookupContact } = await import("@/lib/hubspot/client");
     const result = await lookupContact({
       linkedinUrl: "https://linkedin.com/in/john",
@@ -59,6 +63,10 @@ describe("lookupContact", () => {
       company: "Acme",
     });
     expect(result).toEqual({ email: "john@example.com", phone: "+972501234567" });
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/crm/v3/objects/contacts/search"),
+      expect.any(Object)
+    );
   });
 
   it("falls back to name+company search when LinkedIn URL returns no match", async () => {
@@ -74,7 +82,8 @@ describe("lookupContact", () => {
       fullName: "Jane Smith",
       company: "Corp",
     });
-    expect(result).toEqual({ email: "jane@example.com", phone: undefined });
+    expect(result?.email).toBe("jane@example.com");
+    expect(result?.phone).toBeUndefined();
   });
 
   it("returns null when both searches return no results", async () => {
