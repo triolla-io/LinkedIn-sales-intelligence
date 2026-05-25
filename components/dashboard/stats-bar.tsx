@@ -63,22 +63,22 @@ export default function StatsBar({ insights, newThisWeek, onFilterCLevel }: Stat
 
   return (
     <div className="flex items-stretch bg-white border border-[#e5e3df] rounded-lg overflow-hidden shrink-0">
-      <Stat label="Total" value={insights.total} />
+      <Stat label="סה״כ" value={insights.total} />
       <Stat
-        label="Reachable"
+        label="ניתן להשגה"
         value={reachable}
         sub={`${Math.round((reachable / Math.max(insights.total, 1)) * 100)}%`}
         accent="blue"
       />
       <Stat
-        label="C-Level"
+        label="דירוג C"
         value={cLevel}
         sub={cLevel > 0 ? `${Math.round((cLevel / insights.total) * 100)}%` : undefined}
         clickable
         onClick={onFilterCLevel}
         accent="amber"
       />
-      <Stat label="New this week" value={newThisWeek} accent="neutral" />
+      <Stat label="חדש השבוע" value={newThisWeek} accent="neutral" />
     </div>
   );
 }
