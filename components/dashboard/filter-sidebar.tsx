@@ -201,7 +201,16 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
           </button>
         </div>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9b9895]" />
+          {filters.q ? (
+            <button
+              onClick={() => onChange({ ...filters, q: "" })}
+              className="absolute left-3 top-1/2 -translate-y-1/2"
+            >
+              <X className="w-3.5 h-3.5 text-[#9b9895] hover:text-[#6b6866]" />
+            </button>
+          ) : (
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9b9895]" />
+          )}
           <input
             type="text"
             placeholder="חיפוש אנשי קשר…"
@@ -209,11 +218,6 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
             onChange={(e) => onChange({ ...filters, q: e.target.value })}
             className="w-full pl-9 pr-3 py-2 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
           />
-          {filters.q && (
-            <button onClick={() => onChange({ ...filters, q: "" })} className="absolute right-2 top-1/2 -translate-y-1/2">
-              <X className="w-3.5 h-3.5 text-[#9b9895] hover:text-[#6b6866]" />
-            </button>
-          )}
         </div>
       </div>
 
