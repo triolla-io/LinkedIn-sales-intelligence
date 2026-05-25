@@ -50,29 +50,25 @@ export async function campaignStartHandler({ event }: any) {
       title:     contact.currentTitle,
       hebrewFirstName: contact.hebrewFirstName,
     };
-    const { body, missing } = renderTemplate(campaign.template.body, { recipient, sender });
-    const status = missing.length > 0 ? "SKIPPED" : "PENDING";
-    const errorMessage = missing.length > 0 ? `missing_variable:${missing.join(",")}` : null;
+    const { body } = renderTemplate(campaign.template.body, { recipient, sender });
     // scheduledAt stored for display; actual dispatch is immediate (Inngest throttle + Redis quota handles pacing)
     const scheduledAt = new Date(cursor);
     cursor += jitterSeconds() * 1000;
 
     const recipientRow = await prisma.campaignRecipient.create({
-      data: { campaignId, contactId: contact.id, status, renderedBody: body || null, errorMessage, scheduledAt },
+      data: { campaignId, contactId: contact.id, status: "PENDING", renderedBody: body || null, scheduledAt },
     });
 
-    if (status === "PENDING") {
-      const eventName =
-        campaign.channel === "WHATSAPP"
-          ? "campaign.send-whatsapp"
-          : campaign.channel === "EMAIL"
-          ? "campaign.send-email"
-          : "campaign.send-one";
-      await inngest.send({
-        name: eventName as "campaign.send-one" | "campaign.send-whatsapp" | "campaign.send-email",
-        data: { recipientId: recipientRow.id },
-      });
-    }
+    const eventName =
+      campaign.channel === "WHATSAPP"
+        ? "campaign.send-whatsapp"
+        : campaign.channel === "EMAIL"
+        ? "campaign.send-email"
+        : "campaign.send-one";
+    await inngest.send({
+      name: eventName as "campaign.send-one" | "campaign.send-whatsapp" | "campaign.send-email",
+      data: { recipientId: recipientRow.id },
+    });
   }
 }
 

@@ -146,9 +146,16 @@ function renderCell(col: ColumnDef, contact: Contact) {
     case "name":
       return (
         <div className="min-w-0">
-          <p className="text-sm font-medium text-[#111110] truncate group-hover:text-black transition-colors">
-            {contact.fullName}
-          </p>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <p className="text-sm font-medium text-[#111110] truncate group-hover:text-black transition-colors">
+              {contact.fullName}
+            </p>
+            {contact.hebrewFirstName && (
+              <span className="shrink-0 text-[11px] text-[#6b6866] font-medium" dir="rtl">
+                {contact.hebrewFirstName}
+              </span>
+            )}
+          </div>
           {contact.headline && (
             <p className="text-[11px] text-[#9b9895] truncate mt-0.5">{contact.headline}</p>
           )}

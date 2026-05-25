@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import { FileText, Plus, Trash2, Edit2, RefreshCw, Zap } from "lucide-react";
 
@@ -11,7 +11,7 @@ interface Template {
   createdAt: string;
 }
 
-const VARIABLE_CHIPS = ["{{firstName}}", "{{lastName}}", "{{company}}", "{{title}}"];
+const VARIABLE_CHIPS = ["{{firstName}}", "{{hebrewFirstName}}", "{{lastName}}", "{{company}}", "{{title}}"];
 
 function HighlightedBody({ text }: { text: string }) {
   const parts = text.split(/({{[^}]+}})/g);
@@ -42,6 +42,19 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
   const [body, setBody] = useState(initial?.body ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  function insertChip(chip: string) {
+    const ta = textareaRef.current;
+    if (!ta) { setBody((b) => b + chip); return; }
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    setBody((b) => b.slice(0, start) + chip + b.slice(end));
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.selectionStart = ta.selectionEnd = start + chip.length;
+    });
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -79,6 +92,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
           גוף ההודעה
         </label>
         <textarea
+          ref={textareaRef}
           value={body}
           onChange={(e) => setBody(e.target.value)}
           rows={6}
@@ -91,7 +105,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
             <button
               key={v}
               type="button"
-              onClick={() => setBody((b) => b + v)}
+              onClick={() => insertChip(v)}
               className="text-[10px] font-mono text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded hover:bg-amber-100 transition-colors"
             >
               {v}
@@ -131,9 +145,10 @@ export default function TemplatesPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const initialFetch = useRef(true);
 
   async function fetchTemplates() {
-    setLoading(true);
+    if (initialFetch.current) setLoading(true);
     try {
       const res = await fetch("/api/templates");
       if (res.ok) {
@@ -142,7 +157,10 @@ export default function TemplatesPage() {
       }
     } catch {}
     finally {
-      setLoading(false);
+      if (initialFetch.current) {
+        setLoading(false);
+        initialFetch.current = false;
+      }
     }
   }
 

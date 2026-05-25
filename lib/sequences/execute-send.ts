@@ -73,15 +73,6 @@ export async function executeSequenceSend(executionId: string): Promise<ExecuteS
   };
   const { body, missing } = renderTemplate(step.template.body, { recipient, sender });
 
-  if (missing.length > 0) {
-    await prisma.sequenceStepExecution.update({
-      where: { id: executionId },
-      data: { status: "SKIPPED", errorMessage: `missing_variable:${missing.join(",")}` },
-    });
-    await maybeAdvance(execution.enrollmentId, step.id, sequence.steps, enrolledAt);
-    return { outcome: "missing_variables", variables: missing };
-  }
-
   await prisma.sequenceStepExecution.update({
     where: { id: executionId },
     data: { status: "SENDING", attemptCount: { increment: 1 }, renderedBody: body },

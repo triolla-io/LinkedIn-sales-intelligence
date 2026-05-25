@@ -232,11 +232,12 @@ export default function NewSequenceModal({
                     <input
                       type="number"
                       min={0}
-                      max={23}
-                      value={String(step.sendHour).padStart(2, "0")}
+                      max={59}
+                      step={5}
+                      value={String(step.sendMinute).padStart(2, "0")}
                       onChange={(e) => {
                         const v = parseInt(e.target.value, 10);
-                        updateStep(step.key, { sendHour: isNaN(v) ? 9 : Math.min(23, Math.max(0, v)) });
+                        updateStep(step.key, { sendMinute: isNaN(v) ? 0 : Math.min(55, Math.max(0, Math.round(v / 5) * 5)) });
                       }}
                       className="w-14 border border-[#e5e3df] rounded px-1.5 py-1 text-center font-mono text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
                     />
@@ -244,11 +245,11 @@ export default function NewSequenceModal({
                     <input
                       type="number"
                       min={0}
-                      max={59}
-                      value={String(step.sendMinute).padStart(2, "0")}
+                      max={23}
+                      value={String(step.sendHour).padStart(2, "0")}
                       onChange={(e) => {
                         const v = parseInt(e.target.value, 10);
-                        updateStep(step.key, { sendMinute: isNaN(v) ? 0 : Math.min(59, Math.max(0, v)) });
+                        updateStep(step.key, { sendHour: isNaN(v) ? 9 : Math.min(23, Math.max(0, v)) });
                       }}
                       className="w-14 border border-[#e5e3df] rounded px-1.5 py-1 text-center font-mono text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
                     />

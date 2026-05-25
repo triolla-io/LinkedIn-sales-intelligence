@@ -13,16 +13,13 @@ const RECIPIENT_VARS = ["firstName", "lastName", "company", "title", "hebrewFirs
 const SENDER_VARS    = ["senderFirstName", "senderLastName", "senderCompany", "senderTitle"] as const;
 
 export function renderTemplate(template: string, ctx: RenderContext): { body: string; missing: string[] } {
-  const missing: string[] = [];
   const body = template.replace(/\{\{([a-zA-Z]+)(?:\|([^}]*))?\}\}/g, (_m, name, fallback) => {
     const value = lookup(name, ctx);
     if (value !== null && value !== "") return value;
     if (fallback !== undefined) return fallback;
-    if ((SENDER_VARS as readonly string[]).includes(name)) return "";
-    if ((RECIPIENT_VARS as readonly string[]).includes(name)) missing.push(name);
     return "";
   });
-  return { body: missing.length > 0 ? "" : body, missing };
+  return { body, missing: [] };
 }
 
 function lookup(name: string, ctx: RenderContext): string | null {
