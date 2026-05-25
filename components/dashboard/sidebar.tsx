@@ -20,17 +20,17 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/contacts", label: "Contacts", icon: Users },
-  { href: "/lists", label: "Lists", icon: BookMarked },
-  { href: "/campaigns", label: "Campaigns", icon: GitBranch },
-  { href: "/templates", label: "Templates", icon: FileText },
-  { href: "/import", label: "Import CSV", icon: Upload },
+  { href: "/dashboard", label: "דשבורד", icon: LayoutDashboard },
+  { href: "/contacts", label: "אנשי קשר", icon: Users },
+  { href: "/lists", label: "רשימות חכמות", icon: BookMarked },
+  { href: "/campaigns", label: "קמפיינים", icon: GitBranch },
+  { href: "/templates", label: "טמפלטים", icon: FileText },
+  { href: "/import", label: "ייבוא נתונים", icon: Upload },
   { href: "/whatsapp-connect", label: "WhatsApp", icon: MessageCircle },
 ];
 
 const adminItems = [
-  { href: "/admin", label: "Team", icon: Shield },
+  { href: "/admin", label: "ניהול", icon: Shield },
 ];
 
 export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
@@ -43,15 +43,15 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
   }
 
   return (
-    <aside className="flex flex-col h-full bg-white border-r border-[#e5e3df] overflow-hidden">
+    <aside className="flex flex-col h-full bg-white border-l border-[#e5e3df] overflow-hidden">
       {/* Logo */}
       <div className={cn("border-b border-[#e5e3df] shrink-0", collapsed ? "px-3 py-5 flex justify-center" : "px-5 py-5")}>
         <div className={cn("flex items-center gap-2.5", collapsed && "justify-center")}>
           <div className="w-8 h-8 bg-[#1585ff] rounded-lg flex items-center justify-center shrink-0">
-            <span className="text-white text-xs font-bold font-mono">{collapsed ? "S" : "SI"}</span>
+            <span className="text-white text-xs font-bold font-mono">{collapsed ? "L" : "LF"}</span>
           </div>
           {!collapsed && (
-            <span className="font-semibold text-[#111110] text-sm tracking-tight whitespace-nowrap">LinkedIn SI</span>
+            <span className="font-semibold text-[#111110] text-sm tracking-tight whitespace-nowrap">LeadFlow</span>
           )}
         </div>
       </div>
@@ -61,17 +61,17 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
         <div className={cn("flex items-center mb-3", collapsed ? "justify-center" : "justify-between px-2.5")}>
           {!collapsed && (
             <p className="text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest">
-              Navigation
+              ניווט
             </p>
           )}
           <button
             onClick={onToggle}
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={collapsed ? "הרחב תפריט" : "כווץ תפריט"}
             className="flex items-center justify-center w-6 h-6 rounded-md text-[#c8c5c2] hover:text-[#6b6866] hover:bg-[#f3f2ef] transition-colors"
           >
             {collapsed
-              ? <ChevronRight className="w-3.5 h-3.5" />
-              : <ChevronLeft className="w-3.5 h-3.5" />}
+              ? <ChevronLeft className="w-3.5 h-3.5" />
+              : <ChevronRight className="w-3.5 h-3.5" />}
           </button>
         </div>
         {navItems.map(({ href, label, icon: Icon }) => {
@@ -101,7 +101,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
           <>
             {!collapsed && (
               <p className="px-2.5 mt-5 mb-2 text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest">
-                Admin
+                ניהול
               </p>
             )}
             {collapsed && <div className="my-2 border-t border-[#e5e3df]" />}
@@ -134,7 +134,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
         {collapsed ? (
           <button
             onClick={handleSignOut}
-            title="Sign out"
+            title="יציאה"
             className="flex items-center justify-center"
           >
             {user.image ? (
@@ -173,7 +173,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
             <button
               onClick={handleSignOut}
               className="text-[#c8c5c2] hover:text-[#9b9895] transition-colors"
-              title="Sign out"
+              title="יציאה"
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>
