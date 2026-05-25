@@ -11,18 +11,13 @@ export const enrichContact = inngest.createFunction(
   async ({ event, step }: any) => {
     const { contactId } = event.data as { contactId: string; actorId: string };
 
-    const { contact, orgId } = await step.run("load-and-check", async () => {
+    const { contact, orgId } = await step.run("load-contact", async () => {
       const c = await prisma.contact.findUnique({
         where: { id: contactId },
         include: { owner: { include: { org: true } } },
       });
       if (!c) throw new Error(`Contact ${contactId} not found`);
-
-      const orgId = c.owner.orgId;
-      const budget = await checkBudget(orgId, c.owner.org.monthlyApolloBudget);
-      if (!budget.allowed) throw new Error("BUDGET_EXHAUSTED");
-
-      return { contact: c, orgId };
+      return { contact: c, orgId: c.owner.orgId };
     });
 
     // Try HubSpot first — skip Apollo if we already have the data
@@ -59,7 +54,12 @@ export const enrichContact = inngest.createFunction(
       };
     }
 
-    // HubSpot had nothing — fall through to Apollo
+    // HubSpot had nothing — check Apollo budget before calling Apollo
+    await step.run("check-apollo-budget", async () => {
+      const budget = await checkBudget(orgId, contact.owner.org.monthlyApolloBudget);
+      if (!budget.allowed) throw new Error("BUDGET_EXHAUSTED");
+    });
+
     const result = await step.run("match-person", async () => {
       return matchPerson({
         name: contact.fullName,
