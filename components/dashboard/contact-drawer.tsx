@@ -312,13 +312,13 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
               <div className="p-4 space-y-4 border-b border-[#e5e3df]">
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">
-                    Contact Details
+                    פרטי קשר
                   </p>
                   <button
                     onClick={() => setShowEdit(true)}
                     className="text-xs text-[#9b9895] hover:text-[#1585ff] transition-colors"
                   >
-                    Edit
+                    ערוך
                   </button>
                 </div>
 
@@ -326,7 +326,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                   <div className="flex items-center gap-2.5">
                     <Mail className="w-4 h-4 text-[#1585ff] shrink-0" />
                     <div>
-                      <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Email</p>
+                      <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">אימייל</p>
                       <a
                         href={`mailto:${localContact.email}`}
                         className="text-sm text-[#1585ff] hover:text-[#0a70e0] transition-colors font-mono"
@@ -338,7 +338,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                 ) : (
                   <div className="flex items-center gap-2.5 opacity-40">
                     <Mail className="w-4 h-4 text-[#9b9895] shrink-0" />
-                    <p className="text-xs text-[#9b9895]">No email on record</p>
+                    <p className="text-xs text-[#9b9895]">אין אימייל בנתונים</p>
                   </div>
                 )}
 
@@ -346,7 +346,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                   <div className="flex items-center gap-2.5">
                     <Phone className="w-4 h-4 text-emerald-500 shrink-0" />
                     <div>
-                      <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Phone</p>
+                      <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">טלפון</p>
                       <a
                         href={`tel:${localContact.phone}`}
                         className="text-sm text-[#111110] hover:text-black transition-colors font-mono"
@@ -359,14 +359,14 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                   <div className="flex items-center gap-2.5">
                     <Phone className="w-4 h-4 text-amber-400 shrink-0" />
                     <div>
-                      <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Phone</p>
-                      <p className="text-xs text-amber-500 font-mono">Mobile verifying via webhook…</p>
+                      <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">טלפון</p>
+                      <p className="text-xs text-amber-500 font-mono">אימות טלפון נייד דרך webhook…</p>
                     </div>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2.5 opacity-40">
                     <Phone className="w-4 h-4 text-[#9b9895] shrink-0" />
-                    <p className="text-xs text-[#9b9895]">No phone on record</p>
+                    <p className="text-xs text-[#9b9895]">אין טלפון בנתונים</p>
                   </div>
                 )}
 
@@ -378,17 +378,17 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                         className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#6b6866] border border-[#e5e3df] hover:border-amber-300 hover:text-amber-600 rounded-md transition-all"
                       >
                         <Zap className="w-3 h-3" />
-                        Enrich contact
+                        העשר קשר
                       </button>
                     )}
                     {enrichState === "loading" && (
                       <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-blue-600 border border-blue-100 bg-blue-50 rounded-md">
                         <RefreshCw className="w-3 h-3 animate-spin" />
-                        Searching Apollo…
+                        חיפוש ב-Apollo…
                       </div>
                     )}
                     {enrichState === "done" && (
-                      <p className="text-xs text-[#9b9895] px-1">No contact data found in Apollo.</p>
+                      <p className="text-xs text-[#9b9895] px-1">לא נמצאו נתוני קשר ב-Apollo.</p>
                     )}
                     {enrichState === "error" && (
                       <div className="space-y-1">
@@ -398,7 +398,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                           className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#6b6866] border border-[#e5e3df] hover:border-amber-300 hover:text-amber-600 rounded-md transition-all"
                         >
                           <Zap className="w-3 h-3" />
-                          Try again
+                          נסה שוב
                         </button>
                       </div>
                     )}
@@ -408,7 +408,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                 {enrichState === "done" && (localContact.email || localContact.phone) && (
                   <div className="flex items-center gap-1.5 mt-1 px-1 text-xs text-emerald-600">
                     <CheckCircle2 className="w-3 h-3" />
-                    Enriched successfully
+                    הועשר בהצלחה
                   </div>
                 )}
 
@@ -419,7 +419,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                     className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#9b9895] border border-[#e5e3df] hover:border-amber-300 hover:text-amber-600 rounded-md transition-all"
                   >
                     <RefreshCw className="w-3 h-3" />
-                    Re-enrich
+                    העשר שוב
                   </button>
                 )}
               </div>
@@ -427,14 +427,14 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
               {/* Professional info */}
               <div className="p-4 space-y-3 border-b border-[#e5e3df]">
                 <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">
-                  Professional
+                  מקצועי
                 </p>
                 <div className="space-y-3">
                   {localContact.currentCompany && (
                     <div className="flex items-center gap-2.5">
                       <Building2 className="w-4 h-4 text-[#9b9895] shrink-0" />
                       <div className="min-w-0">
-                        <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Company</p>
+                        <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">חברה</p>
                         <p className="text-sm text-[#111110] truncate">{localContact.currentCompany}</p>
                       </div>
                     </div>
@@ -446,11 +446,11 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                       <div className="flex items-center gap-2.5">
                         <Users className="w-4 h-4 text-[#9b9895] shrink-0" />
                         <div>
-                          <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Employees</p>
+                          <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">עובדים</p>
                           <p className="text-sm font-mono text-[#111110]">
                             {empCount.toLocaleString()}
                             <span className="ml-1.5 text-[10px] text-[#9b9895] font-sans">
-                              (from {empSource === "apollo" ? "Apollo" : "LinkedIn"})
+                              (מ-{empSource === "apollo" ? "Apollo" : "LinkedIn"})
                             </span>
                           </p>
                         </div>
@@ -461,14 +461,14 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                     <div className="flex items-center gap-2.5">
                       <MapPin className="w-4 h-4 text-[#9b9895] shrink-0" />
                       <div>
-                        <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Location</p>
+                        <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">מיקום</p>
                         <p className="text-sm text-[#111110]">{localContact.location}</p>
                       </div>
                     </div>
                   )}
                   {localContact.industry && (
                     <div>
-                      <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest mb-0.5">Industry</p>
+                      <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest mb-0.5">ענף</p>
                       <p className="text-sm text-[#111110]">{localContact.industry}</p>
                     </div>
                   )}
@@ -476,7 +476,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                     <div className="flex items-center gap-2.5">
                       <Clock className="w-4 h-4 text-[#9b9895] shrink-0" />
                       <div>
-                        <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Last synced</p>
+                        <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">סינכרון אחרון</p>
                         <p className="text-xs font-mono text-[#9b9895]">
                           {formatDate(localContact.lastSyncedAt)}
                         </p>
@@ -493,7 +493,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                     className="flex items-center gap-2 mt-2 text-xs text-[#9b9895] hover:text-[#1585ff] transition-colors"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    View on LinkedIn
+                    צפה ב-LinkedIn
                   </a>
                 )}
               </div>
@@ -506,7 +506,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                     className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#f8f7f5] transition-colors"
                   >
                     <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">
-                      Enrichment Details
+                      פרטי העשרה
                     </p>
                     {showEnrichDetails ? (
                       <ChevronDown className="w-3.5 h-3.5 text-[#9b9895]" />
@@ -519,7 +519,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                     <div className="px-4 pb-4 space-y-3">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs text-[#9b9895]">
-                          Last attempt: {formatDateTime(localContact.enrichmentRanAt)}
+                          ניסיון אחרון: {formatDateTime(localContact.enrichmentRanAt)}
                         </span>
                         {localContact.enrichmentSource && (
                           <span
@@ -530,7 +530,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                                 : "bg-violet-50 text-violet-600 border border-violet-200"
                             )}
                           >
-                            {localContact.enrichmentSource === "apollo" ? "Apollo (fresh)" : "Cache"}
+                            {localContact.enrichmentSource === "apollo" ? "Apollo (חדש)" : "זיכרון מטמון"}
                           </span>
                         )}
                       </div>
@@ -553,7 +553,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                             ) : (
                               <ChevronRight className="w-3 h-3" />
                             )}
-                            Show raw Apollo response
+                            הצג תגובת Apollo גולמית
                           </button>
                           {showRawLog && (
                             <pre className="mt-2 p-2.5 rounded-md bg-[#f8f7f5] border border-[#e5e3df] text-[10px] text-[#6b6866] overflow-x-auto max-h-64 leading-relaxed">
@@ -570,7 +570,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
               {/* Lists */}
               <div className="p-4 border-b border-[#e5e3df]">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">Lists</p>
+                  <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">רשימות</p>
                   <div className="relative">
                     <button
                       ref={addListBtnRef}
@@ -578,7 +578,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                       className="flex items-center gap-1 text-xs text-[#9b9895] hover:text-[#1585ff] transition-colors"
                     >
                       <Plus className="w-3 h-3" />
-                      Add
+                      הוסף
                     </button>
                     {showListPopover && localContact && (
                       <ListPopover
@@ -597,7 +597,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                   </div>
                 </div>
                 {contactLists.length === 0 ? (
-                  <p className="text-xs text-[#9b9895]">Not in any list</p>
+                  <p className="text-xs text-[#9b9895]">לא כלול ברשימה כלשהי</p>
                 ) : (
                   <div className="flex flex-wrap gap-1.5">
                     {contactLists.map((list) => (
@@ -628,7 +628,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
               {/* Message history */}
               <div className="p-4">
                 <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest mb-3">
-                  Message History
+                  היסטוריית הודעות
                 </p>
                 {loadingMessages ? (
                   <div className="space-y-2">
@@ -637,7 +637,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                     ))}
                   </div>
                 ) : messages.length === 0 ? (
-                  <p className="text-xs text-[#9b9895]">No messages sent yet.</p>
+                  <p className="text-xs text-[#9b9895]">לא נשלחו הודעות עדיין.</p>
                 ) : (
                   <div className="space-y-2">
                     {messages.map((msg) => (
@@ -659,7 +659,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                                 : "text-red-500 bg-red-50"
                             )}
                           >
-                            {msg.status}
+                            {msg.status === "SENT" ? "נשלח" : msg.status === "QUEUED" ? "בתור" : msg.status}
                           </span>
                         </div>
                         <p className="text-xs text-[#111110] leading-relaxed line-clamp-3">{msg.body}</p>
