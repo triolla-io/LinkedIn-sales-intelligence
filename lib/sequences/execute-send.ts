@@ -70,6 +70,7 @@ export async function executeSequenceSend(executionId: string): Promise<ExecuteS
     lastName: lastName(contact.fullName),
     company: contact.currentCompany,
     title: contact.currentTitle,
+    hebrewFirstName: contact.hebrewFirstName ?? null,
   };
   const { body, missing } = renderTemplate(step.template.body, { recipient, sender });
 
