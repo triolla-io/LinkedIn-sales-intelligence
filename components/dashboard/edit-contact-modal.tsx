@@ -14,12 +14,12 @@ interface EditContactModalProps {
 type EditableField = "email" | "phone" | "currentTitle" | "currentCompany" | "location" | "headline";
 
 const FIELDS: { key: EditableField; label: string; type?: string }[] = [
-  { key: "email", label: "Email", type: "email" },
-  { key: "phone", label: "Phone", type: "tel" },
-  { key: "currentTitle", label: "Title" },
-  { key: "currentCompany", label: "Company" },
-  { key: "location", label: "Location" },
-  { key: "headline", label: "Headline" },
+  { key: "email", label: "אימייל", type: "email" },
+  { key: "phone", label: "טלפון", type: "tel" },
+  { key: "currentTitle", label: "תפקיד" },
+  { key: "currentCompany", label: "חברה" },
+  { key: "location", label: "מיקום" },
+  { key: "headline", label: "כותרת" },
 ];
 
 export default function EditContactModal({ contact, onClose, onSaved }: EditContactModalProps) {
@@ -68,7 +68,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
       const updated = await res.json();
       onSaved({ ...contact, ...updated });
     } catch {
-      setError("Failed to save. Please try again.");
+      setError("שמירה נכשלה. נא לנסות שוב.");
     } finally {
       setSaving(false);
     }
@@ -87,8 +87,8 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
         className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm bg-white rounded-xl shadow-2xl border border-[#e5e3df]"
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e3df]">
-          <h3 id="edit-contact-dialog-title" className="text-sm font-semibold text-[#111110]">Edit Contact</h3>
-          <button onClick={onClose} aria-label="Close" className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
+          <h3 id="edit-contact-dialog-title" className="text-sm font-semibold text-[#111110]">ערוך איש קשר</h3>
+          <button onClick={onClose} aria-label="סגור" className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -102,7 +102,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
                 </label>
                 {manualSet.has(key) && (
                   <span className="text-[9px] font-mono px-1 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200">
-                    manual
+                    ידני
                   </span>
                 )}
               </div>
@@ -112,7 +112,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
                 value={form[key]}
                 onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
                 className="w-full px-3 py-2 text-sm border border-[#d1cfcb] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] text-[#111110] placeholder:text-[#c4c2be]"
-                placeholder={`Add ${label.toLowerCase()}...`}
+                placeholder={`הוסף ${label}...`}
               />
             </div>
           ))}
@@ -125,7 +125,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
             onClick={onClose}
             className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] transition-colors"
           >
-            Cancel
+            ביטול
           </button>
           <button
             onClick={handleSave}
@@ -135,7 +135,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
               saving || !isDirty ? "opacity-60 cursor-not-allowed" : "hover:bg-[#0a70e0]"
             )}
           >
-            {saving ? "Saving…" : "Save"}
+            {saving ? "שומר…" : "שמור"}
           </button>
         </div>
       </div>
