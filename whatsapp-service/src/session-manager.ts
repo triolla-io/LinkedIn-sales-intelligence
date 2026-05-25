@@ -26,6 +26,10 @@ const sessions = new Map<string, SessionEntry>();
 // Survives session reinits so SSE streams stay live across QR-scan reconnects
 const persistentListeners = new Map<string, Set<EventListener>>();
 
+// Tracks userIds that just hit disconnectSession() so the close-handler's
+// auto-reinit doesn't race against the user's manual reconnect attempt.
+const intentionallyDisconnected = new Set<string>();
+
 export function getStatus(userId: string): { status: SessionStatus; phone?: string } {
   const entry = sessions.get(userId);
   if (!entry) return { status: "DISCONNECTED" };
@@ -55,7 +59,14 @@ export function subscribeToEvents(userId: string, listener: EventListener): () =
 }
 
 export async function initSession(userId: string): Promise<void> {
-  if (sessions.has(userId)) return;
+  intentionallyDisconnected.delete(userId);
+
+  const existing = sessions.get(userId);
+  if (existing) {
+    if (existing.status === "CONNECTED" || existing.status === "QR_PENDING") return;
+    try { existing.socket.end(undefined); } catch { /* ignore */ }
+    sessions.delete(userId);
+  }
 
   const dir = path.join(SESSIONS_DIR, userId);
   fs.mkdirSync(dir, { recursive: true });
@@ -101,16 +112,21 @@ export async function initSession(userId: string): Promise<void> {
         code === DisconnectReason.loggedOut ||
         code === DisconnectReason.forbidden ||
         code === DisconnectReason.badSession;
+      const userInitiatedDisconnect = intentionallyDisconnected.has(userId);
 
       entry.status = "DISCONNECTED";
-      entry.listeners.forEach((l) => l("disconnected", loggedOut ? "logged_out" : "reconnecting"));
+      entry.listeners.forEach((l) =>
+        l("disconnected", loggedOut || userInitiatedDisconnect ? "logged_out" : "reconnecting")
+      );
       sessions.delete(userId);
 
-      if (loggedOut) {
+      if (loggedOut || userInitiatedDisconnect) {
         persistentListeners.delete(userId);
         fs.rmSync(dir, { recursive: true, force: true });
+        intentionallyDisconnected.delete(userId);
       } else {
         setTimeout(() => {
+          if (intentionallyDisconnected.has(userId)) return;
           initSession(userId).catch((err) =>
             console.error(`[whatsapp] failed to reinit session for ${userId}:`, err)
           );
@@ -121,15 +137,18 @@ export async function initSession(userId: string): Promise<void> {
 }
 
 export async function disconnectSession(userId: string): Promise<void> {
+  intentionallyDisconnected.add(userId);
   const entry = sessions.get(userId);
   if (entry) {
     try { await entry.socket.logout(); } catch { /* ignore */ }
-    entry.socket.end(undefined);
+    try { entry.socket.end(undefined); } catch { /* ignore */ }
     sessions.delete(userId);
   }
   persistentListeners.delete(userId);
   const dir = path.join(SESSIONS_DIR, userId);
   fs.rmSync(dir, { recursive: true, force: true });
+  // Keep userId in intentionallyDisconnected so any late "close" events from
+  // socket.logout/end don't trigger the 3s auto-reinit. initSession() clears it.
 }
 
 export async function sendMessage(userId: string, phone: string, body: string): Promise<string> {

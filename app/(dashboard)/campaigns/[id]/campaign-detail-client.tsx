@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Play, Pause, RotateCcw, XCircle, Mail, MessageSquare, X } from "lucide-react";
+import { ArrowLeft, Play, Pause, RotateCcw, XCircle, Mail, MessageSquare, X, RefreshCw } from "lucide-react";
 import AutoRefresher from "@/components/auto-refresher";
 
 type StepExecution = {
@@ -113,6 +113,7 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
   }
 
   async function removeSingle(enrollmentId: string) {
+    if (!confirm("האם להסיר איש קשר זה מהשלבים הבאים?")) return;
     setRemoving(true);
     try {
       await fetch(`/api/sequences/${sequence.id}/enrollments/${enrollmentId}/remove`, {
@@ -126,6 +127,30 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
                 ...enr,
                 executions: enr.executions.map((ex) =>
                   ex.status === "PENDING" ? { ...ex, status: "SKIPPED" } : ex
+                ),
+              }
+            : enr
+        ),
+      }));
+    } finally {
+      setRemoving(false);
+    }
+  }
+
+  async function restoreSingle(enrollmentId: string) {
+    setRemoving(true);
+    try {
+      await fetch(`/api/sequences/${sequence.id}/enrollments/${enrollmentId}/restore`, {
+        method: "POST",
+      });
+      setSequence((prev) => ({
+        ...prev,
+        enrollments: prev.enrollments.map((enr) =>
+          enr.id === enrollmentId
+            ? {
+                ...enr,
+                executions: enr.executions.map((ex) =>
+                  ex.status === "SKIPPED" ? { ...ex, status: "PENDING" } : ex
                 ),
               }
             : enr
@@ -382,14 +407,26 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
                     );
                   })}
                   <td className="px-3 py-3">
-                    <button
-                      onClick={() => removeSingle(enr.id)}
-                      disabled={removing}
-                      className="p-1 text-[#c8c5c2] hover:text-[#dc2626] hover:bg-[#fff3f3] rounded transition-colors disabled:opacity-50"
-                      title="הסר משלבים עתידיים"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      {enr.executions.length > 0 && enr.executions.every((ex) => ex.status === "SKIPPED") && (
+                        <button
+                          onClick={() => restoreSingle(enr.id)}
+                          disabled={removing}
+                          className="p-1 text-[#c8c5c2] hover:text-[#1585ff] hover:bg-[#eff5ff] rounded transition-colors disabled:opacity-50"
+                          title="שחזר שלבים"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => removeSingle(enr.id)}
+                        disabled={removing}
+                        className="p-1 text-[#c8c5c2] hover:text-[#dc2626] hover:bg-[#fff3f3] rounded transition-colors disabled:opacity-50"
+                        title="הסר משלבים עתידיים"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
