@@ -3,6 +3,7 @@ import { inngest } from "@/inngest/client";
 import { enrichContact } from "@/inngest/functions/enrich-contact";
 import { enrichCompanies } from "@/inngest/functions/enrich-companies";
 import { enrichCompaniesWeb } from "@/inngest/functions/enrich-companies-web";
+import { enrichContactsHaiku } from "@/inngest/functions/enrich-contacts-haiku";
 import { campaignStart } from "@/inngest/functions/campaign-start";
 import { campaignSendOne } from "@/inngest/functions/campaign-send-one";
 import { campaignSendWhatsapp } from "@/inngest/functions/campaign-send-whatsapp";
@@ -18,6 +19,7 @@ export const { GET, POST, PUT } = serve({
     enrichContact,
     enrichCompanies,
     enrichCompaniesWeb,
+    enrichContactsHaiku,
     campaignStart,
     campaignSendOne,
     campaignSendWhatsapp,
