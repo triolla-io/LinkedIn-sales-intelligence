@@ -38,9 +38,9 @@ export default function ListsPage() {
       <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <BookMarked className="w-4 h-4 text-[#1585ff]" />
-          <h1 className="text-sm font-semibold text-[#111110] tracking-tight">Lists</h1>
+          <h1 className="text-sm font-semibold text-[#111110] tracking-tight">רשימות חכמות</h1>
           {!loading && (
-            <span className="text-xs font-mono text-[#9b9895]">{lists.length} total</span>
+            <span className="text-xs font-mono text-[#9b9895]">סה"כ {lists.length}</span>
           )}
         </div>
       </div>
@@ -53,11 +53,9 @@ export default function ListsPage() {
         ) : lists.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <BookMarked className="w-8 h-8 text-[#d4d0cc] mb-3" />
-            <p className="text-sm text-[#6b6866]">No lists yet</p>
+            <p className="text-sm text-[#6b6866]">אין רשימות עדיין</p>
             <p className="text-xs text-[#9b9895] mt-1">
-              Select contacts on the{" "}
-              <Link href="/contacts" className="text-[#1585ff] hover:underline">Contacts page</Link>{" "}
-              and choose &ldquo;Save to List&rdquo;.
+              בחר אנשי קשר בדף <Link href="/contacts" className="text-[#1585ff] hover:underline">אנשי קשר</Link> ולחץ &ldquo;שמור לרשימה&rdquo;.
             </p>
           </div>
         ) : (
@@ -76,7 +74,7 @@ export default function ListsPage() {
                       {list.name}
                     </p>
                     <p className="text-xs text-[#9b9895] mt-1 font-mono">
-                      {list.memberCount} contact{list.memberCount !== 1 ? "s" : ""}
+                      {list.memberCount} אנשי קשר
                     </p>
                     <p className="text-[10px] text-[#c8c5c2] mt-2">
                       {new Date(list.createdAt).toLocaleDateString()}
@@ -86,7 +84,7 @@ export default function ListsPage() {
                     onClick={() => deleteList(list.id)}
                     disabled={deletingId === list.id}
                     className="shrink-0 p-1.5 text-[#d4d0cc] hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                    title="Delete list"
+                    title="מחק"
                   >
                     {deletingId === list.id ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />

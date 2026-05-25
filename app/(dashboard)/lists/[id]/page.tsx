@@ -172,7 +172,7 @@ export default function ListDetailPage() {
             </div>
           )}
           {!loading && (
-            <span className="text-xs font-mono text-[#9b9895]">{total} contacts</span>
+            <span className="text-xs font-mono text-[#9b9895]">{total} אנשי קשר ברשימה</span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -194,7 +194,7 @@ export default function ListDetailPage() {
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-600 border border-amber-300 hover:bg-amber-50 hover:border-amber-400 rounded-md transition-all disabled:opacity-40"
           >
             {enriching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
-            Enrich
+            העשר
           </button>
           <button
             onClick={() => setCampaignOpen(true)}
@@ -202,7 +202,7 @@ export default function ListDetailPage() {
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1585ff] border border-[#1585ff]/30 hover:bg-[#1585ff]/5 hover:border-[#1585ff]/50 rounded-md transition-all disabled:opacity-40"
           >
             <Megaphone className="w-3.5 h-3.5" />
-            Launch Campaign
+            הפעל קמפיין
           </button>
         </div>
       </div>
@@ -239,7 +239,7 @@ export default function ListDetailPage() {
               disabled={removingId === contact.id}
               className="text-[10px] text-[#9b9895] hover:text-red-400 transition-colors font-mono"
             >
-              {removingId === contact.id ? "…" : "Remove"}
+              {removingId === contact.id ? "…" : "הסר"}
             </button>
           )}
         />
