@@ -46,7 +46,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !body.trim()) {
-      setError("Name and body are required");
+      setError("שם וגוף ההודעה הם שדות חובה");
       return;
     }
     setLoading(true);
@@ -54,7 +54,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
     try {
       await onSubmit({ name, body });
     } catch {
-      setError("Failed to save template");
+      setError("שמירת הטמפלט נכשלה");
     } finally {
       setLoading(false);
     }
@@ -64,26 +64,27 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
-          Template Name
+          שם
         </label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Initial Outreach"
+          placeholder="למשל: יצירת קשר ראשונה"
           className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-lg px-3 py-2.5 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
         />
       </div>
       <div>
         <label className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
-          Message Body
+          גוף ההודעה
         </label>
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
           rows={6}
-          placeholder={"Hi {{firstName}},\n\nI noticed you're at {{company}}..."}
+          placeholder={"שלום {{firstName}},\n\nשמתי לב שאתה ב-{{company}}..."}
           className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-lg px-3 py-2.5 text-sm text-[#111110] placeholder-[#c8c5c2] resize-none focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors font-mono leading-relaxed"
+          dir="rtl"
         />
         <div className="mt-2 flex flex-wrap gap-1.5">
           {VARIABLE_CHIPS.map((v) => (
@@ -117,7 +118,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
           onClick={onCancel}
           className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] hover:bg-[#f3f2ef] rounded-lg transition-colors"
         >
-          Cancel
+          ביטול
         </button>
       </div>
     </form>
@@ -185,9 +186,9 @@ export default function TemplatesPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-[#111110] tracking-tight">Templates</h1>
+          <h1 className="text-2xl font-semibold text-[#111110] tracking-tight">טמפלטים</h1>
           <p className="text-sm text-[#6b6866] mt-1">
-            Reusable outreach templates with personalization variables
+            תבניות הודעות לפניות הניתנות לשימוש חוזר עם משתנים אישיים
           </p>
         </div>
         {!showCreate && (
@@ -196,7 +197,7 @@ export default function TemplatesPage() {
             className="flex items-center gap-2 px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0a70e0] transition-colors shrink-0"
           >
             <Plus className="w-4 h-4" />
-            New Template
+            טמפלט חדש
           </button>
         )}
       </div>
@@ -206,12 +207,12 @@ export default function TemplatesPage() {
         <div className="bg-white border border-[#1585ff]/30 rounded-xl p-5 mb-4">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1 h-4 bg-[#1585ff] rounded-full" />
-            <h3 className="text-sm font-semibold text-[#111110]">New Template</h3>
+            <h3 className="text-sm font-semibold text-[#111110]">טמפלט חדש</h3>
           </div>
           <TemplateForm
             onSubmit={handleCreate}
             onCancel={() => setShowCreate(false)}
-            submitLabel="Create Template"
+            submitLabel="צור טמפלט"
           />
         </div>
       )}
@@ -234,15 +235,15 @@ export default function TemplatesPage() {
           <div className="w-12 h-12 bg-[#f3f2ef] border border-[#e5e3df] rounded-xl flex items-center justify-center mx-auto mb-4">
             <FileText className="w-5 h-5 text-[#9b9895]" />
           </div>
-          <p className="text-[#111110] font-medium mb-1">No templates yet</p>
+          <p className="text-[#111110] font-medium mb-1">אין טמפלטים עדיין</p>
           <p className="text-[#6b6866] text-sm mb-5">
-            Create reusable outreach templates with personalization variables
+            צור תבניות הודעות לפניות הניתנות לשימוש חוזר עם משתנים אישיים
           </p>
           <button
             onClick={() => setShowCreate(true)}
             className="text-sm text-[#1585ff] hover:text-[#0a70e0] transition-colors"
           >
-            Create your first template →
+            ← צור את הטמפלט הראשון שלך
           </button>
         </div>
       ) : (
@@ -256,13 +257,13 @@ export default function TemplatesPage() {
                 <>
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-1 h-4 bg-amber-500 rounded-full" />
-                    <h3 className="text-sm font-semibold text-[#111110]">Editing Template</h3>
+                    <h3 className="text-sm font-semibold text-[#111110]">עריכת טמפלט</h3>
                   </div>
                   <TemplateForm
                     initial={{ name: template.name, body: template.body }}
                     onSubmit={(data) => handleEdit(template.id, data)}
                     onCancel={() => setEditingId(null)}
-                    submitLabel="Save Changes"
+                    submitLabel="שמור שינויים"
                   />
                 </>
               ) : (
@@ -271,7 +272,7 @@ export default function TemplatesPage() {
                     <div>
                       <h3 className="font-medium text-[#111110] text-sm">{template.name}</h3>
                       <p className="text-[10px] text-[#9b9895] mt-0.5 font-mono uppercase tracking-wider">
-                        {new Date(template.createdAt).toLocaleDateString("en-US", {
+                        {new Date(template.createdAt).toLocaleDateString("he-IL", {
                           month: "short",
                           day: "numeric",
                           year: "numeric",
@@ -282,7 +283,7 @@ export default function TemplatesPage() {
                       <button
                         onClick={() => setEditingId(template.id)}
                         className="p-1.5 text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef] rounded-md transition-colors"
-                        title="Edit"
+                        title="ערוך"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -290,7 +291,7 @@ export default function TemplatesPage() {
                         onClick={() => handleDelete(template.id)}
                         disabled={deletingId === template.id}
                         className="p-1.5 text-[#9b9895] hover:text-red-500 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
-                        title="Delete"
+                        title="מחק"
                       >
                         {deletingId === template.id ? (
                           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
