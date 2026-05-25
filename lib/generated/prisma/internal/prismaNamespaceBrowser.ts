@@ -162,6 +162,7 @@ export const ContactScalarFieldEnum = {
   linkedinUrn: 'linkedinUrn',
   linkedinUrl: 'linkedinUrl',
   fullName: 'fullName',
+  hebrewFirstName: 'hebrewFirstName',
   headline: 'headline',
   currentTitle: 'currentTitle',
   currentCompany: 'currentCompany',

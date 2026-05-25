@@ -15,126 +15,94 @@ export const enrichContactsHaiku = inngest.createFunction(
   async ({ event, step }: any) => {
     const { ownerId } = event.data as { ownerId: string };
 
-    const contacts = await step.run("load-contacts-with-gaps", () =>
+    // Return only IDs to stay under Inngest step output size limit
+    const contactIds = await step.run("load-contact-ids", () =>
       prisma.contact.findMany({
-        where: {
-          ownerId,
-          removedAt: null,
-          OR: [{ hebrewFirstName: null }, { companySize: null }],
-        },
-        select: {
-          id: true,
-          fullName: true,
-          currentCompany: true,
-          companySize: true,
-          companyId: true,
-          hebrewFirstName: true,
-          company: { select: { id: true, staffCount: true } },
-        },
-      }),
+        where: { ownerId, removedAt: null, OR: [{ hebrewFirstName: null }, { companySize: null }] },
+        select: { id: true },
+      }).then((rows: { id: string }[]) => rows.map((r) => r.id)),
     );
 
-    if (contacts.length === 0) return { processed: 0 };
+    if (contactIds.length === 0) return { processed: 0 };
 
-    // ── Step 1: fill hebrewFirstName from DB name cache ──────────────────────
-    // Build a map of firstName → hebrewFirstName from contacts that already have it
-    const existingTranslations = await step.run("load-name-cache", () =>
-      prisma.contact.findMany({
+    // Build name cache: firstName → hebrewFirstName (also IDs only passed via step)
+    const nameCache: Record<string, string> = await step.run("build-name-cache", async () => {
+      const existing = await prisma.contact.findMany({
         where: { ownerId, hebrewFirstName: { not: null } },
         select: { fullName: true, hebrewFirstName: true },
-      }),
-    );
-
-    const nameCache = new Map<string, string>();
-    for (const c of existingTranslations) {
-      const fn = c.fullName.trim().split(/\s+/)[0];
-      if (fn && c.hebrewFirstName) nameCache.set(fn, c.hebrewFirstName);
-    }
-
-    // ── Step 2: fill companySize from Company.staffCount where possible ───────
-    const dbFills: Array<{ id: string; hebrewFirstName?: string; companySize?: number }> = [];
-
-    for (const contact of contacts) {
-      const fill: { id: string; hebrewFirstName?: string; companySize?: number } = { id: contact.id };
-
-      if (!contact.hebrewFirstName) {
-        const fn = contact.fullName.trim().split(/\s+/)[0];
-        const cached = fn ? nameCache.get(fn) : undefined;
-        if (cached) fill.hebrewFirstName = cached;
-      }
-
-      if (!contact.companySize && contact.company?.staffCount) {
-        fill.companySize = contact.company.staffCount;
-      }
-
-      if (fill.hebrewFirstName || fill.companySize) dbFills.push(fill);
-    }
-
-    if (dbFills.length > 0) {
-      await step.run("apply-db-fills", async () => {
-        for (const fill of dbFills) {
-          await prisma.contact.update({
-            where: { id: fill.id },
-            data: {
-              ...(fill.hebrewFirstName ? { hebrewFirstName: fill.hebrewFirstName } : {}),
-              ...(fill.companySize != null ? { companySize: fill.companySize } : {}),
-            },
-          });
-        }
       });
-    }
+      const cache: Record<string, string> = {};
+      for (const c of existing) {
+        const fn = c.fullName.trim().split(/\s+/)[0];
+        if (fn && c.hebrewFirstName) cache[fn] = c.hebrewFirstName;
+      }
+      return cache;
+    });
 
-    // Refresh state after DB fills
-    type ContactRow = {
-      id: string;
-      fullName: string;
-      currentCompany: string | null;
-      companySize: number | null;
-      companyId: string | null;
-      hebrewFirstName: string | null;
-      company: { id: string; staffCount: number | null } | null;
-    };
+    // Process in batches — each batch loads its own data fresh from DB
+    let fromDb = 0;
+    let fromHaiku = 0;
 
-    const fullyResolved = new Set(
-      (contacts as ContactRow[])
-        .map((c) => {
-          const fill = dbFills.find((f) => f.id === c.id);
-          const nowHasHebrew = c.hebrewFirstName || fill?.hebrewFirstName;
-          const nowHasSize = c.companySize || fill?.companySize;
-          return (!nowHasHebrew || !nowHasSize) ? null : c.id;
-        })
-        .filter(Boolean),
-    );
+    for (let i = 0; i < contactIds.length; i += BATCH) {
+      const batchIds = contactIds.slice(i, i + BATCH);
 
-    const needsHaiku = (contacts as ContactRow[]).filter((c) => !fullyResolved.has(c.id));
-
-    if (needsHaiku.length === 0) return { processed: contacts.length };
-
-    // ── Step 3: Haiku batches ─────────────────────────────────────────────────
-    let haikuProcessed = 0;
-
-    for (let i = 0; i < needsHaiku.length; i += BATCH) {
-      const batch = needsHaiku.slice(i, i + BATCH);
-
-      await step.run(`haiku-batch-${i}`, async () => {
-        const inputs: HaikuInput[] = batch.map((c: ContactRow) => {
-          const fill = dbFills.find((f) => f.id === c.id);
-          const hasHebrew = !!(c.hebrewFirstName || fill?.hebrewFirstName);
-          const hasSize = !!(c.companySize || fill?.companySize);
-          const fn = c.fullName.trim().split(/\s+/)[0];
-          return {
-            id: c.id,
-            firstName: fn,
-            company: c.currentCompany,
-            needsHebrew: !hasHebrew,
-            needsSize: !hasSize,
-          };
+      const batchResult = await step.run(`batch-${i}`, async () => {
+        const contacts = await prisma.contact.findMany({
+          where: { id: { in: batchIds } },
+          select: {
+            id: true,
+            fullName: true,
+            currentCompany: true,
+            companySize: true,
+            companyId: true,
+            hebrewFirstName: true,
+            company: { select: { id: true, staffCount: true } },
+          },
         });
+
+        let batchFromDb = 0;
+        let batchFromHaiku = 0;
+
+        // Fill from DB first (name cache + Company.staffCount)
+        const needsHaiku: typeof contacts = [];
+
+        for (const c of contacts) {
+          const dbPatch: { hebrewFirstName?: string; companySize?: number } = {};
+
+          if (!c.hebrewFirstName) {
+            const fn = c.fullName.trim().split(/\s+/)[0];
+            if (fn && nameCache[fn]) dbPatch.hebrewFirstName = nameCache[fn];
+          }
+
+          if (!c.companySize && c.company?.staffCount) {
+            dbPatch.companySize = c.company.staffCount;
+          }
+
+          if (Object.keys(dbPatch).length > 0) {
+            await prisma.contact.update({ where: { id: c.id }, data: dbPatch });
+            batchFromDb++;
+          }
+
+          const nowHasHebrew = c.hebrewFirstName || dbPatch.hebrewFirstName;
+          const nowHasSize = c.companySize || dbPatch.companySize;
+          if (!nowHasHebrew || !nowHasSize) needsHaiku.push(c);
+        }
+
+        if (needsHaiku.length === 0) return { fromDb: batchFromDb, fromHaiku: 0 };
+
+        // Call Haiku for remaining gaps
+        const inputs: HaikuInput[] = needsHaiku.map((c) => ({
+          id: c.id,
+          firstName: c.fullName.trim().split(/\s+/)[0],
+          company: c.currentCompany,
+          needsHebrew: !c.hebrewFirstName,
+          needsSize: !c.companySize,
+        }));
 
         const results = await enrichBatch(inputs);
 
         for (const r of results) {
-          const contact = batch.find((c: ContactRow) => c.id === r.id);
+          const contact = needsHaiku.find((c) => c.id === r.id);
           if (!contact) continue;
 
           const midpoint = r.companySizeRange ? sizeRangeToMidpoint(r.companySizeRange) : null;
@@ -147,19 +115,23 @@ export const enrichContactsHaiku = inngest.createFunction(
             },
           });
 
-          // Update Company.staffCount if contact has a company and it's missing
           if (midpoint != null && contact.companyId && !contact.company?.staffCount) {
             await prisma.company.updateMany({
               where: { id: contact.companyId, staffCount: null },
               data: { staffCount: midpoint },
             });
           }
+
+          batchFromHaiku++;
         }
 
-        haikuProcessed += results.length;
+        return { fromDb: batchFromDb, fromHaiku: batchFromHaiku };
       });
+
+      fromDb += batchResult.fromDb;
+      fromHaiku += batchResult.fromHaiku;
     }
 
-    return { processed: contacts.length, fromDb: dbFills.length, fromHaiku: haikuProcessed };
+    return { processed: contactIds.length, fromDb, fromHaiku };
   },
 );
