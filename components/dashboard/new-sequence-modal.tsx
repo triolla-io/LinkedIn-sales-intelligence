@@ -70,12 +70,12 @@ export default function NewSequenceModal({
 
   async function handleSave() {
     setError(null);
-    if (!name.trim()) { setError("Sequence name is required"); return; }
-    if (!listId) { setError("Select a contact list"); return; }
-    if (steps.length === 0) { setError("Add at least one step"); return; }
+    if (!name.trim()) { setError("שם הוא שדה חובה"); return; }
+    if (!listId) { setError("יש לבחור רשימה"); return; }
+    if (steps.length === 0) { setError("הוסף לפחות שלב אחד"); return; }
     for (const s of steps) {
-      if (!s.templateId) { setError("Each step needs a template"); return; }
-      if (s.channel === "EMAIL" && !s.subject.trim()) { setError("Email steps need a subject line"); return; }
+      if (!s.templateId) { setError("כל שלב דורש תבנית"); return; }
+      if (s.channel === "EMAIL" && !s.subject.trim()) { setError("שלבי אימייל דורשים שורת נושא"); return; }
     }
 
     setSaving(true);
@@ -123,22 +123,22 @@ export default function NewSequenceModal({
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-[#111110]">New Sequence</h2>
+            <h2 className="text-base font-semibold text-[#111110]">קמפיין חדש</h2>
             <button onClick={onClose} className="text-[#9b9895] hover:text-[#111110] transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
           <p className="text-sm text-[#6b6866]">
             {lists.length === 0
-              ? "You need at least one contact list before creating a sequence. Create a list first."
-              : "You need at least one message template before creating a sequence. Create a template first."}
+              ? "אתה צריך לפחות רשימת אנשי קשר אחת לפני יצירת קמפיין. יצור רשימה ראשונה."
+              : "אתה צריך לפחות תבנית הודעה אחת לפני יצירת קמפיין. יצור תבנית ראשונה."}
           </p>
           <div className="flex justify-end mt-5">
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] transition-colors"
             >
-              Close
+              סגור
             </button>
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function NewSequenceModal({
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5e3df]">
-          <h2 className="text-base font-semibold text-[#111110]">New Sequence</h2>
+          <h2 className="text-base font-semibold text-[#111110]">קמפיין חדש</h2>
           <button onClick={onClose} className="text-[#9b9895] hover:text-[#111110] transition-colors">
             <X className="w-4 h-4" />
           </button>
@@ -161,10 +161,10 @@ export default function NewSequenceModal({
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-xs font-medium text-[#6b6866] mb-1.5">Sequence Name</label>
+            <label className="block text-xs font-medium text-[#6b6866] mb-1.5">שם קמפיין</label>
             <input
               className="w-full border border-[#e5e3df] rounded-lg px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff]"
-              placeholder="e.g. Q2 Outreach"
+              placeholder="לדוגמה: יוני הגעות"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -172,7 +172,7 @@ export default function NewSequenceModal({
 
           {/* Contact List */}
           <div>
-            <label className="block text-xs font-medium text-[#6b6866] mb-1.5">Contact List</label>
+            <label className="block text-xs font-medium text-[#6b6866] mb-1.5">רשימת אנשי קשר</label>
             <select
               className="w-full border border-[#e5e3df] rounded-lg px-3 py-2 text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff]"
               value={listId}
@@ -187,13 +187,13 @@ export default function NewSequenceModal({
           {/* Steps */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-medium text-[#6b6866]">Steps</label>
+              <label className="text-xs font-medium text-[#6b6866]">שלבים</label>
               <button
                 onClick={addStep}
                 className="flex items-center gap-1 text-xs text-[#1585ff] font-medium hover:text-[#0f6fd4]"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Add Step
+                הוסף שלב
               </button>
             </div>
 
@@ -202,11 +202,11 @@ export default function NewSequenceModal({
                 <div key={step.key} className="border border-[#e5e3df] rounded-xl p-4 space-y-3 bg-[#fafaf9]">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-[#6b6866] uppercase tracking-wider">
-                      Step {index + 1}
+                      שלב {index + 1}
                     </span>
                     <div className="flex items-center gap-2">
                       <div className="flex items-center gap-1.5 text-xs text-[#6b6866]">
-                        <span>Date</span>
+                        <span>תאריך</span>
                         <input
                           type="date"
                           min={toDateString(0)}
@@ -228,7 +228,7 @@ export default function NewSequenceModal({
 
                   {/* Time picker */}
                   <div className="flex items-center gap-1.5 text-xs text-[#6b6866]">
-                    <span>Send at</span>
+                    <span>שלח ב</span>
                     <input
                       type="number"
                       min={0}
@@ -276,7 +276,7 @@ export default function NewSequenceModal({
                   {step.channel === "EMAIL" && (
                     <input
                       className="w-full border border-[#e5e3df] rounded-lg px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
-                      placeholder="Subject line"
+                      placeholder="שורת נושא"
                       value={step.subject}
                       onChange={(e) => updateStep(step.key, { subject: e.target.value })}
                     />
@@ -310,14 +310,14 @@ export default function NewSequenceModal({
             onClick={onClose}
             className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] transition-colors"
           >
-            Cancel
+            ביטול
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
             className="px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {saving ? "Starting…" : "Create & Start"}
+            {saving ? "מתחיל…" : "צור והתחל"}
           </button>
         </div>
       </div>
