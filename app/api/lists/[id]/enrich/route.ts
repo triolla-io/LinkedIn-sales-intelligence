@@ -47,34 +47,46 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     select: { id: true, linkedinUrn: true },
   });
 
-  // ── Cross-user sharing: copy email/phone from other users' enriched contacts ─
+  // ── Cross-user sharing: batch lookup to avoid N+1 queries ────────────────────
+  const urnsToCheck = unenriched.map((c) => c.linkedinUrn);
+
+  const sharedContacts = await prisma.contact.findMany({
+    where: {
+      linkedinUrn: { in: urnsToCheck },
+      NOT: { ownerId: ctx.effectiveUserId },
+      OR: [{ email: { not: null } }, { phone: { not: null } }],
+    },
+    select: { linkedinUrn: true, email: true, phone: true },
+  });
+
+  const sharedMap = new Map(sharedContacts.map((sc) => [sc.linkedinUrn, sc]));
+
   const toQueue: string[] = [];
   let sharedCount = 0;
 
+  const sharedUpdates = [];
   for (const c of unenriched) {
-    const shared = await prisma.contact.findFirst({
-      where: {
-        linkedinUrn: c.linkedinUrn,
-        NOT: { ownerId: ctx.effectiveUserId },
-        OR: [{ email: { not: null } }, { phone: { not: null } }],
-      },
-      select: { email: true, phone: true },
-    });
-
+    const shared = sharedMap.get(c.linkedinUrn);
     if (shared?.email || shared?.phone) {
-      await prisma.contact.update({
-        where: { id: c.id },
-        data: {
-          ...(shared.email ? { email: shared.email } : {}),
-          ...(shared.phone ? { phone: shared.phone } : {}),
-          enrichmentSource: "shared",
-          enrichedAt: new Date(),
-        },
-      });
+      sharedUpdates.push(
+        prisma.contact.update({
+          where: { id: c.id },
+          data: {
+            ...(shared.email ? { email: shared.email } : {}),
+            ...(shared.phone ? { phone: shared.phone } : {}),
+            enrichmentSource: "shared",
+            enrichedAt: new Date(),
+          },
+        })
+      );
       sharedCount++;
     } else {
       toQueue.push(c.id);
     }
+  }
+
+  if (sharedUpdates.length > 0) {
+    await prisma.$transaction(sharedUpdates);
   }
 
   // ── Queue remaining contacts for Apollo (respecting budget) ──────────────────
