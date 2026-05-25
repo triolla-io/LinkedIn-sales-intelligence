@@ -95,7 +95,6 @@ export const enrichContactsHaiku = inngest.createFunction(
       company: { id: string; staffCount: number | null } | null;
     };
 
-    const dbFillIds = new Set(dbFills.map((f) => f.id));
     const fullyResolved = new Set(
       (contacts as ContactRow[])
         .map((c) => {
