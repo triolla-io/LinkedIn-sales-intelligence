@@ -63,7 +63,8 @@ export function withTenant<T>(handler: Handler<T>) {
       return NextResponse.json(result);
     } catch (err) {
       console.error("[withTenant] error", err);
-      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+      const detail = err instanceof Error ? err.message : String(err);
+      return NextResponse.json({ error: "Internal server error", detail }, { status: 500 });
     }
   };
 }
