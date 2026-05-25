@@ -26,6 +26,10 @@ export async function POST(
     });
     const ownedIds = owned.map((e) => e.id);
 
+    if (ownedIds.length !== enrollmentIds.length) {
+      return NextResponse.json({ error: "some enrollments not found or not authorized" }, { status: 403 });
+    }
+
     const { count } = await prisma.sequenceStepExecution.updateMany({
       where: { enrollmentId: { in: ownedIds }, status: "PENDING" },
       data: { status: "SKIPPED" },

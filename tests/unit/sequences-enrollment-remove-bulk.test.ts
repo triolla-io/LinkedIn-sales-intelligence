@@ -76,4 +76,15 @@ describe("POST /api/sequences/[id]/enrollments/remove-bulk", () => {
 
     expect(res.status).toBe(400);
   });
+
+  it("returns 403 when some enrollmentIds are not owned", async () => {
+    // Only 1 of 2 requested IDs is owned
+    mockEnrollmentFindMany.mockResolvedValue([{ id: "enr1" }] as never);
+
+    const res = await POST(
+      makeReq({ enrollmentIds: ["enr1", "enr2-not-owned"] }),
+      { params: Promise.resolve({ id: "seq1" }) }
+    );
+    expect(res.status).toBe(403);
+  });
 });
