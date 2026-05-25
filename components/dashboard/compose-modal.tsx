@@ -28,7 +28,7 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
 
   async function handleSend() {
     if (!body.trim()) {
-      setError("Message body is required");
+      setError("גוף ההודעה הוא שדה חובה");
       return;
     }
 
@@ -54,14 +54,14 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error ?? "Failed to send message");
+        setError(data.error ?? "שליחת ההודעה נכשלה");
         return;
       }
 
       setSent(true);
       setTimeout(onClose, 1500);
     } catch {
-      setError("Network error. Please try again.");
+      setError("שגיאת רשת. אנא נסה שוב.");
     } finally {
       setLoading(false);
     }
@@ -77,8 +77,8 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e3df]">
           <div>
-            <h2 className="font-semibold text-[#111110] text-sm">Send Message</h2>
-            <p className="text-xs text-[#9b9895] mt-0.5">To: {contact.fullName}</p>
+            <h2 className="font-semibold text-[#111110] text-sm">שלח הודעה</h2>
+            <p className="text-xs text-[#9b9895] mt-0.5">אל: {contact.fullName}</p>
           </div>
           <button
             onClick={onClose}
@@ -94,7 +94,7 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
           {impersonatedUserName && (
             <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
               <span className="text-xs text-amber-700">
-                Sending as <strong>{impersonatedUserName}</strong>
+                שולח בתור <strong>{impersonatedUserName}</strong>
               </span>
             </div>
           )}
@@ -102,7 +102,7 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
           {/* Template picker */}
           <div>
             <label className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
-              Template (optional)
+              תבנית (אופציונלי)
             </label>
             <TemplatePicker onSelect={handleTemplateSelect} />
           </div>
@@ -110,13 +110,14 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
           {/* Message body */}
           <div>
             <label className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
-              Message
+              הודעה
             </label>
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
               rows={6}
-              placeholder="Type your message..."
+              placeholder="כתוב את ההודעה שלך..."
+              dir="rtl"
               className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-lg px-3 py-2.5 text-sm text-[#111110] placeholder-[#c8c5c2] resize-none focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors font-mono leading-relaxed"
             />
           </div>
@@ -139,7 +140,7 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
           {/* Success */}
           {sent && (
             <p className="text-xs text-emerald-600 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-200 font-medium">
-              Message queued successfully!
+              ההודעה נוספה לתור!
             </p>
           )}
         </div>
@@ -150,7 +151,7 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
             onClick={onClose}
             className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] hover:bg-[#f3f2ef] rounded-lg transition-colors"
           >
-            Cancel
+            ביטול
           </button>
           <button
             onClick={handleSend}
@@ -167,7 +168,7 @@ export default function ComposeModal({ contact, onClose, impersonatedUserName }:
             ) : (
               <Send className="w-3.5 h-3.5" />
             )}
-            {sent ? "Sent!" : "Send Message"}
+            {sent ? "נשלח!" : "שלח"}
           </button>
         </div>
       </div>
