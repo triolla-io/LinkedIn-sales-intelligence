@@ -44,10 +44,41 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       lists: { some: { listId } },
       email: null,
     },
-    select: { id: true },
+    select: { id: true, linkedinUrn: true },
   });
 
-  const toEnrich = unenriched.map((c) => c.id).slice(0, creditsRemaining);
+  // ── Cross-user sharing: copy email/phone from other users' enriched contacts ─
+  const toQueue: string[] = [];
+  let sharedCount = 0;
+
+  for (const c of unenriched) {
+    const shared = await prisma.contact.findFirst({
+      where: {
+        linkedinUrn: c.linkedinUrn,
+        NOT: { ownerId: ctx.effectiveUserId },
+        OR: [{ email: { not: null } }, { phone: { not: null } }],
+      },
+      select: { email: true, phone: true },
+    });
+
+    if (shared?.email || shared?.phone) {
+      await prisma.contact.update({
+        where: { id: c.id },
+        data: {
+          ...(shared.email ? { email: shared.email } : {}),
+          ...(shared.phone ? { phone: shared.phone } : {}),
+          enrichmentSource: "shared",
+          enrichedAt: new Date(),
+        },
+      });
+      sharedCount++;
+    } else {
+      toQueue.push(c.id);
+    }
+  }
+
+  // ── Queue remaining contacts for Apollo (respecting budget) ──────────────────
+  const toEnrich = toQueue.slice(0, creditsRemaining);
 
   if (toEnrich.length > 0) {
     try {
@@ -64,7 +95,8 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
 
   return NextResponse.json({
     queued: toEnrich.length,
-    skipped: unenriched.length - toEnrich.length,
+    shared: sharedCount,
+    skipped: toQueue.length - toEnrich.length,
     creditsRemaining: creditsRemaining - toEnrich.length,
   });
 });
