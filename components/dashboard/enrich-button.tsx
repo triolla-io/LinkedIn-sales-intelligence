@@ -62,7 +62,7 @@ export default function EnrichButton({ contactId, hasEmail, hasPhone, onEnriched
       ) : (
         <Zap className="w-3 h-3" />
       )}
-      {done ? "Enriched" : "Enrich"}
+      {done ? "הועשר" : "העשר"}
     </button>
   );
 }

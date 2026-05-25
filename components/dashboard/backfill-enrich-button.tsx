@@ -42,7 +42,7 @@ export default function BackfillEnrichButton() {
       )}
     >
       <Sparkles className="w-3.5 h-3.5" />
-      {busy ? "Queuing…" : `Enrich ${missing.toLocaleString()} missing`}
+      {busy ? "בתור…" : `העשר ${missing.toLocaleString()} חסרים`}
     </button>
   );
 }

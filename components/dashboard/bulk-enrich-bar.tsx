@@ -89,22 +89,22 @@ export default function BulkEnrichBar({
       {showConfirm && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <div className="bg-white border border-[#e5e3df] rounded-xl shadow-2xl p-6 w-96 max-w-[90vw]">
-            <h3 className="font-semibold text-[#111110] mb-2">Enrich {N} contacts?</h3>
+            <h3 className="font-semibold text-[#111110] mb-2">העשר {N} אנשי קשר?</h3>
             <p className="text-sm text-[#6b6866] mb-5">
-              This will consume credits for each contact that gets enriched.
+              זה יצרוך קרדיטים עבור כל איש קשר שיתועשר.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowConfirm(false)}
                 className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors"
               >
-                Cancel
+                ביטול
               </button>
               <button
                 onClick={doEnrich}
                 className="px-4 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md transition-colors"
               >
-                Confirm Enrich
+                אישור העשר
               </button>
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function BulkEnrichBar({
             <div className="flex items-center gap-3">
               <span className="text-sm font-mono text-[#111110]">
                 <span className="text-[#1585ff] font-semibold">{N}</span>
-                {" "}selected
+                {" "}נבחרו
               </span>
               {error && (
                 <span className="text-xs text-red-500 font-mono">{error}</span>
@@ -139,7 +139,7 @@ export default function BulkEnrichBar({
               {enriching && (
                 <span className="flex items-center gap-1.5 text-xs text-[#9b9895]">
                   <RefreshCw className="w-3 h-3 animate-spin" />
-                  Enriching…
+                  מעשר…
                 </span>
               )}
             </div>
@@ -153,7 +153,7 @@ export default function BulkEnrichBar({
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#6b6866] border border-[#e5e3df] hover:bg-[#f8f7f5] hover:border-[#9b9895] rounded-md transition-all"
                 >
                   <Bookmark className="w-3.5 h-3.5" />
-                  Save to List
+                  שמור לרשימה
                 </button>
                 {showListPopover && (
                   <ListPopover
@@ -174,26 +174,26 @@ export default function BulkEnrichBar({
                 )}
               >
                 {enriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
-                Enrich
+                העשר
               </button>
               <button
                 onClick={() => setCampaignOpen(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 hover:bg-blue-50 hover:border-blue-300 rounded-md transition-all"
               >
                 <Megaphone className="w-3.5 h-3.5" />
-                Send Campaign
+                שלח קמפיין
               </button>
               <button
                 onClick={exportCsv}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-600 border border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 rounded-md transition-all"
               >
                 <Download className="w-3.5 h-3.5" />
-                Export CSV
+                ייצוא CSV
               </button>
               <button
                 onClick={onDone}
                 className="p-1.5 text-[#9b9895] hover:text-[#6b6866] transition-colors ml-1"
-                title="Deselect all"
+                title="בטל את כל הבחירות"
               >
                 <X className="w-4 h-4" />
               </button>
