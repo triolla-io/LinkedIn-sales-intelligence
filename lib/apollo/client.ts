@@ -91,6 +91,22 @@ export async function matchPerson(input: {
 
     const data = await res.json();
     const person = data.person;
+
+    // Guard against Apollo returning a completely different person.
+    // Compare normalized name tokens — if there's zero overlap, discard.
+    if (person && input.name) {
+      const normalize = (s: string) =>
+        s.toLowerCase().replace(/[^a-z0-9֐-׿ ]/g, "").split(/\s+/).filter(Boolean);
+      const inputTokens = new Set(normalize(input.name));
+      const returnedName: string =
+        [person.first_name, person.last_name].filter(Boolean).join(" ") || person.name || "";
+      const returnedTokens = normalize(returnedName);
+      const hasOverlap = returnedTokens.some((t) => inputTokens.has(t));
+      if (returnedName && !hasOverlap) {
+        return { raw: data };
+      }
+    }
+
     const contact = person?.contact;
     const org = person?.organization;
     const phones: { sanitized_number?: string; type?: string }[] = [

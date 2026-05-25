@@ -6,6 +6,7 @@ RUN npm ci
 FROM node:22.15-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+COPY whatsapp-service/package*.json ./
 COPY whatsapp-service/src ./src
 COPY whatsapp-service/tsconfig.json ./
 RUN npm run build

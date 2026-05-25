@@ -9,7 +9,7 @@ import ContactTable, { type Contact } from "@/components/dashboard/contact-table
 import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
 import CreateContactModal from "@/components/dashboard/create-contact-modal";
-import { RefreshCw, Download, UserPlus } from "lucide-react";
+import { RefreshCw, Download, UserPlus, DatabaseZap } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 type InsightsData = {
@@ -101,6 +101,7 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
   const [newThisWeek, setNewThisWeek] = useState(0);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [applyingCache, setApplyingCache] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [drawerContact, setDrawerContact] = useState<Contact | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -204,6 +205,16 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
     }
   }
 
+  async function handleApplyCache() {
+    setApplyingCache(true);
+    try {
+      await fetch("/api/contacts/apply-cache", { method: "POST" });
+      await fetchData();
+    } finally {
+      setApplyingCache(false);
+    }
+  }
+
   const totalPages = pageSize > 0 ? Math.ceil(total / pageSize) : 1;
   const selectedContacts = contacts.filter((c) => selectedIds.has(c.id));
 
@@ -236,6 +247,15 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
             >
               <Download className={cn("w-3.5 h-3.5", exporting && "animate-bounce")} />
               {exporting ? "מייצא…" : "ייצוא"}
+            </button>
+            <button
+              onClick={handleApplyCache}
+              disabled={applyingCache}
+              title="מלא אימייל וטלפון מהמטמון לכל אנשי הקשר"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-purple-600 border border-purple-200 hover:bg-purple-50 hover:border-purple-300 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <DatabaseZap className={cn("w-3.5 h-3.5", applyingCache && "animate-pulse")} />
+              {applyingCache ? "טוען…" : "רענן מטמון"}
             </button>
             <button
               onClick={fetchData}

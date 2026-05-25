@@ -9,6 +9,16 @@ import * as XLSX from "xlsx";
 import { diffContacts, type IncomingContact } from "@/lib/csv/diff";
 import { lookupContact } from "@/lib/hubspot/client";
 
+function normalizeLinkedinUrl(url: string): string {
+  try {
+    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+    const path = u.pathname.replace(/\/+$/, "").toLowerCase();
+    return `https://www.linkedin.com${path}`;
+  } catch {
+    return url.toLowerCase().replace(/\/+$/, "");
+  }
+}
+
 /**
  * POST /api/import/csv
  * Accepts a LinkedIn connections export as CSV or XLSX (multipart/form-data, field "file").
@@ -147,6 +157,15 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
 
   const diff = diffContacts(existingMap, incoming);
 
+  // Batch-fetch PersonEnrichment cache for all contacts being upserted
+  const orgId = (await prisma.user.findUnique({ where: { id: userId }, select: { orgId: true } }))?.orgId;
+  const normalizedUrlList = contacts.map((c) => normalizeLinkedinUrl(c.linkedinUrl));
+  const cachedEnrichments = orgId ? await prisma.personEnrichment.findMany({
+    where: { orgId, linkedinUrlNormalized: { in: normalizedUrlList } },
+    select: { linkedinUrlNormalized: true, email: true, phone: true },
+  }) : [];
+  const enrichmentCacheMap = new Map(cachedEnrichments.map((e) => [e.linkedinUrlNormalized, e]));
+
   // Apply ADD + UPDATE in one pass (UNCHANGED rows are skipped entirely)
   const unchangedSet = new Set(diff.unchanged);
   const toUpsert = contacts.filter((c) => !unchangedSet.has(c.linkedinUrn));
@@ -154,15 +173,20 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     const { seniority, function: fn } = classify(c.currentTitle ?? "");
     const industry = getIndustry(c.currentCompany ?? "") || undefined;
 
-    // HubSpot lookup — free, no Apollo credits consumed
-    const hubspot = c.email ? null : await lookupContact({
+    // Cache lookup first — no external API call needed
+    const cacheHit = enrichmentCacheMap.get(normalizeLinkedinUrl(c.linkedinUrl));
+
+    // HubSpot lookup — only if no CSV email and no cache hit
+    const hubspot = (c.email || cacheHit?.email) ? null : await lookupContact({
       linkedinUrl: c.linkedinUrl,
       fullName: c.fullName,
       company: c.currentCompany ?? undefined,
     });
-    const email = c.email ?? hubspot?.email ?? null;
-    const phone = hubspot?.phone ?? null;
-    const enrichmentFields = hubspot?.email || hubspot?.phone
+    const email = c.email ?? cacheHit?.email ?? hubspot?.email ?? null;
+    const phone = cacheHit?.phone ?? hubspot?.phone ?? null;
+    const enrichmentFields = cacheHit?.email || cacheHit?.phone
+      ? { enrichmentSource: "cache", enrichmentRanAt: new Date(), enrichmentError: null }
+      : hubspot?.email || hubspot?.phone
       ? { enrichmentSource: "hubspot", enrichmentRanAt: new Date(), enrichmentError: null }
       : {};
 

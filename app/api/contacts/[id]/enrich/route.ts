@@ -69,15 +69,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     // ── 4. PersonEnrichment cache lookup ──────────────────────────────────
-    const normalizedUrl = normalizeLinkedinUrl(contact.linkedinUrl);
-    const cached = await prisma.personEnrichment.findUnique({
-      where: {
-        orgId_linkedinUrlNormalized: {
-          orgId: ctx.org.id,
-          linkedinUrlNormalized: normalizedUrl,
-        },
-      },
-    });
+    const normalizedUrl = contact.linkedinUrl ? normalizeLinkedinUrl(contact.linkedinUrl) : "";
+    const cached = normalizedUrl
+      ? await prisma.personEnrichment.findUnique({
+          where: {
+            orgId_linkedinUrlNormalized: {
+              orgId: ctx.org.id,
+              linkedinUrlNormalized: normalizedUrl,
+            },
+          },
+        })
+      : null;
 
     if (cached && (cached.email || cached.phone)) {
       const protected_ = new Set(contact.manualFields as string[]);
@@ -154,37 +156,39 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       patch.industry = industry;
 
     // ── 6. Upsert PersonEnrichment cache + increment budget ───────────────
-    await prisma.$transaction([
-      prisma.contact.update({ where: { id }, data: patch }),
-      prisma.personEnrichment.upsert({
-        where: {
-          orgId_linkedinUrlNormalized: {
-            orgId: ctx.org.id,
-            linkedinUrlNormalized: normalizedUrl,
-          },
-        },
-        create: {
-          orgId: ctx.org.id,
-          linkedinUrlNormalized: normalizedUrl,
-          email: email ?? null,
-          phone: phone ?? null,
-          companySize: companySize ?? null,
-          currentCompany: currentCompany ?? null,
-          industry: industry ?? null,
-          rawResponse: raw,
-          enrichedByContactId: id,
-        },
-        update: {
-          email: email ?? null,
-          phone: phone ?? null,
-          companySize: companySize ?? null,
-          currentCompany: currentCompany ?? null,
-          industry: industry ?? null,
-          rawResponse: raw,
-          enrichedByContactId: id,
-        },
-      }),
-    ]);
+    const cacheOps = normalizedUrl
+      ? [
+          prisma.personEnrichment.upsert({
+            where: {
+              orgId_linkedinUrlNormalized: {
+                orgId: ctx.org.id,
+                linkedinUrlNormalized: normalizedUrl,
+              },
+            },
+            create: {
+              orgId: ctx.org.id,
+              linkedinUrlNormalized: normalizedUrl,
+              email: email ?? null,
+              phone: phone ?? null,
+              companySize: companySize ?? null,
+              currentCompany: currentCompany ?? null,
+              industry: industry ?? null,
+              rawResponse: raw,
+              enrichedByContactId: id,
+            },
+            update: {
+              email: email ?? null,
+              phone: phone ?? null,
+              companySize: companySize ?? null,
+              currentCompany: currentCompany ?? null,
+              industry: industry ?? null,
+              rawResponse: raw,
+              enrichedByContactId: id,
+            },
+          }),
+        ]
+      : [];
+    await prisma.$transaction([prisma.contact.update({ where: { id }, data: patch }), ...cacheOps]);
 
     await incrementBudget(ctx.org.id);
 

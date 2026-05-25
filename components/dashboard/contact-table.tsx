@@ -56,10 +56,10 @@ const SENIORITY_BADGE: Record<string, string> = {
 const SENIORITY_LABEL: Record<string, string> = {
   C_LEVEL: "C-Level",
   VP: "VP",
-  DIRECTOR: "מנהל",
-  MANAGER: "מנג'ר",
+  DIRECTOR: "Director",
+  MANAGER: "Manager",
   IC: "IC",
-  OTHER: "אחר",
+  OTHER: "Other",
 };
 
 const EMPLOYEE_THRESHOLDS = [
