@@ -20,7 +20,7 @@ export const enrichCompaniesWeb = inngest.createFunction(
     const companies = await step.run("load-unenriched", () =>
       prisma.company.findMany({
         where: {
-          staffCount: null,
+          OR: [{ staffCount: null }, { industry: null }],
           name: { not: "" },
           ...(orgId ? { contacts: { some: { owner: { orgId } } } } : {}),
         },
@@ -53,9 +53,9 @@ export const enrichCompaniesWeb = inngest.createFunction(
               // DB-first: re-check in case another batch already enriched it
               const fresh = await prisma.company.findUnique({
                 where: { id: company.id },
-                select: { staffCount: true },
+                select: { staffCount: true, industry: true },
               });
-              if (fresh?.staffCount != null) {
+              if (fresh?.staffCount != null && fresh?.industry != null) {
                 batchSkipped++;
                 return;
               }
@@ -67,7 +67,7 @@ export const enrichCompaniesWeb = inngest.createFunction(
                   result.confidence !== "none" &&
                   (result.staffCount != null || result.industry || result.description)
                 ) {
-                  await prisma.company.update({
+                  const result_data = await prisma.company.update({
                     where: { id: company.id },
                     data: {
                       staffCount: result.staffCount ?? undefined,
@@ -77,6 +77,13 @@ export const enrichCompaniesWeb = inngest.createFunction(
                       lastEnrichedAt: new Date(),
                     },
                   });
+                  // Propagate staffCount to linked contacts missing companySize
+                  if (result_data.staffCount) {
+                    await prisma.contact.updateMany({
+                      where: { companyId: company.id, companySize: null },
+                      data: { companySize: result_data.staffCount },
+                    });
+                  }
                   batchEnriched++;
                 }
               } catch (e: any) {
