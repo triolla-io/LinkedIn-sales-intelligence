@@ -55,10 +55,10 @@ const SENIORITY_BADGE: Record<string, string> = {
 const SENIORITY_LABEL: Record<string, string> = {
   C_LEVEL: "C-Level",
   VP: "VP",
-  DIRECTOR: "Director",
-  MANAGER: "Manager",
+  DIRECTOR: "מנהל",
+  MANAGER: "מנג'ר",
   IC: "IC",
-  OTHER: "Other",
+  OTHER: "אחר",
 };
 
 const EMPLOYEE_THRESHOLDS = [
@@ -125,14 +125,14 @@ interface ColumnDef {
 }
 
 const INITIAL_COLUMNS: ColumnDef[] = [
-  { id: "name",      label: "Name",      width: "minmax(0,1.8fr)", visible: true },
-  { id: "company",   label: "Company",   width: "minmax(0,1.2fr)", visible: true },
-  { id: "title",     label: "Title",     width: "minmax(0,1.4fr)", visible: true },
-  { id: "email",     label: "Email",     width: "minmax(0,1.3fr)", visible: true },
-  { id: "phone",     label: "Phone",     width: "minmax(0,1.1fr)", visible: true },
-  { id: "employees", label: "Employees", width: "90px",            visible: true },
-  { id: "seniority", label: "Seniority", width: "80px",            visible: true },
-  { id: "industry",  label: "Industry",  width: "minmax(0,1.2fr)", visible: true },
+  { id: "name",      label: "שם",        width: "minmax(0,1.8fr)", visible: true },
+  { id: "company",   label: "חברה",      width: "minmax(0,1.2fr)", visible: true },
+  { id: "title",     label: "תפקיד",     width: "minmax(0,1.4fr)", visible: true },
+  { id: "email",     label: "אימייל",    width: "minmax(0,1.3fr)", visible: true },
+  { id: "phone",     label: "טלפון",     width: "minmax(0,1.1fr)", visible: true },
+  { id: "employees", label: "עובדים",    width: "90px",            visible: true },
+  { id: "seniority", label: "סניוריטי",  width: "80px",            visible: true },
+  { id: "industry",  label: "ענף",       width: "minmax(0,1.2fr)", visible: true },
 ];
 
 function buildGridTemplate(visibleCols: ColumnDef[], hasAction: boolean): string {
@@ -355,7 +355,7 @@ export default function ContactTable({
           ))
         ) : contacts.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <p className="text-sm text-[#9b9895] font-mono">No contacts match your filters.</p>
+            <p className="text-sm text-[#9b9895] font-mono">לא נמצאו אנשי קשר.</p>
           </div>
         ) : (
           contacts.map((contact) => {
@@ -399,18 +399,19 @@ export default function ContactTable({
       <div className="shrink-0 flex items-center justify-between px-4 py-2 border-t border-[#e5e3df] bg-[#f8f7f5]">
         <span className="text-[11px] font-mono text-[#9b9895]">
           {loading
-            ? "Loading…"
+            ? "בטעינה…"
             : total > 0
-            ? `${firstItem.toLocaleString()}–${lastItem.toLocaleString()} of ${total.toLocaleString()}`
-            : "0 results"}
+            ? `${firstItem.toLocaleString()}–${lastItem.toLocaleString()} מתוך ${total.toLocaleString()} אנשי קשר`
+            : "0 תוצאות"}
         </span>
         <div className="flex items-center gap-1">
           <button
             onClick={() => onPageChange(page - 1)}
             disabled={page <= 1 || loading}
             className="p-1 rounded text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            title="עמוד קודם"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4" />
           </button>
           <span className="text-[11px] font-mono text-[#9b9895] px-2 tabular-nums">
             {loading ? "…" : `${page} / ${totalPages || 1}`}
@@ -419,8 +420,9 @@ export default function ContactTable({
             onClick={() => onPageChange(page + 1)}
             disabled={page >= totalPages || loading}
             className="p-1 rounded text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            title="עמוד הבא"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronLeft className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -442,7 +444,7 @@ export default function ContactTable({
       {showColMenu && (
         <div className="absolute top-full right-0 mt-1 z-50 bg-white border border-[#e5e3df] rounded-lg shadow-lg py-1.5 w-52">
           <p className="text-[9px] font-mono text-[#9b9895] uppercase tracking-widest px-3 pt-0.5 pb-2">
-            Columns
+            עמודות
           </p>
           {columns.map((col) => (
             <div
