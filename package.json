@@ -13,6 +13,7 @@
     "db:push": "prisma db push",
     "db:gen": "prisma generate && echo \"export * from './client';\" > lib/generated/prisma/index.ts",
     "db:studio": "prisma studio",
+    "seed:dev": "tsx scripts/seed-dev.ts",
     "postinstall": "prisma generate && echo \"export * from './client';\" > lib/generated/prisma/index.ts"
   },
   "dependencies": {
