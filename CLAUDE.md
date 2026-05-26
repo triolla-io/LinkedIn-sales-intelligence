@@ -27,6 +27,8 @@ Multi-tenant LinkedIn sales intelligence platform. See README.md for full archit
 | `companies.enrich-web` | after CSV import | `inngest/functions/enrich-companies-web.ts` |
 | `campaign.start` | campaign start API | `inngest/functions/campaign-start.ts` |
 | `campaign.send-one` | per recipient | `inngest/functions/campaign-send-one.ts` |
+| `campaign.send-email` | per recipient (email) | `inngest/functions/campaign-send-email.ts` |
+| `campaign.send-whatsapp` | per recipient (WhatsApp) | `inngest/functions/campaign-send-whatsapp.ts` |
 | `campaign.finalize` | after all sent | `inngest/functions/campaign-finalize.ts` |
 | `sequence.start` | sequence start API | `inngest/functions/sequence-start.ts` |
 | `sequence.tick` | cron / admin trigger | `inngest/functions/sequence-tick.ts` |
