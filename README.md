@@ -3,7 +3,7 @@
 > A multi-tenant sales intelligence platform for LinkedIn outreach. Import your connections, enrich contacts with email and phone, then run campaigns and multi-step sequences via LinkedIn, WhatsApp, or Email.
 
 [![Node](https://img.shields.io/badge/node-20%2B-brightgreen)](https://nodejs.org)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
 [![Prisma](https://img.shields.io/badge/Prisma-7-blue)](https://prisma.io)
 
 **Live:** [sales.triolla.io](https://sales.triolla.io)
@@ -65,14 +65,14 @@ Built for small sales teams (1–10 people) at Israeli B2B companies.
 
 | Layer | Technology |
 |---|---|
-| Framework | Next.js 15 (App Router) |
+| Framework | Next.js 16 (App Router) |
 | Database ORM | Prisma 7 |
 | Database | PostgreSQL (Neon in production) |
 | Background jobs | Inngest |
 | Auth | NextAuth v5 (Google OAuth) |
 | Rate limiting | Upstash Redis |
 | Contact enrichment | HubSpot, Apollo.io |
-| AI enrichment | Claude Haiku (Hebrew names), Gemini (web search) |
+| AI enrichment | Gemini (Hebrew names + web search) |
 | Messaging | LinkedIn Voyager, WhatsApp Web (sidecar), Gmail API |
 | UI | Tailwind CSS, shadcn/ui, Radix UI |
 | Tests | Vitest, Playwright |
@@ -123,13 +123,13 @@ Organization
 ### 2. Enrichment Pipeline
 
 ```
-CSV import / manual button
+Manual enrich button (not fired on CSV import)
   └─ enrich-contact  (inngest/functions/enrich-contact.ts)
        ├─ 1. PersonEnrichment cache  — free, org-scoped
        ├─ 2. HubSpot matchPerson     — free
        └─ 3. Apollo matchPerson      — 1 credit, budget-gated per org/month
   └─ enrich-contacts-haiku  (inngest/functions/enrich-contacts-haiku.ts)
-       └─ Claude Haiku → hebrewFirstName field
+       └─ Gemini → hebrewFirstName field
   └─ enrich-companies-web  (inngest/functions/enrich-companies-web.ts)
        └─ Gemini web search → staffCount, website, description
 ```
@@ -141,7 +141,7 @@ Apollo credits are tracked in `EnrichmentSpend` (per org, per month). Budget set
 1. Create campaign: pick channel (LINKEDIN / EMAIL / WHATSAPP) + template + optional contact filter
 2. `POST /api/campaigns/:id/start` → fires `campaign.start` Inngest event
 3. [`inngest/functions/campaign-start.ts`](inngest/functions/campaign-start.ts): resolves audience via [`lib/campaigns/audience.ts`](lib/campaigns/audience.ts), creates `CampaignRecipient` rows (PENDING)
-4. `campaign.send-one` per recipient: renders template variables, sends via the appropriate channel client
+4. Per recipient: renders template variables, sends via channel-specific function (`campaign-send-one` for LinkedIn, `campaign-send-whatsapp`, `campaign-send-email`)
 5. `campaign.finalize`: marks campaign COMPLETED, updates stats
 
 ### 4. Sequences (multi-step drip)
@@ -180,6 +180,7 @@ lib/
   hubspot/client.ts         HubSpot contact lookup by LinkedIn URL
   gmail/client.ts           Gmail send via stored OAuth access token
   whatsapp/client.ts        HTTP client for the WhatsApp sidecar service
+  whatsapp/phone.ts         Phone number normalisation utilities
   linkedin/sse-bus.ts       SSE event bus for LinkedIn real-time message updates
   enrichment/
     gemini-search.ts        Gemini web search for company enrichment
@@ -220,8 +221,8 @@ lib/
 | `UPSTASH_REDIS_REST_TOKEN` | ✅ | Upstash Redis token |
 | `APOLLO_API_KEY` | ✅ | Apollo.io enrichment API key |
 | `HUBSPOT_API_KEY` | optional | HubSpot private app token |
-| `ANTHROPIC_API_KEY` | ✅ | Claude Haiku for Hebrew name enrichment |
 | `GEMINI_API_KEY` | optional | Gemini for web search enrichment |
+| `RESEND_API_KEY` | optional | Resend API key for team invitation emails |
 | `LINKEDIN_COOKIE_ENC_KEY` | ✅ | AES key for LinkedIn session cookies — `openssl rand -base64 32` |
 | `WHATSAPP_SERVICE_URL` | optional | WhatsApp sidecar URL (default: `http://localhost:3002`) |
 | `LINKEDIN_PROFILE_DIR` | optional | Patchright browser profile path (default: `~/.linkedin-mcp/profile`) |
