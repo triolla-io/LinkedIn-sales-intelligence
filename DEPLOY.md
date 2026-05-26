@@ -1,77 +1,80 @@
 # Deployment Guide
 
+Production URL: **https://sales.triolla.io**
+
 ## Stack
-- **Frontend + API** → Vercel (free)
-- **Database** → Neon Postgres (free)
-- **Background jobs** → Inngest cloud (free)
-- **Rate limiting** → Upstash Redis (free)
+
+| Service | Provider |
+|---|---|
+| Frontend + API | Coolify (self-hosted) |
+| Database | Neon Postgres |
+| Background jobs | Inngest Cloud |
+| Rate limiting | Upstash Redis |
+| WhatsApp | Separate Coolify service |
 
 ---
 
 ## Step 1 — Neon Postgres
 
-1. Go to [neon.tech](https://neon.tech) and create a free account
-2. Create a new project → copy the **Connection string** (looks like `postgresql://user:pass@host/dbname?sslmode=require`)
-3. Keep it handy for Step 4
+1. Go to [neon.tech](https://neon.tech) → create a free project
+2. Copy the **Connection string**: `postgresql://user:pass@host/dbname?sslmode=require`
 
 ---
 
 ## Step 2 — Upstash Redis
 
-1. Go to [upstash.com](https://upstash.com) and create a free account
-2. Create a new Redis database → copy:
-   - **UPSTASH_REDIS_REST_URL**
-   - **UPSTASH_REDIS_REST_TOKEN**
+1. Go to [upstash.com](https://upstash.com) → create a Redis database
+2. Copy:
+   - `UPSTASH_REDIS_REST_URL`
+   - `UPSTASH_REDIS_REST_TOKEN`
 
 ---
 
 ## Step 3 — Inngest Cloud
 
-1. Go to [inngest.com](https://inngest.com) and create a free account
-2. Create a new app → copy:
+1. Go to [inngest.com](https://inngest.com) → create an app
+2. Copy:
    - **Event Key** → `INNGEST_EVENT_KEY`
    - **Signing Key** → `INNGEST_SIGNING_KEY`
 
 ---
 
-## Step 4 — Vercel
+## Step 4 — Coolify App
 
-1. Push your code to GitHub:
-   ```bash
-   cd ~/linkedin-sales-intelligence
-   git init
-   git add -A
-   git commit -m "initial commit"
-   # Create a repo on github.com, then:
-   git remote add origin https://github.com/YOUR_USERNAME/linkedin-sales-intelligence.git
-   git push -u origin main
-   ```
+1. In your Coolify instance → **New Resource** → **Application**
+2. Connect your GitHub repo
+3. Set:
+   - **Build command:** `npm run build`
+   - **Start command:** `npm start`
+   - **Port:** `3000`
+4. Add all environment variables (see table below)
+5. Deploy
 
-2. Go to [vercel.com](https://vercel.com) → New Project → import your GitHub repo
+### Environment Variables
 
-3. Under **Environment Variables**, add all of these:
-
-   | Key | Value |
-   |-----|-------|
-   | `DATABASE_URL` | your Neon connection string |
-   | `NEXTAUTH_SECRET` | run `openssl rand -base64 32` to generate |
-   | `NEXTAUTH_URL` | `https://YOUR-APP.vercel.app` |
-   | `GOOGLE_CLIENT_ID` | your Google client ID |
-   | `GOOGLE_CLIENT_SECRET` | your Google client secret |
-   | `LINKEDIN_COOKIE_ENC_KEY` | run `openssl rand -base64 32` to generate |
-   | `INNGEST_EVENT_KEY` | from Inngest cloud |
-   | `INNGEST_SIGNING_KEY` | from Inngest cloud |
-   | `UPSTASH_REDIS_REST_URL` | from Upstash |
-   | `UPSTASH_REDIS_REST_TOKEN` | from Upstash |
-   | `APOLLO_API_KEY` | from apollo.io (for enrichment) |
-
-4. Click **Deploy**
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | Neon connection string |
+| `NEXTAUTH_SECRET` | `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | `https://sales.triolla.io` |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `INNGEST_EVENT_KEY` | From Inngest cloud |
+| `INNGEST_SIGNING_KEY` | From Inngest cloud |
+| `UPSTASH_REDIS_REST_URL` | From Upstash |
+| `UPSTASH_REDIS_REST_TOKEN` | From Upstash |
+| `APOLLO_API_KEY` | From apollo.io |
+| `HUBSPOT_API_KEY` | HubSpot private app token |
+| `ANTHROPIC_API_KEY` | For Haiku Hebrew name enrichment |
+| `GEMINI_API_KEY` | For web search enrichment |
+| `LINKEDIN_COOKIE_ENC_KEY` | `openssl rand -base64 32` |
+| `WHATSAPP_SERVICE_URL` | URL of your WhatsApp Coolify service |
 
 ---
 
-## Step 5 — Run database migrations on Neon
+## Step 5 — Run Database Migrations
 
-After deploy, run this once from your local machine with the Neon URL:
+After the first deploy, run once from your local machine:
 
 ```bash
 DATABASE_URL="your-neon-url" npm run db:push
@@ -79,23 +82,39 @@ DATABASE_URL="your-neon-url" npm run db:push
 
 ---
 
-## Step 6 — Connect Inngest to Vercel
+## Step 6 — Connect Inngest to your App
 
-1. In the Inngest dashboard → Apps → Add App
-2. URL: `https://YOUR-APP.vercel.app/api/inngest`
-3. Inngest will auto-discover your functions
-
----
-
-## Step 7 — Update Google OAuth
-
-In Google Cloud Console → your OAuth client → add the production redirect URI:
-```
-https://YOUR-APP.vercel.app/api/auth/callback/google
-```
+1. Inngest Dashboard → **Apps** → **Add App**
+2. URL: `https://sales.triolla.io/api/inngest`
+3. Inngest auto-discovers all functions
 
 ---
 
-## Done
+## Step 7 — Google OAuth
 
-Your app is live. The LinkedIn sync will run as Inngest cloud jobs — no separate worker needed.
+In [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → your OAuth client → add:
+
+```
+https://sales.triolla.io/api/auth/callback/google
+```
+
+---
+
+## Step 8 — WhatsApp Sidecar
+
+Deploy the `whatsapp-service/` directory as a separate Coolify application:
+- **Build:** `npm install`
+- **Start:** `npm start`
+- Set `WHATSAPP_SERVICE_URL` in the main app to point to this service
+
+---
+
+## Step 9 — LinkedIn Session (one-time per server)
+
+SSH into the production server and run:
+
+```bash
+~/.local/bin/uvx --from git+https://github.com/stickerdaniel/linkedin-mcp-server linkedin-mcp-server --login
+```
+
+Re-run when the session expires (typically every few weeks).
