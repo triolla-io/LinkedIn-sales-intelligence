@@ -103,7 +103,7 @@ https://sales.triolla.io/api/auth/callback/google
 ## Step 8 — WhatsApp Sidecar
 
 Deploy the `whatsapp-service/` directory as a separate Coolify application:
-- **Build:** `npm install`
+- **Build:** `npm run build`
 - **Start:** `npm start`
 - Set `WHATSAPP_SERVICE_URL` in the main app to point to this service
 
