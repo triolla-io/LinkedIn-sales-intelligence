@@ -1,82 +1,247 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LinkedIn Sales Intelligence
 
-## Getting Started
+> A multi-tenant sales intelligence platform for LinkedIn outreach. Import your connections, enrich contacts with email and phone, then run campaigns and multi-step sequences via LinkedIn, WhatsApp, or Email.
 
-First, run the development server:
+[![Node](https://img.shields.io/badge/node-20%2B-brightgreen)](https://nodejs.org)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
+[![Prisma](https://img.shields.io/badge/Prisma-7-blue)](https://prisma.io)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+**Live:** [sales.triolla.io](https://sales.triolla.io)
+
+---
+
+## Table of Contents
+
+- [What is this?](#what-is-this)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Data Model](#data-model)
+- [Key Flows](#key-flows)
+- [Multi-Tenancy](#multi-tenancy)
+- [Module Map](#module-map)
+- [Environment Variables](#environment-variables)
+- [Local Development](#local-development)
+- [Deployment](#deployment)
+
+---
+
+## What is this?
+
+A sales intelligence platform that turns your LinkedIn connections into a structured CRM. Import a LinkedIn connections export, automatically enrich contacts with email and phone (via HubSpot, Apollo, and AI), then run targeted outreach campaigns or multi-step drip sequences — all across LinkedIn, WhatsApp, and Email from a single dashboard.
+
+Built for small sales teams (1–10 people) at Israeli B2B companies.
+
+---
+
+## Architecture
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  UI — Next.js App Router · React · Tailwind · shadcn/ui  │
+├──────────────────────────────────────────────────────────┤
+│  API Routes  (/api/*)  — all wrapped in withTenant()     │
+├──────────────────────────────────────────────────────────┤
+│  Background Jobs  (Inngest)                               │
+│  enrich-contact · enrich-contacts-haiku                  │
+│  enrich-companies · enrich-companies-web                 │
+│  campaign-start · campaign-send-one · campaign-finalize  │
+│  sequence-start · sequence-tick · sequence-send-execution│
+├──────────────────────────────────────────────────────────┤
+│  Service Clients  (lib/)                                  │
+│  Apollo · HubSpot · Gmail · WhatsApp sidecar             │
+│  LinkedIn Voyager · Gemini search · Claude Haiku         │
+├──────────────────────────────────────────────────────────┤
+│  Tenancy  — withTenant() + scopedPrisma()                │
+├──────────────────────────────────────────────────────────┤
+│  Database  — PostgreSQL via Prisma                       │
+│  Org → User → Contact → Company                         │
+│  Campaign · Sequence · Template · SentMessage            │
+└──────────────────────────────────────────────────────────┘
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 15 (App Router) |
+| Database ORM | Prisma 7 |
+| Database | PostgreSQL (Neon in production) |
+| Background jobs | Inngest |
+| Auth | NextAuth v5 (Google OAuth) |
+| Rate limiting | Upstash Redis |
+| Contact enrichment | HubSpot, Apollo.io |
+| AI enrichment | Claude Haiku (Hebrew names), Gemini (web search) |
+| Messaging | LinkedIn Voyager, WhatsApp Web (sidecar), Gmail API |
+| UI | Tailwind CSS, shadcn/ui, Radix UI |
+| Tests | Vitest, Playwright |
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Data Model
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+Organization
+  └─ User (SALESPERSON / ADMIN / SUPER_ADMIN)
+       ├─ Contact ──────────────────── Company
+       │    └─ ContactListMember
+       ├─ ContactList
+       │    └─ Sequence
+       │         ├─ SequenceStep
+       │         └─ SequenceEnrollment
+       │              └─ SequenceStepExecution ── SentMessage
+       ├─ Campaign
+       │    └─ CampaignRecipient ────────────── SentMessage
+       ├─ MessageTemplate
+       ├─ LinkedinSession
+       └─ Import
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## LinkedIn Session Setup (one-time)
-
-LinkedIn blocks programmatic logins, so the sync uses a real browser
-session that you authenticate once:
-
-```bash
-~/.local/bin/uvx --from git+https://github.com/stickerdaniel/linkedin-mcp-server linkedin-mcp-server --login
+Organization
+  └─ PersonEnrichment  (org-scoped email/phone cache — avoids re-paying for the same contact)
+  └─ EnrichmentSpend   (monthly Apollo credit counter)
 ```
 
-Chrome opens, you sign in (including 2FA/captcha if prompted), then close
-the window. The session is saved to `~/.linkedin-mcp/profile/` and reused
-by every subsequent sync. Re-run this command when the session expires
-(usually after several weeks).
+---
 
-## Company Enrichment
+## Key Flows
 
-After every connection sync, the app enriches contacts with company data via LinkedIn's Voyager API — no Apollo credits required.
+### 1. CSV Ingest (`POST /api/import/csv`)
 
-### How it works
+1. User uploads a LinkedIn connections export (CSV or XLSX)
+2. [`app/api/import/csv/route.ts`](app/api/import/csv/route.ts) parses the file, normalises LinkedIn URLs
+3. [`lib/csv/diff.ts`](lib/csv/diff.ts) computes add / update / remove vs existing contacts
+4. For each upserted contact:
+   - Seniority + function classified by [`lib/classifier/seniority.ts`](lib/classifier/seniority.ts)
+   - Industry inferred by [`lib/classifier/industry.ts`](lib/classifier/industry.ts)
+   - [`PersonEnrichment`](prisma/schema.prisma) cache checked (org-scoped, free)
+   - HubSpot lookup via [`lib/hubspot/client.ts`](lib/hubspot/client.ts) if no cache hit
+5. Company stubs created + contacts linked by `universalName` slug
+6. Inngest events fired: `contacts.enrich-haiku`, `companies.enrich-web`
+7. Import history record created
 
-1. **Sync** (`sync.full` or `sync.delta` event) — the existing DOM scraper fetches connections and upserts contacts. Each contact's `currentCompany` string (e.g. `"Microsoft"`) is slugified and stored as a stub `Company` row (`universalName = "microsoft"`).
+### 2. Enrichment Pipeline
 
-2. **Enrich** (`companies.enrich` event) — the `enrich-companies` Inngest function calls `lib/linkedin/voyager_companies.py`, which hits:
-   ```
-   GET /voyager/api/organization/companies?q=universalName&universalName={slug}
-   ```
-   This returns `staffCount` (exact integer) and `industries` (e.g. `["Software Development"]`).
+```
+CSV import / manual button
+  └─ enrich-contact  (inngest/functions/enrich-contact.ts)
+       ├─ 1. PersonEnrichment cache  — free, org-scoped
+       ├─ 2. HubSpot matchPerson     — free
+       └─ 3. Apollo matchPerson      — 1 credit, budget-gated per org/month
+  └─ enrich-contacts-haiku  (inngest/functions/enrich-contacts-haiku.ts)
+       └─ Claude Haiku → hebrewFirstName field
+  └─ enrich-companies-web  (inngest/functions/enrich-companies-web.ts)
+       └─ Gemini web search → staffCount, website, description
+```
 
-3. **Filter** — contacts can now be filtered by:
-   - `staffCount BETWEEN 30 AND 500`
-   - `industry = "Fintech"` (or any industry string)
+Apollo credits are tracked in `EnrichmentSpend` (per org, per month). Budget set in `Organization.monthlyApolloBudget`.
 
-### Configuration
+### 3. Campaigns (one-shot blast)
 
-| Env var | Default | Purpose |
+1. Create campaign: pick channel (LINKEDIN / EMAIL / WHATSAPP) + template + optional contact filter
+2. `POST /api/campaigns/:id/start` → fires `campaign.start` Inngest event
+3. [`inngest/functions/campaign-start.ts`](inngest/functions/campaign-start.ts): resolves audience via [`lib/campaigns/audience.ts`](lib/campaigns/audience.ts), creates `CampaignRecipient` rows (PENDING)
+4. `campaign.send-one` per recipient: renders template variables, sends via the appropriate channel client
+5. `campaign.finalize`: marks campaign COMPLETED, updates stats
+
+### 4. Sequences (multi-step drip)
+
+1. Create a sequence on a `ContactList`, add steps: channel + template + `dayOffset` + `sendHour`
+2. Start → `sequence.start` event → [`inngest/functions/sequence-start.ts`](inngest/functions/sequence-start.ts) creates `SequenceEnrollment` + `SequenceStepExecution` rows (one per contact per step), each with a `scheduledAt` timestamp
+3. `sequence.tick` (triggered by cron or admin) queries for executions where `scheduledAt <= now` and fires `sequence.send-execution` for each
+4. [`inngest/functions/sequence-send-execution.ts`](inngest/functions/sequence-send-execution.ts) calls [`lib/sequences/execute-send.ts`](lib/sequences/execute-send.ts), handles rate-limit retry with exponential backoff
+
+---
+
+## Multi-Tenancy
+
+Every API route is wrapped with `withTenant()` ([`lib/tenancy/with-tenant.ts`](lib/tenancy/with-tenant.ts)):
+
+- Resolves the authenticated user + their org from the JWT session
+- Supports admin **impersonation** via `x-impersonation` cookie — sets `effectiveUserId` to the target user
+- All data operations use `ctx.effectiveUserId` as the owner filter, never the raw session user ID
+
+`scopedPrisma(orgUserIds)` ([`lib/tenancy/scoped-prisma.ts`](lib/tenancy/scoped-prisma.ts)) extends Prisma to automatically inject `ownerId: { in: orgUserIds }` on Contact, SentMessage, and SavedView queries. No route can accidentally return another tenant's rows.
+
+---
+
+## Module Map
+
+```
+lib/
+  auth.ts                   NextAuth config — custom adapter auto-creates Org on first sign-in
+  prisma.ts                 Singleton Prisma client
+  tenancy/
+    with-tenant.ts          Route middleware — auth resolution + impersonation
+    scoped-prisma.ts        Prisma extension — automatic per-tenant row guard
+  apollo/
+    client.ts               Apollo matchPerson (email + phone enrichment)
+    budget.ts               Monthly Apollo credit budget check + increment
+  hubspot/client.ts         HubSpot contact lookup by LinkedIn URL
+  gmail/client.ts           Gmail send via stored OAuth access token
+  whatsapp/client.ts        HTTP client for the WhatsApp sidecar service
+  linkedin/sse-bus.ts       SSE event bus for LinkedIn real-time message updates
+  enrichment/
+    gemini-search.ts        Gemini web search for company enrichment
+    gemini-names.ts         Gemini Hebrew first-name extraction
+    name-lookup.ts          Name lookup utilities
+    web-search.ts           Generic web search abstraction
+  campaigns/
+    audience.ts             Contact filter resolution for campaign recipients
+    render-template.ts      {{variable}} template rendering with contact fields
+    throttle.ts             Per-user send rate limiter
+  sequences/
+    execute-send.ts         Core send logic shared by all sequence executions
+    helpers.ts              Enrollment + step query utilities
+  templates/render.ts       Shared template variable renderer
+  classifier/
+    seniority.ts            Job title → Seniority enum (C_LEVEL/VP/DIRECTOR/…)
+    industry.ts             Company name → industry string
+  csv/diff.ts               diffContacts() — add/update/remove computation
+  ratelimit/messages.ts     Upstash Redis rate limiter for message sends
+  admin/audit.ts            AuditEvent writer
+  utils/slug-utils.ts       Company name slugifier (e.g. "Google LLC" → "google-llc")
+```
+
+---
+
+## Environment Variables
+
+| Variable | Required | Description |
 |---|---|---|
-| `LINKEDIN_PROFILE_DIR` | `~/.linkedin-mcp/profile` | Path to the Patchright browser profile used to extract `li_at` + `JSESSIONID` cookies |
+| `DATABASE_URL` | ✅ | PostgreSQL connection string |
+| `NEXTAUTH_SECRET` | ✅ | JWT signing secret — `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | ✅ | App base URL (e.g. `http://localhost:3001`) |
+| `GOOGLE_CLIENT_ID` | ✅ | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | ✅ | Google OAuth client secret |
+| `INNGEST_EVENT_KEY` | ✅ | Inngest event signing key |
+| `INNGEST_SIGNING_KEY` | ✅ | Inngest webhook signing key |
+| `UPSTASH_REDIS_REST_URL` | ✅ | Upstash Redis URL (rate limiting) |
+| `UPSTASH_REDIS_REST_TOKEN` | ✅ | Upstash Redis token |
+| `APOLLO_API_KEY` | ✅ | Apollo.io enrichment API key |
+| `HUBSPOT_API_KEY` | optional | HubSpot private app token |
+| `ANTHROPIC_API_KEY` | ✅ | Claude Haiku for Hebrew name enrichment |
+| `GEMINI_API_KEY` | optional | Gemini for web search enrichment |
+| `LINKEDIN_COOKIE_ENC_KEY` | ✅ | AES key for LinkedIn session cookies — `openssl rand -base64 32` |
+| `WHATSAPP_SERVICE_URL` | optional | WhatsApp sidecar URL (default: `http://localhost:3002`) |
+| `LINKEDIN_PROFILE_DIR` | optional | Patchright browser profile path (default: `~/.linkedin-mcp/profile`) |
 
-### Session management
+---
 
-The company scraper opens a Patchright browser with the linkedin-mcp persistent profile to extract cookies. If the session has expired, the scraper exits with `SESSION_EXPIRED` and the Inngest function fails (retries 2×). Re-run `linkedin-mcp-server --login` to restore the session.
+## Local Development
 
-### Slug matching
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full local setup guide.
 
-Company names are slugified before lookup: `"Google LLC"` → `"google-llc"`. If LinkedIn's `universalName` differs (e.g., `"google"` not `"google-llc"`), the API returns an empty response and the Company row stays with `staffCount: null`. This is expected for edge cases — partial enrichment is acceptable.
+Quick start:
+
+```bash
+cp .env.example .env.local   # fill in your values
+npm run db:push              # apply schema to your DB
+npm run dev                  # Next.js :3001 + Inngest :8288 + WhatsApp :3002
+```
+
+---
+
+## Deployment
+
+See [DEPLOY.md](DEPLOY.md) for the full Coolify deployment guide.
