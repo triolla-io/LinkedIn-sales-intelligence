@@ -9,7 +9,7 @@ import ContactTable, { type Contact } from "@/components/dashboard/contact-table
 import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
 import CreateContactModal from "@/components/dashboard/create-contact-modal";
-import { RefreshCw, Download, UserPlus, DatabaseZap } from "lucide-react";
+import { RefreshCw, UserPlus, DatabaseZap } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 type InsightsData = {
@@ -51,19 +51,6 @@ function buildInsightsUrl(filters: Filters) {
   return `/api/insights?${params.toString()}`;
 }
 
-function buildExportUrl(filters: Filters) {
-  const params = new URLSearchParams();
-  if (filters.q) params.set("q", filters.q);
-  if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
-  if (filters.function.length) params.set("function", filters.function.join(","));
-  if (filters.titleSearch.length) params.set("titleSearch", filters.titleSearch.join(","));
-  if (filters.industry.length) params.set("industry", filters.industry.join(","));
-  if (filters.companySizeBuckets.length) params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
-  if (filters.hasEmail) params.set("hasEmail", "true");
-  if (filters.hasPhone) params.set("hasPhone", "true");
-  if (filters.listId) params.set("listId", filters.listId);
-  return `/api/contacts/export?${params.toString()}`;
-}
 
 function sevenDaysAgo(): string {
   const d = new Date();
@@ -100,7 +87,6 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
   const [insights, setInsights] = useState<InsightsData | null>(null);
   const [newThisWeek, setNewThisWeek] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [exporting, setExporting] = useState(false);
   const [applyingCache, setApplyingCache] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [drawerContact, setDrawerContact] = useState<Contact | null>(null);
@@ -188,24 +174,7 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
     fetchData();
   }
 
-  async function handleExport() {
-    setExporting(true);
-    try {
-      const res = await fetch(buildExportUrl(filters), { cache: "no-store" });
-      if (!res.ok) return;
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `contacts-${new Date().toISOString().slice(0, 10)}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setExporting(false);
-    }
-  }
-
-  async function handleApplyCache() {
+async function handleApplyCache() {
     setApplyingCache(true);
     try {
       await fetch("/api/contacts/apply-cache", { method: "POST" });
@@ -239,14 +208,6 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
             >
               <UserPlus className="w-3.5 h-3.5" />
               הוסף איש קשר
-            </button>
-            <button
-              onClick={handleExport}
-              disabled={exporting}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-emerald-600 border border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download className={cn("w-3.5 h-3.5", exporting && "animate-bounce")} />
-              {exporting ? "מייצא…" : "ייצוא"}
             </button>
             <button
               onClick={handleApplyCache}

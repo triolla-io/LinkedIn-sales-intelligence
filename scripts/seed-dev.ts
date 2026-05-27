@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { buildContacts, shouldSkipSeed } from "@/scripts/seed-helpers";
 import type { CampaignChannel, RecipientStatus } from "@/lib/generated/prisma/client";
 
+const SEED_USER_EMAIL = "ariel@triolla.io";
+
 const PERSONA_USERS = [
-  { name: "Ariel Lunenfeld", email: "ariel@triolla.io" },
   { name: "Daniel Shalem", email: "daniel@triolla.io" },
   { name: "Yuval Bar-Or", email: "yuval@triolla.io" },
   { name: "Adi Berman", email: "adi@triolla.io" },
@@ -27,15 +28,15 @@ const TEMPLATES = [
 async function main() {
   const force = process.argv.includes("--force");
 
-  // 1. Find dev@triolla.io
+  // 1. Find seed user
   const devUser = await prisma.user.findUnique({
-    where: { email: "dev@triolla.io" },
+    where: { email: SEED_USER_EMAIL },
     include: { org: true },
   });
 
   if (!devUser) {
-    console.error("\n❌  dev@triolla.io not found in database.");
-    console.error("    Sign in with Google as dev@triolla.io first, then re-run this script.\n");
+    console.error(`\n❌  ${SEED_USER_EMAIL} not found in database.`);
+    console.error(`    Sign in with Google as ${SEED_USER_EMAIL} first, then re-run this script.\n`);
     process.exit(1);
   }
 
@@ -48,14 +49,14 @@ async function main() {
     process.exit(0);
   }
 
-  console.log("🌱 Seeding dev@triolla.io org...");
+  console.log(`🌱 Seeding ${SEED_USER_EMAIL} org...`);
 
-  // 3. Upgrade dev user to ADMIN
+  // 3. Upgrade seed user to ADMIN
   await prisma.user.update({
     where: { id: devUser.id },
     data: { role: "ADMIN" },
   });
-  console.log("  ✓ dev@triolla.io upgraded to ADMIN");
+  console.log(`  ✓ ${SEED_USER_EMAIL} upgraded to ADMIN`);
 
   // 4. Create persona users in the same org
   const personas: Array<{ id: string; name: string; email: string }> = [];
@@ -219,7 +220,7 @@ async function main() {
     console.log("  ✓ Active 3-step sequence seeded (10 enrollments)");
   }
 
-  console.log("\n✅ Seed complete! Sign in as dev@triolla.io and use the admin menu to impersonate personas.\n");
+  console.log(`\n✅ Seed complete! Signed in as ${SEED_USER_EMAIL} (ADMIN) with sample contacts, templates, campaign, and sequence.\n`);
   await prisma.$disconnect();
 }
 
