@@ -231,15 +231,138 @@ lib/
 
 ## Local Development
 
-See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full local setup guide.
+### 1. Start the database with Docker
 
-Quick start:
+The project ships a `docker-compose.yml` that runs Postgres, the LinkedIn MCP server, and the WhatsApp sidecar.
+
+For local development you only **need** Postgres. Start just that service:
 
 ```bash
-cp .env.example .env.local   # fill in your values
-npm run db:push              # apply schema to your DB
-npm run dev                  # Next.js :3001 + Inngest :8288 + WhatsApp :3002
+docker compose up postgres -d
 ```
+
+This starts a Postgres 16 container and exposes it on **port 5433** (not the default 5432, to avoid conflicts with any local Postgres instance you may have).
+
+| Setting | Value |
+|---|---|
+| Host | `localhost` |
+| Port | `5433` |
+| User | `linkedinsi` |
+| Password | `linkedinsi` |
+| Database | `linkedinsi` |
+
+The corresponding `DATABASE_URL` for your `.env`:
+
+```
+DATABASE_URL="postgresql://linkedinsi:linkedinsi@localhost:5433/linkedinsi"
+```
+
+> **Note:** data is persisted in a Docker-managed volume (`postgres_data`). To wipe it: `docker compose down -v`.
+
+### 2. Configure environment variables
+
+Copy the example env file and fill in the required values:
+
+```bash
+cp .env.example .env
+```
+
+> **Important:** use `.env`, not `.env.local`. Scripts like `seed-dev.ts` and the Prisma CLI read from `.env` directly — `.env.local` is ignored by them.
+
+At minimum you need:
+
+```env
+DATABASE_URL="postgresql://linkedinsi:linkedinsi@localhost:5433/linkedinsi"
+NEXTAUTH_SECRET="<openssl rand -base64 32>"
+NEXTAUTH_URL="http://localhost:3001"
+GOOGLE_CLIENT_ID="..."
+GOOGLE_CLIENT_SECRET="..."
+INNGEST_EVENT_KEY="..."
+INNGEST_SIGNING_KEY="..."
+LINKEDIN_COOKIE_ENC_KEY="<openssl rand -base64 32>"
+```
+
+The `DATABASE_URL` for Docker is already in `.env.example` — just uncomment the Docker line and remove the Neon placeholder.
+
+### 3. Apply the schema and install dependencies
+
+```bash
+npm install
+npm run db:push     # pushes prisma/schema.prisma to the database
+```
+
+### 4. Seed dev data (optional)
+
+Sign in once with Google as `dev@triolla.io`, then run:
+
+```bash
+npm run seed:dev
+```
+
+This creates contacts, templates, a completed campaign, and an active sequence for that user. Run `npm run seed:dev -- --force` to re-seed.
+
+### 5. Run the app
+
+```bash
+npm run dev
+```
+
+This starts three processes concurrently:
+
+| Process | Port |
+|---|---|
+| Next.js app | 3001 |
+| Inngest dev server | 8288 |
+| WhatsApp sidecar | 3002 |
+
+Open [http://localhost:3001](http://localhost:3001).
+
+### Optional: start all Docker services
+
+To also run the LinkedIn MCP server and WhatsApp sidecar via Docker:
+
+```bash
+docker compose up postgres linkedin-mcp whatsapp-service -d
+```
+
+| Service | Port | Purpose |
+|---|---|---|
+| `postgres` | 5433 | Database |
+| `linkedin-mcp` | 8765 | LinkedIn MCP server (Playwright browser automation) |
+| `whatsapp-service` | 3002 | WhatsApp Web sidecar |
+
+The `linkedin-mcp` container stores its browser profile in `~/.linkedin-mcp` on the host.
+
+---
+
+## Troubleshooting
+
+### `client password must be a string` / can't connect to DB
+
+`DATABASE_URL` is missing or empty. Check:
+
+1. You created `.env` (not `.env.local`) — run `ls -la .env`
+2. The `DATABASE_URL` line is **not** commented out and uses the Docker value:
+   ```
+   DATABASE_URL="postgresql://linkedinsi:linkedinsi@localhost:5433/linkedinsi"
+   ```
+3. Postgres is actually running — `docker compose ps` should show `postgres` as `running`
+4. You're connecting on port **5433**, not 5432
+
+### `db:push` fails / Prisma can't find the database
+
+Same root cause — `DATABASE_URL` must be set in `.env` before running any Prisma CLI command. The Prisma client in this project uses the `@prisma/adapter-pg` driver adapter, which reads `DATABASE_URL` directly from the environment at runtime (not from the schema file).
+
+### Port 5433 already in use
+
+Another Postgres container may be running. Stop it or change the port mapping in `docker-compose.yml`:
+
+```yaml
+ports:
+  - "5434:5432"   # use 5434 instead
+```
+
+Then update `DATABASE_URL` accordingly.
 
 ---
 
