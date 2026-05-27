@@ -10,6 +10,11 @@ services:
       POSTGRES_DB: linkedinsi
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U linkedinsi -d linkedinsi"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   linkedin-mcp:
     image: stickerdaniel/linkedin-mcp-server:latest
@@ -43,7 +48,10 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - whatsapp-service
+      postgres:
+        condition: service_healthy
+      whatsapp-service:
+        condition: service_started
     env_file:
       - .env
     environment:
