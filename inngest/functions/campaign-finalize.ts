@@ -6,7 +6,7 @@ import { publish } from "@/lib/linkedin/sse-bus";
 export async function campaignFinalizeHandler({ event }: any) {
   const { campaignId } = event.data as { campaignId: string };
   const pending = await prisma.campaignRecipient.count({
-    where: { campaignId, status: { in: ["PENDING", "SENDING"] } },
+    where: { campaignId, status: { in: ["PENDING", "SENDING", "QUEUED"] } },
   });
   if (pending > 0) return;
   const campaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
