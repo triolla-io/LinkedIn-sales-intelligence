@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Triolla</title>
+  <style>
+    body { font: 13px system-ui; width: 280px; padding: 12px; }
+    label { display: block; font-size: 11px; color: #666; margin-top: 8px; }
+    input { width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 8px; }
+    button { padding: 6px 10px; cursor: pointer; }
+    #status { font-weight: 500; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div id="status">Loading...</div>
+  <label>API base</label>
+  <input id="api" value="https://sales.triolla.io" />
+  <label>Token</label>
+  <input id="token" type="password" placeholder="Paste token here" />
+  <button id="connect">Connect</button>
+  <button id="disconnect" style="display:none">Disconnect</button>
+  <button id="pause" style="display:none">Pause</button>
+  <script type="module" src="popup.ts"></script>
+</body>
+</html>
