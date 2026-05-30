@@ -407,7 +407,10 @@ export const ModelName = {
   Sequence: 'Sequence',
   SequenceStep: 'SequenceStep',
   SequenceEnrollment: 'SequenceEnrollment',
-  SequenceStepExecution: 'SequenceStepExecution'
+  SequenceStepExecution: 'SequenceStepExecution',
+  ExtensionTask: 'ExtensionTask',
+  ExtensionSession: 'ExtensionSession',
+  ExtensionAlert: 'ExtensionAlert'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -423,7 +426,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2203,6 +2206,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ExtensionTask: {
+      payload: Prisma.$ExtensionTaskPayload<ExtArgs>
+      fields: Prisma.ExtensionTaskFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExtensionTaskFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionTaskPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExtensionTaskFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionTaskPayload>
+        }
+        findFirst: {
+          args: Prisma.ExtensionTaskFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionTaskPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExtensionTaskFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionTaskPayload>
+        }
+        findMany: {
+          args: Prisma.ExtensionTaskFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionTaskPayload>[]
+        }
+        create: {
+          args: Prisma.ExtensionTaskCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionTaskPayload>
+        }
+        createMany: {
+          args: Prisma.ExtensionTaskCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExtensionTaskCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionTaskPayload>[]
+        }
+        delete: {
+          args: Prisma.ExtensionTaskDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionTaskPayload>
+        }
+        update: {
+          args: Prisma.ExtensionTaskUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionTaskPayload>
+        }
+        deleteMany: {
+          args: Prisma.ExtensionTaskDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExtensionTaskUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExtensionTaskUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionTaskPayload>[]
+        }
+        upsert: {
+          args: Prisma.ExtensionTaskUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionTaskPayload>
+        }
+        aggregate: {
+          args: Prisma.ExtensionTaskAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExtensionTask>
+        }
+        groupBy: {
+          args: Prisma.ExtensionTaskGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExtensionTaskGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExtensionTaskCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExtensionTaskCountAggregateOutputType> | number
+        }
+      }
+    }
+    ExtensionSession: {
+      payload: Prisma.$ExtensionSessionPayload<ExtArgs>
+      fields: Prisma.ExtensionSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExtensionSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExtensionSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.ExtensionSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExtensionSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionSessionPayload>
+        }
+        findMany: {
+          args: Prisma.ExtensionSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionSessionPayload>[]
+        }
+        create: {
+          args: Prisma.ExtensionSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionSessionPayload>
+        }
+        createMany: {
+          args: Prisma.ExtensionSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExtensionSessionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionSessionPayload>[]
+        }
+        delete: {
+          args: Prisma.ExtensionSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionSessionPayload>
+        }
+        update: {
+          args: Prisma.ExtensionSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.ExtensionSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExtensionSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExtensionSessionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionSessionPayload>[]
+        }
+        upsert: {
+          args: Prisma.ExtensionSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.ExtensionSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExtensionSession>
+        }
+        groupBy: {
+          args: Prisma.ExtensionSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExtensionSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExtensionSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExtensionSessionCountAggregateOutputType> | number
+        }
+      }
+    }
+    ExtensionAlert: {
+      payload: Prisma.$ExtensionAlertPayload<ExtArgs>
+      fields: Prisma.ExtensionAlertFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExtensionAlertFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionAlertPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExtensionAlertFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionAlertPayload>
+        }
+        findFirst: {
+          args: Prisma.ExtensionAlertFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionAlertPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExtensionAlertFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionAlertPayload>
+        }
+        findMany: {
+          args: Prisma.ExtensionAlertFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionAlertPayload>[]
+        }
+        create: {
+          args: Prisma.ExtensionAlertCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionAlertPayload>
+        }
+        createMany: {
+          args: Prisma.ExtensionAlertCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExtensionAlertCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionAlertPayload>[]
+        }
+        delete: {
+          args: Prisma.ExtensionAlertDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionAlertPayload>
+        }
+        update: {
+          args: Prisma.ExtensionAlertUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionAlertPayload>
+        }
+        deleteMany: {
+          args: Prisma.ExtensionAlertDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExtensionAlertUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExtensionAlertUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionAlertPayload>[]
+        }
+        upsert: {
+          args: Prisma.ExtensionAlertUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExtensionAlertPayload>
+        }
+        aggregate: {
+          args: Prisma.ExtensionAlertAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExtensionAlert>
+        }
+        groupBy: {
+          args: Prisma.ExtensionAlertGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExtensionAlertGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExtensionAlertCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExtensionAlertCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2299,6 +2524,7 @@ export const UserScalarFieldEnum = {
   image: 'image',
   title: 'title',
   role: 'role',
+  timezone: 'timezone',
   createdAt: 'createdAt'
 } as const
 
@@ -2597,6 +2823,53 @@ export const SequenceStepExecutionScalarFieldEnum = {
 export type SequenceStepExecutionScalarFieldEnum = (typeof SequenceStepExecutionScalarFieldEnum)[keyof typeof SequenceStepExecutionScalarFieldEnum]
 
 
+export const ExtensionTaskScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  kind: 'kind',
+  status: 'status',
+  payload: 'payload',
+  recipientId: 'recipientId',
+  sequenceExecutionId: 'sequenceExecutionId',
+  scheduledFor: 'scheduledFor',
+  claimedAt: 'claimedAt',
+  completedAt: 'completedAt',
+  attemptCount: 'attemptCount',
+  errorCode: 'errorCode',
+  errorMessage: 'errorMessage',
+  result: 'result',
+  createdAt: 'createdAt'
+} as const
+
+export type ExtensionTaskScalarFieldEnum = (typeof ExtensionTaskScalarFieldEnum)[keyof typeof ExtensionTaskScalarFieldEnum]
+
+
+export const ExtensionSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  tokenHash: 'tokenHash',
+  tokenPrefix: 'tokenPrefix',
+  lastSeenAt: 'lastSeenAt',
+  version: 'version',
+  createdAt: 'createdAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type ExtensionSessionScalarFieldEnum = (typeof ExtensionSessionScalarFieldEnum)[keyof typeof ExtensionSessionScalarFieldEnum]
+
+
+export const ExtensionAlertScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  kind: 'kind',
+  message: 'message',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type ExtensionAlertScalarFieldEnum = (typeof ExtensionAlertScalarFieldEnum)[keyof typeof ExtensionAlertScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2848,6 +3121,48 @@ export type ListEnumEnrollmentStatusFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
+ * Reference to a field of type 'ExtensionTaskKind'
+ */
+export type EnumExtensionTaskKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ExtensionTaskKind'>
+    
+
+
+/**
+ * Reference to a field of type 'ExtensionTaskKind[]'
+ */
+export type ListEnumExtensionTaskKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ExtensionTaskKind[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ExtensionTaskStatus'
+ */
+export type EnumExtensionTaskStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ExtensionTaskStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ExtensionTaskStatus[]'
+ */
+export type ListEnumExtensionTaskStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ExtensionTaskStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ExtensionAlertKind'
+ */
+export type EnumExtensionAlertKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ExtensionAlertKind'>
+    
+
+
+/**
+ * Reference to a field of type 'ExtensionAlertKind[]'
+ */
+export type ListEnumExtensionAlertKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ExtensionAlertKind[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -2994,6 +3309,9 @@ export type GlobalOmitConfig = {
   sequenceStep?: Prisma.SequenceStepOmit
   sequenceEnrollment?: Prisma.SequenceEnrollmentOmit
   sequenceStepExecution?: Prisma.SequenceStepExecutionOmit
+  extensionTask?: Prisma.ExtensionTaskOmit
+  extensionSession?: Prisma.ExtensionSessionOmit
+  extensionAlert?: Prisma.ExtensionAlertOmit
 }
 
 /* Types for Logging */

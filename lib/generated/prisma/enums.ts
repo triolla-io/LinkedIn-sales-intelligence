@@ -98,10 +98,12 @@ export type CampaignStatus = (typeof CampaignStatus)[keyof typeof CampaignStatus
 
 export const RecipientStatus = {
   PENDING: 'PENDING',
+  QUEUED: 'QUEUED',
   SENDING: 'SENDING',
   SENT: 'SENT',
   FAILED: 'FAILED',
-  SKIPPED: 'SKIPPED'
+  SKIPPED: 'SKIPPED',
+  REPLIED: 'REPLIED'
 } as const
 
 export type RecipientStatus = (typeof RecipientStatus)[keyof typeof RecipientStatus]
@@ -126,3 +128,29 @@ export const EnrollmentStatus = {
 } as const
 
 export type EnrollmentStatus = (typeof EnrollmentStatus)[keyof typeof EnrollmentStatus]
+
+
+export const ExtensionTaskKind = {
+  SEND: 'SEND',
+  CHECK_REPLY: 'CHECK_REPLY'
+} as const
+
+export type ExtensionTaskKind = (typeof ExtensionTaskKind)[keyof typeof ExtensionTaskKind]
+
+
+export const ExtensionTaskStatus = {
+  PENDING: 'PENDING',
+  CLAIMED: 'CLAIMED',
+  DONE: 'DONE',
+  FAILED: 'FAILED'
+} as const
+
+export type ExtensionTaskStatus = (typeof ExtensionTaskStatus)[keyof typeof ExtensionTaskStatus]
+
+
+export const ExtensionAlertKind = {
+  OFFLINE: 'OFFLINE',
+  CHECKPOINT: 'CHECKPOINT'
+} as const
+
+export type ExtensionAlertKind = (typeof ExtensionAlertKind)[keyof typeof ExtensionAlertKind]

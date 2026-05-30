@@ -33,6 +33,7 @@ export type UserMinAggregateOutputType = {
   image: string | null
   title: string | null
   role: $Enums.Role | null
+  timezone: string | null
   createdAt: Date | null
 }
 
@@ -45,6 +46,7 @@ export type UserMaxAggregateOutputType = {
   image: string | null
   title: string | null
   role: $Enums.Role | null
+  timezone: string | null
   createdAt: Date | null
 }
 
@@ -57,6 +59,7 @@ export type UserCountAggregateOutputType = {
   image: number
   title: number
   role: number
+  timezone: number
   createdAt: number
   _all: number
 }
@@ -71,6 +74,7 @@ export type UserMinAggregateInputType = {
   image?: true
   title?: true
   role?: true
+  timezone?: true
   createdAt?: true
 }
 
@@ -83,6 +87,7 @@ export type UserMaxAggregateInputType = {
   image?: true
   title?: true
   role?: true
+  timezone?: true
   createdAt?: true
 }
 
@@ -95,6 +100,7 @@ export type UserCountAggregateInputType = {
   image?: true
   title?: true
   role?: true
+  timezone?: true
   createdAt?: true
   _all?: true
 }
@@ -180,6 +186,7 @@ export type UserGroupByOutputType = {
   image: string | null
   title: string | null
   role: $Enums.Role
+  timezone: string
   createdAt: Date
   _count: UserCountAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
@@ -213,6 +220,7 @@ export type UserWhereInput = {
   image?: Prisma.StringNullableFilter<"User"> | string | null
   title?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
+  timezone?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   org?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   accounts?: Prisma.AccountListRelationFilter
@@ -229,6 +237,9 @@ export type UserWhereInput = {
   contactLists?: Prisma.ContactListListRelationFilter
   linkedinSession?: Prisma.XOR<Prisma.LinkedinSessionNullableScalarRelationFilter, Prisma.LinkedinSessionWhereInput> | null
   sequences?: Prisma.SequenceListRelationFilter
+  extensionTasks?: Prisma.ExtensionTaskListRelationFilter
+  extensionSession?: Prisma.XOR<Prisma.ExtensionSessionNullableScalarRelationFilter, Prisma.ExtensionSessionWhereInput> | null
+  extensionAlerts?: Prisma.ExtensionAlertListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -240,6 +251,7 @@ export type UserOrderByWithRelationInput = {
   image?: Prisma.SortOrderInput | Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   org?: Prisma.OrganizationOrderByWithRelationInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
@@ -256,6 +268,9 @@ export type UserOrderByWithRelationInput = {
   contactLists?: Prisma.ContactListOrderByRelationAggregateInput
   linkedinSession?: Prisma.LinkedinSessionOrderByWithRelationInput
   sequences?: Prisma.SequenceOrderByRelationAggregateInput
+  extensionTasks?: Prisma.ExtensionTaskOrderByRelationAggregateInput
+  extensionSession?: Prisma.ExtensionSessionOrderByWithRelationInput
+  extensionAlerts?: Prisma.ExtensionAlertOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -270,6 +285,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   image?: Prisma.StringNullableFilter<"User"> | string | null
   title?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
+  timezone?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   org?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   accounts?: Prisma.AccountListRelationFilter
@@ -286,6 +302,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   contactLists?: Prisma.ContactListListRelationFilter
   linkedinSession?: Prisma.XOR<Prisma.LinkedinSessionNullableScalarRelationFilter, Prisma.LinkedinSessionWhereInput> | null
   sequences?: Prisma.SequenceListRelationFilter
+  extensionTasks?: Prisma.ExtensionTaskListRelationFilter
+  extensionSession?: Prisma.XOR<Prisma.ExtensionSessionNullableScalarRelationFilter, Prisma.ExtensionSessionWhereInput> | null
+  extensionAlerts?: Prisma.ExtensionAlertListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -297,6 +316,7 @@ export type UserOrderByWithAggregationInput = {
   image?: Prisma.SortOrderInput | Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
@@ -315,6 +335,7 @@ export type UserScalarWhereWithAggregatesInput = {
   image?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   title?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   role?: Prisma.EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
+  timezone?: Prisma.StringWithAggregatesFilter<"User"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
 
@@ -326,6 +347,7 @@ export type UserCreateInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -342,6 +364,9 @@ export type UserCreateInput = {
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -353,6 +378,7 @@ export type UserUncheckedCreateInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -368,6 +394,9 @@ export type UserUncheckedCreateInput = {
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -378,6 +407,7 @@ export type UserUpdateInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -394,6 +424,9 @@ export type UserUpdateInput = {
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -405,6 +438,7 @@ export type UserUncheckedUpdateInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -420,6 +454,9 @@ export type UserUncheckedUpdateInput = {
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -431,6 +468,7 @@ export type UserCreateManyInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
 }
 
@@ -442,6 +480,7 @@ export type UserUpdateManyMutationInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -454,6 +493,7 @@ export type UserUncheckedUpdateManyInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -481,6 +521,7 @@ export type UserCountOrderByAggregateInput = {
   image?: Prisma.SortOrder
   title?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -493,6 +534,7 @@ export type UserMaxOrderByAggregateInput = {
   image?: Prisma.SortOrder
   title?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -505,6 +547,7 @@ export type UserMinOrderByAggregateInput = {
   image?: Prisma.SortOrder
   title?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -761,6 +804,48 @@ export type UserUpdateOneRequiredWithoutSequencesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSequencesInput, Prisma.UserUpdateWithoutSequencesInput>, Prisma.UserUncheckedUpdateWithoutSequencesInput>
 }
 
+export type UserCreateNestedOneWithoutExtensionTasksInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExtensionTasksInput, Prisma.UserUncheckedCreateWithoutExtensionTasksInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExtensionTasksInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutExtensionTasksNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExtensionTasksInput, Prisma.UserUncheckedCreateWithoutExtensionTasksInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExtensionTasksInput
+  upsert?: Prisma.UserUpsertWithoutExtensionTasksInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutExtensionTasksInput, Prisma.UserUpdateWithoutExtensionTasksInput>, Prisma.UserUncheckedUpdateWithoutExtensionTasksInput>
+}
+
+export type UserCreateNestedOneWithoutExtensionSessionInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExtensionSessionInput, Prisma.UserUncheckedCreateWithoutExtensionSessionInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExtensionSessionInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutExtensionSessionNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExtensionSessionInput, Prisma.UserUncheckedCreateWithoutExtensionSessionInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExtensionSessionInput
+  upsert?: Prisma.UserUpsertWithoutExtensionSessionInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutExtensionSessionInput, Prisma.UserUpdateWithoutExtensionSessionInput>, Prisma.UserUncheckedUpdateWithoutExtensionSessionInput>
+}
+
+export type UserCreateNestedOneWithoutExtensionAlertsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExtensionAlertsInput, Prisma.UserUncheckedCreateWithoutExtensionAlertsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExtensionAlertsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutExtensionAlertsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExtensionAlertsInput, Prisma.UserUncheckedCreateWithoutExtensionAlertsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExtensionAlertsInput
+  upsert?: Prisma.UserUpsertWithoutExtensionAlertsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutExtensionAlertsInput, Prisma.UserUpdateWithoutExtensionAlertsInput>, Prisma.UserUncheckedUpdateWithoutExtensionAlertsInput>
+}
+
 export type UserCreateWithoutAccountsInput = {
   id?: string
   email: string
@@ -769,6 +854,7 @@ export type UserCreateWithoutAccountsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
@@ -784,6 +870,9 @@ export type UserCreateWithoutAccountsInput = {
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -795,6 +884,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -809,6 +899,9 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -835,6 +928,7 @@ export type UserUpdateWithoutAccountsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
@@ -850,6 +944,9 @@ export type UserUpdateWithoutAccountsInput = {
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -861,6 +958,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -875,6 +973,9 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -885,6 +986,7 @@ export type UserCreateWithoutSessionsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -900,6 +1002,9 @@ export type UserCreateWithoutSessionsInput = {
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -911,6 +1016,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -925,6 +1031,9 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -951,6 +1060,7 @@ export type UserUpdateWithoutSessionsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -966,6 +1076,9 @@ export type UserUpdateWithoutSessionsInput = {
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -977,6 +1090,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -991,6 +1105,9 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOrgInput = {
@@ -1001,6 +1118,7 @@ export type UserCreateWithoutOrgInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
@@ -1016,6 +1134,9 @@ export type UserCreateWithoutOrgInput = {
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOrgInput = {
@@ -1026,6 +1147,7 @@ export type UserUncheckedCreateWithoutOrgInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1041,6 +1163,9 @@ export type UserUncheckedCreateWithoutOrgInput = {
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOrgInput = {
@@ -1081,6 +1206,7 @@ export type UserScalarWhereInput = {
   image?: Prisma.StringNullableFilter<"User"> | string | null
   title?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
+  timezone?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
 }
 
@@ -1092,6 +1218,7 @@ export type UserCreateWithoutContactsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1107,6 +1234,9 @@ export type UserCreateWithoutContactsInput = {
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContactsInput = {
@@ -1118,6 +1248,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1132,6 +1263,9 @@ export type UserUncheckedCreateWithoutContactsInput = {
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContactsInput = {
@@ -1158,6 +1292,7 @@ export type UserUpdateWithoutContactsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1173,6 +1308,9 @@ export type UserUpdateWithoutContactsInput = {
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactsInput = {
@@ -1184,6 +1322,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1198,6 +1337,9 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTemplatesInput = {
@@ -1208,6 +1350,7 @@ export type UserCreateWithoutTemplatesInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1223,6 +1366,9 @@ export type UserCreateWithoutTemplatesInput = {
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTemplatesInput = {
@@ -1234,6 +1380,7 @@ export type UserUncheckedCreateWithoutTemplatesInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1248,6 +1395,9 @@ export type UserUncheckedCreateWithoutTemplatesInput = {
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTemplatesInput = {
@@ -1274,6 +1424,7 @@ export type UserUpdateWithoutTemplatesInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1289,6 +1440,9 @@ export type UserUpdateWithoutTemplatesInput = {
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTemplatesInput = {
@@ -1300,6 +1454,7 @@ export type UserUncheckedUpdateWithoutTemplatesInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1314,6 +1469,9 @@ export type UserUncheckedUpdateWithoutTemplatesInput = {
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSentMessagesInput = {
@@ -1324,6 +1482,7 @@ export type UserCreateWithoutSentMessagesInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1339,6 +1498,9 @@ export type UserCreateWithoutSentMessagesInput = {
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSentMessagesInput = {
@@ -1350,6 +1512,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1364,6 +1527,9 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSentMessagesInput = {
@@ -1379,6 +1545,7 @@ export type UserCreateWithoutActedMessagesInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1394,6 +1561,9 @@ export type UserCreateWithoutActedMessagesInput = {
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutActedMessagesInput = {
@@ -1405,6 +1575,7 @@ export type UserUncheckedCreateWithoutActedMessagesInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1419,6 +1590,9 @@ export type UserUncheckedCreateWithoutActedMessagesInput = {
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutActedMessagesInput = {
@@ -1445,6 +1619,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1460,6 +1635,9 @@ export type UserUpdateWithoutSentMessagesInput = {
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentMessagesInput = {
@@ -1471,6 +1649,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1485,6 +1664,9 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutActedMessagesInput = {
@@ -1506,6 +1688,7 @@ export type UserUpdateWithoutActedMessagesInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1521,6 +1704,9 @@ export type UserUpdateWithoutActedMessagesInput = {
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActedMessagesInput = {
@@ -1532,6 +1718,7 @@ export type UserUncheckedUpdateWithoutActedMessagesInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1546,6 +1733,9 @@ export type UserUncheckedUpdateWithoutActedMessagesInput = {
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSavedViewsInput = {
@@ -1556,6 +1746,7 @@ export type UserCreateWithoutSavedViewsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1571,6 +1762,9 @@ export type UserCreateWithoutSavedViewsInput = {
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSavedViewsInput = {
@@ -1582,6 +1776,7 @@ export type UserUncheckedCreateWithoutSavedViewsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1596,6 +1791,9 @@ export type UserUncheckedCreateWithoutSavedViewsInput = {
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSavedViewsInput = {
@@ -1622,6 +1820,7 @@ export type UserUpdateWithoutSavedViewsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1637,6 +1836,9 @@ export type UserUpdateWithoutSavedViewsInput = {
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSavedViewsInput = {
@@ -1648,6 +1850,7 @@ export type UserUncheckedUpdateWithoutSavedViewsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1662,6 +1865,9 @@ export type UserUncheckedUpdateWithoutSavedViewsInput = {
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAuditActedInput = {
@@ -1672,6 +1878,7 @@ export type UserCreateWithoutAuditActedInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1687,6 +1894,9 @@ export type UserCreateWithoutAuditActedInput = {
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAuditActedInput = {
@@ -1698,6 +1908,7 @@ export type UserUncheckedCreateWithoutAuditActedInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1712,6 +1923,9 @@ export type UserUncheckedCreateWithoutAuditActedInput = {
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuditActedInput = {
@@ -1727,6 +1941,7 @@ export type UserCreateWithoutAuditTargetedInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1742,6 +1957,9 @@ export type UserCreateWithoutAuditTargetedInput = {
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAuditTargetedInput = {
@@ -1753,6 +1971,7 @@ export type UserUncheckedCreateWithoutAuditTargetedInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1767,6 +1986,9 @@ export type UserUncheckedCreateWithoutAuditTargetedInput = {
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuditTargetedInput = {
@@ -1793,6 +2015,7 @@ export type UserUpdateWithoutAuditActedInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1808,6 +2031,9 @@ export type UserUpdateWithoutAuditActedInput = {
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditActedInput = {
@@ -1819,6 +2045,7 @@ export type UserUncheckedUpdateWithoutAuditActedInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1833,6 +2060,9 @@ export type UserUncheckedUpdateWithoutAuditActedInput = {
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutAuditTargetedInput = {
@@ -1854,6 +2084,7 @@ export type UserUpdateWithoutAuditTargetedInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1869,6 +2100,9 @@ export type UserUpdateWithoutAuditTargetedInput = {
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditTargetedInput = {
@@ -1880,6 +2114,7 @@ export type UserUncheckedUpdateWithoutAuditTargetedInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1894,6 +2129,9 @@ export type UserUncheckedUpdateWithoutAuditTargetedInput = {
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutLinkedinSessionInput = {
@@ -1904,6 +2142,7 @@ export type UserCreateWithoutLinkedinSessionInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1919,6 +2158,9 @@ export type UserCreateWithoutLinkedinSessionInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutLinkedinSessionInput = {
@@ -1930,6 +2172,7 @@ export type UserUncheckedCreateWithoutLinkedinSessionInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1944,6 +2187,9 @@ export type UserUncheckedCreateWithoutLinkedinSessionInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutLinkedinSessionInput = {
@@ -1970,6 +2216,7 @@ export type UserUpdateWithoutLinkedinSessionInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1985,6 +2232,9 @@ export type UserUpdateWithoutLinkedinSessionInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
@@ -1996,6 +2246,7 @@ export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2010,6 +2261,9 @@ export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCampaignsInput = {
@@ -2020,6 +2274,7 @@ export type UserCreateWithoutCampaignsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2035,6 +2290,9 @@ export type UserCreateWithoutCampaignsInput = {
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCampaignsInput = {
@@ -2046,6 +2304,7 @@ export type UserUncheckedCreateWithoutCampaignsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2060,6 +2319,9 @@ export type UserUncheckedCreateWithoutCampaignsInput = {
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCampaignsInput = {
@@ -2086,6 +2348,7 @@ export type UserUpdateWithoutCampaignsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2101,6 +2364,9 @@ export type UserUpdateWithoutCampaignsInput = {
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCampaignsInput = {
@@ -2112,6 +2378,7 @@ export type UserUncheckedUpdateWithoutCampaignsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2126,6 +2393,9 @@ export type UserUncheckedUpdateWithoutCampaignsInput = {
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutImportsInput = {
@@ -2136,6 +2406,7 @@ export type UserCreateWithoutImportsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2151,6 +2422,9 @@ export type UserCreateWithoutImportsInput = {
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutImportsInput = {
@@ -2162,6 +2436,7 @@ export type UserUncheckedCreateWithoutImportsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2176,6 +2451,9 @@ export type UserUncheckedCreateWithoutImportsInput = {
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutImportsInput = {
@@ -2202,6 +2480,7 @@ export type UserUpdateWithoutImportsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2217,6 +2496,9 @@ export type UserUpdateWithoutImportsInput = {
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutImportsInput = {
@@ -2228,6 +2510,7 @@ export type UserUncheckedUpdateWithoutImportsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2242,6 +2525,9 @@ export type UserUncheckedUpdateWithoutImportsInput = {
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutContactListsInput = {
@@ -2252,6 +2538,7 @@ export type UserCreateWithoutContactListsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2267,6 +2554,9 @@ export type UserCreateWithoutContactListsInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContactListsInput = {
@@ -2278,6 +2568,7 @@ export type UserUncheckedCreateWithoutContactListsInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2292,6 +2583,9 @@ export type UserUncheckedCreateWithoutContactListsInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContactListsInput = {
@@ -2318,6 +2612,7 @@ export type UserUpdateWithoutContactListsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2333,6 +2628,9 @@ export type UserUpdateWithoutContactListsInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactListsInput = {
@@ -2344,6 +2642,7 @@ export type UserUncheckedUpdateWithoutContactListsInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2358,6 +2657,9 @@ export type UserUncheckedUpdateWithoutContactListsInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSequencesInput = {
@@ -2368,6 +2670,7 @@ export type UserCreateWithoutSequencesInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2383,6 +2686,9 @@ export type UserCreateWithoutSequencesInput = {
   imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSequencesInput = {
@@ -2394,6 +2700,7 @@ export type UserUncheckedCreateWithoutSequencesInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2408,6 +2715,9 @@ export type UserUncheckedCreateWithoutSequencesInput = {
   imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
   contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSequencesInput = {
@@ -2434,6 +2744,7 @@ export type UserUpdateWithoutSequencesInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2449,6 +2760,9 @@ export type UserUpdateWithoutSequencesInput = {
   imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSequencesInput = {
@@ -2460,6 +2774,7 @@ export type UserUncheckedUpdateWithoutSequencesInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2474,9 +2789,12 @@ export type UserUncheckedUpdateWithoutSequencesInput = {
   imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
-export type UserCreateManyOrgInput = {
+export type UserCreateWithoutExtensionTasksInput = {
   id?: string
   email: string
   emailVerified?: Date | string | null
@@ -2484,10 +2802,73 @@ export type UserCreateManyOrgInput = {
   image?: string | null
   title?: string | null
   role?: $Enums.Role
+  timezone?: string
   createdAt?: Date | string
+  org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
 }
 
-export type UserUpdateWithoutOrgInput = {
+export type UserUncheckedCreateWithoutExtensionTasksInput = {
+  id?: string
+  orgId: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  createdAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewUncheckedCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutExtensionTasksInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutExtensionTasksInput, Prisma.UserUncheckedCreateWithoutExtensionTasksInput>
+}
+
+export type UserUpsertWithoutExtensionTasksInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutExtensionTasksInput, Prisma.UserUncheckedUpdateWithoutExtensionTasksInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutExtensionTasksInput, Prisma.UserUncheckedCreateWithoutExtensionTasksInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutExtensionTasksInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutExtensionTasksInput, Prisma.UserUncheckedUpdateWithoutExtensionTasksInput>
+}
+
+export type UserUpdateWithoutExtensionTasksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2495,7 +2876,9 @@ export type UserUpdateWithoutOrgInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   contacts?: Prisma.ContactUpdateManyWithoutOwnerNestedInput
@@ -2510,16 +2893,20 @@ export type UserUpdateWithoutOrgInput = {
   contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
 }
 
-export type UserUncheckedUpdateWithoutOrgInput = {
+export type UserUncheckedUpdateWithoutExtensionTasksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2535,6 +2922,342 @@ export type UserUncheckedUpdateWithoutOrgInput = {
   contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
   linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutExtensionSessionInput = {
+  id?: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  createdAt?: Date | string
+  org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutExtensionSessionInput = {
+  id?: string
+  orgId: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  createdAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewUncheckedCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutExtensionSessionInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutExtensionSessionInput, Prisma.UserUncheckedCreateWithoutExtensionSessionInput>
+}
+
+export type UserUpsertWithoutExtensionSessionInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutExtensionSessionInput, Prisma.UserUncheckedUpdateWithoutExtensionSessionInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutExtensionSessionInput, Prisma.UserUncheckedCreateWithoutExtensionSessionInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutExtensionSessionInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutExtensionSessionInput, Prisma.UserUncheckedUpdateWithoutExtensionSessionInput>
+}
+
+export type UserUpdateWithoutExtensionSessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutExtensionSessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUncheckedUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutExtensionAlertsInput = {
+  id?: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  createdAt?: Date | string
+  org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutExtensionAlertsInput = {
+  id?: string
+  orgId: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  createdAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewUncheckedCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutExtensionAlertsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutExtensionAlertsInput, Prisma.UserUncheckedCreateWithoutExtensionAlertsInput>
+}
+
+export type UserUpsertWithoutExtensionAlertsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutExtensionAlertsInput, Prisma.UserUncheckedUpdateWithoutExtensionAlertsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutExtensionAlertsInput, Prisma.UserUncheckedCreateWithoutExtensionAlertsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutExtensionAlertsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutExtensionAlertsInput, Prisma.UserUncheckedUpdateWithoutExtensionAlertsInput>
+}
+
+export type UserUpdateWithoutExtensionAlertsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutExtensionAlertsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUncheckedUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+}
+
+export type UserCreateManyOrgInput = {
+  id?: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  createdAt?: Date | string
+}
+
+export type UserUpdateWithoutOrgInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOrgInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUncheckedUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutOrgInput = {
@@ -2545,6 +3268,7 @@ export type UserUncheckedUpdateManyWithoutOrgInput = {
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -2567,6 +3291,8 @@ export type UserCountOutputType = {
   imports: number
   contactLists: number
   sequences: number
+  extensionTasks: number
+  extensionAlerts: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2583,6 +3309,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   imports?: boolean | UserCountOutputTypeCountImportsArgs
   contactLists?: boolean | UserCountOutputTypeCountContactListsArgs
   sequences?: boolean | UserCountOutputTypeCountSequencesArgs
+  extensionTasks?: boolean | UserCountOutputTypeCountExtensionTasksArgs
+  extensionAlerts?: boolean | UserCountOutputTypeCountExtensionAlertsArgs
 }
 
 /**
@@ -2686,6 +3414,20 @@ export type UserCountOutputTypeCountSequencesArgs<ExtArgs extends runtime.Types.
   where?: Prisma.SequenceWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountExtensionTasksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ExtensionTaskWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountExtensionAlertsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ExtensionAlertWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2696,6 +3438,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   image?: boolean
   title?: boolean
   role?: boolean
+  timezone?: boolean
   createdAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -2712,6 +3455,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   contactLists?: boolean | Prisma.User$contactListsArgs<ExtArgs>
   linkedinSession?: boolean | Prisma.User$linkedinSessionArgs<ExtArgs>
   sequences?: boolean | Prisma.User$sequencesArgs<ExtArgs>
+  extensionTasks?: boolean | Prisma.User$extensionTasksArgs<ExtArgs>
+  extensionSession?: boolean | Prisma.User$extensionSessionArgs<ExtArgs>
+  extensionAlerts?: boolean | Prisma.User$extensionAlertsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2724,6 +3470,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   image?: boolean
   title?: boolean
   role?: boolean
+  timezone?: boolean
   createdAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -2737,6 +3484,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   image?: boolean
   title?: boolean
   role?: boolean
+  timezone?: boolean
   createdAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -2750,10 +3498,11 @@ export type UserSelectScalar = {
   image?: boolean
   title?: boolean
   role?: boolean
+  timezone?: boolean
   createdAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "email" | "emailVerified" | "name" | "image" | "title" | "role" | "createdAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "email" | "emailVerified" | "name" | "image" | "title" | "role" | "timezone" | "createdAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -2770,6 +3519,9 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   contactLists?: boolean | Prisma.User$contactListsArgs<ExtArgs>
   linkedinSession?: boolean | Prisma.User$linkedinSessionArgs<ExtArgs>
   sequences?: boolean | Prisma.User$sequencesArgs<ExtArgs>
+  extensionTasks?: boolean | Prisma.User$extensionTasksArgs<ExtArgs>
+  extensionSession?: boolean | Prisma.User$extensionSessionArgs<ExtArgs>
+  extensionAlerts?: boolean | Prisma.User$extensionAlertsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2797,6 +3549,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     contactLists: Prisma.$ContactListPayload<ExtArgs>[]
     linkedinSession: Prisma.$LinkedinSessionPayload<ExtArgs> | null
     sequences: Prisma.$SequencePayload<ExtArgs>[]
+    extensionTasks: Prisma.$ExtensionTaskPayload<ExtArgs>[]
+    extensionSession: Prisma.$ExtensionSessionPayload<ExtArgs> | null
+    extensionAlerts: Prisma.$ExtensionAlertPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2807,6 +3562,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     image: string | null
     title: string | null
     role: $Enums.Role
+    timezone: string
     createdAt: Date
   }, ExtArgs["result"]["user"]>
   composites: {}
@@ -3217,6 +3973,9 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   contactLists<T extends Prisma.User$contactListsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$contactListsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContactListPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   linkedinSession<T extends Prisma.User$linkedinSessionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$linkedinSessionArgs<ExtArgs>>): Prisma.Prisma__LinkedinSessionClient<runtime.Types.Result.GetResult<Prisma.$LinkedinSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   sequences<T extends Prisma.User$sequencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sequencesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SequencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  extensionTasks<T extends Prisma.User$extensionTasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$extensionTasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExtensionTaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  extensionSession<T extends Prisma.User$extensionSessionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$extensionSessionArgs<ExtArgs>>): Prisma.Prisma__ExtensionSessionClient<runtime.Types.Result.GetResult<Prisma.$ExtensionSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  extensionAlerts<T extends Prisma.User$extensionAlertsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$extensionAlertsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExtensionAlertPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3254,6 +4013,7 @@ export interface UserFieldRefs {
   readonly image: Prisma.FieldRef<"User", 'String'>
   readonly title: Prisma.FieldRef<"User", 'String'>
   readonly role: Prisma.FieldRef<"User", 'Role'>
+  readonly timezone: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
 }
     
@@ -3984,6 +4744,73 @@ export type User$sequencesArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.SequenceScalarFieldEnum | Prisma.SequenceScalarFieldEnum[]
+}
+
+/**
+ * User.extensionTasks
+ */
+export type User$extensionTasksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ExtensionTask
+   */
+  select?: Prisma.ExtensionTaskSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ExtensionTask
+   */
+  omit?: Prisma.ExtensionTaskOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ExtensionTaskInclude<ExtArgs> | null
+  where?: Prisma.ExtensionTaskWhereInput
+  orderBy?: Prisma.ExtensionTaskOrderByWithRelationInput | Prisma.ExtensionTaskOrderByWithRelationInput[]
+  cursor?: Prisma.ExtensionTaskWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ExtensionTaskScalarFieldEnum | Prisma.ExtensionTaskScalarFieldEnum[]
+}
+
+/**
+ * User.extensionSession
+ */
+export type User$extensionSessionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ExtensionSession
+   */
+  select?: Prisma.ExtensionSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ExtensionSession
+   */
+  omit?: Prisma.ExtensionSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ExtensionSessionInclude<ExtArgs> | null
+  where?: Prisma.ExtensionSessionWhereInput
+}
+
+/**
+ * User.extensionAlerts
+ */
+export type User$extensionAlertsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ExtensionAlert
+   */
+  select?: Prisma.ExtensionAlertSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ExtensionAlert
+   */
+  omit?: Prisma.ExtensionAlertOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ExtensionAlertInclude<ExtArgs> | null
+  where?: Prisma.ExtensionAlertWhereInput
+  orderBy?: Prisma.ExtensionAlertOrderByWithRelationInput | Prisma.ExtensionAlertOrderByWithRelationInput[]
+  cursor?: Prisma.ExtensionAlertWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ExtensionAlertScalarFieldEnum | Prisma.ExtensionAlertScalarFieldEnum[]
 }
 
 /**

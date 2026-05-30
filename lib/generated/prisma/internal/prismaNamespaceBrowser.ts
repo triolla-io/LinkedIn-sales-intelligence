@@ -74,7 +74,10 @@ export const ModelName = {
   Sequence: 'Sequence',
   SequenceStep: 'SequenceStep',
   SequenceEnrollment: 'SequenceEnrollment',
-  SequenceStepExecution: 'SequenceStepExecution'
+  SequenceStepExecution: 'SequenceStepExecution',
+  ExtensionTask: 'ExtensionTask',
+  ExtensionSession: 'ExtensionSession',
+  ExtensionAlert: 'ExtensionAlert'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -150,6 +153,7 @@ export const UserScalarFieldEnum = {
   image: 'image',
   title: 'title',
   role: 'role',
+  timezone: 'timezone',
   createdAt: 'createdAt'
 } as const
 
@@ -446,6 +450,53 @@ export const SequenceStepExecutionScalarFieldEnum = {
 } as const
 
 export type SequenceStepExecutionScalarFieldEnum = (typeof SequenceStepExecutionScalarFieldEnum)[keyof typeof SequenceStepExecutionScalarFieldEnum]
+
+
+export const ExtensionTaskScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  kind: 'kind',
+  status: 'status',
+  payload: 'payload',
+  recipientId: 'recipientId',
+  sequenceExecutionId: 'sequenceExecutionId',
+  scheduledFor: 'scheduledFor',
+  claimedAt: 'claimedAt',
+  completedAt: 'completedAt',
+  attemptCount: 'attemptCount',
+  errorCode: 'errorCode',
+  errorMessage: 'errorMessage',
+  result: 'result',
+  createdAt: 'createdAt'
+} as const
+
+export type ExtensionTaskScalarFieldEnum = (typeof ExtensionTaskScalarFieldEnum)[keyof typeof ExtensionTaskScalarFieldEnum]
+
+
+export const ExtensionSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  tokenHash: 'tokenHash',
+  tokenPrefix: 'tokenPrefix',
+  lastSeenAt: 'lastSeenAt',
+  version: 'version',
+  createdAt: 'createdAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type ExtensionSessionScalarFieldEnum = (typeof ExtensionSessionScalarFieldEnum)[keyof typeof ExtensionSessionScalarFieldEnum]
+
+
+export const ExtensionAlertScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  kind: 'kind',
+  message: 'message',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type ExtensionAlertScalarFieldEnum = (typeof ExtensionAlertScalarFieldEnum)[keyof typeof ExtensionAlertScalarFieldEnum]
 
 
 export const SortOrder = {

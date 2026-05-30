@@ -121,6 +121,7 @@ model User {
   image         String?
   title         String?
   role          Role      @default(SALESPERSON)
+  timezone      String    @default("UTC")
   createdAt     DateTime  @default(now())
 
   org             Organization      @relation(fields: [orgId], references: [id])
@@ -572,6 +573,7 @@ model ExtensionTask {
   kind                ExtensionTaskKind
   status              ExtensionTaskStatus @default(PENDING)
   payload             Json
+  // Polymorphic: CampaignRecipient.id (kind=SEND) or SequenceStepExecution.id (kind=CHECK_REPLY). No FK enforced by design.
   recipientId         String?
   sequenceExecutionId String?
   scheduledFor        DateTime            @default(now())

@@ -461,6 +461,57 @@ export type EnumEnrollmentStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumEnrollmentStatusFilter<$PrismaModel>
 }
 
+export type EnumExtensionTaskKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExtensionTaskKind | Prisma.EnumExtensionTaskKindFieldRefInput<$PrismaModel>
+  in?: $Enums.ExtensionTaskKind[] | Prisma.ListEnumExtensionTaskKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExtensionTaskKind[] | Prisma.ListEnumExtensionTaskKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExtensionTaskKindFilter<$PrismaModel> | $Enums.ExtensionTaskKind
+}
+
+export type EnumExtensionTaskStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExtensionTaskStatus | Prisma.EnumExtensionTaskStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ExtensionTaskStatus[] | Prisma.ListEnumExtensionTaskStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExtensionTaskStatus[] | Prisma.ListEnumExtensionTaskStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExtensionTaskStatusFilter<$PrismaModel> | $Enums.ExtensionTaskStatus
+}
+
+export type EnumExtensionTaskKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExtensionTaskKind | Prisma.EnumExtensionTaskKindFieldRefInput<$PrismaModel>
+  in?: $Enums.ExtensionTaskKind[] | Prisma.ListEnumExtensionTaskKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExtensionTaskKind[] | Prisma.ListEnumExtensionTaskKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExtensionTaskKindWithAggregatesFilter<$PrismaModel> | $Enums.ExtensionTaskKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumExtensionTaskKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumExtensionTaskKindFilter<$PrismaModel>
+}
+
+export type EnumExtensionTaskStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExtensionTaskStatus | Prisma.EnumExtensionTaskStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ExtensionTaskStatus[] | Prisma.ListEnumExtensionTaskStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExtensionTaskStatus[] | Prisma.ListEnumExtensionTaskStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExtensionTaskStatusWithAggregatesFilter<$PrismaModel> | $Enums.ExtensionTaskStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumExtensionTaskStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumExtensionTaskStatusFilter<$PrismaModel>
+}
+
+export type EnumExtensionAlertKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExtensionAlertKind | Prisma.EnumExtensionAlertKindFieldRefInput<$PrismaModel>
+  in?: $Enums.ExtensionAlertKind[] | Prisma.ListEnumExtensionAlertKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExtensionAlertKind[] | Prisma.ListEnumExtensionAlertKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExtensionAlertKindFilter<$PrismaModel> | $Enums.ExtensionAlertKind
+}
+
+export type EnumExtensionAlertKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExtensionAlertKind | Prisma.EnumExtensionAlertKindFieldRefInput<$PrismaModel>
+  in?: $Enums.ExtensionAlertKind[] | Prisma.ListEnumExtensionAlertKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExtensionAlertKind[] | Prisma.ListEnumExtensionAlertKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExtensionAlertKindWithAggregatesFilter<$PrismaModel> | $Enums.ExtensionAlertKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumExtensionAlertKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumExtensionAlertKindFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -865,6 +916,57 @@ export type NestedEnumEnrollmentStatusWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumEnrollmentStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumEnrollmentStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumExtensionTaskKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExtensionTaskKind | Prisma.EnumExtensionTaskKindFieldRefInput<$PrismaModel>
+  in?: $Enums.ExtensionTaskKind[] | Prisma.ListEnumExtensionTaskKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExtensionTaskKind[] | Prisma.ListEnumExtensionTaskKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExtensionTaskKindFilter<$PrismaModel> | $Enums.ExtensionTaskKind
+}
+
+export type NestedEnumExtensionTaskStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExtensionTaskStatus | Prisma.EnumExtensionTaskStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ExtensionTaskStatus[] | Prisma.ListEnumExtensionTaskStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExtensionTaskStatus[] | Prisma.ListEnumExtensionTaskStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExtensionTaskStatusFilter<$PrismaModel> | $Enums.ExtensionTaskStatus
+}
+
+export type NestedEnumExtensionTaskKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExtensionTaskKind | Prisma.EnumExtensionTaskKindFieldRefInput<$PrismaModel>
+  in?: $Enums.ExtensionTaskKind[] | Prisma.ListEnumExtensionTaskKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExtensionTaskKind[] | Prisma.ListEnumExtensionTaskKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExtensionTaskKindWithAggregatesFilter<$PrismaModel> | $Enums.ExtensionTaskKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumExtensionTaskKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumExtensionTaskKindFilter<$PrismaModel>
+}
+
+export type NestedEnumExtensionTaskStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExtensionTaskStatus | Prisma.EnumExtensionTaskStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ExtensionTaskStatus[] | Prisma.ListEnumExtensionTaskStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExtensionTaskStatus[] | Prisma.ListEnumExtensionTaskStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExtensionTaskStatusWithAggregatesFilter<$PrismaModel> | $Enums.ExtensionTaskStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumExtensionTaskStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumExtensionTaskStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumExtensionAlertKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExtensionAlertKind | Prisma.EnumExtensionAlertKindFieldRefInput<$PrismaModel>
+  in?: $Enums.ExtensionAlertKind[] | Prisma.ListEnumExtensionAlertKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExtensionAlertKind[] | Prisma.ListEnumExtensionAlertKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExtensionAlertKindFilter<$PrismaModel> | $Enums.ExtensionAlertKind
+}
+
+export type NestedEnumExtensionAlertKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExtensionAlertKind | Prisma.EnumExtensionAlertKindFieldRefInput<$PrismaModel>
+  in?: $Enums.ExtensionAlertKind[] | Prisma.ListEnumExtensionAlertKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExtensionAlertKind[] | Prisma.ListEnumExtensionAlertKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExtensionAlertKindWithAggregatesFilter<$PrismaModel> | $Enums.ExtensionAlertKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumExtensionAlertKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumExtensionAlertKindFilter<$PrismaModel>
 }
 
 

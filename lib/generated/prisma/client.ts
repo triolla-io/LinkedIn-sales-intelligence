@@ -161,3 +161,18 @@ export type SequenceEnrollment = Prisma.SequenceEnrollmentModel
  * 
  */
 export type SequenceStepExecution = Prisma.SequenceStepExecutionModel
+/**
+ * Model ExtensionTask
+ * 
+ */
+export type ExtensionTask = Prisma.ExtensionTaskModel
+/**
+ * Model ExtensionSession
+ * 
+ */
+export type ExtensionSession = Prisma.ExtensionSessionModel
+/**
+ * Model ExtensionAlert
+ * 
+ */
+export type ExtensionAlert = Prisma.ExtensionAlertModel
