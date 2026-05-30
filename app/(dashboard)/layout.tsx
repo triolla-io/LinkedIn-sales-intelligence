@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import SidebarShell from "@/components/dashboard/sidebar-shell";
 import ImpersonationBanner from "@/components/dashboard/impersonation-banner";
 import { Toaster } from "@/components/ui/toaster";
+import { ExtensionBanner } from "@/components/extension-banner";
 
 export default async function DashboardLayout({
   children,
@@ -44,6 +45,7 @@ export default async function DashboardLayout({
         {impersonatedUser && (
           <ImpersonationBanner name={impersonatedUser.name} />
         )}
+        <ExtensionBanner />
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
       <Toaster />
