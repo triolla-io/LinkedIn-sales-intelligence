@@ -12,6 +12,7 @@ import { campaignFinalize } from "@/inngest/functions/campaign-finalize";
 import { sequenceStart } from "@/inngest/functions/sequence-start";
 import { sequenceTick } from "@/inngest/functions/sequence-tick";
 import { sequenceSendExecution } from "@/inngest/functions/sequence-send-execution";
+import { extensionTaskResult } from "@/inngest/functions/extension-task-result";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -28,5 +29,6 @@ export const { GET, POST, PUT } = serve({
     sequenceStart,
     sequenceTick,
     sequenceSendExecution,
+    extensionTaskResult,
   ],
 });
