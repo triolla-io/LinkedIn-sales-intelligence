@@ -2,6 +2,7 @@ import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { checkSendQuota } from "@/lib/campaigns/throttle";
 import { publish } from "@/lib/linkedin/sse-bus";
+import { computeNextScheduledFor } from "@/lib/extension/task-scheduler";
 
 const MAX_ATTEMPTS = 3;
 
@@ -12,7 +13,11 @@ export async function campaignSendOneHandler({ event }: any) {
   const recipient = await prisma.campaignRecipient.findUnique({
     where: { id: recipientId },
     include: {
-      campaign: true,
+      campaign: {
+        include: {
+          owner: { select: { timezone: true } },
+        },
+      },
       contact: true,
     },
   });
@@ -32,7 +37,45 @@ export async function campaignSendOneHandler({ event }: any) {
   });
 
   try {
-    throw new Error("LinkedIn MCP client removed — reconnect the LinkedIn MCP service to restore sending");
+    const linkedinUrl = recipient.contact.linkedinUrl;
+    if (!linkedinUrl) {
+      await prisma.campaignRecipient.update({
+        where: { id: recipientId },
+        data: { status: "FAILED", errorMessage: "missing_linkedin_url" },
+      });
+      await inngest.send({ name: "campaign.finalize", data: { campaignId: recipient.campaignId } });
+      return;
+    }
+
+    const text = recipient.renderedBody ?? "";
+    const { sentTodayCount, sentLastHourCount, lastSentAt } = await getSendStats(recipient.campaign.ownerId);
+
+    const scheduledFor = computeNextScheduledFor({
+      timezone: recipient.campaign.owner?.timezone ?? "Asia/Jerusalem",
+      workingHoursStart: 9,
+      workingHoursEnd: 18,
+      weekdaysOnly: true,
+      lastSentAt,
+      sentTodayCount,
+      sentLastHourCount,
+      dailyCap: 30,
+      hourlyCap: 8,
+    });
+
+    await prisma.extensionTask.create({
+      data: {
+        userId: recipient.campaign.ownerId,
+        kind: "SEND",
+        payload: { linkedinUrl, text },
+        recipientId: recipient.id,
+        scheduledFor,
+      },
+    });
+
+    await prisma.campaignRecipient.update({
+      where: { id: recipientId },
+      data: { status: "QUEUED" },
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     const shouldRetry = recipient.attemptCount + 1 < MAX_ATTEMPTS;
@@ -46,6 +89,17 @@ export async function campaignSendOneHandler({ event }: any) {
   } finally {
     await inngest.send({ name: "campaign.finalize", data: { campaignId: recipient.campaignId } });
   }
+}
+
+async function getSendStats(userId: string) {
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const [today, lastHour, last] = await Promise.all([
+    prisma.sentMessage.count({ where: { senderId: userId, sentAt: { gte: dayAgo } } }),
+    prisma.sentMessage.count({ where: { senderId: userId, sentAt: { gte: hourAgo } } }),
+    prisma.sentMessage.findFirst({ where: { senderId: userId }, orderBy: { sentAt: "desc" }, select: { sentAt: true } }),
+  ]);
+  return { sentTodayCount: today, sentLastHourCount: lastHour, lastSentAt: last?.sentAt ?? null };
 }
 
 async function pauseCampaign(campaignId: string, actorId: string, reason: string) {
