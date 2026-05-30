@@ -72,6 +72,23 @@ describe("computeNextScheduledFor", () => {
     expect(out.toISOString()).toMatch(/^2026-06-02T09:/);
   });
 
+  it("Jerusalem timezone: outside hours pushes to next day 09:00 Jerusalem time (06:00 UTC)", () => {
+    vi.setSystemTime(new Date("2026-06-01T20:00:00Z")); // Monday 23:00 Jerusalem (outside 9-18)
+    const out = computeNextScheduledFor({
+      timezone: "Asia/Jerusalem",
+      workingHoursStart: 9,
+      workingHoursEnd: 18,
+      weekdaysOnly: true,
+      lastSentAt: null,
+      sentTodayCount: 0,
+      sentLastHourCount: 0,
+      dailyCap: 30,
+      hourlyCap: 8,
+    });
+    // 09:00 Jerusalem on 2026-06-02 = 06:00 UTC (Jerusalem is UTC+3)
+    expect(out.toISOString()).toBe("2026-06-02T06:00:00.000Z");
+  });
+
   it("at hourly cap → pushes to next hour", () => {
     vi.setSystemTime(new Date("2026-06-01T10:00:00Z"));
     const out = computeNextScheduledFor({

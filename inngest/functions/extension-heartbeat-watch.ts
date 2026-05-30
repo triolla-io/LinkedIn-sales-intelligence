@@ -5,6 +5,12 @@ const OFFLINE_THRESHOLD_MIN = 10;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function extensionHeartbeatWatchHandler(_: any) {
+  const staleThreshold = new Date(Date.now() - 5 * 60_000); // 5 minutes
+  await prisma.extensionTask.updateMany({
+    where: { status: "CLAIMED", claimedAt: { lt: staleThreshold } },
+    data: { status: "PENDING", claimedAt: null },
+  });
+
   const threshold = new Date(Date.now() - OFFLINE_THRESHOLD_MIN * 60_000);
   const sessions = await prisma.extensionSession.findMany({
     where: { revokedAt: null, OR: [{ lastSeenAt: null }, { lastSeenAt: { lt: threshold } }] },

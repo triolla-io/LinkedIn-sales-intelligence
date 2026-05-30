@@ -74,11 +74,26 @@ function toZonedParts(d: Date, tz: string): { hour: number; weekday: number } {
 }
 
 function setHourInZone(d: Date, tz: string, hour: number): Date {
+  // Get the local calendar date in the target timezone
   const ymd = new Intl.DateTimeFormat("en-CA", {
     timeZone: tz,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   }).format(d);
-  return new Date(`${ymd}T${String(hour).padStart(2, "0")}:00:00Z`);
+
+  // Start from UTC midnight of that local date
+  const utcMidnight = new Date(`${ymd}T00:00:00Z`);
+
+  // Find what local hour UTC midnight maps to in the target timezone
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    hour: "numeric",
+    hour12: false,
+  });
+  const localHourAtMidnight = Number(fmt.formatToParts(utcMidnight).find(p => p.type === "hour")!.value) % 24;
+
+  // Shift from midnight to the desired local hour
+  const deltaHours = hour - localHourAtMidnight;
+  return new Date(utcMidnight.getTime() + deltaHours * 3_600_000);
 }
