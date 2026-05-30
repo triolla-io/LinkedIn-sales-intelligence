@@ -136,8 +136,11 @@ model User {
   campaigns       Campaign[]
   imports         Import[]
   contactLists    ContactList[]
-  linkedinSession LinkedinSession?
-  sequences       Sequence[]
+  linkedinSession  LinkedinSession?
+  sequences        Sequence[]
+  extensionTasks   ExtensionTask[]   @relation("UserExtensionTasks")
+  extensionSession ExtensionSession? @relation("UserExtensionSession")
+  extensionAlerts  ExtensionAlert[]  @relation("UserExtensionAlerts")
 }
 
 model Contact {
@@ -336,10 +339,12 @@ enum CampaignStatus {
 
 enum RecipientStatus {
   PENDING
+  QUEUED
   SENDING
   SENT
   FAILED
   SKIPPED
+  REPLIED
 }
 
 enum SequenceStatus {
@@ -355,6 +360,23 @@ enum EnrollmentStatus {
   ACTIVE
   COMPLETED
   UNSUBSCRIBED
+}
+
+enum ExtensionTaskKind {
+  SEND
+  CHECK_REPLY
+}
+
+enum ExtensionTaskStatus {
+  PENDING
+  CLAIMED
+  DONE
+  FAILED
+}
+
+enum ExtensionAlertKind {
+  OFFLINE
+  CHECKPOINT
 }
 
 // ─── Campaign models ──────────────────────────────────────────────────────────
@@ -539,4 +561,52 @@ model SequenceStepExecution {
 
   @@unique([enrollmentId, stepId])
   @@index([status, scheduledAt])
+}
+
+// ─── Extension models ─────────────────────────────────────────────────────────
+
+model ExtensionTask {
+  id                  String              @id @default(cuid())
+  userId              String
+  user                User                @relation("UserExtensionTasks", fields: [userId], references: [id], onDelete: Cascade)
+  kind                ExtensionTaskKind
+  status              ExtensionTaskStatus @default(PENDING)
+  payload             Json
+  recipientId         String?
+  sequenceExecutionId String?
+  scheduledFor        DateTime            @default(now())
+  claimedAt           DateTime?
+  completedAt         DateTime?
+  attemptCount        Int                 @default(0)
+  errorCode           String?
+  errorMessage        String?
+  result              Json?
+  createdAt           DateTime            @default(now())
+
+  @@index([userId, status, scheduledFor])
+  @@index([recipientId])
+}
+
+model ExtensionSession {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  user        User      @relation("UserExtensionSession", fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash   String    @unique
+  tokenPrefix String
+  lastSeenAt  DateTime?
+  version     String?
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+}
+
+model ExtensionAlert {
+  id         String             @id @default(cuid())
+  userId     String
+  user       User               @relation("UserExtensionAlerts", fields: [userId], references: [id], onDelete: Cascade)
+  kind       ExtensionAlertKind
+  message    String
+  createdAt  DateTime           @default(now())
+  resolvedAt DateTime?
+
+  @@index([userId, resolvedAt])
 }
