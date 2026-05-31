@@ -1,111 +1,85 @@
-import { SEL } from "./selectors";
 import { humanPause, sleep } from "../human/timing";
 
 export async function sendMessage(text: string): Promise<{ sentAt: string; conversationUrl: string }> {
-  if (location.href.includes("/checkpoint/") || document.querySelector(SEL.checkpointMarker)) {
+  if (location.href.includes("/checkpoint/")) {
     throw withCode(new Error("LinkedIn checkpoint detected"), "checkpoint");
   }
 
-  await humanPause(2000, 5000);
+  // Extract profile slug from current URL
+  const slug = location.pathname.replace(/^\/in\//, "").replace(/\/$/, "");
+  if (!slug) throw withCode(new Error("Cannot extract profile slug from URL"), "bad_payload");
 
-  const msgBtn = await waitFor(SEL.messageButton, 15_000);
-  if (!msgBtn) throw withCode(new Error("Message button not found"), "not_messageable");
-  (msgBtn as HTMLElement).click();
+  await humanPause(1500, 3000);
 
-  const editor = await waitFor(SEL.composeEditor, 10_000);
-  if (!editor) throw withCode(new Error("Compose editor not found"), "selector_missing");
+  // Get CSRF token (JSESSIONID cookie)
+  const csrf = getCsrfToken();
+  if (!csrf) throw withCode(new Error("No JSESSIONID cookie — not logged in?"), "checkpoint");
 
-  await typeIntoEditor(editor as HTMLElement, text);
-  await humanPause(800, 1500);
+  const headers: Record<string, string> = {
+    "csrf-token": csrf,
+    "content-type": "application/json",
+    "x-restli-protocol-version": "2.0.0",
+  };
 
-  const sendBtn = document.querySelector(SEL.composeSendButton) as HTMLButtonElement | null;
-  if (!sendBtn) throw withCode(new Error("Send button not found"), "selector_missing");
+  // Step 1: Resolve profile slug → member URN
+  const profileRes = await fetch(`/voyager/api/identity/profiles/${slug}`, {
+    headers,
+    credentials: "include",
+  });
+  if (!profileRes.ok) {
+    throw withCode(new Error(`Profile lookup failed: ${profileRes.status}`), "not_messageable");
+  }
+  const profileData = await profileRes.json();
+  const memberUrn: string | undefined =
+    profileData?.data?.entityUrn ??
+    profileData?.included?.[0]?.entityUrn;
 
-  // If the button is still disabled, text didn't land — fail explicitly
-  if (sendBtn.disabled) {
-    throw withCode(new Error("Send button disabled — text did not enter editor"), "selector_missing");
+  if (!memberUrn) {
+    throw withCode(new Error("Could not find member URN in profile response"), "selector_missing");
   }
 
   await sleep(500);
 
-  // Try clicking the send button with a full mouse event sequence
-  sendBtn.focus();
-  sendBtn.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
-  sendBtn.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, cancelable: true }));
-  sendBtn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
-  sendBtn.click();
-
-  await sleep(800);
-
-  // Fallback: press Enter in the editor (LinkedIn sends on Enter by default)
-  const editorAfter = findVisible(SEL.composeEditor);
-  if (editorAfter) {
-    editorAfter.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", keyCode: 13, bubbles: true, cancelable: true }));
-    editorAfter.dispatchEvent(new KeyboardEvent("keyup", { key: "Enter", keyCode: 13, bubbles: true }));
-  }
-
-  await humanPause(1500, 2500);
-  return { sentAt: new Date().toISOString(), conversationUrl: location.href };
-}
-
-async function typeIntoEditor(el: HTMLElement, text: string): Promise<void> {
-  el.focus();
-  await sleep(300);
-
-  // Method 1: execCommand — most React-compatible, fires beforeinput+input events
-  // Requires the document to be active (tab must be active: true)
-  el.click();
-  await sleep(100);
-  const inserted = document.execCommand("insertText", false, text);
-
-  if (inserted && el.textContent?.trim()) return;
-
-  // Method 2: Manual DOM + InputEvent — works even without user-activation
-  await sleep(100);
-  el.focus();
-
-  // Clear and insert via range
-  const range = document.createRange();
-  range.selectNodeContents(el);
-  const sel = window.getSelection();
-  if (sel) {
-    sel.removeAllRanges();
-    sel.addRange(range);
-    range.deleteContents();
-  }
-  const textNode = document.createTextNode(text);
-  range.insertNode(textNode);
-
-  // Move cursor to end
-  range.setStartAfter(textNode);
-  range.collapse(true);
-  if (sel) { sel.removeAllRanges(); sel.addRange(range); }
-
-  // Fire input event so React updates its state
-  el.dispatchEvent(new InputEvent("input", { inputType: "insertText", data: text, bubbles: true, composed: true }));
-  await sleep(200);
-}
-
-function waitFor(sel: string, timeoutMs: number): Promise<Element | null> {
-  return new Promise((resolve) => {
-    const found = findVisible(sel);
-    if (found) return resolve(found);
-    const start = Date.now();
-    const id = setInterval(() => {
-      const el = findVisible(sel);
-      if (el) { clearInterval(id); return resolve(el); }
-      if (Date.now() - start > timeoutMs) { clearInterval(id); return resolve(null); }
-    }, 200);
+  // Step 2: Send message via Voyager API
+  const msgRes = await fetch("/voyager/api/messaging/conversations?action=create", {
+    method: "POST",
+    headers,
+    credentials: "include",
+    body: JSON.stringify({
+      keyVersion: "LEGACY_INBOX",
+      conversationCreate: {
+        recipients: [memberUrn],
+        subtype: "MEMBER_TO_MEMBER",
+        body: text,
+      },
+    }),
   });
+
+  if (!msgRes.ok) {
+    const errText = await msgRes.text().catch(() => "");
+    throw withCode(new Error(`Voyager API send failed ${msgRes.status}: ${errText}`), "selector_missing");
+  }
+
+  const msgData = await msgRes.json();
+  const conversationUrn: string =
+    msgData?.value?.entityUrn ??
+    msgData?.data?.entityUrn ??
+    "";
+
+  return {
+    sentAt: new Date().toISOString(),
+    conversationUrl: conversationUrn
+      ? `https://www.linkedin.com/messaging/thread/${conversationUrn.split(":").pop()}/`
+      : location.href,
+  };
 }
 
-function findVisible(sel: string): Element | null {
-  const els = document.querySelectorAll(sel);
-  for (const el of els) {
-    const r = el.getBoundingClientRect();
-    if (r.width > 0 && r.height > 0) return el;
-  }
-  return null;
+function getCsrfToken(): string | null {
+  const match = document.cookie
+    .split("; ")
+    .find((c) => c.startsWith("JSESSIONID="));
+  if (!match) return null;
+  return match.split("=")[1].replace(/"/g, "");
 }
 
 function withCode(err: Error, code: string): Error & { code: string } {
