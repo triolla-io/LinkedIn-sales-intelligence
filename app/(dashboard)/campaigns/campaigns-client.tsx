@@ -40,7 +40,9 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED: "בוטל",
 };
 
-function currentStepNumber(enrollments: Sequence["enrollments"]): number | null {
+function currentStepNumber(
+  enrollments: Sequence["enrollments"],
+): number | null {
   const counts: Record<number, number> = {};
   for (const enr of enrollments) {
     for (const ex of enr.executions) {
@@ -54,7 +56,13 @@ function currentStepNumber(enrollments: Sequence["enrollments"]): number | null 
   return Number(entries.reduce((a, b) => (b[1] > a[1] ? b : a))[0]);
 }
 
-function StepTimeline({ steps, currentStep }: { steps: Step[]; currentStep: number | null }) {
+function StepTimeline({
+  steps,
+  currentStep,
+}: {
+  steps: Step[];
+  currentStep: number | null;
+}) {
   if (steps.length === 0) return null;
   return (
     <div className="flex items-center gap-1 flex-wrap">
@@ -70,9 +78,9 @@ function StepTimeline({ steps, currentStep }: { steps: Step[]; currentStep: numb
               }`}
             >
               {step.channel === "EMAIL" ? (
-                <Mail className="w-2.5 h-2.5" />
+                <Mail className="size-2.5" />
               ) : (
-                <MessageSquare className="w-2.5 h-2.5" />
+                <MessageSquare className="size-2.5" />
               )}
               שלב {step.stepNumber}
               {step.dayOffset > 0 && (
@@ -139,12 +147,24 @@ export default function CampaignsClient({
             קמפיין חדש
           </button>
         </div>
+        <button
+          type="button"
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 bg-[#1585ff] text-white text-sm font-medium px-3.5 py-2 rounded-lg hover:bg-[#0f6fd4] transition-colors"
+        >
+          <Plus className="size-4" />
+          קמפיין חדש
+        </button>
       </div>
 
       {sequences.length === 0 ? (
         <div className="border border-dashed border-[#e5e3df] rounded-xl p-12 text-center">
-          <p className="text-sm font-medium text-[#111110]">אין קמפיינים עדיין</p>
-          <p className="text-xs text-[#9b9895] mt-1">צור קמפיין כדי להתחיל לשלוח הודעות</p>
+          <p className="text-sm font-medium text-[#111110]">
+            אין קמפיינים עדיין
+          </p>
+          <p className="text-xs text-[#9b9895] mt-1">
+            צור קמפיין כדי להתחיל לשלוח הודעות
+          </p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -172,24 +192,35 @@ export default function CampaignsClient({
                         {STATUS_LABELS[seq.status] ?? seq.status}
                       </span>
                     </div>
-                    <p className="text-xs text-[#9b9895] mt-0.5">{seq.contactList.name}</p>
+                    <p className="text-xs text-[#9b9895] mt-0.5">
+                      {seq.contactList.name}
+                    </p>
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-xs text-[#6b6866]">
-                        {seq._count.enrollments} אנשי קשר · {seq.steps.length} שלבים
+                        {seq._count.enrollments} אנשי קשר · {seq.steps.length}{" "}
+                        שלבים
                       </span>
                     </div>
                     <div className="mt-2">
-                      <StepTimeline steps={seq.steps} currentStep={currentStep} />
+                      <StepTimeline
+                        steps={seq.steps}
+                        currentStep={currentStep}
+                      />
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {(canPause || canResume) && (
                       <button
+                        type="button"
                         onClick={() => togglePause(seq)}
                         className="p-1.5 text-[#9b9895] hover:text-[#6b6866] hover:bg-[#f3f2ef] rounded transition-colors"
                         title={canPause ? "השהה" : "המשך"}
                       >
-                        {canPause ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                        {canPause ? (
+                          <Pause className="size-3.5" />
+                        ) : (
+                          <Play className="size-3.5" />
+                        )}
                       </button>
                     )}
                     {/* TODO: add delete endpoint */}

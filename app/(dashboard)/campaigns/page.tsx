@@ -7,35 +7,35 @@ export default async function CampaignsPage() {
   const session = await auth();
   if (!session?.user) redirect("/sign-in");
 
-  const sequences = await prisma.sequence.findMany({
-    where: { ownerId: session.user.id },
-    orderBy: { createdAt: "desc" },
-    include: {
-      steps: { orderBy: { stepNumber: "asc" }, select: { stepNumber: true, channel: true, dayOffset: true } },
-      contactList: { select: { name: true } },
-      _count: { select: { enrollments: true } },
-      enrollments: {
-        select: {
-          executions: {
-            where: { status: { not: "SKIPPED" } },
-            select: { status: true, step: { select: { stepNumber: true } } },
+  const [sequences, lists, templates] = await Promise.all([
+    prisma.sequence.findMany({
+      where: { ownerId: session.user.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        steps: { orderBy: { stepNumber: "asc" }, select: { stepNumber: true, channel: true, dayOffset: true } },
+        contactList: { select: { name: true } },
+        _count: { select: { enrollments: true } },
+        enrollments: {
+          select: {
+            executions: {
+              where: { status: { not: "SKIPPED" } },
+              select: { status: true, step: { select: { stepNumber: true } } },
+            },
           },
         },
       },
-    },
-  });
-
-  const lists = await prisma.contactList.findMany({
-    where: { ownerId: session.user.id },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true },
-  });
-
-  const templates = await prisma.messageTemplate.findMany({
-    where: { ownerId: session.user.id },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true },
-  });
+    }),
+    prisma.contactList.findMany({
+      where: { ownerId: session.user.id },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+    prisma.messageTemplate.findMany({
+      where: { ownerId: session.user.id },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+  ]);
 
   const extensionSession = await prisma.extensionSession.findFirst({
     where: { userId: session.user.id, revokedAt: null },

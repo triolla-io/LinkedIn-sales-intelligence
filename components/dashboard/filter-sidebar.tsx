@@ -1,31 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Search, X, ChevronDown, ChevronUp, BookMarked, ChevronLeft, ChevronRight } from "lucide-react";
+import useSWR from "swr";
 import { cn } from "@/lib/cn";
 import { useCollapsed } from "@/lib/hooks/use-collapsed";
+import { type Filters, DEFAULT_FILTERS } from "./filter-types";
 
-export type Filters = {
-  seniority: string[];
-  function: string[];
-  q: string;
-  titleSearch: string[];
-  industry: string[];
-  companySizeBuckets: string[];
-  hasEmail?: boolean;
-  hasPhone?: boolean;
-  listId?: string;
-};
-
-export const DEFAULT_FILTERS: Filters = {
-  seniority: [],
-  function: [],
-  q: "",
-  titleSearch: [],
-  industry: [],
-  companySizeBuckets: [],
-  listId: undefined,
-};
+// Re-export so existing consumers can still import from this file
+export type { Filters };
+export { DEFAULT_FILTERS };
 
 const COMPANY_SIZE_BUCKETS = [
   { label: "1 – 10", value: "1-10" },
@@ -73,7 +57,9 @@ function Section({
   return (
     <div className="border-b border-[#e5e3df] last:border-0">
       <button
+        type="button"
         onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
         className="flex items-center justify-between w-full px-4 py-2.5 text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest hover:text-[#6b6866] transition-colors"
       >
         <span className="flex items-center gap-2">
@@ -84,7 +70,7 @@ function Section({
             </span>
           )}
         </span>
-        {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        {open ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
       </button>
       {open && <div className="px-4 pb-4">{children}</div>}
     </div>
@@ -95,8 +81,8 @@ function ActivePill({ label, onRemove }: { label: string; onRemove: () => void }
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-[#1585ff]/10 text-[#1585ff] border border-[#1585ff]/20">
       {label}
-      <button onClick={onRemove} className="hover:text-[#0a65c7] transition-colors">
-        <X className="w-2.5 h-2.5" />
+      <button type="button" onClick={onRemove} aria-label={`הסר ${label}`} className="hover:text-[#0a65c7] transition-colors">
+        <X className="size-2.5" />
       </button>
     </span>
   );
@@ -121,17 +107,13 @@ function countActiveFilters(filters: Filters): number {
   );
 }
 
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
 export default function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
   const [customTitle, setCustomTitle] = useState("");
-  const [lists, setLists] = useState<{ id: string; name: string; memberCount: number }[]>([]);
+  const { data: listsData } = useSWR("/api/lists", fetcher);
+  const lists: { id: string; name: string; memberCount: number }[] = listsData?.lists ?? [];
   const [collapsed, toggleCollapsed] = useCollapsed("filter-sidebar-collapsed");
-
-  useEffect(() => {
-    fetch("/api/lists")
-      .then((r) => r.json())
-      .then((d) => setLists(d.lists ?? []))
-      .catch(() => {});
-  }, []);
 
   const hasFilters =
     filters.q ||
@@ -168,16 +150,18 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
         style={{ width: 32 }}
       >
         {activeCount > 0 && (
-          <span className="w-5 h-5 rounded-full bg-[#1585ff] text-white text-[9px] font-mono font-semibold flex items-center justify-center">
+          <span className="size-5 rounded-full bg-[#1585ff] text-white text-[9px] font-mono font-semibold flex items-center justify-center">
             {activeCount > 9 ? "9+" : activeCount}
           </span>
         )}
         <button
+          type="button"
           onClick={toggleCollapsed}
           title="הרחב פילטרים"
-          className="flex items-center justify-center w-6 h-6 rounded text-[#9b9895] hover:text-[#6b6866] hover:bg-[#f3f2ef] transition-colors"
+          aria-label="הרחב פילטרים"
+          className="flex items-center justify-center size-6 rounded text-[#9b9895] hover:text-[#6b6866] hover:bg-[#f3f2ef] transition-colors"
         >
-          <ChevronRight className="w-3.5 h-3.5" />
+          <ChevronRight className="size-3.5" />
         </button>
       </div>
     );
@@ -193,26 +177,31 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
         <div className="flex items-center gap-2 mb-2">
           <span className="flex-1 text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest">סינון</span>
           <button
+            type="button"
             onClick={toggleCollapsed}
             title="כווץ פילטרים"
-            className="flex items-center justify-center w-5 h-5 rounded text-[#c8c5c2] hover:text-[#6b6866] hover:bg-[#f3f2ef] transition-colors"
+            aria-label="כווץ פילטרים"
+            className="flex items-center justify-center size-5 rounded text-[#c8c5c2] hover:text-[#6b6866] hover:bg-[#f3f2ef] transition-colors"
           >
-            <ChevronLeft className="w-3.5 h-3.5" />
+            <ChevronLeft className="size-3.5" />
           </button>
         </div>
         <div className="relative">
           {filters.q ? (
             <button
+              type="button"
+              aria-label="נקה חיפוש"
               onClick={() => onChange({ ...filters, q: "" })}
               className="absolute left-3 top-1/2 -translate-y-1/2"
             >
-              <X className="w-3.5 h-3.5 text-[#9b9895] hover:text-[#6b6866]" />
+              <X className="size-3.5 text-[#9b9895] hover:text-[#6b6866]" />
             </button>
           ) : (
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9b9895]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-[#9b9895]" />
           )}
           <input
             type="text"
+            aria-label="חיפוש אנשי קשר"
             placeholder="חיפוש אנשי קשר…"
             value={filters.q}
             onChange={(e) => onChange({ ...filters, q: e.target.value })}
@@ -226,12 +215,13 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
         {lists.length > 0 && (
           <div className="border-b border-[#e5e3df] px-4 py-3">
             <p className="text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest mb-2 flex items-center gap-1.5">
-              <BookMarked className="w-3 h-3" />
+              <BookMarked className="size-3" />
               רשימות
             </p>
             <div className="space-y-0.5">
               {lists.map((list) => (
                 <button
+                  type="button"
                   key={list.id}
                   onClick={() =>
                     onChange({
@@ -261,14 +251,20 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
               const active = filters.companySizeBuckets.includes(b.value);
               return (
                 <label key={b.value} className="flex items-center gap-2.5 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={active}
+                    onChange={() => toggle("companySizeBuckets", b.value)}
+                    className="sr-only"
+                  />
                   <div
+                    aria-hidden="true"
                     className={cn(
-                      "w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all",
+                      "size-3.5 rounded border flex items-center justify-center shrink-0 transition-all",
                       active
                         ? "bg-[#1585ff] border-[#1585ff]"
                         : "bg-white border-[#d4d0cc] group-hover:border-[#9b9895]"
                     )}
-                    onClick={() => toggle("companySizeBuckets", b.value)}
                   >
                     {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 -rotate-45" />}
                   </div>
@@ -291,6 +287,7 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
               const active = (filters[pill.filterKey] as string[]).includes(pill.value);
               return (
                 <button
+                  type="button"
                   key={pill.label}
                   onClick={() => toggle(pill.filterKey, pill.value)}
                   className={cn(
@@ -307,6 +304,7 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
           </div>
           <input
             type="text"
+            aria-label="הוסף תפקיד"
             placeholder="הוסף תפקיד…"
             value={customTitle}
             onChange={(e) => setCustomTitle(e.target.value)}
@@ -314,29 +312,30 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
             className="w-full px-3 py-1.5 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-xs text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
           />
           <div className="flex flex-wrap gap-1 mt-2">
-            {filters.titleSearch
-              .filter((t) => !ROLE_PILLS.some((p) => p.value === t))
-              .map((t) => (
-                <ActivePill key={t} label={t} onRemove={() => toggle("titleSearch", t)} />
-              ))}
+            {filters.titleSearch.flatMap((t) =>
+              ROLE_PILLS.some((p) => p.value === t)
+                ? []
+                : [<ActivePill key={t} label={t} onRemove={() => toggle("titleSearch", t)} />]
+            )}
           </div>
         </Section>
 
         {/* Industry */}
         <Section title="ענף" defaultOpen={false} activeCount={filters.industry.length}>
           <div className="flex flex-wrap gap-1.5">
-            {INDUSTRY_PILLS.map((i) => (
+            {INDUSTRY_PILLS.map((industry) => (
               <button
-                key={i}
-                onClick={() => toggle("industry", i)}
+                type="button"
+                key={industry}
+                onClick={() => toggle("industry", industry)}
                 className={cn(
                   "px-2 py-0.5 rounded text-xs font-medium border transition-all",
-                  filters.industry.includes(i)
+                  filters.industry.includes(industry)
                     ? "bg-[#1585ff]/10 text-[#1585ff] border-[#1585ff]/30"
                     : "bg-white text-[#6b6866] border-[#d4d0cc] hover:border-[#9b9895] hover:text-[#111110]"
                 )}
               >
-                {i}
+                {industry}
               </button>
             ))}
           </div>
@@ -352,14 +351,20 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
               const active = !!filters[key];
               return (
                 <label key={key} className="flex items-center gap-2.5 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={active}
+                    onChange={() => onChange({ ...filters, [key]: active ? undefined : true })}
+                    className="sr-only"
+                  />
                   <div
+                    aria-hidden="true"
                     className={cn(
-                      "w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all",
+                      "size-3.5 rounded border flex items-center justify-center shrink-0 transition-all",
                       active
                         ? "bg-[#1585ff] border-[#1585ff]"
                         : "bg-white border-[#d4d0cc] group-hover:border-[#9b9895]"
                     )}
-                    onClick={() => onChange({ ...filters, [key]: active ? undefined : true })}
                   >
                     {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 -rotate-45" />}
                   </div>
@@ -380,10 +385,11 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
       {hasFilters && (
         <div className="p-3 border-t border-[#e5e3df]">
           <button
+            type="button"
             onClick={() => onChange(DEFAULT_FILTERS)}
             className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-mono text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors"
           >
-            <X className="w-3 h-3" />
+            <X className="size-3" />
             נקה הכל
           </button>
         </div>

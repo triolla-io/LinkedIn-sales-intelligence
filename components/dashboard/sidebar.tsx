@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Users, FileText, Shield, LogOut, LayoutDashboard, Upload,
   BookMarked, GitBranch, ChevronLeft, ChevronRight, Settings,
@@ -41,21 +42,21 @@ const adminItems = [
   { href: "/admin", label: "ניהול", icon: Shield },
 ];
 
+async function handleSignOut() {
+  await fetch("/api/auth/signout", { method: "POST" });
+  window.location.href = "/sign-in";
+}
+
 export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
 
-  async function handleSignOut() {
-    await fetch("/api/auth/signout", { method: "POST" });
-    window.location.href = "/sign-in";
-  }
-
   return (
     <aside className="flex flex-col h-full bg-white border-l border-[#e5e3df] overflow-hidden">
       {/* Logo */}
-      <div className={cn("border-b border-[#e5e3df] shrink-0", collapsed ? "px-3 py-5 flex justify-center" : "px-5 py-5")}>
+      <div className={cn("border-b border-[#e5e3df] shrink-0", collapsed ? "px-3 py-5 flex justify-center" : "p-5")}>
         <div className={cn("flex items-center gap-2.5", collapsed && "justify-center")}>
-          <div className="w-8 h-8 bg-[#1585ff] rounded-lg flex items-center justify-center shrink-0">
+          <div className="size-8 bg-[#1585ff] rounded-lg flex items-center justify-center shrink-0">
             <span className="text-white text-xs font-bold font-mono">{collapsed ? "L" : "LF"}</span>
           </div>
           {!collapsed && (
@@ -73,13 +74,14 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
             </p>
           )}
           <button
+            type="button"
             onClick={onToggle}
             title={collapsed ? "הרחב תפריט" : "כווץ תפריט"}
-            className="flex items-center justify-center w-6 h-6 rounded-md text-[#c8c5c2] hover:text-[#6b6866] hover:bg-[#f3f2ef] transition-colors"
+            className="flex items-center justify-center size-6 rounded-md text-[#c8c5c2] hover:text-[#6b6866] hover:bg-[#f3f2ef] transition-colors"
           >
             {collapsed
-              ? <ChevronLeft className="w-3.5 h-3.5" />
-              : <ChevronRight className="w-3.5 h-3.5" />}
+              ? <ChevronLeft className="size-3.5" />
+              : <ChevronRight className="size-3.5" />}
           </button>
         </div>
         {navItems.map(({ href, label, icon: Icon }) => {
@@ -93,13 +95,13 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
               title={collapsed ? label : undefined}
               className={cn(
                 "flex items-center rounded-md text-sm transition-colors",
-                collapsed ? "justify-center px-2 py-2" : "gap-2.5 px-2.5 py-2",
+                collapsed ? "justify-center p-2" : "gap-2.5 px-2.5 py-2",
                 active
                   ? "bg-[#eff5ff] text-[#1585ff] font-medium"
                   : "text-[#6b6866] hover:bg-[#f3f2ef] hover:text-[#111110]"
               )}
             >
-              <Icon className="w-4 h-4 shrink-0" />
+              <Icon className="size-4 shrink-0" />
               {!collapsed && label}
             </Link>
           );
@@ -122,13 +124,13 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                   title={collapsed ? label : undefined}
                   className={cn(
                     "flex items-center rounded-md text-sm transition-colors",
-                    collapsed ? "justify-center px-2 py-2" : "gap-2.5 px-2.5 py-2",
+                    collapsed ? "justify-center p-2" : "gap-2.5 px-2.5 py-2",
                     active
                       ? "bg-[#eff5ff] text-[#1585ff] font-medium"
                       : "text-[#6b6866] hover:bg-[#f3f2ef] hover:text-[#111110]"
                   )}
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
+                  <Icon className="size-4 shrink-0" />
                   {!collapsed && label}
                 </Link>
               );
@@ -141,18 +143,21 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
       <div className={cn("px-2.5 py-4 border-t border-[#e5e3df]", collapsed && "flex justify-center")}>
         {collapsed ? (
           <button
+            type="button"
             onClick={handleSignOut}
             title="יציאה"
             className="flex items-center justify-center"
           >
             {user.image ? (
-              <img
+              <Image
                 src={user.image}
                 alt={user.name}
-                className="w-7 h-7 rounded-full object-cover ring-1 ring-[#e5e3df]"
+                width={28}
+                height={28}
+                className="size-7 rounded-full object-cover ring-1 ring-[#e5e3df]"
               />
             ) : (
-              <div className="w-7 h-7 rounded-full bg-[#e5e3df] flex items-center justify-center">
+              <div className="size-7 rounded-full bg-[#e5e3df] flex items-center justify-center">
                 <span className="text-[#6b6866] text-xs font-mono font-medium">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
@@ -162,13 +167,15 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
         ) : (
           <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md">
             {user.image ? (
-              <img
+              <Image
                 src={user.image}
                 alt={user.name}
-                className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-[#e5e3df]"
+                width={28}
+                height={28}
+                className="size-7 rounded-full object-cover shrink-0 ring-1 ring-[#e5e3df]"
               />
             ) : (
-              <div className="w-7 h-7 rounded-full bg-[#e5e3df] flex items-center justify-center shrink-0">
+              <div className="size-7 rounded-full bg-[#e5e3df] flex items-center justify-center shrink-0">
                 <span className="text-[#6b6866] text-xs font-mono font-medium">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
@@ -179,11 +186,12 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
               <p className="text-[10px] text-[#9b9895] truncate">{user.email}</p>
             </div>
             <button
+              type="button"
               onClick={handleSignOut}
               className="text-[#c8c5c2] hover:text-[#9b9895] transition-colors"
               title="יציאה"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut className="size-3.5" />
             </button>
           </div>
         )}

@@ -18,11 +18,17 @@ export function NewCampaignModal({
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [whatsappConnected, setWhatsappConnected] = useState<boolean | null>(null);
-  const [channel, setChannel] = useState<"WHATSAPP" | "EMAIL" | "LINKEDIN">("WHATSAPP");
+  const [whatsappConnected, setWhatsappConnected] = useState<boolean | null>(
+    null,
+  );
+  const [channel, setChannel] = useState<"WHATSAPP" | "EMAIL" | "LINKEDIN">(
+    "WHATSAPP",
+  );
   const [subject, setSubject] = useState("");
   const [gmailConnected, setGmailConnected] = useState<boolean | null>(null);
-  const [extensionConnected, setExtensionConnected] = useState<boolean | null>(null);
+  const [extensionConnected, setExtensionConnected] = useState<boolean | null>(
+    null,
+  );
   const router = useRouter();
 
   useEffect(() => {
@@ -34,7 +40,9 @@ export function NewCampaignModal({
 
     fetch("/api/whatsapp/status")
       .then((r) => r.json())
-      .then((d: { status: string }) => setWhatsappConnected(d.status === "CONNECTED"))
+      .then((d: { status: string }) =>
+        setWhatsappConnected(d.status === "CONNECTED"),
+      )
       .catch(() => setWhatsappConnected(false));
 
     fetch("/api/gmail/status")
@@ -44,12 +52,22 @@ export function NewCampaignModal({
 
     fetch("/api/extension/sessions")
       .then((r) => r.json())
-      .then((d: { session: { lastSeenAt: string | null; revokedAt: string | null } | null }) => {
-        const s = d.session;
-        if (!s || s.revokedAt) { setExtensionConnected(false); return; }
-        const lastSeen = s.lastSeenAt ? new Date(s.lastSeenAt).getTime() : 0;
-        setExtensionConnected(Date.now() - lastSeen < 10 * 60 * 1000);
-      })
+      .then(
+        (d: {
+          session: {
+            lastSeenAt: string | null;
+            revokedAt: string | null;
+          } | null;
+        }) => {
+          const s = d.session;
+          if (!s || s.revokedAt) {
+            setExtensionConnected(false);
+            return;
+          }
+          const lastSeen = s.lastSeenAt ? new Date(s.lastSeenAt).getTime() : 0;
+          setExtensionConnected(Date.now() - lastSeen < 10 * 60 * 1000);
+        },
+      )
       .catch(() => setExtensionConnected(false));
 
     fetch("/api/templates")
@@ -82,11 +100,18 @@ export function NewCampaignModal({
         }),
       });
       const json = await res.json();
-      if (!res.ok) { setError(json.error ?? "Failed to create campaign"); return; }
-      const startRes = await fetch(`/api/campaigns/${json.campaign.id}/start`, { method: "POST" });
+      if (!res.ok) {
+        setError(json.error ?? "Failed to create campaign");
+        return;
+      }
+      const startRes = await fetch(`/api/campaigns/${json.campaign.id}/start`, {
+        method: "POST",
+      });
       if (!startRes.ok) {
         const startJson = await startRes.json();
-        setError(startJson.message ?? startJson.error ?? "Failed to start campaign");
+        setError(
+          startJson.message ?? startJson.error ?? "Failed to start campaign",
+        );
         return;
       }
       router.push(`/campaigns/${json.campaign.id}`);
@@ -98,14 +123,18 @@ export function NewCampaignModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
+      onClick={onClose}
+    >
       <div
         className="w-[520px] rounded-xl border border-[#e5e3df] bg-white p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-semibold text-[#111110]">New campaign</h2>
         <p className="mt-1 text-sm text-[#9b9895]">
-          Sending to {contactIds.length} contact{contactIds.length === 1 ? "" : "s"}.
+          Sending to {contactIds.length} contact
+          {contactIds.length === 1 ? "" : "s"}.
         </p>
 
         {/* Channel selector */}
@@ -120,7 +149,11 @@ export function NewCampaignModal({
                   : "bg-white text-[#6b6866] hover:text-[#111110]"
               }`}
             >
-              {ch === "WHATSAPP" ? "WhatsApp" : ch === "EMAIL" ? "Email" : "LinkedIn"}
+              {ch === "WHATSAPP"
+                ? "WhatsApp"
+                : ch === "EMAIL"
+                  ? "Email"
+                  : "LinkedIn"}
             </button>
           ))}
         </div>
@@ -128,7 +161,10 @@ export function NewCampaignModal({
         {channel === "WHATSAPP" && whatsappConnected === false && (
           <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-700">
             WhatsApp not connected.{" "}
-            <a href="/whatsapp-connect" className="underline hover:text-amber-800">
+            <a
+              href="/whatsapp-connect"
+              className="underline hover:text-amber-800"
+            >
               Connect your account →
             </a>{" "}
             You won&apos;t be able to send until it&apos;s connected.
@@ -137,7 +173,10 @@ export function NewCampaignModal({
         {channel === "EMAIL" && gmailConnected === false && (
           <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-700">
             Gmail not authorized.{" "}
-            <a href="/api/auth/signin" className="underline hover:text-amber-800">
+            <a
+              href="/api/auth/signin"
+              className="underline hover:text-amber-800"
+            >
               Re-authorize your Google account →
             </a>{" "}
             You won&apos;t be able to send until it&apos;s connected.
@@ -146,7 +185,10 @@ export function NewCampaignModal({
         {channel === "LINKEDIN" && extensionConnected === false && (
           <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-700">
             Chrome extension not connected.{" "}
-            <a href="/settings/extension" className="underline hover:text-amber-800">
+            <a
+              href="/settings/extension"
+              className="underline hover:text-amber-800"
+            >
               Set up the extension →
             </a>{" "}
             Keep Chrome open during sending.
@@ -155,7 +197,9 @@ export function NewCampaignModal({
 
         {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
 
-        <label className="mt-4 block text-xs uppercase tracking-wide text-[#9b9895] font-mono">Campaign name</label>
+        <label className="mt-4 block text-xs uppercase tracking-wide text-[#9b9895] font-mono">
+          Campaign name
+        </label>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -165,7 +209,9 @@ export function NewCampaignModal({
 
         {channel === "EMAIL" && (
           <>
-            <label className="mt-4 block text-xs uppercase tracking-wide text-[#9b9895] font-mono">Email subject</label>
+            <label className="mt-4 block text-xs uppercase tracking-wide text-[#9b9895] font-mono">
+              Email subject
+            </label>
             <input
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
@@ -175,14 +221,18 @@ export function NewCampaignModal({
           </>
         )}
 
-        <label className="mt-4 block text-xs uppercase tracking-wide text-[#9b9895] font-mono">Template</label>
+        <label className="mt-4 block text-xs uppercase tracking-wide text-[#9b9895] font-mono">
+          Template
+        </label>
         <select
           value={templateId}
           onChange={(e) => setTemplateId(e.target.value)}
           className="mt-1 w-full rounded-lg bg-[#f8f7f5] border border-[#e5e3df] px-3 py-2 text-[#111110] focus:outline-none focus:ring-1 focus:ring-[#1585ff] text-sm"
         >
           {templates.map((t) => (
-            <option key={t.id} value={t.id}>{t.name}</option>
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
           ))}
         </select>
 
@@ -206,7 +256,8 @@ export function NewCampaignModal({
               !templateId ||
               busy ||
               (channel === "WHATSAPP" && whatsappConnected === false) ||
-              (channel === "EMAIL" && (!subject.trim() || gmailConnected === false)) ||
+              (channel === "EMAIL" &&
+                (!subject.trim() || gmailConnected === false)) ||
               (channel === "LINKEDIN" && extensionConnected === false)
             }
             className="rounded-lg bg-[#1585ff] px-3 py-1.5 text-sm text-white disabled:opacity-50 hover:bg-[#0a70e0] transition-colors"

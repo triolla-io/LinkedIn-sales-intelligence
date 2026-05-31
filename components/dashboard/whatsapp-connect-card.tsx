@@ -1,7 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import useSWR from "swr";
 
 type WaStatus = "CONNECTED" | "QR_PENDING" | "DISCONNECTED" | "LOADING" | "LINKING" | "SERVICE_UNAVAILABLE";
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export function WhatsAppConnectCard() {
   const [status, setStatus] = useState<WaStatus>("LOADING");
@@ -9,6 +13,8 @@ export function WhatsAppConnectCard() {
   const [qr, setQr] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
   const esRef = useRef<EventSource | null>(null);
+  const streamStartedRef = useRef(false);
+  function clearEsRef() { esRef.current = null; }
 
   function openStream() {
     if (esRef.current) return;
@@ -51,21 +57,27 @@ export function WhatsAppConnectCard() {
     es.onerror = onErr;
   }
 
+  const { data: statusData, error: statusError } = useSWR<{ status: WaStatus; phone?: string }>(
+    "/api/whatsapp/status",
+    fetcher,
+    { revalidateOnFocus: false, revalidateOnReconnect: false }
+  );
+
   useEffect(() => {
-    fetch("/api/whatsapp/status")
-      .then((r) => r.json())
-      .then((d: { status: WaStatus; phone?: string }) => {
-        if (d.status === "DISCONNECTED" || d.status === "QR_PENDING") {
-          setStatus("DISCONNECTED");
-          openStream();
-        } else {
-          setStatus(d.status);
-          if (d.phone) setPhone(d.phone);
-        }
-      })
-      .catch(() => { setStatus("DISCONNECTED"); openStream(); });
-    return () => { esRef.current?.close(); esRef.current = null; };
-  }, []);
+    if (!statusData && !statusError) return;
+    if (streamStartedRef.current) return;
+    streamStartedRef.current = true;
+
+    if (statusError || statusData?.status === "DISCONNECTED" || statusData?.status === "QR_PENDING") {
+      setStatus("DISCONNECTED");
+      openStream();
+    } else if (statusData) {
+      setStatus(statusData.status);
+      if (statusData.phone) setPhone(statusData.phone);
+    }
+    const es = esRef.current;
+    return () => { es?.close(); clearEsRef(); };
+  }, [statusData, statusError]);
 
   async function handleDisconnect() {
     setDisconnecting(true);
@@ -89,13 +101,14 @@ export function WhatsAppConnectCard() {
     return (
       <div className="rounded-xl border border-[#e5e3df] bg-white p-6">
         <div className="flex items-center gap-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-red-400 shrink-0" />
+          <span className="size-2.5 rounded-full bg-red-400 shrink-0" />
           <div>
             <p className="text-sm font-medium text-[#111110]">שירות WhatsApp לא זמין</p>
             <p className="text-xs text-[#9b9895] mt-0.5">שירות WhatsApp אינו פעיל. בדוק את הגדרות ההפצה שלך.</p>
           </div>
         </div>
         <button
+          type="button"
           onClick={() => { setStatus("DISCONNECTED"); openStream(); }}
           className="mt-4 rounded-lg border border-[#e5e3df] px-3 py-1.5 text-sm text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] transition-colors"
         >
@@ -109,13 +122,14 @@ export function WhatsAppConnectCard() {
     return (
       <div className="rounded-xl border border-[#e5e3df] bg-white p-6">
         <div className="flex items-center gap-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-green-500 shrink-0" />
+          <span className="size-2.5 rounded-full bg-green-500 shrink-0" />
           <div>
             <p className="text-sm font-medium text-[#111110]">WhatsApp מחובר</p>
             {phone && <p className="text-xs text-[#9b9895] mt-0.5">{phone}</p>}
           </div>
         </div>
         <button
+          type="button"
           onClick={handleDisconnect}
           disabled={disconnecting}
           className="mt-4 rounded-lg border border-[#e5e3df] px-3 py-1.5 text-sm text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] transition-colors disabled:opacity-50"
@@ -130,13 +144,13 @@ export function WhatsAppConnectCard() {
     return (
       <div className="rounded-xl border border-[#e5e3df] bg-white p-6">
         <div className="flex items-center gap-3">
-          <svg className="animate-spin w-4 h-4 text-[#6b6866] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin size-4 text-[#6b6866] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
           <div>
             <p className="text-sm font-medium text-[#111110]">מקשרת התקן…</p>
-            <p className="text-xs text-[#9b9895] mt-0.5">קוד QR סורוק — ממתינה לאישור WhatsApp</p>
+            <p className="text-xs text-[#9b9895] mt-0.5">קוד QR סורוק{" - "}ממתינה לאישור WhatsApp</p>
           </div>
         </div>
       </div>
@@ -157,13 +171,15 @@ export function WhatsAppConnectCard() {
 
       <div className="mt-5 flex justify-center">
         {status === "QR_PENDING" && qr ? (
-          <img
+          <Image
             src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qr)}`}
             alt="WhatsApp QR code"
-            className="w-[220px] h-[220px] rounded-lg border border-[#e5e3df]"
+            width={220}
+            height={220}
+            className="rounded-lg border border-[#e5e3df]"
           />
         ) : (
-          <div className="w-[220px] h-[220px] rounded-lg border border-[#e5e3df] bg-[#f8f7f5] flex items-center justify-center">
+          <div className="size-[220px] rounded-lg border border-[#e5e3df] bg-[#f8f7f5] flex items-center justify-center">
             <p className="text-xs text-[#9b9895]">ממתינה ל-QR…</p>
           </div>
         )}

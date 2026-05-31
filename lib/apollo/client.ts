@@ -3,7 +3,7 @@ const APOLLO_HEADERS = () => ({
   "X-Api-Key": process.env.APOLLO_API_KEY ?? "",
 });
 
-export async function matchOrganization(name: string): Promise<{
+async function matchOrganization(name: string): Promise<{
   staffCount: number | null;
   industry: string | null;
   website: string | null;
@@ -144,7 +144,7 @@ export async function matchPerson(input: {
  *
  * Errors are silently ignored — this is best-effort.
  */
-export function requestMobileReveal(input: {
+function requestMobileReveal(input: {
   name: string;
   company?: string;
   linkedinUrl?: string;

@@ -1,126 +1,144 @@
 "use client";
 
-import { useState } from "react";
+import { useReducer } from "react";
 import Link from "next/link";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import { BookMarked, Trash2, Loader2, Plus, X } from "lucide-react";
 
 type ListSummary = { id: string; name: string; memberCount: number; createdAt: string };
 
+type State = {
+  lists: ListSummary[];
+  loading: boolean;
+  deletingId: string | null;
+  creating: boolean;
+  newName: string;
+  saving: boolean;
+};
+
 export default function ListsPage() {
-  const [lists, setLists] = useState<ListSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [state, dispatch] = useReducer(
+    (s: State, action: Partial<State>) => ({ ...s, ...action }),
+    {
+      lists: [],
+      loading: true,
+      deletingId: null,
+      creating: false,
+      newName: "",
+      saving: false,
+    }
+  );
 
   async function fetchLists() {
     try {
       const res = await fetch("/api/lists");
       if (res.ok) {
         const data = await res.json();
-        setLists(data.lists ?? []);
+        dispatch({ lists: data.lists ?? [] });
       }
     } finally {
-      setLoading(false);
+      dispatch({ loading: false });
     }
   }
 
   useAutoRefresh(fetchLists, 30_000);
 
   async function deleteList(id: string) {
-    setDeletingId(id);
+    dispatch({ deletingId: id });
     await fetch(`/api/lists/${id}`, { method: "DELETE" });
-    setLists((prev) => prev.filter((l) => l.id !== id));
-    setDeletingId(null);
+    dispatch({ lists: state.lists.filter((l) => l.id !== id), deletingId: null });
   }
 
   async function createList() {
-    if (!newName.trim()) return;
-    setSaving(true);
+    if (!state.newName.trim()) return;
+    dispatch({ saving: true });
     try {
       const res = await fetch("/api/lists", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName.trim() }),
+        body: JSON.stringify({ name: state.newName.trim() }),
       });
       if (res.ok) {
         const data = await res.json();
-        setLists((prev) => [{ ...data.list, memberCount: 0 }, ...prev]);
-        setNewName("");
-        setCreating(false);
+        dispatch({
+          lists: [{ ...data.list, memberCount: 0 }, ...state.lists],
+          newName: "",
+          creating: false,
+        });
       }
     } finally {
-      setSaving(false);
+      dispatch({ saving: false });
     }
   }
 
   function cancelCreate() {
-    setCreating(false);
-    setNewName("");
+    dispatch({ creating: false, newName: "" });
   }
 
   return (
     <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
       <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <BookMarked className="w-4 h-4 text-[#1585ff]" />
+          <BookMarked className="size-4 text-[#1585ff]" />
           <h1 className="text-sm font-semibold text-[#111110] tracking-tight">רשימות תפוצה</h1>
-          {!loading && (
-            <span className="text-xs font-mono text-[#9b9895]">סה&quot;כ {lists.length}</span>
+          {!state.loading && (
+            <span className="text-xs font-mono text-[#9b9895]">סה&quot;כ {state.lists.length}</span>
           )}
         </div>
         <button
-          onClick={() => setCreating(true)}
+          type="button"
+          onClick={() => dispatch({ creating: true })}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0d6edb] rounded-lg transition-colors"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="size-3.5" />
           הוסף רשימה חדשה
         </button>
       </div>
 
-      <div className="px-5 py-5 flex-1">
-        {creating && (
+      <div className="p-5 flex-1">
+        {state.creating && (
           <div className="mb-4 bg-white border border-[#1585ff] rounded-xl p-4 shadow-sm">
             <p className="text-xs font-medium text-[#111110] mb-2">שם הרשימה</p>
             <div className="flex items-center gap-2">
               <input
-                autoFocus
                 type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
+                value={state.newName}
+                onChange={(e) => dispatch({ newName: e.target.value })}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") createList();
                   if (e.key === "Escape") cancelCreate();
                 }}
                 placeholder="למשל: לידים חמים Q2"
+                aria-label="שם הרשימה החדשה"
                 className="flex-1 text-sm px-3 py-2 border border-[#e5e3df] rounded-lg outline-none focus:border-[#1585ff] bg-[#f6f5f3] placeholder:text-[#c8c5c2]"
               />
               <button
+                type="button"
                 onClick={createList}
-                disabled={saving || !newName.trim()}
+                disabled={state.saving || !state.newName.trim()}
                 className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0d6edb] disabled:opacity-50 rounded-lg transition-colors"
               >
-                {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "צור"}
+                {state.saving ? <Loader2 className="size-3.5 animate-spin" /> : "צור"}
               </button>
               <button
+                type="button"
                 onClick={cancelCreate}
+                aria-label="בטל יצירת רשימה"
                 className="p-2 text-[#9b9895] hover:text-[#6b6866] transition-colors"
               >
-                <X className="w-4 h-4" />
+                <X className="size-4" />
               </button>
             </div>
           </div>
         )}
 
-        {loading ? (
+        {state.loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-5 h-5 text-[#9b9895] animate-spin" />
+            <Loader2 className="size-5 text-[#9b9895] animate-spin" />
           </div>
-        ) : lists.length === 0 && !creating ? (
+        ) : state.lists.length === 0 && !state.creating ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <BookMarked className="w-8 h-8 text-[#d4d0cc] mb-3" />
+            <BookMarked className="size-8 text-[#d4d0cc] mb-3" />
             <p className="text-sm text-[#6b6866]">אין רשימות עדיין</p>
             <p className="text-xs text-[#9b9895] mt-1">
               בחר אנשי קשר בדף <Link href="/contacts" className="text-[#1585ff] hover:underline">אנשי קשר</Link> ולחץ &ldquo;שמור לרשימה&rdquo;.
@@ -128,7 +146,7 @@ export default function ListsPage() {
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {lists.map((list) => (
+            {state.lists.map((list) => (
               <div
                 key={list.id}
                 className="bg-white border border-[#e5e3df] rounded-xl p-4 hover:border-[#9b9895] transition-colors group"
@@ -149,15 +167,17 @@ export default function ListsPage() {
                     </p>
                   </Link>
                   <button
+                    type="button"
                     onClick={() => deleteList(list.id)}
-                    disabled={deletingId === list.id}
+                    disabled={state.deletingId === list.id}
+                    aria-label={`מחק רשימה ${list.name}`}
                     className="shrink-0 p-1.5 text-[#d4d0cc] hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
                     title="מחק"
                   >
-                    {deletingId === list.id ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    {state.deletingId === list.id ? (
+                      <Loader2 className="size-3.5 animate-spin" />
                     ) : (
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="size-3.5" />
                     )}
                   </button>
                 </div>

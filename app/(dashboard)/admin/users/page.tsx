@@ -23,14 +23,12 @@ const ROLE_STYLES: Record<string, string> = {
 
 export default function AdminUsersPage() {
   const router = useRouter();
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<AdminUser[] | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [impersonating, setImpersonating] = useState<string | null>(null);
 
-  async function fetchUsers() {
-    setLoading(true);
-    setError(null);
+  async function loadUsers() {
     try {
       const res = await fetch("/api/admin/users");
       if (res.status === 403) {
@@ -38,17 +36,21 @@ export default function AdminUsersPage() {
         return;
       }
       if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
-      setUsers(data);
+      setUsers(await res.json());
+      setError(null);
     } catch {
       setError("Failed to load users");
-    } finally {
-      setLoading(false);
     }
   }
 
+  async function refreshUsers() {
+    setRefreshing(true);
+    try { await loadUsers(); }
+    finally { setRefreshing(false); }
+  }
+
   useEffect(() => {
-    fetchUsers();
+    loadUsers();
   }, []);
 
   async function handleImpersonate(userId: string) {
@@ -68,6 +70,8 @@ export default function AdminUsersPage() {
     }
   }
 
+  const isLoading = users === null && !error;
+
   if (error) {
     return (
       <div className="p-6">
@@ -86,20 +90,22 @@ export default function AdminUsersPage() {
           <p className="text-sm text-gray-500 mt-1">נהל משתמשים בארגון שלך</p>
         </div>
         <button
-          onClick={fetchUsers}
-          disabled={loading}
+          type="button"
+          onClick={refreshUsers}
+          disabled={refreshing}
+          aria-label="רענן רשימת משתמשים"
           className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
         >
-          <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
+          <RefreshCw className={cn("size-4", refreshing && "animate-spin")} />
           רענן
         </button>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="animate-pulse">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-4 py-4 border-b border-gray-100">
+              <div key={i} className="flex items-center gap-4 p-4 border-b border-gray-100">
                 <div className="h-4 bg-gray-200 rounded w-32" />
                 <div className="h-4 bg-gray-200 rounded w-48" />
                 <div className="h-5 bg-gray-200 rounded-full w-20" />
@@ -122,18 +128,18 @@ export default function AdminUsersPage() {
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">אנשי קשר</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">סנכרן אחרון</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">קרדיטים</th>
-                <th className="px-4 py-3" />
+                <th className="px-4 py-3" aria-label="פעולות" />
               </tr>
             </thead>
             <tbody>
-              {users.length === 0 ? (
+              {(users ?? []).length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-8 text-gray-500 text-sm">
                     לא נמצאו משתמשים
                   </td>
                 </tr>
               ) : (
-                users.map((user) => (
+                (users ?? []).map((user) => (
                   <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
                       <p className="text-sm font-medium text-gray-900">{user.name}</p>
@@ -164,14 +170,16 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-4 py-3">
                       <button
+                        type="button"
                         onClick={() => handleImpersonate(user.id)}
                         disabled={impersonating === user.id}
+                        aria-label={`צפה בחשבון של ${user.name}`}
                         className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors disabled:opacity-50"
                       >
                         {impersonating === user.id ? (
-                          <RefreshCw className="w-3 h-3 animate-spin" />
+                          <RefreshCw className="size-3 animate-spin" />
                         ) : (
-                          <ExternalLink className="w-3 h-3" />
+                          <ExternalLink className="size-3" />
                         )}
                         צפה כ
                       </button>

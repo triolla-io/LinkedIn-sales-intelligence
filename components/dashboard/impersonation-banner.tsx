@@ -22,10 +22,11 @@ export default function ImpersonationBanner({ name }: ImpersonationBannerProps) 
         Viewing as <span className="font-bold">{name}</span>
       </p>
       <button
+        type="button"
         onClick={handleExit}
         className="flex items-center gap-1 text-sm text-yellow-700 hover:text-yellow-900 font-medium transition-colors"
       >
-        <X className="w-3 h-3" />
+        <X className="size-3" />
         Exit
       </button>
     </div>

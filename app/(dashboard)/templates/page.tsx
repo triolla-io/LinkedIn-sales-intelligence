@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useReducer, useRef } from "react";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import { FileText, Plus, Trash2, Edit2, RefreshCw, Zap } from "lucide-react";
 
@@ -14,16 +14,26 @@ interface Template {
 const VARIABLE_CHIPS = ["{{firstName}}", "{{hebrewFirstName}}", "{{lastName}}", "{{company}}", "{{title}}"];
 
 function HighlightedBody({ text }: { text: string }) {
-  const parts = text.split(/({{[^}]+}})/g);
+  type Seg = { pos: number; content: string; isVar: boolean };
+  const segments: Seg[] = [];
+  let pos = 0;
+  const re = /({{[^}]+}})/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > pos) segments.push({ pos, content: text.slice(pos, m.index), isVar: false });
+    segments.push({ pos: m.index, content: m[0], isVar: true });
+    pos = m.index + m[0].length;
+  }
+  if (pos < text.length) segments.push({ pos, content: text.slice(pos), isVar: false });
   return (
     <>
-      {parts.map((part, i) =>
-        /^{{[^}]+}}$/.test(part) ? (
-          <span key={i} className="text-amber-600 font-mono bg-amber-50 px-1 rounded text-xs">
-            {part}
+      {segments.map(({ pos: p, content, isVar }) =>
+        isVar ? (
+          <span key={p} className="text-amber-600 font-mono bg-amber-50 px-1 rounded text-xs">
+            {content}
           </span>
         ) : (
-          <span key={i}>{part}</span>
+          <span key={p}>{content}</span>
         )
       )}
     </>
@@ -37,19 +47,21 @@ interface TemplateFormProps {
   submitLabel: string;
 }
 
+type FormState = { name: string; body: string; loading: boolean; error: string | null };
+
 function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateFormProps) {
-  const [name, setName] = useState(initial?.name ?? "");
-  const [body, setBody] = useState(initial?.body ?? "");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formState, formDispatch] = useReducer(
+    (s: FormState, action: Partial<FormState>) => ({ ...s, ...action }),
+    { name: initial?.name ?? "", body: initial?.body ?? "", loading: false, error: null }
+  );
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   function insertChip(chip: string) {
     const ta = textareaRef.current;
-    if (!ta) { setBody((b) => b + chip); return; }
+    if (!ta) { formDispatch({ body: formState.body + chip }); return; }
     const start = ta.selectionStart;
     const end = ta.selectionEnd;
-    setBody((b) => b.slice(0, start) + chip + b.slice(end));
+    formDispatch({ body: formState.body.slice(0, start) + chip + formState.body.slice(end) });
     requestAnimationFrame(() => {
       ta.focus();
       ta.selectionStart = ta.selectionEnd = start + chip.length;
@@ -58,43 +70,44 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !body.trim()) {
-      setError("שם וגוף ההודעה הם שדות חובה");
+    if (!formState.name.trim() || !formState.body.trim()) {
+      formDispatch({ error: "שם וגוף ההודעה הם שדות חובה" });
       return;
     }
-    setLoading(true);
-    setError(null);
+    formDispatch({ loading: true, error: null });
     try {
-      await onSubmit({ name, body });
+      await onSubmit({ name: formState.name, body: formState.body });
     } catch {
-      setError("שמירת הטמפלט נכשלה");
+      formDispatch({ error: "שמירת הטמפלט נכשלה" });
     } finally {
-      setLoading(false);
+      formDispatch({ loading: false });
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
+        <label htmlFor="template-name" className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
           שם
         </label>
         <input
+          id="template-name"
           type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={formState.name}
+          onChange={(e) => formDispatch({ name: e.target.value })}
           placeholder="למשל: יצירת קשר ראשונה"
           className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-lg px-3 py-2.5 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
         />
       </div>
       <div>
-        <label className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
+        <label htmlFor="template-body" className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
           גוף ההודעה
         </label>
         <textarea
+          id="template-body"
           ref={textareaRef}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
+          value={formState.body}
+          onChange={(e) => formDispatch({ body: e.target.value })}
           rows={6}
           placeholder={"שלום {{firstName}},\n\nשמתי לב שאתה ב-{{company}}..."}
           className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-lg px-3 py-2.5 text-sm text-[#111110] placeholder-[#c8c5c2] resize-none focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors font-mono leading-relaxed"
@@ -113,18 +126,18 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
           ))}
         </div>
       </div>
-      {error && (
+      {formState.error && (
         <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg border border-red-200">
-          {error}
+          {formState.error}
         </p>
       )}
       <div className="flex gap-2 pt-1">
         <button
           type="submit"
-          disabled={loading}
+          disabled={formState.loading}
           className="flex items-center gap-2 px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0a70e0] disabled:opacity-60 transition-colors"
         >
-          {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+          {formState.loading ? <RefreshCw className="size-3.5 animate-spin" /> : <Zap className="size-3.5" />}
           {submitLabel}
         </button>
         <button
@@ -139,26 +152,39 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
   );
 }
 
+type PageState = {
+  templates: Template[];
+  loading: boolean;
+  showCreate: boolean;
+  editingId: string | null;
+  deletingId: string | null;
+};
+
 export default function TemplatesPage() {
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreate, setShowCreate] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(
+    (s: PageState, action: Partial<PageState>) => ({ ...s, ...action }),
+    {
+      templates: [],
+      loading: true,
+      showCreate: false,
+      editingId: null,
+      deletingId: null,
+    }
+  );
   const initialFetch = useRef(true);
 
   async function fetchTemplates() {
-    if (initialFetch.current) setLoading(true);
+    if (initialFetch.current) dispatch({ loading: true });
     try {
       const res = await fetch("/api/templates");
       if (res.ok) {
         const data = await res.json();
-        setTemplates(data);
+        dispatch({ templates: data });
       }
     } catch {}
     finally {
       if (initialFetch.current) {
-        setLoading(false);
+        dispatch({ loading: false });
         initialFetch.current = false;
       }
     }
@@ -173,7 +199,7 @@ export default function TemplatesPage() {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error("Failed to create");
-    setShowCreate(false);
+    dispatch({ showCreate: false });
     await fetchTemplates();
   }
 
@@ -184,18 +210,18 @@ export default function TemplatesPage() {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error("Failed to update");
-    setEditingId(null);
+    dispatch({ editingId: null });
     await fetchTemplates();
   }
 
   async function handleDelete(id: string) {
-    setDeletingId(id);
+    dispatch({ deletingId: id });
     try {
       await fetch(`/api/templates/${id}`, { method: "DELETE" });
-      setTemplates((prev) => prev.filter((t) => t.id !== id));
+      dispatch({ templates: state.templates.filter((t) => t.id !== id) });
     } catch {}
     finally {
-      setDeletingId(null);
+      dispatch({ deletingId: null });
     }
   }
 
@@ -209,19 +235,20 @@ export default function TemplatesPage() {
             תבניות הודעות לפניות הניתנות לשימוש חוזר עם משתנים אישיים
           </p>
         </div>
-        {!showCreate && (
+        {!state.showCreate && (
           <button
-            onClick={() => setShowCreate(true)}
+            type="button"
+            onClick={() => dispatch({ showCreate: true })}
             className="flex items-center gap-2 px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0a70e0] transition-colors shrink-0"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="size-4" />
             טמפלט חדש
           </button>
         )}
       </div>
 
       {/* Create form */}
-      {showCreate && (
+      {state.showCreate && (
         <div className="bg-white border border-[#1585ff]/30 rounded-xl p-5 mb-4">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1 h-4 bg-[#1585ff] rounded-full" />
@@ -229,17 +256,17 @@ export default function TemplatesPage() {
           </div>
           <TemplateForm
             onSubmit={handleCreate}
-            onCancel={() => setShowCreate(false)}
+            onCancel={() => dispatch({ showCreate: false })}
             submitLabel="צור טמפלט"
           />
         </div>
       )}
 
       {/* Loading skeletons */}
-      {loading ? (
+      {state.loading ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-white border border-[#e5e3df] rounded-xl p-5 animate-pulse">
+            <div key={`skeleton-${i}`} className="bg-white border border-[#e5e3df] rounded-xl p-5 animate-pulse">
               <div className="h-4 bg-[#e5e3df] rounded w-36 mb-3" />
               <div className="h-3 bg-[#f3f2ef] rounded w-full mb-2" />
               <div className="h-3 bg-[#f3f2ef] rounded w-4/5 mb-2" />
@@ -247,18 +274,19 @@ export default function TemplatesPage() {
             </div>
           ))}
         </div>
-      ) : templates.length === 0 && !showCreate ? (
+      ) : state.templates.length === 0 && !state.showCreate ? (
         /* Empty state */
         <div className="bg-white border border-[#e5e3df] rounded-xl p-16 text-center">
-          <div className="w-12 h-12 bg-[#f3f2ef] border border-[#e5e3df] rounded-xl flex items-center justify-center mx-auto mb-4">
-            <FileText className="w-5 h-5 text-[#9b9895]" />
+          <div className="size-12 bg-[#f3f2ef] border border-[#e5e3df] rounded-xl flex items-center justify-center mx-auto mb-4">
+            <FileText className="size-5 text-[#9b9895]" />
           </div>
           <p className="text-[#111110] font-medium mb-1">אין טמפלטים עדיין</p>
           <p className="text-[#6b6866] text-sm mb-5">
             צור תבניות הודעות לפניות הניתנות לשימוש חוזר עם משתנים אישיים
           </p>
           <button
-            onClick={() => setShowCreate(true)}
+            type="button"
+            onClick={() => dispatch({ showCreate: true })}
             className="text-sm text-[#1585ff] hover:text-[#0a70e0] transition-colors"
           >
             ← צור את הטמפלט הראשון שלך
@@ -266,12 +294,12 @@ export default function TemplatesPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {templates.map((template) => (
+          {state.templates.map((template) => (
             <div
               key={template.id}
               className="bg-white border border-[#e5e3df] rounded-xl p-5 group hover:border-[#9b9895] transition-colors"
             >
-              {editingId === template.id ? (
+              {state.editingId === template.id ? (
                 <>
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-1 h-4 bg-amber-500 rounded-full" />
@@ -280,7 +308,7 @@ export default function TemplatesPage() {
                   <TemplateForm
                     initial={{ name: template.name, body: template.body }}
                     onSubmit={(data) => handleEdit(template.id, data)}
-                    onCancel={() => setEditingId(null)}
+                    onCancel={() => dispatch({ editingId: null })}
                     submitLabel="שמור שינויים"
                   />
                 </>
@@ -299,22 +327,26 @@ export default function TemplatesPage() {
                     </div>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
-                        onClick={() => setEditingId(template.id)}
+                        type="button"
+                        onClick={() => dispatch({ editingId: template.id })}
+                        aria-label={`ערוך טמפלט ${template.name}`}
                         className="p-1.5 text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef] rounded-md transition-colors"
                         title="ערוך"
                       >
-                        <Edit2 className="w-3.5 h-3.5" />
+                        <Edit2 className="size-3.5" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDelete(template.id)}
-                        disabled={deletingId === template.id}
+                        disabled={state.deletingId === template.id}
+                        aria-label={`מחק טמפלט ${template.name}`}
                         className="p-1.5 text-[#9b9895] hover:text-red-500 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
                         title="מחק"
                       >
-                        {deletingId === template.id ? (
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        {state.deletingId === template.id ? (
+                          <RefreshCw className="size-3.5 animate-spin" />
                         ) : (
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="size-3.5" />
                         )}
                       </button>
                     </div>

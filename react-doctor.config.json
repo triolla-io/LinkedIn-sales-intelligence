@@ -1,0 +1,16 @@
+{
+  "ignore": {
+    "files": [
+      "lib/generated/**",
+      "whatsapp-service/**",
+      "prisma/**"
+    ],
+    "rules": [],
+    "overrides": [
+      {
+        "files": ["package.json"],
+        "rules": ["deslop/unused-dev-dependency"]
+      }
+    ]
+  }
+}

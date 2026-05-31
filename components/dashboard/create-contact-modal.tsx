@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Contact } from "./contact-table";
@@ -40,14 +40,11 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
   const [form, setForm] = useState<Record<string, string>>({ ...EMPTY, seniority: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    dialogRef.current?.showModal();
+  }, []);
 
   async function handleSave() {
     if (!form.fullName.trim()) {
@@ -85,20 +82,18 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
   }
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="create-contact-title"
-        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-white rounded-xl shadow-2xl border border-[#e5e3df] flex flex-col max-h-[90vh]"
-      >
+    <dialog
+      ref={dialogRef}
+      onClose={onClose}
+      aria-labelledby="create-contact-title"
+      className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-white rounded-xl shadow-2xl border border-[#e5e3df] flex flex-col max-h-[90vh] m-0 p-0 open:flex backdrop:bg-black/40"
+    >
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e3df] shrink-0">
           <h3 id="create-contact-title" className="text-sm font-semibold text-[#111110]">
             הוסף איש קשר ידני
           </h3>
-          <button onClick={onClose} aria-label="סגור" className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
-            <X className="w-4 h-4" />
+          <button type="button" onClick={onClose} aria-label="סגור" className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
+            <X className="size-4" />
           </button>
         </div>
 
@@ -111,6 +106,7 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
               </label>
               <input
                 id={`cc-${key}`}
+                aria-label={label}
                 type={type ?? "text"}
                 value={form[key]}
                 onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
@@ -148,12 +144,14 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
 
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[#e5e3df] shrink-0">
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] transition-colors"
           >
             ביטול
           </button>
           <button
+            type="submit"
             onClick={handleSave}
             disabled={saving}
             className={cn(
@@ -161,11 +159,10 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
               saving ? "opacity-60 cursor-not-allowed" : "hover:bg-[#0a70e0]"
             )}
           >
-            {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            {saving && <Loader2 className="size-3.5 animate-spin" />}
             {saving ? "יוצר…" : "צור איש קשר"}
           </button>
         </div>
-      </div>
-    </>
+    </dialog>
   );
 }

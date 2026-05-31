@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-export function currentMonth(): string {
+function currentMonth(): string {
   return new Date().toISOString().slice(0, 7); // "YYYY-MM"
 }
 
