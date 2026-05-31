@@ -67,7 +67,8 @@ async function waitForTabAndDispatch(tabId: number, kind: "SEND" | "CHECK_REPLY"
       if (id === tabId && info.status === "complete") {
         clearTimeout(timeout);
         chrome.tabs.onUpdated.removeListener(listener);
-        resolve();
+        // Give LinkedIn's React time to mount before injecting
+        setTimeout(resolve, 1500);
       }
     };
     chrome.tabs.onUpdated.addListener(listener);
