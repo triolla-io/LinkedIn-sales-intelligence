@@ -1,6 +1,9 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { getComposeUrl } from "./lib/linkedin/send";
+
+function getComposeUrl(linkedinUrl: string): string {
+  return `https://www.linkedin.com/messaging/compose/?to=${encodeURIComponent(linkedinUrl)}`;
+}
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
