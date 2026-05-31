@@ -27,7 +27,22 @@ export async function sendMessage(text: string): Promise<{ sentAt: string; conve
   }
 
   await sleep(500);
+
+  // Try clicking the send button with a full mouse event sequence
+  sendBtn.focus();
+  sendBtn.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+  sendBtn.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, cancelable: true }));
+  sendBtn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
   sendBtn.click();
+
+  await sleep(800);
+
+  // Fallback: press Enter in the editor (LinkedIn sends on Enter by default)
+  const editorAfter = findVisible(SEL.composeEditor);
+  if (editorAfter) {
+    editorAfter.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", keyCode: 13, bubbles: true, cancelable: true }));
+    editorAfter.dispatchEvent(new KeyboardEvent("keyup", { key: "Enter", keyCode: 13, bubbles: true }));
+  }
 
   await humanPause(1500, 2500);
   return { sentAt: new Date().toISOString(), conversationUrl: location.href };
