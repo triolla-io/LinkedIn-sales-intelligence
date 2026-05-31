@@ -1,6 +1,5 @@
 import { SEL } from "./selectors";
-import { humanType } from "../human/type";
-import { humanPause } from "../human/timing";
+import { humanPause, sleep } from "../human/timing";
 
 export async function sendMessage(text: string): Promise<{ sentAt: string; conversationUrl: string }> {
   if (location.href.includes("/checkpoint/") || document.querySelector(SEL.checkpointMarker)) {
@@ -16,15 +15,60 @@ export async function sendMessage(text: string): Promise<{ sentAt: string; conve
   const editor = await waitFor(SEL.composeEditor, 10_000);
   if (!editor) throw withCode(new Error("Compose editor not found"), "selector_missing");
 
-  await humanType(editor as HTMLElement, text);
-  await humanPause(1000, 3000);
+  await typeIntoEditor(editor as HTMLElement, text);
+  await humanPause(800, 1500);
 
   const sendBtn = document.querySelector(SEL.composeSendButton) as HTMLButtonElement | null;
   if (!sendBtn) throw withCode(new Error("Send button not found"), "selector_missing");
+
+  // If the button is still disabled, text didn't land — fail explicitly
+  if (sendBtn.disabled) {
+    throw withCode(new Error("Send button disabled — text did not enter editor"), "selector_missing");
+  }
+
+  await sleep(500);
   sendBtn.click();
 
   await humanPause(1500, 2500);
   return { sentAt: new Date().toISOString(), conversationUrl: location.href };
+}
+
+async function typeIntoEditor(el: HTMLElement, text: string): Promise<void> {
+  el.focus();
+  await sleep(300);
+
+  // Method 1: execCommand — most React-compatible, fires beforeinput+input events
+  // Requires the document to be active (tab must be active: true)
+  el.click();
+  await sleep(100);
+  const inserted = document.execCommand("insertText", false, text);
+
+  if (inserted && el.textContent?.trim()) return;
+
+  // Method 2: Manual DOM + InputEvent — works even without user-activation
+  await sleep(100);
+  el.focus();
+
+  // Clear and insert via range
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  if (sel) {
+    sel.removeAllRanges();
+    sel.addRange(range);
+    range.deleteContents();
+  }
+  const textNode = document.createTextNode(text);
+  range.insertNode(textNode);
+
+  // Move cursor to end
+  range.setStartAfter(textNode);
+  range.collapse(true);
+  if (sel) { sel.removeAllRanges(); sel.addRange(range); }
+
+  // Fire input event so React updates its state
+  el.dispatchEvent(new InputEvent("input", { inputType: "insertText", data: text, bubbles: true, composed: true }));
+  await sleep(200);
 }
 
 function waitFor(sel: string, timeoutMs: number): Promise<Element | null> {

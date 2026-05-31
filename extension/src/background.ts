@@ -46,7 +46,8 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY"; pay
   const url = payload.linkedinUrl ?? payload.conversationUrl;
   if (!url) throw withCode(new Error("missing_url"), "bad_payload");
 
-  const tab = await chrome.tabs.create({ url, active: false });
+  // active: true is required — execCommand needs user-activated document to insert text
+  const tab = await chrome.tabs.create({ url, active: true });
   if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
 
   try {
