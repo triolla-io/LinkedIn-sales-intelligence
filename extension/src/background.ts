@@ -69,12 +69,23 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     if (!msgBtnCoords) throw withCode(new Error("message_button_not_found"), "not_messageable");
 
     await click(tabId, msgBtnCoords.x, msgBtnCoords.y);
-    await sleep(2500);
+    await sleep(4000); // Wait for chat overlay to fully mount
 
-    // Find the compose editor (try multiple selectors)
-    const composeCoords =
-      await findElement(tabId, 'div.msg-form__contenteditable[contenteditable="true"]', 8_000) ??
-      await findElement(tabId, '[contenteditable="true"]', 3_000);
+    // Find the compose editor — try many selectors (LinkedIn changes these often)
+    const composeSelectors = [
+      'div.msg-form__contenteditable[contenteditable="true"]',
+      '[contenteditable="true"]',
+      '[placeholder="Write a message..."]',
+      '[placeholder="כתוב הודעה..."]',
+      '[data-placeholder]',
+      'div[role="textbox"]',
+      'textarea',
+    ];
+    let composeCoords: { x: number; y: number } | null = null;
+    for (const sel of composeSelectors) {
+      composeCoords = await findElement(tabId, sel, 2_000);
+      if (composeCoords) break;
+    }
     if (!composeCoords) throw withCode(new Error("compose_not_found"), "selector_missing");
 
     await click(tabId, composeCoords.x, composeCoords.y);
