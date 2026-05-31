@@ -4,8 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import StatsBar from "@/components/dashboard/stats-bar";
-import FilterSidebar, { type Filters, DEFAULT_FILTERS } from "@/components/dashboard/filter-sidebar";
-import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
+import FilterSidebar, {
+  type Filters,
+  DEFAULT_FILTERS,
+} from "@/components/dashboard/filter-sidebar";
+import ContactTable, {
+  type Contact,
+} from "@/components/dashboard/contact-table";
 import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
 import CreateContactModal from "@/components/dashboard/create-contact-modal";
@@ -30,11 +35,16 @@ export const DEFAULT_PAGE_SIZE = 15;
 function buildContactsUrl(filters: Filters, page: number, pageSize: number) {
   const params = new URLSearchParams();
   if (filters.q) params.set("q", filters.q);
-  if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
-  if (filters.function.length) params.set("function", filters.function.join(","));
-  if (filters.titleSearch.length) params.set("titleSearch", filters.titleSearch.join(","));
-  if (filters.industry.length) params.set("industry", filters.industry.join(","));
-  if (filters.companySizeBuckets.length) params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
+  if (filters.seniority.length)
+    params.set("seniority", filters.seniority.join(","));
+  if (filters.function.length)
+    params.set("function", filters.function.join(","));
+  if (filters.titleSearch.length)
+    params.set("titleSearch", filters.titleSearch.join(","));
+  if (filters.industry.length)
+    params.set("industry", filters.industry.join(","));
+  if (filters.companySizeBuckets.length)
+    params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
   if (filters.hasEmail) params.set("hasEmail", "true");
   if (filters.hasPhone) params.set("hasPhone", "true");
   if (filters.listId) params.set("listId", filters.listId);
@@ -46,11 +56,12 @@ function buildContactsUrl(filters: Filters, page: number, pageSize: number) {
 function buildInsightsUrl(filters: Filters) {
   const params = new URLSearchParams();
   if (filters.q) params.set("q", filters.q);
-  if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
-  if (filters.function.length) params.set("function", filters.function.join(","));
+  if (filters.seniority.length)
+    params.set("seniority", filters.seniority.join(","));
+  if (filters.function.length)
+    params.set("function", filters.function.join(","));
   return `/api/insights?${params.toString()}`;
 }
-
 
 function sevenDaysAgo(): string {
   const d = new Date();
@@ -63,7 +74,10 @@ interface ContactsClientProps {
   initialTotal: number;
 }
 
-export default function ContactsClient({ initialContacts, initialTotal }: ContactsClientProps) {
+export default function ContactsClient({
+  initialContacts,
+  initialTotal,
+}: ContactsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -72,9 +86,11 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
     q: searchParams.get("q") ?? "",
     seniority: searchParams.get("seniority")?.split(",").filter(Boolean) ?? [],
     function: searchParams.get("function")?.split(",").filter(Boolean) ?? [],
-    titleSearch: searchParams.get("titleSearch")?.split(",").filter(Boolean) ?? [],
+    titleSearch:
+      searchParams.get("titleSearch")?.split(",").filter(Boolean) ?? [],
     industry: searchParams.get("industry")?.split(",").filter(Boolean) ?? [],
-    companySizeBuckets: searchParams.get("companySizeBuckets")?.split(",").filter(Boolean) ?? [],
+    companySizeBuckets:
+      searchParams.get("companySizeBuckets")?.split(",").filter(Boolean) ?? [],
     hasEmail: searchParams.get("hasEmail") === "true" ? true : undefined,
     hasPhone: searchParams.get("hasPhone") === "true" ? true : undefined,
     listId: searchParams.get("listId") ?? undefined,
@@ -101,12 +117,18 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
       clearTimeout(timer);
       timer = setTimeout(() => {
         const h = entry.contentRect.height;
-        const rows = Math.max(MIN_PAGE_SIZE, Math.floor((h - TABLE_HEADER_H - TABLE_FOOTER_H) / ROW_HEIGHT));
+        const rows = Math.max(
+          MIN_PAGE_SIZE,
+          Math.floor((h - TABLE_HEADER_H - TABLE_FOOTER_H) / ROW_HEIGHT),
+        );
         setPageSize(rows);
       }, 100);
     });
     obs.observe(el);
-    return () => { obs.disconnect(); clearTimeout(timer); };
+    return () => {
+      obs.disconnect();
+      clearTimeout(timer);
+    };
   }, []);
 
   const prevFiltersRef = useRef(filters);
@@ -120,11 +142,16 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
   useEffect(() => {
     const params = new URLSearchParams();
     if (filters.q) params.set("q", filters.q);
-    if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
-    if (filters.function.length) params.set("function", filters.function.join(","));
-    if (filters.titleSearch.length) params.set("titleSearch", filters.titleSearch.join(","));
-    if (filters.industry.length) params.set("industry", filters.industry.join(","));
-    if (filters.companySizeBuckets.length) params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
+    if (filters.seniority.length)
+      params.set("seniority", filters.seniority.join(","));
+    if (filters.function.length)
+      params.set("function", filters.function.join(","));
+    if (filters.titleSearch.length)
+      params.set("titleSearch", filters.titleSearch.join(","));
+    if (filters.industry.length)
+      params.set("industry", filters.industry.join(","));
+    if (filters.companySizeBuckets.length)
+      params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
     if (filters.hasEmail) params.set("hasEmail", "true");
     if (filters.hasPhone) params.set("hasPhone", "true");
     if (filters.listId) params.set("listId", filters.listId);
@@ -143,7 +170,9 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
       const [contactsRes, insightsRes, weekRes] = await Promise.all([
         fetch(buildContactsUrl(filters, page, pageSize), { signal }),
         fetch(buildInsightsUrl(filters), { signal }),
-        fetch(`/api/contacts?connectedFrom=${sevenDaysAgo()}&limit=1`, { signal }),
+        fetch(`/api/contacts?connectedFrom=${sevenDaysAgo()}&limit=1`, {
+          signal,
+        }),
       ]);
       if (contactsRes.ok) {
         const data = await contactsRes.json();
@@ -166,7 +195,10 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
   // Re-fetch when filters, page, or pageSize change
   const isMounted = useRef(false);
   useEffect(() => {
-    if (!isMounted.current) { isMounted.current = true; return; }
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
     fetchData();
   }, [fetchData]);
 
@@ -174,7 +206,7 @@ export default function ContactsClient({ initialContacts, initialTotal }: Contac
     fetchData();
   }
 
-async function handleApplyCache() {
+  async function handleApplyCache() {
     setApplyingCache(true);
     try {
       await fetch("/api/contacts/apply-cache", { method: "POST" });
@@ -196,7 +228,9 @@ async function handleApplyCache() {
       <div className="flex-1 min-w-0 flex flex-col">
         <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <h1 className="text-sm font-semibold text-[#111110] tracking-tight">אנשי קשר</h1>
+            <h1 className="text-sm font-semibold text-[#111110] tracking-tight">
+              אנשי קשר
+            </h1>
             <span className="text-xs font-mono text-[#9b9895]">
               {total.toLocaleString()} סה"כ
             </span>
@@ -215,7 +249,9 @@ async function handleApplyCache() {
               title="מלא אימייל וטלפון מהמטמון לכל אנשי הקשר"
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-purple-600 border border-purple-200 hover:bg-purple-50 hover:border-purple-300 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <DatabaseZap className={cn("w-3.5 h-3.5", applyingCache && "animate-pulse")} />
+              <DatabaseZap
+                className={cn("w-3.5 h-3.5", applyingCache && "animate-pulse")}
+              />
               {applyingCache ? "טוען…" : "רענן מטמון"}
             </button>
             <button
@@ -223,7 +259,9 @@ async function handleApplyCache() {
               disabled={loading}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors"
             >
-              <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
+              <RefreshCw
+                className={cn("w-3.5 h-3.5", loading && "animate-spin")}
+              />
               רענן
             </button>
           </div>
@@ -240,7 +278,10 @@ async function handleApplyCache() {
             />
           )}
 
-          <div ref={tableWrapperRef} className="flex-1 min-h-0 flex flex-col pb-4">
+          <div
+            ref={tableWrapperRef}
+            className="flex-1 min-h-0 flex flex-col pb-4"
+          >
             <ContactTable
               contacts={contacts}
               selectedIds={selectedIds}
@@ -255,7 +296,7 @@ async function handleApplyCache() {
                 setSelectedIds(
                   contacts.every((c) => selectedIds.has(c.id))
                     ? new Set()
-                    : new Set(contacts.map((c) => c.id))
+                    : new Set(contacts.map((c) => c.id)),
                 )
               }
               onEnrich={handleEnrich}
@@ -277,7 +318,9 @@ async function handleApplyCache() {
         onEnrich={handleEnrich}
         onSaved={(updated) => {
           setDrawerContact(updated);
-          setContacts((prev) => prev.map((c) => c.id === updated.id ? updated : c));
+          setContacts((prev) =>
+            prev.map((c) => (c.id === updated.id ? updated : c)),
+          );
         }}
       />
 
@@ -285,7 +328,10 @@ async function handleApplyCache() {
         <BulkEnrichBar
           selectedIds={Array.from(selectedIds)}
           selectedContacts={selectedContacts}
-          onDone={() => { setSelectedIds(new Set()); fetchData(); }}
+          onDone={() => {
+            setSelectedIds(new Set());
+            fetchData();
+          }}
         />
       )}
 

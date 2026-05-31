@@ -4,7 +4,8 @@ import { Suspense, useEffect, useEffectEvent, useReducer } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
-import useSWR, { useSWRMutation } from "swr";
+import useSWR from "swr";
+import useSWRMutation from "swr/mutation";
 
 type InviteFlowState =
   | { phase: "loading" }

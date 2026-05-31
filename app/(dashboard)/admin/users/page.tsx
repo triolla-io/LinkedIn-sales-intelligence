@@ -37,7 +37,6 @@ export default function AdminUsersPage() {
       }
       if (!res.ok) throw new Error("Failed to fetch");
       setUsers(await res.json());
-      setError(null);
     } catch {
       setError("Failed to load users");
     }
@@ -45,6 +44,7 @@ export default function AdminUsersPage() {
 
   async function refreshUsers() {
     setRefreshing(true);
+    setError(null);
     try { await loadUsers(); }
     finally { setRefreshing(false); }
   }
