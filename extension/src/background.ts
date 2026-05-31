@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, typeText, pressKey } from "./lib/cdp";
+import { attach, detach, click, typeText, pressKey, evalFindCompose } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -71,20 +71,12 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await click(tabId, msgBtnCoords.x, msgBtnCoords.y);
     await sleep(4000); // Wait for chat overlay to fully mount
 
-    // Find the compose editor — try many selectors (LinkedIn changes these often)
-    const composeSelectors = [
-      'div.msg-form__contenteditable[contenteditable="true"]',
-      '[contenteditable="true"]',
-      '[placeholder="Write a message..."]',
-      '[placeholder="כתוב הודעה..."]',
-      '[data-placeholder]',
-      'div[role="textbox"]',
-      'textarea',
-    ];
+    // Find compose editor via CDP Runtime.evaluate (sees all frames, runs in page context)
     let composeCoords: { x: number; y: number } | null = null;
-    for (const sel of composeSelectors) {
-      composeCoords = await findElement(tabId, sel, 2_000);
-      if (composeCoords) break;
+    const deadline = Date.now() + 10_000;
+    while (!composeCoords && Date.now() < deadline) {
+      composeCoords = await evalFindCompose(tabId);
+      if (!composeCoords) await sleep(500);
     }
     if (!composeCoords) throw withCode(new Error("compose_not_found"), "selector_missing");
 

@@ -65,6 +65,54 @@ export async function pressKey(tabId: number, key: string, keyCode: number): Pro
   });
 }
 
+// Find element coordinates using Runtime.evaluate — runs in page context, sees all frames
+export async function evalFindCompose(tabId: number): Promise<{ x: number; y: number } | null> {
+  const result = await send<{ result: { value: { x: number; y: number } | null } }>(
+    tabId,
+    "Runtime.evaluate",
+    {
+      expression: `(function() {
+        const selectors = [
+          '[placeholder="Write a message..."]',
+          '[placeholder="כתוב הודעה..."]',
+          'div.msg-form__contenteditable[contenteditable="true"]',
+          '[contenteditable="true"]',
+          '[data-placeholder]',
+          'div[role="textbox"]',
+          'textarea',
+        ];
+        function findInDoc(doc) {
+          for (const sel of selectors) {
+            try {
+              for (const el of doc.querySelectorAll(sel)) {
+                const r = el.getBoundingClientRect();
+                if (r.width > 50 && r.height > 0) {
+                  return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
+                }
+              }
+            } catch(e) {}
+          }
+          return null;
+        }
+        const main = findInDoc(document);
+        if (main) return main;
+        for (const iframe of document.querySelectorAll('iframe')) {
+          try {
+            const iDoc = iframe.contentDocument;
+            if (!iDoc) continue;
+            const fr = iframe.getBoundingClientRect();
+            const found = findInDoc(iDoc);
+            if (found) return { x: Math.round(fr.left + found.x), y: Math.round(fr.top + found.y) };
+          } catch(e) {}
+        }
+        return null;
+      })()`,
+      returnByValue: true,
+    }
+  );
+  return result?.result?.value ?? null;
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
