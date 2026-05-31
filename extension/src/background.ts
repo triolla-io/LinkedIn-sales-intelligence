@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, typeText, pressKey, evalFindCompose } from "./lib/cdp";
+import { attach, detach, click, typeText, pressKey, focusCompose } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -71,21 +71,21 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await click(tabId, msgBtnCoords.x, msgBtnCoords.y);
     await sleep(4000); // Wait for chat overlay to fully mount
 
-    // Find compose editor via CDP Runtime.evaluate (sees all frames, runs in page context)
-    let composeCoords: { x: number; y: number } | null = null;
+    // Focus compose editor directly via Runtime.evaluate — no coordinates needed
+    // Input.insertText types into whatever element has focus
+    let focused = false;
     const deadline = Date.now() + 10_000;
-    while (!composeCoords && Date.now() < deadline) {
-      composeCoords = await evalFindCompose(tabId);
-      if (!composeCoords) await sleep(500);
+    while (!focused && Date.now() < deadline) {
+      const result = await focusCompose(tabId);
+      if (result) { focused = true; } else { await sleep(500); }
     }
-    if (!composeCoords) throw withCode(new Error("compose_not_found"), "selector_missing");
+    if (!focused) throw withCode(new Error("compose_not_found"), "selector_missing");
 
-    await click(tabId, composeCoords.x, composeCoords.y);
     await sleep(400);
-
     await typeText(tabId, text);
     await sleep(800);
 
+    // Press Enter to send
     await pressKey(tabId, "Enter", 13);
     await sleep(2500);
 

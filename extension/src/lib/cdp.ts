@@ -65,6 +65,28 @@ export async function pressKey(tabId: number, key: string, keyCode: number): Pro
   });
 }
 
+// Focus compose editor directly — Input.insertText will then type into it
+export async function focusCompose(tabId: number): Promise<boolean> {
+  const result = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {
+    expression: `(function() {
+      const selectors = [
+        'div.msg-form__contenteditable[contenteditable="true"]',
+        '[role="textbox"]',
+        '[contenteditable="true"]',
+        '[aria-label*="message" i]',
+        '[aria-label*="הודעה"]',
+      ];
+      for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        if (el) { el.focus(); el.click(); return true; }
+      }
+      return false;
+    })()`,
+    returnByValue: true,
+  });
+  return result?.result?.value === true;
+}
+
 // Find element coordinates using Runtime.evaluate — runs in page context, sees all frames
 export async function evalFindCompose(tabId: number): Promise<{ x: number; y: number } | null> {
   const result = await send<{ result: { value: { x: number; y: number } | null } }>(
