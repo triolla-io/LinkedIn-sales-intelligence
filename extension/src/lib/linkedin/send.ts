@@ -1,5 +1,11 @@
 import { humanPause, sleep } from "../human/timing";
 
+// LinkedIn's messaging compose page accepts a profile URL as recipient
+// This bypasses the profile page DOM entirely
+export function getComposeUrl(linkedinUrl: string): string {
+  return `https://www.linkedin.com/messaging/compose/?to=${encodeURIComponent(linkedinUrl)}`;
+}
+
 export async function sendMessage(text: string): Promise<{ sentAt: string; conversationUrl: string }> {
   if (location.href.includes("/checkpoint/")) {
     throw withCode(new Error("LinkedIn checkpoint detected"), "checkpoint");
@@ -7,120 +13,90 @@ export async function sendMessage(text: string): Promise<{ sentAt: string; conve
 
   await humanPause(2000, 4000);
 
-  const msgBtn = await waitFor(SEL.messageButton, 15_000);
-  if (!msgBtn) throw withCode(new Error("Message button not found"), "not_messageable");
-  (msgBtn as HTMLElement).click();
+  // Find the compose input — LinkedIn messaging page uses an <input> element
+  const composeInput = await waitForInput(8_000);
+  if (!composeInput) throw withCode(new Error("Compose input not found"), "selector_missing");
 
-  const editor = await waitFor(SEL.composeEditor, 10_000);
-  if (!editor) throw withCode(new Error("Compose editor not found"), "selector_missing");
+  // Type text into the React-controlled input
+  await typeIntoInput(composeInput, text);
+  await sleep(800);
 
-  await sleep(500);
-  await insertTextReact(editor as HTMLElement, text);
-  await sleep(1000);
-
-  // Verify text landed by checking send button state
-  const sendBtn = findVisible(SEL.composeSendButton);
+  // Find and click send
+  const sendBtn = await waitForSendButton(5_000);
   if (!sendBtn) throw withCode(new Error("Send button not found"), "selector_missing");
-
-  // Check aria-disabled as well as native disabled
-  const isDisabled =
-    (sendBtn as HTMLButtonElement).disabled ||
-    sendBtn.getAttribute("aria-disabled") === "true" ||
-    sendBtn.getAttribute("disabled") !== null;
-
-  if (isDisabled) {
-    throw withCode(new Error("Send button still disabled after typing — text did not enter editor"), "selector_missing");
+  if (sendBtn.disabled || sendBtn.getAttribute("aria-disabled") === "true") {
+    throw withCode(new Error("Send button disabled — text did not enter input"), "selector_missing");
   }
 
-  await sleep(400);
-  // Full click sequence
-  (sendBtn as HTMLButtonElement).focus();
-  sendBtn.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
-  sendBtn.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, cancelable: true }));
-  sendBtn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
-  (sendBtn as HTMLButtonElement).click();
-
-  await sleep(600);
-
-  // Fallback: press Enter in editor
-  const editorNow = findVisible(SEL.composeEditor);
-  if (editorNow) {
-    editorNow.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", keyCode: 13, bubbles: true, cancelable: true }));
-    editorNow.dispatchEvent(new KeyboardEvent("keyup", { key: "Enter", keyCode: 13, bubbles: true }));
-  }
-
-  await humanPause(2000, 3000);
+  sendBtn.click();
+  await humanPause(1500, 2500);
   return { sentAt: new Date().toISOString(), conversationUrl: location.href };
 }
 
-// ─── Text insertion strategies ────────────────────────────────────────────────
+async function typeIntoInput(input: HTMLInputElement, text: string): Promise<void> {
+  input.focus();
+  await sleep(200);
 
-async function insertTextReact(el: HTMLElement, text: string): Promise<void> {
-  el.focus();
-  await sleep(100);
+  // React input: use nativeInputValueSetter to bypass React's synthetic event proxy
+  const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+  if (nativeSetter) {
+    nativeSetter.call(input, text);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    await sleep(300);
+    if (input.value === text) return;
+  }
 
-  // Strategy 1: beforeinput event — React listens to this for contenteditable
-  try {
-    const bEvent = new InputEvent("beforeinput", {
-      inputType: "insertText",
-      data: text,
-      bubbles: true,
-      cancelable: true,
-      composed: true,
-    });
-    el.dispatchEvent(bEvent);
-    await sleep(100);
-    if (el.textContent?.trim()) return;
-  } catch { /* fall through */ }
+  // Fallback: execCommand
+  input.select();
+  document.execCommand("insertText", false, text);
+  await sleep(200);
 
-  // Strategy 2: execCommand — works when tab has user activation (active:true)
-  el.focus();
-  el.click();
-  await sleep(50);
-  const ok = document.execCommand("insertText", false, text);
-  if (ok && el.textContent?.trim()) return;
-
-  // Strategy 3: DOM range manipulation + input event (no user activation needed)
-  el.focus();
-  const range = document.createRange();
-  range.selectNodeContents(el);
-  const sel = window.getSelection();
-  if (sel) { sel.removeAllRanges(); sel.addRange(range); range.deleteContents(); }
-  const node = document.createTextNode(text);
-  range.insertNode(node);
-  range.setStartAfter(node); range.collapse(true);
-  if (sel) { sel.removeAllRanges(); sel.addRange(range); }
-
-  // Fire both beforeinput and input so React processes the change
-  el.dispatchEvent(new InputEvent("beforeinput", { inputType: "insertText", data: text, bubbles: true, cancelable: true }));
-  el.dispatchEvent(new InputEvent("input", { inputType: "insertText", data: text, bubbles: true }));
+  // Last resort: direct value set
+  if (!input.value) {
+    input.value = text;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }
 }
 
-// ─── DOM helpers ──────────────────────────────────────────────────────────────
-
-const SEL = {
-  messageButton: 'button[aria-label^="Message"]',
-  composeEditor: 'div.msg-form__contenteditable[contenteditable="true"]',
-  composeSendButton: 'button.msg-form__send-button',
-} as const;
-
-function waitFor(sel: string, timeoutMs: number): Promise<Element | null> {
-  return new Promise((resolve) => {
-    const found = findVisible(sel);
-    if (found) return resolve(found);
-    const start = Date.now();
-    const id = setInterval(() => {
-      const el = findVisible(sel);
-      if (el) { clearInterval(id); return resolve(el); }
-      if (Date.now() - start > timeoutMs) { clearInterval(id); return resolve(null); }
-    }, 200);
-  });
+async function waitForInput(timeoutMs: number): Promise<HTMLInputElement | null> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    // Look for the message compose input by common aria-labels and placeholders
+    const candidates = Array.from(document.querySelectorAll("input")) as HTMLInputElement[];
+    for (const input of candidates) {
+      const r = input.getBoundingClientRect();
+      const label = (input.getAttribute("aria-label") ?? "").toLowerCase();
+      const placeholder = (input.placeholder ?? "").toLowerCase();
+      const isVisible = r.height > 10 && r.width > 100;
+      const isCompose = label.includes("message") || label.includes("write") || label.includes("type") ||
+        placeholder.includes("message") || placeholder.includes("write") || placeholder.includes("type") ||
+        label.includes("הקלד") || placeholder.includes("הקלד");
+      if (isVisible && isCompose) return input;
+    }
+    // Fallback: any visible input that's not search
+    for (const input of candidates) {
+      const r = input.getBoundingClientRect();
+      const label = (input.getAttribute("aria-label") ?? "").toLowerCase();
+      const placeholder = (input.placeholder ?? "").toLowerCase();
+      const isSearch = label.includes("search") || placeholder.includes("search");
+      if (r.height > 10 && r.width > 100 && !isSearch) return input;
+    }
+    await sleep(300);
+  }
+  return null;
 }
 
-function findVisible(sel: string): Element | null {
-  for (const el of Array.from(document.querySelectorAll(sel))) {
-    const r = el.getBoundingClientRect();
-    if (r.width > 0 && r.height > 0) return el;
+async function waitForSendButton(timeoutMs: number): Promise<HTMLButtonElement | null> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const btns = Array.from(document.querySelectorAll("button")) as HTMLButtonElement[];
+    for (const btn of btns) {
+      const r = btn.getBoundingClientRect();
+      const label = (btn.getAttribute("aria-label") ?? "").toLowerCase();
+      const text = (btn.textContent ?? "").toLowerCase();
+      if (r.height > 0 && r.width > 0 && (label.includes("send") || text === "send")) return btn;
+    }
+    await sleep(300);
   }
   return null;
 }

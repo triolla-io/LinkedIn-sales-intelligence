@@ -1,5 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
+import { getComposeUrl } from "./lib/linkedin/send";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -43,10 +44,14 @@ async function runOneCycle() {
 
 async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY"; payload: unknown }): Promise<unknown> {
   const payload = task.payload as { linkedinUrl?: string; conversationUrl?: string; text?: string; sinceIso?: string };
-  const url = payload.linkedinUrl ?? payload.conversationUrl;
-  if (!url) throw withCode(new Error("missing_url"), "bad_payload");
+  const rawUrl = payload.linkedinUrl ?? payload.conversationUrl;
+  if (!rawUrl) throw withCode(new Error("missing_url"), "bad_payload");
 
-  // active: true is required — execCommand needs user-activated document to insert text
+  // For SEND tasks, navigate to the messaging compose page (more reliable than profile page)
+  const url = task.kind === "SEND" && payload.linkedinUrl
+    ? getComposeUrl(payload.linkedinUrl)
+    : rawUrl;
+
   const tab = await chrome.tabs.create({ url, active: true });
   if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
 
