@@ -60,8 +60,12 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await attach(tabId);
     attached = true;
 
-    // Find and click Message button
-    const msgBtnCoords = await findElement(tabId, 'button[aria-label^="Message"]', 12_000);
+    // Find and click Message button (try English and Hebrew labels)
+    const msgBtnCoords =
+      await findElement(tabId, 'button[aria-label^="Message"]', 3_000) ??
+      await findElement(tabId, 'button[aria-label^="הודעה"]', 3_000) ??
+      await findElement(tabId, 'button[aria-label*="essage"]', 3_000) ??
+      await findElement(tabId, 'a[href*="/messaging/compose"]', 3_000);
     if (!msgBtnCoords) throw withCode(new Error("message_button_not_found"), "not_messageable");
 
     await click(tabId, msgBtnCoords.x, msgBtnCoords.y);
