@@ -73,15 +73,24 @@ async function typeIntoEditor(el: HTMLElement, text: string): Promise<void> {
 
 function waitFor(sel: string, timeoutMs: number): Promise<Element | null> {
   return new Promise((resolve) => {
-    const found = document.querySelector(sel);
+    const found = findVisible(sel);
     if (found) return resolve(found);
     const start = Date.now();
     const id = setInterval(() => {
-      const el = document.querySelector(sel);
+      const el = findVisible(sel);
       if (el) { clearInterval(id); return resolve(el); }
       if (Date.now() - start > timeoutMs) { clearInterval(id); return resolve(null); }
     }, 200);
   });
+}
+
+function findVisible(sel: string): Element | null {
+  const els = document.querySelectorAll(sel);
+  for (const el of els) {
+    const r = el.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) return el;
+  }
+  return null;
 }
 
 function withCode(err: Error, code: string): Error & { code: string } {
