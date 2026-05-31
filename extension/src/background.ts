@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, typeText, pressKey, focusCompose } from "./lib/cdp";
+import { attach, detach, click, typeAndSend } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -71,22 +71,15 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await click(tabId, msgBtnCoords.x, msgBtnCoords.y);
     await sleep(4000); // Wait for chat overlay to fully mount
 
-    // Focus compose editor directly via Runtime.evaluate — no coordinates needed
-    // Input.insertText types into whatever element has focus
-    let focused = false;
+    // Type and send via Runtime.evaluate — finds compose, types, clicks Send (all in page context)
+    let sent = false;
     const deadline = Date.now() + 10_000;
-    while (!focused && Date.now() < deadline) {
-      const result = await focusCompose(tabId);
-      if (result) { focused = true; } else { await sleep(500); }
+    while (!sent && Date.now() < deadline) {
+      sent = await typeAndSend(tabId, text);
+      if (!sent) await sleep(500);
     }
-    if (!focused) throw withCode(new Error("compose_not_found"), "selector_missing");
+    if (!sent) throw withCode(new Error("compose_not_found"), "selector_missing");
 
-    await sleep(400);
-    await typeText(tabId, text);
-    await sleep(800);
-
-    // Press Enter to send
-    await pressKey(tabId, "Enter", 13);
     await sleep(2500);
 
     return { sentAt: new Date().toISOString(), conversationUrl: profileUrl };

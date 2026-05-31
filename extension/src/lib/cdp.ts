@@ -65,6 +65,51 @@ export async function pressKey(tabId: number, key: string, keyCode: number): Pro
   });
 }
 
+// Type text and send message entirely via Runtime.evaluate in page context
+export async function typeAndSend(tabId: number, text: string): Promise<boolean> {
+  const encoded = JSON.stringify(text);
+  const result = await send<{ result: { value: { ok: boolean; step: string } } }>(tabId, "Runtime.evaluate", {
+    expression: `(function(msg) {
+      const compose =
+        document.querySelector('div.msg-form__contenteditable[contenteditable="true"]') ||
+        document.querySelector('[role="textbox"][contenteditable="true"]') ||
+        document.querySelector('[contenteditable="true"]');
+      if (!compose) return { ok: false, step: 'no_compose' };
+
+      compose.focus();
+      compose.click();
+
+      // Try execCommand first (works in page context with user-activation from prior CDP clicks)
+      const inserted = document.execCommand('insertText', false, msg);
+      if (!inserted || !compose.textContent?.trim()) {
+        // Fallback: set innerHTML + fire React-compatible events
+        compose.innerHTML = '<p>' + msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</p>';
+        compose.dispatchEvent(new InputEvent('input', { inputType: 'insertText', data: msg, bubbles: true }));
+      }
+
+      // Wait a tick for React state update
+      return new Promise(resolve => setTimeout(() => {
+        const sendBtn =
+          document.querySelector('button.msg-form__send-button:not([disabled])') ||
+          [...document.querySelectorAll('button')].find(b =>
+            (b.textContent?.trim() === 'Send' || b.getAttribute('aria-label') === 'Send') && !b.disabled
+          );
+        if (sendBtn) {
+          sendBtn.click();
+          resolve({ ok: true, step: 'sent_via_button' });
+        } else {
+          // Press Enter as fallback
+          compose.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true, cancelable: true }));
+          resolve({ ok: true, step: 'sent_via_enter' });
+        }
+      }, 600));
+    })(${encoded})`,
+    returnByValue: true,
+    awaitPromise: true,
+  });
+  return result?.result?.value?.ok === true;
+}
+
 // Focus compose editor directly — Input.insertText will then type into it
 export async function focusCompose(tabId: number): Promise<boolean> {
   const result = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {
