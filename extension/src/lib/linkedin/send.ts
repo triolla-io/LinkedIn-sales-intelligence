@@ -5,81 +5,142 @@ export async function sendMessage(text: string): Promise<{ sentAt: string; conve
     throw withCode(new Error("LinkedIn checkpoint detected"), "checkpoint");
   }
 
-  // Extract profile slug from current URL
-  const slug = location.pathname.replace(/^\/in\//, "").replace(/\/$/, "");
-  if (!slug) throw withCode(new Error("Cannot extract profile slug from URL"), "bad_payload");
-
   await humanPause(1500, 3000);
 
-  // Get CSRF token (JSESSIONID cookie)
   const csrf = getCsrfToken();
-  if (!csrf) throw withCode(new Error("No JSESSIONID cookie — not logged in?"), "checkpoint");
+  if (!csrf) throw withCode(new Error("No JSESSIONID — not logged in"), "checkpoint");
+
+  // Get member URN — try page DOM first (most reliable), then API
+  const memberUrn = getMemberUrnFromDOM() ?? await getMemberUrnFromAPI(csrf);
+  if (!memberUrn) {
+    throw withCode(new Error("Could not resolve member URN from page or API"), "not_messageable");
+  }
+
+  await sleep(500);
 
   const headers: Record<string, string> = {
     "csrf-token": csrf,
     "content-type": "application/json",
     "x-restli-protocol-version": "2.0.0",
+    "accept": "application/vnd.linkedin.normalized+json+2.1",
   };
 
-  // Step 1: Resolve profile slug → member URN
-  const profileRes = await fetch(`/voyager/api/identity/profiles/${slug}`, {
-    headers,
-    credentials: "include",
-  });
-  if (!profileRes.ok) {
-    throw withCode(new Error(`Profile lookup failed: ${profileRes.status}`), "not_messageable");
-  }
-  const profileData = await profileRes.json();
-  const memberUrn: string | undefined =
-    profileData?.data?.entityUrn ??
-    profileData?.included?.[0]?.entityUrn;
+  // Try new API format first, fall back to legacy
+  const sent = await trySendNewFormat(memberUrn, text, headers)
+    ?? await trySendLegacyFormat(memberUrn, text, headers);
 
-  if (!memberUrn) {
-    throw withCode(new Error("Could not find member URN in profile response"), "selector_missing");
+  if (!sent) {
+    throw withCode(new Error("All messaging API attempts failed"), "selector_missing");
   }
 
-  await sleep(500);
-
-  // Step 2: Send message via Voyager API
-  const msgRes = await fetch("/voyager/api/messaging/conversations?action=create", {
-    method: "POST",
-    headers,
-    credentials: "include",
-    body: JSON.stringify({
-      keyVersion: "LEGACY_INBOX",
-      conversationCreate: {
-        recipients: [memberUrn],
-        subtype: "MEMBER_TO_MEMBER",
-        body: text,
-      },
-    }),
-  });
-
-  if (!msgRes.ok) {
-    const errText = await msgRes.text().catch(() => "");
-    throw withCode(new Error(`Voyager API send failed ${msgRes.status}: ${errText}`), "selector_missing");
-  }
-
-  const msgData = await msgRes.json();
-  const conversationUrn: string =
-    msgData?.value?.entityUrn ??
-    msgData?.data?.entityUrn ??
-    "";
-
-  return {
-    sentAt: new Date().toISOString(),
-    conversationUrl: conversationUrn
-      ? `https://www.linkedin.com/messaging/thread/${conversationUrn.split(":").pop()}/`
-      : location.href,
-  };
+  return { sentAt: new Date().toISOString(), conversationUrl: sent };
 }
 
+// ─── URN extraction ───────────────────────────────────────────────────────────
+
+function getMemberUrnFromDOM(): string | null {
+  const html = document.documentElement.innerHTML;
+  for (const pattern of [
+    /"entityUrn":"(urn:li:member:\d+)"/,
+    /"objectUrn":"(urn:li:member:\d+)"/,
+    /urn:li:member:(\d+)/,
+  ]) {
+    const m = html.match(pattern);
+    if (m) return m[0].includes("urn:li:member:") ? `urn:li:member:${m[1]}` : m[1];
+  }
+  return null;
+}
+
+async function getMemberUrnFromAPI(csrf: string): Promise<string | null> {
+  const slug = location.pathname.replace(/^\/in\//, "").replace(/\/$/, "");
+  if (!slug) return null;
+  try {
+    const res = await fetch(`/voyager/api/identity/profiles/${slug}`, {
+      headers: { "csrf-token": csrf, "x-restli-protocol-version": "2.0.0" },
+      credentials: "include",
+    });
+    if (!res.ok) return null;
+    const d = await res.json();
+    return (
+      d?.data?.objectUrn ??
+      d?.data?.entityUrn ??
+      d?.included?.find((x: Record<string, unknown>) =>
+        typeof x?.objectUrn === "string" && (x.objectUrn as string).startsWith("urn:li:member:")
+      )?.objectUrn ?? null
+    );
+  } catch {
+    return null;
+  }
+}
+
+// ─── Send attempts ────────────────────────────────────────────────────────────
+
+async function trySendNewFormat(
+  memberUrn: string,
+  text: string,
+  headers: Record<string, string>
+): Promise<string | null> {
+  try {
+    const res = await fetch("/voyager/api/messaging/conversations?action=create", {
+      method: "POST",
+      headers,
+      credentials: "include",
+      body: JSON.stringify({
+        keyVersion: "LEGACY_INBOX",
+        conversationCreate: {
+          recipients: [memberUrn],
+          subtype: "MEMBER_TO_MEMBER",
+          eventCreate: {
+            value: {
+              "com.linkedin.voyager.messaging.create.MessageCreate": {
+                attributedBody: { text, attributes: [] },
+                attachments: [],
+              },
+            },
+          },
+        },
+      }),
+    });
+    if (!res.ok) return null;
+    const d = await res.json();
+    return d?.value?.entityUrn ?? d?.data?.entityUrn ?? "sent";
+  } catch {
+    return null;
+  }
+}
+
+async function trySendLegacyFormat(
+  memberUrn: string,
+  text: string,
+  headers: Record<string, string>
+): Promise<string | null> {
+  try {
+    const res = await fetch("/voyager/api/messaging/conversations?action=create", {
+      method: "POST",
+      headers,
+      credentials: "include",
+      body: JSON.stringify({
+        keyVersion: "LEGACY_INBOX",
+        conversationCreate: {
+          recipients: [memberUrn],
+          subtype: "MEMBER_TO_MEMBER",
+          body: text,
+        },
+      }),
+    });
+    if (!res.ok) return null;
+    const d = await res.json();
+    return d?.value?.entityUrn ?? d?.data?.entityUrn ?? "sent";
+  } catch {
+    return null;
+  }
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function getCsrfToken(): string | null {
-  const match = document.cookie
-    .split("; ")
-    .find((c) => c.startsWith("JSESSIONID="));
-  if (!match) return null;
-  return match.split("=")[1].replace(/"/g, "");
+  const match = document.cookie.split("; ").find((c) => c.startsWith("JSESSIONID="));
+  return match ? match.split("=")[1].replace(/"/g, "") : null;
 }
 
 function withCode(err: Error, code: string): Error & { code: string } {
