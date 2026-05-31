@@ -1,13 +1,10 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-
-function getComposeUrl(linkedinUrl: string): string {
-  return `https://www.linkedin.com/messaging/compose/?to=${encodeURIComponent(linkedinUrl)}`;
-}
+import { attach, detach, click, typeText, pressKey } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create("poll", { periodInMinutes: POLL_INTERVAL_S / 60 });
@@ -17,23 +14,13 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.alarms.onAlarm.addListener(async (a) => {
   if (!(await getToken())) return;
   if (await isPaused()) return;
-  if (a.name === "hb") {
-    await heartbeat(VERSION);
-    return;
-  }
-  if (a.name === "poll") {
-    await runOneCycle();
-  }
+  if (a.name === "hb") { await heartbeat(VERSION); return; }
+  if (a.name === "poll") { await runOneCycle(); }
 });
 
 async function runOneCycle() {
   let task;
-  try {
-    task = await pollTask();
-  } catch (e) {
-    console.warn("poll error", e);
-    return;
-  }
+  try { task = await pollTask(); } catch (e) { console.warn("poll error", e); return; }
   if (!task) return;
 
   try {
@@ -47,25 +34,62 @@ async function runOneCycle() {
 
 async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY"; payload: unknown }): Promise<unknown> {
   const payload = task.payload as { linkedinUrl?: string; conversationUrl?: string; text?: string; sinceIso?: string };
-  const rawUrl = payload.linkedinUrl ?? payload.conversationUrl;
-  if (!rawUrl) throw withCode(new Error("missing_url"), "bad_payload");
 
-  // For SEND tasks, navigate to the messaging compose page (more reliable than profile page)
-  const url = task.kind === "SEND" && payload.linkedinUrl
-    ? getComposeUrl(payload.linkedinUrl)
-    : rawUrl;
+  if (task.kind === "SEND") {
+    if (!payload.linkedinUrl || !payload.text) throw withCode(new Error("missing_payload"), "bad_payload");
+    return await sendLinkedInMessage(payload.linkedinUrl, payload.text);
+  }
 
-  const tab = await chrome.tabs.create({ url, active: true });
+  if (task.kind === "CHECK_REPLY") {
+    return { replyDetected: false, replies: [] };
+  }
+
+  throw withCode(new Error("unknown_kind"), "bad_payload");
+}
+
+async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ sentAt: string; conversationUrl: string }> {
+  const tab = await chrome.tabs.create({ url: profileUrl, active: true });
   if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
+  const tabId = tab.id;
 
+  let attached = false;
   try {
-    return await waitForTabAndDispatch(tab.id, task.kind, payload);
+    await waitForTabLoad(tabId);
+    await sleep(2500);
+
+    await attach(tabId);
+    attached = true;
+
+    // Find and click Message button
+    const msgBtnCoords = await findElement(tabId, 'button[aria-label^="Message"]', 12_000);
+    if (!msgBtnCoords) throw withCode(new Error("message_button_not_found"), "not_messageable");
+
+    await click(tabId, msgBtnCoords.x, msgBtnCoords.y);
+    await sleep(2500);
+
+    // Find the compose editor (try multiple selectors)
+    const composeCoords =
+      await findElement(tabId, 'div.msg-form__contenteditable[contenteditable="true"]', 8_000) ??
+      await findElement(tabId, '[contenteditable="true"]', 3_000);
+    if (!composeCoords) throw withCode(new Error("compose_not_found"), "selector_missing");
+
+    await click(tabId, composeCoords.x, composeCoords.y);
+    await sleep(400);
+
+    await typeText(tabId, text);
+    await sleep(800);
+
+    await pressKey(tabId, "Enter", 13);
+    await sleep(2500);
+
+    return { sentAt: new Date().toISOString(), conversationUrl: profileUrl };
   } finally {
-    chrome.tabs.remove(tab.id).catch(() => {});
+    if (attached) await detach(tabId).catch(() => {});
+    await chrome.tabs.remove(tabId).catch(() => {});
   }
 }
 
-async function waitForTabAndDispatch(tabId: number, kind: "SEND" | "CHECK_REPLY", payload: unknown): Promise<unknown> {
+async function waitForTabLoad(tabId: number): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const timeout = setTimeout(() => {
       chrome.tabs.onUpdated.removeListener(listener);
@@ -75,27 +99,41 @@ async function waitForTabAndDispatch(tabId: number, kind: "SEND" | "CHECK_REPLY"
       if (id === tabId && info.status === "complete") {
         clearTimeout(timeout);
         chrome.tabs.onUpdated.removeListener(listener);
-        // Give LinkedIn's React time to mount before injecting
-        setTimeout(resolve, 1500);
+        resolve();
       }
     };
     chrome.tabs.onUpdated.addListener(listener);
   });
+}
 
-  return await new Promise<unknown>((resolve, reject) => {
-    const timeout = setTimeout(() => reject(withCode(new Error("content_script_timeout"), "timeout")), 90_000);
-    chrome.tabs.sendMessage(tabId, { kind, payload }, (response) => {
-      clearTimeout(timeout);
-      if (chrome.runtime.lastError) {
-        return reject(withCode(new Error(chrome.runtime.lastError.message ?? "lastError"), "tab_load"));
-      }
-      if (!response?.ok) {
-        return reject(withCode(new Error(response?.errorMessage ?? "unknown"), response?.errorCode ?? "unknown"));
-      }
-      resolve(response.result);
+async function findElement(
+  tabId: number,
+  selector: string,
+  timeoutMs: number
+): Promise<{ x: number; y: number } | null> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const response = await sendMessageToTab(tabId, { kind: "FIND_ELEMENTS", selectors: [selector] });
+    const info = response?.result?.[selector];
+    if (info?.found) return { x: info.x!, y: info.y! };
+    await sleep(500);
+  }
+  return null;
+}
+
+async function sendMessageToTab(
+  tabId: number,
+  message: object
+): Promise<{ ok: boolean; result?: Record<string, { found: boolean; x?: number; y?: number }> }> {
+  return await new Promise((resolve) => {
+    chrome.tabs.sendMessage(tabId, message, (response) => {
+      void chrome.runtime.lastError;
+      resolve(response ?? { ok: false });
     });
   });
 }
+
+function sleep(ms: number): Promise<void> { return new Promise((r) => setTimeout(r, ms)); }
 
 function withCode(err: Error, code: string): Error & { code: string } {
   (err as Error & { code: string }).code = code;
