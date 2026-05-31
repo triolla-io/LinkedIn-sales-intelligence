@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, typeAndSend } from "./lib/cdp";
+import { attach, detach, click, pressKey, typeIntoCompose } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -71,15 +71,21 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await click(tabId, msgBtnCoords.x, msgBtnCoords.y);
     await sleep(4000); // Wait for chat overlay to fully mount
 
-    // Type and send via Runtime.evaluate — finds compose, types, clicks Send (all in page context)
-    let sent = false;
+    // Type into compose — get Send button coords, then CDP-click them (trusted)
+    let typeResult: { ok: boolean; sendX?: number; sendY?: number } = { ok: false };
     const deadline = Date.now() + 10_000;
-    while (!sent && Date.now() < deadline) {
-      sent = await typeAndSend(tabId, text);
-      if (!sent) await sleep(500);
+    while (!typeResult.ok && Date.now() < deadline) {
+      typeResult = await typeIntoCompose(tabId, text);
+      if (!typeResult.ok) await sleep(500);
     }
-    if (!sent) throw withCode(new Error("compose_not_found"), "selector_missing");
+    if (!typeResult.ok) throw withCode(new Error("compose_not_found"), "selector_missing");
 
+    // CDP-click the Send button with trusted events
+    if (typeResult.sendX && typeResult.sendY) {
+      await click(tabId, typeResult.sendX, typeResult.sendY);
+    } else {
+      await pressKey(tabId, "Enter", 13);
+    }
     await sleep(2500);
 
     return { sentAt: new Date().toISOString(), conversationUrl: profileUrl };

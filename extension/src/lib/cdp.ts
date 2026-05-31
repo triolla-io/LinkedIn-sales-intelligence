@@ -65,49 +65,45 @@ export async function pressKey(tabId: number, key: string, keyCode: number): Pro
   });
 }
 
-// Type text and send message entirely via Runtime.evaluate in page context
-export async function typeAndSend(tabId: number, text: string): Promise<boolean> {
+type TypeResult = { ok: boolean; sendX?: number; sendY?: number };
+
+// Type text into compose — returns Send button coordinates for CDP click
+export async function typeIntoCompose(tabId: number, text: string): Promise<TypeResult> {
   const encoded = JSON.stringify(text);
-  const result = await send<{ result: { value: { ok: boolean; step: string } } }>(tabId, "Runtime.evaluate", {
+  const result = await send<{ result: { value: TypeResult } }>(tabId, "Runtime.evaluate", {
     expression: `(function(msg) {
       const compose =
         document.querySelector('div.msg-form__contenteditable[contenteditable="true"]') ||
         document.querySelector('[role="textbox"][contenteditable="true"]') ||
         document.querySelector('[contenteditable="true"]');
-      if (!compose) return { ok: false, step: 'no_compose' };
+      if (!compose) return { ok: false };
 
       compose.focus();
       compose.click();
 
-      // Try execCommand first (works in page context with user-activation from prior CDP clicks)
+      // execCommand — works in page JS context after CDP clicks grant user-activation
       const inserted = document.execCommand('insertText', false, msg);
       if (!inserted || !compose.textContent?.trim()) {
-        // Fallback: set innerHTML + fire React-compatible events
         compose.innerHTML = '<p>' + msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</p>';
         compose.dispatchEvent(new InputEvent('input', { inputType: 'insertText', data: msg, bubbles: true }));
       }
 
-      // Wait a tick for React state update
+      // Find Send button and return its coordinates for CDP trusted click
       return new Promise(resolve => setTimeout(() => {
-        const sendBtn =
-          document.querySelector('button.msg-form__send-button:not([disabled])') ||
-          [...document.querySelectorAll('button')].find(b =>
-            (b.textContent?.trim() === 'Send' || b.getAttribute('aria-label') === 'Send') && !b.disabled
+        const btn =
+          document.querySelector('button.msg-form__send-button') ||
+          [...document.querySelectorAll('button[type="submit"]')].find(b =>
+            b.textContent?.trim() === 'Send' || b.getAttribute('aria-label') === 'Send'
           );
-        if (sendBtn) {
-          sendBtn.click();
-          resolve({ ok: true, step: 'sent_via_button' });
-        } else {
-          // Press Enter as fallback
-          compose.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true, cancelable: true }));
-          resolve({ ok: true, step: 'sent_via_enter' });
-        }
+        if (!btn) { resolve({ ok: true }); return; }
+        const r = btn.getBoundingClientRect();
+        resolve({ ok: true, sendX: Math.round(r.left + r.width / 2), sendY: Math.round(r.top + r.height / 2) });
       }, 600));
     })(${encoded})`,
     returnByValue: true,
     awaitPromise: true,
   });
-  return result?.result?.value?.ok === true;
+  return result?.result?.value ?? { ok: false };
 }
 
 // Focus compose editor directly — Input.insertText will then type into it
