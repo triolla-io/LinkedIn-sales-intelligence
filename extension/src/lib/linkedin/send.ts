@@ -39,21 +39,63 @@ export async function sendMessage(text: string): Promise<{ sentAt: string; conve
 // ─── URN extraction ───────────────────────────────────────────────────────────
 
 function getMemberUrnFromDOM(): string | null {
-  const html = document.documentElement.innerHTML;
-  for (const pattern of [
-    /"entityUrn":"(urn:li:member:\d+)"/,
-    /"objectUrn":"(urn:li:member:\d+)"/,
-    /urn:li:member:(\d+)/,
-  ]) {
-    const m = html.match(pattern);
-    if (m) return m[0].includes("urn:li:member:") ? `urn:li:member:${m[1]}` : m[1];
+  // 1. Scan <code> elements (LinkedIn serializes page data there)
+  for (const code of Array.from(document.querySelectorAll("code"))) {
+    try {
+      const str = code.textContent ?? "";
+      const m = str.match(/"(?:entityUrn|objectUrn)":"(urn:li:member:\d+)"/);
+      if (m) return m[1];
+    } catch { /* skip */ }
   }
+
+  // 2. Scan all <script> JSON blocks
+  for (const script of Array.from(document.querySelectorAll('script[type="application/json"],script[type="application/ld+json"]'))) {
+    const m = (script.textContent ?? "").match(/"(?:entityUrn|objectUrn)":"(urn:li:member:\d+)"/);
+    if (m) return m[1];
+  }
+
+  // 3. Try utag_data analytics object (often has profile_member_id)
+  try {
+    const ud = (window as Record<string, unknown>).utag_data as Record<string, unknown> | undefined;
+    if (ud) {
+      const id = ud.profile_member_id ?? ud.memberID ?? ud.member_id;
+      if (typeof id === "string" && /^\d+$/.test(id)) return `urn:li:member:${id}`;
+    }
+  } catch { /* skip */ }
+
+  // 4. Fallback: scan full HTML
+  const html = document.documentElement.innerHTML;
+  const m = html.match(/"(?:entityUrn|objectUrn)":"(urn:li:member:\d+)"/);
+  if (m) return m[1];
+
   return null;
 }
 
 async function getMemberUrnFromAPI(csrf: string): Promise<string | null> {
   const slug = location.pathname.replace(/^\/in\//, "").replace(/\/$/, "");
   if (!slug) return null;
+
+  // Try multiple endpoints — LinkedIn deprecates them periodically
+  const endpoints = [
+    `/voyager/api/identity/dash/profiles?q=memberIdentity&memberIdentity=${slug}`,
+    `/voyager/api/identity/profiles/${slug}/profileView`,
+    `/voyager/api/identity/profiles/${slug}/topCard`,
+  ];
+
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
+        headers: { "csrf-token": csrf, "x-restli-protocol-version": "2.0.0" },
+        credentials: "include",
+      });
+      if (!res.ok) continue;
+      const d = await res.json();
+      const str = JSON.stringify(d);
+      const m = str.match(/"(?:entityUrn|objectUrn)":"(urn:li:member:\d+)"/);
+      if (m) return m[1];
+    } catch { continue; }
+  }
+
   try {
     const res = await fetch(`/voyager/api/identity/profiles/${slug}`, {
       headers: { "csrf-token": csrf, "x-restli-protocol-version": "2.0.0" },
