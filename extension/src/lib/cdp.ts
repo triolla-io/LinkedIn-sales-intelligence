@@ -78,7 +78,7 @@ export async function getComposeCoords(tabId: number): Promise<ElementCoords> {
       if (!compose) return { ok: false };
 
       const cr = compose.getBoundingClientRect();
-      if (cr.width === 0 || cr.height === 0) return { ok: false };
+      if (cr.width === 0) return { ok: false }; // height can be 0 for flex-grow compose areas
 
       const btn =
         document.querySelector('button.msg-form__send-button') ||

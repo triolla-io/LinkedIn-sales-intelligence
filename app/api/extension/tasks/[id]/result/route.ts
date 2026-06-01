@@ -6,7 +6,7 @@ import { Prisma } from "@/lib/generated/prisma/client";
 
 type Body =
   | { ok: true; result?: Record<string, unknown> }
-  | { ok: false; errorCode: string; errorMessage?: string };
+  | { ok: false; errorCode: string; errorMessage?: string; result?: Record<string, unknown> };
 
 export async function POST(
   req: NextRequest,
@@ -24,7 +24,7 @@ export async function POST(
       where: { id: task.id },
       data: body.ok
         ? { status: "DONE", completedAt: new Date(), result: (body.result ?? {}) as Prisma.InputJsonValue }
-        : { status: "FAILED", completedAt: new Date(), errorCode: body.errorCode, errorMessage: body.errorMessage ?? null },
+        : { status: "FAILED", completedAt: new Date(), errorCode: body.errorCode, errorMessage: body.errorMessage ?? null, ...(body.result ? { result: body.result as Prisma.InputJsonValue } : {}) },
     });
 
     await inngest.send({
