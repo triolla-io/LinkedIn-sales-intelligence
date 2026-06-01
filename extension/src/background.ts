@@ -60,6 +60,10 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await attach(tabId);
     attached = true;
 
+    // Dismiss any modal/popup that LinkedIn may show (Premium upsell, etc.)
+    await dismissModal(tabId);
+    await sleep(500);
+
     // Find and click Message button (try English and Hebrew labels)
     const msgBtnCoords =
       await findElement(tabId, 'button[aria-label^="Message"]', 3_000) ??
@@ -100,6 +104,27 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
   } finally {
     if (attached) await detach(tabId).catch(() => {});
     await chrome.tabs.remove(tabId).catch(() => {});
+  }
+}
+
+async function dismissModal(tabId: number): Promise<void> {
+  // Dismiss any modal/dialog LinkedIn may show (Premium upsell, etc.)
+  const result = await sendMessageToTab(tabId, {
+    kind: "FIND_ELEMENTS",
+    selectors: [
+      'button[aria-label="Dismiss"]',
+      'button[aria-label="Close"]',
+      'button[data-tracking-control-name="premium_upsell_modal_close"]',
+      '.modal__dismiss',
+      '[data-test-modal-close-btn]',
+      'button.artdeco-modal__dismiss',
+    ],
+  });
+  for (const [sel, info] of Object.entries(result?.result ?? {})) {
+    if (info?.found && info.x && info.y) {
+      await click(tabId, info.x, info.y);
+      return;
+    }
   }
 }
 
