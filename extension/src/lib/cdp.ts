@@ -285,10 +285,10 @@ export async function insertTextIntoCompose(tabId: number, text: string): Promis
     expression: `(function(txt) {
       // Pierce shadow DOM — LinkedIn compose is inside #interop-outlet shadowRoot
       function findEditable(root) {
-        for (const sel of ['[contenteditable="true"]', '[role="textbox"]', 'textarea']) {
+        for (const sel of ['[contenteditable="true"]', '[contenteditable]', '[role="textbox"]', 'textarea']) {
           for (const el of root.querySelectorAll(sel)) {
             const r = el.getBoundingClientRect();
-            if (r.width > 50) return el;
+            if (r.width > 50 && r.height > 10) return el;
           }
         }
         for (const el of root.querySelectorAll('*')) {
