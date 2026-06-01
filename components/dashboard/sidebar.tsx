@@ -34,7 +34,7 @@ const navItems = [
   { href: "/campaigns", label: "קמפיינים", icon: GitBranch },
   { href: "/templates", label: "טמפלטים", icon: FileText },
   { href: "/import", label: "ייבוא נתונים", icon: Upload },
-  { href: "/settings/extension", label: "הגדרות", icon: Settings },
+  { href: "/settings", label: "הגדרות", icon: Settings },
 ];
 
 const adminItems = [
