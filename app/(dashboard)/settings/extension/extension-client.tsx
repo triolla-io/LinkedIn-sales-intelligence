@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import { Copy, Check } from "lucide-react";
+import { ExtensionStatusBadge } from "@/components/extension-status-badge";
 
 type SessionInfo = {
   id: string;
@@ -14,6 +16,7 @@ export function ExtensionClient({ initialSession }: { initialSession: SessionInf
   const [session, setSession] = useState(initialSession);
   const [rawToken, setRawToken] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   async function createToken() {
     setBusy(true);
@@ -30,7 +33,7 @@ export function ExtensionClient({ initialSession }: { initialSession: SessionInf
   }
 
   async function revoke() {
-    if (!session || !confirm("Revoke this token?")) return;
+    if (!session || !confirm("לבטל את ה-token? ה-extension יתנתק.")) return;
     setBusy(true);
     await fetch(`/api/extension/sessions/${session.id}`, { method: "DELETE" });
     setSession(null);
@@ -38,49 +41,102 @@ export function ExtensionClient({ initialSession }: { initialSession: SessionInf
     setBusy(false);
   }
 
+  async function copyToken(text: string) {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
   const connected = session && !session.revokedAt;
+  const tokenToShow = rawToken ?? (connected ? `${session!.tokenPrefix}…` : null);
 
   return (
-    <div className="p-6 max-w-2xl space-y-6">
-      <h1 className="text-2xl font-semibold">Chrome Extension</h1>
-
-      <section>
-        <h2 className="font-medium mb-2">Status</h2>
-        {connected ? (
-          <p className="text-sm text-gray-700">
-            Token <code>{session!.tokenPrefix}…</code> · Last seen{" "}
-            {session!.lastSeenAt ? new Date(session!.lastSeenAt).toLocaleString() : "never"}
-          </p>
-        ) : (
-          <p className="text-sm text-gray-500">No active token.</p>
-        )}
-      </section>
-
-      {rawToken && (
-        <section className="bg-yellow-50 border border-yellow-200 p-3 rounded">
-          <p className="text-sm font-medium mb-2">Copy your token now — it won&apos;t be shown again:</p>
-          <code className="block break-all bg-white p-2 text-xs">{rawToken}</code>
-        </section>
-      )}
-
-      <div className="space-x-2">
-        {!connected && (
-          <button onClick={createToken} disabled={busy} className="px-3 py-1 rounded bg-blue-600 text-white text-sm">
-            Generate token
-          </button>
-        )}
-        {connected && (
-          <button onClick={revoke} disabled={busy} className="px-3 py-1 rounded bg-red-600 text-white text-sm">
-            Revoke
-          </button>
-        )}
+    <div className="p-6 max-w-2xl space-y-8">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-[#111110]">Chrome Extension — LinkedIn Sender</h1>
+        <ExtensionStatusBadge lastSeenAt={session?.lastSeenAt ?? null} revokedAt={session?.revokedAt ?? null} />
       </div>
 
-      <section className="text-sm text-gray-600 space-y-1">
-        <p>1. Install the Chrome extension (load <code>extension/dist</code> as unpacked).</p>
-        <p>2. Click the extension icon, paste the token, click Connect.</p>
-        <p>3. Keep Chrome open during working hours — extension polls every 30s.</p>
-      </section>
+      {/* Steps */}
+      <ol className="space-y-6 text-sm">
+        {/* Step 1 */}
+        <li className="flex gap-4">
+          <span className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1585ff] text-white text-xs font-bold flex items-center justify-center">1</span>
+          <div className="space-y-1.5">
+            <p className="font-medium text-[#111110]">הורידי את ה-extension</p>
+            <p className="text-[#6b6866]">הורידי את תיקיית <code className="bg-[#f3f2ef] px-1 rounded">extension/dist</code> מהשרת, או בקשי מהצוות הטכני את קובץ ה-ZIP.</p>
+          </div>
+        </li>
+
+        {/* Step 2 */}
+        <li className="flex gap-4">
+          <span className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1585ff] text-white text-xs font-bold flex items-center justify-center">2</span>
+          <div className="space-y-1.5">
+            <p className="font-medium text-[#111110]">התקיני ב-Chrome</p>
+            <ol className="text-[#6b6866] space-y-1 list-decimal list-inside">
+              <li>פתחי <code className="bg-[#f3f2ef] px-1 rounded">chrome://extensions</code> בכרטיסייה חדשה</li>
+              <li>הפעילי <strong>Developer mode</strong> (מצב מפתח) בפינה הימנית עליונה</li>
+              <li>לחצי <strong>Load unpacked</strong> (טען מרוחס) ובחרי את תיקיית ה-extension</li>
+            </ol>
+          </div>
+        </li>
+
+        {/* Step 3 — Token */}
+        <li className="flex gap-4">
+          <span className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1585ff] text-white text-xs font-bold flex items-center justify-center">3</span>
+          <div className="space-y-2 flex-1">
+            <p className="font-medium text-[#111110]">חברי את ה-extension</p>
+            {!connected ? (
+              <div className="space-y-2">
+                <p className="text-[#6b6866]">יצרי token ואז הדביקי אותו בחלון ה-extension.</p>
+                <button
+                  onClick={createToken}
+                  disabled={busy}
+                  className="px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50"
+                >
+                  {busy ? "יוצר…" : "צרי token חדש"}
+                </button>
+              </div>
+            ) : null}
+            {tokenToShow && (
+              <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${rawToken ? "bg-[#fffbeb] border-[#fcd34d]" : "bg-[#f3f2ef] border-[#e5e3df]"}`}>
+                {rawToken && <p className="text-xs text-[#b45309] font-medium mb-1 w-full">העתיקי עכשיו — לא יוצג שוב</p>}
+                <code className="flex-1 text-xs break-all text-[#111110]">{tokenToShow}</code>
+                {rawToken && (
+                  <button onClick={() => copyToken(rawToken)} className="flex-shrink-0 text-[#1585ff] hover:text-[#0f6fd4]">
+                    {copied ? <Check className="w-4 h-4 text-[#059669]" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                )}
+              </div>
+            )}
+            {connected && !rawToken && (
+              <p className="text-[#6b6866]">Token פעיל. ה-extension מחובר ועובד ב-background.</p>
+            )}
+          </div>
+        </li>
+
+        {/* Step 4 */}
+        <li className="flex gap-4">
+          <span className="flex-shrink-0 w-7 h-7 rounded-full bg-[#e5e3df] text-[#6b6866] text-xs font-bold flex items-center justify-center">4</span>
+          <div className="space-y-1.5">
+            <p className="font-medium text-[#111110]">השאירי Chrome פתוח</p>
+            <p className="text-[#6b6866]">ה-extension עובד ב-background ושולח הודעות בזמן שהמחשב דלוק. Chrome חייב להיות פתוח עם חשבון LinkedIn מחובר.</p>
+          </div>
+        </li>
+      </ol>
+
+      {/* Revoke */}
+      {connected && (
+        <div className="border-t border-[#e5e3df] pt-4">
+          <button
+            onClick={revoke}
+            disabled={busy}
+            className="px-3 py-1.5 text-sm text-[#dc2626] border border-[#fecaca] rounded-lg hover:bg-[#fff3f3] transition-colors disabled:opacity-50"
+          >
+            בטל token
+          </button>
+        </div>
+      )}
     </div>
   );
 }

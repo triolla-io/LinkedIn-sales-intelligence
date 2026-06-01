@@ -37,5 +37,19 @@ export default async function CampaignsPage() {
     select: { id: true, name: true },
   });
 
-  return <CampaignsClient sequences={sequences} lists={lists} templates={templates} />;
+  const extensionSession = await prisma.extensionSession.findFirst({
+    where: { userId: session.user.id, revokedAt: null },
+    orderBy: { lastSeenAt: "desc" },
+    select: { lastSeenAt: true, revokedAt: true },
+  });
+
+  return (
+    <CampaignsClient
+      sequences={sequences}
+      lists={lists}
+      templates={templates}
+      extensionLastSeen={extensionSession?.lastSeenAt?.toISOString() ?? null}
+      extensionRevokedAt={extensionSession?.revokedAt?.toISOString() ?? null}
+    />
+  );
 }
