@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, pressKey, getComposeCoords, pasteFromClipboard, takeScreenshot, clickModalClose } from "./lib/cdp";
+import { attach, detach, click, pressKey, getComposeCoords, pasteFromClipboard, takeScreenshot, clickModalClose, scanButtons } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -29,11 +29,12 @@ async function runOneCycle() {
   } catch (err) {
     const errorCode = (err as Error & { code?: string }).code ?? "unknown";
     const screenshot = (err as Error & { screenshot?: string }).screenshot;
+    const buttons = (err as Error & { buttons?: unknown }).buttons;
     await reportResult(task.id, {
       ok: false,
       errorCode,
       errorMessage: (err as Error).message,
-      ...(screenshot ? { result: { debugScreenshot: screenshot } } : {}),
+      ...(screenshot || buttons ? { result: { debugScreenshot: screenshot, buttons } } : {}),
     });
   }
 }
@@ -124,12 +125,15 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     return { sentAt: new Date().toISOString(), conversationUrl: profileUrl };
   } catch (err) {
     caughtError = err as Error;
-    // Capture screenshot before tab closes — stored in error for reportResult
     if (attached) {
       try {
-        const screenshot = await takeScreenshot(tabId);
-        (caughtError as Error & { screenshot?: string }).screenshot = screenshot;
-      } catch { /* ignore screenshot errors */ }
+        const [screenshot, buttons] = await Promise.all([
+          takeScreenshot(tabId),
+          scanButtons(tabId),
+        ]);
+        (caughtError as Error & { screenshot?: string; buttons?: unknown }).screenshot = screenshot;
+        (caughtError as Error & { buttons?: unknown }).buttons = buttons;
+      } catch { /* ignore */ }
     }
     throw caughtError;
   } finally {

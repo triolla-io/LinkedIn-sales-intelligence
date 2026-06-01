@@ -174,51 +174,49 @@ export async function evalFindCompose(tabId: number): Promise<{ x: number; y: nu
   return result?.result?.value ?? null;
 }
 
+// Scan page for visible buttons — returns list for debugging
+export async function scanButtons(tabId: number): Promise<Array<{cls: string; aria: string; text: string; x: number; y: number; w: number; h: number}>> {
+  const result = await send<{ result: { value: unknown } }>(tabId, "Runtime.evaluate", {
+    expression: `[...document.querySelectorAll('button,[role="button"]')].map(b=>{const r=b.getBoundingClientRect();return{cls:b.className.slice(0,80),aria:b.getAttribute('aria-label')||'',text:b.textContent?.trim().slice(0,30)||'',x:Math.round(r.left),y:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height)}}).filter(b=>b.w>0&&b.h>0&&b.y<500)`,
+    returnByValue: true,
+  });
+  return (result?.result?.value as Array<{cls: string; aria: string; text: string; x: number; y: number; w: number; h: number}>) ?? [];
+}
+
 // Find and click any modal dismiss/close button on the page
 export async function clickModalClose(tabId: number): Promise<boolean> {
-  const result = await send<{ result: { value: { found: boolean; x?: number; y?: number } } }>(
-    tabId,
-    "Runtime.evaluate",
-    {
-      expression: `(function() {
-        // Try known LinkedIn modal selectors first
-        const specific = [
-          'button[aria-label="Dismiss"]',
-          'button[aria-label="Close"]',
-          'button.artdeco-modal__dismiss',
-          '[data-test-modal-close-btn]',
-          'button[aria-label*="dismiss" i]',
-          'button[aria-label*="close" i]',
-        ];
-        for (const sel of specific) {
-          const el = document.querySelector(sel);
-          if (el) {
-            const r = el.getBoundingClientRect();
-            if (r.width > 0 && r.height > 0) return { found: true, x: Math.round(r.left + r.width/2), y: Math.round(r.top + r.height/2) };
-          }
-        }
-        // Broad fallback: any small button with SVG near the top of a dialog/modal
-        const dialogs = document.querySelectorAll('[role="dialog"], .artdeco-modal, [data-test-modal]');
-        for (const dlg of dialogs) {
-          const btns = dlg.querySelectorAll('button');
-          for (const btn of btns) {
-            const r = btn.getBoundingClientRect();
-            if (r.width > 0 && r.height > 0 && r.width < 60 && r.y < 200 && btn.querySelector('svg')) {
-              return { found: true, x: Math.round(r.left + r.width/2), y: Math.round(r.top + r.height/2) };
-            }
-          }
-        }
-        return { found: false };
-      })()`,
-      returnByValue: true,
+  const buttons = await scanButtons(tabId);
+
+  // Try known selectors first (exact aria-label or class)
+  for (const btn of buttons) {
+    const isClose =
+      /^(dismiss|close|cancel)$/i.test(btn.aria) ||
+      /artdeco-modal__dismiss/i.test(btn.cls) ||
+      /dismiss/i.test(btn.cls) ||
+      btn.text === '×' || btn.text === '✕' || btn.text === '✖';
+    if (isClose) {
+      await click(tabId, btn.x + Math.round(btn.w / 2), btn.y + Math.round(btn.h / 2));
+      return true;
     }
-  );
-  const info = result?.result?.value;
-  if (info?.found && info.x && info.y) {
-    await click(tabId, info.x, info.y);
+  }
+
+  // Broad fallback: small button (likely X) in top area, near right side of screen
+  const screenWidth = await getScreenWidth(tabId);
+  const closeCandidate = buttons.find(b => b.w < 50 && b.h < 50 && b.y < 300 && b.x > screenWidth * 0.4);
+  if (closeCandidate) {
+    await click(tabId, closeCandidate.x + Math.round(closeCandidate.w / 2), closeCandidate.y + Math.round(closeCandidate.h / 2));
     return true;
   }
+
   return false;
+}
+
+async function getScreenWidth(tabId: number): Promise<number> {
+  const result = await send<{ result: { value: number } }>(tabId, "Runtime.evaluate", {
+    expression: "window.innerWidth",
+    returnByValue: true,
+  });
+  return result?.result?.value ?? 1440;
 }
 
 // Simulate Ctrl+V paste — fires trusted paste event that React handles
