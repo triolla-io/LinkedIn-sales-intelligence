@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat, agentStep } from "./lib/api";
-import { attach, detach, click, pressKey, typeText, insertTextIntoCompose, clickSendButton, closeNewMessageOverlay, takeScreenshot, scrollBy, scanButtons, clickMessageButton } from "./lib/cdp";
+import { attach, detach, click, pressKey, typeText, insertTextIntoCompose, clickSendButton, closeAllComposeOverlays, takeScreenshot, scrollBy, scanButtons, clickMessageButton } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -104,9 +104,9 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     });
     await sleep(200);
 
-    // Close any leftover compose overlay from a previous failed attempt
-    await closeNewMessageOverlay(tabId);
-    await sleep(300);
+    // Close ALL open compose overlays from previous attempts before opening a new one
+    const closedCount = await closeAllComposeOverlays(tabId);
+    if (closedCount > 0) { console.log("[agent] closed", closedCount, "existing compose overlay(s)"); await sleep(500); }
 
     // Phase 1: click Message button directly via CSS selector (reliable, no Gemini)
     const msgBtn = await clickMessageButton(tabId);
@@ -134,7 +134,7 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await sleep(1500);
 
     // Phase 4: close the compose overlay so it doesn't interfere with the next send
-    await closeNewMessageOverlay(tabId).catch(() => {});
+    await closeAllComposeOverlays(tabId).catch(() => {});
     await sleep(300);
 
     return { sentAt: new Date().toISOString(), conversationUrl: profileUrl, steps: 3 };

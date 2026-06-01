@@ -332,36 +332,29 @@ export async function scrollBy(tabId: number, dy: number): Promise<void> {
   });
 }
 
-// Close any open "New message" compose overlay in the shadow DOM
-export async function closeNewMessageOverlay(tabId: number): Promise<boolean> {
-  const result = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {
+// Close ALL open "New message" compose overlays (LinkedIn can have multiple open)
+export async function closeAllComposeOverlays(tabId: number): Promise<number> {
+  const result = await send<{ result: { value: number } }>(tabId, "Runtime.evaluate", {
     expression: `(function() {
-      function findClose(root) {
-        // Look for the X / close button on the "New message" overlay
+      let closed = 0;
+      function closeInRoot(root) {
         for (const el of root.querySelectorAll('button')) {
-          const aria = el.getAttribute('aria-label') ?? '';
-          const cls = el.className ?? '';
-          if (/close|dismiss|cancel/i.test(aria) || /close/i.test(cls)) {
+          const aria = (el.getAttribute('aria-label') ?? '').toLowerCase();
+          if (aria === 'dismiss' || aria === 'close' || aria.includes('close compose')) {
             const r = el.getBoundingClientRect();
-            if (r.width > 0) { el.click(); return true; }
-          }
-          // The X button near "New message" header — small button at top-right of overlay
-          const txt = el.textContent?.trim();
-          if ((txt === '×' || txt === '✕' || txt === '') && el.querySelector('svg')) {
-            const r = el.getBoundingClientRect();
-            if (r.width > 0 && r.width < 50 && r.top < 400) { el.click(); return true; }
+            if (r.width > 0) { el.click(); closed++; }
           }
         }
         for (const el of root.querySelectorAll('*')) {
-          if (el.shadowRoot && findClose(el.shadowRoot)) return true;
+          if (el.shadowRoot) closeInRoot(el.shadowRoot);
         }
-        return false;
       }
-      return findClose(document);
+      closeInRoot(document);
+      return closed;
     })()`,
     returnByValue: true,
   });
-  return result?.result?.value === true;
+  return result?.result?.value ?? 0;
 }
 
 // Capture screenshot as base64 PNG for debugging
