@@ -6,6 +6,9 @@ const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
 const VERSION = "0.2.0";
 
+// Semaphore — only one send task runs at a time
+let taskRunning = false;
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create("poll", { periodInMinutes: POLL_INTERVAL_S / 60 });
   chrome.alarms.create("hb", { periodInMinutes: HEARTBEAT_INTERVAL_S / 60 });
@@ -15,14 +18,23 @@ chrome.alarms.onAlarm.addListener(async (a) => {
   if (!(await getToken())) return;
   if (await isPaused()) return;
   if (a.name === "hb") { await heartbeat(VERSION); return; }
-  if (a.name === "poll") { await runOneCycle(); }
+  if (a.name === "poll") {
+    if (taskRunning) { console.log("[poll] task already running, skipping"); return; }
+    // Drain the queue: keep polling until no tasks remain
+    while (true) {
+      const hadTask = await runOneCycle();
+      if (!hadTask) break;
+    }
+  }
 });
 
-async function runOneCycle() {
+// Returns true if a task was found and processed
+async function runOneCycle(): Promise<boolean> {
   let task;
-  try { task = await pollTask(); } catch (e) { console.warn("poll error", e); return; }
-  if (!task) return;
+  try { task = await pollTask(); } catch (e) { console.warn("poll error", e); return false; }
+  if (!task) return false;
 
+  taskRunning = true;
   try {
     const result = await executeTask(task);
     await reportResult(task.id, { ok: true, result });
@@ -36,7 +48,10 @@ async function runOneCycle() {
       errorMessage: (err as Error).message,
       ...(screenshot || buttons ? { result: { debugScreenshot: screenshot, buttons } } : {}),
     });
+  } finally {
+    taskRunning = false;
   }
+  return true;
 }
 
 async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY"; payload: unknown }): Promise<unknown> {
