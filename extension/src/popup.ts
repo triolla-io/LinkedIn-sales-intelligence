@@ -1,39 +1,78 @@
 import { clearToken, getApiBase, getToken, setApiBase, setToken, isPaused, setPaused } from "./lib/storage";
 import { validateToken } from "./lib/api";
 
+const API_BASE = "https://sales.triolla.io";
+
 async function render() {
   const token = await getToken();
-  const base = await getApiBase();
   const paused = await isPaused();
-  (document.getElementById("api") as HTMLInputElement).value = base;
-  const disconnectBtn = document.getElementById("disconnect") as HTMLButtonElement;
-  const pauseBtn = document.getElementById("pause") as HTMLButtonElement;
-  disconnectBtn.style.display = token ? "" : "none";
-  pauseBtn.style.display = token ? "" : "none";
-  pauseBtn.textContent = paused ? "Resume" : "Pause";
-  document.getElementById("status")!.textContent = token
-    ? paused ? "Paused" : "Connected"
-    : "Disconnected";
+
+  const card = document.getElementById("status-card")!;
+  const label = document.getElementById("status-label")!;
+  const desc = document.getElementById("status-desc")!;
+  const headerSub = document.getElementById("header-sub")!;
+  const connectForm = document.getElementById("connect-form")!;
+  const actions = document.getElementById("actions")!;
+  const pauseBtn = document.getElementById("pause-btn")!;
+
+  card.className = "status-card";
+
+  if (!token) {
+    card.classList.add("disconnected");
+    label.textContent = "לא מחובר";
+    desc.textContent = "הדבק token כדי להתחיל לשלוח הודעות LinkedIn אוטומטית.";
+    headerSub.textContent = "נדרש חיבור";
+    connectForm.style.display = "";
+    actions.style.display = "none";
+  } else if (paused) {
+    card.classList.add("paused");
+    label.textContent = "מושהה";
+    desc.textContent = "שליחת הודעות מושהית. לחצי על \"המשך\" כדי לחדש.";
+    headerSub.textContent = "פועל ב-background";
+    connectForm.style.display = "none";
+    actions.style.display = "";
+    pauseBtn.textContent = "המשך";
+  } else {
+    card.classList.add("connected");
+    label.textContent = "פעיל";
+    desc.textContent = "הודעות LinkedIn ישלחו אוטומטית כשיש משימות ממתינות.";
+    headerSub.textContent = "פועל ב-background";
+    connectForm.style.display = "none";
+    actions.style.display = "";
+    pauseBtn.textContent = "השהה";
+  }
 }
 
-document.getElementById("connect")!.addEventListener("click", async () => {
-  const token = (document.getElementById("token") as HTMLInputElement).value.trim();
-  const base = (document.getElementById("api") as HTMLInputElement).value.trim();
-  if (!token) { alert("Paste your token first"); return; }
-  const r = await validateToken(token, base);
-  if (!r.ok) { alert("Invalid token — check the app and try again"); return; }
-  await setApiBase(base);
+document.getElementById("connect-btn")!.addEventListener("click", async () => {
+  const tokenInput = document.getElementById("token") as HTMLInputElement;
+  const token = tokenInput.value.trim();
+  if (!token) { alert("הדבק token תחילה"); return; }
+
+  const btn = document.getElementById("connect-btn") as HTMLButtonElement;
+  btn.disabled = true;
+  btn.textContent = "מתחבר...";
+
+  const r = await validateToken(token, API_BASE);
+  if (!r.ok) {
+    alert("Token לא תקין — בדקי בהגדרות ונסי שוב");
+    btn.disabled = false;
+    btn.textContent = "התחברות";
+    return;
+  }
+
+  await setApiBase(API_BASE);
   await setToken(token);
-  (document.getElementById("token") as HTMLInputElement).value = "";
+  tokenInput.value = "";
   await render();
 });
 
-document.getElementById("disconnect")!.addEventListener("click", async () => {
+document.getElementById("disconnect-btn")!.addEventListener("click", async () => {
+  if (!confirm("להתנתק? תצטרכי token חדש כדי להתחבר שוב.")) return;
   await clearToken();
   await render();
 });
 
-document.getElementById("pause")!.addEventListener("click", async () => {
+document.getElementById("pause-btn")!.addEventListener("click", async () => {
   await setPaused(!(await isPaused()));
   await render();
 });

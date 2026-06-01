@@ -2,10 +2,11 @@ import { prisma } from "../lib/prisma";
 
 // Only 1st degree connections — clicking Message opens compose overlay, not general inbox
 const TEST_URLS = [
-  "https://www.linkedin.com/in/yuvalbaror1/",
+  "https://www.linkedin.com/in/adi-berman/",
 ];
 
-const TEST_TEXT = "היי! זו הודעת בדיקה אוטומטית מהמערכת שלנו — תרגישי חופשי להתעלם 🙂";
+// const TEST_TEXT = "היי! זו הודעת בדיקה אוטומטית מהמעררגישי חופשי להתעלם 🙂";
+const TEST_TEXT = "היי עדי זאת אריאל מטריאולה ואני עושה ניסיון עם המערכת החדשה שלנו"
 
 async function main() {
   const user = await prisma.user.findFirstOrThrow({

@@ -1,25 +1,221 @@
 <!doctype html>
-<html>
+<html dir="rtl" lang="he">
 <head>
   <meta charset="utf-8">
-  <title>Triolla</title>
+  <title>Triolla LinkedIn Sender</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    body { font: 13px system-ui; width: 280px; padding: 12px; }
-    label { display: block; font-size: 11px; color: #666; margin-top: 8px; }
-    input { width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 8px; }
-    button { padding: 6px 10px; cursor: pointer; }
-    #status { font-weight: 500; margin-bottom: 8px; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3a;
+      --text: #e8eaf0;
+      --muted: #6b7280;
+      --blue: #0a66c2;
+      --blue-light: #378fe9;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+    }
+
+    body {
+      font-family: 'Rubik', sans-serif;
+      width: 300px;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 16px 14px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, #0d1526 0%, #0f1117 100%);
+    }
+
+    .logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #0a66c2, #378fe9);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(10,102,194,0.4);
+    }
+
+    .header-title { font-size: 13px; font-weight: 600; color: var(--text); }
+    .header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    /* ── Status card ── */
+    .status-card {
+      margin: 14px 14px 0;
+      padding: 14px 14px 12px;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: border-color 0.3s;
+    }
+    .status-card.connected  { border-color: rgba(34,197,94,0.25); background: rgba(34,197,94,0.04); }
+    .status-card.paused     { border-color: rgba(245,158,11,0.25); background: rgba(245,158,11,0.04); }
+    .status-card.disconnected { border-color: var(--border); }
+
+    .status-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+
+    .pulse-ring {
+      position: relative;
+      width: 10px; height: 10px; flex-shrink: 0;
+    }
+    .pulse-ring .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      position: absolute;
+    }
+    .pulse-ring .ring {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      position: absolute;
+      opacity: 0;
+    }
+    .connected  .dot  { background: var(--green); }
+    .connected  .ring { background: var(--green); animation: ping 1.8s ease-out infinite; }
+    .paused     .dot  { background: var(--amber); }
+    .disconnected .dot { background: var(--muted); }
+
+    @keyframes ping {
+      0%   { transform: scale(1);   opacity: 0.5; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+
+    .status-label { font-size: 13px; font-weight: 600; }
+    .connected    .status-label { color: var(--green); }
+    .paused       .status-label { color: var(--amber); }
+    .disconnected .status-label { color: var(--muted); }
+
+    .status-desc { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Form ── */
+    .connect-form { padding: 12px 14px 14px; }
+
+    .field-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .token-input {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: 'Rubik', sans-serif;
+      color: var(--text);
+      outline: none;
+      direction: ltr;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .token-input::placeholder { color: #3a3d4a; }
+    .token-input:focus {
+      border-color: var(--blue-light);
+      box-shadow: 0 0 0 3px rgba(55,143,233,0.15);
+    }
+
+    .btn-connect {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(135deg, var(--blue), var(--blue-light));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Rubik', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      letter-spacing: 0.02em;
+    }
+    .btn-connect:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+    .btn-connect:active:not(:disabled) { transform: translateY(0); }
+    .btn-connect:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .help-text {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #3a3d4a;
+      text-align: center;
+    }
+
+    /* ── Actions ── */
+    .actions {
+      display: flex;
+      gap: 8px;
+      padding: 12px 14px 14px;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: 'Rubik', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+    }
+    .btn-action:hover { color: var(--text); border-color: #3a3d4a; }
+    .btn-action.danger:hover { color: var(--red); border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); }
   </style>
 </head>
 <body>
-  <div id="status">Loading...</div>
-  <label>API base</label>
-  <input id="api" value="https://sales.triolla.io" />
-  <label>Token</label>
-  <input id="token" type="password" placeholder="Paste token here" />
-  <button id="connect">Connect</button>
-  <button id="disconnect" style="display:none">Disconnect</button>
-  <button id="pause" style="display:none">Pause</button>
+
+  <div class="header">
+    <div class="logo">T</div>
+    <div>
+      <div class="header-title">Triolla LinkedIn</div>
+      <div class="header-sub" id="header-sub">Sender</div>
+    </div>
+  </div>
+
+  <div class="status-card disconnected" id="status-card">
+    <div class="status-row">
+      <div class="pulse-ring"><div class="dot"></div><div class="ring"></div></div>
+      <span class="status-label" id="status-label">טוען...</span>
+    </div>
+    <p class="status-desc" id="status-desc"></p>
+  </div>
+
+  <div class="connect-form" id="connect-form">
+    <label class="field-label">Token</label>
+    <input class="token-input" id="token" type="password" placeholder="sk-or-..." autocomplete="off" />
+    <button class="btn-connect" id="connect-btn">התחברות</button>
+    <p class="help-text">מקבלים token ב: הגדרות → Extension</p>
+  </div>
+
+  <div class="actions" id="actions" style="display:none">
+    <button class="btn-action" id="pause-btn">השהה</button>
+    <button class="btn-action danger" id="disconnect-btn">התנתק</button>
+  </div>
+
   <script type="module" src="popup.ts"></script>
 </body>
 </html>
