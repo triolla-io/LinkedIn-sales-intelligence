@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 export function buildSearchWhere(ownerId: string, q: string, excludeListId?: string) {
   const orClause = q.trim()
     ? [
-        { name: { contains: q.trim(), mode: "insensitive" as const } },
+        { fullName: { contains: q.trim(), mode: "insensitive" as const } },
         { email: { contains: q.trim(), mode: "insensitive" as const } },
       ]
     : undefined;

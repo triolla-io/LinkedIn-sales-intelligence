@@ -5,7 +5,7 @@ import { describe, it, expect } from "vitest";
 function buildSearchWhere(ownerId: string, q: string, excludeListId?: string) {
   const orClause = q.trim()
     ? [
-        { name: { contains: q.trim(), mode: "insensitive" as const } },
+        { fullName: { contains: q.trim(), mode: "insensitive" as const } },
         { email: { contains: q.trim(), mode: "insensitive" as const } },
       ]
     : undefined;
@@ -36,12 +36,12 @@ describe("buildSearchWhere", () => {
     expect(buildSearchWhere("u1", "")).toEqual({ ownerId: "u1" });
   });
 
-  it("adds OR clause for name/email when q is provided", () => {
+  it("adds OR clause for fullName/email when q is provided", () => {
     const w = buildSearchWhere("u1", "alice");
     expect(w).toEqual({
       ownerId: "u1",
       OR: [
-        { name: { contains: "alice", mode: "insensitive" } },
+        { fullName: { contains: "alice", mode: "insensitive" } },
         { email: { contains: "alice", mode: "insensitive" } },
       ],
     });
@@ -49,7 +49,7 @@ describe("buildSearchWhere", () => {
 
   it("trims whitespace in q", () => {
     const w = buildSearchWhere("u1", "  bob  ");
-    expect(w.OR![0]).toEqual({ name: { contains: "bob", mode: "insensitive" } });
+    expect(w.OR![0]).toEqual({ fullName: { contains: "bob", mode: "insensitive" } });
   });
 
   it("excludes list members when excludeListId provided", () => {
