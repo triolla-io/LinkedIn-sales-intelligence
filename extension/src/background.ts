@@ -68,8 +68,8 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await attach(tabId);
     attached = true;
 
-    // Dismiss any modal/popup via Escape key (works for most LinkedIn modals)
-    await pressKey(tabId, "Escape", 27);
+    // Dismiss any modal/popup — click X button via CDP
+    await dismissModalViaCDP(tabId);
     await sleep(600);
 
     // Find and click Message button (try English and Hebrew labels)
@@ -135,6 +135,41 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
   } finally {
     if (attached) await detach(tabId).catch(() => {});
     await chrome.tabs.remove(tabId).catch(() => {});
+  }
+}
+
+async function dismissModalViaCDP(tabId: number): Promise<void> {
+  // Use Runtime.evaluate to find and click modal X button (more reliable than Escape)
+  const result = await (await import("./lib/cdp")).send<{ result: { value: { found: boolean; x?: number; y?: number } } }>(
+    tabId,
+    "Runtime.evaluate",
+    {
+      expression: `(function() {
+        const xSelectors = [
+          'button[aria-label="Dismiss"]',
+          'button.artdeco-modal__dismiss',
+          '[data-test-modal-close-btn]',
+          'button[aria-label="Close"]',
+          '.modal__dismiss button',
+        ];
+        for (const sel of xSelectors) {
+          const el = document.querySelector(sel);
+          if (el) {
+            const r = el.getBoundingClientRect();
+            if (r.width > 0) return { found: true, x: Math.round(r.left + r.width/2), y: Math.round(r.top + r.height/2) };
+          }
+        }
+        return { found: false };
+      })()`,
+      returnByValue: true,
+    }
+  );
+  const info = result?.result?.value;
+  if (info?.found && info.x && info.y) {
+    await click(tabId, info.x, info.y);
+  } else {
+    // Fallback to Escape
+    await pressKey(tabId, "Escape", 27);
   }
 }
 
