@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat, agentStep } from "./lib/api";
-import { attach, detach, click, pressKey, typeText, insertTextIntoCompose, clickSendButton, takeScreenshot, scrollBy, scanButtons, clickMessageButton } from "./lib/cdp";
+import { attach, detach, click, pressKey, typeText, insertTextIntoCompose, clickSendButton, closeNewMessageOverlay, takeScreenshot, scrollBy, scanButtons, clickMessageButton } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -89,6 +89,10 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     });
     await sleep(200);
 
+    // Close any leftover compose overlay from a previous failed attempt
+    await closeNewMessageOverlay(tabId);
+    await sleep(300);
+
     // Phase 1: click Message button directly via CSS selector (reliable, no Gemini)
     const msgBtn = await clickMessageButton(tabId);
     console.log("[agent] clickMessageButton:", msgBtn);
@@ -113,6 +117,10 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     console.log("[agent] clickSendButton:", sent);
     if (!sent) throw withCode(new Error("send_button_not_found"), "send_button_not_found");
     await sleep(1500);
+
+    // Phase 4: close the compose overlay so it doesn't interfere with the next send
+    await closeNewMessageOverlay(tabId).catch(() => {});
+    await sleep(300);
 
     return { sentAt: new Date().toISOString(), conversationUrl: profileUrl, steps: 3 };
   } catch (err) {

@@ -332,6 +332,38 @@ export async function scrollBy(tabId: number, dy: number): Promise<void> {
   });
 }
 
+// Close any open "New message" compose overlay in the shadow DOM
+export async function closeNewMessageOverlay(tabId: number): Promise<boolean> {
+  const result = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {
+    expression: `(function() {
+      function findClose(root) {
+        // Look for the X / close button on the "New message" overlay
+        for (const el of root.querySelectorAll('button')) {
+          const aria = el.getAttribute('aria-label') ?? '';
+          const cls = el.className ?? '';
+          if (/close|dismiss|cancel/i.test(aria) || /close/i.test(cls)) {
+            const r = el.getBoundingClientRect();
+            if (r.width > 0) { el.click(); return true; }
+          }
+          // The X button near "New message" header — small button at top-right of overlay
+          const txt = el.textContent?.trim();
+          if ((txt === '×' || txt === '✕' || txt === '') && el.querySelector('svg')) {
+            const r = el.getBoundingClientRect();
+            if (r.width > 0 && r.width < 50 && r.top < 400) { el.click(); return true; }
+          }
+        }
+        for (const el of root.querySelectorAll('*')) {
+          if (el.shadowRoot && findClose(el.shadowRoot)) return true;
+        }
+        return false;
+      }
+      return findClose(document);
+    })()`,
+    returnByValue: true,
+  });
+  return result?.result?.value === true;
+}
+
 // Capture screenshot as base64 PNG for debugging
 export async function takeScreenshot(tabId: number): Promise<string> {
   const result = await send<{ data: string }>(tabId, "Page.captureScreenshot", { format: "png", quality: 80 });
