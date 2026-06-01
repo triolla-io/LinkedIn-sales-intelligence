@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, pressKey, getComposeCoords, pasteFromClipboard, takeScreenshot } from "./lib/cdp";
+import { attach, detach, click, pressKey, getComposeCoords, pasteFromClipboard, takeScreenshot, clickModalClose } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -68,8 +68,8 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await attach(tabId);
     attached = true;
 
-    // Dismiss any modal/popup — click X button via CDP
-    await dismissModalViaCDP(tabId);
+    // Dismiss any modal/popup — try CDP click on X button, fallback to Escape
+    await clickModalClose(tabId);
     await sleep(600);
 
     // Find and click Message button (try English and Hebrew labels)

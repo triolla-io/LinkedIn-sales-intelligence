@@ -174,6 +174,53 @@ export async function evalFindCompose(tabId: number): Promise<{ x: number; y: nu
   return result?.result?.value ?? null;
 }
 
+// Find and click any modal dismiss/close button on the page
+export async function clickModalClose(tabId: number): Promise<boolean> {
+  const result = await send<{ result: { value: { found: boolean; x?: number; y?: number } } }>(
+    tabId,
+    "Runtime.evaluate",
+    {
+      expression: `(function() {
+        // Try known LinkedIn modal selectors first
+        const specific = [
+          'button[aria-label="Dismiss"]',
+          'button[aria-label="Close"]',
+          'button.artdeco-modal__dismiss',
+          '[data-test-modal-close-btn]',
+          'button[aria-label*="dismiss" i]',
+          'button[aria-label*="close" i]',
+        ];
+        for (const sel of specific) {
+          const el = document.querySelector(sel);
+          if (el) {
+            const r = el.getBoundingClientRect();
+            if (r.width > 0 && r.height > 0) return { found: true, x: Math.round(r.left + r.width/2), y: Math.round(r.top + r.height/2) };
+          }
+        }
+        // Broad fallback: any small button with SVG near the top of a dialog/modal
+        const dialogs = document.querySelectorAll('[role="dialog"], .artdeco-modal, [data-test-modal]');
+        for (const dlg of dialogs) {
+          const btns = dlg.querySelectorAll('button');
+          for (const btn of btns) {
+            const r = btn.getBoundingClientRect();
+            if (r.width > 0 && r.height > 0 && r.width < 60 && r.y < 200 && btn.querySelector('svg')) {
+              return { found: true, x: Math.round(r.left + r.width/2), y: Math.round(r.top + r.height/2) };
+            }
+          }
+        }
+        return { found: false };
+      })()`,
+      returnByValue: true,
+    }
+  );
+  const info = result?.result?.value;
+  if (info?.found && info.x && info.y) {
+    await click(tabId, info.x, info.y);
+    return true;
+  }
+  return false;
+}
+
 // Simulate Ctrl+V paste — fires trusted paste event that React handles
 export async function pasteFromClipboard(tabId: number): Promise<void> {
   await send(tabId, "Input.dispatchKeyEvent", {
