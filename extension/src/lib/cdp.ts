@@ -174,6 +174,35 @@ export async function evalFindCompose(tabId: number): Promise<{ x: number; y: nu
   return result?.result?.value ?? null;
 }
 
+// Simulate Ctrl+V paste — fires trusted paste event that React handles
+export async function pasteFromClipboard(tabId: number): Promise<void> {
+  await send(tabId, "Input.dispatchKeyEvent", {
+    type: "keyDown", key: "Control", code: "ControlLeft",
+    windowsVirtualKeyCode: 17, nativeVirtualKeyCode: 17, modifiers: 0,
+  });
+  await sleep(50);
+  await send(tabId, "Input.dispatchKeyEvent", {
+    type: "keyDown", key: "v", code: "KeyV",
+    windowsVirtualKeyCode: 86, nativeVirtualKeyCode: 86, modifiers: 2,
+  });
+  await sleep(50);
+  await send(tabId, "Input.dispatchKeyEvent", {
+    type: "keyUp", key: "v", code: "KeyV",
+    windowsVirtualKeyCode: 86, nativeVirtualKeyCode: 86, modifiers: 2,
+  });
+  await sleep(50);
+  await send(tabId, "Input.dispatchKeyEvent", {
+    type: "keyUp", key: "Control", code: "ControlLeft",
+    windowsVirtualKeyCode: 17, nativeVirtualKeyCode: 17, modifiers: 0,
+  });
+}
+
+// Capture screenshot as base64 PNG for debugging
+export async function takeScreenshot(tabId: number): Promise<string> {
+  const result = await send<{ data: string }>(tabId, "Page.captureScreenshot", { format: "png", quality: 80 });
+  return result.data;
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
