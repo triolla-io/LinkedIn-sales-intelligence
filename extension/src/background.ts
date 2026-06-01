@@ -60,9 +60,9 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await attach(tabId);
     attached = true;
 
-    // Dismiss any modal/popup that LinkedIn may show (Premium upsell, etc.)
-    await dismissModal(tabId);
-    await sleep(500);
+    // Dismiss any modal/popup via Escape key (works for most LinkedIn modals)
+    await pressKey(tabId, "Escape", 27);
+    await sleep(600);
 
     // Find and click Message button (try English and Hebrew labels)
     const msgBtnCoords =
