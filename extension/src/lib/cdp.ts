@@ -242,6 +242,22 @@ export async function pasteFromClipboard(tabId: number): Promise<void> {
   });
 }
 
+// Scroll the page by deltaY pixels using a mouseWheel event at viewport center
+export async function scrollBy(tabId: number, dy: number): Promise<void> {
+  const result = await send<{ result: { value: { w: number; h: number } } }>(tabId, "Runtime.evaluate", {
+    expression: "({ w: window.innerWidth, h: window.innerHeight })",
+    returnByValue: true,
+  });
+  const { w, h } = result?.result?.value ?? { w: 1440, h: 900 };
+  await send(tabId, "Input.dispatchMouseEvent", {
+    type: "mouseWheel",
+    x: Math.round(w / 2),
+    y: Math.round(h / 2),
+    deltaX: 0,
+    deltaY: dy,
+  });
+}
+
 // Capture screenshot as base64 PNG for debugging
 export async function takeScreenshot(tabId: number): Promise<string> {
   const result = await send<{ data: string }>(tabId, "Page.captureScreenshot", { format: "png", quality: 80 });

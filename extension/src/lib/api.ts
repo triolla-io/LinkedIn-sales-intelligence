@@ -35,3 +35,34 @@ export async function reportResult(taskId: string, body: object) {
 export async function heartbeat(version: string) {
   await req("/api/extension/heartbeat", { method: "POST", body: JSON.stringify({ version }) }).catch(() => {});
 }
+
+// Action type — duplicated from lib/extension/openrouter.ts since the extension
+// build does not resolve @/ path aliases into the Next.js app.
+export type Action =
+  | { action: "click"; x: number; y: number; reasoning: string }
+  | { action: "paste"; reasoning: string }
+  | { action: "type"; text: string; reasoning: string }
+  | { action: "key"; key: "Enter" | "Escape" | "Tab"; reasoning: string }
+  | { action: "scroll"; dy: number; reasoning: string }
+  | { action: "wait"; ms: number; reasoning: string }
+  | { action: "done"; reasoning: string }
+  | { action: "fail"; reason: string };
+
+export type AgentStepInput = {
+  screenshot: string;
+  goal: string;
+  history: Array<{ action: string; reasoning?: string }>;
+};
+
+export async function agentStep(payload: AgentStepInput): Promise<Action> {
+  const r = await req("/api/extension/agent-step", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  if (!r.ok) {
+    let detail = "";
+    try { detail = (await r.text()).slice(0, 200); } catch { /* ignore */ }
+    return { action: "fail", reason: `agent_step_${r.status}: ${detail}` };
+  }
+  return (await r.json()) as Action;
+}

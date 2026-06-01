@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
-import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, pressKey, getComposeCoords, pasteFromClipboard, takeScreenshot, clickModalClose, scanButtons } from "./lib/cdp";
+import { pollTask, reportResult, heartbeat, agentStep } from "./lib/api";
+import { attach, detach, click, pressKey, typeText, pasteFromClipboard, takeScreenshot, scrollBy, scanButtons } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -54,7 +54,7 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY"; pay
   throw withCode(new Error("unknown_kind"), "bad_payload");
 }
 
-async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ sentAt: string; conversationUrl: string }> {
+async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ sentAt: string; conversationUrl: string; steps: number }> {
   const tab = await chrome.tabs.create({ url: profileUrl, active: true });
   if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
   const tabId = tab.id;
@@ -69,60 +69,55 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await attach(tabId);
     attached = true;
 
-    // Dismiss any modal/popup — try CDP click on X button, fallback to Escape
-    await clickModalClose(tabId);
-    await sleep(600);
-
-    // Find and click Message button (try English and Hebrew labels)
-    const msgBtnCoords =
-      await findElement(tabId, 'button[aria-label^="Message"]', 3_000) ??
-      await findElement(tabId, 'button[aria-label^="הודעה"]', 3_000) ??
-      await findElement(tabId, 'button[aria-label*="essage"]', 3_000) ??
-      await findElement(tabId, 'a[href*="/messaging/compose"]', 3_000);
-    if (!msgBtnCoords) throw withCode(new Error("message_button_not_found"), "not_messageable");
-
-    await click(tabId, msgBtnCoords.x, msgBtnCoords.y);
-    await sleep(4000); // Wait for chat overlay to fully mount
-
-    // Step 1: Write message text to OS clipboard via scripting.executeScript
+    // Write message text to OS clipboard once, up front
     await chrome.scripting.executeScript({
       target: { tabId },
-      func: (txt: string) => { return navigator.clipboard.writeText(txt); },
+      func: (t: string) => navigator.clipboard.writeText(t),
       args: [text],
     });
     await sleep(200);
 
-    // Step 2: Get compose area coordinates via Runtime.evaluate
-    let coords: { ok: boolean; composeX?: number; composeY?: number; sendX?: number; sendY?: number } = { ok: false };
-    const deadline = Date.now() + 10_000;
-    while (!coords.ok && Date.now() < deadline) {
-      coords = await getComposeCoords(tabId);
-      if (!coords.ok) await sleep(500);
+    const preview = text.slice(0, 80) + (text.length > 80 ? "…" : "");
+    const goal = `Send this LinkedIn message to the profile shown: "${preview}". The full text is already on the OS clipboard.`;
+    const history: Array<{ action: string; reasoning?: string }> = [];
+
+    for (let step = 0; step < 15; step++) {
+      const screenshot = await takeScreenshot(tabId);
+      const action = await agentStep({ screenshot, goal, history });
+      const reasoning = action.action === "fail" ? action.reason : action.reasoning;
+      console.log(`[agent step ${step + 1}] ${action.action}`, reasoning);
+      history.push({ action: action.action, reasoning });
+
+      if (action.action === "done") {
+        return { sentAt: new Date().toISOString(), conversationUrl: profileUrl, steps: step + 1 };
+      }
+      if (action.action === "fail") {
+        throw withCode(new Error(action.reason || "agent_failed"), "agent_failed");
+      }
+
+      switch (action.action) {
+        case "click":
+          await click(tabId, action.x, action.y);
+          break;
+        case "paste":
+          await pasteFromClipboard(tabId);
+          break;
+        case "type":
+          await typeText(tabId, action.text);
+          break;
+        case "key":
+          await pressKey(tabId, action.key, keyCodeOf(action.key));
+          break;
+        case "scroll":
+          await scrollBy(tabId, action.dy);
+          break;
+        case "wait":
+          await sleep(Math.min(action.ms, 2000));
+          break;
+      }
+      await sleep(700);
     }
-    if (!coords.ok) throw withCode(new Error("compose_not_found"), "selector_missing");
-
-    // Step 3: CDP click on compose area — gives it OS-level trusted focus
-    await click(tabId, coords.composeX!, coords.composeY!);
-    await sleep(400);
-
-    // Step 4: CDP Ctrl+V — fires trusted paste event, React updates state
-    await pasteFromClipboard(tabId);
-    await sleep(1000); // Let React process paste and enable Send button
-
-    // Step 5: Re-fetch Send button coords (React re-rendered with text)
-    const afterPaste = await getComposeCoords(tabId);
-
-    // Step 6: CDP click Send button (trusted)
-    if (afterPaste.sendX && afterPaste.sendY) {
-      await click(tabId, afterPaste.sendX, afterPaste.sendY);
-    } else if (coords.sendX && coords.sendY) {
-      await click(tabId, coords.sendX, coords.sendY);
-    } else {
-      await pressKey(tabId, "Enter", 13);
-    }
-    await sleep(2500);
-
-    return { sentAt: new Date().toISOString(), conversationUrl: profileUrl };
+    throw withCode(new Error("agent_max_steps"), "agent_max_steps");
   } catch (err) {
     caughtError = err as Error;
     if (attached) {
@@ -142,60 +137,8 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
   }
 }
 
-async function dismissModalViaCDP(tabId: number): Promise<void> {
-  // Use Runtime.evaluate to find and click modal X button (more reliable than Escape)
-  const result = await (await import("./lib/cdp")).send<{ result: { value: { found: boolean; x?: number; y?: number } } }>(
-    tabId,
-    "Runtime.evaluate",
-    {
-      expression: `(function() {
-        const xSelectors = [
-          'button[aria-label="Dismiss"]',
-          'button.artdeco-modal__dismiss',
-          '[data-test-modal-close-btn]',
-          'button[aria-label="Close"]',
-          '.modal__dismiss button',
-        ];
-        for (const sel of xSelectors) {
-          const el = document.querySelector(sel);
-          if (el) {
-            const r = el.getBoundingClientRect();
-            if (r.width > 0) return { found: true, x: Math.round(r.left + r.width/2), y: Math.round(r.top + r.height/2) };
-          }
-        }
-        return { found: false };
-      })()`,
-      returnByValue: true,
-    }
-  );
-  const info = result?.result?.value;
-  if (info?.found && info.x && info.y) {
-    await click(tabId, info.x, info.y);
-  } else {
-    // Fallback to Escape
-    await pressKey(tabId, "Escape", 27);
-  }
-}
-
-async function dismissModal(tabId: number): Promise<void> {
-  // Dismiss any modal/dialog LinkedIn may show (Premium upsell, etc.)
-  const result = await sendMessageToTab(tabId, {
-    kind: "FIND_ELEMENTS",
-    selectors: [
-      'button[aria-label="Dismiss"]',
-      'button[aria-label="Close"]',
-      'button[data-tracking-control-name="premium_upsell_modal_close"]',
-      '.modal__dismiss',
-      '[data-test-modal-close-btn]',
-      'button.artdeco-modal__dismiss',
-    ],
-  });
-  for (const [sel, info] of Object.entries(result?.result ?? {})) {
-    if (info?.found && info.x && info.y) {
-      await click(tabId, info.x, info.y);
-      return;
-    }
-  }
+function keyCodeOf(k: "Enter" | "Escape" | "Tab"): number {
+  return k === "Enter" ? 13 : k === "Escape" ? 27 : k === "Tab" ? 9 : 0;
 }
 
 async function waitForTabLoad(tabId: number): Promise<void> {
@@ -212,33 +155,6 @@ async function waitForTabLoad(tabId: number): Promise<void> {
       }
     };
     chrome.tabs.onUpdated.addListener(listener);
-  });
-}
-
-async function findElement(
-  tabId: number,
-  selector: string,
-  timeoutMs: number
-): Promise<{ x: number; y: number } | null> {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    const response = await sendMessageToTab(tabId, { kind: "FIND_ELEMENTS", selectors: [selector] });
-    const info = response?.result?.[selector];
-    if (info?.found) return { x: info.x!, y: info.y! };
-    await sleep(500);
-  }
-  return null;
-}
-
-async function sendMessageToTab(
-  tabId: number,
-  message: object
-): Promise<{ ok: boolean; result?: Record<string, { found: boolean; x?: number; y?: number }> }> {
-  return await new Promise((resolve) => {
-    chrome.tabs.sendMessage(tabId, message, (response) => {
-      void chrome.runtime.lastError;
-      resolve(response ?? { ok: false });
-    });
   });
 }
 
