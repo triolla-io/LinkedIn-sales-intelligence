@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, pressKey, getComposeCoords, pasteFromClipboard } from "./lib/cdp";
+import { attach, detach, click, pressKey, getComposeCoords, pasteFromClipboard, takeScreenshot } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -28,7 +28,13 @@ async function runOneCycle() {
     await reportResult(task.id, { ok: true, result });
   } catch (err) {
     const errorCode = (err as Error & { code?: string }).code ?? "unknown";
-    await reportResult(task.id, { ok: false, errorCode, errorMessage: (err as Error).message });
+    const screenshot = (err as Error & { screenshot?: string }).screenshot;
+    await reportResult(task.id, {
+      ok: false,
+      errorCode,
+      errorMessage: (err as Error).message,
+      ...(screenshot ? { result: { debugScreenshot: screenshot } } : {}),
+    });
   }
 }
 
@@ -53,6 +59,8 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
   const tabId = tab.id;
 
   let attached = false;
+  let caughtError: Error | null = null;
+
   try {
     await waitForTabLoad(tabId);
     await sleep(2500);
@@ -114,6 +122,16 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await sleep(2500);
 
     return { sentAt: new Date().toISOString(), conversationUrl: profileUrl };
+  } catch (err) {
+    caughtError = err as Error;
+    // Capture screenshot before tab closes — stored in error for reportResult
+    if (attached) {
+      try {
+        const screenshot = await takeScreenshot(tabId);
+        (caughtError as Error & { screenshot?: string }).screenshot = screenshot;
+      } catch { /* ignore screenshot errors */ }
+    }
+    throw caughtError;
   } finally {
     if (attached) await detach(tabId).catch(() => {});
     await chrome.tabs.remove(tabId).catch(() => {});
