@@ -66,7 +66,7 @@ export async function campaignSendOneHandler({ event }: any) {
       data: {
         userId: recipient.campaign.ownerId,
         kind: "SEND",
-        payload: { linkedinUrl, text },
+        payload: { linkedinUrl, text, recipientName: recipient.contact.fullName ?? "" },
         recipientId: recipient.id,
         scheduledFor,
       },

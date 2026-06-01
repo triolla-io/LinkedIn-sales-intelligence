@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat, agentStep } from "./lib/api";
-import { attach, detach, click, pressKey, typeText, insertTextIntoCompose, clickSendButton, closeAllComposeOverlays, takeScreenshot, scrollBy, scanButtons, clickMessageButton } from "./lib/cdp";
+import { attach, detach, click, pressKey, typeText, insertTextIntoNamedCompose, clickSendButton, closeAllComposeOverlays, takeScreenshot, scrollBy, scanButtons, clickMessageButton } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -59,7 +59,7 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY"; pay
 
   if (task.kind === "SEND") {
     if (!payload.linkedinUrl || !payload.text) throw withCode(new Error("missing_payload"), "bad_payload");
-    return await sendLinkedInMessage(payload.linkedinUrl, payload.text);
+    return await sendLinkedInMessage(payload.linkedinUrl, payload.text, payload.recipientName ?? "");
   }
 
   if (task.kind === "CHECK_REPLY") {
@@ -69,7 +69,7 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY"; pay
   throw withCode(new Error("unknown_kind"), "bad_payload");
 }
 
-async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ sentAt: string; conversationUrl: string; steps: number }> {
+async function sendLinkedInMessage(profileUrl: string, text: string, recipientName = ""): Promise<{ sentAt: string; conversationUrl: string; steps: number }> {
   const tab = await chrome.tabs.create({ url: profileUrl, active: true });
   if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
   const tabId = tab.id;
@@ -119,7 +119,7 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     // Phase 2: insert text with retry
     let inserted = false;
     for (let attempt = 0; attempt < 6; attempt++) {
-      inserted = await insertTextIntoCompose(tabId, text);
+      inserted = await insertTextIntoNamedCompose(tabId, text, recipientName);
       console.log(`[agent] insertTextIntoCompose attempt ${attempt + 1}:`, inserted);
       if (inserted) break;
       await sleep(600);

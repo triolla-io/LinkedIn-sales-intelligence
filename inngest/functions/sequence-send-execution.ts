@@ -77,7 +77,7 @@ export const sequenceSendExecution = inngest.createFunction(
         data: {
           userId: execution.enrollment.sequence.ownerId,
           kind: "SEND",
-          payload: { linkedinUrl, text },
+          payload: { linkedinUrl, text, recipientName: execution.enrollment.contact.fullName ?? "" },
           sequenceExecutionId: execution.id,
           scheduledFor,
         },

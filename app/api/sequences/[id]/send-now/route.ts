@@ -38,7 +38,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         data: {
           userId: ctx.effectiveUserId,
           kind: "SEND",
-          payload: { linkedinUrl: contact.linkedinUrl, text: rendered.body },
+          payload: { linkedinUrl: contact.linkedinUrl, text: rendered.body, recipientName: contact.fullName ?? "" },
           sequenceExecutionId: ex.id,
           scheduledFor: new Date(),
         },

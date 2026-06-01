@@ -332,29 +332,75 @@ export async function scrollBy(tabId: number, dy: number): Promise<void> {
   });
 }
 
-// Close ALL open "New message" compose overlays (LinkedIn can have multiple open)
-export async function closeAllComposeOverlays(tabId: number): Promise<number> {
-  const result = await send<{ result: { value: number } }>(tabId, "Runtime.evaluate", {
-    expression: `(function() {
-      let closed = 0;
-      function closeInRoot(root) {
-        for (const el of root.querySelectorAll('button')) {
-          const aria = (el.getAttribute('aria-label') ?? '').toLowerCase();
-          if (aria === 'dismiss' || aria === 'close' || aria.includes('close compose')) {
+// Close ALL open compose overlays using Escape key (most reliable cross-LinkedIn method)
+export async function closeAllComposeOverlays(tabId: number): Promise<void> {
+  // Press Escape multiple times to dismiss any open compose overlays
+  for (let i = 0; i < 5; i++) {
+    await send(tabId, "Input.dispatchKeyEvent", {
+      type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27,
+    });
+    await sleep(50);
+    await send(tabId, "Input.dispatchKeyEvent", {
+      type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27,
+    });
+    await sleep(150);
+  }
+}
+
+// Insert text into the compose window that belongs to a specific recipient (by name)
+// Falls back to any visible compose if recipient not found
+export async function insertTextIntoNamedCompose(tabId: number, text: string, recipientName: string): Promise<boolean> {
+  const result = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {
+    expression: `(function(txt, name) {
+      // Pierce shadow DOM to find all visible contenteditable elements
+      function findAllEditables(root, found) {
+        for (const sel of ['[contenteditable="true"]', '[contenteditable]']) {
+          for (const el of root.querySelectorAll(sel)) {
             const r = el.getBoundingClientRect();
-            if (r.width > 0) { el.click(); closed++; }
+            if (r.width > 50 && r.height > 10) found.push(el);
           }
         }
         for (const el of root.querySelectorAll('*')) {
-          if (el.shadowRoot) closeInRoot(el.shadowRoot);
+          if (el.shadowRoot) findAllEditables(el.shadowRoot, found);
         }
       }
-      closeInRoot(document);
-      return closed;
-    })()`,
+
+      const editables = [];
+      findAllEditables(document, editables);
+      if (editables.length === 0) return false;
+
+      // Try to find the compose that belongs to the correct recipient
+      // by checking if the recipient name appears near the compose element
+      let target = null;
+      const nameLower = name.toLowerCase().split(' ')[0]; // first name
+      for (const el of editables) {
+        // Walk up the DOM to find a container that mentions the recipient
+        let node = el.parentElement;
+        for (let i = 0; i < 10 && node; i++) {
+          if (node.textContent && node.textContent.toLowerCase().includes(nameLower)) {
+            target = el;
+            break;
+          }
+          node = node.parentElement;
+        }
+        if (target) break;
+      }
+
+      // If no match by name, use the LAST opened compose (rightmost / highest index)
+      if (!target) target = editables[editables.length - 1];
+
+      target.focus();
+      target.click();
+      const range = document.createRange();
+      range.selectNodeContents(target);
+      range.collapse(false);
+      const sel = window.getSelection();
+      if (sel) { sel.removeAllRanges(); sel.addRange(range); }
+      return document.execCommand('insertText', false, txt) || (target.textContent || '').includes(txt.slice(0, 10));
+    })(${JSON.stringify(text)}, ${JSON.stringify(recipientName)})`,
     returnByValue: true,
   });
-  return result?.result?.value ?? 0;
+  return result?.result?.value === true;
 }
 
 // Capture screenshot as base64 PNG for debugging
