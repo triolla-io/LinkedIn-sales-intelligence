@@ -65,13 +65,14 @@ export async function pressKey(tabId: number, key: string, keyCode: number): Pro
   });
 }
 
-type TypeResult = { ok: boolean; sendX?: number; sendY?: number };
+type FocusResult = { ok: boolean; sendX?: number; sendY?: number };
 
-// Type text into compose — returns Send button coordinates for CDP click
-export async function typeIntoCompose(tabId: number, text: string): Promise<TypeResult> {
-  const encoded = JSON.stringify(text);
-  const result = await send<{ result: { value: TypeResult } }>(tabId, "Runtime.evaluate", {
-    expression: `(function(msg) {
+// Step 1: Focus compose editor via Runtime.evaluate, return Send button coords.
+// Step 2 (caller): use CDP Input.insertText to type — TRUSTED, updates React state.
+// Step 3 (caller): CDP click on sendX/sendY to submit.
+export async function focusComposeAndGetSendBtn(tabId: number): Promise<FocusResult> {
+  const result = await send<{ result: { value: FocusResult } }>(tabId, "Runtime.evaluate", {
+    expression: `(function() {
       const compose =
         document.querySelector('div.msg-form__contenteditable[contenteditable="true"]') ||
         document.querySelector('[role="textbox"][contenteditable="true"]') ||
@@ -81,27 +82,17 @@ export async function typeIntoCompose(tabId: number, text: string): Promise<Type
       compose.focus();
       compose.click();
 
-      // execCommand — works in page JS context after CDP clicks grant user-activation
-      const inserted = document.execCommand('insertText', false, msg);
-      if (!inserted || !compose.textContent?.trim()) {
-        compose.innerHTML = '<p>' + msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</p>';
-        compose.dispatchEvent(new InputEvent('input', { inputType: 'insertText', data: msg, bubbles: true }));
-      }
+      const btn =
+        document.querySelector('button.msg-form__send-button') ||
+        [...document.querySelectorAll('button[type="submit"]')].find(b =>
+          b.textContent?.trim() === 'Send' || b.getAttribute('aria-label') === 'Send'
+        ) || null;
 
-      // Find Send button and return its coordinates for CDP trusted click
-      return new Promise(resolve => setTimeout(() => {
-        const btn =
-          document.querySelector('button.msg-form__send-button') ||
-          [...document.querySelectorAll('button[type="submit"]')].find(b =>
-            b.textContent?.trim() === 'Send' || b.getAttribute('aria-label') === 'Send'
-          );
-        if (!btn) { resolve({ ok: true }); return; }
-        const r = btn.getBoundingClientRect();
-        resolve({ ok: true, sendX: Math.round(r.left + r.width / 2), sendY: Math.round(r.top + r.height / 2) });
-      }, 600));
-    })(${encoded})`,
+      if (!btn) return { ok: true };
+      const r = btn.getBoundingClientRect();
+      return { ok: true, sendX: Math.round(r.left + r.width / 2), sendY: Math.round(r.top + r.height / 2) };
+    })()`,
     returnByValue: true,
-    awaitPromise: true,
   });
   return result?.result?.value ?? { ok: false };
 }

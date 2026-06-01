@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, pressKey, typeIntoCompose } from "./lib/cdp";
+import { attach, detach, click, pressKey, typeText, focusComposeAndGetSendBtn } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -71,18 +71,22 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await click(tabId, msgBtnCoords.x, msgBtnCoords.y);
     await sleep(4000); // Wait for chat overlay to fully mount
 
-    // Type into compose — get Send button coords, then CDP-click them (trusted)
-    let typeResult: { ok: boolean; sendX?: number; sendY?: number } = { ok: false };
+    // Step 1: Focus compose via Runtime.evaluate + get Send button coords
+    let focusResult: { ok: boolean; sendX?: number; sendY?: number } = { ok: false };
     const deadline = Date.now() + 10_000;
-    while (!typeResult.ok && Date.now() < deadline) {
-      typeResult = await typeIntoCompose(tabId, text);
-      if (!typeResult.ok) await sleep(500);
+    while (!focusResult.ok && Date.now() < deadline) {
+      focusResult = await focusComposeAndGetSendBtn(tabId);
+      if (!focusResult.ok) await sleep(500);
     }
-    if (!typeResult.ok) throw withCode(new Error("compose_not_found"), "selector_missing");
+    if (!focusResult.ok) throw withCode(new Error("compose_not_found"), "selector_missing");
 
-    // CDP-click the Send button with trusted events
-    if (typeResult.sendX && typeResult.sendY) {
-      await click(tabId, typeResult.sendX, typeResult.sendY);
+    // Step 2: Type text via CDP Input.insertText — TRUSTED, updates React state
+    await typeText(tabId, text);
+    await sleep(1000); // Let React process the input event
+
+    // Step 3: CDP-click Send button (trusted) to submit
+    if (focusResult.sendX && focusResult.sendY) {
+      await click(tabId, focusResult.sendX, focusResult.sendY);
     } else {
       await pressKey(tabId, "Enter", 13);
     }
