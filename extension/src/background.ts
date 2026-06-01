@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, pressKey, typeText, focusComposeAndGetSendBtn } from "./lib/cdp";
+import { attach, detach, click, pressKey, typeText, getComposeCoords } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -71,22 +71,26 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await click(tabId, msgBtnCoords.x, msgBtnCoords.y);
     await sleep(4000); // Wait for chat overlay to fully mount
 
-    // Step 1: Focus compose via Runtime.evaluate + get Send button coords
-    let focusResult: { ok: boolean; sendX?: number; sendY?: number } = { ok: false };
+    // Step 1: Get compose + send button coordinates via Runtime.evaluate
+    let coords: { ok: boolean; composeX?: number; composeY?: number; sendX?: number; sendY?: number } = { ok: false };
     const deadline = Date.now() + 10_000;
-    while (!focusResult.ok && Date.now() < deadline) {
-      focusResult = await focusComposeAndGetSendBtn(tabId);
-      if (!focusResult.ok) await sleep(500);
+    while (!coords.ok && Date.now() < deadline) {
+      coords = await getComposeCoords(tabId);
+      if (!coords.ok) await sleep(500);
     }
-    if (!focusResult.ok) throw withCode(new Error("compose_not_found"), "selector_missing");
+    if (!coords.ok) throw withCode(new Error("compose_not_found"), "selector_missing");
 
-    // Step 2: Type text via CDP Input.insertText — TRUSTED, updates React state
+    // Step 2: CDP click on compose area — gives trusted focus + user activation
+    await click(tabId, coords.composeX!, coords.composeY!);
+    await sleep(300);
+
+    // Step 3: Type via CDP Input.insertText (now has proper focus)
     await typeText(tabId, text);
-    await sleep(1000); // Let React process the input event
+    await sleep(1000);
 
-    // Step 3: CDP-click Send button (trusted) to submit
-    if (focusResult.sendX && focusResult.sendY) {
-      await click(tabId, focusResult.sendX, focusResult.sendY);
+    // Step 4: CDP click Send button (trusted)
+    if (coords.sendX && coords.sendY) {
+      await click(tabId, coords.sendX, coords.sendY);
     } else {
       await pressKey(tabId, "Enter", 13);
     }

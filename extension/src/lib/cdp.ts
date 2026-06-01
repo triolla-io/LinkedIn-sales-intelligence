@@ -65,13 +65,11 @@ export async function pressKey(tabId: number, key: string, keyCode: number): Pro
   });
 }
 
-type FocusResult = { ok: boolean; sendX?: number; sendY?: number };
+type ElementCoords = { ok: boolean; composeX?: number; composeY?: number; sendX?: number; sendY?: number };
 
-// Step 1: Focus compose editor via Runtime.evaluate, return Send button coords.
-// Step 2 (caller): use CDP Input.insertText to type — TRUSTED, updates React state.
-// Step 3 (caller): CDP click on sendX/sendY to submit.
-export async function focusComposeAndGetSendBtn(tabId: number): Promise<FocusResult> {
-  const result = await send<{ result: { value: FocusResult } }>(tabId, "Runtime.evaluate", {
+// Returns coordinates of compose area AND send button for CDP clicks
+export async function getComposeCoords(tabId: number): Promise<ElementCoords> {
+  const result = await send<{ result: { value: ElementCoords } }>(tabId, "Runtime.evaluate", {
     expression: `(function() {
       const compose =
         document.querySelector('div.msg-form__contenteditable[contenteditable="true"]') ||
@@ -79,8 +77,8 @@ export async function focusComposeAndGetSendBtn(tabId: number): Promise<FocusRes
         document.querySelector('[contenteditable="true"]');
       if (!compose) return { ok: false };
 
-      compose.focus();
-      compose.click();
+      const cr = compose.getBoundingClientRect();
+      if (cr.width === 0 || cr.height === 0) return { ok: false };
 
       const btn =
         document.querySelector('button.msg-form__send-button') ||
@@ -88,9 +86,18 @@ export async function focusComposeAndGetSendBtn(tabId: number): Promise<FocusRes
           b.textContent?.trim() === 'Send' || b.getAttribute('aria-label') === 'Send'
         ) || null;
 
-      if (!btn) return { ok: true };
-      const r = btn.getBoundingClientRect();
-      return { ok: true, sendX: Math.round(r.left + r.width / 2), sendY: Math.round(r.top + r.height / 2) };
+      const result = {
+        ok: true,
+        composeX: Math.round(cr.left + cr.width / 2),
+        composeY: Math.round(cr.top + cr.height / 2),
+      };
+
+      if (btn) {
+        const br = btn.getBoundingClientRect();
+        Object.assign(result, { sendX: Math.round(br.left + br.width / 2), sendY: Math.round(br.top + br.height / 2) });
+      }
+
+      return result;
     })()`,
     returnByValue: true,
   });
