@@ -33,5 +33,16 @@ export default async function CampaignDetailPage({
 
   if (!sequence) notFound();
 
-  return <CampaignDetailClient sequence={sequence} />;
+  const extensionSession = await prisma.extensionSession.findFirst({
+    where: { userId: session.user.id, revokedAt: null },
+    orderBy: { lastSeenAt: "desc" },
+    select: { lastSeenAt: true },
+  });
+
+  return (
+    <CampaignDetailClient
+      sequence={sequence}
+      extensionLastSeen={extensionSession?.lastSeenAt?.toISOString() ?? null}
+    />
+  );
 }

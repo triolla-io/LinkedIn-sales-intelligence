@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Play, Pause, RotateCcw, XCircle, Mail, MessageSquare, X, RefreshCw } from "lucide-react";
+import { ArrowLeft, Play, Pause, RotateCcw, XCircle, Mail, MessageSquare, Link2, X, RefreshCw } from "lucide-react";
 import AutoRefresher from "@/components/auto-refresher";
 
 type StepExecution = {
@@ -58,10 +58,20 @@ const STATUS_LABELS: Record<string, string> = {
 
 const EXEC_COLORS: Record<string, string> = {
   PENDING: "bg-[#f3f2ef] text-[#6b6866]",
+  QUEUED: "bg-[#eff6ff] text-[#1d4ed8]",
   SENDING: "bg-[#fff7e6] text-[#b45309]",
   SENT: "bg-[#e6faf0] text-[#059669]",
   FAILED: "bg-[#fff3f3] text-[#dc2626]",
   SKIPPED: "bg-[#f3f2ef] text-[#9b9895]",
+};
+
+const EXEC_LABELS: Record<string, string> = {
+  PENDING: "ממתין",
+  QUEUED: "בתור",
+  SENDING: "שולח",
+  SENT: "נשלח",
+  FAILED: "נכשל",
+  SKIPPED: "דולג",
 };
 
 function currentStepNumber(enrollments: Enrollment[]): number | null {
@@ -78,7 +88,13 @@ function currentStepNumber(enrollments: Enrollment[]): number | null {
   return Number(entries.reduce((a, b) => (b[1] > a[1] ? b : a))[0]);
 }
 
-export default function CampaignDetailClient({ sequence: initial }: { sequence: Sequence }) {
+export default function CampaignDetailClient({
+  sequence: initial,
+  extensionLastSeen,
+}: {
+  sequence: Sequence;
+  extensionLastSeen: string | null;
+}) {
   const [sequence, setSequence] = useState<Sequence>(initial);
   const [acting, setActing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -212,6 +228,20 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
     <div className="p-8 space-y-6">
       <AutoRefresher />
 
+      {/* Extension warning banner */}
+      {sequence.steps.some((s) => s.channel === "LINKEDIN") &&
+        extensionLastSeen !== undefined &&
+        (!extensionLastSeen || Date.now() - new Date(extensionLastSeen).getTime() > 2 * 60 * 60 * 1000) && (
+          <div className="mb-4 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+            <span>⚠️</span>
+            <span>
+              כלי LinkedIn לא פעיל{extensionLastSeen ? ` מאז ${new Date(extensionLastSeen).toLocaleString("he-IL")}` : ""}.
+              הודעות לא יישלחו עד שתפתחי Chrome עם ה-extension.{" "}
+              <a href="/settings/extension" className="underline font-medium">הגדרות</a>
+            </span>
+          </div>
+        )}
+
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
@@ -305,6 +335,8 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
                   >
                     {step.channel === "EMAIL" ? (
                       <Mail className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`} />
+                    ) : step.channel === "LINKEDIN" ? (
+                      <Link2 className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`} />
                     ) : (
                       <MessageSquare className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`} />
                     )}
@@ -314,7 +346,7 @@ export default function CampaignDetailClient({ sequence: initial }: { sequence: 
                 {/* Text centered below circle */}
                 <div className="mt-2 text-center px-2 w-full">
                   <p className="text-xs font-semibold text-[#111110]">
-                    יום {step.dayOffset + 1} — {step.channel === "EMAIL" ? "דוא״ל" : "WhatsApp"}
+                    יום {step.dayOffset + 1} — {step.channel === "EMAIL" ? "דוא״ל" : step.channel === "LINKEDIN" ? "LinkedIn" : "WhatsApp"}
                   </p>
                   <p className="text-[10px] text-[#9b9895] mt-0.5">{timeStr}</p>
                   {isActive && (
