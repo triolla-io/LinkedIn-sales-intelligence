@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Download } from "lucide-react";
 import { ExtensionStatusBadge } from "@/components/extension-status-badge";
 
 type SessionInfo = {
@@ -62,9 +62,16 @@ export function ExtensionClient({ initialSession }: { initialSession: SessionInf
         {/* Step 1 */}
         <li className="flex gap-4">
           <span className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1585ff] text-white text-xs font-bold flex items-center justify-center">1</span>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <p className="font-medium text-[#111110]">הורידי את ה-extension</p>
-            <p className="text-[#6b6866]">הורידי את תיקיית <code className="bg-[#f3f2ef] px-1 rounded">extension/dist</code> מהשרת, או בקשי מהצוות הטכני את קובץ ה-ZIP.</p>
+            <a
+              href="/api/extension/download"
+              download="triolla-linkedin-sender.zip"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              הורד Extension
+            </a>
           </div>
         </li>
 

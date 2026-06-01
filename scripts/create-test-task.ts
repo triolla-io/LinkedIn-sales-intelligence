@@ -5,8 +5,7 @@ const TEST_URLS = [
   "https://www.linkedin.com/in/adi-berman/",
 ];
 
-// const TEST_TEXT = "היי! זו הודעת בדיקה אוטומטית מהמעררגישי חופשי להתעלם 🙂";
-const TEST_TEXT = "היי עדי זאת אריאל מטריאולה ואני עושה ניסיון עם המערכת החדשה שלנו"
+const TEST_TEXT = "היי! זו הודעת בדיקה אוטומטית מהמערכת שלנו - תרגישי חופשי להתעלם 🙂";
 
 async function main() {
   const user = await prisma.user.findFirstOrThrow({
