@@ -47,7 +47,6 @@ async function handleSendSuccess(task: TaskRow) {
         where: { id: recipient.id },
         data: { status: "SENT", sentMessageId: sent.id, sentAt: sent.sentAt },
       });
-      await scheduleReplyChecks(task, result.conversationUrl, sent.sentAt.toISOString());
       await inngest.send({ name: "campaign.finalize", data: { campaignId: recipient.campaignId } });
     }
   } else if (task.sequenceExecutionId) {
@@ -70,7 +69,6 @@ async function handleSendSuccess(task: TaskRow) {
         where: { id: execution.id },
         data: { status: "SENT", sentMessageId: sent.id },
       });
-      await scheduleReplyChecks(task, result.conversationUrl, sent.sentAt.toISOString());
     }
   }
 }
