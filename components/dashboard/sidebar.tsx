@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   Users, FileText, Shield, LogOut, LayoutDashboard, Upload,
-  BookMarked, GitBranch, ChevronLeft, ChevronRight,
+  BookMarked, GitBranch, ChevronLeft, ChevronRight, Settings,
 } from "lucide-react";
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -34,7 +34,7 @@ const navItems = [
   { href: "/campaigns", label: "קמפיינים", icon: GitBranch },
   { href: "/templates", label: "טמפלטים", icon: FileText },
   { href: "/import", label: "ייבוא נתונים", icon: Upload },
-  { href: "/whatsapp-connect", label: "WhatsApp", icon: WhatsAppIcon },
+  { href: "/settings/extension", label: "הגדרות", icon: Settings },
 ];
 
 const adminItems = [
