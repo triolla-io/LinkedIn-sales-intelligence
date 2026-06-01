@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, pressKey, typeText, getComposeCoords } from "./lib/cdp";
+import { attach, detach, click, pressKey, getComposeCoords, pasteFromClipboard } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -75,7 +75,15 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await click(tabId, msgBtnCoords.x, msgBtnCoords.y);
     await sleep(4000); // Wait for chat overlay to fully mount
 
-    // Step 1: Get compose + send button coordinates via Runtime.evaluate
+    // Step 1: Write message text to OS clipboard via scripting.executeScript
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      func: (txt: string) => { return navigator.clipboard.writeText(txt); },
+      args: [text],
+    });
+    await sleep(200);
+
+    // Step 2: Get compose area coordinates via Runtime.evaluate
     let coords: { ok: boolean; composeX?: number; composeY?: number; sendX?: number; sendY?: number } = { ok: false };
     const deadline = Date.now() + 10_000;
     while (!coords.ok && Date.now() < deadline) {
@@ -84,16 +92,21 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     }
     if (!coords.ok) throw withCode(new Error("compose_not_found"), "selector_missing");
 
-    // Step 2: CDP click on compose area — gives trusted focus + user activation
+    // Step 3: CDP click on compose area — gives it OS-level trusted focus
     await click(tabId, coords.composeX!, coords.composeY!);
-    await sleep(300);
+    await sleep(400);
 
-    // Step 3: Type via CDP Input.insertText (now has proper focus)
-    await typeText(tabId, text);
-    await sleep(1000);
+    // Step 4: CDP Ctrl+V — fires trusted paste event, React updates state
+    await pasteFromClipboard(tabId);
+    await sleep(1000); // Let React process paste and enable Send button
 
-    // Step 4: CDP click Send button (trusted)
-    if (coords.sendX && coords.sendY) {
+    // Step 5: Re-fetch Send button coords (React re-rendered with text)
+    const afterPaste = await getComposeCoords(tabId);
+
+    // Step 6: CDP click Send button (trusted)
+    if (afterPaste.sendX && afterPaste.sendY) {
+      await click(tabId, afterPaste.sendX, afterPaste.sendY);
+    } else if (coords.sendX && coords.sendY) {
       await click(tabId, coords.sendX, coords.sendY);
     } else {
       await pressKey(tabId, "Enter", 13);
