@@ -99,6 +99,17 @@ export default function CampaignDetailClient({
   const [acting, setActing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [removing, setRemoving] = useState(false);
+  const [sendingNow, setSendingNow] = useState(false);
+
+  async function sendNow() {
+    if (!confirm("לשלוח את כל ההודעות הממתינות עכשיו?")) return;
+    setSendingNow(true);
+    const res = await fetch(`/api/sequences/${sequence.id}/send-now`, { method: "POST" });
+    const data = await res.json() as { ok: boolean; created?: number };
+    setSendingNow(false);
+    if (data.ok) alert(`נוצרו ${data.created} משימות שליחה — ה-extension ישלח תוך 30 שניות`);
+    else alert("שגיאה");
+  }
 
   const sentCount = sequence.enrollments.reduce(
     (acc, e) => acc + e.executions.filter((x) => x.status === "SENT").length,
@@ -265,6 +276,16 @@ export default function CampaignDetailClient({
             >
               <Play className="w-3.5 h-3.5" />
               התחל
+            </button>
+          )}
+          {status === "ACTIVE" && sequence.steps.some(s => s.channel === "LINKEDIN") && (
+            <button
+              onClick={sendNow}
+              disabled={sendingNow}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-[#059669] text-white text-sm font-medium rounded-lg hover:bg-[#047857] transition-colors disabled:opacity-50"
+            >
+              <Play className="w-3.5 h-3.5" />
+              {sendingNow ? "שולח…" : "שלח עכשיו"}
             </button>
           )}
           {status === "ACTIVE" && (
