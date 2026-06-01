@@ -50,8 +50,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       issuer: "https://accounts.google.com",
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      allowDangerousEmailAccountLinking: true,
-      checks: ["none"],
+      allowDangerousEmailAccountLinking: false,
       authorization: {
         url: "https://accounts.google.com/o/oauth2/v2/auth",
         params: {

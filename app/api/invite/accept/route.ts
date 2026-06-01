@@ -18,9 +18,9 @@ export async function POST(req: NextRequest) {
   if (invite.usedAt) return NextResponse.json({ error: "Invite already used" }, { status: 410 });
   if (invite.expiresAt < new Date()) return NextResponse.json({ error: "Invite expired" }, { status: 410 });
 
-  // The signed-in user should match the invite email
+  // The signed-in user must match the invite email exactly — no nullish bypass
   const signedInEmail = session.user.email?.toLowerCase();
-  if (signedInEmail && invite.email.toLowerCase() !== signedInEmail) {
+  if (!signedInEmail || invite.email.toLowerCase() !== signedInEmail) {
     return NextResponse.json(
       { error: `Please sign in with ${invite.email} to accept this invite` },
       { status: 403 },

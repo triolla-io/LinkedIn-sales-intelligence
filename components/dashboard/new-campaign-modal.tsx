@@ -19,9 +19,10 @@ export function NewCampaignModal({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [whatsappConnected, setWhatsappConnected] = useState<boolean | null>(null);
-  const [channel, setChannel] = useState<"WHATSAPP" | "EMAIL">("WHATSAPP");
+  const [channel, setChannel] = useState<"WHATSAPP" | "EMAIL" | "LINKEDIN">("WHATSAPP");
   const [subject, setSubject] = useState("");
   const [gmailConnected, setGmailConnected] = useState<boolean | null>(null);
+  const [extensionConnected, setExtensionConnected] = useState<boolean | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -40,6 +41,16 @@ export function NewCampaignModal({
       .then((r) => r.json())
       .then((d: { connected: boolean }) => setGmailConnected(d.connected))
       .catch(() => setGmailConnected(false));
+
+    fetch("/api/extension/sessions")
+      .then((r) => r.json())
+      .then((d: { session: { lastSeenAt: string | null; revokedAt: string | null } | null }) => {
+        const s = d.session;
+        if (!s || s.revokedAt) { setExtensionConnected(false); return; }
+        const lastSeen = s.lastSeenAt ? new Date(s.lastSeenAt).getTime() : 0;
+        setExtensionConnected(Date.now() - lastSeen < 10 * 60 * 1000);
+      })
+      .catch(() => setExtensionConnected(false));
 
     fetch("/api/templates")
       .then((r) => r.json())
@@ -99,7 +110,7 @@ export function NewCampaignModal({
 
         {/* Channel selector */}
         <div className="mt-4 flex rounded-lg border border-[#e5e3df] overflow-hidden text-sm">
-          {(["WHATSAPP", "EMAIL"] as const).map((ch) => (
+          {(["WHATSAPP", "EMAIL", "LINKEDIN"] as const).map((ch) => (
             <button
               key={ch}
               onClick={() => setChannel(ch)}
@@ -109,7 +120,7 @@ export function NewCampaignModal({
                   : "bg-white text-[#6b6866] hover:text-[#111110]"
               }`}
             >
-              {ch === "WHATSAPP" ? "WhatsApp" : "Email"}
+              {ch === "WHATSAPP" ? "WhatsApp" : ch === "EMAIL" ? "Email" : "LinkedIn"}
             </button>
           ))}
         </div>
@@ -130,6 +141,15 @@ export function NewCampaignModal({
               Re-authorize your Google account →
             </a>{" "}
             You won&apos;t be able to send until it&apos;s connected.
+          </div>
+        )}
+        {channel === "LINKEDIN" && extensionConnected === false && (
+          <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-700">
+            Chrome extension not connected.{" "}
+            <a href="/settings/extension" className="underline hover:text-amber-800">
+              Set up the extension →
+            </a>{" "}
+            Keep Chrome open during sending.
           </div>
         )}
 
@@ -186,7 +206,8 @@ export function NewCampaignModal({
               !templateId ||
               busy ||
               (channel === "WHATSAPP" && whatsappConnected === false) ||
-              (channel === "EMAIL" && (!subject.trim() || gmailConnected === false))
+              (channel === "EMAIL" && (!subject.trim() || gmailConnected === false)) ||
+              (channel === "LINKEDIN" && extensionConnected === false)
             }
             className="rounded-lg bg-[#1585ff] px-3 py-1.5 text-sm text-white disabled:opacity-50 hover:bg-[#0a70e0] transition-colors"
           >

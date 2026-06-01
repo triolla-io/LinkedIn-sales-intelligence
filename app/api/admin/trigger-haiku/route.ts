@@ -1,8 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { inngest } from "@/inngest/client";
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const adminSecret = process.env.ADMIN_SECRET;
+  if (!adminSecret || req.headers.get("x-admin-secret") !== adminSecret) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const users = await prisma.user.findMany({
     select: { id: true, email: true, _count: { select: { contacts: true } } },
   });

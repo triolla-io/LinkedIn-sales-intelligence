@@ -5,7 +5,7 @@ import { executeSequenceSend } from "@/lib/sequences/execute-send";
 
 export async function POST(req: NextRequest) {
   const adminSecret = process.env.ADMIN_SECRET;
-  if (adminSecret && req.headers.get("x-admin-secret") !== adminSecret) {
+  if (!adminSecret || req.headers.get("x-admin-secret") !== adminSecret) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

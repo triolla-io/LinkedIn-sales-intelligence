@@ -54,7 +54,7 @@ export async function campaignSendOneHandler({ event }: any) {
       timezone: recipient.campaign.owner?.timezone ?? "Asia/Jerusalem",
       workingHoursStart: 9,
       workingHoursEnd: 18,
-      weekdaysOnly: true,
+      weekdaysOnly: false,
       lastSentAt,
       sentTodayCount,
       sentLastHourCount,

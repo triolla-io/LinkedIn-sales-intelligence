@@ -52,7 +52,7 @@ Rules:
 8. Never invent state. Base every decision on what you can see in the current screenshot.`;
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "google/gemini-2.0-flash-exp:free";
+const MODEL = "google/gemini-2.0-flash-001";
 
 function isValidAction(value: unknown): value is Action {
   if (!value || typeof value !== "object") return false;

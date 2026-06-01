@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { X, Plus, Trash2, Mail, MessageSquare } from "lucide-react";
+import { X, Plus, Trash2, Mail, MessageSquare, Link2 } from "lucide-react";
 
 type List = { id: string; name: string };
 type Template = { id: string; name: string };
 
 type Step = {
   key: string;
-  channel: "EMAIL" | "WHATSAPP";
+  channel: "EMAIL" | "WHATSAPP" | "LINKEDIN";
   templateId: string;
   subject: string;
   dayOffset: number;
@@ -257,7 +257,7 @@ export default function NewSequenceModal({
 
                   {/* Channel toggle */}
                   <div className="flex gap-2">
-                    {(["EMAIL", "WHATSAPP"] as const).map((ch) => (
+                    {(["EMAIL", "WHATSAPP", "LINKEDIN"] as const).map((ch) => (
                       <button
                         key={ch}
                         onClick={() => updateStep(step.key, { channel: ch })}
@@ -267,8 +267,8 @@ export default function NewSequenceModal({
                             : "bg-white text-[#6b6866] border-[#e5e3df] hover:border-[#1585ff]"
                         }`}
                       >
-                        {ch === "EMAIL" ? <Mail className="w-3.5 h-3.5" /> : <MessageSquare className="w-3.5 h-3.5" />}
-                        {ch === "EMAIL" ? "Email" : "WhatsApp"}
+                        {ch === "EMAIL" ? <Mail className="w-3.5 h-3.5" /> : ch === "WHATSAPP" ? <MessageSquare className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
+                        {ch === "EMAIL" ? "Email" : ch === "WHATSAPP" ? "WhatsApp" : "LinkedIn"}
                       </button>
                     ))}
                   </div>

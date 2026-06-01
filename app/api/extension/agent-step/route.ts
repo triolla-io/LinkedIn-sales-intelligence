@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { writeFileSync } from "fs";
 import { withExtensionAuth } from "@/lib/extension/with-extension-auth";
 import { callVisionAgent, type AgentHistoryEntry } from "@/lib/extension/openrouter";
 
@@ -42,6 +43,11 @@ export async function POST(req: NextRequest): Promise<Response> {
         { error: "invalid_body", detail: "history must be an array of {action, reasoning?}" },
         { status: 400 },
       );
+    }
+
+    // Debug: save first screenshot (step 0) to /tmp for inspection
+    if (body.history.length === 0) {
+      try { writeFileSync("/tmp/agent-step0.png", Buffer.from(body.screenshot, "base64")); } catch {}
     }
 
     const action = await callVisionAgent({

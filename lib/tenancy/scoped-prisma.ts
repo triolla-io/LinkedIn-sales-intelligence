@@ -34,7 +34,7 @@ export function scopedPrisma(orgUserIds: string[]) {
       },
       sentMessage: {
         async findUnique({ args, query }) {
-          args.where = { ...args.where };
+          args.where = { ...args.where, senderId: { in: orgUserIds } };
           return query(args);
         },
         async findMany({ args, query }) {

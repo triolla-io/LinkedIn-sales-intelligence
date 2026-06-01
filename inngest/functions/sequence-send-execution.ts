@@ -65,7 +65,7 @@ export const sequenceSendExecution = inngest.createFunction(
         timezone: execution.enrollment.sequence.owner?.timezone ?? "Asia/Jerusalem",
         workingHoursStart: 9,
         workingHoursEnd: 18,
-        weekdaysOnly: true,
+        weekdaysOnly: false,
         lastSentAt,
         sentTodayCount,
         sentLastHourCount,

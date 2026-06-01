@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat, agentStep } from "./lib/api";
-import { attach, detach, click, pressKey, typeText, pasteFromClipboard, takeScreenshot, scrollBy, scanButtons } from "./lib/cdp";
+import { attach, detach, click, pressKey, typeText, insertTextIntoCompose, clickSendButton, takeScreenshot, scrollBy, scanButtons, clickMessageButton } from "./lib/cdp";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -66,8 +66,20 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     await waitForTabLoad(tabId);
     await sleep(2500);
 
+    // Bring the window to front so CDP clicks land on a focused window
+    const tabInfo = await chrome.tabs.get(tabId);
+    if (tabInfo.windowId) await chrome.windows.update(tabInfo.windowId, { focused: true });
+    await sleep(300);
+
     await attach(tabId);
     attached = true;
+
+    // Get device pixel ratio so we can normalize screenshot coords to CSS coords
+    const dprResult = await (await import("./lib/cdp")).send<{ result: { value: number } }>(
+      tabId, "Runtime.evaluate", { expression: "window.devicePixelRatio", returnByValue: true }
+    );
+    const dpr = dprResult?.result?.value ?? 1;
+    console.log("[agent] devicePixelRatio:", dpr);
 
     // Write message text to OS clipboard once, up front
     await chrome.scripting.executeScript({
@@ -77,47 +89,32 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
     });
     await sleep(200);
 
-    const preview = text.slice(0, 80) + (text.length > 80 ? "…" : "");
-    const goal = `Send this LinkedIn message to the profile shown: "${preview}". The full text is already on the OS clipboard.`;
-    const history: Array<{ action: string; reasoning?: string }> = [];
+    // Phase 1: click Message button directly via CSS selector (reliable, no Gemini)
+    const msgBtn = await clickMessageButton(tabId);
+    console.log("[agent] clickMessageButton:", msgBtn);
+    if (!msgBtn) throw withCode(new Error("message_button_not_found"), "not_messageable");
+    // The link navigates to /messaging/compose/ — wait for page load
+    await waitForTabLoad(tabId).catch(() => {}); // may or may not navigate
+    await sleep(2500);
 
-    for (let step = 0; step < 15; step++) {
-      const screenshot = await takeScreenshot(tabId);
-      const action = await agentStep({ screenshot, goal, history });
-      const reasoning = action.action === "fail" ? action.reason : action.reasoning;
-      console.log(`[agent step ${step + 1}] ${action.action}`, reasoning);
-      history.push({ action: action.action, reasoning });
-
-      if (action.action === "done") {
-        return { sentAt: new Date().toISOString(), conversationUrl: profileUrl, steps: step + 1 };
-      }
-      if (action.action === "fail") {
-        throw withCode(new Error(action.reason || "agent_failed"), "agent_failed");
-      }
-
-      switch (action.action) {
-        case "click":
-          await click(tabId, action.x, action.y);
-          break;
-        case "paste":
-          await pasteFromClipboard(tabId);
-          break;
-        case "type":
-          await typeText(tabId, action.text);
-          break;
-        case "key":
-          await pressKey(tabId, action.key, keyCodeOf(action.key));
-          break;
-        case "scroll":
-          await scrollBy(tabId, action.dy);
-          break;
-        case "wait":
-          await sleep(Math.min(action.ms, 2000));
-          break;
-      }
-      await sleep(700);
+    // Phase 2: insert text with retry
+    let inserted = false;
+    for (let attempt = 0; attempt < 6; attempt++) {
+      inserted = await insertTextIntoCompose(tabId, text);
+      console.log(`[agent] insertTextIntoCompose attempt ${attempt + 1}:`, inserted);
+      if (inserted) break;
+      await sleep(600);
     }
-    throw withCode(new Error("agent_max_steps"), "agent_max_steps");
+    if (!inserted) throw withCode(new Error("compose_insert_failed"), "compose_insert_failed");
+    await sleep(800); // let React process the inserted text and enable Send
+
+    // Phase 3: click Send button directly via shadow DOM
+    const sent = await clickSendButton(tabId);
+    console.log("[agent] clickSendButton:", sent);
+    if (!sent) throw withCode(new Error("send_button_not_found"), "send_button_not_found");
+    await sleep(1500);
+
+    return { sentAt: new Date().toISOString(), conversationUrl: profileUrl, steps: 3 };
   } catch (err) {
     caughtError = err as Error;
     if (attached) {

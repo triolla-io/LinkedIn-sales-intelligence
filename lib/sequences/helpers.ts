@@ -21,7 +21,7 @@ export function computeScheduledAt(
 export type ParsedStep = {
   stepNumber: number;
   dayOffset: number;
-  channel: "EMAIL" | "WHATSAPP";
+  channel: "EMAIL" | "WHATSAPP" | "LINKEDIN";
   templateId: string;
   subject: string | null;
   sendHour: number;
@@ -37,7 +37,7 @@ export function parseSteps(input: unknown): ParsedStep[] | null {
     if (typeof raw.stepNumber !== "number" || typeof raw.dayOffset !== "number") return null;
     if (!Number.isInteger(raw.dayOffset) || raw.dayOffset < 0) return null;
     if (typeof raw.templateId !== "string" || !raw.templateId) return null;
-    if (raw.channel !== "EMAIL" && raw.channel !== "WHATSAPP") return null;
+    if (raw.channel !== "EMAIL" && raw.channel !== "WHATSAPP" && raw.channel !== "LINKEDIN") return null;
     if (raw.channel === "EMAIL" && (typeof raw.subject !== "string" || !raw.subject)) return null;
     if (seenNumbers.has(raw.stepNumber)) return null;
     if (prevOffset !== null && raw.dayOffset < prevOffset) return null;
@@ -50,7 +50,7 @@ export function parseSteps(input: unknown): ParsedStep[] | null {
     steps.push({
       stepNumber: raw.stepNumber,
       dayOffset: raw.dayOffset,
-      channel: raw.channel as "EMAIL" | "WHATSAPP",
+      channel: raw.channel as "EMAIL" | "WHATSAPP" | "LINKEDIN",
       templateId: raw.templateId,
       subject: raw.channel === "EMAIL" ? (raw.subject as string) : null,
       sendHour: rawHour as number,

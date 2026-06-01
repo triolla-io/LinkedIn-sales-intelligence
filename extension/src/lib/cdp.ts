@@ -65,6 +65,35 @@ export async function pressKey(tabId: number, key: string, keyCode: number): Pro
   });
 }
 
+// Find and click the "Message" button on a LinkedIn profile page.
+// Only looks in the top 60% of the page to avoid the floating Messaging panel.
+// Returns CSS-pixel coords if found (and clicks via JS), or null.
+export async function clickMessageButton(tabId: number): Promise<{ x: number; y: number } | null> {
+  const result = await send<{ result: { value: { x: number; y: number } | null } }>(tabId, "Runtime.evaluate", {
+    expression: `(function() {
+      // LinkedIn Message button is an <a> linking to /messaging/compose/
+      const candidates = [
+        ...document.querySelectorAll('a[href*="/messaging/compose/"]'),
+        // fallback: any element with exact text "Message" in top 60% of page
+        ...[...document.querySelectorAll('a,button,[role="button"]')].filter(el => {
+          const t = el.textContent?.trim();
+          return t === 'Message' || t === 'הודעה';
+        }),
+      ];
+      for (const el of candidates) {
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && r.top < window.innerHeight * 0.65) {
+          el.click();
+          return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
+        }
+      }
+      return null;
+    })()`,
+    returnByValue: true,
+  });
+  return result?.result?.value ?? null;
+}
+
 type ElementCoords = { ok: boolean; composeX?: number; composeY?: number; sendX?: number; sendY?: number };
 
 // Returns coordinates of compose area AND send button for CDP clicks
@@ -120,6 +149,36 @@ export async function focusCompose(tabId: number): Promise<boolean> {
         if (el) { el.focus(); el.click(); return true; }
       }
       return false;
+    })()`,
+    returnByValue: true,
+  });
+  return result?.result?.value === true;
+}
+
+// Click the Send button inside LinkedIn's shadow DOM compose
+export async function clickSendButton(tabId: number): Promise<boolean> {
+  const result = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {
+    expression: `(function() {
+      function findSend(root) {
+        for (const sel of [
+          'button.msg-form__send-button',
+          'button[type="submit"]',
+          'button[aria-label*="Send"]',
+          'button[aria-label*="שלח"]',
+        ]) {
+          for (const el of root.querySelectorAll(sel)) {
+            const r = el.getBoundingClientRect();
+            if (r.width > 0) { el.click(); return true; }
+          }
+        }
+        for (const el of root.querySelectorAll('*')) {
+          if (el.shadowRoot) {
+            if (findSend(el.shadowRoot)) return true;
+          }
+        }
+        return false;
+      }
+      return findSend(document);
     })()`,
     returnByValue: true,
   });
@@ -219,27 +278,42 @@ async function getScreenWidth(tabId: number): Promise<number> {
   return result?.result?.value ?? 1440;
 }
 
-// Simulate Ctrl+V paste — fires trusted paste event that React handles
-export async function pasteFromClipboard(tabId: number): Promise<void> {
-  await send(tabId, "Input.dispatchKeyEvent", {
-    type: "keyDown", key: "Control", code: "ControlLeft",
-    windowsVirtualKeyCode: 17, nativeVirtualKeyCode: 17, modifiers: 0,
+// Insert text into the LinkedIn compose area using execCommand — trusted by React.
+// Finds the contenteditable, focuses it, then inserts text directly.
+export async function insertTextIntoCompose(tabId: number, text: string): Promise<boolean> {
+  const result = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {
+    expression: `(function(txt) {
+      // Pierce shadow DOM — LinkedIn compose is inside #interop-outlet shadowRoot
+      function findEditable(root) {
+        for (const sel of ['[contenteditable="true"]', '[role="textbox"]', 'textarea']) {
+          for (const el of root.querySelectorAll(sel)) {
+            const r = el.getBoundingClientRect();
+            if (r.width > 50) return el;
+          }
+        }
+        for (const el of root.querySelectorAll('*')) {
+          if (el.shadowRoot) {
+            const found = findEditable(el.shadowRoot);
+            if (found) return found;
+          }
+        }
+        return null;
+      }
+      const el = findEditable(document);
+      if (!el) return false;
+      el.focus();
+      el.click();
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      const sel = window.getSelection();
+      if (sel) { sel.removeAllRanges(); sel.addRange(range); }
+      const result = document.execCommand('insertText', false, txt);
+      return result || (el.textContent || '').includes(txt.slice(0, 10));
+    })(${JSON.stringify(text)})`,
+    returnByValue: true,
   });
-  await sleep(50);
-  await send(tabId, "Input.dispatchKeyEvent", {
-    type: "keyDown", key: "v", code: "KeyV",
-    windowsVirtualKeyCode: 86, nativeVirtualKeyCode: 86, modifiers: 2,
-  });
-  await sleep(50);
-  await send(tabId, "Input.dispatchKeyEvent", {
-    type: "keyUp", key: "v", code: "KeyV",
-    windowsVirtualKeyCode: 86, nativeVirtualKeyCode: 86, modifiers: 2,
-  });
-  await sleep(50);
-  await send(tabId, "Input.dispatchKeyEvent", {
-    type: "keyUp", key: "Control", code: "ControlLeft",
-    windowsVirtualKeyCode: 17, nativeVirtualKeyCode: 17, modifiers: 0,
-  });
+  return result?.result?.value === true;
 }
 
 // Scroll the page by deltaY pixels using a mouseWheel event at viewport center
