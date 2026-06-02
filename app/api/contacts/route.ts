@@ -151,6 +151,7 @@ export const GET = withTenant(async (req, ctx) => {
     location: true,
     industry: true,
     profilePicUrl: true,
+    connectedAt: true,
     lastSyncedAt: true,
     email: true,
     phone: true,

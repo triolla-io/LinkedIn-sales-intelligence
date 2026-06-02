@@ -1,9 +1,9 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
-import { enrichCompanyViaGemini } from "@/lib/enrichment/gemini-search";
+import { enrichCompanyViaOpenRouter } from "@/lib/enrichment/openrouter-search";
 
-const BATCH = 20;       // companies per Inngest step
-const CONCURRENCY = 3;  // parallel Apollo calls (respect rate limits)
+const BATCH = 40;       // companies per Inngest step
+const CONCURRENCY = 8;  // parallel OpenRouter calls
 
 export const enrichCompaniesWeb = inngest.createFunction(
   {
@@ -17,10 +17,15 @@ export const enrichCompaniesWeb = inngest.createFunction(
     const orgId: string | undefined = event.data?.orgId;
 
     // Load ALL companies needing enrichment, most-connected first
+    const staleDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
     const companies = await step.run("load-unenriched", () =>
       prisma.company.findMany({
         where: {
-          OR: [{ staffCount: null }, { industry: null }],
+          AND: [
+            { OR: [{ staffCount: null }, { industry: null }] },
+            { OR: [{ lastEnrichedAt: null }, { lastEnrichedAt: { lt: staleDate } }] },
+          ],
           name: { not: "" },
           ...(orgId ? { contacts: { some: { owner: { orgId } } } } : {}),
         },
@@ -61,8 +66,7 @@ export const enrichCompaniesWeb = inngest.createFunction(
               }
 
               try {
-                const result = await enrichCompanyViaGemini(company.name || company.universalName);
-                // Only save high/low confidence results — skip "none"
+                const result = await enrichCompanyViaOpenRouter(company.name || company.universalName);
                 if (
                   result.confidence !== "none" &&
                   (result.staffCount != null || result.industry || result.description)
@@ -77,7 +81,6 @@ export const enrichCompaniesWeb = inngest.createFunction(
                       lastEnrichedAt: new Date(),
                     },
                   });
-                  // Propagate staffCount to linked contacts missing companySize
                   if (result_data.staffCount) {
                     await prisma.contact.updateMany({
                       where: { companyId: company.id, companySize: null },
@@ -85,6 +88,12 @@ export const enrichCompaniesWeb = inngest.createFunction(
                     });
                   }
                   batchEnriched++;
+                } else {
+                  // Mark as attempted so it's skipped for 30 days
+                  await prisma.company.update({
+                    where: { id: company.id },
+                    data: { lastEnrichedAt: new Date() },
+                  });
                 }
               } catch (e: any) {
                 if (e?.message?.includes("rate limit") || e?.message?.includes("429")) throw e;
@@ -92,8 +101,7 @@ export const enrichCompaniesWeb = inngest.createFunction(
               }
             }),
           );
-          // Brief pause between chunks to respect Apollo rate limits
-          await new Promise((r) => setTimeout(r, 300));
+          await new Promise((r) => setTimeout(r, 50));
         }
         return { enriched: batchEnriched, skipped: batchSkipped };
       });

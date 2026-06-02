@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Megaphone, Pencil, Check, Loader2, Zap, UserPlus } from "lucide-react";
+import { ArrowLeft, Pencil, Check, Loader2, Zap, UserPlus } from "lucide-react";
 import Link from "next/link";
 import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
 import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
-import { NewCampaignModal } from "@/components/dashboard/new-campaign-modal";
 import AddContactsToListModal from "@/components/dashboard/add-contacts-to-list-modal";
 
 type ListDetail = { id: string; name: string; memberCount: number; createdAt: string };
@@ -21,7 +20,6 @@ type State = {
   editingName: boolean;
   nameInput: string;
   savingName: boolean;
-  campaignOpen: boolean;
   addContactsOpen: boolean;
   selectedIds: Set<string>;
   drawerContact: Contact | null;
@@ -49,7 +47,6 @@ export default function ListDetailPage() {
       editingName: false,
       nameInput: "",
       savingName: false,
-      campaignOpen: false,
       addContactsOpen: false,
       selectedIds: new Set<string>(),
       drawerContact: null,
@@ -231,15 +228,6 @@ export default function ListDetailPage() {
             {state.enriching ? <Loader2 className="size-3.5 animate-spin" /> : <Zap className="size-3.5" />}
             העשר
           </button>
-          <button
-            type="button"
-            onClick={() => dispatch({ campaignOpen: true })}
-            disabled={state.total === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1585ff] border border-[#1585ff]/30 hover:bg-[#1585ff]/5 hover:border-[#1585ff]/50 rounded-md transition-all disabled:opacity-40"
-          >
-            <Megaphone className="size-3.5" />
-            הפעל קמפיין
-          </button>
         </div>
       </div>
 
@@ -284,11 +272,6 @@ export default function ListDetailPage() {
         />
       </div>
 
-      <NewCampaignModal
-        open={state.campaignOpen}
-        onClose={() => dispatch({ campaignOpen: false })}
-        contactIds={state.contacts.map((c) => c.id)}
-      />
 
       <ContactDrawer
         contact={state.drawerContact}

@@ -43,11 +43,21 @@ async function parseFile(file: File): Promise<{ header: string[]; rows: string[]
     return { header: (header ?? []).map(String), rows: rows.map((r) => r.map(String)) };
   }
 
-  // CSV path
+  // CSV path — LinkedIn exports include a "Notes:" preamble before the real header
   const text = await file.text();
   const lines = text.split(/\r?\n/).filter(Boolean);
-  const header = parseCsvLine(lines[0]).map((h) => h.replace(/^"|"$/g, "").trim());
-  const rows = lines.slice(1).map(parseCsvLine);
+  // Find first line that looks like a CSV header row (LinkedIn export or custom export)
+  const headerIdx = lines.findIndex((line) => {
+    const cells = parseCsvLine(line).map((c) => c.replace(/^"|"$/g, "").trim().toLowerCase());
+    return (
+      cells.includes("first name") || cells.includes("firstname") ||
+      cells.includes("name") ||
+      cells.includes("url") || cells.includes("linkedin url")
+    );
+  });
+  if (headerIdx === -1) return { header: [], rows: [] };
+  const header = parseCsvLine(lines[headerIdx]).map((h) => h.replace(/^"|"$/g, "").trim());
+  const rows = lines.slice(headerIdx + 1).map(parseCsvLine);
   return { header, rows };
 }
 
@@ -56,9 +66,30 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   const file = formData.get("file") as File | null;
   if (!file) return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
 
+  // Helper: stream newline-delimited JSON back to the client
+  // eslint-disable-next-line prefer-const
+  let _streamController: ReadableStreamDefaultController<Uint8Array> | null = null as ReadableStreamDefaultController<Uint8Array> | null;
+  const enc = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    start(ctrl) { _streamController = ctrl; },
+  });
+  const emit = (obj: object) => {
+    _streamController?.enqueue(enc.encode(JSON.stringify(obj) + "\n"));
+  };
+  const streamResponse = new Response(stream, {
+    headers: { "Content-Type": "application/x-ndjson", "Cache-Control": "no-cache" },
+  });
+
+  const updateOnly = formData.get("updateOnly") === "true";
+
+  // Run the actual import asynchronously so we can return the stream immediately
+  (async () => {
+
   const { header, rows } = await parseFile(file);
   if (!header.length || !rows.length) {
-    return NextResponse.json({ error: "File appears empty" }, { status: 400 });
+    emit({ error: "File appears empty" });
+    _streamController?.close();
+    return;
   }
 
   const headerLower = header.map((h) => h.toLowerCase());
@@ -70,17 +101,24 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     return -1;
   };
 
+  const iName         = col(["name"]);
   const iFirstName    = col(["first name", "firstname"]);
   const iLastName     = col(["last name", "lastname"]);
-  const iUrl          = col(["url", "profile url", "linkedin url", "linkedin member url", "member url", "linkedin profile url"]);
+  const iUrl          = col(["linkedin url", "url", "profile url", "linkedin member url", "member url", "linkedin profile url"]);
   const iEmail        = col(["email address", "email"]);
   const iCompany      = col(["company", "company name"]);
-  const iPosition     = col(["position", "title", "job title"]);
+  const iPosition     = col(["title", "position", "job title"]);
   const iConnected    = col(["connected on", "connected at", "date connected"]);
   const iCompanySize  = col(["company size"]);
+  const iPhone        = col(["phone", "phone number", "mobile"]);
+  const iLocation     = col(["location"]);
+  const iIndustry     = col(["industry"]);
+  const iSeniority    = col(["seniority", "seniority level"]);
 
-  if (iFirstName === -1 && iLastName === -1) {
-    return NextResponse.json({ error: "Could not find name columns. Make sure this is a LinkedIn connections CSV." }, { status: 400 });
+  if (iName === -1 && iFirstName === -1 && iLastName === -1) {
+    emit({ error: "Could not find name columns. Make sure this is a LinkedIn connections CSV." });
+    _streamController?.close();
+    return;
   }
 
   // Parse rows
@@ -89,8 +127,12 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     linkedinUrl: string;
     linkedinUrn: string;
     email: string | null;
+    phone: string | null;
     currentCompany: string | null;
     currentTitle: string | null;
+    location: string | null;
+    industry: string | null;
+    seniorityOverride: string | null;
     connectedAt: Date | null;
     companySize: number | null;
   }[] = [];
@@ -98,9 +140,9 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   for (const cells of rows) {
     const get = (i: number) => (i >= 0 ? (cells[i] ?? "").replace(/^"|"$/g, "").trim() : "");
 
-    const firstName = get(iFirstName);
-    const lastName  = get(iLastName);
-    const fullName  = `${firstName} ${lastName}`.trim();
+    const fullName = iName >= 0
+      ? get(iName)
+      : `${get(iFirstName)} ${get(iLastName)}`.trim();
     if (!fullName) continue;
 
     const rawUrl   = get(iUrl);
@@ -112,8 +154,13 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       : `urn:li:csv_import:${Buffer.from(fullName).toString("base64")}`;
 
     const email        = get(iEmail) || null;
+    const phone        = get(iPhone) || null;
     const company      = get(iCompany) || null;
     const position     = get(iPosition) || null;
+    const location     = get(iLocation) || null;
+    const industry     = get(iIndustry) || null;
+    const seniorityRaw = get(iSeniority).toUpperCase().replace(/ /g, "_");
+    const seniorityOverride = seniorityRaw || null;
     const connectedRaw = get(iConnected);
     const connectedAt  = connectedRaw ? new Date(connectedRaw) : null;
     const sizeRaw      = get(iCompanySize);
@@ -124,15 +171,21 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       linkedinUrl: cleanUrl || `https://www.linkedin.com/in/${publicId}`,
       linkedinUrn,
       email,
+      phone,
       currentCompany: company,
       currentTitle: position,
+      location,
+      industry,
+      seniorityOverride,
       connectedAt: connectedAt && !isNaN(connectedAt.getTime()) ? connectedAt : null,
       companySize,
     });
   }
 
   if (contacts.length === 0) {
-    return NextResponse.json({ error: "No valid contacts found in CSV" }, { status: 400 });
+    emit({ error: "No valid contacts found in CSV" });
+    _streamController?.close();
+    return;
   }
 
   // Upsert contacts via diff-first strategy
@@ -171,21 +224,28 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   // Apply ADD + UPDATE in one pass (UNCHANGED rows are skipped entirely)
   const unchangedSet = new Set(diff.unchanged);
   const toUpsert = contacts.filter((c) => !unchangedSet.has(c.linkedinUrn));
+  const total = toUpsert.length;
+  let processed = 0;
+  emit({ progress: 0, total, stage: "contacts" });
+
   for (const c of toUpsert) {
-    const { seniority, function: fn } = classify(c.currentTitle ?? "");
-    const industry = getIndustry(c.currentCompany ?? "") || undefined;
+    // Prefer seniority/industry/function from CSV; fall back to classifier
+    const classified = classify(c.currentTitle ?? "");
+    const seniority = (c.seniorityOverride as typeof classified.seniority | null) ?? classified.seniority;
+    const fn = classified.function;
+    const industry = c.industry || getIndustry(c.currentCompany ?? "") || undefined;
 
     // Cache lookup first — no external API call needed
     const cacheHit = enrichmentCacheMap.get(normalizeLinkedinUrl(c.linkedinUrl));
 
-    // HubSpot lookup — only if no CSV email and no cache hit
-    const hubspot = (c.email || cacheHit?.email) ? null : await lookupContact({
+    // HubSpot lookup — only if no CSV email/phone and no cache hit
+    const hubspot = (c.email || c.phone || cacheHit?.email) ? null : await lookupContact({
       linkedinUrl: c.linkedinUrl,
       fullName: c.fullName,
       company: c.currentCompany ?? undefined,
     });
     const email = c.email ?? cacheHit?.email ?? hubspot?.email ?? null;
-    const phone = cacheHit?.phone ?? hubspot?.phone ?? null;
+    const phone = c.phone ?? cacheHit?.phone ?? hubspot?.phone ?? null;
     const enrichmentFields = cacheHit?.email || cacheHit?.phone
       ? { enrichmentSource: "cache", enrichmentRanAt: new Date(), enrichmentError: null }
       : hubspot?.email || hubspot?.phone
@@ -204,6 +264,8 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
         currentTitle: c.currentTitle,
         currentCompany: c.currentCompany,
         companySize: c.companySize,
+        connectedAt: c.connectedAt,
+        location: c.location,
         seniority,
         function: fn,
         industry,
@@ -217,6 +279,8 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
         currentTitle: c.currentTitle || undefined,
         currentCompany: c.currentCompany || undefined,
         companySize: c.companySize ?? undefined,
+        connectedAt: c.connectedAt ?? undefined,
+        location: c.location || undefined,
         seniority,
         function: fn,
         industry: industry || undefined,
@@ -225,10 +289,12 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
         ...enrichmentFields,
       },
     });
+    processed++;
+    emit({ progress: processed, total, stage: "contacts" });
   }
 
-  // Soft-remove contacts that vanished from this CSV
-  if (diff.removed.length > 0) {
+  // Soft-remove contacts that vanished from this CSV (skipped in update-only mode)
+  if (!updateOnly && diff.removed.length > 0) {
     await prisma.contact.updateMany({
       where: { ownerId: userId, linkedinUrn: { in: diff.removed } },
       data: { removedAt: new Date() },
@@ -237,7 +303,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
 
   const created = diff.added.length;
   const updated = diff.updated.length;
-  const removed = diff.removed.length;
+  const removed = updateOnly ? 0 : diff.removed.length;
   const unchanged = diff.unchanged.length;
 
   // Stub Company rows and link contacts
@@ -306,6 +372,18 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       });
     }
 
+    // Backfill companySize from already-enriched companies (no token cost)
+    const enrichedCompanies = await prisma.company.findMany({
+      where: { id: { in: [...idBySlug.values()] }, staffCount: { not: null } },
+      select: { id: true, staffCount: true },
+    });
+    for (const co of enrichedCompanies) {
+      await prisma.contact.updateMany({
+        where: { ownerId: userId, companyId: co.id, companySize: null },
+        data: { companySize: co.staffCount },
+      });
+    }
+
     // Auto-trigger Apollo enrichment for any companies that still need data
     // (the function itself filters staffCount=null, so re-runs cost zero credits)
     const meForOrg = await prisma.user.findUnique({
@@ -340,8 +418,8 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     data: { ownerId: userId },
   }).catch(() => {});
 
-  return NextResponse.json({
-    ok: true,
+  emit({
+    done: true,
     imported: contacts.length,
     added: created,
     updated,
@@ -350,6 +428,13 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     companies: bySlug.size,
     newCompanies,
   });
+  _streamController?.close();
+  })().catch((err) => {
+    emit({ error: err?.message ?? "Import failed" });
+    _streamController?.close();
+  });
+
+  return streamResponse;
 });
 
 /** Parse a single CSV line respecting quoted fields. */

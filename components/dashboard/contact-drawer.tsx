@@ -398,6 +398,15 @@ function ContactProfessionalSection({ localContact }: { localContact: LocalConta
             <p className="text-sm text-[#111110]">{localContact.industry}</p>
           </div>
         )}
+        {localContact.connectedAt && (
+          <div className="flex items-center gap-2.5">
+            <Clock className="size-4 text-[#9b9895] shrink-0" />
+            <div>
+              <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">התחברות ב-LinkedIn</p>
+              <p className="text-xs font-mono text-[#9b9895]">{formatDate(localContact.connectedAt)}</p>
+            </div>
+          </div>
+        )}
         {localContact.lastSyncedAt && (
           <div className="flex items-center gap-2.5">
             <Clock className="size-4 text-[#9b9895] shrink-0" />

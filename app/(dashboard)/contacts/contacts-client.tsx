@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
-import StatsBar from "@/components/dashboard/stats-bar";
 import FilterSidebar, {
   type Filters,
   DEFAULT_FILTERS,
@@ -14,17 +13,8 @@ import ContactTable, {
 import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
 import CreateContactModal from "@/components/dashboard/create-contact-modal";
-import { RefreshCw, UserPlus, DatabaseZap } from "lucide-react";
+import { RefreshCw, UserPlus } from "lucide-react";
 import { cn } from "@/lib/cn";
-
-type InsightsData = {
-  total: number;
-  bySeniority: Record<string, number>;
-  byFunction: Record<string, number>;
-  topCompanies: { name: string; count: number }[];
-  companySizeHistogram: { bucket: string; count: number }[];
-  coverage: { email: number; phone: number };
-};
 
 const ROW_HEIGHT = 56;
 const TABLE_HEADER_H = 37;
@@ -53,33 +43,14 @@ function buildContactsUrl(filters: Filters, page: number, pageSize: number) {
   return `/api/contacts?${params.toString()}`;
 }
 
-function buildInsightsUrl(filters: Filters) {
-  const params = new URLSearchParams();
-  if (filters.q) params.set("q", filters.q);
-  if (filters.seniority.length)
-    params.set("seniority", filters.seniority.join(","));
-  if (filters.function.length)
-    params.set("function", filters.function.join(","));
-  return `/api/insights?${params.toString()}`;
-}
-
-function sevenDaysAgo(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 7);
-  return d.toISOString().slice(0, 10);
-}
 
 type DataState = {
   contacts: Contact[];
   page: number;
   total: number;
-  insights: InsightsData | null;
-  newThisWeek: number;
 };
 type DataAction =
   | { type: "contactsFetched"; contacts: Contact[]; total: number }
-  | { type: "insightsFetched"; insights: InsightsData }
-  | { type: "weekDataSet"; newThisWeek: number }
   | { type: "pageSet"; page: number }
   | { type: "contactUpdated"; contact: Contact }
   | { type: "contactAdded"; contact: Contact };
@@ -87,10 +58,6 @@ function dataReducer(state: DataState, action: DataAction): DataState {
   switch (action.type) {
     case "contactsFetched":
       return { ...state, contacts: action.contacts, total: action.total };
-    case "insightsFetched":
-      return { ...state, insights: action.insights };
-    case "weekDataSet":
-      return { ...state, newThisWeek: action.newThisWeek };
     case "pageSet":
       if (state.page === action.page) return state;
       return { ...state, page: action.page };
@@ -123,10 +90,8 @@ export default function ContactsClient({
     contacts: initialContacts,
     page: 1,
     total: initialTotal,
-    insights: null as InsightsData | null,
-    newThisWeek: 0,
   });
-  const { contacts, page, total, insights, newThisWeek } = dataState;
+  const { contacts, page, total } = dataState;
 
   const [fetchState, setFetchState] = useState({ loading: false, applyingCache: false });
   const { loading, applyingCache } = fetchState;
@@ -199,21 +164,10 @@ export default function ContactsClient({
 
     setUiState((prev) => ({ ...prev, selectedIds: new Set() }));
     try {
-      const [contactsRes, insightsRes, weekRes] = await Promise.all([
-        fetch(buildContactsUrl(filters, page, pageSize), { signal }),
-        fetch(buildInsightsUrl(filters), { signal }),
-        fetch(`/api/contacts?connectedFrom=${sevenDaysAgo()}&limit=1`, {
-          signal,
-        }),
-      ]);
+      const contactsRes = await fetch(buildContactsUrl(filters, page, pageSize), { signal });
       if (contactsRes.ok) {
         const data = await contactsRes.json();
         dispatchData({ type: "contactsFetched", contacts: data.items ?? [], total: data.totalApprox ?? 0 });
-      }
-      if (insightsRes.ok) dispatchData({ type: "insightsFetched", insights: await insightsRes.json() });
-      if (weekRes.ok) {
-        const weekData = await weekRes.json();
-        dispatchData({ type: "weekDataSet", newThisWeek: weekData.totalApprox ?? 0 });
       }
     } catch (e) {
       if ((e as Error)?.name === "AbortError") return;
@@ -280,40 +234,18 @@ export default function ContactsClient({
             <button
               type="button"
               onClick={handleApplyCache}
-              disabled={applyingCache}
-              title="מלא אימייל וטלפון מהמטמון לכל אנשי הקשר"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-purple-600 border border-purple-200 hover:bg-purple-50 hover:border-purple-300 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <DatabaseZap
-                className={cn("size-3.5", applyingCache && "animate-pulse")}
-              />
-              {applyingCache ? "טוען…" : "רענן מטמון"}
-            </button>
-            <button
-              type="button"
-              onClick={fetchData}
-              disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors"
+              disabled={applyingCache || loading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RefreshCw
-                className={cn("size-3.5", loading && "animate-spin")}
+                className={cn("size-3.5", (applyingCache || loading) && "animate-spin")}
               />
-              רענן
+              {applyingCache ? "טוען…" : "רענן נתונים"}
             </button>
           </div>
         </div>
 
         <div className="px-5 pt-4 pb-0 flex flex-col flex-1 min-h-0 gap-4">
-          {insights && (
-            <StatsBar
-              insights={insights}
-              newThisWeek={newThisWeek}
-              onFilterCLevel={() =>
-                handleFiltersChange({ ...filters, seniority: ["C_LEVEL"] })
-              }
-            />
-          )}
-
           <div
             ref={tableWrapperRef}
             className="flex-1 min-h-0 flex flex-col pb-4"

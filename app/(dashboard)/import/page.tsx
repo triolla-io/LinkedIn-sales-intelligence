@@ -4,9 +4,10 @@ import {
   useReducer,
   useRef,
   useCallback,
+  useEffect,
+  useState,
   type RefObject,
   type ChangeEvent,
-  type DragEvent,
   type Dispatch,
 } from "react";
 import {
@@ -32,21 +33,11 @@ type ImportResult = {
   newCompanies: number;
 };
 
-type CompaniesResult = {
-  companiesUpserted: number;
-  companiesSkipped: number;
-  contactsBackfilled: number;
-  totalContacts: number;
-};
-
 type UploadState = "idle" | "dragging" | "uploading" | "done" | "error";
 
 // Module-scope constant — does not depend on component state
 const STR_CONNECTIONS = "Connections.csv";
 const STR_SETTINGS = "linkedin.com/settings";
-const STR_COMPANIES = "unique_companies.csv";
-const STR_COMPANY = "Company";
-const STR_COMPANY_SIZE = "Company_Size";
 
 const colorByAccent: Record<"info" | "warn", { ring: string; text: string }> = {
   info: { ring: "border-blue-200", text: "text-blue-600" },
@@ -58,10 +49,9 @@ type State = {
   result: ImportResult | null;
   errorMsg: string;
   fileName: string;
-  compState: UploadState;
-  compResult: CompaniesResult | null;
-  compError: string;
-  compFileName: string;
+  progress: number;
+  progressTotal: number;
+  updateOnly: boolean;
 };
 
 function StatCard({
@@ -90,6 +80,76 @@ function StatCard({
   );
 }
 
+function BackgroundStatus() {
+  const [status, setStatus] = useState<{ pendingEnrichment: number; pendingCompanies: number } | null>(null);
+  const [retrying, setRetrying] = useState(false);
+  const stuckRef = useRef(0); // polls with same pendingCompanies value
+
+  useEffect(() => {
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout>;
+    async function poll() {
+      try {
+        const res = await fetch("/api/import/status");
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        setStatus((prev) => {
+          if (prev?.pendingCompanies === data.pendingCompanies && data.pendingCompanies > 0) {
+            stuckRef.current += 1;
+          } else {
+            stuckRef.current = 0;
+          }
+          return data;
+        });
+        if (data.pendingEnrichment > 0 || data.pendingCompanies > 0) {
+          timeoutId = setTimeout(poll, 8000);
+        }
+      } catch { /* ignore */ }
+    }
+    poll();
+    return () => { cancelled = true; clearTimeout(timeoutId); };
+  }, [retrying]);
+
+  const retry = async () => {
+    setRetrying((r) => !r);
+    await fetch("/api/import/enrich", { method: "POST" }).catch(() => {});
+  };
+
+  if (!status || (status.pendingEnrichment === 0 && status.pendingCompanies === 0)) return null;
+
+  const isStuck = stuckRef.current >= 4; // ~32s with no change
+
+  return (
+    <div className="mt-4 px-4 py-3 rounded-xl border border-[#e5e3df] bg-white flex items-start gap-3">
+      <RefreshCw className={`size-4 shrink-0 mt-0.5 ${isStuck ? "text-amber-400" : "text-[#1585ff] animate-spin"}`} />
+      <div className="space-y-1 flex-1">
+        <p className="text-xs font-medium text-[#111110]">
+          {isStuck ? "עיבוד תקוע?" : "עיבוד רץ ברקע"}
+        </p>
+        {status.pendingEnrichment > 0 && (
+          <p className="text-xs text-[#6b6866]">
+            {status.pendingEnrichment.toLocaleString()} קשרים ממתינים לסיווג (סניוריטי, שם עברי)
+          </p>
+        )}
+        {status.pendingCompanies > 0 && (
+          <p className="text-xs text-[#6b6866]">
+            {status.pendingCompanies.toLocaleString()} חברות ממתינות לנתוני עובדים ותעשייה
+          </p>
+        )}
+        {isStuck && (
+          <button
+            type="button"
+            onClick={retry}
+            className="mt-1 text-xs text-[#1585ff] hover:underline"
+          >
+            הפעל מחדש
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function LinkedInImportSection({
   s,
   inputRef,
@@ -97,10 +157,10 @@ function LinkedInImportSection({
   onDrop,
   dispatch,
 }: {
-  s: Pick<State, "state" | "result" | "errorMsg" | "fileName">;
+  s: Pick<State, "state" | "result" | "errorMsg" | "fileName" | "progress" | "progressTotal" | "updateOnly">;
   inputRef: RefObject<HTMLInputElement | null>;
   onFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  onDrop: (e: DragEvent) => void;
+  onDrop: (e: React.DragEvent) => void;
   dispatch: Dispatch<Partial<State>>;
 }) {
   return (
@@ -147,8 +207,61 @@ function LinkedInImportSection({
           </li>
         </ol>
       </div>
-      {s.state !== "done" && (
+      {s.state === "uploading" && (
+        <div className="rounded-xl border border-[#e5e3df] bg-white px-6 py-8 flex flex-col items-center gap-4">
+          <RefreshCw className="size-8 text-[#1585ff] animate-spin" />
+          <div className="text-center w-full max-w-sm">
+            <p className="text-sm font-medium text-[#111110]">מייבא {s.fileName}…</p>
+            {s.progressTotal > 0 ? (
+              <>
+                <p className="text-xs text-[#6b6866] mt-1.5 font-mono">
+                  {s.progress.toLocaleString()} / {s.progressTotal.toLocaleString()} קשרים
+                </p>
+                <div className="mt-3 h-2 w-full bg-[#e5e3df] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[#1585ff] rounded-full transition-all duration-200"
+                    style={{ width: `${Math.round((s.progress / s.progressTotal) * 100)}%` }}
+                  />
+                </div>
+                <p className="text-[10px] text-[#9b9895] mt-1.5 font-mono">
+                  {Math.round((s.progress / s.progressTotal) * 100)}%
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-[#6b6866] mt-1">מנתח קובץ…</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {s.state !== "done" && s.state !== "uploading" && (
         <>
+          <label className="flex items-center gap-2.5 mb-4 cursor-pointer select-none w-fit">
+            <input
+              type="checkbox"
+              checked={s.updateOnly}
+              onChange={() => dispatch({ updateOnly: !s.updateOnly })}
+              className="sr-only"
+            />
+            <div
+              aria-hidden="true"
+              className={cn(
+                "relative w-9 h-5 rounded-full transition-colors duration-200 shrink-0",
+                s.updateOnly ? "bg-[#1585ff]" : "bg-[#d4d0cc]"
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-0.5 size-4 rounded-full bg-white shadow transition-transform duration-200",
+                  s.updateOnly ? "translate-x-4" : "translate-x-0.5"
+                )}
+              />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-[#111110]">עדכון בלבד</p>
+              <p className="text-xs text-[#9b9895]">מוסיף ומעדכן, לא מוחק קשרים קיימים</p>
+            </div>
+          </label>
           <input
             ref={inputRef}
             type="file"
@@ -178,22 +291,9 @@ function LinkedInImportSection({
               s.state === "dragging"
                 ? "border-[#1585ff] bg-[#1585ff]/5"
                 : "border-[#d4d0cc] bg-white hover:border-[#9b9895] hover:bg-[#f8f7f5]",
-              s.state === "uploading" && "pointer-events-none opacity-60",
             )}
           >
-            {s.state === "uploading" ? (
-              <>
-                <RefreshCw className="size-10 text-[#1585ff] animate-spin" />
-                <div className="text-center">
-                  <p className="text-sm font-medium text-[#111110]">
-                    מייבא {s.fileName}…
-                  </p>
-                  <p className="text-xs text-[#6b6866] mt-1">
-                    ניתוח אנשי קשר ויצירת סדקי חברה
-                  </p>
-                </div>
-              </>
-            ) : s.state === "error" ? (
+            {s.state === "error" ? (
               <>
                 <AlertCircle className="size-10 text-red-500" />
                 <div className="text-center">
@@ -244,9 +344,6 @@ function LinkedInImportSection({
             <div>
               <p className="text-sm font-medium text-emerald-700">
                 הייבוא הצליח!
-              </p>
-              <p className="text-xs text-emerald-600/80 mt-0.5">
-                גודל החברה והתעשייה יתמלאו ברקע בדקות הבאות.
               </p>
             </div>
           </div>
@@ -321,180 +418,6 @@ function LinkedInImportSection({
   );
 }
 
-function CompanySizeImportSection({
-  s,
-  compInputRef,
-  onCompFileChange,
-  onCompDrop,
-  dispatch,
-}: {
-  s: Pick<State, "compState" | "compResult" | "compError" | "compFileName">;
-  compInputRef: RefObject<HTMLInputElement | null>;
-  onCompFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  onCompDrop: (e: DragEvent) => void;
-  dispatch: Dispatch<Partial<State>>;
-}) {
-  return (
-    <>
-      <h2 className="text-lg font-semibold text-[#111110] mb-1">
-        העלאת נתוני גודל החברה
-      </h2>
-      <p className="text-[#6b6866] text-sm mb-6">
-        יש לך <span className="font-mono text-[#1585ff]">{STR_COMPANIES}</span>{" "}
-        עם עמודות <span className="font-mono">{STR_COMPANY}</span> ו-
-        <span className="font-mono">{STR_COMPANY_SIZE}</span>? גרור אותו לכאן כדי למלא
-        ספירות עובדים ותעשיות בכל אנשי הקשר שלך באופן אוטומטי.
-      </p>
-      {s.compState !== "done" && (
-        <>
-          <input
-            ref={compInputRef}
-            type="file"
-            accept=".csv"
-            className="hidden"
-            aria-label="העלאת קובץ CSV של גודל חברות"
-            onChange={onCompFileChange}
-          />
-          <button
-            type="button"
-            onDragOver={(e) => {
-              e.preventDefault();
-              dispatch({ compState: "dragging" });
-            }}
-            onDragLeave={() => dispatch({ compState: "idle" })}
-            onDrop={onCompDrop}
-            onClick={() => compInputRef.current?.click()}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                compInputRef.current?.click();
-              }
-            }}
-            aria-label="גרור קובץ CSV של גודל חברות לכאן או לחץ לעיון"
-            className={cn(
-              "rounded-xl border-2 border-dashed p-10 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all w-full",
-              s.compState === "dragging"
-                ? "border-[#1585ff] bg-[#1585ff]/5"
-                : "border-[#d4d0cc] bg-white hover:border-[#9b9895] hover:bg-[#f8f7f5]",
-              s.compState === "uploading" && "pointer-events-none opacity-60",
-            )}
-          >
-            {s.compState === "uploading" ? (
-              <>
-                <RefreshCw className="size-8 text-[#1585ff] animate-spin" />
-                <div className="text-center">
-                  <p className="text-sm font-medium text-[#111110]">
-                    מעבד {s.compFileName}…
-                  </p>
-                  <p className="text-xs text-[#6b6866] mt-1">
-                    זריעת חברות וספיגת אנשי קשר
-                  </p>
-                </div>
-              </>
-            ) : s.compState === "error" ? (
-              <>
-                <AlertCircle className="size-8 text-red-500" />
-                <div className="text-center">
-                  <p className="text-sm font-medium text-red-500">
-                    {s.compError}
-                  </p>
-                  <p className="text-xs text-[#6b6866] mt-1">
-                    לחץ כדי לנסות שוב
-                  </p>
-                </div>
-              </>
-            ) : (
-              <>
-                <div
-                  className={cn(
-                    "size-14 rounded-2xl flex items-center justify-center transition-all",
-                    s.compState === "dragging"
-                      ? "bg-[#1585ff]/10"
-                      : "bg-[#f3f2ef]",
-                  )}
-                >
-                  <Building2
-                    className={cn(
-                      "size-6",
-                      s.compState === "dragging"
-                        ? "text-[#1585ff]"
-                        : "text-[#9b9895]",
-                    )}
-                  />
-                </div>
-                <div className="text-center">
-                  <p className="text-sm font-medium text-[#111110]">
-                    {s.compState === "dragging"
-                      ? "גרור לכאן"
-                      : `גרור ${STR_COMPANIES} לכאן`}
-                  </p>
-                  <p className="text-xs text-[#6b6866] mt-1">
-                    או לחץ לעיון: רק .csv
-                  </p>
-                </div>
-              </>
-            )}
-          </button>
-        </>
-      )}
-      {s.compState === "done" && s.compResult && (
-        <div className="space-y-4">
-          <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-emerald-50 border border-emerald-200">
-            <CheckCircle className="size-5 text-emerald-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-emerald-700">
-                נתוני החברה יושמו!
-              </p>
-              <p className="text-xs text-emerald-600/80 mt-0.5">
-                ספירות עובדים ותעשיות מולאו בכל אנשי הקשר שלך.
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <StatCard
-              icon={Building2}
-              label="חברות שעודכנו"
-              value={s.compResult.companiesUpserted}
-            />
-            <StatCard
-              icon={Users}
-              label="אנשי קשר שמולאו"
-              value={s.compResult.contactsBackfilled}
-              accent="info"
-            />
-            <StatCard
-              icon={Users}
-              label="סך אנשי הקשר"
-              value={s.compResult.totalContacts}
-            />
-          </div>
-          <div className="flex gap-3">
-            <Link
-              href="/contacts"
-              className="flex-1 text-center px-4 py-2.5 rounded-lg bg-[#1585ff] hover:bg-[#0a70e0] text-white text-sm font-medium transition-all"
-            >
-              צפה בהמשכים →
-            </Link>
-            <button
-              type="button"
-              onClick={() => {
-                dispatch({
-                  compState: "idle",
-                  compResult: null,
-                  compFileName: "",
-                });
-                if (compInputRef.current) compInputRef.current.value = "";
-              }}
-              className="px-4 py-2.5 rounded-lg border border-[#e5e3df] text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] text-sm transition-all"
-            >
-              העלאה שוב
-            </button>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
 
 export default function ImportPage() {
   const [s, dispatch] = useReducer(
@@ -504,66 +427,47 @@ export default function ImportPage() {
       result: null,
       errorMsg: "",
       fileName: "",
-      compState: "idle",
-      compResult: null,
-      compError: "",
-      compFileName: "",
+      progress: 0,
+      progressTotal: 0,
+      updateOnly: false,
     },
   );
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const compInputRef = useRef<HTMLInputElement>(null);
 
-  const upload = useCallback(async (file: File) => {
-    dispatch({ fileName: file.name, state: "uploading", errorMsg: "" });
+  const upload = useCallback(async (file: File, updateOnly: boolean) => {
+    dispatch({ fileName: file.name, state: "uploading", errorMsg: "", progress: 0, progressTotal: 0 });
     const form = new FormData();
     form.append("file", file);
+    form.append("updateOnly", String(updateOnly));
     try {
-      const res = await fetch("/api/import/csv", {
-        method: "POST",
-        body: form,
-      });
-      const data = await res.json();
-      if (!res.ok) {
+      const res = await fetch("/api/import/csv", { method: "POST", body: form });
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
         dispatch({ errorMsg: data.error ?? "Import failed", state: "error" });
         return;
       }
-      dispatch({ result: data, state: "done" });
-    } catch {
-      dispatch({
-        errorMsg: "Network error. Please try again.",
-        state: "error",
-      });
-    }
-  }, []);
-
-  const uploadCompanies = useCallback(async (file: File) => {
-    dispatch({
-      compFileName: file.name,
-      compState: "uploading",
-      compError: "",
-    });
-    const form = new FormData();
-    form.append("file", file);
-    try {
-      const res = await fetch("/api/import/companies", {
-        method: "POST",
-        body: form,
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        dispatch({
-          compError: data.error ?? "Import failed",
-          compState: "error",
-        });
-        return;
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const msg = JSON.parse(line);
+            if (msg.error) { dispatch({ errorMsg: msg.error, state: "error" }); return; }
+            if (msg.progress !== undefined) dispatch({ progress: msg.progress, progressTotal: msg.total });
+            if (msg.done) dispatch({ result: msg, state: "done" });
+          } catch { /* malformed line, skip */ }
+        }
       }
-      dispatch({ compResult: data, compState: "done" });
     } catch {
-      dispatch({
-        compError: "Network error. Please try again.",
-        compState: "error",
-      });
+      dispatch({ errorMsg: "Network error. Please try again.", state: "error" });
     }
   }, []);
 
@@ -572,35 +476,17 @@ export default function ImportPage() {
       e.preventDefault();
       dispatch({ state: "idle" });
       const file = e.dataTransfer.files[0];
-      if (file) upload(file);
+      if (file) upload(file, s.updateOnly);
     },
-    [upload],
+    [upload, s.updateOnly],
   );
 
   const onFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file) upload(file);
+      if (file) upload(file, s.updateOnly);
     },
-    [upload],
-  );
-
-  const onCompDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      dispatch({ compState: "idle" });
-      const file = e.dataTransfer.files[0];
-      if (file) uploadCompanies(file);
-    },
-    [uploadCompanies],
-  );
-
-  const onCompFileChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) uploadCompanies(file);
-    },
-    [uploadCompanies],
+    [upload, s.updateOnly],
   );
 
   return (
@@ -622,20 +508,8 @@ export default function ImportPage() {
           dispatch={dispatch}
         />
 
-        {/* ── Divider ── */}
-        <div className="flex items-center gap-3 my-10">
-          <div className="flex-1 h-px bg-[#e5e3df]" />
-          <span className="text-xs text-[#9b9895]">או</span>
-          <div className="flex-1 h-px bg-[#e5e3df]" />
-        </div>
+        {s.state !== "uploading" && <BackgroundStatus />}
 
-        <CompanySizeImportSection
-          s={s}
-          compInputRef={compInputRef}
-          onCompFileChange={onCompFileChange}
-          onCompDrop={onCompDrop}
-          dispatch={dispatch}
-        />
       </div>
     </div>
   );

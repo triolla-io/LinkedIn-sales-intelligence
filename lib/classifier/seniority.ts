@@ -8,7 +8,8 @@ const SENIORITY_RULES: Array<[RegExp, Seniority]> = [
   [/\bvp\b|vice[\s-]?president/, "VP"],
   [/(chief|founder|co-founder|owner|ceo|cto|coo|cmo|cfo|ciso|cpo|cdo)\b|(?<!vice[\s-]?)\bpresident\b/, "C_LEVEL"],
   [/\b(director|head of|head,)\b/, "DIRECTOR"],
-  [/\b(manager|lead|principal|staff|sr\.?|senior|partner|specialist|coordinator|associate)\b/, "MANAGER"],
+  [/\b(manager|lead|principal|staff|partner|coordinator)\b/, "MANAGER"],
+  [/\b(sr\.?|senior|specialist|associate)\b/, "IC"],
 ];
 
 // Function keyword sets

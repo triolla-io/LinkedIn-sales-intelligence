@@ -27,6 +27,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const currentUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { orgId: true },
+  });
+  const oldOrgId = currentUser?.orgId;
+
   // Move the user into the org
   await prisma.$transaction([
     prisma.user.update({
@@ -38,6 +44,14 @@ export async function POST(req: NextRequest) {
       data: { usedAt: new Date() },
     }),
   ]);
+
+  // Clean up the old org if it's now empty
+  if (oldOrgId && oldOrgId !== invite.orgId) {
+    const remaining = await prisma.user.count({ where: { orgId: oldOrgId } });
+    if (remaining === 0) {
+      await prisma.organization.delete({ where: { id: oldOrgId } });
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

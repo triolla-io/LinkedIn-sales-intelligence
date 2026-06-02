@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Check, Columns3, GripVertical } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { displayCompanySize } from "@/lib/contacts/display";
+import { classify } from "@/lib/classifier/seniority";
 
 export type Contact = {
   id: string;
@@ -20,6 +21,7 @@ export type Contact = {
   industry?: string | null;
   email?: string | null;
   phone?: string | null;
+  connectedAt?: string | null;
   lastSyncedAt: string;
   enrichedAt?: string | null;
   linkedinUrl: string;
@@ -62,24 +64,6 @@ const SENIORITY_LABEL: Record<string, string> = {
   OTHER: "Other",
 };
 
-const EMPLOYEE_THRESHOLDS = [
-  { max: 10, label: "1–10", pct: 4 },
-  { max: 50, label: "11–50", pct: 12 },
-  { max: 200, label: "51–200", pct: 22 },
-  { max: 500, label: "201–500", pct: 32 },
-  { max: 1000, label: "501–1K", pct: 42 },
-  { max: 5000, label: "1K–5K", pct: 58 },
-  { max: 10000, label: "5K–10K", pct: 72 },
-  { max: 50000, label: "10K–50K", pct: 86 },
-  { max: Infinity, label: "50K+", pct: 100 },
-];
-
-function employeePct(n: number): { pct: number; label: string } {
-  for (const t of EMPLOYEE_THRESHOLDS) {
-    if (n <= t.max) return { pct: t.pct, label: n.toLocaleString() };
-  }
-  return { pct: 100, label: n.toLocaleString() };
-}
 
 interface TooltipCellProps {
   text: string;
@@ -95,6 +79,7 @@ function TooltipCell({ text, className, mono = false }: TooltipCellProps) {
     <div
       ref={ref}
       className="relative min-w-0"
+      dir="ltr"
       onMouseEnter={() => setRect(ref.current?.getBoundingClientRect() ?? null)}
       onMouseLeave={() => setRect(null)}
     >
@@ -116,7 +101,7 @@ function TooltipCell({ text, className, mono = false }: TooltipCellProps) {
 
 // ── Column system ──────────────────────────────────────────────────────────────
 
-type ColumnId = "name" | "company" | "title" | "email" | "phone" | "employees" | "seniority" | "industry";
+type ColumnId = "name" | "company" | "title" | "email" | "phone" | "seniority" | "industry";
 
 interface ColumnDef {
   id: ColumnId;
@@ -126,14 +111,13 @@ interface ColumnDef {
 }
 
 const INITIAL_COLUMNS: ColumnDef[] = [
-  { id: "name",      label: "שם",        width: "minmax(0,1.8fr)", visible: true },
-  { id: "company",   label: "חברה",      width: "minmax(0,1.2fr)", visible: true },
-  { id: "title",     label: "תפקיד",     width: "minmax(0,1.4fr)", visible: true },
-  { id: "email",     label: "אימייל",    width: "minmax(0,1.3fr)", visible: true },
-  { id: "phone",     label: "טלפון",     width: "minmax(0,1.1fr)", visible: true },
-  { id: "employees", label: "עובדים",    width: "90px",            visible: true },
-  { id: "seniority", label: "Seniority",  width: "80px",            visible: true },
-  { id: "industry",  label: "ענף",       width: "minmax(0,1.2fr)", visible: true },
+  { id: "name",      label: "שם",       width: "minmax(160px,2fr)",   visible: true },
+  { id: "company",   label: "חברה",     width: "minmax(140px,1.6fr)", visible: true },
+  { id: "title",     label: "תפקיד",    width: "minmax(140px,1.6fr)", visible: true },
+  { id: "email",     label: "אימייל",   width: "minmax(140px,1.4fr)", visible: true },
+  { id: "phone",     label: "טלפון",    width: "minmax(100px,1fr)",   visible: true },
+  { id: "seniority", label: "רמה",      width: "minmax(80px,0.7fr)",  visible: true },
+  { id: "industry",  label: "ענף",      width: "minmax(110px,1.2fr)", visible: false },
 ];
 
 function buildGridTemplate(visibleCols: ColumnDef[], hasAction: boolean): string {
@@ -161,15 +145,26 @@ function CellRenderer({ col, contact }: { col: ColumnDef; contact: Contact }) {
           )}
         </div>
       );
-    case "company":
+    case "company": {
+      const { value: empCount } = displayCompanySize(contact);
       return (
         <div className="min-w-0">
           {contact.currentCompany
-            ? <TooltipCell text={contact.currentCompany} className="text-sm text-[#1585ff]" />
+            ? (
+              <div className="min-w-0">
+                <TooltipCell text={contact.currentCompany} className="text-sm text-[#1585ff]" />
+                {empCount != null && empCount > 0 && (
+                  <p className="text-[11px] font-mono text-[#9b9895] tabular-nums mt-0.5" dir="ltr">
+                    {empCount.toLocaleString()}
+                  </p>
+                )}
+              </div>
+            )
             : <span className="text-[#c8c5c2]" aria-label="אין חברה">-</span>
           }
         </div>
       );
+    }
     case "title":
       return (
         <div className="min-w-0">
@@ -197,26 +192,19 @@ function CellRenderer({ col, contact }: { col: ColumnDef; contact: Contact }) {
           }
         </div>
       );
-    case "employees": {
-      const { value: staffCount } = displayCompanySize(contact);
-      const empInfo = staffCount ? employeePct(staffCount) : null;
-      return empInfo ? (
-        <p className="text-xs font-mono text-[#6b6866] tabular-nums">{empInfo.label}</p>
-      ) : (
-        <span className="text-[#c8c5c2]" aria-label="אין נתון">-</span>
-      );
-    }
-    case "seniority":
-      return contact.seniority ? (
+    case "seniority": {
+      const seniority = contact.currentTitle ? classify(contact.currentTitle).seniority : contact.seniority;
+      return seniority ? (
         <span className={cn(
           "inline-block px-1.5 py-0.5 rounded border text-[10px] font-medium whitespace-nowrap",
-          SENIORITY_BADGE[contact.seniority] ?? SENIORITY_BADGE.OTHER
+          SENIORITY_BADGE[seniority] ?? SENIORITY_BADGE.OTHER
         )}>
-          {SENIORITY_LABEL[contact.seniority] ?? contact.seniority}
+          {SENIORITY_LABEL[seniority] ?? seniority}
         </span>
       ) : (
         <span className="text-[#c8c5c2]" aria-label="אין seniority">-</span>
       );
+    }
     case "industry": {
       const industry = contact.company?.industry ?? contact.industry ?? null;
       return (
@@ -329,32 +317,34 @@ export default function ContactTable({
   return (
     <div className="relative">
     <div className="rounded-xl border border-[#e5e3df] bg-white overflow-hidden flex flex-col">
-      {/* Header row */}
-      <div
-        className="grid items-center gap-3 px-4 pr-10 py-2.5 bg-[#f8f7f5] border-b border-[#e5e3df] text-[10px] font-mono text-[#9b9895] uppercase tracking-widest shrink-0"
-        style={{ gridTemplateColumns: cols }}
-      >
-        {loading ? (
-          <div className="size-3.5 bg-[#e5e3df] rounded" />
-        ) : (
-          <input
-            type="checkbox"
-            aria-label="בחר הכל"
-            checked={allSelected}
-            onChange={onSelectAll}
-            className="rounded-sm border-[#d4d0cc] bg-white text-[#1585ff] size-3.5 focus:ring-0 focus:ring-offset-0 cursor-pointer"
-          />
-        )}
+      {/* Shared horizontal scroll wrapper keeps header + rows in sync */}
+      <div className="overflow-x-auto flex-1 min-h-0 flex flex-col">
+        {/* Header row */}
+        <div
+          className="grid items-center gap-3 px-4 py-2.5 bg-[#f8f7f5] border-b border-[#e5e3df] text-[10px] font-mono text-[#9b9895] uppercase tracking-widest shrink-0 text-left"
+          style={{ gridTemplateColumns: cols }}
+        >
+          {loading ? (
+            <div className="size-3.5 bg-[#e5e3df] rounded" />
+          ) : (
+            <input
+              type="checkbox"
+              aria-label="בחר הכל"
+              checked={allSelected}
+              onChange={onSelectAll}
+              className="rounded-sm border-[#d4d0cc] bg-white text-[#1585ff] size-3.5 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+            />
+          )}
 
-        {visibleCols.map((col) => (
-          <span key={col.id}>{col.label}</span>
-        ))}
+          {visibleCols.map((col) => (
+            <span key={col.id}>{col.label}</span>
+          ))}
 
-        {extraRowAction && <span />}
-      </div>
+          {extraRowAction && <span />}
+        </div>
 
-      {/* Rows */}
-      <div className="overflow-hidden">
+        {/* Rows */}
+        <div className="overflow-hidden">
         {loading ? (
           Array.from({ length: pageSize || 8 }).map((_, i) => (
             <SkeletonRow key={i} cols={cols} colCount={visibleCols.length} />
@@ -407,7 +397,8 @@ export default function ContactTable({
             );
           })
         )}
-      </div>
+        </div>
+      </div>{/* end shared scroll wrapper */}
 
       {/* Pagination footer */}
       <div className="shrink-0 flex items-center justify-between px-4 py-2 border-t border-[#e5e3df] bg-[#f8f7f5]">
@@ -447,7 +438,7 @@ export default function ContactTable({
     </div>
 
     {/* Column visibility toggle — outside overflow-hidden so the dropdown isn't clipped */}
-    <div ref={colMenuRef} className="absolute right-2 top-0 h-9 flex items-center z-10">
+    <div ref={colMenuRef} className="absolute right-1 top-0 h-9 flex items-center z-20">
       <button
         type="button"
         onClick={() => setShowColMenu((v) => !v)}
