@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "npx concurrently \"next dev -p 3001\" \"npx inngest-cli@latest dev -p 8288 --no-discovery -u http://localhost:3001/api/inngest\"",
-    "infra:up": "docker compose up postgres linkedin-mcp whatsapp-service -d --wait",
-    "infra:down": "docker compose stop postgres linkedin-mcp whatsapp-service",
+    "infra:up": "docker compose up postgres whatsapp-service -d --wait",
+    "infra:down": "docker compose stop postgres whatsapp-service",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

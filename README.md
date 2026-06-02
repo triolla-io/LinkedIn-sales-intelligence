@@ -225,7 +225,7 @@ lib/
 | `RESEND_API_KEY` | optional | Resend API key for team invitation emails |
 | `LINKEDIN_COOKIE_ENC_KEY` | ✅ | AES key for LinkedIn session cookies — `openssl rand -base64 32` |
 | `WHATSAPP_SERVICE_URL` | optional | WhatsApp sidecar URL (default: `http://localhost:3002`) |
-| `LINKEDIN_PROFILE_DIR` | optional | Patchright browser profile path (default: `~/.linkedin-mcp/profile`) |
+| `LINKEDIN_PROFILE_DIR` | optional | Patchright browser profile path |
 
 ---
 
@@ -233,7 +233,7 @@ lib/
 
 ### 1. Start the database with Docker
 
-The project ships a `docker-compose.yml` that runs Postgres, the LinkedIn MCP server, and the WhatsApp sidecar.
+The project ships a `docker-compose.yml` that runs Postgres and the WhatsApp sidecar.
 
 For local development you only **need** Postgres. Start just that service:
 
@@ -317,21 +317,16 @@ This starts three processes concurrently:
 
 Open [http://localhost:3001](http://localhost:3001).
 
-### Optional: start all Docker services
-
-To also run the LinkedIn MCP server and WhatsApp sidecar via Docker:
+### Optional: start Docker services
 
 ```bash
-docker compose up postgres linkedin-mcp whatsapp-service -d
+npm run infra:up
 ```
 
 | Service | Port | Purpose |
 |---|---|---|
 | `postgres` | 5433 | Database |
-| `linkedin-mcp` | 8765 | LinkedIn MCP server (Playwright browser automation) |
 | `whatsapp-service` | 3002 | WhatsApp Web sidecar |
-
-The `linkedin-mcp` container stores its browser profile in `~/.linkedin-mcp` on the host.
 
 ---
 
