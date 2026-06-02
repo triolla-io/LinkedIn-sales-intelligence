@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Megaphone, Pencil, Check, Loader2, Zap } from "lucide-react";
+import { ArrowLeft, Megaphone, Pencil, Check, Loader2, Zap, UserPlus } from "lucide-react";
 import Link from "next/link";
 import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
 import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
 import { NewCampaignModal } from "@/components/dashboard/new-campaign-modal";
+import AddContactsToListModal from "@/components/dashboard/add-contacts-to-list-modal";
 
 type ListDetail = { id: string; name: string; memberCount: number; createdAt: string };
 
@@ -21,6 +22,7 @@ type State = {
   nameInput: string;
   savingName: boolean;
   campaignOpen: boolean;
+  addContactsOpen: boolean;
   selectedIds: Set<string>;
   drawerContact: Contact | null;
   removingId: string | null;
@@ -48,6 +50,7 @@ export default function ListDetailPage() {
       nameInput: "",
       savingName: false,
       campaignOpen: false,
+      addContactsOpen: false,
       selectedIds: new Set<string>(),
       drawerContact: null,
       removingId: null,
@@ -213,6 +216,14 @@ export default function ListDetailPage() {
           )}
           <button
             type="button"
+            onClick={() => dispatch({ addContactsOpen: true })}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1585ff] border border-[#1585ff]/30 hover:bg-[#1585ff]/5 hover:border-[#1585ff]/50 rounded-md transition-all"
+          >
+            <UserPlus className="size-3.5" />
+            הוסף אנשי קשר
+          </button>
+          <button
+            type="button"
             onClick={enrichList}
             disabled={state.total === 0 || state.enriching || !!state.enrichProgress}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-600 border border-amber-300 hover:bg-amber-50 hover:border-amber-400 rounded-md transition-all disabled:opacity-40"
@@ -287,6 +298,19 @@ export default function ListDetailPage() {
             .then(() => fetchList(state.page))
             .catch(() => {})
         }
+      />
+
+      <AddContactsToListModal
+        open={state.addContactsOpen}
+        onClose={() => dispatch({ addContactsOpen: false })}
+        listId={id}
+        onAdded={(count) => {
+          dispatch({
+            addContactsOpen: false,
+            list: state.list ? { ...state.list, memberCount: state.list.memberCount + count } : state.list,
+          });
+          fetchList(state.page);
+        }}
       />
 
       {state.selectedIds.size > 0 && (
