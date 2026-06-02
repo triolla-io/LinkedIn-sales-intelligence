@@ -32,3 +32,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ sequence });
   })(req);
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return withTenant(async (_req: NextRequest, ctx) => {
+    const sequence = await prisma.sequence.findFirst({
+      where: { id, ownerId: ctx.effectiveUserId },
+    });
+    if (!sequence) return NextResponse.json({ error: "not found" }, { status: 404 });
+    await prisma.sequence.delete({ where: { id } });
+    return new NextResponse(null, { status: 204 });
+  })(req);
+}
