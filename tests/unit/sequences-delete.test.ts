@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
-const mockAuth = vi.fn();
-const mockFindFirst = vi.fn();
-const mockDelete = vi.fn();
+const mockAuth = vi.hoisted(() => vi.fn());
+const mockFindFirst = vi.hoisted(() => vi.fn());
+const mockDelete = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/auth", () => ({ auth: mockAuth }));
 vi.mock("@/lib/prisma", () => ({

@@ -51,6 +51,7 @@ export type ContactMinAggregateOutputType = {
   location: string | null
   industry: string | null
   profilePicUrl: string | null
+  connectedAt: Date | null
   lastSyncedAt: Date | null
   removedAt: Date | null
   email: string | null
@@ -81,6 +82,7 @@ export type ContactMaxAggregateOutputType = {
   location: string | null
   industry: string | null
   profilePicUrl: string | null
+  connectedAt: Date | null
   lastSyncedAt: Date | null
   removedAt: Date | null
   email: string | null
@@ -111,6 +113,7 @@ export type ContactCountAggregateOutputType = {
   location: number
   industry: number
   profilePicUrl: number
+  connectedAt: number
   lastSyncedAt: number
   removedAt: number
   email: number
@@ -153,6 +156,7 @@ export type ContactMinAggregateInputType = {
   location?: true
   industry?: true
   profilePicUrl?: true
+  connectedAt?: true
   lastSyncedAt?: true
   removedAt?: true
   email?: true
@@ -183,6 +187,7 @@ export type ContactMaxAggregateInputType = {
   location?: true
   industry?: true
   profilePicUrl?: true
+  connectedAt?: true
   lastSyncedAt?: true
   removedAt?: true
   email?: true
@@ -213,6 +218,7 @@ export type ContactCountAggregateInputType = {
   location?: true
   industry?: true
   profilePicUrl?: true
+  connectedAt?: true
   lastSyncedAt?: true
   removedAt?: true
   email?: true
@@ -332,6 +338,7 @@ export type ContactGroupByOutputType = {
   location: string | null
   industry: string | null
   profilePicUrl: string | null
+  connectedAt: Date | null
   lastSyncedAt: Date
   removedAt: Date | null
   email: string | null
@@ -387,6 +394,7 @@ export type ContactWhereInput = {
   location?: Prisma.StringNullableFilter<"Contact"> | string | null
   industry?: Prisma.StringNullableFilter<"Contact"> | string | null
   profilePicUrl?: Prisma.StringNullableFilter<"Contact"> | string | null
+  connectedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   removedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   email?: Prisma.StringNullableFilter<"Contact"> | string | null
@@ -425,6 +433,7 @@ export type ContactOrderByWithRelationInput = {
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   industry?: Prisma.SortOrderInput | Prisma.SortOrder
   profilePicUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  connectedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
   removedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -467,6 +476,7 @@ export type ContactWhereUniqueInput = Prisma.AtLeast<{
   location?: Prisma.StringNullableFilter<"Contact"> | string | null
   industry?: Prisma.StringNullableFilter<"Contact"> | string | null
   profilePicUrl?: Prisma.StringNullableFilter<"Contact"> | string | null
+  connectedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   removedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   email?: Prisma.StringNullableFilter<"Contact"> | string | null
@@ -505,6 +515,7 @@ export type ContactOrderByWithAggregationInput = {
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   industry?: Prisma.SortOrderInput | Prisma.SortOrder
   profilePicUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  connectedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
   removedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -545,6 +556,7 @@ export type ContactScalarWhereWithAggregatesInput = {
   location?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
   industry?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
   profilePicUrl?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
+  connectedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Contact"> | Date | string | null
   lastSyncedAt?: Prisma.DateTimeWithAggregatesFilter<"Contact"> | Date | string
   removedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Contact"> | Date | string | null
   email?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
@@ -576,6 +588,7 @@ export type ContactCreateInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -613,6 +626,7 @@ export type ContactUncheckedCreateInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -648,6 +662,7 @@ export type ContactUpdateInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -685,6 +700,7 @@ export type ContactUncheckedUpdateInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -721,6 +737,7 @@ export type ContactCreateManyInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -752,6 +769,7 @@ export type ContactUpdateManyMutationInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -783,6 +801,7 @@ export type ContactUncheckedUpdateManyInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -838,6 +857,7 @@ export type ContactCountOrderByAggregateInput = {
   location?: Prisma.SortOrder
   industry?: Prisma.SortOrder
   profilePicUrl?: Prisma.SortOrder
+  connectedAt?: Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
   removedAt?: Prisma.SortOrder
   email?: Prisma.SortOrder
@@ -874,6 +894,7 @@ export type ContactMaxOrderByAggregateInput = {
   location?: Prisma.SortOrder
   industry?: Prisma.SortOrder
   profilePicUrl?: Prisma.SortOrder
+  connectedAt?: Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
   removedAt?: Prisma.SortOrder
   email?: Prisma.SortOrder
@@ -904,6 +925,7 @@ export type ContactMinOrderByAggregateInput = {
   location?: Prisma.SortOrder
   industry?: Prisma.SortOrder
   profilePicUrl?: Prisma.SortOrder
+  connectedAt?: Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
   removedAt?: Prisma.SortOrder
   email?: Prisma.SortOrder
@@ -1099,6 +1121,7 @@ export type ContactCreateWithoutOwnerInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -1134,6 +1157,7 @@ export type ContactUncheckedCreateWithoutOwnerInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -1199,6 +1223,7 @@ export type ContactScalarWhereInput = {
   location?: Prisma.StringNullableFilter<"Contact"> | string | null
   industry?: Prisma.StringNullableFilter<"Contact"> | string | null
   profilePicUrl?: Prisma.StringNullableFilter<"Contact"> | string | null
+  connectedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   removedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   email?: Prisma.StringNullableFilter<"Contact"> | string | null
@@ -1230,6 +1255,7 @@ export type ContactCreateWithoutMessagesInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -1266,6 +1292,7 @@ export type ContactUncheckedCreateWithoutMessagesInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -1316,6 +1343,7 @@ export type ContactUpdateWithoutMessagesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1352,6 +1380,7 @@ export type ContactUncheckedUpdateWithoutMessagesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1386,6 +1415,7 @@ export type ContactCreateWithoutCompanyInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -1422,6 +1452,7 @@ export type ContactUncheckedCreateWithoutCompanyInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -1482,6 +1513,7 @@ export type ContactCreateWithoutCampaignRecipientsInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -1518,6 +1550,7 @@ export type ContactUncheckedCreateWithoutCampaignRecipientsInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -1568,6 +1601,7 @@ export type ContactUpdateWithoutCampaignRecipientsInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1604,6 +1638,7 @@ export type ContactUncheckedUpdateWithoutCampaignRecipientsInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1638,6 +1673,7 @@ export type ContactCreateWithoutListsInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -1674,6 +1710,7 @@ export type ContactUncheckedCreateWithoutListsInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -1724,6 +1761,7 @@ export type ContactUpdateWithoutListsInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1760,6 +1798,7 @@ export type ContactUncheckedUpdateWithoutListsInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1794,6 +1833,7 @@ export type ContactCreateWithoutSequenceEnrollmentsInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -1830,6 +1870,7 @@ export type ContactUncheckedCreateWithoutSequenceEnrollmentsInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -1880,6 +1921,7 @@ export type ContactUpdateWithoutSequenceEnrollmentsInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1916,6 +1958,7 @@ export type ContactUncheckedUpdateWithoutSequenceEnrollmentsInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1950,6 +1993,7 @@ export type ContactCreateManyOwnerInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -1981,6 +2025,7 @@ export type ContactUpdateWithoutOwnerInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2016,6 +2061,7 @@ export type ContactUncheckedUpdateWithoutOwnerInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2051,6 +2097,7 @@ export type ContactUncheckedUpdateManyWithoutOwnerInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2083,6 +2130,7 @@ export type ContactCreateManyCompanyInput = {
   location?: string | null
   industry?: string | null
   profilePicUrl?: string | null
+  connectedAt?: Date | string | null
   lastSyncedAt: Date | string
   removedAt?: Date | string | null
   email?: string | null
@@ -2113,6 +2161,7 @@ export type ContactUpdateWithoutCompanyInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2149,6 +2198,7 @@ export type ContactUncheckedUpdateWithoutCompanyInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2184,6 +2234,7 @@ export type ContactUncheckedUpdateManyWithoutCompanyInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2273,6 +2324,7 @@ export type ContactSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   location?: boolean
   industry?: boolean
   profilePicUrl?: boolean
+  connectedAt?: boolean
   lastSyncedAt?: boolean
   removedAt?: boolean
   email?: boolean
@@ -2312,6 +2364,7 @@ export type ContactSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   location?: boolean
   industry?: boolean
   profilePicUrl?: boolean
+  connectedAt?: boolean
   lastSyncedAt?: boolean
   removedAt?: boolean
   email?: boolean
@@ -2346,6 +2399,7 @@ export type ContactSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   location?: boolean
   industry?: boolean
   profilePicUrl?: boolean
+  connectedAt?: boolean
   lastSyncedAt?: boolean
   removedAt?: boolean
   email?: boolean
@@ -2380,6 +2434,7 @@ export type ContactSelectScalar = {
   location?: boolean
   industry?: boolean
   profilePicUrl?: boolean
+  connectedAt?: boolean
   lastSyncedAt?: boolean
   removedAt?: boolean
   email?: boolean
@@ -2395,7 +2450,7 @@ export type ContactSelectScalar = {
   companyId?: boolean
 }
 
-export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "hebrewFirstName" | "headline" | "currentTitle" | "currentCompany" | "currentCompanyId" | "companySize" | "seniority" | "function" | "location" | "industry" | "profilePicUrl" | "lastSyncedAt" | "removedAt" | "email" | "phone" | "enrichedAt" | "enrichmentSource" | "manualFields" | "enrichmentLog" | "enrichmentRanAt" | "enrichmentError" | "createdAt" | "updatedAt" | "companyId", ExtArgs["result"]["contact"]>
+export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "hebrewFirstName" | "headline" | "currentTitle" | "currentCompany" | "currentCompanyId" | "companySize" | "seniority" | "function" | "location" | "industry" | "profilePicUrl" | "connectedAt" | "lastSyncedAt" | "removedAt" | "email" | "phone" | "enrichedAt" | "enrichmentSource" | "manualFields" | "enrichmentLog" | "enrichmentRanAt" | "enrichmentError" | "createdAt" | "updatedAt" | "companyId", ExtArgs["result"]["contact"]>
 export type ContactInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   company?: boolean | Prisma.Contact$companyArgs<ExtArgs>
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -2441,6 +2496,7 @@ export type $ContactPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     location: string | null
     industry: string | null
     profilePicUrl: string | null
+    connectedAt: Date | null
     lastSyncedAt: Date
     removedAt: Date | null
     email: string | null
@@ -2899,6 +2955,7 @@ export interface ContactFieldRefs {
   readonly location: Prisma.FieldRef<"Contact", 'String'>
   readonly industry: Prisma.FieldRef<"Contact", 'String'>
   readonly profilePicUrl: Prisma.FieldRef<"Contact", 'String'>
+  readonly connectedAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly lastSyncedAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly removedAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly email: Prisma.FieldRef<"Contact", 'String'>

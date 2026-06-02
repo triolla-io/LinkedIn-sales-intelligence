@@ -34,6 +34,7 @@ export type SentMessageMinAggregateOutputType = {
   sentAt: Date | null
   status: $Enums.MessageStatus | null
   errorMessage: string | null
+  externalId: string | null
 }
 
 export type SentMessageMaxAggregateOutputType = {
@@ -46,6 +47,7 @@ export type SentMessageMaxAggregateOutputType = {
   sentAt: Date | null
   status: $Enums.MessageStatus | null
   errorMessage: string | null
+  externalId: string | null
 }
 
 export type SentMessageCountAggregateOutputType = {
@@ -58,6 +60,8 @@ export type SentMessageCountAggregateOutputType = {
   sentAt: number
   status: number
   errorMessage: number
+  externalId: number
+  metadata: number
   _all: number
 }
 
@@ -72,6 +76,7 @@ export type SentMessageMinAggregateInputType = {
   sentAt?: true
   status?: true
   errorMessage?: true
+  externalId?: true
 }
 
 export type SentMessageMaxAggregateInputType = {
@@ -84,6 +89,7 @@ export type SentMessageMaxAggregateInputType = {
   sentAt?: true
   status?: true
   errorMessage?: true
+  externalId?: true
 }
 
 export type SentMessageCountAggregateInputType = {
@@ -96,6 +102,8 @@ export type SentMessageCountAggregateInputType = {
   sentAt?: true
   status?: true
   errorMessage?: true
+  externalId?: true
+  metadata?: true
   _all?: true
 }
 
@@ -181,6 +189,8 @@ export type SentMessageGroupByOutputType = {
   sentAt: Date
   status: $Enums.MessageStatus
   errorMessage: string | null
+  externalId: string | null
+  metadata: runtime.JsonValue | null
   _count: SentMessageCountAggregateOutputType | null
   _min: SentMessageMinAggregateOutputType | null
   _max: SentMessageMaxAggregateOutputType | null
@@ -214,6 +224,8 @@ export type SentMessageWhereInput = {
   sentAt?: Prisma.DateTimeFilter<"SentMessage"> | Date | string
   status?: Prisma.EnumMessageStatusFilter<"SentMessage"> | $Enums.MessageStatus
   errorMessage?: Prisma.StringNullableFilter<"SentMessage"> | string | null
+  externalId?: Prisma.StringNullableFilter<"SentMessage"> | string | null
+  metadata?: Prisma.JsonNullableFilter<"SentMessage">
   sender?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   actor?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   contact?: Prisma.XOR<Prisma.ContactScalarRelationFilter, Prisma.ContactWhereInput>
@@ -232,6 +244,8 @@ export type SentMessageOrderByWithRelationInput = {
   sentAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
+  externalId?: Prisma.SortOrderInput | Prisma.SortOrder
+  metadata?: Prisma.SortOrderInput | Prisma.SortOrder
   sender?: Prisma.UserOrderByWithRelationInput
   actor?: Prisma.UserOrderByWithRelationInput
   contact?: Prisma.ContactOrderByWithRelationInput
@@ -253,6 +267,8 @@ export type SentMessageWhereUniqueInput = Prisma.AtLeast<{
   sentAt?: Prisma.DateTimeFilter<"SentMessage"> | Date | string
   status?: Prisma.EnumMessageStatusFilter<"SentMessage"> | $Enums.MessageStatus
   errorMessage?: Prisma.StringNullableFilter<"SentMessage"> | string | null
+  externalId?: Prisma.StringNullableFilter<"SentMessage"> | string | null
+  metadata?: Prisma.JsonNullableFilter<"SentMessage">
   sender?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   actor?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   contact?: Prisma.XOR<Prisma.ContactScalarRelationFilter, Prisma.ContactWhereInput>
@@ -271,6 +287,8 @@ export type SentMessageOrderByWithAggregationInput = {
   sentAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
+  externalId?: Prisma.SortOrderInput | Prisma.SortOrder
+  metadata?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.SentMessageCountOrderByAggregateInput
   _max?: Prisma.SentMessageMaxOrderByAggregateInput
   _min?: Prisma.SentMessageMinOrderByAggregateInput
@@ -289,6 +307,8 @@ export type SentMessageScalarWhereWithAggregatesInput = {
   sentAt?: Prisma.DateTimeWithAggregatesFilter<"SentMessage"> | Date | string
   status?: Prisma.EnumMessageStatusWithAggregatesFilter<"SentMessage"> | $Enums.MessageStatus
   errorMessage?: Prisma.StringNullableWithAggregatesFilter<"SentMessage"> | string | null
+  externalId?: Prisma.StringNullableWithAggregatesFilter<"SentMessage"> | string | null
+  metadata?: Prisma.JsonNullableWithAggregatesFilter<"SentMessage">
 }
 
 export type SentMessageCreateInput = {
@@ -297,6 +317,8 @@ export type SentMessageCreateInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sender: Prisma.UserCreateNestedOneWithoutSentMessagesInput
   actor: Prisma.UserCreateNestedOneWithoutActedMessagesInput
   contact: Prisma.ContactCreateNestedOneWithoutMessagesInput
@@ -315,6 +337,8 @@ export type SentMessageUncheckedCreateInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   campaignRecipient?: Prisma.CampaignRecipientUncheckedCreateNestedOneWithoutSentMessageInput
   sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedCreateNestedOneWithoutSentMessageInput
 }
@@ -325,6 +349,8 @@ export type SentMessageUpdateInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sender?: Prisma.UserUpdateOneRequiredWithoutSentMessagesNestedInput
   actor?: Prisma.UserUpdateOneRequiredWithoutActedMessagesNestedInput
   contact?: Prisma.ContactUpdateOneRequiredWithoutMessagesNestedInput
@@ -343,6 +369,8 @@ export type SentMessageUncheckedUpdateInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   campaignRecipient?: Prisma.CampaignRecipientUncheckedUpdateOneWithoutSentMessageNestedInput
   sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedUpdateOneWithoutSentMessageNestedInput
 }
@@ -357,6 +385,8 @@ export type SentMessageCreateManyInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type SentMessageUpdateManyMutationInput = {
@@ -365,6 +395,8 @@ export type SentMessageUpdateManyMutationInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type SentMessageUncheckedUpdateManyInput = {
@@ -377,6 +409,8 @@ export type SentMessageUncheckedUpdateManyInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type SentMessageListRelationFilter = {
@@ -399,6 +433,8 @@ export type SentMessageCountOrderByAggregateInput = {
   sentAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
+  metadata?: Prisma.SortOrder
 }
 
 export type SentMessageMaxOrderByAggregateInput = {
@@ -411,6 +447,7 @@ export type SentMessageMaxOrderByAggregateInput = {
   sentAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
 }
 
 export type SentMessageMinOrderByAggregateInput = {
@@ -423,6 +460,7 @@ export type SentMessageMinOrderByAggregateInput = {
   sentAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
 }
 
 export type SentMessageNullableScalarRelationFilter = {
@@ -640,6 +678,8 @@ export type SentMessageCreateWithoutSenderInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   actor: Prisma.UserCreateNestedOneWithoutActedMessagesInput
   contact: Prisma.ContactCreateNestedOneWithoutMessagesInput
   template?: Prisma.MessageTemplateCreateNestedOneWithoutMessagesInput
@@ -656,6 +696,8 @@ export type SentMessageUncheckedCreateWithoutSenderInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   campaignRecipient?: Prisma.CampaignRecipientUncheckedCreateNestedOneWithoutSentMessageInput
   sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedCreateNestedOneWithoutSentMessageInput
 }
@@ -676,6 +718,8 @@ export type SentMessageCreateWithoutActorInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sender: Prisma.UserCreateNestedOneWithoutSentMessagesInput
   contact: Prisma.ContactCreateNestedOneWithoutMessagesInput
   template?: Prisma.MessageTemplateCreateNestedOneWithoutMessagesInput
@@ -692,6 +736,8 @@ export type SentMessageUncheckedCreateWithoutActorInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   campaignRecipient?: Prisma.CampaignRecipientUncheckedCreateNestedOneWithoutSentMessageInput
   sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedCreateNestedOneWithoutSentMessageInput
 }
@@ -735,6 +781,8 @@ export type SentMessageScalarWhereInput = {
   sentAt?: Prisma.DateTimeFilter<"SentMessage"> | Date | string
   status?: Prisma.EnumMessageStatusFilter<"SentMessage"> | $Enums.MessageStatus
   errorMessage?: Prisma.StringNullableFilter<"SentMessage"> | string | null
+  externalId?: Prisma.StringNullableFilter<"SentMessage"> | string | null
+  metadata?: Prisma.JsonNullableFilter<"SentMessage">
 }
 
 export type SentMessageUpsertWithWhereUniqueWithoutActorInput = {
@@ -759,6 +807,8 @@ export type SentMessageCreateWithoutContactInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sender: Prisma.UserCreateNestedOneWithoutSentMessagesInput
   actor: Prisma.UserCreateNestedOneWithoutActedMessagesInput
   template?: Prisma.MessageTemplateCreateNestedOneWithoutMessagesInput
@@ -775,6 +825,8 @@ export type SentMessageUncheckedCreateWithoutContactInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   campaignRecipient?: Prisma.CampaignRecipientUncheckedCreateNestedOneWithoutSentMessageInput
   sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedCreateNestedOneWithoutSentMessageInput
 }
@@ -811,6 +863,8 @@ export type SentMessageCreateWithoutTemplateInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sender: Prisma.UserCreateNestedOneWithoutSentMessagesInput
   actor: Prisma.UserCreateNestedOneWithoutActedMessagesInput
   contact: Prisma.ContactCreateNestedOneWithoutMessagesInput
@@ -827,6 +881,8 @@ export type SentMessageUncheckedCreateWithoutTemplateInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   campaignRecipient?: Prisma.CampaignRecipientUncheckedCreateNestedOneWithoutSentMessageInput
   sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedCreateNestedOneWithoutSentMessageInput
 }
@@ -863,6 +919,8 @@ export type SentMessageCreateWithoutCampaignRecipientInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sender: Prisma.UserCreateNestedOneWithoutSentMessagesInput
   actor: Prisma.UserCreateNestedOneWithoutActedMessagesInput
   contact: Prisma.ContactCreateNestedOneWithoutMessagesInput
@@ -880,6 +938,8 @@ export type SentMessageUncheckedCreateWithoutCampaignRecipientInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedCreateNestedOneWithoutSentMessageInput
 }
 
@@ -905,6 +965,8 @@ export type SentMessageUpdateWithoutCampaignRecipientInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sender?: Prisma.UserUpdateOneRequiredWithoutSentMessagesNestedInput
   actor?: Prisma.UserUpdateOneRequiredWithoutActedMessagesNestedInput
   contact?: Prisma.ContactUpdateOneRequiredWithoutMessagesNestedInput
@@ -922,6 +984,8 @@ export type SentMessageUncheckedUpdateWithoutCampaignRecipientInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedUpdateOneWithoutSentMessageNestedInput
 }
 
@@ -931,6 +995,8 @@ export type SentMessageCreateWithoutSequenceStepExecutionInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sender: Prisma.UserCreateNestedOneWithoutSentMessagesInput
   actor: Prisma.UserCreateNestedOneWithoutActedMessagesInput
   contact: Prisma.ContactCreateNestedOneWithoutMessagesInput
@@ -948,6 +1014,8 @@ export type SentMessageUncheckedCreateWithoutSequenceStepExecutionInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   campaignRecipient?: Prisma.CampaignRecipientUncheckedCreateNestedOneWithoutSentMessageInput
 }
 
@@ -973,6 +1041,8 @@ export type SentMessageUpdateWithoutSequenceStepExecutionInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sender?: Prisma.UserUpdateOneRequiredWithoutSentMessagesNestedInput
   actor?: Prisma.UserUpdateOneRequiredWithoutActedMessagesNestedInput
   contact?: Prisma.ContactUpdateOneRequiredWithoutMessagesNestedInput
@@ -990,6 +1060,8 @@ export type SentMessageUncheckedUpdateWithoutSequenceStepExecutionInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   campaignRecipient?: Prisma.CampaignRecipientUncheckedUpdateOneWithoutSentMessageNestedInput
 }
 
@@ -1002,6 +1074,8 @@ export type SentMessageCreateManySenderInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type SentMessageCreateManyActorInput = {
@@ -1013,6 +1087,8 @@ export type SentMessageCreateManyActorInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type SentMessageUpdateWithoutSenderInput = {
@@ -1021,6 +1097,8 @@ export type SentMessageUpdateWithoutSenderInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   actor?: Prisma.UserUpdateOneRequiredWithoutActedMessagesNestedInput
   contact?: Prisma.ContactUpdateOneRequiredWithoutMessagesNestedInput
   template?: Prisma.MessageTemplateUpdateOneWithoutMessagesNestedInput
@@ -1037,6 +1115,8 @@ export type SentMessageUncheckedUpdateWithoutSenderInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   campaignRecipient?: Prisma.CampaignRecipientUncheckedUpdateOneWithoutSentMessageNestedInput
   sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedUpdateOneWithoutSentMessageNestedInput
 }
@@ -1050,6 +1130,8 @@ export type SentMessageUncheckedUpdateManyWithoutSenderInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type SentMessageUpdateWithoutActorInput = {
@@ -1058,6 +1140,8 @@ export type SentMessageUpdateWithoutActorInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sender?: Prisma.UserUpdateOneRequiredWithoutSentMessagesNestedInput
   contact?: Prisma.ContactUpdateOneRequiredWithoutMessagesNestedInput
   template?: Prisma.MessageTemplateUpdateOneWithoutMessagesNestedInput
@@ -1074,6 +1158,8 @@ export type SentMessageUncheckedUpdateWithoutActorInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   campaignRecipient?: Prisma.CampaignRecipientUncheckedUpdateOneWithoutSentMessageNestedInput
   sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedUpdateOneWithoutSentMessageNestedInput
 }
@@ -1087,6 +1173,8 @@ export type SentMessageUncheckedUpdateManyWithoutActorInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type SentMessageCreateManyContactInput = {
@@ -1098,6 +1186,8 @@ export type SentMessageCreateManyContactInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type SentMessageUpdateWithoutContactInput = {
@@ -1106,6 +1196,8 @@ export type SentMessageUpdateWithoutContactInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sender?: Prisma.UserUpdateOneRequiredWithoutSentMessagesNestedInput
   actor?: Prisma.UserUpdateOneRequiredWithoutActedMessagesNestedInput
   template?: Prisma.MessageTemplateUpdateOneWithoutMessagesNestedInput
@@ -1122,6 +1214,8 @@ export type SentMessageUncheckedUpdateWithoutContactInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   campaignRecipient?: Prisma.CampaignRecipientUncheckedUpdateOneWithoutSentMessageNestedInput
   sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedUpdateOneWithoutSentMessageNestedInput
 }
@@ -1135,6 +1229,8 @@ export type SentMessageUncheckedUpdateManyWithoutContactInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type SentMessageCreateManyTemplateInput = {
@@ -1146,6 +1242,8 @@ export type SentMessageCreateManyTemplateInput = {
   sentAt?: Date | string
   status?: $Enums.MessageStatus
   errorMessage?: string | null
+  externalId?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type SentMessageUpdateWithoutTemplateInput = {
@@ -1154,6 +1252,8 @@ export type SentMessageUpdateWithoutTemplateInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   sender?: Prisma.UserUpdateOneRequiredWithoutSentMessagesNestedInput
   actor?: Prisma.UserUpdateOneRequiredWithoutActedMessagesNestedInput
   contact?: Prisma.ContactUpdateOneRequiredWithoutMessagesNestedInput
@@ -1170,6 +1270,8 @@ export type SentMessageUncheckedUpdateWithoutTemplateInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   campaignRecipient?: Prisma.CampaignRecipientUncheckedUpdateOneWithoutSentMessageNestedInput
   sequenceStepExecution?: Prisma.SequenceStepExecutionUncheckedUpdateOneWithoutSentMessageNestedInput
 }
@@ -1183,6 +1285,8 @@ export type SentMessageUncheckedUpdateManyWithoutTemplateInput = {
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMessageStatusFieldUpdateOperationsInput | $Enums.MessageStatus
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 
@@ -1197,6 +1301,8 @@ export type SentMessageSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   sentAt?: boolean
   status?: boolean
   errorMessage?: boolean
+  externalId?: boolean
+  metadata?: boolean
   sender?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   actor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
@@ -1215,6 +1321,8 @@ export type SentMessageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   sentAt?: boolean
   status?: boolean
   errorMessage?: boolean
+  externalId?: boolean
+  metadata?: boolean
   sender?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   actor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
@@ -1231,6 +1339,8 @@ export type SentMessageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   sentAt?: boolean
   status?: boolean
   errorMessage?: boolean
+  externalId?: boolean
+  metadata?: boolean
   sender?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   actor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
@@ -1247,9 +1357,11 @@ export type SentMessageSelectScalar = {
   sentAt?: boolean
   status?: boolean
   errorMessage?: boolean
+  externalId?: boolean
+  metadata?: boolean
 }
 
-export type SentMessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "senderId" | "actorId" | "contactId" | "templateId" | "body" | "sentAt" | "status" | "errorMessage", ExtArgs["result"]["sentMessage"]>
+export type SentMessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "senderId" | "actorId" | "contactId" | "templateId" | "body" | "sentAt" | "status" | "errorMessage" | "externalId" | "metadata", ExtArgs["result"]["sentMessage"]>
 export type SentMessageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sender?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   actor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1291,6 +1403,8 @@ export type $SentMessagePayload<ExtArgs extends runtime.Types.Extensions.Interna
     sentAt: Date
     status: $Enums.MessageStatus
     errorMessage: string | null
+    externalId: string | null
+    metadata: runtime.JsonValue | null
   }, ExtArgs["result"]["sentMessage"]>
   composites: {}
 }
@@ -1729,6 +1843,8 @@ export interface SentMessageFieldRefs {
   readonly sentAt: Prisma.FieldRef<"SentMessage", 'DateTime'>
   readonly status: Prisma.FieldRef<"SentMessage", 'MessageStatus'>
   readonly errorMessage: Prisma.FieldRef<"SentMessage", 'String'>
+  readonly externalId: Prisma.FieldRef<"SentMessage", 'String'>
+  readonly metadata: Prisma.FieldRef<"SentMessage", 'Json'>
 }
     
 

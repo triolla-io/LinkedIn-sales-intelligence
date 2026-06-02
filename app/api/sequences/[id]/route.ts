@@ -39,7 +39,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     const sequence = await prisma.sequence.findFirst({
       where: { id, ownerId: ctx.effectiveUserId },
     });
-    if (!sequence) return NextResponse.json({ error: "not found" }, { status: 404 });
+    if (!sequence) return NextResponse.json({ error: "Not found" }, { status: 404 });
     await prisma.sequence.delete({ where: { id } });
     return new NextResponse(null, { status: 204 });
   })(req);

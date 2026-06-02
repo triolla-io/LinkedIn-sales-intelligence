@@ -2548,6 +2548,7 @@ export const ContactScalarFieldEnum = {
   location: 'location',
   industry: 'industry',
   profilePicUrl: 'profilePicUrl',
+  connectedAt: 'connectedAt',
   lastSyncedAt: 'lastSyncedAt',
   removedAt: 'removedAt',
   email: 'email',
@@ -2588,7 +2589,9 @@ export const SentMessageScalarFieldEnum = {
   body: 'body',
   sentAt: 'sentAt',
   status: 'status',
-  errorMessage: 'errorMessage'
+  errorMessage: 'errorMessage',
+  externalId: 'externalId',
+  metadata: 'metadata'
 } as const
 
 export type SentMessageScalarFieldEnum = (typeof SentMessageScalarFieldEnum)[keyof typeof SentMessageScalarFieldEnum]

@@ -161,6 +161,7 @@ model Contact {
   location         String?
   industry         String?
   profilePicUrl    String?
+  connectedAt      DateTime?
   lastSyncedAt     DateTime
   removedAt        DateTime?
 
@@ -220,6 +221,8 @@ model SentMessage {
   sentAt       DateTime      @default(now())
   status       MessageStatus @default(QUEUED)
   errorMessage String?
+  externalId   String?
+  metadata     Json?
 
   sender                User                   @relation("SentBySender", fields: [senderId], references: [id])
   actor                 User                   @relation("ActedByActor", fields: [actorId], references: [id])
@@ -327,6 +330,7 @@ enum CampaignChannel {
   LINKEDIN
   EMAIL
   WHATSAPP
+  VOICE
 }
 
 enum CampaignStatus {
@@ -556,7 +560,7 @@ model SequenceStepExecution {
   updatedAt     DateTime        @updatedAt
 
   enrollment  SequenceEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-  step        SequenceStep       @relation(fields: [stepId], references: [id])
+  step        SequenceStep       @relation(fields: [stepId], references: [id], onDelete: Cascade)
   sentMessage SentMessage?       @relation(fields: [sentMessageId], references: [id])
 
   @@unique([enrollmentId, stepId])

@@ -78,7 +78,8 @@ export type SessionStatus = (typeof SessionStatus)[keyof typeof SessionStatus]
 export const CampaignChannel = {
   LINKEDIN: 'LINKEDIN',
   EMAIL: 'EMAIL',
-  WHATSAPP: 'WHATSAPP'
+  WHATSAPP: 'WHATSAPP',
+  VOICE: 'VOICE'
 } as const
 
 export type CampaignChannel = (typeof CampaignChannel)[keyof typeof CampaignChannel]
