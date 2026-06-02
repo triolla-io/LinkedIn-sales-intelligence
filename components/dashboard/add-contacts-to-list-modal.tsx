@@ -29,6 +29,7 @@ export default function AddContactsToListModal({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [searching, setSearching] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -40,6 +41,7 @@ export default function AddContactsToListModal({
       setSelected(new Set());
       setSearching(false);
       setAdding(false);
+      setAddError(null);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [open]);
@@ -79,12 +81,17 @@ export default function AddContactsToListModal({
   async function handleAdd() {
     if (selected.size === 0) return;
     setAdding(true);
+    setAddError(null);
     try {
-      await fetch(`/api/lists/${listId}/members`, {
+      const res = await fetch(`/api/lists/${listId}/members`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ add: Array.from(selected) }),
       });
+      if (!res.ok) {
+        setAddError("שגיאה בהוספת אנשי קשר");
+        return;
+      }
       onAdded(selected.size);
       onClose();
     } finally {
@@ -174,25 +181,30 @@ export default function AddContactsToListModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between gap-2 px-4 py-3 border-t border-[#e5e3df]">
-          <button
-            onClick={onClose}
-            className="px-3 py-1.5 text-xs font-medium text-[#6b6866] hover:text-[#111110] transition-colors"
-          >
-            ביטול
-          </button>
-          <button
-            onClick={handleAdd}
-            disabled={selected.size === 0 || adding}
-            className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors disabled:opacity-40"
-          >
-            {adding ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
-            ) : (
-              <UserPlus className="w-3 h-3" />
-            )}
-            {selected.size > 0 ? `הוסף ${selected.size} אנשי קשר` : "הוסף"}
-          </button>
+        <div className="flex flex-col gap-3 px-4 py-3 border-t border-[#e5e3df]">
+          {addError && (
+            <span className="text-xs text-red-400 font-mono">{addError}</span>
+          )}
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={onClose}
+              className="px-3 py-1.5 text-xs font-medium text-[#6b6866] hover:text-[#111110] transition-colors"
+            >
+              ביטול
+            </button>
+            <button
+              onClick={handleAdd}
+              disabled={selected.size === 0 || adding}
+              className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors disabled:opacity-40"
+            >
+              {adding ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <UserPlus className="w-3 h-3" />
+              )}
+              {selected.size > 0 ? `הוסף ${selected.size} אנשי קשר` : "הוסף"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
