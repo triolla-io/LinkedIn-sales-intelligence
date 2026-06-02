@@ -148,14 +148,19 @@ export default function CampaignsClient({
   async function deleteSequence(seq: Sequence) {
     setDeleteLoading(true);
     setDeleteError(null);
-    const res = await fetch(`/api/sequences/${seq.id}`, { method: "DELETE" });
-    setDeleteLoading(false);
-    if (!res.ok) {
-      setDeleteError("מחיקה נכשלה — נסה שוב");
-      return;
+    try {
+      const res = await fetch(`/api/sequences/${seq.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        setDeleteError("מחיקה נכשלה — נסה שוב");
+        return;
+      }
+      setDeletingSeq(null);
+      router.refresh();
+    } catch {
+      setDeleteError("שגיאת רשת — נסה שוב");
+    } finally {
+      setDeleteLoading(false);
     }
-    setDeletingSeq(null);
-    router.refresh();
   }
 
   return (
@@ -286,7 +291,7 @@ export default function CampaignsClient({
             <p className="text-sm text-[#6b6866] mb-3">
               האם למחוק את <span className="font-medium text-[#111110]">{deletingSeq.name}</span>?
             </p>
-            {["ACTIVE", "QUEUED"].includes(deletingSeq.status) && (
+            {["ACTIVE", "QUEUED", "PAUSED"].includes(deletingSeq.status) && (
               <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4">
                 הקמפיין עדיין פעיל — מחיקה תעצור אותו לאלתר
               </p>
