@@ -137,6 +137,7 @@ export default function CampaignsClient({
   const [showModal, setShowModal] = useState(false);
   const [deletingSeq, setDeletingSeq] = useState<Sequence | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   async function togglePause(seq: Sequence) {
     const action = seq.status === "ACTIVE" ? "pause" : "resume";
@@ -146,8 +147,13 @@ export default function CampaignsClient({
 
   async function deleteSequence(seq: Sequence) {
     setDeleteLoading(true);
-    await fetch(`/api/sequences/${seq.id}`, { method: "DELETE" });
+    setDeleteError(null);
+    const res = await fetch(`/api/sequences/${seq.id}`, { method: "DELETE" });
     setDeleteLoading(false);
+    if (!res.ok) {
+      setDeleteError("מחיקה נכשלה — נסה שוב");
+      return;
+    }
     setDeletingSeq(null);
     router.refresh();
   }
@@ -274,8 +280,8 @@ export default function CampaignsClient({
       )}
 
       {deletingSeq && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => { setDeletingSeq(null); setDeleteError(null); }}>
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-sm font-semibold text-[#111110] mb-1">מחיקת קמפיין</h2>
             <p className="text-sm text-[#6b6866] mb-3">
               האם למחוק את <span className="font-medium text-[#111110]">{deletingSeq.name}</span>?
@@ -285,10 +291,13 @@ export default function CampaignsClient({
                 הקמפיין עדיין פעיל — מחיקה תעצור אותו לאלתר
               </p>
             )}
+            {deleteError && (
+              <p className="text-xs text-red-500 mb-3">{deleteError}</p>
+            )}
             <div className="flex justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setDeletingSeq(null)}
+                onClick={() => { setDeletingSeq(null); setDeleteError(null); }}
                 disabled={deleteLoading}
                 className="px-4 py-1.5 text-sm text-[#6b6866] border border-[#e5e3df] rounded-lg hover:bg-[#f3f2ef] transition-colors"
               >
