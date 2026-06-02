@@ -99,18 +99,39 @@ function StepTimeline({
   );
 }
 
+const WA_STATUS_CONFIG = {
+  CONNECTED:    { bg: "bg-[#e6faf0]", text: "text-[#059669]", dot: "bg-[#059669]", label: "WhatsApp מחובר" },
+  QR_PENDING:   { bg: "bg-[#fff7e6]", text: "text-[#b45309]", dot: "bg-[#b45309]", label: "WhatsApp ממתין" },
+  DISCONNECTED: { bg: "bg-[#fff3f3]", text: "text-[#dc2626]", dot: "bg-[#dc2626]", label: "WhatsApp לא מחובר" },
+} as const;
+
+function WhatsAppStatusBadge({ status }: { status: "CONNECTED" | "QR_PENDING" | "DISCONNECTED" }) {
+  const cfg = WA_STATUS_CONFIG[status];
+  const badge = (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.text}`}>
+      <span className={`size-1.5 rounded-full ${cfg.dot}`} />
+      {cfg.label}
+    </span>
+  );
+  return status !== "CONNECTED"
+    ? <Link href="/settings/whatsapp">{badge}</Link>
+    : badge;
+}
+
 export default function CampaignsClient({
   sequences,
   lists,
   templates,
   extensionLastSeen,
   extensionRevokedAt,
+  whatsappStatus,
 }: {
   sequences: Sequence[];
   lists: List[];
   templates: Template[];
   extensionLastSeen: string | null;
   extensionRevokedAt: string | null;
+  whatsappStatus: "CONNECTED" | "QR_PENDING" | "DISCONNECTED";
 }) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
@@ -132,13 +153,11 @@ export default function CampaignsClient({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs text-[#6b6866]">
-            <span>LinkedIn:</span>
-            <ExtensionStatusBadge
-              lastSeenAt={extensionLastSeen}
-              revokedAt={extensionRevokedAt}
-            />
-          </div>
+          <ExtensionStatusBadge
+            lastSeenAt={extensionLastSeen}
+            revokedAt={extensionRevokedAt}
+          />
+          <WhatsAppStatusBadge status={whatsappStatus} />
           <button
             type="button"
             onClick={() => setShowModal(true)}
@@ -148,14 +167,6 @@ export default function CampaignsClient({
             קמפיין חדש
           </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-[#1585ff] text-white text-sm font-medium px-3.5 py-2 rounded-lg hover:bg-[#0f6fd4] transition-colors"
-        >
-          <Plus className="size-4" />
-          קמפיין חדש
-        </button>
       </div>
 
       {sequences.length === 0 ? (

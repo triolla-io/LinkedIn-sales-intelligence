@@ -1,13 +1,14 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { waClient } from "@/lib/whatsapp/client";
 import CampaignsClient from "./campaigns-client";
 
 export default async function CampaignsPage() {
   const session = await auth();
   if (!session?.user) redirect("/sign-in");
 
-  const [sequences, lists, templates, extensionSession] = await Promise.all([
+  const [sequences, lists, templates, extensionSession, whatsappStatus] = await Promise.all([
     prisma.sequence.findMany({
       where: { ownerId: session.user.id },
       orderBy: { createdAt: "desc" },
@@ -40,6 +41,7 @@ export default async function CampaignsPage() {
       orderBy: { lastSeenAt: "desc" },
       select: { lastSeenAt: true, revokedAt: true },
     }),
+    waClient.status(session.user.id),
   ]);
 
   return (
@@ -49,6 +51,7 @@ export default async function CampaignsPage() {
       templates={templates}
       extensionLastSeen={extensionSession?.lastSeenAt?.toISOString() ?? null}
       extensionRevokedAt={extensionSession?.revokedAt?.toISOString() ?? null}
+      whatsappStatus={whatsappStatus.status}
     />
   );
 }

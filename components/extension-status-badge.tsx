@@ -10,7 +10,7 @@ export function ExtensionStatusBadge({ lastSeenAt, revokedAt }: Props) {
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#fff3f3] text-[#dc2626]">
         <span className="size-1.5 rounded-full bg-[#dc2626]" />
-        לא מחובר
+        LinkedIn לא מחובר
       </span>
     );
   }
@@ -21,7 +21,7 @@ export function ExtensionStatusBadge({ lastSeenAt, revokedAt }: Props) {
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${isOnline ? "bg-[#e6faf0] text-[#059669]" : "bg-[#fff7e6] text-[#b45309]"}`}>
       <span className={`size-1.5 rounded-full ${isOnline ? "bg-[#059669]" : "bg-[#b45309]"}`} />
-      {isOnline ? "מחובר" : `לא פעיל — ${label}`}
+      {isOnline ? "LinkedIn מחובר" : `LinkedIn לא פעיל — ${label}`}
     </span>
   );
 }
