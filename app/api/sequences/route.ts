@@ -19,22 +19,26 @@ export const GET = withTenant(async (_req: NextRequest, ctx) => {
 export const POST = withTenant(async (req: NextRequest, ctx) => {
   const body = await req.json();
   const { name, contactListId, steps: rawSteps } = body as {
-    name?: string;
-    contactListId?: string;
+    name?: unknown;
+    contactListId?: unknown;
     steps?: unknown;
   };
 
-  if (!name || typeof name !== "string" || !name.trim()) {
+  if (typeof name !== "string" || !name.trim()) {
     return NextResponse.json({ error: "name required" }, { status: 400 });
   }
-  if (!contactListId) {
-    return NextResponse.json({ error: "contactListId required" }, { status: 400 });
+
+  // contactListId is optional — validate only if provided
+  if (contactListId !== undefined && contactListId !== null && typeof contactListId !== "string") {
+    return NextResponse.json({ error: "invalid contactListId" }, { status: 400 });
   }
 
-  const list = await prisma.contactList.findFirst({
-    where: { id: contactListId, ownerId: ctx.effectiveUserId },
-  });
-  if (!list) return NextResponse.json({ error: "list not found" }, { status: 404 });
+  if (contactListId) {
+    const list = await prisma.contactList.findFirst({
+      where: { id: contactListId as string, ownerId: ctx.effectiveUserId },
+    });
+    if (!list) return NextResponse.json({ error: "list not found" }, { status: 404 });
+  }
 
   const steps = parseSteps(rawSteps);
   if (!steps) {
@@ -59,7 +63,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       ownerId: ctx.effectiveUserId,
       orgId: ctx.org.id,
       name: name.trim(),
-      contactListId,
+      contactListId: (contactListId as string | null | undefined) ?? null,
       status: "DRAFT",
       steps: {
         create: steps.map((s) => ({
@@ -70,6 +74,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
           subject: s.subject,
           sendHour: s.sendHour,
           sendMinute: s.sendMinute,
+          sendHourEnd: s.sendHourEnd ?? null,
         })),
       },
     },
