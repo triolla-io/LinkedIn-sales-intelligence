@@ -7,7 +7,7 @@ export type SseEvent = {
 
 const subscribers = new Map<string, Set<Subscriber>>();
 
-export function subscribe(userId: string, fn: Subscriber): () => void {
+function subscribe(userId: string, fn: Subscriber): () => void {
   if (!subscribers.has(userId)) subscribers.set(userId, new Set());
   subscribers.get(userId)!.add(fn);
   return () => {
@@ -21,7 +21,7 @@ export function publish(userId: string, event: SseEvent): void {
 }
 
 /** Builds a ReadableStream suitable for a Next.js SSE Response. */
-export function sseStream(userId: string): ReadableStream {
+function sseStream(userId: string): ReadableStream {
   let unsubscribe: (() => void) | null = null;
 
   return new ReadableStream({

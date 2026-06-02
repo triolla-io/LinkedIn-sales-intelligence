@@ -47,8 +47,8 @@ export default function DashboardClient({ user, contactCount, latestImport }: Pr
           {latestImport ? (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
-                  <FileText className="w-4 h-4 text-[#1585ff]" />
+                <div className="size-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                  <FileText className="size-4 text-[#1585ff]" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-[#111110]">{latestImport.fileName}</p>
@@ -79,9 +79,9 @@ export default function DashboardClient({ user, contactCount, latestImport }: Pr
                 href="/import"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#1585ff] hover:bg-[#0a70e0] text-white text-sm font-medium transition-colors"
               >
-                <Upload className="w-4 h-4" />
+                <Upload className="size-4" />
                 ייבוא נתונים
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="size-3.5" />
               </Link>
             </div>
           )}
@@ -102,9 +102,9 @@ export default function DashboardClient({ user, contactCount, latestImport }: Pr
             href="/contacts"
             className="mt-5 flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-md border border-[#e5e3df] hover:border-blue-200 hover:bg-[#eff5ff] text-sm text-[#6b6866] hover:text-[#1585ff] transition-all group"
           >
-            <Users className="w-4 h-4" />
+            <Users className="size-4" />
             צפה באנשי קשר
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
 
@@ -125,7 +125,7 @@ export default function DashboardClient({ user, contactCount, latestImport }: Pr
                 href={href}
                 className="flex items-center gap-2.5 px-4 py-3 rounded-lg border border-[#e5e3df] hover:border-blue-200 hover:bg-[#eff5ff] text-sm text-[#6b6866] hover:text-[#1585ff] transition-all group"
               >
-                <Icon className="w-4 h-4 shrink-0 text-[#9b9895] group-hover:text-[#1585ff] transition-colors" />
+                <Icon className="size-4 shrink-0 text-[#9b9895] group-hover:text-[#1585ff] transition-colors" />
                 <span>{label}</span>
               </Link>
             ))}

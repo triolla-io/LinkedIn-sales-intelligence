@@ -11,6 +11,6 @@ export function humanDelay(meanMs: number, jitter = 0.5): number {
   return Math.max(20, meanMs * (1 - jitter + u * 2 * jitter));
 }
 
-export async function humanPause(minMs: number, maxMs: number): Promise<void> {
+async function humanPause(minMs: number, maxMs: number): Promise<void> {
   await sleep(uniform(minMs, maxMs));
 }

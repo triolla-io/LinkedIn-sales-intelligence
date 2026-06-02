@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useReducer, useRef } from "react";
 import { Zap, RefreshCw, X, Download, Megaphone, Bookmark } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Contact } from "./contact-table";
@@ -13,24 +13,35 @@ interface BulkEnrichBarProps {
   onDone?: () => void;
 }
 
+type State = {
+  enriching: boolean;
+  error: string | null;
+  showConfirm: boolean;
+  campaignOpen: boolean;
+  showListPopover: boolean;
+};
+
 export default function BulkEnrichBar({
   selectedIds,
   selectedContacts,
   onDone,
 }: BulkEnrichBarProps) {
-  const [enriching, setEnriching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [campaignOpen, setCampaignOpen] = useState(false);
-  const [showListPopover, setShowListPopover] = useState(false);
+  const [state, dispatch] = useReducer(
+    (s: State, action: Partial<State>) => ({ ...s, ...action }),
+    {
+      enriching: false,
+      error: null,
+      showConfirm: false,
+      campaignOpen: false,
+      showListPopover: false,
+    }
+  );
   const listBtnRef = useRef<HTMLButtonElement>(null);
 
   const N = selectedIds.length;
 
   async function doEnrich() {
-    setShowConfirm(false);
-    setEnriching(true);
-    setError(null);
+    dispatch({ showConfirm: false, enriching: true, error: null });
     try {
       const res = await fetch("/api/contacts/bulk-enrich", {
         method: "POST",
@@ -38,19 +49,19 @@ export default function BulkEnrichBar({
         body: JSON.stringify({ contactIds: selectedIds }),
       });
       if (!res.ok) {
-        setError(res.status === 402 ? "Credit limit reached" : "Enrichment failed");
+        dispatch({ error: res.status === 402 ? "Credit limit reached" : "Enrichment failed" });
         return;
       }
       onDone?.();
     } catch {
-      setError("Network error");
+      dispatch({ error: "Network error" });
     } finally {
-      setEnriching(false);
+      dispatch({ enriching: false });
     }
   }
 
   function handleEnrich() {
-    if (N > 50) setShowConfirm(true);
+    if (N > 50) dispatch({ showConfirm: true });
     else doEnrich();
   }
 
@@ -86,7 +97,7 @@ export default function BulkEnrichBar({
   return (
     <>
       {/* Confirm dialog */}
-      {showConfirm && (
+      {state.showConfirm && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <div className="bg-white border border-[#e5e3df] rounded-xl shadow-2xl p-6 w-96 max-w-[90vw]">
             <h3 className="font-semibold text-[#111110] mb-2">העשר {N} אנשי קשר?</h3>
@@ -95,12 +106,14 @@ export default function BulkEnrichBar({
             </p>
             <div className="flex gap-3 justify-end">
               <button
-                onClick={() => setShowConfirm(false)}
+                type="button"
+                onClick={() => dispatch({ showConfirm: false })}
                 className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors"
               >
                 ביטול
               </button>
               <button
+                type="button"
                 onClick={doEnrich}
                 className="px-4 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md transition-colors"
               >
@@ -112,8 +125,8 @@ export default function BulkEnrichBar({
       )}
 
       <NewCampaignModal
-        open={campaignOpen}
-        onClose={() => setCampaignOpen(false)}
+        open={state.campaignOpen}
+        onClose={() => dispatch({ campaignOpen: false })}
         contactIds={selectedIds}
       />
 
@@ -133,12 +146,12 @@ export default function BulkEnrichBar({
                 <span className="text-[#1585ff] font-semibold">{N}</span>
                 {" "}נבחרו
               </span>
-              {error && (
-                <span className="text-xs text-red-500 font-mono">{error}</span>
+              {state.error && (
+                <span className="text-xs text-red-500 font-mono">{state.error}</span>
               )}
-              {enriching && (
+              {state.enriching && (
                 <span className="flex items-center gap-1.5 text-xs text-[#9b9895]">
-                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  <RefreshCw className="size-3 animate-spin" />
                   מעשר…
                 </span>
               )}
@@ -148,54 +161,59 @@ export default function BulkEnrichBar({
             <div className="flex items-center gap-2">
               <div className="relative">
                 <button
+                  type="button"
                   ref={listBtnRef}
-                  onClick={() => setShowListPopover((v) => !v)}
+                  onClick={() => dispatch({ showListPopover: !state.showListPopover })}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#6b6866] border border-[#e5e3df] hover:bg-[#f8f7f5] hover:border-[#9b9895] rounded-md transition-all"
                 >
-                  <Bookmark className="w-3.5 h-3.5" />
+                  <Bookmark className="size-3.5" />
                   שמור לרשימה
                 </button>
-                {showListPopover && (
+                {state.showListPopover && (
                   <ListPopover
                     contactIds={selectedIds}
-                    onClose={() => setShowListPopover(false)}
+                    onClose={() => dispatch({ showListPopover: false })}
                     anchorRef={listBtnRef as React.RefObject<HTMLElement>}
                   />
                 )}
               </div>
               <button
+                type="button"
                 onClick={handleEnrich}
-                disabled={enriching}
+                disabled={state.enriching}
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all",
-                  enriching
+                  state.enriching
                     ? "text-[#9b9895] border border-[#e5e3df] cursor-not-allowed"
                     : "text-amber-600 border border-amber-200 hover:bg-amber-50 hover:border-amber-300"
                 )}
               >
-                {enriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+                {state.enriching ? <RefreshCw className="size-3.5 animate-spin" /> : <Zap className="size-3.5" />}
                 העשר
               </button>
               <button
-                onClick={() => setCampaignOpen(true)}
+                type="button"
+                onClick={() => dispatch({ campaignOpen: true })}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 hover:bg-blue-50 hover:border-blue-300 rounded-md transition-all"
               >
-                <Megaphone className="w-3.5 h-3.5" />
+                <Megaphone className="size-3.5" />
                 שלח קמפיין
               </button>
               <button
+                type="button"
                 onClick={exportCsv}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-600 border border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 rounded-md transition-all"
               >
-                <Download className="w-3.5 h-3.5" />
+                <Download className="size-3.5" />
                 ייצוא CSV
               </button>
               <button
+                type="button"
                 onClick={onDone}
                 className="p-1.5 text-[#9b9895] hover:text-[#6b6866] transition-colors ml-1"
                 title="בטל את כל הבחירות"
               >
-                <X className="w-4 h-4" />
+                <X className="size-4" />
               </button>
             </div>
           </div>

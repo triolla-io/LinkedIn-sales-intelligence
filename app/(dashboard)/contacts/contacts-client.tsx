@@ -1,11 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useReducer, useRef, useState, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import StatsBar from "@/components/dashboard/stats-bar";
-import FilterSidebar, { type Filters, DEFAULT_FILTERS } from "@/components/dashboard/filter-sidebar";
-import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
+import FilterSidebar, {
+  type Filters,
+  DEFAULT_FILTERS,
+} from "@/components/dashboard/filter-sidebar";
+import ContactTable, {
+  type Contact,
+} from "@/components/dashboard/contact-table";
 import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
 import CreateContactModal from "@/components/dashboard/create-contact-modal";
@@ -25,16 +30,21 @@ const ROW_HEIGHT = 56;
 const TABLE_HEADER_H = 37;
 const TABLE_FOOTER_H = 41;
 const MIN_PAGE_SIZE = 5;
-export const DEFAULT_PAGE_SIZE = 15;
+const DEFAULT_PAGE_SIZE = 15;
 
 function buildContactsUrl(filters: Filters, page: number, pageSize: number) {
   const params = new URLSearchParams();
   if (filters.q) params.set("q", filters.q);
-  if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
-  if (filters.function.length) params.set("function", filters.function.join(","));
-  if (filters.titleSearch.length) params.set("titleSearch", filters.titleSearch.join(","));
-  if (filters.industry.length) params.set("industry", filters.industry.join(","));
-  if (filters.companySizeBuckets.length) params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
+  if (filters.seniority.length)
+    params.set("seniority", filters.seniority.join(","));
+  if (filters.function.length)
+    params.set("function", filters.function.join(","));
+  if (filters.titleSearch.length)
+    params.set("titleSearch", filters.titleSearch.join(","));
+  if (filters.industry.length)
+    params.set("industry", filters.industry.join(","));
+  if (filters.companySizeBuckets.length)
+    params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
   if (filters.hasEmail) params.set("hasEmail", "true");
   if (filters.hasPhone) params.set("hasPhone", "true");
   if (filters.listId) params.set("listId", filters.listId);
@@ -46,11 +56,12 @@ function buildContactsUrl(filters: Filters, page: number, pageSize: number) {
 function buildInsightsUrl(filters: Filters) {
   const params = new URLSearchParams();
   if (filters.q) params.set("q", filters.q);
-  if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
-  if (filters.function.length) params.set("function", filters.function.join(","));
+  if (filters.seniority.length)
+    params.set("seniority", filters.seniority.join(","));
+  if (filters.function.length)
+    params.set("function", filters.function.join(","));
   return `/api/insights?${params.toString()}`;
 }
-
 
 function sevenDaysAgo(): string {
   const d = new Date();
@@ -58,129 +69,183 @@ function sevenDaysAgo(): string {
   return d.toISOString().slice(0, 10);
 }
 
+type DataState = {
+  contacts: Contact[];
+  page: number;
+  total: number;
+  insights: InsightsData | null;
+  newThisWeek: number;
+};
+type DataAction =
+  | { type: "contactsFetched"; contacts: Contact[]; total: number }
+  | { type: "insightsFetched"; insights: InsightsData }
+  | { type: "weekDataSet"; newThisWeek: number }
+  | { type: "pageSet"; page: number }
+  | { type: "contactUpdated"; contact: Contact }
+  | { type: "contactAdded"; contact: Contact };
+function dataReducer(state: DataState, action: DataAction): DataState {
+  switch (action.type) {
+    case "contactsFetched":
+      return { ...state, contacts: action.contacts, total: action.total };
+    case "insightsFetched":
+      return { ...state, insights: action.insights };
+    case "weekDataSet":
+      return { ...state, newThisWeek: action.newThisWeek };
+    case "pageSet":
+      if (state.page === action.page) return state;
+      return { ...state, page: action.page };
+    case "contactUpdated":
+      return { ...state, contacts: state.contacts.map((c) => (c.id === action.contact.id ? action.contact : c)) };
+    case "contactAdded":
+      return { ...state, contacts: [action.contact, ...state.contacts], total: state.total + 1 };
+  }
+}
+
 interface ContactsClientProps {
   initialContacts: Contact[];
   initialTotal: number;
+  initialFilters: Partial<Filters>;
 }
 
-export default function ContactsClient({ initialContacts, initialTotal }: ContactsClientProps) {
+export default function ContactsClient({
+  initialContacts,
+  initialTotal,
+  initialFilters,
+}: ContactsClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [filters, setFilters] = useState<Filters>(() => ({
     ...DEFAULT_FILTERS,
-    q: searchParams.get("q") ?? "",
-    seniority: searchParams.get("seniority")?.split(",").filter(Boolean) ?? [],
-    function: searchParams.get("function")?.split(",").filter(Boolean) ?? [],
-    titleSearch: searchParams.get("titleSearch")?.split(",").filter(Boolean) ?? [],
-    industry: searchParams.get("industry")?.split(",").filter(Boolean) ?? [],
-    companySizeBuckets: searchParams.get("companySizeBuckets")?.split(",").filter(Boolean) ?? [],
-    hasEmail: searchParams.get("hasEmail") === "true" ? true : undefined,
-    hasPhone: searchParams.get("hasPhone") === "true" ? true : undefined,
-    listId: searchParams.get("listId") ?? undefined,
+    ...initialFilters,
   }));
 
-  const [contacts, setContacts] = useState<Contact[]>(initialContacts);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const [total, setTotal] = useState(initialTotal);
-  const [insights, setInsights] = useState<InsightsData | null>(null);
-  const [newThisWeek, setNewThisWeek] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [applyingCache, setApplyingCache] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [drawerContact, setDrawerContact] = useState<Contact | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [dataState, dispatchData] = useReducer(dataReducer, {
+    contacts: initialContacts,
+    page: 1,
+    total: initialTotal,
+    insights: null as InsightsData | null,
+    newThisWeek: 0,
+  });
+  const { contacts, page, total, insights, newThisWeek } = dataState;
+
+  const [fetchState, setFetchState] = useState({ loading: false, applyingCache: false });
+  const { loading, applyingCache } = fetchState;
+
+  const [uiState, setUiState] = useState<{
+    selectedIds: Set<string>;
+    drawerContact: Contact | null;
+    showCreateModal: boolean;
+  }>({ selectedIds: new Set(), drawerContact: null, showCreateModal: false });
+  const { selectedIds, drawerContact, showCreateModal } = uiState;
 
   const tableWrapperRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
+
+  const subscribeResize = useCallback((onStoreChange: () => void) => {
     const el = tableWrapperRef.current;
-    if (!el) return;
+    if (!el) return () => {};
     let timer: ReturnType<typeof setTimeout>;
-    const obs = new ResizeObserver(([entry]) => {
+    const obs = new ResizeObserver(() => {
       clearTimeout(timer);
-      timer = setTimeout(() => {
-        const h = entry.contentRect.height;
-        const rows = Math.max(MIN_PAGE_SIZE, Math.floor((h - TABLE_HEADER_H - TABLE_FOOTER_H) / ROW_HEIGHT));
-        setPageSize(rows);
-      }, 100);
+      timer = setTimeout(onStoreChange, 100);
     });
     obs.observe(el);
-    return () => { obs.disconnect(); clearTimeout(timer); };
+    return () => {
+      obs.disconnect();
+      clearTimeout(timer);
+    };
   }, []);
 
-  const prevFiltersRef = useRef(filters);
-  useEffect(() => {
-    if (prevFiltersRef.current !== filters) {
-      prevFiltersRef.current = filters;
-      setPage(1);
-    }
-  }, [filters]);
+  const getSnapshot = useCallback(() => {
+    const el = tableWrapperRef.current;
+    if (!el) return DEFAULT_PAGE_SIZE;
+    const h = el.getBoundingClientRect().height;
+    return Math.max(
+      MIN_PAGE_SIZE,
+      Math.floor((h - TABLE_HEADER_H - TABLE_FOOTER_H) / ROW_HEIGHT)
+    );
+  }, []);
 
-  useEffect(() => {
+  const pageSize = useSyncExternalStore(subscribeResize, getSnapshot, () => DEFAULT_PAGE_SIZE);
+
+  const handleFiltersChange = useCallback((newFilters: Filters) => {
+    setFilters(newFilters);
+    dispatchData({ type: "pageSet", page: 1 });
     const params = new URLSearchParams();
-    if (filters.q) params.set("q", filters.q);
-    if (filters.seniority.length) params.set("seniority", filters.seniority.join(","));
-    if (filters.function.length) params.set("function", filters.function.join(","));
-    if (filters.titleSearch.length) params.set("titleSearch", filters.titleSearch.join(","));
-    if (filters.industry.length) params.set("industry", filters.industry.join(","));
-    if (filters.companySizeBuckets.length) params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
-    if (filters.hasEmail) params.set("hasEmail", "true");
-    if (filters.hasPhone) params.set("hasPhone", "true");
-    if (filters.listId) params.set("listId", filters.listId);
+    if (newFilters.q) params.set("q", newFilters.q);
+    if (newFilters.seniority.length)
+      params.set("seniority", newFilters.seniority.join(","));
+    if (newFilters.function.length)
+      params.set("function", newFilters.function.join(","));
+    if (newFilters.titleSearch.length)
+      params.set("titleSearch", newFilters.titleSearch.join(","));
+    if (newFilters.industry.length)
+      params.set("industry", newFilters.industry.join(","));
+    if (newFilters.companySizeBuckets.length)
+      params.set("companySizeBuckets", newFilters.companySizeBuckets.join(","));
+    if (newFilters.hasEmail) params.set("hasEmail", "true");
+    if (newFilters.hasPhone) params.set("hasPhone", "true");
+    if (newFilters.listId) params.set("listId", newFilters.listId);
     router.replace(`/contacts?${params.toString()}`, { scroll: false });
-  }, [filters, router]);
+  }, [router]);
 
   const abortRef = useRef<AbortController | null>(null);
-  const fetchData = useCallback(async () => {
+  const fetchDataRef = useRef<() => Promise<void>>(async () => {});
+
+  async function fetchData() {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
     const { signal } = controller;
 
-    setSelectedIds(new Set());
+    setUiState((prev) => ({ ...prev, selectedIds: new Set() }));
     try {
       const [contactsRes, insightsRes, weekRes] = await Promise.all([
         fetch(buildContactsUrl(filters, page, pageSize), { signal }),
         fetch(buildInsightsUrl(filters), { signal }),
-        fetch(`/api/contacts?connectedFrom=${sevenDaysAgo()}&limit=1`, { signal }),
+        fetch(`/api/contacts?connectedFrom=${sevenDaysAgo()}&limit=1`, {
+          signal,
+        }),
       ]);
       if (contactsRes.ok) {
         const data = await contactsRes.json();
-        setContacts(data.items ?? []);
-        setTotal(data.totalApprox ?? 0);
+        dispatchData({ type: "contactsFetched", contacts: data.items ?? [], total: data.totalApprox ?? 0 });
       }
-      if (insightsRes.ok) setInsights(await insightsRes.json());
+      if (insightsRes.ok) dispatchData({ type: "insightsFetched", insights: await insightsRes.json() });
       if (weekRes.ok) {
         const weekData = await weekRes.json();
-        setNewThisWeek(weekData.totalApprox ?? 0);
+        dispatchData({ type: "weekDataSet", newThisWeek: weekData.totalApprox ?? 0 });
       }
     } catch (e) {
       if ((e as Error)?.name === "AbortError") return;
       console.error("Failed to fetch data:", e);
     }
-  }, [filters, page, pageSize]);
+  }
 
-  useAutoRefresh(fetchData, 30_000);
+  fetchDataRef.current = fetchData;
 
-  // Re-fetch when filters, page, or pageSize change
+  const stableRefresh = useCallback(() => { fetchDataRef.current(); }, []);
+  useAutoRefresh(stableRefresh, 30_000);
+
   const isMounted = useRef(false);
   useEffect(() => {
-    if (!isMounted.current) { isMounted.current = true; return; }
-    fetchData();
-  }, [fetchData]);
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+    fetchDataRef.current();
+  }, [filters, page, pageSize]);
 
   function handleEnrich(_id: string) {
     fetchData();
   }
 
-async function handleApplyCache() {
-    setApplyingCache(true);
+  async function handleApplyCache() {
+    setFetchState((prev) => ({ ...prev, applyingCache: true }));
     try {
       await fetch("/api/contacts/apply-cache", { method: "POST" });
       await fetchData();
     } finally {
-      setApplyingCache(false);
+      setFetchState((prev) => ({ ...prev, applyingCache: false }));
     }
   }
 
@@ -190,40 +255,49 @@ async function handleApplyCache() {
   return (
     <div className="flex h-full min-h-screen bg-[#f6f5f3]">
       <aside className="shrink-0 sticky top-0 h-screen">
-        <FilterSidebar filters={filters} onChange={setFilters} />
+        <FilterSidebar filters={filters} onChange={handleFiltersChange} />
       </aside>
 
       <div className="flex-1 min-w-0 flex flex-col">
         <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <h1 className="text-sm font-semibold text-[#111110] tracking-tight">אנשי קשר</h1>
+            <h1 className="text-sm font-semibold text-[#111110] tracking-tight">
+              אנשי קשר
+            </h1>
             <span className="text-xs font-mono text-[#9b9895]">
               {total.toLocaleString()} סה"כ
             </span>
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowCreateModal(true)}
+              type="button"
+              onClick={() => setUiState((prev) => ({ ...prev, showCreateModal: true }))}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors"
             >
-              <UserPlus className="w-3.5 h-3.5" />
+              <UserPlus className="size-3.5" />
               הוסף איש קשר
             </button>
             <button
+              type="button"
               onClick={handleApplyCache}
               disabled={applyingCache}
               title="מלא אימייל וטלפון מהמטמון לכל אנשי הקשר"
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-purple-600 border border-purple-200 hover:bg-purple-50 hover:border-purple-300 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <DatabaseZap className={cn("w-3.5 h-3.5", applyingCache && "animate-pulse")} />
+              <DatabaseZap
+                className={cn("size-3.5", applyingCache && "animate-pulse")}
+              />
               {applyingCache ? "טוען…" : "רענן מטמון"}
             </button>
             <button
+              type="button"
               onClick={fetchData}
               disabled={loading}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors"
             >
-              <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
+              <RefreshCw
+                className={cn("size-3.5", loading && "animate-spin")}
+              />
               רענן
             </button>
           </div>
@@ -235,37 +309,40 @@ async function handleApplyCache() {
               insights={insights}
               newThisWeek={newThisWeek}
               onFilterCLevel={() =>
-                setFilters((prev) => ({ ...prev, seniority: ["C_LEVEL"] }))
+                handleFiltersChange({ ...filters, seniority: ["C_LEVEL"] })
               }
             />
           )}
 
-          <div ref={tableWrapperRef} className="flex-1 min-h-0 flex flex-col pb-4">
+          <div
+            ref={tableWrapperRef}
+            className="flex-1 min-h-0 flex flex-col pb-4"
+          >
             <ContactTable
               contacts={contacts}
               selectedIds={selectedIds}
               onToggle={(id) =>
-                setSelectedIds((prev) => {
-                  const next = new Set(prev);
+                setUiState((prev) => {
+                  const next = new Set(prev.selectedIds);
                   next.has(id) ? next.delete(id) : next.add(id);
-                  return next;
+                  return { ...prev, selectedIds: next };
                 })
               }
               onSelectAll={() =>
-                setSelectedIds(
-                  contacts.every((c) => selectedIds.has(c.id))
-                    ? new Set()
-                    : new Set(contacts.map((c) => c.id))
+                setUiState((prev) =>
+                  contacts.every((c) => prev.selectedIds.has(c.id))
+                    ? { ...prev, selectedIds: new Set() }
+                    : { ...prev, selectedIds: new Set(contacts.map((c) => c.id)) },
                 )
               }
               onEnrich={handleEnrich}
-              onOpenDrawer={setDrawerContact}
+              onOpenDrawer={(c) => setUiState((prev) => ({ ...prev, drawerContact: c }))}
               loading={loading}
               page={page}
               totalPages={totalPages}
               total={total}
               pageSize={pageSize}
-              onPageChange={setPage}
+              onPageChange={(p) => dispatchData({ type: "pageSet", page: p })}
             />
           </div>
         </div>
@@ -273,11 +350,11 @@ async function handleApplyCache() {
 
       <ContactDrawer
         contact={drawerContact}
-        onClose={() => setDrawerContact(null)}
+        onClose={() => setUiState((prev) => ({ ...prev, drawerContact: null }))}
         onEnrich={handleEnrich}
         onSaved={(updated) => {
-          setDrawerContact(updated);
-          setContacts((prev) => prev.map((c) => c.id === updated.id ? updated : c));
+          setUiState((prev) => ({ ...prev, drawerContact: updated }));
+          dispatchData({ type: "contactUpdated", contact: updated });
         }}
       />
 
@@ -285,17 +362,19 @@ async function handleApplyCache() {
         <BulkEnrichBar
           selectedIds={Array.from(selectedIds)}
           selectedContacts={selectedContacts}
-          onDone={() => { setSelectedIds(new Set()); fetchData(); }}
+          onDone={() => {
+            setUiState((prev) => ({ ...prev, selectedIds: new Set() }));
+            fetchData();
+          }}
         />
       )}
 
       {showCreateModal && (
         <CreateContactModal
-          onClose={() => setShowCreateModal(false)}
+          onClose={() => setUiState((prev) => ({ ...prev, showCreateModal: false }))}
           onCreated={(contact) => {
-            setContacts((prev) => [contact, ...prev]);
-            setTotal((prev) => prev + 1);
-            setShowCreateModal(false);
+            dispatchData({ type: "contactAdded", contact });
+            setUiState((prev) => ({ ...prev, showCreateModal: false }));
           }}
         />
       )}

@@ -34,7 +34,7 @@ export function displayCompanySize(c: ContactForDisplay): {
  * Newest-wins for industry: prefer Apollo's value when enrichedAt is newer,
  * else LinkedIn's company.industry.
  */
-export function displayIndustry(c: ContactForDisplay): {
+function displayIndustry(c: ContactForDisplay): {
   value: string | null;
   source: "apollo" | "linkedin";
 } {

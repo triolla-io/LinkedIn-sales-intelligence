@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Play, Pause, RotateCcw, XCircle, Mail, MessageSquare, Link2, X, RefreshCw } from "lucide-react";
+import {
+  ArrowLeft,
+  Play,
+  Pause,
+  RotateCcw,
+  XCircle,
+  Mail,
+  MessageSquare,
+  X,
+  RefreshCw,
+} from "lucide-react";
 import AutoRefresher from "@/components/auto-refresher";
 
 type StepExecution = {
@@ -15,7 +25,11 @@ type Enrollment = {
   id: string;
   status: string;
   enrolledAt: Date | string;
-  contact: { fullName: string; currentTitle: string | null; currentCompany: string | null };
+  contact: {
+    fullName: string;
+    currentTitle: string | null;
+    currentCompany: string | null;
+  };
   executions: StepExecution[];
 };
 type SequenceStep = {
@@ -65,14 +79,152 @@ const EXEC_COLORS: Record<string, string> = {
   SKIPPED: "bg-[#f3f2ef] text-[#9b9895]",
 };
 
-const EXEC_LABELS: Record<string, string> = {
-  PENDING: "ממתין",
-  QUEUED: "בתור",
-  SENDING: "שולח",
-  SENT: "נשלח",
-  FAILED: "נכשל",
-  SKIPPED: "דולג",
-};
+function RecipientsTable({
+  sequence,
+  selectedIds,
+  removing,
+  activeStep,
+  onToggleSelect,
+  onToggleAll,
+  onRemoveSingle,
+  onRestoreSingle,
+  onRemoveBulk,
+}: {
+  sequence: Sequence;
+  selectedIds: Set<string>;
+  removing: boolean;
+  activeStep: number | null;
+  onToggleSelect: (id: string) => void;
+  onToggleAll: () => void;
+  onRemoveSingle: (id: string) => void;
+  onRestoreSingle: (id: string) => void;
+  onRemoveBulk: () => void;
+}) {
+  if (sequence.enrollments.length === 0) return null;
+  return (
+    <div className="border border-[#e5e3df] rounded-xl overflow-hidden bg-white">
+      <div className="px-5 py-3 border-b border-[#e5e3df] bg-[#fafaf9] flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-[#111110]">
+          אנשי קשר ({sequence.enrollments.length})
+        </h2>
+        {selectedIds.size > 0 && (
+          <button
+            type="button"
+            onClick={onRemoveBulk}
+            disabled={removing}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#fff3f3] text-[#dc2626] text-xs font-medium rounded-lg hover:bg-[#fee2e2] transition-colors disabled:opacity-50"
+          >
+            <X className="size-3" />
+            הסר משלבים עתידיים ({selectedIds.size})
+          </button>
+        )}
+      </div>
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-[#f3f2ef]">
+            <th className="px-4 py-2.5 w-10">
+              <input
+                type="checkbox"
+                checked={
+                  selectedIds.size === sequence.enrollments.length &&
+                  sequence.enrollments.length > 0
+                }
+                onChange={onToggleAll}
+                aria-label="בחר את כל אנשי הקשר"
+                className="rounded border-[#e5e3df]"
+              />
+            </th>
+            <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b6866] uppercase tracking-wider">
+              איש קשר
+            </th>
+            {sequence.steps.map((step) => (
+              <th
+                key={step.id}
+                className={`text-center px-3 py-2.5 text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
+                  step.stepNumber === activeStep
+                    ? "text-[#1585ff]"
+                    : "text-[#6b6866]"
+                }`}
+              >
+                שלב {step.stepNumber}
+              </th>
+            ))}
+            <th className="w-10" aria-label="פעולות" />
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[#f3f2ef]">
+          {sequence.enrollments.map((enr) => (
+            <tr key={enr.id} className="hover:bg-[#fafaf9]">
+              <td className="px-4 py-3">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(enr.id)}
+                  onChange={() => onToggleSelect(enr.id)}
+                  aria-label={`בחר ${enr.contact.fullName}`}
+                  className="rounded border-[#e5e3df]"
+                />
+              </td>
+              <td className="px-4 py-3">
+                <p className="font-medium text-[#111110]">
+                  {enr.contact.fullName}
+                </p>
+                <p className="text-xs text-[#9b9895]">
+                  {enr.contact.currentTitle}
+                  {enr.contact.currentCompany
+                    ? ` · ${enr.contact.currentCompany}`
+                    : ""}
+                </p>
+              </td>
+              {sequence.steps.map((step) => {
+                const exec = enr.executions.find(
+                  (x) => x.step.stepNumber === step.stepNumber,
+                );
+                return (
+                  <td key={step.id} className="p-3 text-center">
+                    {exec ? (
+                      <span
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${EXEC_COLORS[exec.status] ?? ""}`}
+                      >
+                        {exec.status}
+                      </span>
+                    ) : (
+                      <span className="text-[#c8c5c2] text-xs">-</span>
+                    )}
+                  </td>
+                );
+              })}
+              <td className="p-3">
+                <div className="flex items-center gap-1">
+                  {enr.executions.length > 0 &&
+                    enr.executions.every((ex) => ex.status === "SKIPPED") && (
+                      <button
+                        type="button"
+                        onClick={() => onRestoreSingle(enr.id)}
+                        disabled={removing}
+                        className="p-1 text-[#c8c5c2] hover:text-[#1585ff] hover:bg-[#eff5ff] rounded transition-colors disabled:opacity-50"
+                        title="שחזר שלבים"
+                      >
+                        <RefreshCw className="size-3.5" />
+                      </button>
+                    )}
+                  <button
+                    type="button"
+                    onClick={() => onRemoveSingle(enr.id)}
+                    disabled={removing}
+                    className="p-1 text-[#c8c5c2] hover:text-[#dc2626] hover:bg-[#fff3f3] rounded transition-colors disabled:opacity-50"
+                    title="הסר משלבים עתידיים"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 function currentStepNumber(enrollments: Enrollment[]): number | null {
   const counts: Record<number, number> = {};
@@ -88,32 +240,172 @@ function currentStepNumber(enrollments: Enrollment[]): number | null {
   return Number(entries.reduce((a, b) => (b[1] > a[1] ? b : a))[0]);
 }
 
-export default function CampaignDetailClient({
-  sequence: initial,
-  extensionLastSeen,
+function SequenceHeader({
+  sequence,
+  acting,
+  onAction,
 }: {
   sequence: Sequence;
-  extensionLastSeen: string | null;
+  acting: boolean;
+  onAction: (action: "start" | "pause" | "resume" | "cancel") => void;
 }) {
-  const [sequence, setSequence] = useState<Sequence>(initial);
+  const { status } = sequence;
+  return (
+    <div className="flex items-start justify-between">
+      <div className="flex items-start gap-3">
+        <Link
+          href="/campaigns"
+          className="text-[#9b9895] hover:text-[#111110] mt-0.5 transition-colors"
+        >
+          <ArrowLeft className="size-4" />
+        </Link>
+        <div>
+          <h1 className="text-xl font-semibold text-[#111110]">
+            {sequence.name}
+          </h1>
+          <p className="text-sm text-[#6b6866] mt-0.5">
+            רשימה: {sequence.contactList.name}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <span
+          className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[status] ?? ""}`}
+        >
+          {STATUS_LABELS[status] ?? status}
+        </span>
+        {status === "DRAFT" && (
+          <button
+            type="button"
+            onClick={() => onAction("start")}
+            disabled={acting}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50"
+          >
+            <Play className="size-3.5" />
+            התחל
+          </button>
+        )}
+        {status === "ACTIVE" && (
+          <button
+            type="button"
+            onClick={() => onAction("pause")}
+            disabled={acting}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#f3f2ef] text-[#6b6866] text-sm font-medium rounded-lg hover:bg-[#e5e3df] transition-colors disabled:opacity-50"
+          >
+            <Pause className="size-3.5" />
+            השהה
+          </button>
+        )}
+        {status === "PAUSED" && (
+          <button
+            type="button"
+            onClick={() => onAction("resume")}
+            disabled={acting}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50"
+          >
+            <RotateCcw className="size-3.5" />
+            המשך
+          </button>
+        )}
+        {["ACTIVE", "PAUSED", "QUEUED"].includes(status) && (
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm("בטל את קמפיין זה?")) onAction("cancel");
+            }}
+            disabled={acting}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#fff3f3] text-[#dc2626] text-sm font-medium rounded-lg hover:bg-[#fee2e2] transition-colors disabled:opacity-50"
+          >
+            <XCircle className="size-3.5" />
+            בטל
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SequenceTimeline({
+  steps,
+  activeStep,
+}: {
+  steps: SequenceStep[];
+  activeStep: number | null;
+}) {
+  return (
+    <div className="border border-[#e5e3df] rounded-xl bg-white p-5">
+      <h2 className="text-sm font-semibold text-[#111110] mb-4">שלבים</h2>
+      <div className="flex overflow-x-auto pb-2">
+        {steps.map((step, i) => {
+          const isActive = step.stepNumber === activeStep;
+          const timeStr = `${String(step.sendHour).padStart(2, "0")}:${String(step.sendMinute).padStart(2, "0")}`;
+          return (
+            <div
+              key={step.id}
+              className="flex flex-col items-center shrink-0 min-w-[160px]"
+            >
+              <div className="flex items-center w-full">
+                <div
+                  className={`flex-1 h-0.5 ${i > 0 ? "bg-[#e5e3df]" : "bg-transparent"}`}
+                />
+                <div
+                  className={`size-8 rounded-full border-2 flex items-center justify-center shrink-0 ${isActive ? "border-[#1585ff] bg-[#1585ff]" : "border-[#1585ff] bg-[#eff5ff]"}`}
+                >
+                  {step.channel === "EMAIL" ? (
+                    <Mail
+                      className={`size-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`}
+                    />
+                  ) : (
+                    <MessageSquare
+                      className={`size-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`}
+                    />
+                  )}
+                </div>
+                <div
+                  className={`flex-1 h-0.5 ${i < steps.length - 1 ? "bg-[#e5e3df]" : "bg-transparent"}`}
+                />
+              </div>
+              <div className="mt-2 text-center px-2 w-full">
+                <p className="text-xs font-semibold text-[#111110]">
+                  יום {step.dayOffset + 1}:{" "}
+                  {step.channel === "EMAIL" ? "דוא״ל" : "WhatsApp"}
+                </p>
+                <p className="text-[10px] text-[#9b9895] mt-0.5">{timeStr}</p>
+                {isActive && (
+                  <p className="text-[10px] text-[#1585ff] font-medium mt-0.5">
+                    ← עכשיו
+                  </p>
+                )}
+                <p className="text-xs text-[#6b6866] mt-0.5 truncate">
+                  {step.template.name}
+                </p>
+                {step.subject && (
+                  <p className="text-xs text-[#9b9895] mt-0.5 italic truncate">
+                    &ldquo;{step.subject}&rdquo;
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default function CampaignDetailClient({
+  sequence: initial,
+}: {
+  sequence: Sequence;
+}) {
+  const [sequence, setSequence] = useState<Sequence>(() => initial);
   const [acting, setActing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [removing, setRemoving] = useState(false);
-  const [sendingNow, setSendingNow] = useState(false);
-
-  async function sendNow() {
-    if (!confirm("לשלוח את כל ההודעות הממתינות עכשיו?")) return;
-    setSendingNow(true);
-    const res = await fetch(`/api/sequences/${sequence.id}/send-now`, { method: "POST" });
-    const data = await res.json() as { ok: boolean; created?: number };
-    setSendingNow(false);
-    if (data.ok) alert(`נוצרו ${data.created} משימות שליחה — ה-extension ישלח תוך 30 שניות`);
-    else alert("שגיאה");
-  }
 
   const sentCount = sequence.enrollments.reduce(
     (acc, e) => acc + e.executions.filter((x) => x.status === "SENT").length,
-    0
+    0,
   );
 
   const activeStep = currentStepNumber(sequence.enrollments);
@@ -121,7 +413,9 @@ export default function CampaignDetailClient({
   async function doAction(action: "start" | "pause" | "resume" | "cancel") {
     setActing(true);
     try {
-      const res = await fetch(`/api/sequences/${sequence.id}/${action}`, { method: "POST" });
+      const res = await fetch(`/api/sequences/${sequence.id}/${action}`, {
+        method: "POST",
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         alert((data as { error?: string }).error ?? "Action failed");
@@ -143,9 +437,12 @@ export default function CampaignDetailClient({
     if (!confirm("האם להסיר איש קשר זה מהשלבים הבאים?")) return;
     setRemoving(true);
     try {
-      await fetch(`/api/sequences/${sequence.id}/enrollments/${enrollmentId}/remove`, {
-        method: "POST",
-      });
+      await fetch(
+        `/api/sequences/${sequence.id}/enrollments/${enrollmentId}/remove`,
+        {
+          method: "POST",
+        },
+      );
       setSequence((prev) => ({
         ...prev,
         enrollments: prev.enrollments.map((enr) =>
@@ -153,10 +450,10 @@ export default function CampaignDetailClient({
             ? {
                 ...enr,
                 executions: enr.executions.map((ex) =>
-                  ex.status === "PENDING" ? { ...ex, status: "SKIPPED" } : ex
+                  ex.status === "PENDING" ? { ...ex, status: "SKIPPED" } : ex,
                 ),
               }
-            : enr
+            : enr,
         ),
       }));
     } finally {
@@ -167,9 +464,12 @@ export default function CampaignDetailClient({
   async function restoreSingle(enrollmentId: string) {
     setRemoving(true);
     try {
-      await fetch(`/api/sequences/${sequence.id}/enrollments/${enrollmentId}/restore`, {
-        method: "POST",
-      });
+      await fetch(
+        `/api/sequences/${sequence.id}/enrollments/${enrollmentId}/restore`,
+        {
+          method: "POST",
+        },
+      );
       setSequence((prev) => ({
         ...prev,
         enrollments: prev.enrollments.map((enr) =>
@@ -177,10 +477,10 @@ export default function CampaignDetailClient({
             ? {
                 ...enr,
                 executions: enr.executions.map((ex) =>
-                  ex.status === "SKIPPED" ? { ...ex, status: "PENDING" } : ex
+                  ex.status === "SKIPPED" ? { ...ex, status: "PENDING" } : ex,
                 ),
               }
-            : enr
+            : enr,
         ),
       }));
     } finally {
@@ -205,10 +505,10 @@ export default function CampaignDetailClient({
             ? {
                 ...enr,
                 executions: enr.executions.map((ex) =>
-                  ex.status === "PENDING" ? { ...ex, status: "SKIPPED" } : ex
+                  ex.status === "PENDING" ? { ...ex, status: "SKIPPED" } : ex,
                 ),
               }
-            : enr
+            : enr,
         ),
       }));
       setSelectedIds(new Set());
@@ -239,87 +539,7 @@ export default function CampaignDetailClient({
     <div className="p-8 space-y-6">
       <AutoRefresher />
 
-      {/* Extension warning banner */}
-      {sequence.steps.some((s) => s.channel === "LINKEDIN") &&
-        extensionLastSeen !== undefined &&
-        (!extensionLastSeen || Date.now() - new Date(extensionLastSeen).getTime() > 2 * 60 * 60 * 1000) && (
-          <div className="mb-4 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
-            <span>⚠️</span>
-            <span>
-              כלי LinkedIn לא פעיל{extensionLastSeen ? ` מאז ${new Date(extensionLastSeen).toLocaleString("he-IL")}` : ""}.
-              הודעות לא יישלחו עד שתפתחי Chrome עם ה-extension.{" "}
-              <a href="/settings/extension" className="underline font-medium">הגדרות</a>
-            </span>
-          </div>
-        )}
-
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-3">
-          <Link href="/campaigns" className="text-[#9b9895] hover:text-[#111110] mt-0.5 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-semibold text-[#111110]">{sequence.name}</h1>
-            <p className="text-sm text-[#6b6866] mt-0.5">רשימה: {sequence.contactList.name}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[status] ?? ""}`}>
-            {STATUS_LABELS[status] ?? status}
-          </span>
-          {status === "DRAFT" && (
-            <button
-              onClick={() => doAction("start")}
-              disabled={acting}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50"
-            >
-              <Play className="w-3.5 h-3.5" />
-              התחל
-            </button>
-          )}
-          {status === "ACTIVE" && sequence.steps.some(s => s.channel === "LINKEDIN") && (
-            <button
-              onClick={sendNow}
-              disabled={sendingNow}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-[#059669] text-white text-sm font-medium rounded-lg hover:bg-[#047857] transition-colors disabled:opacity-50"
-            >
-              <Play className="w-3.5 h-3.5" />
-              {sendingNow ? "שולח…" : "שלח עכשיו"}
-            </button>
-          )}
-          {status === "ACTIVE" && (
-            <button
-              onClick={() => doAction("pause")}
-              disabled={acting}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-[#f3f2ef] text-[#6b6866] text-sm font-medium rounded-lg hover:bg-[#e5e3df] transition-colors disabled:opacity-50"
-            >
-              <Pause className="w-3.5 h-3.5" />
-              השהה
-            </button>
-          )}
-          {status === "PAUSED" && (
-            <button
-              onClick={() => doAction("resume")}
-              disabled={acting}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              המשך
-            </button>
-          )}
-          {["ACTIVE", "PAUSED", "QUEUED"].includes(status) && (
-            <button
-              onClick={() => { if (confirm("בטל את קמפיין זה?")) doAction("cancel"); }}
-              disabled={acting}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-[#fff3f3] text-[#dc2626] text-sm font-medium rounded-lg hover:bg-[#fee2e2] transition-colors disabled:opacity-50"
-            >
-              <XCircle className="w-3.5 h-3.5" />
-              בטל
-            </button>
-          )}
-        </div>
-      </div>
+      <SequenceHeader sequence={sequence} acting={acting} onAction={doAction} />
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
@@ -328,165 +548,33 @@ export default function CampaignDetailClient({
           { label: "הודעות שנשלחו", value: sentCount },
           { label: "שלבים", value: sequence.steps.length },
         ].map(({ label, value }) => (
-          <div key={label} className="border border-[#e5e3df] rounded-xl p-4 bg-white">
-            <p className="text-xs text-[#9b9895] uppercase tracking-wider font-semibold">{label}</p>
-            <p className="text-2xl font-semibold text-[#111110] mt-1">{value}</p>
+          <div
+            key={label}
+            className="border border-[#e5e3df] rounded-xl p-4 bg-white"
+          >
+            <p className="text-xs text-[#9b9895] uppercase tracking-wider font-semibold">
+              {label}
+            </p>
+            <p className="text-2xl font-semibold text-[#111110] mt-1">
+              {value}
+            </p>
           </div>
         ))}
       </div>
 
-      {/* Step timeline */}
-      <div className="border border-[#e5e3df] rounded-xl bg-white p-5">
-        <h2 className="text-sm font-semibold text-[#111110] mb-4">שלבים</h2>
-        <div className="flex overflow-x-auto pb-2">
-          {sequence.steps.map((step, i) => {
-            const isActive = step.stepNumber === activeStep;
-            const timeStr = `${String(step.sendHour).padStart(2, "0")}:${String(step.sendMinute).padStart(2, "0")}`;
-            return (
-              <div key={step.id} className="flex flex-col items-center shrink-0 min-w-[160px]">
-                {/* Circle with symmetric connector lines */}
-                <div className="flex items-center w-full">
-                  <div className={`flex-1 h-0.5 ${i > 0 ? "bg-[#e5e3df]" : "bg-transparent"}`} />
-                  <div
-                    className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                      isActive
-                        ? "border-[#1585ff] bg-[#1585ff]"
-                        : "border-[#1585ff] bg-[#eff5ff]"
-                    }`}
-                  >
-                    {step.channel === "EMAIL" ? (
-                      <Mail className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`} />
-                    ) : step.channel === "LINKEDIN" ? (
-                      <Link2 className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`} />
-                    ) : (
-                      <MessageSquare className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`} />
-                    )}
-                  </div>
-                  <div className={`flex-1 h-0.5 ${i < sequence.steps.length - 1 ? "bg-[#e5e3df]" : "bg-transparent"}`} />
-                </div>
-                {/* Text centered below circle */}
-                <div className="mt-2 text-center px-2 w-full">
-                  <p className="text-xs font-semibold text-[#111110]">
-                    יום {step.dayOffset + 1} — {step.channel === "EMAIL" ? "דוא״ל" : step.channel === "LINKEDIN" ? "LinkedIn" : "WhatsApp"}
-                  </p>
-                  <p className="text-[10px] text-[#9b9895] mt-0.5">{timeStr}</p>
-                  {isActive && (
-                    <p className="text-[10px] text-[#1585ff] font-medium mt-0.5">← עכשיו</p>
-                  )}
-                  <p className="text-xs text-[#6b6866] mt-0.5 truncate">{step.template.name}</p>
-                  {step.subject && (
-                    <p className="text-xs text-[#9b9895] mt-0.5 italic truncate">&ldquo;{step.subject}&rdquo;</p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <SequenceTimeline steps={sequence.steps} activeStep={activeStep} />
 
-      {/* Enrollment table */}
-      {sequence.enrollments.length > 0 && (
-        <div className="border border-[#e5e3df] rounded-xl overflow-hidden bg-white">
-          <div className="px-5 py-3 border-b border-[#e5e3df] bg-[#fafaf9] flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-[#111110]">
-              אנשי קשר ({sequence.enrollments.length})
-            </h2>
-            {selectedIds.size > 0 && (
-              <button
-                onClick={removeBulk}
-                disabled={removing}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#fff3f3] text-[#dc2626] text-xs font-medium rounded-lg hover:bg-[#fee2e2] transition-colors disabled:opacity-50"
-              >
-                <X className="w-3 h-3" />
-                הסר משלבים עתידיים ({selectedIds.size})
-              </button>
-            )}
-          </div>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[#f3f2ef]">
-                <th className="px-4 py-2.5 w-10">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.size === sequence.enrollments.length && sequence.enrollments.length > 0}
-                    onChange={toggleAll}
-                    className="rounded border-[#e5e3df]"
-                  />
-                </th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b6866] uppercase tracking-wider">איש קשר</th>
-                {sequence.steps.map((step) => (
-                  <th
-                    key={step.id}
-                    className={`text-center px-3 py-2.5 text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
-                      step.stepNumber === activeStep ? "text-[#1585ff]" : "text-[#6b6866]"
-                    }`}
-                  >
-                    שלב {step.stepNumber}
-                  </th>
-                ))}
-                <th className="w-10" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#f3f2ef]">
-              {sequence.enrollments.map((enr) => (
-                <tr key={enr.id} className="hover:bg-[#fafaf9]">
-                  <td className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(enr.id)}
-                      onChange={() => toggleSelect(enr.id)}
-                      className="rounded border-[#e5e3df]"
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-[#111110]">{enr.contact.fullName}</p>
-                    <p className="text-xs text-[#9b9895]">
-                      {enr.contact.currentTitle}
-                      {enr.contact.currentCompany ? ` · ${enr.contact.currentCompany}` : ""}
-                    </p>
-                  </td>
-                  {sequence.steps.map((step) => {
-                    const exec = enr.executions.find((x) => x.step.stepNumber === step.stepNumber);
-                    return (
-                      <td key={step.id} className="px-3 py-3 text-center">
-                        {exec ? (
-                          <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${EXEC_COLORS[exec.status] ?? ""}`}>
-                            {exec.status}
-                          </span>
-                        ) : (
-                          <span className="text-[#c8c5c2] text-xs">—</span>
-                        )}
-                      </td>
-                    );
-                  })}
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-1">
-                      {enr.executions.length > 0 && enr.executions.every((ex) => ex.status === "SKIPPED") && (
-                        <button
-                          onClick={() => restoreSingle(enr.id)}
-                          disabled={removing}
-                          className="p-1 text-[#c8c5c2] hover:text-[#1585ff] hover:bg-[#eff5ff] rounded transition-colors disabled:opacity-50"
-                          title="שחזר שלבים"
-                        >
-                          <RefreshCw className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => removeSingle(enr.id)}
-                        disabled={removing}
-                        className="p-1 text-[#c8c5c2] hover:text-[#dc2626] hover:bg-[#fff3f3] rounded transition-colors disabled:opacity-50"
-                        title="הסר משלבים עתידיים"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <RecipientsTable
+        sequence={sequence}
+        selectedIds={selectedIds}
+        removing={removing}
+        activeStep={activeStep}
+        onToggleSelect={toggleSelect}
+        onToggleAll={toggleAll}
+        onRemoveSingle={removeSingle}
+        onRestoreSingle={restoreSingle}
+        onRemoveBulk={removeBulk}
+      />
     </div>
   );
 }

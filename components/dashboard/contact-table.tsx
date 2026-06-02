@@ -141,7 +141,7 @@ function buildGridTemplate(visibleCols: ColumnDef[], hasAction: boolean): string
   return hasAction ? base + " 56px" : base;
 }
 
-function renderCell(col: ColumnDef, contact: Contact) {
+function CellRenderer({ col, contact }: { col: ColumnDef; contact: Contact }) {
   switch (col.id) {
     case "name":
       return (
@@ -166,7 +166,7 @@ function renderCell(col: ColumnDef, contact: Contact) {
         <div className="min-w-0">
           {contact.currentCompany
             ? <TooltipCell text={contact.currentCompany} className="text-sm text-[#1585ff]" />
-            : <span className="text-[#c8c5c2]">—</span>
+            : <span className="text-[#c8c5c2]" aria-label="אין חברה">-</span>
           }
         </div>
       );
@@ -175,7 +175,7 @@ function renderCell(col: ColumnDef, contact: Contact) {
         <div className="min-w-0">
           {contact.currentTitle
             ? <TooltipCell text={contact.currentTitle} className="text-xs text-[#6b6866]" />
-            : <span className="text-[#c8c5c2]">—</span>
+            : <span className="text-[#c8c5c2]" aria-label="אין תפקיד">-</span>
           }
         </div>
       );
@@ -184,7 +184,7 @@ function renderCell(col: ColumnDef, contact: Contact) {
         <div className="min-w-0">
           {contact.email
             ? <TooltipCell text={contact.email} className="text-xs text-[#6b6866]" mono />
-            : <span className="text-[#c8c5c2]">—</span>
+            : <span className="text-[#c8c5c2]" aria-label="אין אימייל">-</span>
           }
         </div>
       );
@@ -193,7 +193,7 @@ function renderCell(col: ColumnDef, contact: Contact) {
         <div className="min-w-0">
           {contact.phone
             ? <TooltipCell text={contact.phone} className="text-xs text-[#6b6866]" mono />
-            : <span className="text-[#c8c5c2]">—</span>
+            : <span className="text-[#c8c5c2]" aria-label="אין טלפון">-</span>
           }
         </div>
       );
@@ -203,7 +203,7 @@ function renderCell(col: ColumnDef, contact: Contact) {
       return empInfo ? (
         <p className="text-xs font-mono text-[#6b6866] tabular-nums">{empInfo.label}</p>
       ) : (
-        <span className="text-[#c8c5c2]">—</span>
+        <span className="text-[#c8c5c2]" aria-label="אין נתון">-</span>
       );
     }
     case "seniority":
@@ -215,7 +215,7 @@ function renderCell(col: ColumnDef, contact: Contact) {
           {SENIORITY_LABEL[contact.seniority] ?? contact.seniority}
         </span>
       ) : (
-        <span className="text-[#c8c5c2]">—</span>
+        <span className="text-[#c8c5c2]" aria-label="אין seniority">-</span>
       );
     case "industry": {
       const industry = contact.company?.industry ?? contact.industry ?? null;
@@ -223,11 +223,13 @@ function renderCell(col: ColumnDef, contact: Contact) {
         <div className="min-w-0">
           {industry
             ? <TooltipCell text={industry} className="text-xs text-[#9b9895]" />
-            : <span className="text-[#c8c5c2]">—</span>
+            : <span className="text-[#c8c5c2]" aria-label="אין ענף">-</span>
           }
         </div>
       );
     }
+    default:
+      return null;
   }
 }
 
@@ -237,7 +239,7 @@ function SkeletonRow({ cols, colCount }: { cols: string; colCount: number }) {
       className="grid items-center gap-3 px-4 border-b border-[#e5e3df]/70 animate-pulse"
       style={{ gridTemplateColumns: cols, height: 56 }}
     >
-      <div className="w-3.5 h-3.5 bg-[#e5e3df] rounded" />
+      <div className="size-3.5 bg-[#e5e3df] rounded" />
       {Array.from({ length: colCount }).map((_, i) => (
         <div key={i} className="h-3.5 bg-[#e5e3df] rounded w-3/4" />
       ))}
@@ -333,13 +335,14 @@ export default function ContactTable({
         style={{ gridTemplateColumns: cols }}
       >
         {loading ? (
-          <div className="w-3.5 h-3.5 bg-[#e5e3df] rounded" />
+          <div className="size-3.5 bg-[#e5e3df] rounded" />
         ) : (
           <input
             type="checkbox"
+            aria-label="בחר הכל"
             checked={allSelected}
             onChange={onSelectAll}
-            className="rounded-sm border-[#d4d0cc] bg-white text-[#1585ff] w-3.5 h-3.5 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+            className="rounded-sm border-[#d4d0cc] bg-white text-[#1585ff] size-3.5 focus:ring-0 focus:ring-offset-0 cursor-pointer"
           />
         )}
 
@@ -366,29 +369,37 @@ export default function ContactTable({
             return (
               <div
                 key={contact.id}
-                onClick={() => onOpenDrawer(contact)}
                 className={cn(
-                  "grid items-center gap-3 px-4 border-b border-[#e5e3df]/70 cursor-pointer transition-colors group",
+                  "relative grid items-center gap-3 px-4 border-b border-[#e5e3df]/70 transition-colors group w-full text-left",
                   isSelected ? "bg-[#eff5ff]" : "hover:bg-[#f8f7f5]"
                 )}
                 style={{ gridTemplateColumns: cols, height: ROW_HEIGHT }}
               >
+                {/* Stretched button covers the whole row for mouse/keyboard row-open */}
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  onClick={() => onOpenDrawer(contact)}
+                  className="absolute inset-0 cursor-pointer"
+                />
                 <input
                   type="checkbox"
+                  aria-label={`בחר ${contact.fullName}`}
                   checked={isSelected}
                   onChange={(e) => { e.stopPropagation(); onToggle(contact.id); }}
                   onClick={(e) => e.stopPropagation()}
-                  className="rounded-sm border-[#d4d0cc] bg-white text-[#1585ff] w-3.5 h-3.5 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                  className="relative z-10 rounded-sm border-[#d4d0cc] bg-white text-[#1585ff] size-3.5 focus:ring-0 focus:ring-offset-0 cursor-pointer"
                 />
 
                 {visibleCols.map((col) => (
-                  <div key={col.id} className="min-w-0">
-                    {renderCell(col, contact)}
+                  <div key={col.id} className="relative z-10 min-w-0 pointer-events-none">
+                    <CellRenderer col={col} contact={contact} />
                   </div>
                 ))}
 
                 {extraRowAction && (
-                  <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
+                  <div className="relative z-10 flex items-center justify-end" onClick={(e) => e.stopPropagation()} role="presentation">
                     {extraRowAction(contact)}
                   </div>
                 )}
@@ -409,23 +420,27 @@ export default function ContactTable({
         </span>
         <div className="flex items-center gap-1">
           <button
+            type="button"
             onClick={() => onPageChange(page - 1)}
             disabled={page <= 1 || loading}
             className="p-1 rounded text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            aria-label="עמוד קודם"
             title="עמוד קודם"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="size-4" />
           </button>
           <span className="text-[11px] font-mono text-[#9b9895] px-2 tabular-nums">
             {loading ? "…" : `${page} / ${totalPages || 1}`}
           </span>
           <button
+            type="button"
             onClick={() => onPageChange(page + 1)}
             disabled={page >= totalPages || loading}
             className="p-1 rounded text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            aria-label="עמוד הבא"
             title="עמוד הבא"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="size-4" />
           </button>
         </div>
       </div>
@@ -434,14 +449,16 @@ export default function ContactTable({
     {/* Column visibility toggle — outside overflow-hidden so the dropdown isn't clipped */}
     <div ref={colMenuRef} className="absolute right-2 top-0 h-9 flex items-center z-10">
       <button
+        type="button"
         onClick={() => setShowColMenu((v) => !v)}
         title="Toggle columns"
+        aria-label="הצג/הסתר עמודות"
         className={cn(
           "p-1 rounded transition-colors",
           showColMenu ? "bg-[#e8f0fe] text-[#1585ff]" : "text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef]"
         )}
       >
-        <Columns3 className="w-3.5 h-3.5" />
+        <Columns3 className="size-3.5" />
       </button>
 
       {showColMenu && (
@@ -463,16 +480,18 @@ export default function ContactTable({
                 dragColId === col.id && "opacity-40"
               )}
             >
-              <GripVertical className="w-3.5 h-3.5 text-[#c8c5c2] cursor-grab active:cursor-grabbing shrink-0" />
+              <GripVertical className="size-3.5 text-[#c8c5c2] cursor-grab active:cursor-grabbing shrink-0" />
               <button
+                type="button"
                 onClick={() => toggleColVisibility(col.id)}
+                aria-label={`${col.visible ? "הסתר" : "הצג"} עמודת ${col.label}`}
                 className="flex items-center gap-2 flex-1 min-w-0"
               >
                 <div className={cn(
-                  "w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-colors",
+                  "size-3.5 rounded border flex items-center justify-center shrink-0 transition-colors",
                   col.visible ? "bg-[#1585ff] border-[#1585ff]" : "border-[#d4d0cc]"
                 )}>
-                  {col.visible && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                  {col.visible && <Check className="size-2.5 text-white" strokeWidth={3} />}
                 </div>
                 <span className="text-xs text-[#111110] truncate">{col.label}</span>
               </button>

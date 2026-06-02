@@ -32,6 +32,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   const initialValues = useRef<Record<EditableField, string>>(
     Object.fromEntries(
@@ -44,12 +45,8 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
   const manualSet = new Set(contact.manualFields ?? []);
 
   useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    dialogRef.current?.showModal();
+  }, []);
 
   async function handleSave() {
     setSaving(true);
@@ -75,21 +72,16 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
   }
 
   return (
-    <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-
-      {/* Dialog */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="edit-contact-dialog-title"
-        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm bg-white rounded-xl shadow-2xl border border-[#e5e3df]"
-      >
+    <dialog
+      ref={dialogRef}
+      onClose={onClose}
+      aria-labelledby="edit-contact-dialog-title"
+      className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm bg-white rounded-xl shadow-2xl border border-[#e5e3df] m-0 p-0 backdrop:bg-black/40"
+    >
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e3df]">
           <h3 id="edit-contact-dialog-title" className="text-sm font-semibold text-[#111110]">ערוך איש קשר</h3>
-          <button onClick={onClose} aria-label="סגור" className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
-            <X className="w-4 h-4" />
+          <button type="button" onClick={onClose} aria-label="סגור" className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
+            <X className="size-4" />
           </button>
         </div>
 
@@ -122,12 +114,14 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
 
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[#e5e3df]">
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] transition-colors"
           >
             ביטול
           </button>
           <button
+            type="submit"
             onClick={handleSave}
             disabled={saving || !isDirty}
             className={cn(
@@ -138,7 +132,6 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
             {saving ? "שומר…" : "שמור"}
           </button>
         </div>
-      </div>
-    </>
+    </dialog>
   );
 }

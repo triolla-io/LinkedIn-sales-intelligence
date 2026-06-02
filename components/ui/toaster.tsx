@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { toast as toastStore, ToastEntry } from "@/lib/toast";
 import { cn } from "@/lib/cn";
 import { X, CheckCircle2, AlertCircle, Info } from "lucide-react";
@@ -12,25 +12,18 @@ const VARIANT_STYLES: Record<ToastEntry["variant"], string> = {
 };
 
 const ICON: Record<ToastEntry["variant"], React.ReactNode> = {
-  success: <CheckCircle2 className="w-4 h-4 shrink-0" />,
-  error: <AlertCircle className="w-4 h-4 shrink-0" />,
-  info: <Info className="w-4 h-4 shrink-0" />,
+  success: <CheckCircle2 className="size-4 shrink-0" />,
+  error: <AlertCircle className="size-4 shrink-0" />,
+  info: <Info className="size-4 shrink-0" />,
 };
 
 function ToastItem({ toast }: { toast: ToastEntry }) {
-  const [visible, setVisible] = useState(false);
+  const [leaving, startLeaving] = useReducer(() => true, false);
 
   useEffect(() => {
-    // trigger enter animation on mount
-    const show = requestAnimationFrame(() => setVisible(true));
-    const hide = setTimeout(() => {
-      setVisible(false);
-      setTimeout(() => toastStore.dismiss(toast.id), 300);
-    }, toast.durationMs);
-    return () => {
-      cancelAnimationFrame(show);
-      clearTimeout(hide);
-    };
+    const hideId = setTimeout(startLeaving, toast.durationMs);
+    const dismissId = setTimeout(() => toastStore.dismiss(toast.id), toast.durationMs + 300);
+    return () => { clearTimeout(hideId); clearTimeout(dismissId); };
   }, [toast.id, toast.durationMs]);
 
   return (
@@ -38,7 +31,7 @@ function ToastItem({ toast }: { toast: ToastEntry }) {
       className={cn(
         "flex items-start gap-3 px-4 py-3 rounded-lg border shadow-md max-w-sm w-full",
         "transition-all duration-300",
-        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2",
+        leaving ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0",
         VARIANT_STYLES[toast.variant]
       )}
     >
@@ -50,17 +43,21 @@ function ToastItem({ toast }: { toast: ToastEntry }) {
         )}
       </div>
       <button
+        type="button"
         onClick={() => toastStore.dismiss(toast.id)}
         className="shrink-0 opacity-50 hover:opacity-80 transition-opacity"
       >
-        <X className="w-3.5 h-3.5" />
+        <X className="size-3.5" />
       </button>
     </div>
   );
 }
 
 export function Toaster() {
-  const [toasts, setToasts] = useState<ToastEntry[]>([]);
+  const [toasts, setToasts] = useReducer(
+    (_: ToastEntry[], next: ToastEntry[]) => next,
+    [] as ToastEntry[]
+  );
 
   useEffect(() => {
     return toastStore.subscribe(setToasts);
@@ -69,7 +66,7 @@ export function Toaster() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2 items-end">
+    <div className="fixed bottom-5 right-5 z-9999 flex flex-col gap-2 items-end">
       {toasts.map((t) => (
         <ToastItem key={t.id} toast={t} />
       ))}

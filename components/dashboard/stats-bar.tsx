@@ -35,6 +35,7 @@ function Stat({ label, value, sub, clickable, onClick, accent = "neutral" }: Sta
 
   return (
     <button
+      type="button"
       onClick={clickable ? onClick : undefined}
       className={cn(
         "flex flex-col px-5 py-3 border-r border-[#e5e3df] last:border-0 min-w-0 shrink-0",

@@ -180,10 +180,10 @@ model Contact {
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id])
 
-  owner              User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  messages           SentMessage[]
-  campaignRecipients CampaignRecipient[]
-  lists              ContactListMember[]
+  owner               User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  messages            SentMessage[]
+  campaignRecipients  CampaignRecipient[]
+  lists               ContactListMember[]
   sequenceEnrollments SequenceEnrollment[]
 
   @@unique([ownerId, linkedinUrn])
@@ -201,7 +201,7 @@ model MessageTemplate {
   name    String
   body    String
 
-  owner         User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   messages      SentMessage[]
   campaigns     Campaign[]
   sequenceSteps SequenceStep[]
@@ -383,20 +383,20 @@ enum ExtensionAlertKind {
 // ─── Campaign models ──────────────────────────────────────────────────────────
 
 model Campaign {
-  id          String           @id @default(cuid())
+  id          String          @id @default(cuid())
   ownerId     String
   orgId       String?
   name        String
   channel     CampaignChannel
   templateId  String
-  status      CampaignStatus   @default(DRAFT)
+  status      CampaignStatus  @default(DRAFT)
   filterJson  Json?
   dailyLimit  Int?
-  subject    String?
+  subject     String?
   startedAt   DateTime?
   completedAt DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
   owner      User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   template   MessageTemplate     @relation(fields: [templateId], references: [id])
@@ -425,16 +425,15 @@ model CampaignRecipient {
   @@index([campaignId, status])
 }
 
-
 model Invite {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   orgId     String
   email     String
-  token     String   @unique
-  role      Role     @default(SALESPERSON)
+  token     String    @unique
+  role      Role      @default(SALESPERSON)
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
@@ -443,16 +442,16 @@ model Invite {
 }
 
 model Import {
-  id          String   @id @default(cuid())
-  ownerId    String
-  fileName   String
-  totalRows  Int      // raw rows in the uploaded file
-  added      Int      // contacts that did not previously exist
-  updated    Int      // contacts that existed and were refreshed
-  removed    Int      // contacts present in DB but absent from this CSV (soft-removed)
-  companies  Int      // unique non-empty company strings in this CSV
-  newCompanies Int    // companies created (didn't exist in DB before this import)
-  createdAt  DateTime @default(now())
+  id           String   @id @default(cuid())
+  ownerId      String
+  fileName     String
+  totalRows    Int // raw rows in the uploaded file
+  added        Int // contacts that did not previously exist
+  updated      Int // contacts that existed and were refreshed
+  removed      Int // contacts present in DB but absent from this CSV (soft-removed)
+  companies    Int // unique non-empty company strings in this CSV
+  newCompanies Int // companies created (didn't exist in DB before this import)
+  createdAt    DateTime @default(now())
 
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 

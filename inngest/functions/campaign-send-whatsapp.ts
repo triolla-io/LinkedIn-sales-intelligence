@@ -9,7 +9,7 @@ const MAX_ATTEMPTS = 3;
 const DEFAULT_DAY_LIMIT = 100;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function campaignSendWhatsappHandler({ event }: any) {
+async function campaignSendWhatsappHandler({ event }: any) {
   const { recipientId } = event.data as { recipientId: string };
 
   const recipient = await prisma.campaignRecipient.findUnique({

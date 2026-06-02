@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { X, Plus, Trash2, Mail, MessageSquare, Link2 } from "lucide-react";
+import { useReducer } from "react";
 
 type List = { id: string; name: string };
 type Template = { id: string; name: string };
@@ -30,8 +30,180 @@ function fromDateString(dateStr: string): number {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const selected = new Date(dateStr + "T00:00:00");
-  return Math.max(0, Math.round((selected.getTime() - today.getTime()) / 86_400_000));
+  return Math.max(
+    0,
+    Math.round((selected.getTime() - today.getTime()) / 86_400_000),
+  );
 }
+
+// ── Sub-component: per-step configuration ──────────────────────────────────
+
+interface SequenceStepEditorProps {
+  step: Step;
+  index: number;
+  showDelete: boolean;
+  templates: Template[];
+  onUpdate: (key: string, patch: Partial<Step>) => void;
+  onDelete: (key: string) => void;
+}
+
+function SequenceStepEditor({
+  step,
+  index,
+  showDelete,
+  templates,
+  onUpdate,
+  onDelete,
+}: SequenceStepEditorProps) {
+  return (
+    <div className="border border-[#e5e3df] rounded-xl p-4 space-y-3 bg-[#fafaf9]">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-[#6b6866] uppercase tracking-wider">
+          שלב {index + 1}
+        </span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-xs text-[#6b6866]">
+            <span>תאריך</span>
+            <input
+              type="date"
+              aria-label={`תאריך שליחה לשלב ${index + 1}`}
+              min={toDateString(0)}
+              value={toDateString(step.dayOffset)}
+              onChange={(e) =>
+                onUpdate(step.key, {
+                  dayOffset: fromDateString(e.target.value),
+                })
+              }
+              className="border border-[#e5e3df] rounded px-2 py-1 text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
+            />
+          </div>
+          {showDelete && (
+            <button
+              type="button"
+              aria-label="מחק שלב"
+              onClick={() => onDelete(step.key)}
+              className="text-[#c8c5c2] hover:text-[#dc2626] transition-colors"
+            >
+              <Trash2 className="size-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Time picker */}
+      <div className="flex items-center gap-1.5 text-xs text-[#6b6866]">
+        <span>שלח ב</span>
+        <input
+          type="number"
+          aria-label={`דקות שליחה לשלב ${index + 1}`}
+          min={0}
+          max={59}
+          step={5}
+          value={String(step.sendMinute).padStart(2, "0")}
+          onChange={(e) => {
+            const v = parseInt(e.target.value, 10);
+            onUpdate(step.key, {
+              sendMinute: isNaN(v)
+                ? 0
+                : Math.min(55, Math.max(0, Math.round(v / 5) * 5)),
+            });
+          }}
+          className="w-14 border border-[#e5e3df] rounded px-1.5 py-1 text-center font-mono text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
+        />
+        <span className="font-mono text-[#6b6866]">:</span>
+        <input
+          type="number"
+          aria-label={`שעת שליחה לשלב ${index + 1}`}
+          min={0}
+          max={23}
+          value={String(step.sendHour).padStart(2, "0")}
+          onChange={(e) => {
+            const v = parseInt(e.target.value, 10);
+            onUpdate(step.key, {
+              sendHour: isNaN(v) ? 9 : Math.min(23, Math.max(0, v)),
+            });
+          }}
+          className="w-14 border border-[#e5e3df] rounded px-1.5 py-1 text-center font-mono text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
+        />
+      </div>
+
+      {/* Channel toggle */}
+      <div className="flex gap-2">
+        {(["EMAIL", "WHATSAPP"] as const).map((ch) => (
+          <button
+            type="button"
+            key={ch}
+            onClick={() => onUpdate(step.key, { channel: ch })}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              step.channel === ch
+                ? "bg-[#1585ff] text-white border-[#1585ff]"
+                : "bg-white text-[#6b6866] border-[#e5e3df] hover:border-[#1585ff]"
+            }`}
+          >
+            {ch === "EMAIL" ? (
+              <Mail className="size-3.5" />
+            ) : (
+              <MessageSquare className="size-3.5" />
+            )}
+            {ch === "EMAIL" ? "Email" : "WhatsApp"}
+          </button>
+        ))}
+      </div>
+
+      {/* Subject (email only) */}
+      {step.channel === "EMAIL" && (
+        <div>
+          <label
+            htmlFor={`seq-subject-${index}`}
+            className="block text-xs font-medium text-[#6b6866] mb-1"
+          >
+            שורת נושא
+          </label>
+          <input
+            id={`seq-subject-${index}`}
+            aria-label="שורת נושא"
+            className="w-full border border-[#e5e3df] rounded-lg px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
+            placeholder="שורת נושא"
+            value={step.subject}
+            onChange={(e) => onUpdate(step.key, { subject: e.target.value })}
+          />
+        </div>
+      )}
+
+      {/* Template */}
+      <div>
+        <label
+          htmlFor={`seq-template-${index}`}
+          className="block text-xs font-medium text-[#6b6866] mb-1"
+        >
+          תבנית הודעה
+        </label>
+        <select
+          id={`seq-template-${index}`}
+          className="w-full border border-[#e5e3df] rounded-lg px-3 py-2 text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
+          value={step.templateId}
+          onChange={(e) => onUpdate(step.key, { templateId: e.target.value })}
+        >
+          {templates.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+}
+
+// ── Main component state ───────────────────────────────────────────────────
+
+type ModalState = {
+  name: string;
+  listId: string;
+  steps: Step[];
+  saving: boolean;
+  error: string | null;
+};
 
 export default function NewSequenceModal({
   lists,
@@ -44,41 +216,83 @@ export default function NewSequenceModal({
   onClose: () => void;
   onCreated: () => void;
 }) {
-  const [name, setName] = useState("");
-  const [listId, setListId] = useState(lists[0]?.id ?? "");
-  const [steps, setSteps] = useState<Step[]>([
-    { key: uid(), channel: "EMAIL", templateId: templates[0]?.id ?? "", subject: "", dayOffset: 0, sendHour: 9, sendMinute: 0 },
-  ]);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(
+    (s: ModalState, action: Partial<ModalState>) => ({ ...s, ...action }),
+    {
+      name: "",
+      listId: lists[0]?.id ?? "",
+      steps: [
+        {
+          key: uid(),
+          channel: "EMAIL",
+          templateId: templates[0]?.id ?? "",
+          subject: "",
+          dayOffset: 0,
+          sendHour: 9,
+          sendMinute: 0,
+        },
+      ],
+      saving: false,
+      error: null,
+    },
+  );
+
+  const { name, listId, steps, saving, error } = state;
 
   function addStep() {
     const lastOffset = steps[steps.length - 1]?.dayOffset ?? 0;
-    setSteps((prev) => [
-      ...prev,
-      { key: uid(), channel: "EMAIL", templateId: templates[0]?.id ?? "", subject: "", dayOffset: lastOffset + 2, sendHour: 9, sendMinute: 0 },
-    ]);
+    dispatch({
+      steps: [
+        ...steps,
+        {
+          key: uid(),
+          channel: "EMAIL",
+          templateId: templates[0]?.id ?? "",
+          subject: "",
+          dayOffset: lastOffset + 2,
+          sendHour: 9,
+          sendMinute: 0,
+        },
+      ],
+    });
   }
 
   function removeStep(key: string) {
-    setSteps((prev) => prev.filter((s) => s.key !== key));
+    dispatch({ steps: steps.filter((s) => s.key !== key) });
   }
 
   function updateStep(key: string, patch: Partial<Step>) {
-    setSteps((prev) => prev.map((s) => (s.key === key ? { ...s, ...patch } : s)));
+    dispatch({
+      steps: steps.map((s) => (s.key === key ? { ...s, ...patch } : s)),
+    });
   }
 
   async function handleSave() {
-    setError(null);
-    if (!name.trim()) { setError("שם הוא שדה חובה"); return; }
-    if (!listId) { setError("יש לבחור רשימה"); return; }
-    if (steps.length === 0) { setError("הוסף לפחות שלב אחד"); return; }
+    dispatch({ error: null });
+    if (!name.trim()) {
+      dispatch({ error: "שם הוא שדה חובה" });
+      return;
+    }
+    if (!listId) {
+      dispatch({ error: "יש לבחור רשימה" });
+      return;
+    }
+    if (steps.length === 0) {
+      dispatch({ error: "הוסף לפחות שלב אחד" });
+      return;
+    }
     for (const s of steps) {
-      if (!s.templateId) { setError("כל שלב דורש תבנית"); return; }
-      if (s.channel === "EMAIL" && !s.subject.trim()) { setError("שלבי אימייל דורשים שורת נושא"); return; }
+      if (!s.templateId) {
+        dispatch({ error: "כל שלב דורש תבנית" });
+        return;
+      }
+      if (s.channel === "EMAIL" && !s.subject.trim()) {
+        dispatch({ error: "שלבי אימייל דורשים שורת נושא" });
+        return;
+      }
     }
 
-    setSaving(true);
+    dispatch({ saving: true });
     try {
       const payload = {
         name: name.trim(),
@@ -100,21 +314,29 @@ export default function NewSequenceModal({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error ?? "Failed to create sequence");
+        throw new Error(
+          (data as { error?: string }).error ?? "Failed to create sequence",
+        );
       }
 
-      const { sequence } = await res.json() as { sequence: { id: string } };
-      const startRes = await fetch(`/api/sequences/${sequence.id}/start`, { method: "POST" });
+      const { sequence } = (await res.json()) as { sequence: { id: string } };
+      const startRes = await fetch(`/api/sequences/${sequence.id}/start`, {
+        method: "POST",
+      });
       if (!startRes.ok) {
         const data = await startRes.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error ?? "Failed to start sequence");
+        throw new Error(
+          (data as { error?: string }).error ?? "Failed to start sequence",
+        );
       }
 
       onCreated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      dispatch({
+        error: err instanceof Error ? err.message : "Something went wrong",
+      });
     } finally {
-      setSaving(false);
+      dispatch({ saving: false });
     }
   }
 
@@ -123,9 +345,16 @@ export default function NewSequenceModal({
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-[#111110]">קמפיין חדש</h2>
-            <button onClick={onClose} className="text-[#9b9895] hover:text-[#111110] transition-colors">
-              <X className="w-4 h-4" />
+            <h2 className="text-base font-semibold text-[#111110]">
+              קמפיין חדש
+            </h2>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="סגור"
+              className="text-[#9b9895] hover:text-[#111110] transition-colors"
+            >
+              <X className="size-4" />
             </button>
           </div>
           <p className="text-sm text-[#6b6866]">
@@ -135,6 +364,7 @@ export default function NewSequenceModal({
           </p>
           <div className="flex justify-end mt-5">
             <button
+              type="button"
               onClick={onClose}
               className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] transition-colors"
             >
@@ -152,8 +382,13 @@ export default function NewSequenceModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5e3df]">
           <h2 className="text-base font-semibold text-[#111110]">קמפיין חדש</h2>
-          <button onClick={onClose} className="text-[#9b9895] hover:text-[#111110] transition-colors">
-            <X className="w-4 h-4" />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="סגור"
+            className="text-[#9b9895] hover:text-[#111110] transition-colors"
+          >
+            <X className="size-4" />
           </button>
         </div>
 
@@ -161,25 +396,39 @@ export default function NewSequenceModal({
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-xs font-medium text-[#6b6866] mb-1.5">שם קמפיין</label>
+            <label
+              htmlFor="seq-name"
+              className="block text-xs font-medium text-[#6b6866] mb-1.5"
+            >
+              שם קמפיין
+            </label>
             <input
+              id="seq-name"
               className="w-full border border-[#e5e3df] rounded-lg px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff]"
               placeholder="לדוגמה: יוני הגעות"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => dispatch({ name: e.target.value })}
             />
           </div>
 
           {/* Contact List */}
           <div>
-            <label className="block text-xs font-medium text-[#6b6866] mb-1.5">רשימת אנשי קשר</label>
+            <label
+              htmlFor="seq-list"
+              className="block text-xs font-medium text-[#6b6866] mb-1.5"
+            >
+              רשימת אנשי קשר
+            </label>
             <select
+              id="seq-list"
               className="w-full border border-[#e5e3df] rounded-lg px-3 py-2 text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff]"
               value={listId}
-              onChange={(e) => setListId(e.target.value)}
+              onChange={(e) => dispatch({ listId: e.target.value })}
             >
               {lists.map((l) => (
-                <option key={l.id} value={l.id}>{l.name}</option>
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
               ))}
             </select>
           </div>
@@ -187,113 +436,28 @@ export default function NewSequenceModal({
           {/* Steps */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-medium text-[#6b6866]">שלבים</label>
+              <span className="text-xs font-medium text-[#6b6866]">שלבים</span>
               <button
+                type="button"
                 onClick={addStep}
                 className="flex items-center gap-1 text-xs text-[#1585ff] font-medium hover:text-[#0f6fd4]"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="size-3.5" />
                 הוסף שלב
               </button>
             </div>
 
             <div className="space-y-3">
               {steps.map((step, index) => (
-                <div key={step.key} className="border border-[#e5e3df] rounded-xl p-4 space-y-3 bg-[#fafaf9]">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#6b6866] uppercase tracking-wider">
-                      שלב {index + 1}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1.5 text-xs text-[#6b6866]">
-                        <span>תאריך</span>
-                        <input
-                          type="date"
-                          min={toDateString(0)}
-                          value={toDateString(step.dayOffset)}
-                          onChange={(e) => updateStep(step.key, { dayOffset: fromDateString(e.target.value) })}
-                          className="border border-[#e5e3df] rounded px-2 py-1 text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
-                        />
-                      </div>
-                      {steps.length > 1 && (
-                        <button
-                          onClick={() => removeStep(step.key)}
-                          className="text-[#c8c5c2] hover:text-[#dc2626] transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Time picker */}
-                  <div className="flex items-center gap-1.5 text-xs text-[#6b6866]">
-                    <span>שלח ב</span>
-                    <input
-                      type="number"
-                      min={0}
-                      max={59}
-                      step={5}
-                      value={String(step.sendMinute).padStart(2, "0")}
-                      onChange={(e) => {
-                        const v = parseInt(e.target.value, 10);
-                        updateStep(step.key, { sendMinute: isNaN(v) ? 0 : Math.min(55, Math.max(0, Math.round(v / 5) * 5)) });
-                      }}
-                      className="w-14 border border-[#e5e3df] rounded px-1.5 py-1 text-center font-mono text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
-                    />
-                    <span className="font-mono text-[#6b6866]">:</span>
-                    <input
-                      type="number"
-                      min={0}
-                      max={23}
-                      value={String(step.sendHour).padStart(2, "0")}
-                      onChange={(e) => {
-                        const v = parseInt(e.target.value, 10);
-                        updateStep(step.key, { sendHour: isNaN(v) ? 9 : Math.min(23, Math.max(0, v)) });
-                      }}
-                      className="w-14 border border-[#e5e3df] rounded px-1.5 py-1 text-center font-mono text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
-                    />
-                  </div>
-
-                  {/* Channel toggle */}
-                  <div className="flex gap-2">
-                    {(["EMAIL", "WHATSAPP", "LINKEDIN"] as const).map((ch) => (
-                      <button
-                        key={ch}
-                        onClick={() => updateStep(step.key, { channel: ch })}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                          step.channel === ch
-                            ? "bg-[#1585ff] text-white border-[#1585ff]"
-                            : "bg-white text-[#6b6866] border-[#e5e3df] hover:border-[#1585ff]"
-                        }`}
-                      >
-                        {ch === "EMAIL" ? <Mail className="w-3.5 h-3.5" /> : ch === "WHATSAPP" ? <MessageSquare className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
-                        {ch === "EMAIL" ? "Email" : ch === "WHATSAPP" ? "WhatsApp" : "LinkedIn"}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Subject (email only) */}
-                  {step.channel === "EMAIL" && (
-                    <input
-                      className="w-full border border-[#e5e3df] rounded-lg px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
-                      placeholder="שורת נושא"
-                      value={step.subject}
-                      onChange={(e) => updateStep(step.key, { subject: e.target.value })}
-                    />
-                  )}
-
-                  {/* Template */}
-                  <select
-                    className="w-full border border-[#e5e3df] rounded-lg px-3 py-2 text-sm text-[#111110] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] bg-white"
-                    value={step.templateId}
-                    onChange={(e) => updateStep(step.key, { templateId: e.target.value })}
-                  >
-                    {templates.map((t) => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
+                <SequenceStepEditor
+                  key={step.key}
+                  step={step}
+                  index={index}
+                  showDelete={steps.length > 1}
+                  templates={templates}
+                  onUpdate={updateStep}
+                  onDelete={removeStep}
+                />
               ))}
             </div>
           </div>
@@ -308,12 +472,14 @@ export default function NewSequenceModal({
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#e5e3df]">
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] transition-colors"
           >
             ביטול
           </button>
           <button
+            type="submit"
             onClick={handleSave}
             disabled={saving}
             className="px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

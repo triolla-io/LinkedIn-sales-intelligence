@@ -8,7 +8,7 @@ const MAX_ATTEMPTS = 3;
 const DEFAULT_DAY_LIMIT = 200;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function campaignSendEmailHandler({ event }: any) {
+async function campaignSendEmailHandler({ event }: any) {
   const { recipientId } = event.data as { recipientId: string };
 
   const recipient = await prisma.campaignRecipient.findUnique({

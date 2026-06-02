@@ -5,7 +5,7 @@ import { Prisma } from "@/lib/generated/prisma/client";
 const REPLY_CHECK_OFFSETS_HOURS = [24, 72, 168];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function extensionTaskResultHandler({ event }: any) {
+async function extensionTaskResultHandler({ event }: any) {
   const { taskId } = event.data as { taskId: string };
   const task = await prisma.extensionTask.findUnique({ where: { id: taskId } });
   if (!task) return;

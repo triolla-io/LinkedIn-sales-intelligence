@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw, Shield, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/cn";
+import useSWR from "swr";
 
 interface AdminUser {
   id: string;
@@ -21,35 +22,28 @@ const ROLE_STYLES: Record<string, string> = {
   SALESPERSON: "bg-gray-100 text-gray-600",
 };
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (res.status === 403) {
+    const err = new Error("You don't have permission to view this page");
+    (err as any).status = 403;
+    throw err;
+  }
+  if (!res.ok) throw new Error("Failed to fetch");
+  return res.json();
+};
+
 export default function AdminUsersPage() {
   const router = useRouter();
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: users, error: swrError, mutate, isValidating } = useSWR<AdminUser[]>("/api/admin/users", fetcher);
   const [impersonating, setImpersonating] = useState<string | null>(null);
 
-  async function fetchUsers() {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/users");
-      if (res.status === 403) {
-        setError("You don't have permission to view this page");
-        return;
-      }
-      if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
-      setUsers(data);
-    } catch {
-      setError("Failed to load users");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const error = swrError?.message || null;
+  const refreshing = isValidating;
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  async function refreshUsers() {
+    await mutate();
+  }
 
   async function handleImpersonate(userId: string) {
     setImpersonating(userId);
@@ -67,6 +61,8 @@ export default function AdminUsersPage() {
       setImpersonating(null);
     }
   }
+
+  const isLoading = users === null && !error;
 
   if (error) {
     return (
@@ -86,20 +82,22 @@ export default function AdminUsersPage() {
           <p className="text-sm text-gray-500 mt-1">נהל משתמשים בארגון שלך</p>
         </div>
         <button
-          onClick={fetchUsers}
-          disabled={loading}
+          type="button"
+          onClick={refreshUsers}
+          disabled={refreshing}
+          aria-label="רענן רשימת משתמשים"
           className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
         >
-          <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
+          <RefreshCw className={cn("size-4", refreshing && "animate-spin")} />
           רענן
         </button>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="animate-pulse">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-4 py-4 border-b border-gray-100">
+              <div key={i} className="flex items-center gap-4 p-4 border-b border-gray-100">
                 <div className="h-4 bg-gray-200 rounded w-32" />
                 <div className="h-4 bg-gray-200 rounded w-48" />
                 <div className="h-5 bg-gray-200 rounded-full w-20" />
@@ -122,18 +120,18 @@ export default function AdminUsersPage() {
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">אנשי קשר</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">סנכרן אחרון</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">קרדיטים</th>
-                <th className="px-4 py-3" />
+                <th className="px-4 py-3" aria-label="פעולות" />
               </tr>
             </thead>
             <tbody>
-              {users.length === 0 ? (
+              {(users ?? []).length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-8 text-gray-500 text-sm">
                     לא נמצאו משתמשים
                   </td>
                 </tr>
               ) : (
-                users.map((user) => (
+                (users ?? []).map((user) => (
                   <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
                       <p className="text-sm font-medium text-gray-900">{user.name}</p>
@@ -164,14 +162,16 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-4 py-3">
                       <button
+                        type="button"
                         onClick={() => handleImpersonate(user.id)}
                         disabled={impersonating === user.id}
+                        aria-label={`צפה בחשבון של ${user.name}`}
                         className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors disabled:opacity-50"
                       >
                         {impersonating === user.id ? (
-                          <RefreshCw className="w-3 h-3 animate-spin" />
+                          <RefreshCw className="size-3 animate-spin" />
                         ) : (
-                          <ExternalLink className="w-3 h-3" />
+                          <ExternalLink className="size-3" />
                         )}
                         צפה כ
                       </button>
