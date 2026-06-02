@@ -7,7 +7,7 @@ export default async function CampaignsPage() {
   const session = await auth();
   if (!session?.user) redirect("/sign-in");
 
-  const [sequences, lists, templates] = await Promise.all([
+  const [sequences, lists, templates, extensionSession] = await Promise.all([
     prisma.sequence.findMany({
       where: { ownerId: session.user.id },
       orderBy: { createdAt: "desc" },
@@ -35,13 +35,12 @@ export default async function CampaignsPage() {
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
+    prisma.extensionSession.findFirst({
+      where: { userId: session.user.id, revokedAt: null },
+      orderBy: { lastSeenAt: "desc" },
+      select: { lastSeenAt: true, revokedAt: true },
+    }),
   ]);
-
-  const extensionSession = await prisma.extensionSession.findFirst({
-    where: { userId: session.user.id, revokedAt: null },
-    orderBy: { lastSeenAt: "desc" },
-    select: { lastSeenAt: true, revokedAt: true },
-  });
 
   return (
     <CampaignsClient

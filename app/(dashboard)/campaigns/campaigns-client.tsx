@@ -140,10 +140,11 @@ export default function CampaignsClient({
             />
           </div>
           <button
+            type="button"
             onClick={() => setShowModal(true)}
             className="flex items-center gap-2 bg-[#1585ff] text-white text-sm font-medium px-3.5 py-2 rounded-lg hover:bg-[#0f6fd4] transition-colors"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="size-4" />
             קמפיין חדש
           </button>
         </div>

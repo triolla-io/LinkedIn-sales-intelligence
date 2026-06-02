@@ -1,23 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 
 type Alert = { id: string; kind: "OFFLINE" | "CHECKPOINT"; message: string };
 
-export function ExtensionBanner() {
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+const fetcher = (url: string) => fetch(url).then(r => r.json()).catch(() => ({ alerts: [] }));
 
-  useEffect(() => {
-    let stop = false;
-    async function tick() {
-      const r = await fetch("/api/extension/alerts")
-        .then(r => r.json())
-        .catch(() => ({ alerts: [] }));
-      if (!stop) setAlerts(r.alerts ?? []);
-    }
-    tick();
-    const id = setInterval(tick, 60_000);
-    return () => { stop = true; clearInterval(id); };
-  }, []);
+export function ExtensionBanner() {
+  const { data } = useSWR<{ alerts: Alert[] }>("/api/extension/alerts", fetcher, { refreshInterval: 60000 });
+  const alerts = data?.alerts ?? [];
 
   if (alerts.length === 0) return null;
 

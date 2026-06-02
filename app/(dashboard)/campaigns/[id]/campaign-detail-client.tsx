@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -11,7 +10,6 @@ import {
   XCircle,
   Mail,
   MessageSquare,
-  Link2,
   X,
   RefreshCw,
 } from "lucide-react";
@@ -404,22 +402,6 @@ export default function CampaignDetailClient({
   const [acting, setActing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [removing, setRemoving] = useState(false);
-  const [sendingNow, setSendingNow] = useState(false);
-
-  async function sendNow() {
-    if (!confirm("לשלוח את כל ההודעות הממתינות עכשיו?")) return;
-    setSendingNow(true);
-    const res = await fetch(`/api/sequences/${sequence.id}/send-now`, {
-      method: "POST",
-    });
-    const data = (await res.json()) as { ok: boolean; created?: number };
-    setSendingNow(false);
-    if (data.ok)
-      alert(
-        `נוצרו ${data.created} משימות שליחה — ה-extension ישלח תוך 30 שניות`,
-      );
-    else alert("שגיאה");
-  }
 
   const sentCount = sequence.enrollments.reduce(
     (acc, e) => acc + e.executions.filter((x) => x.status === "SENT").length,
@@ -582,132 +564,17 @@ export default function CampaignDetailClient({
 
       <SequenceTimeline steps={sequence.steps} activeStep={activeStep} />
 
-      {/* Enrollment table */}
-      {sequence.enrollments.length > 0 && (
-        <div className="border border-[#e5e3df] rounded-xl overflow-hidden bg-white">
-          <div className="px-5 py-3 border-b border-[#e5e3df] bg-[#fafaf9] flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-[#111110]">
-              אנשי קשר ({sequence.enrollments.length})
-            </h2>
-            {selectedIds.size > 0 && (
-              <button
-                type="button"
-                onClick={removeBulk}
-                disabled={removing}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#fff3f3] text-[#dc2626] text-xs font-medium rounded-lg hover:bg-[#fee2e2] transition-colors disabled:opacity-50"
-              >
-                <X className="size-3" />
-                הסר משלבים עתידיים ({selectedIds.size})
-              </button>
-            )}
-          </div>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[#f3f2ef]">
-                <th className="px-4 py-2.5 w-10">
-                  <input
-                    type="checkbox"
-                    checked={
-                      selectedIds.size === sequence.enrollments.length &&
-                      sequence.enrollments.length > 0
-                    }
-                    onChange={toggleAll}
-                    aria-label="בחר את כל אנשי הקשר"
-                    className="rounded border-[#e5e3df]"
-                  />
-                </th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b6866] uppercase tracking-wider">
-                  איש קשר
-                </th>
-                {sequence.steps.map((step) => (
-                  <th
-                    key={step.id}
-                    className={`text-center px-3 py-2.5 text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
-                      step.stepNumber === activeStep
-                        ? "text-[#1585ff]"
-                        : "text-[#6b6866]"
-                    }`}
-                  >
-                    שלב {step.stepNumber}
-                  </th>
-                ))}
-                <th className="w-10" aria-label="פעולות" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#f3f2ef]">
-              {sequence.enrollments.map((enr) => (
-                <tr key={enr.id} className="hover:bg-[#fafaf9]">
-                  <td className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(enr.id)}
-                      onChange={() => toggleSelect(enr.id)}
-                      aria-label={`בחר ${enr.contact.fullName}`}
-                      className="rounded border-[#e5e3df]"
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-[#111110]">
-                      {enr.contact.fullName}
-                    </p>
-                    <p className="text-xs text-[#9b9895]">
-                      {enr.contact.currentTitle}
-                      {enr.contact.currentCompany
-                        ? ` · ${enr.contact.currentCompany}`
-                        : ""}
-                    </p>
-                  </td>
-                  {sequence.steps.map((step) => {
-                    const exec = enr.executions.find(
-                      (x) => x.step.stepNumber === step.stepNumber,
-                    );
-                    return (
-                      <td key={step.id} className="p-3 text-center">
-                        {exec ? (
-                          <span
-                            className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${EXEC_COLORS[exec.status] ?? ""}`}
-                          >
-                            {exec.status}
-                          </span>
-                        ) : (
-                          <span className="text-[#c8c5c2] text-xs">-</span>
-                        )}
-                      </td>
-                    );
-                  })}
-                  <td className="p-3">
-                    <div className="flex items-center gap-1">
-                      {enr.executions.length > 0 &&
-                        enr.executions.every(
-                          (ex) => ex.status === "SKIPPED",
-                        ) && (
-                          <button
-                            type="button"
-                            onClick={() => restoreSingle(enr.id)}
-                            disabled={removing}
-                            className="p-1 text-[#c8c5c2] hover:text-[#1585ff] hover:bg-[#eff5ff] rounded transition-colors disabled:opacity-50"
-                            title="שחזר שלבים"
-                          >
-                            <RefreshCw className="size-3.5" />
-                          </button>
-                        )}
-                      <button
-                        type="button"
-                        onClick={() => removeSingle(enr.id)}
-                        disabled={removing}
-                        className="p-1 text-[#c8c5c2] hover:text-[#dc2626] hover:bg-[#fff3f3] rounded transition-colors disabled:opacity-50"
-                        title="הסר משלבים עתידיים"
-                      >
-                        <X className="size-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <RecipientsTable
+        sequence={sequence}
+        selectedIds={selectedIds}
+        removing={removing}
+        activeStep={activeStep}
+        onToggleSelect={toggleSelect}
+        onToggleAll={toggleAll}
+        onRemoveSingle={removeSingle}
+        onRestoreSingle={restoreSingle}
+        onRemoveBulk={removeBulk}
+      />
     </div>
   );
 }

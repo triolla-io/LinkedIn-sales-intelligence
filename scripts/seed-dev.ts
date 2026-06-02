@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { buildContacts, shouldSkipSeed } from "@/scripts/seed-helpers";
 import type { CampaignChannel, RecipientStatus } from "@/lib/generated/prisma/client";
 
-const SEED_USER_EMAIL = "ariel@triolla.io";
+const SEED_USER_EMAIL = process.env.SEED_USER_EMAIL || "ariel@triolla.io";
 
 const PERSONA_USERS = [
   { name: "Daniel Shalem", email: "daniel@triolla.io" },

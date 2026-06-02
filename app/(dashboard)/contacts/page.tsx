@@ -49,6 +49,7 @@ export default async function ContactsPage({
   const fn = sp2arr("function");
   const titleSearch = sp2arr("titleSearch");
   const industry = sp2arr("industry");
+  const companySizeBuckets = sp2arr("companySizeBuckets");
   const hasEmail = sp.hasEmail === "true";
   const hasPhone = sp.hasPhone === "true";
   const listId = typeof sp.listId === "string" ? sp.listId : undefined;
@@ -107,6 +108,17 @@ export default async function ContactsPage({
     <ContactsClient
       initialContacts={contacts as unknown as Contact[]}
       initialTotal={total}
+      initialFilters={{
+        q: q ?? "",
+        seniority,
+        function: fn,
+        titleSearch,
+        industry,
+        companySizeBuckets,
+        hasEmail: hasEmail ? true : undefined,
+        hasPhone: hasPhone ? true : undefined,
+        listId,
+      }}
     />
   );
 }

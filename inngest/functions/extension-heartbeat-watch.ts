@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 const OFFLINE_THRESHOLD_MIN = 10;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function extensionHeartbeatWatchHandler(_: any) {
+async function extensionHeartbeatWatchHandler(_: any) {
   const staleThreshold = new Date(Date.now() - 5 * 60_000); // 5 minutes
   await prisma.extensionTask.updateMany({
     where: { status: "CLAIMED", claimedAt: { lt: staleThreshold } },

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw, Shield, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/cn";
+import useSWR from "swr";
 
 interface AdminUser {
   id: string;
@@ -21,37 +22,28 @@ const ROLE_STYLES: Record<string, string> = {
   SALESPERSON: "bg-gray-100 text-gray-600",
 };
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (res.status === 403) {
+    const err = new Error("You don't have permission to view this page");
+    (err as any).status = 403;
+    throw err;
+  }
+  if (!res.ok) throw new Error("Failed to fetch");
+  return res.json();
+};
+
 export default function AdminUsersPage() {
   const router = useRouter();
-  const [users, setUsers] = useState<AdminUser[] | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { data: users, error: swrError, mutate, isValidating } = useSWR<AdminUser[]>("/api/admin/users", fetcher);
   const [impersonating, setImpersonating] = useState<string | null>(null);
 
-  async function loadUsers() {
-    try {
-      const res = await fetch("/api/admin/users");
-      if (res.status === 403) {
-        setError("You don't have permission to view this page");
-        return;
-      }
-      if (!res.ok) throw new Error("Failed to fetch");
-      setUsers(await res.json());
-    } catch {
-      setError("Failed to load users");
-    }
-  }
+  const error = swrError?.message || null;
+  const refreshing = isValidating;
 
   async function refreshUsers() {
-    setRefreshing(true);
-    setError(null);
-    try { await loadUsers(); }
-    finally { setRefreshing(false); }
+    await mutate();
   }
-
-  useEffect(() => {
-    loadUsers();
-  }, []);
 
   async function handleImpersonate(userId: string) {
     setImpersonating(userId);
