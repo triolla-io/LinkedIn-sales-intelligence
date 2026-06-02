@@ -505,9 +505,10 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
   // Inline state adjustment when contact changes (avoids adjusting state in useEffect)
   // Uses a ref to avoid triggering re-renders just for tracking the previous id.
   // Starts as undefined so first render always syncs localContact from the prop.
-  const prevContactIdRef = useRef<string | null | undefined>(undefined);
-  if (prevContactIdRef.current !== contact?.id) {
-    prevContactIdRef.current = contact?.id ?? null;
+  const prevContactIdRef = useRef<string | null>(null);
+  const incomingId = contact?.id ?? null;
+  if (prevContactIdRef.current !== incomingId) {
+    prevContactIdRef.current = incomingId;
     setLocalContact(contact);
     dispatch({
       showEdit: false,
