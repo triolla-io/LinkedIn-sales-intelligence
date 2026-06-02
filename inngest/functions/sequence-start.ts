@@ -12,7 +12,7 @@ export const sequenceStart = inngest.createFunction(
       include: { steps: { orderBy: { stepNumber: "asc" } } },
     });
     if (!sequence) throw new Error(`Sequence ${sequenceId} not found`);
-    if (sequence.status !== "QUEUED") return; // idempotency guard
+    if (sequence.status !== "QUEUED") return;
 
     const now = new Date();
     await prisma.sequence.update({
@@ -21,7 +21,10 @@ export const sequenceStart = inngest.createFunction(
     });
 
     const firstStep = sequence.steps[0];
-    if (!firstStep) return; // no steps configured
+    if (!firstStep) return;
+
+    // Only auto-enroll from list if one is linked
+    if (!sequence.contactListId) return;
 
     const members = await prisma.contactListMember.findMany({
       where: { listId: sequence.contactListId },
