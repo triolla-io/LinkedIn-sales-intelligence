@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus, Pause, Play, Mail, MessageSquare } from "lucide-react";
+import { Plus, Pause, Play, Mail, MessageSquare, Trash2 } from "lucide-react";
 import AutoRefresher from "@/components/auto-refresher";
 import NewSequenceModal from "@/components/dashboard/new-sequence-modal";
 import { ExtensionStatusBadge } from "@/components/extension-status-badge";
@@ -135,10 +135,20 @@ export default function CampaignsClient({
 }) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
+  const [deletingSeq, setDeletingSeq] = useState<Sequence | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   async function togglePause(seq: Sequence) {
     const action = seq.status === "ACTIVE" ? "pause" : "resume";
     await fetch(`/api/sequences/${seq.id}/${action}`, { method: "POST" });
+    router.refresh();
+  }
+
+  async function deleteSequence(seq: Sequence) {
+    setDeleteLoading(true);
+    await fetch(`/api/sequences/${seq.id}`, { method: "DELETE" });
+    setDeleteLoading(false);
+    setDeletingSeq(null);
     router.refresh();
   }
 
@@ -235,7 +245,14 @@ export default function CampaignsClient({
                         )}
                       </button>
                     )}
-                    {/* TODO: add delete endpoint */}
+                    <button
+                      type="button"
+                      onClick={() => setDeletingSeq(seq)}
+                      className="p-1.5 text-[#9b9895] hover:text-red-400 hover:bg-red-50 rounded transition-colors"
+                      title="מחק קמפיין"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -254,6 +271,40 @@ export default function CampaignsClient({
             router.refresh();
           }}
         />
+      )}
+
+      {deletingSeq && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4">
+            <h2 className="text-sm font-semibold text-[#111110] mb-1">מחיקת קמפיין</h2>
+            <p className="text-sm text-[#6b6866] mb-3">
+              האם למחוק את <span className="font-medium text-[#111110]">{deletingSeq.name}</span>?
+            </p>
+            {["ACTIVE", "QUEUED"].includes(deletingSeq.status) && (
+              <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4">
+                הקמפיין עדיין פעיל — מחיקה תעצור אותו לאלתר
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeletingSeq(null)}
+                disabled={deleteLoading}
+                className="px-4 py-1.5 text-sm text-[#6b6866] border border-[#e5e3df] rounded-lg hover:bg-[#f3f2ef] transition-colors"
+              >
+                ביטול
+              </button>
+              <button
+                type="button"
+                onClick={() => deleteSequence(deletingSeq)}
+                disabled={deleteLoading}
+                className="px-4 py-1.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {deleteLoading ? "מוחק…" : "מחק"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
