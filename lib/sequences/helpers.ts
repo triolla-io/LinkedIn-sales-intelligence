@@ -26,6 +26,7 @@ export type ParsedStep = {
   subject: string | null;
   sendHour: number;
   sendMinute: number;
+  sendHourEnd: number | null;
 };
 
 export function parseSteps(input: unknown): ParsedStep[] | null {
@@ -43,8 +44,13 @@ export function parseSteps(input: unknown): ParsedStep[] | null {
     if (prevOffset !== null && raw.dayOffset < prevOffset) return null;
     const rawHour = raw.sendHour ?? 9;
     const rawMinute = raw.sendMinute ?? 0;
+    const rawHourEnd = raw.sendHourEnd ?? null;
     if (!Number.isInteger(rawHour) || (rawHour as number) < 0 || (rawHour as number) > 23) return null;
     if (!Number.isInteger(rawMinute) || (rawMinute as number) < 0 || (rawMinute as number) > 59) return null;
+    if (rawHourEnd !== null) {
+      if (!Number.isInteger(rawHourEnd) || (rawHourEnd as number) < 0 || (rawHourEnd as number) > 23) return null;
+      if ((rawHourEnd as number) <= (rawHour as number)) return null;
+    }
     seenNumbers.add(raw.stepNumber);
     prevOffset = raw.dayOffset;
     steps.push({
@@ -55,6 +61,7 @@ export function parseSteps(input: unknown): ParsedStep[] | null {
       subject: raw.channel === "EMAIL" ? (raw.subject as string) : null,
       sendHour: rawHour as number,
       sendMinute: rawMinute as number,
+      sendHourEnd: rawHourEnd as number | null,
     });
   }
   return steps;
