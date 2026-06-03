@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Contact } from "./contact-table";
@@ -71,7 +72,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
     }
   }
 
-  return (
+  return createPortal(
     <dialog
       ref={dialogRef}
       onClose={onClose}
@@ -132,6 +133,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
             {saving ? "שומר…" : "שמור"}
           </button>
         </div>
-    </dialog>
+    </dialog>,
+    document.body
   );
 }

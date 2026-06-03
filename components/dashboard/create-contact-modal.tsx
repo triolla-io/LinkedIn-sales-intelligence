@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Contact } from "./contact-table";
@@ -81,7 +82,7 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
     }
   }
 
-  return (
+  return createPortal(
     <dialog
       ref={dialogRef}
       onClose={onClose}
@@ -163,6 +164,7 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
             {saving ? "יוצר…" : "צור איש קשר"}
           </button>
         </div>
-    </dialog>
+    </dialog>,
+    document.body
   );
 }
