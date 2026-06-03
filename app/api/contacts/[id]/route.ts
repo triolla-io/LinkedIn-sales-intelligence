@@ -62,9 +62,15 @@ export const PATCH = withTenant(async (req, ctx) => {
 
   const updatedManualFields = mergeManualFields(contact.manualFields, Object.keys(patch));
 
+  // linkedinUrl is non-nullable in the schema — only update it when a real value is provided
+  const { linkedinUrl, ...nullablePatch } = patch;
   const updated = await prisma.contact.update({
     where: { id },
-    data: { ...patch, manualFields: updatedManualFields },
+    data: {
+      ...nullablePatch,
+      ...(linkedinUrl ? { linkedinUrl } : {}),
+      manualFields: updatedManualFields,
+    },
   });
 
   return NextResponse.json(updated);

@@ -61,10 +61,14 @@ export const sequenceSendExecution = inngest.createFunction(
         execution.enrollment.sequence.ownerId
       );
 
+      const tz = execution.enrollment.sequence.owner?.timezone ?? "Asia/Jerusalem";
+      const windowStart = execution.step.sendHour;
+      const windowEnd = execution.step.sendHourEnd ?? execution.step.sendHour + 1;
+
       const scheduledFor = computeNextScheduledFor({
-        timezone: execution.enrollment.sequence.owner?.timezone ?? "Asia/Jerusalem",
-        workingHoursStart: 9,
-        workingHoursEnd: 18,
+        timezone: tz,
+        workingHoursStart: windowStart,
+        workingHoursEnd: windowEnd,
         weekdaysOnly: false,
         lastSentAt,
         sentTodayCount,

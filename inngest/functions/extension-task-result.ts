@@ -1,6 +1,7 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
+import { computeWindowedScheduledAt } from "@/lib/sequences/execute-send";
 
 const REPLY_CHECK_OFFSETS_HOURS = [24, 72, 168];
 
@@ -52,7 +53,21 @@ async function handleSendSuccess(task: TaskRow) {
   } else if (task.sequenceExecutionId) {
     const execution = await prisma.sequenceStepExecution.findUnique({
       where: { id: task.sequenceExecutionId },
-      include: { enrollment: { include: { contact: true } } },
+      include: {
+        step: true,
+        enrollment: {
+          select: {
+            id: true,
+            enrolledAt: true,
+            contact: { select: { id: true } },
+            sequence: {
+              select: {
+                steps: { orderBy: { stepNumber: "asc" }, select: { id: true, stepNumber: true, dayOffset: true, sendHour: true, sendMinute: true, sendHourEnd: true } },
+              },
+            },
+          },
+        },
+      },
     });
     if (execution) {
       const sent = await prisma.sentMessage.create({
@@ -60,6 +75,7 @@ async function handleSendSuccess(task: TaskRow) {
           senderId: task.userId,
           actorId: task.userId,
           contactId: execution.enrollment.contact.id,
+          templateId: execution.step.templateId,
           body: payload.text ?? "",
           status: "SENT",
           sentAt: result.sentAt ? new Date(result.sentAt) : new Date(),
@@ -69,6 +85,25 @@ async function handleSendSuccess(task: TaskRow) {
         where: { id: execution.id },
         data: { status: "SENT", sentMessageId: sent.id },
       });
+
+      const { steps } = execution.enrollment.sequence;
+      const currentIndex = steps.findIndex((s) => s.id === execution.stepId);
+      const nextStep = steps[currentIndex + 1];
+      if (nextStep) {
+        await prisma.sequenceStepExecution.create({
+          data: {
+            enrollmentId: execution.enrollmentId,
+            stepId: nextStep.id,
+            status: "PENDING",
+            scheduledAt: computeWindowedScheduledAt(execution.enrollment.enrolledAt, nextStep, new Date()),
+          },
+        });
+      } else {
+        await prisma.sequenceEnrollment.update({
+          where: { id: execution.enrollmentId },
+          data: { status: "COMPLETED" },
+        });
+      }
     }
   }
 }

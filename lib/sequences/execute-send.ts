@@ -5,6 +5,29 @@ import { sendEmail } from "@/lib/gmail/client";
 import { waClient } from "@/lib/whatsapp/client";
 import { normalizePhone } from "@/lib/whatsapp/phone";
 import { computeScheduledAt } from "@/lib/sequences/helpers";
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
+
+const TIMEZONE = "Asia/Jerusalem";
+
+/** Returns the next Date that falls within [sendHour, sendHourEnd) in Jerusalem time. */
+function nextWindowStart(sendHour: number, sendHourEnd: number): Date {
+  const now = new Date();
+  const local = toZonedTime(now, TIMEZONE);
+  const localHour = local.getHours();
+
+  if (localHour >= sendHour && localHour < sendHourEnd) return now; // already inside window
+
+  // Build today's window start in Jerusalem
+  const todayStr = local.toISOString().slice(0, 10);
+  const todayStart = fromZonedTime(`${todayStr}T${String(sendHour).padStart(2, "0")}:00:00`, TIMEZONE);
+
+  // If today's window hasn't started yet, use it; otherwise tomorrow
+  if (todayStart > now) return todayStart;
+  const tomorrow = new Date(local);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+  return fromZonedTime(`${tomorrowStr}T${String(sendHour).padStart(2, "0")}:00:00`, TIMEZONE);
+}
 
 const MAX_ATTEMPTS = 3;
 
@@ -37,7 +60,7 @@ export async function executeSequenceSend(executionId: string): Promise<ExecuteS
           contact: true,
           sequence: {
             include: {
-              steps: { orderBy: { stepNumber: "asc" } },
+              steps: { orderBy: { stepNumber: "asc" }, select: { id: true, stepNumber: true, dayOffset: true, sendHour: true, sendMinute: true, sendHourEnd: true } },
               owner: { include: { org: true } },
             },
           },
@@ -126,10 +149,26 @@ export async function executeSequenceSend(executionId: string): Promise<ExecuteS
   }
 }
 
+export function computeWindowedScheduledAt(
+  enrolledAt: Date,
+  step: { dayOffset: number; sendHour: number; sendMinute: number; sendHourEnd: number | null },
+  now: Date
+): Date {
+  const base = computeScheduledAt(enrolledAt, step.dayOffset, step.sendHour, step.sendMinute);
+  if (!step.sendHourEnd) return base;
+
+  const windowEnd = computeScheduledAt(enrolledAt, step.dayOffset, step.sendHourEnd, 0);
+  const lower = Math.max(now.getTime() + 60_000, base.getTime());
+  const upper = windowEnd.getTime() - 60_000;
+
+  if (lower >= upper) return new Date(lower); // window tight or passed — send as soon as possible
+  return new Date(lower + Math.random() * (upper - lower));
+}
+
 async function maybeAdvance(
   enrollmentId: string,
   currentStepId: string,
-  allSteps: Array<{ id: string; stepNumber: number; dayOffset: number; sendHour: number; sendMinute: number }>,
+  allSteps: Array<{ id: string; stepNumber: number; dayOffset: number; sendHour: number; sendMinute: number; sendHourEnd: number | null }>,
   enrolledAt: Date
 ) {
   const currentIndex = allSteps.findIndex((s) => s.id === currentStepId);
@@ -141,7 +180,7 @@ async function maybeAdvance(
         enrollmentId,
         stepId: nextStep.id,
         status: "PENDING",
-        scheduledAt: computeScheduledAt(enrolledAt, nextStep.dayOffset, nextStep.sendHour, nextStep.sendMinute),
+        scheduledAt: computeWindowedScheduledAt(enrolledAt, nextStep, new Date()),
       },
     });
   } else {
