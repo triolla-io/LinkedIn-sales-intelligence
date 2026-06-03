@@ -4,10 +4,6 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   return withTenant(async (_req, ctx) => {
-    if (ctx.user.role !== "ADMIN" && ctx.user.role !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
     const now = new Date();
 
     const executions = await prisma.sequenceStepExecution.findMany({
