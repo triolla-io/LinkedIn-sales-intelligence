@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Copy, Check, Download } from "lucide-react";
 import { ExtensionStatusBadge } from "@/components/extension-status-badge";
@@ -45,6 +45,15 @@ export function ExtensionClient({
     setRawToken(null);
     setBusy(false);
   }
+
+  useEffect(() => {
+    if (!session || session.revokedAt) return;
+    const interval = setInterval(async () => {
+      const s = await fetch("/api/extension/sessions").then((r) => r.json());
+      if (s.session) setSession(s.session);
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [session?.id, session?.revokedAt]);
 
   async function copyToken(text: string) {
     await navigator.clipboard.writeText(text);
@@ -139,29 +148,31 @@ export function ExtensionClient({
             ) : null}
             {tokenToShow && (
               <div
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${rawToken ? "bg-[#fffbeb] border-[#fcd34d]" : "bg-[#f3f2ef] border-[#e5e3df]"}`}
+                className={`rounded-lg border px-3 py-2 space-y-1 ${rawToken ? "bg-[#fffbeb] border-[#fcd34d]" : "bg-[#f3f2ef] border-[#e5e3df]"}`}
               >
                 {rawToken && (
-                  <p className="text-xs text-[#b45309] font-medium mb-1 w-full">
+                  <p className="text-xs text-[#b45309] font-medium">
                     העתיקי עכשיו, לא יוצג שוב
                   </p>
                 )}
-                <code className="flex-1 text-xs break-all text-[#111110]">
-                  {tokenToShow}
-                </code>
-                {rawToken && (
-                  <button
-                    type="button"
-                    onClick={() => copyToken(rawToken)}
-                    className="shrink-0 text-[#1585ff] hover:text-[#0f6fd4]"
-                  >
-                    {copied ? (
-                      <Check className="size-4 text-[#059669]" />
-                    ) : (
-                      <Copy className="size-4" />
-                    )}
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-xs break-all text-[#111110]">
+                    {tokenToShow}
+                  </code>
+                  {rawToken && (
+                    <button
+                      type="button"
+                      onClick={() => copyToken(rawToken)}
+                      className="shrink-0 text-[#1585ff] hover:text-[#0f6fd4]"
+                    >
+                      {copied ? (
+                        <Check className="size-4 text-[#059669]" />
+                      ) : (
+                        <Copy className="size-4" />
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
             )}
             {connected && !rawToken && (
