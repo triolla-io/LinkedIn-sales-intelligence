@@ -11,10 +11,11 @@ export default async function CampaignDetailPage({
   const session = await auth();
   if (!session?.user) redirect("/sign-in");
 
+  const userId = session.user.id;
   const { id } = await params;
 
   const sequence = await prisma.sequence.findFirst({
-    where: { id, ownerId: session.user.id },
+    where: { id, ownerId: userId },
     include: {
       steps: { orderBy: { stepNumber: "asc" }, include: { template: { select: { name: true } } } },
       contactList: { select: { name: true } },
@@ -27,6 +28,7 @@ export default async function CampaignDetailPage({
           },
         },
         orderBy: { enrolledAt: "asc" },
+        // contactId is included by default as a scalar field on Enrollment
       },
     },
   });
@@ -34,15 +36,23 @@ export default async function CampaignDetailPage({
   if (!sequence) notFound();
 
   const extensionSession = await prisma.extensionSession.findFirst({
-    where: { userId: session.user.id, revokedAt: null },
+    where: { userId, revokedAt: null },
     orderBy: { lastSeenAt: "desc" },
     select: { lastSeenAt: true },
+  });
+
+  const contacts = await prisma.contact.findMany({
+    where: { ownerId: userId },
+    select: { id: true, fullName: true, currentTitle: true, currentCompany: true },
+    orderBy: { fullName: "asc" },
+    take: 500,
   });
 
   return (
     <CampaignDetailClient
       sequence={sequence}
       extensionLastSeen={extensionSession?.lastSeenAt?.toISOString() ?? null}
+      contacts={contacts}
     />
   );
 }
