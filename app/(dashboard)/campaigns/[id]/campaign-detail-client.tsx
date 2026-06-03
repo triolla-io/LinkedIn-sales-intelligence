@@ -11,6 +11,7 @@ import {
   XCircle,
   Mail,
   MessageSquare,
+  Link2,
   X,
   RefreshCw,
   Plus,
@@ -401,6 +402,10 @@ function SequenceTimeline({
                     <Mail
                       className={`size-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`}
                     />
+                  ) : step.channel === "LINKEDIN" ? (
+                    <Link2
+                      className={`size-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`}
+                    />
                   ) : (
                     <MessageSquare
                       className={`size-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`}
@@ -414,7 +419,7 @@ function SequenceTimeline({
               <div className="mt-2 text-center px-2 w-full">
                 <p className="text-xs font-semibold text-[#111110]">
                   יום {step.dayOffset + 1}:{" "}
-                  {step.channel === "EMAIL" ? "דוא״ל" : "WhatsApp"}
+                  {step.channel === "EMAIL" ? "דוא״ל" : step.channel === "LINKEDIN" ? "LinkedIn" : "WhatsApp"}
                 </p>
                 <p className="text-[10px] text-[#9b9895] mt-0.5">{timeStr}</p>
                 {isActive && (
