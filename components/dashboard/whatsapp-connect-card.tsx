@@ -176,6 +176,7 @@ export function WhatsAppConnectCard() {
             alt="WhatsApp QR code"
             width={220}
             height={220}
+            unoptimized
             className="rounded-lg border border-[#e5e3df]"
           />
         ) : (
