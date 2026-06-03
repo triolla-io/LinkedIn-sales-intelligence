@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, UserPlus, X } from "lucide-react";
 
 type ContactResult = {
@@ -101,7 +102,7 @@ export default function AddContactsToListModal({
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
       <div className="bg-white rounded-xl border border-[#e5e3df] shadow-2xl shadow-black/10 w-full max-w-md mx-4 flex flex-col overflow-hidden">
         {/* Header */}
@@ -149,10 +150,19 @@ export default function AddContactsToListModal({
                 <button
                   key={contact.id}
                   onClick={() => toggleContact(contact.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-right transition-colors ${
                     isSelected ? "bg-[#1585ff]/5" : "hover:bg-[#f8f7f5]"
                   }`}
                 >
+                  <div className="flex-1 min-w-0 text-right">
+                    <p className="text-xs font-medium text-[#111110] truncate">{contact.fullName ?? "—"}</p>
+                    <p className="text-[11px] text-[#9b9895] truncate">
+                      {[contact.currentTitle, contact.currentCompany].filter(Boolean).join(" · ")}
+                      {contact.email && (
+                        <span className="me-1 text-[#b0adaa]">{contact.email}</span>
+                      )}
+                    </p>
+                  </div>
                   <div
                     className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
                       isSelected
@@ -165,15 +175,6 @@ export default function AddContactsToListModal({
                         <path d="M1 4l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-[#111110] truncate">{contact.fullName ?? "—"}</p>
-                    <p className="text-[11px] text-[#9b9895] truncate">
-                      {[contact.currentTitle, contact.currentCompany].filter(Boolean).join(" · ")}
-                      {contact.email && (
-                        <span className="ml-1 text-[#b0adaa]">{contact.email}</span>
-                      )}
-                    </p>
                   </div>
                 </button>
               );
@@ -207,6 +208,7 @@ export default function AddContactsToListModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
