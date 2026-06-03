@@ -12,15 +12,16 @@ interface EditContactModalProps {
   onSaved: (updated: Contact) => void;
 }
 
-type EditableField = "email" | "phone" | "currentTitle" | "currentCompany" | "location" | "headline";
+type EditableField = "email" | "phone" | "currentTitle" | "currentCompany" | "location" | "headline" | "linkedinUrl";
 
-const FIELDS: { key: EditableField; label: string; type?: string }[] = [
-  { key: "email", label: "אימייל", type: "email" },
-  { key: "phone", label: "טלפון", type: "tel" },
-  { key: "currentTitle", label: "תפקיד" },
+const FIELDS: { key: EditableField; label: string; type?: string; dir?: "ltr" }[] = [
+  { key: "email",          label: "אימייל",      type: "email", dir: "ltr" },
+  { key: "phone",          label: "טלפון",       type: "tel",   dir: "ltr" },
+  { key: "currentTitle",   label: "תפקיד" },
   { key: "currentCompany", label: "חברה" },
-  { key: "location", label: "מיקום" },
-  { key: "headline", label: "כותרת" },
+  { key: "location",       label: "מיקום" },
+  { key: "headline",       label: "כותרת" },
+  { key: "linkedinUrl",    label: "LinkedIn URL", type: "url", dir: "ltr" },
 ];
 
 export default function EditContactModal({ contact, onClose, onSaved }: EditContactModalProps) {
@@ -33,7 +34,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
 
   const initialValues = useRef<Record<EditableField, string>>(
     Object.fromEntries(
@@ -42,12 +43,14 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
   );
 
   const isDirty = FIELDS.some(({ key }) => form[key] !== initialValues.current[key]);
-
   const manualSet = new Set(contact.manualFields ?? []);
 
   useEffect(() => {
-    dialogRef.current?.showModal();
-  }, []);
+    firstInputRef.current?.focus();
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   async function handleSave() {
     setSaving(true);
@@ -73,24 +76,23 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
   }
 
   return createPortal(
-    <dialog
-      ref={dialogRef}
-      onClose={onClose}
-      aria-labelledby="edit-contact-dialog-title"
-      className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm bg-white rounded-xl shadow-2xl border border-[#e5e3df] m-0 p-0 backdrop:bg-black/40"
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
+      <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl border border-[#e5e3df] mx-4">
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e3df]">
-          <h3 id="edit-contact-dialog-title" className="text-sm font-semibold text-[#111110]">ערוך איש קשר</h3>
+          <h3 className="text-sm font-semibold text-[#111110]">ערוך איש קשר</h3>
           <button type="button" onClick={onClose} aria-label="סגור" className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
             <X className="size-4" />
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
-          {FIELDS.map(({ key, label, type }) => (
+        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+          {FIELDS.map(({ key, label, type, dir }, i) => (
             <div key={key}>
               <div className="flex items-center gap-1.5 mb-1">
-                <label htmlFor={key} className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">
+                <label htmlFor={`edit-${key}`} className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">
                   {label}
                 </label>
                 {manualSet.has(key) && (
@@ -100,8 +102,10 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
                 )}
               </div>
               <input
-                id={key}
+                ref={i === 0 ? firstInputRef : undefined}
+                id={`edit-${key}`}
                 type={type ?? "text"}
+                dir={dir}
                 value={form[key]}
                 onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
                 className="w-full px-3 py-2 text-sm border border-[#d1cfcb] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] text-[#111110] placeholder:text-[#c4c2be]"
@@ -109,16 +113,11 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
               />
             </div>
           ))}
-
           {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
 
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[#e5e3df]">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] transition-colors"
-          >
+          <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] transition-colors">
             ביטול
           </button>
           <button
@@ -133,7 +132,8 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
             {saving ? "שומר…" : "שמור"}
           </button>
         </div>
-    </dialog>,
+      </div>
+    </div>,
     document.body
   );
 }

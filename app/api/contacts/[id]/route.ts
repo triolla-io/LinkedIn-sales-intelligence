@@ -24,7 +24,7 @@ export const GET = withTenant(async (_req, ctx) => {
   return NextResponse.json(contact);
 });
 
-const EDITABLE_FIELDS = ["email", "phone", "currentTitle", "currentCompany", "location", "headline"] as const;
+const EDITABLE_FIELDS = ["email", "phone", "currentTitle", "currentCompany", "location", "headline", "linkedinUrl"] as const;
 type EditableField = typeof EDITABLE_FIELDS[number];
 
 function parseEditBody(body: unknown): Partial<Record<EditableField, string | null>> | null {
