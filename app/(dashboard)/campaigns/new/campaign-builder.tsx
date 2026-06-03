@@ -9,7 +9,6 @@ type Channel = "EMAIL" | "WHATSAPP" | "LINKEDIN";
 type Template = {
   id: string;
   name: string;
-  channel: Channel;
 };
 
 type ContactList = {
@@ -191,7 +190,7 @@ export default function CampaignBuilder({
     }
   }
 
-  const templatesForChannel = (channel: Channel) => templates.filter((t) => t.channel === channel);
+  const templatesForChannel = (_channel: Channel) => templates;
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4 space-y-8">
