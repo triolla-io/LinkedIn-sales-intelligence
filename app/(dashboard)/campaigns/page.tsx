@@ -8,7 +8,7 @@ export default async function CampaignsPage() {
   const session = await auth();
   if (!session?.user) redirect("/sign-in");
 
-  const [sequences, lists, templates, extensionSession, whatsappStatus] = await Promise.all([
+  const [sequences, extensionSession, whatsappStatus] = await Promise.all([
     prisma.sequence.findMany({
       where: { ownerId: session.user.id },
       orderBy: { createdAt: "desc" },
@@ -26,16 +26,6 @@ export default async function CampaignsPage() {
         },
       },
     }),
-    prisma.contactList.findMany({
-      where: { ownerId: session.user.id },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
-    prisma.messageTemplate.findMany({
-      where: { ownerId: session.user.id },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
     prisma.extensionSession.findFirst({
       where: { userId: session.user.id, revokedAt: null },
       orderBy: { lastSeenAt: "desc" },
@@ -47,8 +37,6 @@ export default async function CampaignsPage() {
   return (
     <CampaignsClient
       sequences={sequences}
-      lists={lists}
-      templates={templates}
       extensionLastSeen={extensionSession?.lastSeenAt?.toISOString() ?? null}
       extensionRevokedAt={extensionSession?.revokedAt?.toISOString() ?? null}
       whatsappStatus={whatsappStatus.status}

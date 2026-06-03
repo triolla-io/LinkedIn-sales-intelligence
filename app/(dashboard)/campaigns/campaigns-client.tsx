@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus, Pause, Play, Mail, MessageSquare, Trash2 } from "lucide-react";
+import { Pause, Play, Mail, MessageSquare, Trash2 } from "lucide-react";
 import AutoRefresher from "@/components/auto-refresher";
-import NewSequenceModal from "@/components/dashboard/new-sequence-modal";
 import { ExtensionStatusBadge } from "@/components/extension-status-badge";
 
 type Step = { stepNumber: number; channel: string; dayOffset: number };
@@ -15,12 +14,10 @@ type Sequence = {
   name: string;
   status: string;
   steps: Step[];
-  contactList: { name: string };
+  contactList: { name: string } | null;
   _count: { enrollments: number };
   enrollments: { executions: Execution[] }[];
 };
-type List = { id: string; name: string };
-type Template = { id: string; name: string };
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: "bg-[#f3f2ef] text-[#6b6866]",
@@ -120,21 +117,16 @@ function WhatsAppStatusBadge({ status }: { status: "CONNECTED" | "QR_PENDING" | 
 
 export default function CampaignsClient({
   sequences,
-  lists,
-  templates,
   extensionLastSeen,
   extensionRevokedAt,
   whatsappStatus,
 }: {
   sequences: Sequence[];
-  lists: List[];
-  templates: Template[];
   extensionLastSeen: string | null;
   extensionRevokedAt: string | null;
   whatsappStatus: "CONNECTED" | "QR_PENDING" | "DISCONNECTED";
 }) {
   const router = useRouter();
-  const [showModal, setShowModal] = useState(false);
   const [deletingSeq, setDeletingSeq] = useState<Sequence | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -179,14 +171,12 @@ export default function CampaignsClient({
             revokedAt={extensionRevokedAt}
           />
           <WhatsAppStatusBadge status={whatsappStatus} />
-          <button
-            type="button"
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 bg-[#1585ff] text-white text-sm font-medium px-3.5 py-2 rounded-lg hover:bg-[#0f6fd4] transition-colors"
+          <Link
+            href="/campaigns/new"
+            className="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700"
           >
-            <Plus className="size-4" />
-            קמפיין חדש
-          </button>
+            + קמפיין חדש
+          </Link>
         </div>
       </div>
 
@@ -226,7 +216,7 @@ export default function CampaignsClient({
                       </span>
                     </div>
                     <p className="text-xs text-[#9b9895] mt-0.5">
-                      {seq.contactList.name}
+                      {seq.contactList?.name}
                     </p>
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-xs text-[#6b6866]">
@@ -270,18 +260,6 @@ export default function CampaignsClient({
             );
           })}
         </div>
-      )}
-
-      {showModal && (
-        <NewSequenceModal
-          lists={lists}
-          templates={templates}
-          onClose={() => setShowModal(false)}
-          onCreated={() => {
-            setShowModal(false);
-            router.refresh();
-          }}
-        />
       )}
 
       {deletingSeq && (
