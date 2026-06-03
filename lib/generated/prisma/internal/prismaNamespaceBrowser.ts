@@ -417,6 +417,7 @@ export const SequenceStepScalarFieldEnum = {
   dayOffset: 'dayOffset',
   sendHour: 'sendHour',
   sendMinute: 'sendMinute',
+  sendHourEnd: 'sendHourEnd',
   channel: 'channel',
   templateId: 'templateId',
   subject: 'subject',

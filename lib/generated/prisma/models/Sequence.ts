@@ -182,7 +182,7 @@ export type SequenceGroupByOutputType = {
   ownerId: string
   orgId: string | null
   name: string
-  contactListId: string
+  contactListId: string | null
   status: $Enums.SequenceStatus
   startedAt: Date | null
   completedAt: Date | null
@@ -216,14 +216,14 @@ export type SequenceWhereInput = {
   ownerId?: Prisma.StringFilter<"Sequence"> | string
   orgId?: Prisma.StringNullableFilter<"Sequence"> | string | null
   name?: Prisma.StringFilter<"Sequence"> | string
-  contactListId?: Prisma.StringFilter<"Sequence"> | string
+  contactListId?: Prisma.StringNullableFilter<"Sequence"> | string | null
   status?: Prisma.EnumSequenceStatusFilter<"Sequence"> | $Enums.SequenceStatus
   startedAt?: Prisma.DateTimeNullableFilter<"Sequence"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"Sequence"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Sequence"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Sequence"> | Date | string
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  contactList?: Prisma.XOR<Prisma.ContactListScalarRelationFilter, Prisma.ContactListWhereInput>
+  contactList?: Prisma.XOR<Prisma.ContactListNullableScalarRelationFilter, Prisma.ContactListWhereInput> | null
   steps?: Prisma.SequenceStepListRelationFilter
   enrollments?: Prisma.SequenceEnrollmentListRelationFilter
 }
@@ -233,7 +233,7 @@ export type SequenceOrderByWithRelationInput = {
   ownerId?: Prisma.SortOrder
   orgId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
-  contactListId?: Prisma.SortOrder
+  contactListId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   startedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -253,14 +253,14 @@ export type SequenceWhereUniqueInput = Prisma.AtLeast<{
   ownerId?: Prisma.StringFilter<"Sequence"> | string
   orgId?: Prisma.StringNullableFilter<"Sequence"> | string | null
   name?: Prisma.StringFilter<"Sequence"> | string
-  contactListId?: Prisma.StringFilter<"Sequence"> | string
+  contactListId?: Prisma.StringNullableFilter<"Sequence"> | string | null
   status?: Prisma.EnumSequenceStatusFilter<"Sequence"> | $Enums.SequenceStatus
   startedAt?: Prisma.DateTimeNullableFilter<"Sequence"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"Sequence"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Sequence"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Sequence"> | Date | string
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  contactList?: Prisma.XOR<Prisma.ContactListScalarRelationFilter, Prisma.ContactListWhereInput>
+  contactList?: Prisma.XOR<Prisma.ContactListNullableScalarRelationFilter, Prisma.ContactListWhereInput> | null
   steps?: Prisma.SequenceStepListRelationFilter
   enrollments?: Prisma.SequenceEnrollmentListRelationFilter
 }, "id">
@@ -270,7 +270,7 @@ export type SequenceOrderByWithAggregationInput = {
   ownerId?: Prisma.SortOrder
   orgId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
-  contactListId?: Prisma.SortOrder
+  contactListId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   startedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -289,7 +289,7 @@ export type SequenceScalarWhereWithAggregatesInput = {
   ownerId?: Prisma.StringWithAggregatesFilter<"Sequence"> | string
   orgId?: Prisma.StringNullableWithAggregatesFilter<"Sequence"> | string | null
   name?: Prisma.StringWithAggregatesFilter<"Sequence"> | string
-  contactListId?: Prisma.StringWithAggregatesFilter<"Sequence"> | string
+  contactListId?: Prisma.StringNullableWithAggregatesFilter<"Sequence"> | string | null
   status?: Prisma.EnumSequenceStatusWithAggregatesFilter<"Sequence"> | $Enums.SequenceStatus
   startedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Sequence"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Sequence"> | Date | string | null
@@ -307,7 +307,7 @@ export type SequenceCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutSequencesInput
-  contactList: Prisma.ContactListCreateNestedOneWithoutSequencesInput
+  contactList?: Prisma.ContactListCreateNestedOneWithoutSequencesInput
   steps?: Prisma.SequenceStepCreateNestedManyWithoutSequenceInput
   enrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutSequenceInput
 }
@@ -317,7 +317,7 @@ export type SequenceUncheckedCreateInput = {
   ownerId: string
   orgId?: string | null
   name: string
-  contactListId: string
+  contactListId?: string | null
   status?: $Enums.SequenceStatus
   startedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -337,7 +337,7 @@ export type SequenceUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutSequencesNestedInput
-  contactList?: Prisma.ContactListUpdateOneRequiredWithoutSequencesNestedInput
+  contactList?: Prisma.ContactListUpdateOneWithoutSequencesNestedInput
   steps?: Prisma.SequenceStepUpdateManyWithoutSequenceNestedInput
   enrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutSequenceNestedInput
 }
@@ -347,7 +347,7 @@ export type SequenceUncheckedUpdateInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  contactListId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSequenceStatusFieldUpdateOperationsInput | $Enums.SequenceStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -362,7 +362,7 @@ export type SequenceCreateManyInput = {
   ownerId: string
   orgId?: string | null
   name: string
-  contactListId: string
+  contactListId?: string | null
   status?: $Enums.SequenceStatus
   startedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -386,7 +386,7 @@ export type SequenceUncheckedUpdateManyInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  contactListId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSequenceStatusFieldUpdateOperationsInput | $Enums.SequenceStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -573,7 +573,7 @@ export type SequenceCreateWithoutOwnerInput = {
   completedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  contactList: Prisma.ContactListCreateNestedOneWithoutSequencesInput
+  contactList?: Prisma.ContactListCreateNestedOneWithoutSequencesInput
   steps?: Prisma.SequenceStepCreateNestedManyWithoutSequenceInput
   enrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutSequenceInput
 }
@@ -582,7 +582,7 @@ export type SequenceUncheckedCreateWithoutOwnerInput = {
   id?: string
   orgId?: string | null
   name: string
-  contactListId: string
+  contactListId?: string | null
   status?: $Enums.SequenceStatus
   startedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -626,7 +626,7 @@ export type SequenceScalarWhereInput = {
   ownerId?: Prisma.StringFilter<"Sequence"> | string
   orgId?: Prisma.StringNullableFilter<"Sequence"> | string | null
   name?: Prisma.StringFilter<"Sequence"> | string
-  contactListId?: Prisma.StringFilter<"Sequence"> | string
+  contactListId?: Prisma.StringNullableFilter<"Sequence"> | string | null
   status?: Prisma.EnumSequenceStatusFilter<"Sequence"> | $Enums.SequenceStatus
   startedAt?: Prisma.DateTimeNullableFilter<"Sequence"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"Sequence"> | Date | string | null
@@ -698,7 +698,7 @@ export type SequenceCreateWithoutStepsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutSequencesInput
-  contactList: Prisma.ContactListCreateNestedOneWithoutSequencesInput
+  contactList?: Prisma.ContactListCreateNestedOneWithoutSequencesInput
   enrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutSequenceInput
 }
 
@@ -707,7 +707,7 @@ export type SequenceUncheckedCreateWithoutStepsInput = {
   ownerId: string
   orgId?: string | null
   name: string
-  contactListId: string
+  contactListId?: string | null
   status?: $Enums.SequenceStatus
   startedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -742,7 +742,7 @@ export type SequenceUpdateWithoutStepsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutSequencesNestedInput
-  contactList?: Prisma.ContactListUpdateOneRequiredWithoutSequencesNestedInput
+  contactList?: Prisma.ContactListUpdateOneWithoutSequencesNestedInput
   enrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutSequenceNestedInput
 }
 
@@ -751,7 +751,7 @@ export type SequenceUncheckedUpdateWithoutStepsInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  contactListId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSequenceStatusFieldUpdateOperationsInput | $Enums.SequenceStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -770,7 +770,7 @@ export type SequenceCreateWithoutEnrollmentsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutSequencesInput
-  contactList: Prisma.ContactListCreateNestedOneWithoutSequencesInput
+  contactList?: Prisma.ContactListCreateNestedOneWithoutSequencesInput
   steps?: Prisma.SequenceStepCreateNestedManyWithoutSequenceInput
 }
 
@@ -779,7 +779,7 @@ export type SequenceUncheckedCreateWithoutEnrollmentsInput = {
   ownerId: string
   orgId?: string | null
   name: string
-  contactListId: string
+  contactListId?: string | null
   status?: $Enums.SequenceStatus
   startedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -814,7 +814,7 @@ export type SequenceUpdateWithoutEnrollmentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutSequencesNestedInput
-  contactList?: Prisma.ContactListUpdateOneRequiredWithoutSequencesNestedInput
+  contactList?: Prisma.ContactListUpdateOneWithoutSequencesNestedInput
   steps?: Prisma.SequenceStepUpdateManyWithoutSequenceNestedInput
 }
 
@@ -823,7 +823,7 @@ export type SequenceUncheckedUpdateWithoutEnrollmentsInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  contactListId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSequenceStatusFieldUpdateOperationsInput | $Enums.SequenceStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -836,7 +836,7 @@ export type SequenceCreateManyOwnerInput = {
   id?: string
   orgId?: string | null
   name: string
-  contactListId: string
+  contactListId?: string | null
   status?: $Enums.SequenceStatus
   startedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -853,7 +853,7 @@ export type SequenceUpdateWithoutOwnerInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  contactList?: Prisma.ContactListUpdateOneRequiredWithoutSequencesNestedInput
+  contactList?: Prisma.ContactListUpdateOneWithoutSequencesNestedInput
   steps?: Prisma.SequenceStepUpdateManyWithoutSequenceNestedInput
   enrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutSequenceNestedInput
 }
@@ -862,7 +862,7 @@ export type SequenceUncheckedUpdateWithoutOwnerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  contactListId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSequenceStatusFieldUpdateOperationsInput | $Enums.SequenceStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -876,7 +876,7 @@ export type SequenceUncheckedUpdateManyWithoutOwnerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  contactListId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactListId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSequenceStatusFieldUpdateOperationsInput | $Enums.SequenceStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -988,7 +988,7 @@ export type SequenceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   createdAt?: boolean
   updatedAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  contactList?: boolean | Prisma.ContactListDefaultArgs<ExtArgs>
+  contactList?: boolean | Prisma.Sequence$contactListArgs<ExtArgs>
   steps?: boolean | Prisma.Sequence$stepsArgs<ExtArgs>
   enrollments?: boolean | Prisma.Sequence$enrollmentsArgs<ExtArgs>
   _count?: boolean | Prisma.SequenceCountOutputTypeDefaultArgs<ExtArgs>
@@ -1006,7 +1006,7 @@ export type SequenceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   createdAt?: boolean
   updatedAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  contactList?: boolean | Prisma.ContactListDefaultArgs<ExtArgs>
+  contactList?: boolean | Prisma.Sequence$contactListArgs<ExtArgs>
 }, ExtArgs["result"]["sequence"]>
 
 export type SequenceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1021,7 +1021,7 @@ export type SequenceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   createdAt?: boolean
   updatedAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  contactList?: boolean | Prisma.ContactListDefaultArgs<ExtArgs>
+  contactList?: boolean | Prisma.Sequence$contactListArgs<ExtArgs>
 }, ExtArgs["result"]["sequence"]>
 
 export type SequenceSelectScalar = {
@@ -1040,25 +1040,25 @@ export type SequenceSelectScalar = {
 export type SequenceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "orgId" | "name" | "contactListId" | "status" | "startedAt" | "completedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["sequence"]>
 export type SequenceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  contactList?: boolean | Prisma.ContactListDefaultArgs<ExtArgs>
+  contactList?: boolean | Prisma.Sequence$contactListArgs<ExtArgs>
   steps?: boolean | Prisma.Sequence$stepsArgs<ExtArgs>
   enrollments?: boolean | Prisma.Sequence$enrollmentsArgs<ExtArgs>
   _count?: boolean | Prisma.SequenceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SequenceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  contactList?: boolean | Prisma.ContactListDefaultArgs<ExtArgs>
+  contactList?: boolean | Prisma.Sequence$contactListArgs<ExtArgs>
 }
 export type SequenceIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  contactList?: boolean | Prisma.ContactListDefaultArgs<ExtArgs>
+  contactList?: boolean | Prisma.Sequence$contactListArgs<ExtArgs>
 }
 
 export type $SequencePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Sequence"
   objects: {
     owner: Prisma.$UserPayload<ExtArgs>
-    contactList: Prisma.$ContactListPayload<ExtArgs>
+    contactList: Prisma.$ContactListPayload<ExtArgs> | null
     steps: Prisma.$SequenceStepPayload<ExtArgs>[]
     enrollments: Prisma.$SequenceEnrollmentPayload<ExtArgs>[]
   }
@@ -1067,7 +1067,7 @@ export type $SequencePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     ownerId: string
     orgId: string | null
     name: string
-    contactListId: string
+    contactListId: string | null
     status: $Enums.SequenceStatus
     startedAt: Date | null
     completedAt: Date | null
@@ -1468,7 +1468,7 @@ readonly fields: SequenceFieldRefs;
 export interface Prisma__SequenceClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   owner<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  contactList<T extends Prisma.ContactListDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ContactListDefaultArgs<ExtArgs>>): Prisma.Prisma__ContactListClient<runtime.Types.Result.GetResult<Prisma.$ContactListPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  contactList<T extends Prisma.Sequence$contactListArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Sequence$contactListArgs<ExtArgs>>): Prisma.Prisma__ContactListClient<runtime.Types.Result.GetResult<Prisma.$ContactListPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   steps<T extends Prisma.Sequence$stepsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Sequence$stepsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SequenceStepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   enrollments<T extends Prisma.Sequence$enrollmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Sequence$enrollmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SequenceEnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1908,6 +1908,25 @@ export type SequenceDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Limit how many Sequences to delete.
    */
   limit?: number
+}
+
+/**
+ * Sequence.contactList
+ */
+export type Sequence$contactListArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ContactList
+   */
+  select?: Prisma.ContactListSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ContactList
+   */
+  omit?: Prisma.ContactListOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ContactListInclude<ExtArgs> | null
+  where?: Prisma.ContactListWhereInput
 }
 
 /**

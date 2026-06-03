@@ -336,6 +336,11 @@ export type ContactListScalarRelationFilter = {
   isNot?: Prisma.ContactListWhereInput
 }
 
+export type ContactListNullableScalarRelationFilter = {
+  is?: Prisma.ContactListWhereInput | null
+  isNot?: Prisma.ContactListWhereInput | null
+}
+
 export type ContactListCreateNestedManyWithoutOwnerInput = {
   create?: Prisma.XOR<Prisma.ContactListCreateWithoutOwnerInput, Prisma.ContactListUncheckedCreateWithoutOwnerInput> | Prisma.ContactListCreateWithoutOwnerInput[] | Prisma.ContactListUncheckedCreateWithoutOwnerInput[]
   connectOrCreate?: Prisma.ContactListCreateOrConnectWithoutOwnerInput | Prisma.ContactListCreateOrConnectWithoutOwnerInput[]
@@ -398,10 +403,12 @@ export type ContactListCreateNestedOneWithoutSequencesInput = {
   connect?: Prisma.ContactListWhereUniqueInput
 }
 
-export type ContactListUpdateOneRequiredWithoutSequencesNestedInput = {
+export type ContactListUpdateOneWithoutSequencesNestedInput = {
   create?: Prisma.XOR<Prisma.ContactListCreateWithoutSequencesInput, Prisma.ContactListUncheckedCreateWithoutSequencesInput>
   connectOrCreate?: Prisma.ContactListCreateOrConnectWithoutSequencesInput
   upsert?: Prisma.ContactListUpsertWithoutSequencesInput
+  disconnect?: Prisma.ContactListWhereInput | boolean
+  delete?: Prisma.ContactListWhereInput | boolean
   connect?: Prisma.ContactListWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.ContactListUpdateToOneWithWhereWithoutSequencesInput, Prisma.ContactListUpdateWithoutSequencesInput>, Prisma.ContactListUncheckedUpdateWithoutSequencesInput>
 }
