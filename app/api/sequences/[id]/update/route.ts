@@ -24,6 +24,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       updateData.name = name.trim();
     }
     if (contactListId !== undefined) {
+      if (contactListId !== null && typeof contactListId === "string") {
+        const list = await prisma.contactList.findFirst({
+          where: { id: contactListId, ownerId: ctx.effectiveUserId },
+        });
+        if (!list) {
+          return NextResponse.json({ error: "contact list not found" }, { status: 404 });
+        }
+      }
       updateData.contactListId = (contactListId as string | null) ?? null;
     }
 
