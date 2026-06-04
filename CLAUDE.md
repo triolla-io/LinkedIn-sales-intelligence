@@ -32,6 +32,7 @@ Multi-tenant LinkedIn sales intelligence platform. See README.md for full archit
 | `sequence.start` | sequence start API | `inngest/functions/sequence-start.ts` |
 | `sequence.tick` | cron / admin trigger | `inngest/functions/sequence-tick.ts` |
 | `sequence.send-execution` | per step due | `inngest/functions/sequence-send-execution.ts` |
+| `prospecting.start` | prospecting start API | `inngest/functions/prospecting-start.ts` |
 
 ## Next.js version
 
