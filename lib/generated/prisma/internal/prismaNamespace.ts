@@ -410,7 +410,8 @@ export const ModelName = {
   SequenceStepExecution: 'SequenceStepExecution',
   ExtensionTask: 'ExtensionTask',
   ExtensionSession: 'ExtensionSession',
-  ExtensionAlert: 'ExtensionAlert'
+  ExtensionAlert: 'ExtensionAlert',
+  NameTranslation: 'NameTranslation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -426,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2428,6 +2429,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    NameTranslation: {
+      payload: Prisma.$NameTranslationPayload<ExtArgs>
+      fields: Prisma.NameTranslationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NameTranslationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NameTranslationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NameTranslationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NameTranslationPayload>
+        }
+        findFirst: {
+          args: Prisma.NameTranslationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NameTranslationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NameTranslationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NameTranslationPayload>
+        }
+        findMany: {
+          args: Prisma.NameTranslationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NameTranslationPayload>[]
+        }
+        create: {
+          args: Prisma.NameTranslationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NameTranslationPayload>
+        }
+        createMany: {
+          args: Prisma.NameTranslationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NameTranslationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NameTranslationPayload>[]
+        }
+        delete: {
+          args: Prisma.NameTranslationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NameTranslationPayload>
+        }
+        update: {
+          args: Prisma.NameTranslationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NameTranslationPayload>
+        }
+        deleteMany: {
+          args: Prisma.NameTranslationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NameTranslationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NameTranslationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NameTranslationPayload>[]
+        }
+        upsert: {
+          args: Prisma.NameTranslationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NameTranslationPayload>
+        }
+        aggregate: {
+          args: Prisma.NameTranslationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNameTranslation>
+        }
+        groupBy: {
+          args: Prisma.NameTranslationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NameTranslationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NameTranslationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NameTranslationCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2874,6 +2949,15 @@ export const ExtensionAlertScalarFieldEnum = {
 export type ExtensionAlertScalarFieldEnum = (typeof ExtensionAlertScalarFieldEnum)[keyof typeof ExtensionAlertScalarFieldEnum]
 
 
+export const NameTranslationScalarFieldEnum = {
+  firstName: 'firstName',
+  hebrewFirstName: 'hebrewFirstName',
+  createdAt: 'createdAt'
+} as const
+
+export type NameTranslationScalarFieldEnum = (typeof NameTranslationScalarFieldEnum)[keyof typeof NameTranslationScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3316,6 +3400,7 @@ export type GlobalOmitConfig = {
   extensionTask?: Prisma.ExtensionTaskOmit
   extensionSession?: Prisma.ExtensionSessionOmit
   extensionAlert?: Prisma.ExtensionAlertOmit
+  nameTranslation?: Prisma.NameTranslationOmit
 }
 
 /* Types for Logging */

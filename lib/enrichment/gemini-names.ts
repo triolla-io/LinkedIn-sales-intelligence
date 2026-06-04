@@ -1,56 +1,83 @@
-import { GoogleGenAI } from "@google/genai";
-
 export type NameInput = { id: string; firstName: string };
 export type NameOutput = { id: string; hebrewFirstName: string | null };
 
-let _client: GoogleGenAI | null = null;
-function getClient(): GoogleGenAI | null {
-  if (_client) return _client;
-  const key = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
-  if (!key) return null;
-  _client = new GoogleGenAI({ apiKey: key });
-  return _client;
+const SYSTEM = `You are a Hebrew transliteration assistant.
+Given a JSON array of contacts with English first names, return a JSON array with the Hebrew transliteration of each first name.
+Use standard Israeli Hebrew transliteration (e.g. "David"→"דוד", "John"→"ג'ון", "Sarah"→"שרה").
+Return ONLY a valid JSON array — no prose, no markdown fences.
+Output format: [{"id":"...","hebrewFirstName":"..."}]`;
+
+function tryParse(text: string): NameOutput[] | null {
+  const fence = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  const candidate = (fence ? fence[1] : text).trim();
+  try {
+    const parsed = JSON.parse(candidate);
+    if (!Array.isArray(parsed)) return null;
+    return parsed as NameOutput[];
+  } catch {
+    return null;
+  }
 }
 
 export async function translateNames(inputs: NameInput[]): Promise<NameOutput[]> {
   if (inputs.length === 0) return [];
 
-  const client = getClient();
-  if (!client) return [];
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) return [];
 
-  const prompt = `You are a Hebrew transliteration assistant.
-
-For each contact below, return a JSON array with the Hebrew transliteration of their English first name.
-Use standard Israeli Hebrew transliteration (e.g. "David"→"דוד", "John"→"ג'ון", "Sarah"→"שרה").
-
-Return ONLY a valid JSON array — no prose, no markdown fences.
-
-Input:
-${JSON.stringify(inputs)}
-
-Output format: [{"id":"...","hebrewFirstName":"..."}]`;
+  const model = process.env.OPENROUTER_MODEL ?? "deepseek/deepseek-chat";
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const response = await client.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15_000);
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        signal: controller.signal,
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://sales.triolla.io",
+          "X-Title": "Triolla Sales Intelligence",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: SYSTEM },
+            { role: "user", content: JSON.stringify(inputs) },
+          ],
+          temperature: 0,
+          max_tokens: 1024,
+        }),
       });
+      clearTimeout(timeout);
 
-      const text = (response.text ?? "").trim();
-      const fence = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      const candidate = fence ? fence[1] : text;
-      const parsed = JSON.parse(candidate);
-      if (!Array.isArray(parsed)) throw new Error("Expected array");
-      return parsed as NameOutput[];
+      if (!res.ok) {
+        const detail = await res.text().catch(() => "");
+        const is503 = res.status === 503 || res.status === 429;
+        if (is503 && attempt < 2) {
+          await new Promise((r) => setTimeout(r, (attempt + 1) * 5_000));
+          continue;
+        }
+        console.error(`OpenRouter name translation failed: ${res.status} ${detail}`);
+        return [];
+      }
+
+      const json = await res.json();
+      const text = (json.choices?.[0]?.message?.content ?? "").trim();
+      const parsed = tryParse(text);
+      if (!parsed) {
+        console.error("OpenRouter name translation: unexpected response format");
+        return [];
+      }
+      return parsed;
     } catch (err) {
       const msg = (err as Error).message;
-      const is503 = msg.includes("503") || msg.includes("UNAVAILABLE");
-      if (is503 && attempt < 2) {
-        await new Promise((r) => setTimeout(r, (attempt + 1) * 20_000));
+      if (attempt < 2) {
+        await new Promise((r) => setTimeout(r, (attempt + 1) * 5_000));
         continue;
       }
-      console.error("Gemini name translation failed:", msg);
+      console.error("OpenRouter name translation failed:", msg);
       return [];
     }
   }

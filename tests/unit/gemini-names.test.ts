@@ -1,28 +1,34 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-const mockGenerateContent = vi.hoisted(() => vi.fn());
-
-vi.mock("@google/genai", () => ({
-  GoogleGenAI: vi.fn(function () {
-    this.models = { generateContent: mockGenerateContent };
-  }),
-}));
+const mockFetch = vi.fn();
+vi.stubGlobal("fetch", mockFetch);
 
 import { translateNames } from "@/lib/enrichment/gemini-names";
 
+function orResponse(names: { id: string; hebrewFirstName: string }[]) {
+  return Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({
+      choices: [{ message: { content: JSON.stringify(names) } }],
+    }),
+  });
+}
+
 describe("translateNames", () => {
   beforeEach(() => {
-    mockGenerateContent.mockReset();
-    process.env.GEMINI_API_KEY = "test-key";
+    mockFetch.mockReset();
+    process.env.OPENROUTER_API_KEY = "test-key";
   });
 
-  it("returns Hebrew names from Gemini", async () => {
-    mockGenerateContent.mockResolvedValueOnce({
-      text: JSON.stringify([
-        { id: "c1", hebrewFirstName: "ג'ון" },
-        { id: "c2", hebrewFirstName: "רוברט" },
-      ]),
-    });
+  afterEach(() => {
+    delete process.env.OPENROUTER_API_KEY;
+  });
+
+  it("returns Hebrew names from OpenRouter", async () => {
+    mockFetch.mockReturnValueOnce(orResponse([
+      { id: "c1", hebrewFirstName: "ג'ון" },
+      { id: "c2", hebrewFirstName: "רוברט" },
+    ]));
 
     const result = await translateNames([
       { id: "c1", firstName: "John" },
@@ -36,19 +42,23 @@ describe("translateNames", () => {
 
   it("returns empty array for empty input", async () => {
     const result = await translateNames([]);
-    expect(mockGenerateContent).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
     expect(result).toEqual([]);
   });
 
   it("returns empty array on JSON parse failure without throwing", async () => {
-    mockGenerateContent.mockResolvedValueOnce({ text: "not json" });
+    mockFetch.mockReturnValueOnce(Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ choices: [{ message: { content: "not json" } }] }),
+    }));
     const result = await translateNames([{ id: "c1", firstName: "John" }]);
     expect(result).toEqual([]);
   });
 
-  it("returns empty array when GEMINI_API_KEY is not set", async () => {
-    delete process.env.GEMINI_API_KEY;
+  it("returns empty array when OPENROUTER_API_KEY is not set", async () => {
+    delete process.env.OPENROUTER_API_KEY;
     const result = await translateNames([{ id: "c1", firstName: "John" }]);
+    expect(mockFetch).not.toHaveBeenCalled();
     expect(result).toEqual([]);
   });
 });

@@ -616,3 +616,9 @@ model ExtensionAlert {
 
   @@index([userId, resolvedAt])
 }
+
+model NameTranslation {
+  firstName       String   @id
+  hebrewFirstName String
+  createdAt       DateTime @default(now())
+}

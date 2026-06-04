@@ -77,7 +77,8 @@ export const ModelName = {
   SequenceStepExecution: 'SequenceStepExecution',
   ExtensionTask: 'ExtensionTask',
   ExtensionSession: 'ExtensionSession',
-  ExtensionAlert: 'ExtensionAlert'
+  ExtensionAlert: 'ExtensionAlert',
+  NameTranslation: 'NameTranslation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -501,6 +502,15 @@ export const ExtensionAlertScalarFieldEnum = {
 } as const
 
 export type ExtensionAlertScalarFieldEnum = (typeof ExtensionAlertScalarFieldEnum)[keyof typeof ExtensionAlertScalarFieldEnum]
+
+
+export const NameTranslationScalarFieldEnum = {
+  firstName: 'firstName',
+  hebrewFirstName: 'hebrewFirstName',
+  createdAt: 'createdAt'
+} as const
+
+export type NameTranslationScalarFieldEnum = (typeof NameTranslationScalarFieldEnum)[keyof typeof NameTranslationScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -152,3 +152,8 @@ export type ExtensionSession = Prisma.ExtensionSessionModel
  * 
  */
 export type ExtensionAlert = Prisma.ExtensionAlertModel
+/**
+ * Model NameTranslation
+ * 
+ */
+export type NameTranslation = Prisma.NameTranslationModel
