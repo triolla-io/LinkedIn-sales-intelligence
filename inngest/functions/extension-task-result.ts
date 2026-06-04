@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { computeWindowedScheduledAt } from "@/lib/sequences/execute-send";
 import { persistCandidates } from "@/lib/prospecting/candidates";
-import { queueNextConnect } from "@/lib/prospecting/connect-scheduler";
+import { queueNextConnect, releaseConnectSlot, SEARCH_FAIL_CAP } from "@/lib/prospecting/connect-scheduler";
 import type { ScrapedCard } from "@/lib/prospecting/filter";
 import { buildSearchUrl } from "@/lib/prospecting/search-url";
 
@@ -196,40 +196,54 @@ async function handleReplyCheck(task: TaskRow) {
 async function handleSearchResult(task: TaskRow) {
   if (!task.prospectingRunId) return;
   const result = (task.result ?? {}) as { candidates?: ScrapedCard[]; hasNextPage?: boolean };
-  const payload = (task.payload ?? {}) as { page?: number };
 
   await persistCandidates(task.userId, task.prospectingRunId, result.candidates ?? []);
 
   const run = await prisma.prospectingRun.findUnique({ where: { id: task.prospectingRunId } });
   if (!run || run.status !== "RUNNING") return;
 
+  // A successful page resets the consecutive-failure counter.
+  if (run.searchFailCount > 0) {
+    await prisma.prospectingRun.update({ where: { id: run.id }, data: { searchFailCount: 0 } });
+  }
+
   if (result.hasNextPage) {
-    const nextPage = (payload.page ?? run.nextSearchPage) + 1;
+    // Advance the page cursor monotonically off the DB value (NOT the task payload), guarded so only
+    // one concurrent handler advances and creates the next SEARCH task.
+    const nextPage = run.nextSearchPage + 1;
     const searchUrl = buildSearchUrl(run.keywords, nextPage);
-    await prisma.prospectingRun.update({
-      where: { id: run.id },
+    const advanced = await prisma.prospectingRun.updateMany({
+      where: { id: run.id, nextSearchPage: run.nextSearchPage },
       data: { nextSearchPage: nextPage, searchUrl },
     });
-    await prisma.extensionTask.create({
-      data: {
-        userId: task.userId,
-        kind: "SEARCH",
-        payload: { searchUrl, page: nextPage },
-        prospectingRunId: run.id,
-        scheduledFor: new Date(),
-      },
-    });
+    if (advanced.count === 1) {
+      await prisma.extensionTask.create({
+        data: {
+          userId: task.userId,
+          kind: "SEARCH",
+          payload: { searchUrl, page: nextPage },
+          prospectingRunId: run.id,
+          scheduledFor: new Date(),
+        },
+      });
+    }
   } else {
     await prisma.prospectingRun.update({ where: { id: run.id }, data: { discoveryDone: true } });
   }
 
-  // Kickstart sending as soon as the first candidates land (chains one at a time thereafter).
+  // Kickstart sending as soon as candidates land (atomic; chains one at a time thereafter).
   await queueNextConnect(run.id);
 }
 
 async function handleSearchFailure(task: TaskRow) {
   if (task.errorCode === "checkpoint") {
     await freezeUserTasks(task.userId, 24);
+    if (task.prospectingRunId) {
+      await prisma.prospectingRun.update({
+        where: { id: task.prospectingRunId },
+        data: { pausedUntil: new Date(Date.now() + 24 * 60 * 60 * 1000) },
+      });
+    }
     await prisma.extensionAlert.create({
       data: {
         userId: task.userId,
@@ -237,26 +251,47 @@ async function handleSearchFailure(task: TaskRow) {
         message: "LinkedIn flagged your account during search — paused for 24h.",
       },
     });
+    return;
   }
-  // Non-checkpoint search failures are recovered by prospecting-tick re-queuing the page.
+  if (!task.prospectingRunId) return;
+  // Count the failure; give up discovery after too many so the run can still finish.
+  const run = await prisma.prospectingRun.update({
+    where: { id: task.prospectingRunId },
+    data: { searchFailCount: { increment: 1 } },
+  });
+  if (run.searchFailCount >= SEARCH_FAIL_CAP && !run.discoveryDone) {
+    await prisma.prospectingRun.update({ where: { id: run.id }, data: { discoveryDone: true } });
+    await queueNextConnect(run.id);
+  }
+  // Otherwise prospecting-tick re-queues the same page.
 }
 
 async function handleConnectSuccess(task: TaskRow) {
   if (!task.connectionRequestId || !task.prospectingRunId) return;
-  await prisma.connectionRequest.update({
-    where: { id: task.connectionRequestId },
+  // Idempotent: only transition + count if not already SENT (guards at-least-once redelivery).
+  const updated = await prisma.connectionRequest.updateMany({
+    where: { id: task.connectionRequestId, status: { not: "SENT" } },
     data: { status: "SENT", sentAt: new Date() },
   });
-  await prisma.prospectingRun.update({
-    where: { id: task.prospectingRunId },
-    data: { totalSent: { increment: 1 } },
-  });
+  if (updated.count === 1) {
+    await prisma.prospectingRun.update({
+      where: { id: task.prospectingRunId },
+      data: { totalSent: { increment: 1 } },
+    });
+  }
+  await releaseConnectSlot(task.prospectingRunId);
   await maybeCompleteOrContinue(task.prospectingRunId);
 }
 
 async function handleConnectFailure(task: TaskRow) {
   if (task.errorCode === "checkpoint") {
     await freezeUserTasks(task.userId, 24);
+    if (task.prospectingRunId) {
+      await prisma.prospectingRun.update({
+        where: { id: task.prospectingRunId },
+        data: { pausedUntil: new Date(Date.now() + 24 * 60 * 60 * 1000) },
+      });
+    }
     await prisma.extensionAlert.create({
       data: {
         userId: task.userId,
@@ -266,26 +301,33 @@ async function handleConnectFailure(task: TaskRow) {
     });
   }
   if (task.connectionRequestId) {
-    await prisma.connectionRequest.update({
-      where: { id: task.connectionRequestId },
+    await prisma.connectionRequest.updateMany({
+      where: { id: task.connectionRequestId, status: { notIn: ["SENT", "FAILED"] } },
       data: { status: "FAILED", errorCode: task.errorCode, errorMessage: task.errorMessage },
     });
   }
-  if (task.prospectingRunId) await maybeCompleteOrContinue(task.prospectingRunId);
+  if (task.prospectingRunId) {
+    await releaseConnectSlot(task.prospectingRunId);
+    // Do not chain forward during a checkpoint backoff; queueNextConnect respects pausedUntil anyway.
+    if (task.errorCode !== "checkpoint") await maybeCompleteOrContinue(task.prospectingRunId);
+  }
 }
 
 async function maybeCompleteOrContinue(runId: string) {
   const queued = await queueNextConnect(runId);
   if (queued) return;
 
-  // Nothing queued — if discovery is done and no candidates remain, the run is finished.
   const run = await prisma.prospectingRun.findUnique({ where: { id: runId } });
   if (!run || run.status !== "RUNNING" || !run.discoveryDone) return;
 
-  const remaining = await prisma.connectionRequest.count({
-    where: { runId, status: { in: ["DISCOVERED", "QUEUED"] } },
-  });
-  if (remaining === 0) {
+  const [remaining, liveConnect] = await Promise.all([
+    prisma.connectionRequest.count({ where: { runId, status: { in: ["DISCOVERED", "QUEUED"] } } }),
+    prisma.extensionTask.findFirst({
+      where: { prospectingRunId: runId, kind: "CONNECT", status: { in: ["PENDING", "CLAIMED"] } },
+      select: { id: true },
+    }),
+  ]);
+  if (remaining === 0 && !liveConnect) {
     await prisma.prospectingRun.update({
       where: { id: runId },
       data: { status: "COMPLETED", completedAt: new Date() },

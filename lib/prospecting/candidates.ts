@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/generated/prisma/client";
 import { decideCandidate, type ScrapedCard } from "@/lib/prospecting/filter";
 
 export type PersistResult = { inserted: number; skipped: number };
@@ -44,6 +45,34 @@ export async function persistCandidates(
     const decision = decideCandidate(card, ctx);
     if (decision.action === "skip") {
       if (decision.skipReason === "already_pending") continue; // idempotent: row already exists
+      try {
+        await prisma.connectionRequest.create({
+          data: {
+            ownerId,
+            runId,
+            linkedinUrn: card.urn,
+            linkedinUrl: card.profileUrl,
+            fullName: card.name,
+            currentTitle: card.title,
+            currentCompany: card.company,
+            location: card.location,
+            status: "SKIPPED",
+            skipReason: decision.skipReason,
+          },
+        });
+        skipped++;
+      } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+          // Concurrent insert of the same URN — already recorded, treat as a no-op.
+        } else {
+          throw e;
+        }
+      }
+      ctx.existingRequestUrns.add(card.urn);
+      continue;
+    }
+
+    try {
       await prisma.connectionRequest.create({
         data: {
           ownerId,
@@ -54,29 +83,17 @@ export async function persistCandidates(
           currentTitle: card.title,
           currentCompany: card.company,
           location: card.location,
-          status: "SKIPPED",
-          skipReason: decision.skipReason,
+          status: "DISCOVERED",
         },
       });
-      skipped++;
-      ctx.existingRequestUrns.add(card.urn);
-      continue;
+      inserted++;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+        // Concurrent insert of the same URN — already recorded, treat as a no-op.
+      } else {
+        throw e;
+      }
     }
-
-    await prisma.connectionRequest.create({
-      data: {
-        ownerId,
-        runId,
-        linkedinUrn: card.urn,
-        linkedinUrl: card.profileUrl,
-        fullName: card.name,
-        currentTitle: card.title,
-        currentCompany: card.company,
-        location: card.location,
-        status: "DISCOVERED",
-      },
-    });
-    inserted++;
     ctx.existingRequestUrns.add(card.urn);
   }
 
