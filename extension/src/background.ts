@@ -1,6 +1,18 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat, agentStep } from "./lib/api";
-import { attach, detach, click, pressKey, typeText, insertTextIntoNamedCompose, clickSendButton, closeAllComposeOverlays, takeScreenshot, scrollBy, scanButtons, clickMessageButton } from "./lib/cdp";
+import { attach, detach, click, pressKey, typeText, insertTextIntoNamedCompose, clickSendButton, closeAllComposeOverlays, takeScreenshot, scrollBy, scanButtons, clickMessageButton, send } from "./lib/cdp";
+
+// ---------- Shared types ----------
+
+export type ScrapedCard = {
+  urn: string;
+  profileUrl: string;
+  name: string;
+  title: string | null;
+  company: string | null;
+  location: string | null;
+  degree: string | null;
+};
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
@@ -54,8 +66,17 @@ async function runOneCycle(): Promise<boolean> {
   return true;
 }
 
-async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY"; payload: unknown }): Promise<unknown> {
-  const payload = task.payload as { linkedinUrl?: string; conversationUrl?: string; text?: string; sinceIso?: string };
+async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "SEARCH" | "CONNECT"; payload: unknown }): Promise<unknown> {
+  const payload = task.payload as {
+    linkedinUrl?: string;
+    conversationUrl?: string;
+    text?: string;
+    sinceIso?: string;
+    searchUrl?: string;
+    page?: number;
+    profileUrl?: string;
+    recipientName?: string;
+  };
 
   if (task.kind === "SEND") {
     if (!payload.linkedinUrl || !payload.text) throw withCode(new Error("missing_payload"), "bad_payload");
@@ -64,6 +85,16 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY"; pay
 
   if (task.kind === "CHECK_REPLY") {
     return { replyDetected: false, replies: [] };
+  }
+
+  if (task.kind === "SEARCH") {
+    if (!payload.searchUrl) throw withCode(new Error("missing_payload"), "bad_payload");
+    return await scrapeSearch(payload.searchUrl);
+  }
+
+  if (task.kind === "CONNECT") {
+    if (!payload.profileUrl) throw withCode(new Error("missing_payload"), "bad_payload");
+    return await sendConnectRequest(payload.profileUrl);
   }
 
   throw withCode(new Error("unknown_kind"), "bad_payload");
@@ -159,6 +190,152 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
 
 function keyCodeOf(k: "Enter" | "Escape" | "Tab"): number {
   return k === "Enter" ? 13 : k === "Escape" ? 27 : k === "Tab" ? 9 : 0;
+}
+
+// ---------- SEARCH: scrape LinkedIn search results page ----------
+
+const SCRAPE_FN_SOURCE = `(() => {
+  const cards = Array.from(document.querySelectorAll('[data-chameleon-result-urn], li.reusable-search__result-container, div.search-results-container li'));
+  const out = [];
+  for (const card of cards) {
+    const urn = card.getAttribute && card.getAttribute('data-chameleon-result-urn') || '';
+    const link = card.querySelector('a[href*="/in/"]');
+    const profileUrl = link ? link.href.split('?')[0] : '';
+    const name = (card.querySelector('span[aria-hidden="true"]') && card.querySelector('span[aria-hidden="true"]').textContent || '').trim();
+    const degEl = card.querySelector('.entity-result__badge-text, .artdeco-entity-lockup__degree, .entity-result__badge');
+    const degreeRaw = degEl ? degEl.textContent : '';
+    const m = degreeRaw.match(/(1st|2nd|3rd\\+?)/);
+    const degree = m ? (m[1].indexOf('3') === 0 ? '3rd' : m[1]) : null;
+    const subEl = card.querySelector('.entity-result__primary-subtitle, .artdeco-entity-lockup__subtitle');
+    const subtitle = (subEl ? subEl.textContent : '').trim();
+    const locEl = card.querySelector('.entity-result__secondary-subtitle, .artdeco-entity-lockup__caption');
+    const location = (locEl ? locEl.textContent : '').trim() || null;
+    let title = null, company = null;
+    if (subtitle.indexOf(' at ') !== -1) { const p = subtitle.split(' at '); title = p[0].trim(); company = p.slice(1).join(' at ').trim(); }
+    else { title = subtitle || null; }
+    if (urn && profileUrl && name) out.push({ urn, profileUrl, name, title, company, location, degree });
+  }
+  const next = document.querySelector('button[aria-label="Next"]');
+  const hasNextPage = !!next && !next.hasAttribute('disabled');
+  return { candidates: out, hasNextPage };
+})()`;
+
+async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCard[]; hasNextPage: boolean }> {
+  const tab = await chrome.tabs.create({ url: searchUrl, active: true });
+  if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
+  const tabId = tab.id;
+
+  let attached = false;
+
+  try {
+    await waitForTabLoad(tabId);
+    await sleep(2500);
+
+    // Bring window to front
+    const tabInfo = await chrome.tabs.get(tabId);
+    if (tabInfo.windowId) await chrome.windows.update(tabInfo.windowId, { focused: true });
+    await sleep(300);
+
+    // Checkpoint detection (before attach — check URL)
+    const freshTab = await chrome.tabs.get(tabId);
+    if (freshTab.url && freshTab.url.includes("/checkpoint")) {
+      throw withCode(new Error("checkpoint"), "checkpoint");
+    }
+
+    await attach(tabId);
+    attached = true;
+
+    // Lazy-load by scrolling
+    for (let i = 0; i < 6; i++) {
+      await scrollBy(tabId, 1200);
+      await sleep(800);
+    }
+
+    // Evaluate scraping function in-page, returnByValue
+    const evalResult = await send<{ result: { value: { candidates: ScrapedCard[]; hasNextPage: boolean } } }>(
+      tabId,
+      "Runtime.evaluate",
+      { expression: SCRAPE_FN_SOURCE, returnByValue: true }
+    );
+
+    const scraped = evalResult?.result?.value;
+    if (!scraped) throw withCode(new Error("scrape_returned_null"), "scrape_failed");
+
+    return scraped;
+  } finally {
+    if (attached) await detach(tabId).catch(() => {});
+    await chrome.tabs.remove(tabId).catch(() => {});
+  }
+}
+
+// ---------- CONNECT: send a LinkedIn connection request ----------
+
+async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string }> {
+  const tab = await chrome.tabs.create({ url: profileUrl, active: true });
+  if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
+  const tabId = tab.id;
+
+  let attached = false;
+
+  try {
+    await waitForTabLoad(tabId);
+    await sleep(2500);
+
+    // Bring window to front
+    const tabInfo = await chrome.tabs.get(tabId);
+    if (tabInfo.windowId) await chrome.windows.update(tabInfo.windowId, { focused: true });
+    await sleep(300);
+
+    // Checkpoint detection
+    const freshTab = await chrome.tabs.get(tabId);
+    if (freshTab.url && freshTab.url.includes("/checkpoint")) {
+      throw withCode(new Error("checkpoint"), "checkpoint");
+    }
+
+    await attach(tabId);
+    attached = true;
+
+    // Scan for Connect button — may be direct or behind a "More" dropdown
+    let buttons = await scanButtons(tabId);
+    let connectBtn = buttons.find((b) => /^connect$/i.test(b.text) || /^connect$/i.test(b.aria));
+
+    if (!connectBtn) {
+      // Try "More" dropdown
+      const moreBtn = buttons.find((b) => /^more$/i.test(b.text) || /^more$/i.test(b.aria));
+      if (moreBtn) {
+        await click(tabId, moreBtn.x + Math.round(moreBtn.w / 2), moreBtn.y + Math.round(moreBtn.h / 2));
+        await sleep(700);
+        buttons = await scanButtons(tabId);
+        connectBtn = buttons.find((b) => /connect/i.test(b.text) || /connect/i.test(b.aria));
+      }
+    }
+
+    if (!connectBtn) {
+      throw withCode(new Error("connect_button_not_found"), "no_connect");
+    }
+
+    // Click Connect
+    await click(tabId, connectBtn.x + Math.round(connectBtn.w / 2), connectBtn.y + Math.round(connectBtn.h / 2));
+    await sleep(900);
+
+    // Find "Send without a note" (or fallback "Send") in the dialog
+    const afterButtons = await scanButtons(tabId);
+    const sendBtn =
+      afterButtons.find((b) => /send without a note/i.test(b.text) || /send without a note/i.test(b.aria)) ||
+      afterButtons.find((b) => /^send$/i.test(b.text) || /^send$/i.test(b.aria));
+
+    if (!sendBtn) {
+      throw withCode(new Error("send_dialog_not_found"), "already_or_blocked");
+    }
+
+    await click(tabId, sendBtn.x + Math.round(sendBtn.w / 2), sendBtn.y + Math.round(sendBtn.h / 2));
+    await sleep(800);
+
+    return { sentAt: new Date().toISOString() };
+  } finally {
+    if (attached) await detach(tabId).catch(() => {});
+    await chrome.tabs.remove(tabId).catch(() => {});
+  }
 }
 
 async function waitForTabLoad(tabId: number): Promise<void> {
