@@ -29,6 +29,7 @@ export type AggregateProspectingRun = {
 export type ProspectingRunAvgAggregateOutputType = {
   dailyCap: number | null
   weeklyCap: number | null
+  searchFailCount: number | null
   nextSearchPage: number | null
   totalDiscovered: number | null
   totalSent: number | null
@@ -37,6 +38,7 @@ export type ProspectingRunAvgAggregateOutputType = {
 export type ProspectingRunSumAggregateOutputType = {
   dailyCap: number | null
   weeklyCap: number | null
+  searchFailCount: number | null
   nextSearchPage: number | null
   totalDiscovered: number | null
   totalSent: number | null
@@ -52,6 +54,9 @@ export type ProspectingRunMinAggregateOutputType = {
   dailyCap: number | null
   weeklyCap: number | null
   discoveryDone: boolean | null
+  connectInFlight: boolean | null
+  searchFailCount: number | null
+  pausedUntil: Date | null
   nextSearchPage: number | null
   totalDiscovered: number | null
   totalSent: number | null
@@ -70,6 +75,9 @@ export type ProspectingRunMaxAggregateOutputType = {
   dailyCap: number | null
   weeklyCap: number | null
   discoveryDone: boolean | null
+  connectInFlight: boolean | null
+  searchFailCount: number | null
+  pausedUntil: Date | null
   nextSearchPage: number | null
   totalDiscovered: number | null
   totalSent: number | null
@@ -88,6 +96,9 @@ export type ProspectingRunCountAggregateOutputType = {
   dailyCap: number
   weeklyCap: number
   discoveryDone: number
+  connectInFlight: number
+  searchFailCount: number
+  pausedUntil: number
   nextSearchPage: number
   totalDiscovered: number
   totalSent: number
@@ -101,6 +112,7 @@ export type ProspectingRunCountAggregateOutputType = {
 export type ProspectingRunAvgAggregateInputType = {
   dailyCap?: true
   weeklyCap?: true
+  searchFailCount?: true
   nextSearchPage?: true
   totalDiscovered?: true
   totalSent?: true
@@ -109,6 +121,7 @@ export type ProspectingRunAvgAggregateInputType = {
 export type ProspectingRunSumAggregateInputType = {
   dailyCap?: true
   weeklyCap?: true
+  searchFailCount?: true
   nextSearchPage?: true
   totalDiscovered?: true
   totalSent?: true
@@ -124,6 +137,9 @@ export type ProspectingRunMinAggregateInputType = {
   dailyCap?: true
   weeklyCap?: true
   discoveryDone?: true
+  connectInFlight?: true
+  searchFailCount?: true
+  pausedUntil?: true
   nextSearchPage?: true
   totalDiscovered?: true
   totalSent?: true
@@ -142,6 +158,9 @@ export type ProspectingRunMaxAggregateInputType = {
   dailyCap?: true
   weeklyCap?: true
   discoveryDone?: true
+  connectInFlight?: true
+  searchFailCount?: true
+  pausedUntil?: true
   nextSearchPage?: true
   totalDiscovered?: true
   totalSent?: true
@@ -160,6 +179,9 @@ export type ProspectingRunCountAggregateInputType = {
   dailyCap?: true
   weeklyCap?: true
   discoveryDone?: true
+  connectInFlight?: true
+  searchFailCount?: true
+  pausedUntil?: true
   nextSearchPage?: true
   totalDiscovered?: true
   totalSent?: true
@@ -265,6 +287,9 @@ export type ProspectingRunGroupByOutputType = {
   dailyCap: number
   weeklyCap: number
   discoveryDone: boolean
+  connectInFlight: boolean
+  searchFailCount: number
+  pausedUntil: Date | null
   nextSearchPage: number
   totalDiscovered: number
   totalSent: number
@@ -306,6 +331,9 @@ export type ProspectingRunWhereInput = {
   dailyCap?: Prisma.IntFilter<"ProspectingRun"> | number
   weeklyCap?: Prisma.IntFilter<"ProspectingRun"> | number
   discoveryDone?: Prisma.BoolFilter<"ProspectingRun"> | boolean
+  connectInFlight?: Prisma.BoolFilter<"ProspectingRun"> | boolean
+  searchFailCount?: Prisma.IntFilter<"ProspectingRun"> | number
+  pausedUntil?: Prisma.DateTimeNullableFilter<"ProspectingRun"> | Date | string | null
   nextSearchPage?: Prisma.IntFilter<"ProspectingRun"> | number
   totalDiscovered?: Prisma.IntFilter<"ProspectingRun"> | number
   totalSent?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -326,6 +354,9 @@ export type ProspectingRunOrderByWithRelationInput = {
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
   discoveryDone?: Prisma.SortOrder
+  connectInFlight?: Prisma.SortOrder
+  searchFailCount?: Prisma.SortOrder
+  pausedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
   totalSent?: Prisma.SortOrder
@@ -349,6 +380,9 @@ export type ProspectingRunWhereUniqueInput = Prisma.AtLeast<{
   dailyCap?: Prisma.IntFilter<"ProspectingRun"> | number
   weeklyCap?: Prisma.IntFilter<"ProspectingRun"> | number
   discoveryDone?: Prisma.BoolFilter<"ProspectingRun"> | boolean
+  connectInFlight?: Prisma.BoolFilter<"ProspectingRun"> | boolean
+  searchFailCount?: Prisma.IntFilter<"ProspectingRun"> | number
+  pausedUntil?: Prisma.DateTimeNullableFilter<"ProspectingRun"> | Date | string | null
   nextSearchPage?: Prisma.IntFilter<"ProspectingRun"> | number
   totalDiscovered?: Prisma.IntFilter<"ProspectingRun"> | number
   totalSent?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -369,6 +403,9 @@ export type ProspectingRunOrderByWithAggregationInput = {
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
   discoveryDone?: Prisma.SortOrder
+  connectInFlight?: Prisma.SortOrder
+  searchFailCount?: Prisma.SortOrder
+  pausedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
   totalSent?: Prisma.SortOrder
@@ -395,6 +432,9 @@ export type ProspectingRunScalarWhereWithAggregatesInput = {
   dailyCap?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
   weeklyCap?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
   discoveryDone?: Prisma.BoolWithAggregatesFilter<"ProspectingRun"> | boolean
+  connectInFlight?: Prisma.BoolWithAggregatesFilter<"ProspectingRun"> | boolean
+  searchFailCount?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
+  pausedUntil?: Prisma.DateTimeNullableWithAggregatesFilter<"ProspectingRun"> | Date | string | null
   nextSearchPage?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
   totalDiscovered?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
   totalSent?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
@@ -412,6 +452,9 @@ export type ProspectingRunCreateInput = {
   dailyCap?: number
   weeklyCap?: number
   discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: number
+  pausedUntil?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -432,6 +475,9 @@ export type ProspectingRunUncheckedCreateInput = {
   dailyCap?: number
   weeklyCap?: number
   discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: number
+  pausedUntil?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -450,6 +496,9 @@ export type ProspectingRunUpdateInput = {
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
+  pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -470,6 +519,9 @@ export type ProspectingRunUncheckedUpdateInput = {
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
+  pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -489,6 +541,9 @@ export type ProspectingRunCreateManyInput = {
   dailyCap?: number
   weeklyCap?: number
   discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: number
+  pausedUntil?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -506,6 +561,9 @@ export type ProspectingRunUpdateManyMutationInput = {
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
+  pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -524,6 +582,9 @@ export type ProspectingRunUncheckedUpdateManyInput = {
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
+  pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -552,6 +613,9 @@ export type ProspectingRunCountOrderByAggregateInput = {
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
   discoveryDone?: Prisma.SortOrder
+  connectInFlight?: Prisma.SortOrder
+  searchFailCount?: Prisma.SortOrder
+  pausedUntil?: Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
   totalSent?: Prisma.SortOrder
@@ -563,6 +627,7 @@ export type ProspectingRunCountOrderByAggregateInput = {
 export type ProspectingRunAvgOrderByAggregateInput = {
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
+  searchFailCount?: Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
   totalSent?: Prisma.SortOrder
@@ -578,6 +643,9 @@ export type ProspectingRunMaxOrderByAggregateInput = {
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
   discoveryDone?: Prisma.SortOrder
+  connectInFlight?: Prisma.SortOrder
+  searchFailCount?: Prisma.SortOrder
+  pausedUntil?: Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
   totalSent?: Prisma.SortOrder
@@ -596,6 +664,9 @@ export type ProspectingRunMinOrderByAggregateInput = {
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
   discoveryDone?: Prisma.SortOrder
+  connectInFlight?: Prisma.SortOrder
+  searchFailCount?: Prisma.SortOrder
+  pausedUntil?: Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
   totalSent?: Prisma.SortOrder
@@ -607,6 +678,7 @@ export type ProspectingRunMinOrderByAggregateInput = {
 export type ProspectingRunSumOrderByAggregateInput = {
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
+  searchFailCount?: Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
   totalSent?: Prisma.SortOrder
@@ -690,6 +762,9 @@ export type ProspectingRunCreateWithoutOwnerInput = {
   dailyCap?: number
   weeklyCap?: number
   discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: number
+  pausedUntil?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -708,6 +783,9 @@ export type ProspectingRunUncheckedCreateWithoutOwnerInput = {
   dailyCap?: number
   weeklyCap?: number
   discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: number
+  pausedUntil?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -756,6 +834,9 @@ export type ProspectingRunScalarWhereInput = {
   dailyCap?: Prisma.IntFilter<"ProspectingRun"> | number
   weeklyCap?: Prisma.IntFilter<"ProspectingRun"> | number
   discoveryDone?: Prisma.BoolFilter<"ProspectingRun"> | boolean
+  connectInFlight?: Prisma.BoolFilter<"ProspectingRun"> | boolean
+  searchFailCount?: Prisma.IntFilter<"ProspectingRun"> | number
+  pausedUntil?: Prisma.DateTimeNullableFilter<"ProspectingRun"> | Date | string | null
   nextSearchPage?: Prisma.IntFilter<"ProspectingRun"> | number
   totalDiscovered?: Prisma.IntFilter<"ProspectingRun"> | number
   totalSent?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -773,6 +854,9 @@ export type ProspectingRunCreateWithoutRequestsInput = {
   dailyCap?: number
   weeklyCap?: number
   discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: number
+  pausedUntil?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -792,6 +876,9 @@ export type ProspectingRunUncheckedCreateWithoutRequestsInput = {
   dailyCap?: number
   weeklyCap?: number
   discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: number
+  pausedUntil?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -825,6 +912,9 @@ export type ProspectingRunUpdateWithoutRequestsInput = {
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
+  pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -844,6 +934,9 @@ export type ProspectingRunUncheckedUpdateWithoutRequestsInput = {
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
+  pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -861,6 +954,9 @@ export type ProspectingRunCreateManyOwnerInput = {
   dailyCap?: number
   weeklyCap?: number
   discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: number
+  pausedUntil?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -878,6 +974,9 @@ export type ProspectingRunUpdateWithoutOwnerInput = {
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
+  pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -896,6 +995,9 @@ export type ProspectingRunUncheckedUpdateWithoutOwnerInput = {
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
+  pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -914,6 +1016,9 @@ export type ProspectingRunUncheckedUpdateManyWithoutOwnerInput = {
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
+  pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -963,6 +1068,9 @@ export type ProspectingRunSelect<ExtArgs extends runtime.Types.Extensions.Intern
   dailyCap?: boolean
   weeklyCap?: boolean
   discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: boolean
+  pausedUntil?: boolean
   nextSearchPage?: boolean
   totalDiscovered?: boolean
   totalSent?: boolean
@@ -984,6 +1092,9 @@ export type ProspectingRunSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   dailyCap?: boolean
   weeklyCap?: boolean
   discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: boolean
+  pausedUntil?: boolean
   nextSearchPage?: boolean
   totalDiscovered?: boolean
   totalSent?: boolean
@@ -1003,6 +1114,9 @@ export type ProspectingRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   dailyCap?: boolean
   weeklyCap?: boolean
   discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: boolean
+  pausedUntil?: boolean
   nextSearchPage?: boolean
   totalDiscovered?: boolean
   totalSent?: boolean
@@ -1022,6 +1136,9 @@ export type ProspectingRunSelectScalar = {
   dailyCap?: boolean
   weeklyCap?: boolean
   discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: boolean
+  pausedUntil?: boolean
   nextSearchPage?: boolean
   totalDiscovered?: boolean
   totalSent?: boolean
@@ -1030,7 +1147,7 @@ export type ProspectingRunSelectScalar = {
   completedAt?: boolean
 }
 
-export type ProspectingRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "name" | "keywords" | "searchUrl" | "status" | "dailyCap" | "weeklyCap" | "discoveryDone" | "nextSearchPage" | "totalDiscovered" | "totalSent" | "createdAt" | "startedAt" | "completedAt", ExtArgs["result"]["prospectingRun"]>
+export type ProspectingRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "name" | "keywords" | "searchUrl" | "status" | "dailyCap" | "weeklyCap" | "discoveryDone" | "connectInFlight" | "searchFailCount" | "pausedUntil" | "nextSearchPage" | "totalDiscovered" | "totalSent" | "createdAt" | "startedAt" | "completedAt", ExtArgs["result"]["prospectingRun"]>
 export type ProspectingRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   requests?: boolean | Prisma.ProspectingRun$requestsArgs<ExtArgs>
@@ -1059,6 +1176,9 @@ export type $ProspectingRunPayload<ExtArgs extends runtime.Types.Extensions.Inte
     dailyCap: number
     weeklyCap: number
     discoveryDone: boolean
+    connectInFlight: boolean
+    searchFailCount: number
+    pausedUntil: Date | null
     nextSearchPage: number
     totalDiscovered: number
     totalSent: number
@@ -1499,6 +1619,9 @@ export interface ProspectingRunFieldRefs {
   readonly dailyCap: Prisma.FieldRef<"ProspectingRun", 'Int'>
   readonly weeklyCap: Prisma.FieldRef<"ProspectingRun", 'Int'>
   readonly discoveryDone: Prisma.FieldRef<"ProspectingRun", 'Boolean'>
+  readonly connectInFlight: Prisma.FieldRef<"ProspectingRun", 'Boolean'>
+  readonly searchFailCount: Prisma.FieldRef<"ProspectingRun", 'Int'>
+  readonly pausedUntil: Prisma.FieldRef<"ProspectingRun", 'DateTime'>
   readonly nextSearchPage: Prisma.FieldRef<"ProspectingRun", 'Int'>
   readonly totalDiscovered: Prisma.FieldRef<"ProspectingRun", 'Int'>
   readonly totalSent: Prisma.FieldRef<"ProspectingRun", 'Int'>
