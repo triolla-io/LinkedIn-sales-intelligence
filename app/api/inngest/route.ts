@@ -10,6 +10,7 @@ import { sequenceSendExecution } from "@/inngest/functions/sequence-send-executi
 import { extensionTaskResult } from "@/inngest/functions/extension-task-result";
 import { extensionHeartbeatWatch } from "@/inngest/functions/extension-heartbeat-watch";
 import { prospectingStart } from "@/inngest/functions/prospecting-start";
+import { prospectingTick } from "@/inngest/functions/prospecting-tick";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -25,5 +26,6 @@ export const { GET, POST, PUT } = serve({
     extensionTaskResult,
     extensionHeartbeatWatch,
     prospectingStart,
+    prospectingTick,
   ],
 });
