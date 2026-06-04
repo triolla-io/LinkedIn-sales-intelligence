@@ -18,6 +18,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       where: { prospectingRunId: id, status: "PENDING" },
       data: { status: "FAILED", errorCode: "paused" },
     });
+    // Reclaim candidates that were queued for now-cancelled tasks so resume can retry them,
+    // and release the per-run CONNECT slot (no result event will fire for the cancelled tasks).
+    await prisma.connectionRequest.updateMany({
+      where: { runId: id, status: "QUEUED" },
+      data: { status: "DISCOVERED" },
+    });
+    await prisma.prospectingRun.update({
+      where: { id },
+      data: { connectInFlight: false },
+    });
     return NextResponse.json({ ok: true });
   })(req);
 }
