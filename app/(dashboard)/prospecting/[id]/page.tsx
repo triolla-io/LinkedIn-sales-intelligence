@@ -1,0 +1,152 @@
+"use client";
+
+import { use } from "react";
+import useSWR from "swr";
+import Link from "next/link";
+import { ArrowLeft, Loader2 } from "lucide-react";
+
+type ConnectionRequest = {
+  id: string;
+  fullName: string;
+  currentTitle: string | null;
+  currentCompany: string | null;
+  location: string | null;
+  linkedinUrl: string | null;
+  sentAt: string;
+};
+
+type RunDetail = {
+  name: string;
+  status: string;
+  totalSent: number;
+  totalDiscovered: number;
+};
+
+type RunDetailResponse = {
+  run: RunDetail;
+  requests: ConnectionRequest[];
+};
+
+const fetcher = (u: string) => fetch(u).then((r) => r.json());
+
+const STATUS_COLORS: Record<string, string> = {
+  DRAFT: "bg-[#f3f2ef] text-[#6b6866]",
+  RUNNING: "bg-[#e6f4ff] text-[#1585ff]",
+  PAUSED: "bg-[#fff3f3] text-[#dc2626]",
+  COMPLETED: "bg-[#e6faf0] text-[#059669]",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  DRAFT: "טיוטה",
+  RUNNING: "פעיל",
+  PAUSED: "מושהה",
+  COMPLETED: "הושלם",
+};
+
+export default function ProspectingRunDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const { data } = useSWR<RunDetailResponse>(
+    `/api/prospecting/runs/${id}`,
+    fetcher,
+    { refreshInterval: 15000 }
+  );
+
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="size-5 animate-spin text-[#9b9895]" />
+      </div>
+    );
+  }
+
+  const { run, requests } = data;
+
+  return (
+    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <Link href="/prospecting" className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
+            <ArrowLeft className="size-4" />
+          </Link>
+          <h1 className="text-sm font-semibold text-[#111110]">{run.name}</h1>
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+              STATUS_COLORS[run.status] ?? "bg-[#f3f2ef] text-[#6b6866]"
+            }`}
+          >
+            {STATUS_LABELS[run.status] ?? run.status}
+          </span>
+          <span className="text-xs font-mono text-[#9b9895]">
+            {run.totalSent} sent / {run.totalDiscovered} discovered
+          </span>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="px-5 pt-5 pb-8">
+        <div className="bg-white border border-[#e5e3df] rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-[#e5e3df] bg-[#fafaf9]">
+            <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">
+              Awaiting connection approval ({requests.length})
+            </h2>
+          </div>
+
+          {requests.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-sm text-[#9b9895]">No pending connection requests.</p>
+            </div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#e5e3df]">
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Name</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Title</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Company</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Location</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Sent</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#e5e3df]">
+                {requests.map((req) => (
+                  <tr key={req.id} className="hover:bg-[#fafaf9] transition-colors">
+                    <td className="px-4 py-3 font-medium text-[#111110]">
+                      {req.linkedinUrl ? (
+                        <a
+                          href={req.linkedinUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:text-[#1585ff] transition-colors"
+                        >
+                          {req.fullName}
+                        </a>
+                      ) : (
+                        req.fullName
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-[#6b6866]">
+                      {req.currentTitle ?? <span className="text-[#c8c5c2]">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-[#6b6866]">
+                      {req.currentCompany ?? <span className="text-[#c8c5c2]">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-[#6b6866]">
+                      {req.location ?? <span className="text-[#c8c5c2]">—</span>}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs text-[#9b9895]">
+                      {new Date(req.sentAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
