@@ -142,6 +142,8 @@ model User {
   extensionTasks   ExtensionTask[]   @relation("UserExtensionTasks")
   extensionSession ExtensionSession? @relation("UserExtensionSession")
   extensionAlerts  ExtensionAlert[]  @relation("UserExtensionAlerts")
+  prospectingRuns    ProspectingRun[]    @relation("UserProspectingRuns")
+  connectionRequests ConnectionRequest[] @relation("UserConnectionRequests")
 }
 
 model Contact {
@@ -370,6 +372,8 @@ enum EnrollmentStatus {
 enum ExtensionTaskKind {
   SEND
   CHECK_REPLY
+  SEARCH
+  CONNECT
 }
 
 enum ExtensionTaskStatus {
@@ -382,6 +386,23 @@ enum ExtensionTaskStatus {
 enum ExtensionAlertKind {
   OFFLINE
   CHECKPOINT
+}
+
+enum ProspectingRunStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  COMPLETED
+  FAILED
+}
+
+enum ConnectionRequestStatus {
+  DISCOVERED
+  QUEUED
+  SENT
+  FAILED
+  SKIPPED
+  ACCEPTED
 }
 
 // ─── Campaign models ──────────────────────────────────────────────────────────
@@ -580,6 +601,8 @@ model ExtensionTask {
   // Polymorphic: CampaignRecipient.id (kind=SEND) or SequenceStepExecution.id (kind=CHECK_REPLY). No FK enforced by design.
   recipientId         String?
   sequenceExecutionId String?
+  prospectingRunId    String?
+  connectionRequestId String?
   scheduledFor        DateTime            @default(now())
   claimedAt           DateTime?
   completedAt         DateTime?
@@ -621,4 +644,51 @@ model NameTranslation {
   firstName       String   @id
   hebrewFirstName String
   createdAt       DateTime @default(now())
+}
+
+model ProspectingRun {
+  id              String               @id @default(cuid())
+  ownerId         String
+  owner           User                 @relation("UserProspectingRuns", fields: [ownerId], references: [id], onDelete: Cascade)
+  name            String
+  keywords        String
+  searchUrl       String
+  status          ProspectingRunStatus @default(DRAFT)
+  dailyCap        Int                  @default(15)
+  weeklyCap       Int                  @default(100)
+  discoveryDone   Boolean              @default(false)
+  nextSearchPage  Int                  @default(1)
+  totalDiscovered Int                  @default(0)
+  totalSent       Int                  @default(0)
+  createdAt       DateTime             @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  requests        ConnectionRequest[]
+
+  @@index([ownerId, status])
+}
+
+model ConnectionRequest {
+  id             String                  @id @default(cuid())
+  ownerId        String
+  owner          User                    @relation("UserConnectionRequests", fields: [ownerId], references: [id], onDelete: Cascade)
+  runId          String
+  run            ProspectingRun          @relation(fields: [runId], references: [id], onDelete: Cascade)
+  linkedinUrn    String
+  linkedinUrl    String
+  fullName       String?
+  currentTitle   String?
+  currentCompany String?
+  location       String?
+  status         ConnectionRequestStatus @default(DISCOVERED)
+  skipReason     String?
+  sentAt         DateTime?
+  attemptCount   Int                     @default(0)
+  errorCode      String?
+  errorMessage   String?
+  createdAt      DateTime                @default(now())
+
+  @@unique([ownerId, linkedinUrn])
+  @@index([runId, status])
+  @@index([ownerId, status])
 }

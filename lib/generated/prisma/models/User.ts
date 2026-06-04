@@ -240,6 +240,8 @@ export type UserWhereInput = {
   extensionTasks?: Prisma.ExtensionTaskListRelationFilter
   extensionSession?: Prisma.XOR<Prisma.ExtensionSessionNullableScalarRelationFilter, Prisma.ExtensionSessionWhereInput> | null
   extensionAlerts?: Prisma.ExtensionAlertListRelationFilter
+  prospectingRuns?: Prisma.ProspectingRunListRelationFilter
+  connectionRequests?: Prisma.ConnectionRequestListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -271,6 +273,8 @@ export type UserOrderByWithRelationInput = {
   extensionTasks?: Prisma.ExtensionTaskOrderByRelationAggregateInput
   extensionSession?: Prisma.ExtensionSessionOrderByWithRelationInput
   extensionAlerts?: Prisma.ExtensionAlertOrderByRelationAggregateInput
+  prospectingRuns?: Prisma.ProspectingRunOrderByRelationAggregateInput
+  connectionRequests?: Prisma.ConnectionRequestOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -305,6 +309,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   extensionTasks?: Prisma.ExtensionTaskListRelationFilter
   extensionSession?: Prisma.XOR<Prisma.ExtensionSessionNullableScalarRelationFilter, Prisma.ExtensionSessionWhereInput> | null
   extensionAlerts?: Prisma.ExtensionAlertListRelationFilter
+  prospectingRuns?: Prisma.ProspectingRunListRelationFilter
+  connectionRequests?: Prisma.ConnectionRequestListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -367,6 +373,8 @@ export type UserCreateInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -397,6 +405,8 @@ export type UserUncheckedCreateInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUpdateInput = {
@@ -427,6 +437,8 @@ export type UserUpdateInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -457,6 +469,8 @@ export type UserUncheckedUpdateInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -846,6 +860,34 @@ export type UserUpdateOneRequiredWithoutExtensionAlertsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutExtensionAlertsInput, Prisma.UserUpdateWithoutExtensionAlertsInput>, Prisma.UserUncheckedUpdateWithoutExtensionAlertsInput>
 }
 
+export type UserCreateNestedOneWithoutProspectingRunsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProspectingRunsInput, Prisma.UserUncheckedCreateWithoutProspectingRunsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProspectingRunsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutProspectingRunsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProspectingRunsInput, Prisma.UserUncheckedCreateWithoutProspectingRunsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProspectingRunsInput
+  upsert?: Prisma.UserUpsertWithoutProspectingRunsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProspectingRunsInput, Prisma.UserUpdateWithoutProspectingRunsInput>, Prisma.UserUncheckedUpdateWithoutProspectingRunsInput>
+}
+
+export type UserCreateNestedOneWithoutConnectionRequestsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutConnectionRequestsInput, Prisma.UserUncheckedCreateWithoutConnectionRequestsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutConnectionRequestsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutConnectionRequestsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutConnectionRequestsInput, Prisma.UserUncheckedCreateWithoutConnectionRequestsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutConnectionRequestsInput
+  upsert?: Prisma.UserUpsertWithoutConnectionRequestsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutConnectionRequestsInput, Prisma.UserUpdateWithoutConnectionRequestsInput>, Prisma.UserUncheckedUpdateWithoutConnectionRequestsInput>
+}
+
 export type UserCreateWithoutAccountsInput = {
   id?: string
   email: string
@@ -873,6 +915,8 @@ export type UserCreateWithoutAccountsInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -902,6 +946,8 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -947,6 +993,8 @@ export type UserUpdateWithoutAccountsInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -976,6 +1024,8 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -1005,6 +1055,8 @@ export type UserCreateWithoutSessionsInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -1034,6 +1086,8 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -1079,6 +1133,8 @@ export type UserUpdateWithoutSessionsInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -1108,6 +1164,8 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutOrgInput = {
@@ -1137,6 +1195,8 @@ export type UserCreateWithoutOrgInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutOrgInput = {
@@ -1166,6 +1226,8 @@ export type UserUncheckedCreateWithoutOrgInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutOrgInput = {
@@ -1237,6 +1299,8 @@ export type UserCreateWithoutContactsInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutContactsInput = {
@@ -1266,6 +1330,8 @@ export type UserUncheckedCreateWithoutContactsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutContactsInput = {
@@ -1311,6 +1377,8 @@ export type UserUpdateWithoutContactsInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactsInput = {
@@ -1340,6 +1408,8 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutTemplatesInput = {
@@ -1369,6 +1439,8 @@ export type UserCreateWithoutTemplatesInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutTemplatesInput = {
@@ -1398,6 +1470,8 @@ export type UserUncheckedCreateWithoutTemplatesInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutTemplatesInput = {
@@ -1443,6 +1517,8 @@ export type UserUpdateWithoutTemplatesInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTemplatesInput = {
@@ -1472,6 +1548,8 @@ export type UserUncheckedUpdateWithoutTemplatesInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSentMessagesInput = {
@@ -1501,6 +1579,8 @@ export type UserCreateWithoutSentMessagesInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSentMessagesInput = {
@@ -1530,6 +1610,8 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSentMessagesInput = {
@@ -1564,6 +1646,8 @@ export type UserCreateWithoutActedMessagesInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutActedMessagesInput = {
@@ -1593,6 +1677,8 @@ export type UserUncheckedCreateWithoutActedMessagesInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutActedMessagesInput = {
@@ -1638,6 +1724,8 @@ export type UserUpdateWithoutSentMessagesInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentMessagesInput = {
@@ -1667,6 +1755,8 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutActedMessagesInput = {
@@ -1707,6 +1797,8 @@ export type UserUpdateWithoutActedMessagesInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActedMessagesInput = {
@@ -1736,6 +1828,8 @@ export type UserUncheckedUpdateWithoutActedMessagesInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSavedViewsInput = {
@@ -1765,6 +1859,8 @@ export type UserCreateWithoutSavedViewsInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSavedViewsInput = {
@@ -1794,6 +1890,8 @@ export type UserUncheckedCreateWithoutSavedViewsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSavedViewsInput = {
@@ -1839,6 +1937,8 @@ export type UserUpdateWithoutSavedViewsInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSavedViewsInput = {
@@ -1868,6 +1968,8 @@ export type UserUncheckedUpdateWithoutSavedViewsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutAuditActedInput = {
@@ -1897,6 +1999,8 @@ export type UserCreateWithoutAuditActedInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAuditActedInput = {
@@ -1926,6 +2030,8 @@ export type UserUncheckedCreateWithoutAuditActedInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAuditActedInput = {
@@ -1960,6 +2066,8 @@ export type UserCreateWithoutAuditTargetedInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAuditTargetedInput = {
@@ -1989,6 +2097,8 @@ export type UserUncheckedCreateWithoutAuditTargetedInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAuditTargetedInput = {
@@ -2034,6 +2144,8 @@ export type UserUpdateWithoutAuditActedInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditActedInput = {
@@ -2063,6 +2175,8 @@ export type UserUncheckedUpdateWithoutAuditActedInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutAuditTargetedInput = {
@@ -2103,6 +2217,8 @@ export type UserUpdateWithoutAuditTargetedInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditTargetedInput = {
@@ -2132,6 +2248,8 @@ export type UserUncheckedUpdateWithoutAuditTargetedInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutLinkedinSessionInput = {
@@ -2161,6 +2279,8 @@ export type UserCreateWithoutLinkedinSessionInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutLinkedinSessionInput = {
@@ -2190,6 +2310,8 @@ export type UserUncheckedCreateWithoutLinkedinSessionInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutLinkedinSessionInput = {
@@ -2235,6 +2357,8 @@ export type UserUpdateWithoutLinkedinSessionInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
@@ -2264,6 +2388,8 @@ export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutCampaignsInput = {
@@ -2293,6 +2419,8 @@ export type UserCreateWithoutCampaignsInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutCampaignsInput = {
@@ -2322,6 +2450,8 @@ export type UserUncheckedCreateWithoutCampaignsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutCampaignsInput = {
@@ -2367,6 +2497,8 @@ export type UserUpdateWithoutCampaignsInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCampaignsInput = {
@@ -2396,6 +2528,8 @@ export type UserUncheckedUpdateWithoutCampaignsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutImportsInput = {
@@ -2425,6 +2559,8 @@ export type UserCreateWithoutImportsInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutImportsInput = {
@@ -2454,6 +2590,8 @@ export type UserUncheckedCreateWithoutImportsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutImportsInput = {
@@ -2499,6 +2637,8 @@ export type UserUpdateWithoutImportsInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutImportsInput = {
@@ -2528,6 +2668,8 @@ export type UserUncheckedUpdateWithoutImportsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutContactListsInput = {
@@ -2557,6 +2699,8 @@ export type UserCreateWithoutContactListsInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutContactListsInput = {
@@ -2586,6 +2730,8 @@ export type UserUncheckedCreateWithoutContactListsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutContactListsInput = {
@@ -2631,6 +2777,8 @@ export type UserUpdateWithoutContactListsInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactListsInput = {
@@ -2660,6 +2808,8 @@ export type UserUncheckedUpdateWithoutContactListsInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSequencesInput = {
@@ -2689,6 +2839,8 @@ export type UserCreateWithoutSequencesInput = {
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSequencesInput = {
@@ -2718,6 +2870,8 @@ export type UserUncheckedCreateWithoutSequencesInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSequencesInput = {
@@ -2763,6 +2917,8 @@ export type UserUpdateWithoutSequencesInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSequencesInput = {
@@ -2792,6 +2948,8 @@ export type UserUncheckedUpdateWithoutSequencesInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutExtensionTasksInput = {
@@ -2821,6 +2979,8 @@ export type UserCreateWithoutExtensionTasksInput = {
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutExtensionTasksInput = {
@@ -2850,6 +3010,8 @@ export type UserUncheckedCreateWithoutExtensionTasksInput = {
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutExtensionTasksInput = {
@@ -2895,6 +3057,8 @@ export type UserUpdateWithoutExtensionTasksInput = {
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutExtensionTasksInput = {
@@ -2924,6 +3088,8 @@ export type UserUncheckedUpdateWithoutExtensionTasksInput = {
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutExtensionSessionInput = {
@@ -2953,6 +3119,8 @@ export type UserCreateWithoutExtensionSessionInput = {
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutExtensionSessionInput = {
@@ -2982,6 +3150,8 @@ export type UserUncheckedCreateWithoutExtensionSessionInput = {
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutExtensionSessionInput = {
@@ -3027,6 +3197,8 @@ export type UserUpdateWithoutExtensionSessionInput = {
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutExtensionSessionInput = {
@@ -3056,6 +3228,8 @@ export type UserUncheckedUpdateWithoutExtensionSessionInput = {
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutExtensionAlertsInput = {
@@ -3085,6 +3259,8 @@ export type UserCreateWithoutExtensionAlertsInput = {
   sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
   extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutExtensionAlertsInput = {
@@ -3114,6 +3290,8 @@ export type UserUncheckedCreateWithoutExtensionAlertsInput = {
   sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
   extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
   extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutExtensionAlertsInput = {
@@ -3159,6 +3337,8 @@ export type UserUpdateWithoutExtensionAlertsInput = {
   sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutExtensionAlertsInput = {
@@ -3188,6 +3368,288 @@ export type UserUncheckedUpdateWithoutExtensionAlertsInput = {
   sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserCreateWithoutProspectingRunsInput = {
+  id?: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  createdAt?: Date | string
+  org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
+}
+
+export type UserUncheckedCreateWithoutProspectingRunsInput = {
+  id?: string
+  orgId: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  createdAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewUncheckedCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+export type UserCreateOrConnectWithoutProspectingRunsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutProspectingRunsInput, Prisma.UserUncheckedCreateWithoutProspectingRunsInput>
+}
+
+export type UserUpsertWithoutProspectingRunsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutProspectingRunsInput, Prisma.UserUncheckedUpdateWithoutProspectingRunsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutProspectingRunsInput, Prisma.UserUncheckedCreateWithoutProspectingRunsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutProspectingRunsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutProspectingRunsInput, Prisma.UserUncheckedUpdateWithoutProspectingRunsInput>
+}
+
+export type UserUpdateWithoutProspectingRunsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutProspectingRunsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUncheckedUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserCreateWithoutConnectionRequestsInput = {
+  id?: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  createdAt?: Date | string
+  org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+}
+
+export type UserUncheckedCreateWithoutConnectionRequestsInput = {
+  id?: string
+  orgId: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  createdAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewUncheckedCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+export type UserCreateOrConnectWithoutConnectionRequestsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutConnectionRequestsInput, Prisma.UserUncheckedCreateWithoutConnectionRequestsInput>
+}
+
+export type UserUpsertWithoutConnectionRequestsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutConnectionRequestsInput, Prisma.UserUncheckedUpdateWithoutConnectionRequestsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutConnectionRequestsInput, Prisma.UserUncheckedCreateWithoutConnectionRequestsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutConnectionRequestsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutConnectionRequestsInput, Prisma.UserUncheckedUpdateWithoutConnectionRequestsInput>
+}
+
+export type UserUpdateWithoutConnectionRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutConnectionRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUncheckedUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateManyOrgInput = {
@@ -3229,6 +3691,8 @@ export type UserUpdateWithoutOrgInput = {
   extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrgInput = {
@@ -3258,6 +3722,8 @@ export type UserUncheckedUpdateWithoutOrgInput = {
   extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
   extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutOrgInput = {
@@ -3293,6 +3759,8 @@ export type UserCountOutputType = {
   sequences: number
   extensionTasks: number
   extensionAlerts: number
+  prospectingRuns: number
+  connectionRequests: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3311,6 +3779,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   sequences?: boolean | UserCountOutputTypeCountSequencesArgs
   extensionTasks?: boolean | UserCountOutputTypeCountExtensionTasksArgs
   extensionAlerts?: boolean | UserCountOutputTypeCountExtensionAlertsArgs
+  prospectingRuns?: boolean | UserCountOutputTypeCountProspectingRunsArgs
+  connectionRequests?: boolean | UserCountOutputTypeCountConnectionRequestsArgs
 }
 
 /**
@@ -3428,6 +3898,20 @@ export type UserCountOutputTypeCountExtensionAlertsArgs<ExtArgs extends runtime.
   where?: Prisma.ExtensionAlertWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountProspectingRunsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProspectingRunWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountConnectionRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ConnectionRequestWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -3458,6 +3942,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   extensionTasks?: boolean | Prisma.User$extensionTasksArgs<ExtArgs>
   extensionSession?: boolean | Prisma.User$extensionSessionArgs<ExtArgs>
   extensionAlerts?: boolean | Prisma.User$extensionAlertsArgs<ExtArgs>
+  prospectingRuns?: boolean | Prisma.User$prospectingRunsArgs<ExtArgs>
+  connectionRequests?: boolean | Prisma.User$connectionRequestsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -3522,6 +4008,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   extensionTasks?: boolean | Prisma.User$extensionTasksArgs<ExtArgs>
   extensionSession?: boolean | Prisma.User$extensionSessionArgs<ExtArgs>
   extensionAlerts?: boolean | Prisma.User$extensionAlertsArgs<ExtArgs>
+  prospectingRuns?: boolean | Prisma.User$prospectingRunsArgs<ExtArgs>
+  connectionRequests?: boolean | Prisma.User$connectionRequestsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3552,6 +4040,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     extensionTasks: Prisma.$ExtensionTaskPayload<ExtArgs>[]
     extensionSession: Prisma.$ExtensionSessionPayload<ExtArgs> | null
     extensionAlerts: Prisma.$ExtensionAlertPayload<ExtArgs>[]
+    prospectingRuns: Prisma.$ProspectingRunPayload<ExtArgs>[]
+    connectionRequests: Prisma.$ConnectionRequestPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3976,6 +4466,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   extensionTasks<T extends Prisma.User$extensionTasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$extensionTasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExtensionTaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   extensionSession<T extends Prisma.User$extensionSessionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$extensionSessionArgs<ExtArgs>>): Prisma.Prisma__ExtensionSessionClient<runtime.Types.Result.GetResult<Prisma.$ExtensionSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   extensionAlerts<T extends Prisma.User$extensionAlertsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$extensionAlertsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExtensionAlertPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  prospectingRuns<T extends Prisma.User$prospectingRunsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$prospectingRunsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProspectingRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  connectionRequests<T extends Prisma.User$connectionRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$connectionRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConnectionRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4811,6 +5303,54 @@ export type User$extensionAlertsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.ExtensionAlertScalarFieldEnum | Prisma.ExtensionAlertScalarFieldEnum[]
+}
+
+/**
+ * User.prospectingRuns
+ */
+export type User$prospectingRunsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProspectingRun
+   */
+  select?: Prisma.ProspectingRunSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProspectingRun
+   */
+  omit?: Prisma.ProspectingRunOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProspectingRunInclude<ExtArgs> | null
+  where?: Prisma.ProspectingRunWhereInput
+  orderBy?: Prisma.ProspectingRunOrderByWithRelationInput | Prisma.ProspectingRunOrderByWithRelationInput[]
+  cursor?: Prisma.ProspectingRunWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProspectingRunScalarFieldEnum | Prisma.ProspectingRunScalarFieldEnum[]
+}
+
+/**
+ * User.connectionRequests
+ */
+export type User$connectionRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ConnectionRequest
+   */
+  select?: Prisma.ConnectionRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ConnectionRequest
+   */
+  omit?: Prisma.ConnectionRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConnectionRequestInclude<ExtArgs> | null
+  where?: Prisma.ConnectionRequestWhereInput
+  orderBy?: Prisma.ConnectionRequestOrderByWithRelationInput | Prisma.ConnectionRequestOrderByWithRelationInput[]
+  cursor?: Prisma.ConnectionRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ConnectionRequestScalarFieldEnum | Prisma.ConnectionRequestScalarFieldEnum[]
 }
 
 /**

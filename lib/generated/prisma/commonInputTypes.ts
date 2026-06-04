@@ -512,6 +512,53 @@ export type EnumExtensionAlertKindWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumExtensionAlertKindFilter<$PrismaModel>
 }
 
+export type EnumProspectingRunStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProspectingRunStatus | Prisma.EnumProspectingRunStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ProspectingRunStatus[] | Prisma.ListEnumProspectingRunStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProspectingRunStatus[] | Prisma.ListEnumProspectingRunStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProspectingRunStatusFilter<$PrismaModel> | $Enums.ProspectingRunStatus
+}
+
+export type BoolFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
+}
+
+export type EnumProspectingRunStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProspectingRunStatus | Prisma.EnumProspectingRunStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ProspectingRunStatus[] | Prisma.ListEnumProspectingRunStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProspectingRunStatus[] | Prisma.ListEnumProspectingRunStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProspectingRunStatusWithAggregatesFilter<$PrismaModel> | $Enums.ProspectingRunStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProspectingRunStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProspectingRunStatusFilter<$PrismaModel>
+}
+
+export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedBoolFilter<$PrismaModel>
+  _max?: Prisma.NestedBoolFilter<$PrismaModel>
+}
+
+export type EnumConnectionRequestStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ConnectionRequestStatus | Prisma.EnumConnectionRequestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ConnectionRequestStatus[] | Prisma.ListEnumConnectionRequestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ConnectionRequestStatus[] | Prisma.ListEnumConnectionRequestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumConnectionRequestStatusFilter<$PrismaModel> | $Enums.ConnectionRequestStatus
+}
+
+export type EnumConnectionRequestStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ConnectionRequestStatus | Prisma.EnumConnectionRequestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ConnectionRequestStatus[] | Prisma.ListEnumConnectionRequestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ConnectionRequestStatus[] | Prisma.ListEnumConnectionRequestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumConnectionRequestStatusWithAggregatesFilter<$PrismaModel> | $Enums.ConnectionRequestStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumConnectionRequestStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumConnectionRequestStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -967,6 +1014,53 @@ export type NestedEnumExtensionAlertKindWithAggregatesFilter<$PrismaModel = neve
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumExtensionAlertKindFilter<$PrismaModel>
   _max?: Prisma.NestedEnumExtensionAlertKindFilter<$PrismaModel>
+}
+
+export type NestedEnumProspectingRunStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProspectingRunStatus | Prisma.EnumProspectingRunStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ProspectingRunStatus[] | Prisma.ListEnumProspectingRunStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProspectingRunStatus[] | Prisma.ListEnumProspectingRunStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProspectingRunStatusFilter<$PrismaModel> | $Enums.ProspectingRunStatus
+}
+
+export type NestedBoolFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
+}
+
+export type NestedEnumProspectingRunStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProspectingRunStatus | Prisma.EnumProspectingRunStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ProspectingRunStatus[] | Prisma.ListEnumProspectingRunStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProspectingRunStatus[] | Prisma.ListEnumProspectingRunStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProspectingRunStatusWithAggregatesFilter<$PrismaModel> | $Enums.ProspectingRunStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProspectingRunStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProspectingRunStatusFilter<$PrismaModel>
+}
+
+export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedBoolFilter<$PrismaModel>
+  _max?: Prisma.NestedBoolFilter<$PrismaModel>
+}
+
+export type NestedEnumConnectionRequestStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ConnectionRequestStatus | Prisma.EnumConnectionRequestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ConnectionRequestStatus[] | Prisma.ListEnumConnectionRequestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ConnectionRequestStatus[] | Prisma.ListEnumConnectionRequestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumConnectionRequestStatusFilter<$PrismaModel> | $Enums.ConnectionRequestStatus
+}
+
+export type NestedEnumConnectionRequestStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ConnectionRequestStatus | Prisma.EnumConnectionRequestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ConnectionRequestStatus[] | Prisma.ListEnumConnectionRequestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ConnectionRequestStatus[] | Prisma.ListEnumConnectionRequestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumConnectionRequestStatusWithAggregatesFilter<$PrismaModel> | $Enums.ConnectionRequestStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumConnectionRequestStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumConnectionRequestStatusFilter<$PrismaModel>
 }
 
 

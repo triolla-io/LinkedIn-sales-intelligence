@@ -181,3 +181,13 @@ export type ExtensionAlert = Prisma.ExtensionAlertModel
  * 
  */
 export type NameTranslation = Prisma.NameTranslationModel
+/**
+ * Model ProspectingRun
+ * 
+ */
+export type ProspectingRun = Prisma.ProspectingRunModel
+/**
+ * Model ConnectionRequest
+ * 
+ */
+export type ConnectionRequest = Prisma.ConnectionRequestModel
