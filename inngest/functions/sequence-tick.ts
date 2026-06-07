@@ -1,6 +1,6 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
-import { computeScheduledAt } from "@/lib/sequences/helpers";
+import { buildEnrollmentExecutions } from "@/lib/sequences/helpers";
 
 export const sequenceTick = inngest.createFunction(
   { id: "sequence-tick", triggers: [{ cron: "*/5 * * * *" }] },
@@ -26,9 +26,8 @@ export const sequenceTick = inngest.createFunction(
           select: { contactId: true },
         });
 
-        const firstStep = sequence.steps[0];
         const newMembers = allMembers.filter((m) => !enrolledIds.has(m.contactId));
-        if (newMembers.length > 0 && firstStep) {
+        if (newMembers.length > 0 && sequence.steps.length > 0) {
           await prisma.sequenceEnrollment.createMany({
             data: newMembers.map((m) => ({
               sequenceId: sequence.id,
@@ -47,12 +46,12 @@ export const sequenceTick = inngest.createFunction(
           });
 
           await prisma.sequenceStepExecution.createMany({
-            data: newEnrollments.map((enr) => ({
-              enrollmentId: enr.id,
-              stepId: firstStep.id,
-              status: "PENDING" as const,
-              scheduledAt: computeScheduledAt(enr.enrolledAt, firstStep.dayOffset, firstStep.sendHour, firstStep.sendMinute),
-            })),
+            data: newEnrollments.flatMap((enr) =>
+              buildEnrollmentExecutions(enr.enrolledAt, sequence.steps).map((row) => ({
+                ...row,
+                enrollmentId: enr.id,
+              }))
+            ),
             skipDuplicates: true,
           });
         }

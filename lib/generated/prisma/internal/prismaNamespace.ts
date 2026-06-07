@@ -411,7 +411,9 @@ export const ModelName = {
   ExtensionTask: 'ExtensionTask',
   ExtensionSession: 'ExtensionSession',
   ExtensionAlert: 'ExtensionAlert',
-  NameTranslation: 'NameTranslation'
+  NameTranslation: 'NameTranslation',
+  ProspectingRun: 'ProspectingRun',
+  ConnectionRequest: 'ConnectionRequest'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -427,7 +429,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "connectionRequest"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2503,6 +2505,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProspectingRun: {
+      payload: Prisma.$ProspectingRunPayload<ExtArgs>
+      fields: Prisma.ProspectingRunFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProspectingRunFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingRunPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProspectingRunFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingRunPayload>
+        }
+        findFirst: {
+          args: Prisma.ProspectingRunFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingRunPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProspectingRunFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingRunPayload>
+        }
+        findMany: {
+          args: Prisma.ProspectingRunFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingRunPayload>[]
+        }
+        create: {
+          args: Prisma.ProspectingRunCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingRunPayload>
+        }
+        createMany: {
+          args: Prisma.ProspectingRunCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProspectingRunCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingRunPayload>[]
+        }
+        delete: {
+          args: Prisma.ProspectingRunDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingRunPayload>
+        }
+        update: {
+          args: Prisma.ProspectingRunUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingRunPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProspectingRunDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProspectingRunUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProspectingRunUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingRunPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProspectingRunUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingRunPayload>
+        }
+        aggregate: {
+          args: Prisma.ProspectingRunAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProspectingRun>
+        }
+        groupBy: {
+          args: Prisma.ProspectingRunGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProspectingRunGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProspectingRunCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProspectingRunCountAggregateOutputType> | number
+        }
+      }
+    }
+    ConnectionRequest: {
+      payload: Prisma.$ConnectionRequestPayload<ExtArgs>
+      fields: Prisma.ConnectionRequestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ConnectionRequestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionRequestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ConnectionRequestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionRequestPayload>
+        }
+        findFirst: {
+          args: Prisma.ConnectionRequestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionRequestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ConnectionRequestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionRequestPayload>
+        }
+        findMany: {
+          args: Prisma.ConnectionRequestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionRequestPayload>[]
+        }
+        create: {
+          args: Prisma.ConnectionRequestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionRequestPayload>
+        }
+        createMany: {
+          args: Prisma.ConnectionRequestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ConnectionRequestCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionRequestPayload>[]
+        }
+        delete: {
+          args: Prisma.ConnectionRequestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionRequestPayload>
+        }
+        update: {
+          args: Prisma.ConnectionRequestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionRequestPayload>
+        }
+        deleteMany: {
+          args: Prisma.ConnectionRequestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ConnectionRequestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ConnectionRequestUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionRequestPayload>[]
+        }
+        upsert: {
+          args: Prisma.ConnectionRequestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionRequestPayload>
+        }
+        aggregate: {
+          args: Prisma.ConnectionRequestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateConnectionRequest>
+        }
+        groupBy: {
+          args: Prisma.ConnectionRequestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConnectionRequestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ConnectionRequestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConnectionRequestCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2910,6 +3060,8 @@ export const ExtensionTaskScalarFieldEnum = {
   payload: 'payload',
   recipientId: 'recipientId',
   sequenceExecutionId: 'sequenceExecutionId',
+  prospectingRunId: 'prospectingRunId',
+  connectionRequestId: 'connectionRequestId',
   scheduledFor: 'scheduledFor',
   claimedAt: 'claimedAt',
   completedAt: 'completedAt',
@@ -2956,6 +3108,53 @@ export const NameTranslationScalarFieldEnum = {
 } as const
 
 export type NameTranslationScalarFieldEnum = (typeof NameTranslationScalarFieldEnum)[keyof typeof NameTranslationScalarFieldEnum]
+
+
+export const ProspectingRunScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  name: 'name',
+  keywords: 'keywords',
+  geoUrn: 'geoUrn',
+  searchUrl: 'searchUrl',
+  status: 'status',
+  dailyCap: 'dailyCap',
+  weeklyCap: 'weeklyCap',
+  discoveryDone: 'discoveryDone',
+  connectInFlight: 'connectInFlight',
+  searchFailCount: 'searchFailCount',
+  pausedUntil: 'pausedUntil',
+  nextSearchPage: 'nextSearchPage',
+  totalDiscovered: 'totalDiscovered',
+  totalSent: 'totalSent',
+  createdAt: 'createdAt',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt'
+} as const
+
+export type ProspectingRunScalarFieldEnum = (typeof ProspectingRunScalarFieldEnum)[keyof typeof ProspectingRunScalarFieldEnum]
+
+
+export const ConnectionRequestScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  runId: 'runId',
+  linkedinUrn: 'linkedinUrn',
+  linkedinUrl: 'linkedinUrl',
+  fullName: 'fullName',
+  currentTitle: 'currentTitle',
+  currentCompany: 'currentCompany',
+  location: 'location',
+  status: 'status',
+  skipReason: 'skipReason',
+  sentAt: 'sentAt',
+  attemptCount: 'attemptCount',
+  errorCode: 'errorCode',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt'
+} as const
+
+export type ConnectionRequestScalarFieldEnum = (typeof ConnectionRequestScalarFieldEnum)[keyof typeof ConnectionRequestScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -3251,6 +3450,41 @@ export type ListEnumExtensionAlertKindFieldRefInput<$PrismaModel> = FieldRefInpu
 
 
 /**
+ * Reference to a field of type 'ProspectingRunStatus'
+ */
+export type EnumProspectingRunStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProspectingRunStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ProspectingRunStatus[]'
+ */
+export type ListEnumProspectingRunStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProspectingRunStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'ConnectionRequestStatus'
+ */
+export type EnumConnectionRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConnectionRequestStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ConnectionRequestStatus[]'
+ */
+export type ListEnumConnectionRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConnectionRequestStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -3401,6 +3635,8 @@ export type GlobalOmitConfig = {
   extensionSession?: Prisma.ExtensionSessionOmit
   extensionAlert?: Prisma.ExtensionAlertOmit
   nameTranslation?: Prisma.NameTranslationOmit
+  prospectingRun?: Prisma.ProspectingRunOmit
+  connectionRequest?: Prisma.ConnectionRequestOmit
 }
 
 /* Types for Logging */

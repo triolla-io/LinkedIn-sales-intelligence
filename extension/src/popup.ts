@@ -1,11 +1,12 @@
 import { clearToken, getApiBase, getToken, setApiBase, setToken, isPaused, setPaused } from "./lib/storage";
 import { validateToken } from "./lib/api";
 
-const API_BASE = "https://sales.triolla.io";
-
 async function render() {
   const token = await getToken();
   const paused = await isPaused();
+  const storedBase = await getApiBase();
+  const apiBaseInput = document.getElementById("api-base") as HTMLInputElement;
+  if (apiBaseInput && !apiBaseInput.value) apiBaseInput.value = storedBase;
 
   const card = document.getElementById("status-card")!;
   const label = document.getElementById("status-label")!;
@@ -45,14 +46,16 @@ async function render() {
 
 document.getElementById("connect-btn")!.addEventListener("click", async () => {
   const tokenInput = document.getElementById("token") as HTMLInputElement;
+  const apiBaseInput = document.getElementById("api-base") as HTMLInputElement;
   const token = tokenInput.value.trim();
+  const apiBase = (apiBaseInput.value.trim() || "https://sales.triolla.io").replace(/\/$/, "");
   if (!token) { alert("הדבק token תחילה"); return; }
 
   const btn = document.getElementById("connect-btn") as HTMLButtonElement;
   btn.disabled = true;
   btn.textContent = "מתחבר...";
 
-  const r = await validateToken(token, API_BASE);
+  const r = await validateToken(token, apiBase);
   if (!r.ok) {
     alert("Token לא תקין — בדקי בהגדרות ונסי שוב");
     btn.disabled = false;
@@ -60,7 +63,7 @@ document.getElementById("connect-btn")!.addEventListener("click", async () => {
     return;
   }
 
-  await setApiBase(API_BASE);
+  await setApiBase(apiBase);
   await setToken(token);
   tokenInput.value = "";
   await render();

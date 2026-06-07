@@ -20,7 +20,7 @@ export async function validateToken(token: string, base: string): Promise<{ ok: 
   return await r.json();
 }
 
-export async function pollTask(): Promise<null | { id: string; kind: "SEND" | "CHECK_REPLY"; payload: unknown }> {
+export async function pollTask(): Promise<null | { id: string; kind: "SEND" | "CHECK_REPLY" | "SEARCH" | "CONNECT"; payload: unknown }> {
   const r = await req("/api/extension/tasks/next");
   if (r.status === 204) return null;
   if (!r.ok) throw new Error(`poll_failed_${r.status}`);

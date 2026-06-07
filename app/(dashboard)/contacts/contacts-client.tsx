@@ -207,12 +207,11 @@ export default function ContactsClient({
   const selectedContacts = contacts.filter((c) => selectedIds.has(c.id));
 
   return (
-    <div className="flex h-full min-h-screen bg-[#f6f5f3]">
-      <aside className="shrink-0 sticky top-0 h-screen">
+    <div dir="ltr" className="flex h-full min-h-screen bg-[#f6f5f3]">
+      <aside dir="rtl" className="shrink-0 sticky top-0 h-screen">
         <FilterSidebar filters={filters} onChange={handleFiltersChange} />
       </aside>
-
-      <div className="flex-1 min-w-0 flex flex-col">
+      <div dir="rtl" className="flex-1 min-w-0 flex flex-col">
         <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <h1 className="text-sm font-semibold text-[#111110] tracking-tight">

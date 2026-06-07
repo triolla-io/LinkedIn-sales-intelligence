@@ -3,9 +3,10 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { signOut } from "next-auth/react";
 import {
   Users, FileText, Shield, LogOut, LayoutDashboard, Upload,
-  BookMarked, GitBranch, ChevronLeft, ChevronRight, Settings,
+  BookMarked, GitBranch, ChevronLeft, ChevronRight, Settings, Search,
 } from "lucide-react";
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -33,6 +34,7 @@ const navItems = [
   { href: "/contacts", label: "אנשי קשר", icon: Users },
   { href: "/lists", label: "רשימות תפוצה", icon: BookMarked },
   { href: "/campaigns", label: "קמפיינים", icon: GitBranch },
+  { href: "/prospecting", label: "Prospecting", icon: Search },
   { href: "/templates", label: "טמפלטים", icon: FileText },
   { href: "/import", label: "ייבוא נתונים", icon: Upload },
   { href: "/settings", label: "הגדרות", icon: Settings },
@@ -43,8 +45,7 @@ const adminItems = [
 ];
 
 async function handleSignOut() {
-  await fetch("/api/auth/signout", { method: "POST" });
-  window.location.href = "/sign-in";
+  await signOut({ callbackUrl: "/sign-in" });
 }
 
 export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {

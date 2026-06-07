@@ -1,6 +1,6 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
-import { computeScheduledAt } from "@/lib/sequences/helpers";
+import { buildEnrollmentExecutions } from "@/lib/sequences/helpers";
 
 export const sequenceStart = inngest.createFunction(
   { id: "sequence-start", triggers: [{ event: "sequence.start" as const }] },
@@ -20,8 +20,7 @@ export const sequenceStart = inngest.createFunction(
       data: { status: "ACTIVE", startedAt: now },
     });
 
-    const firstStep = sequence.steps[0];
-    if (!firstStep) return;
+    if (sequence.steps.length === 0) return;
 
     // Only auto-enroll from list if one is linked
     if (!sequence.contactListId) return;
@@ -35,19 +34,12 @@ export const sequenceStart = inngest.createFunction(
       const enrollment = await prisma.sequenceEnrollment.create({
         data: { sequenceId, contactId: member.contactId, status: "ACTIVE" },
       });
-      const scheduledAt = computeScheduledAt(
-        enrollment.enrolledAt,
-        firstStep.dayOffset,
-        firstStep.sendHour,
-        firstStep.sendMinute
-      );
-      await prisma.sequenceStepExecution.create({
-        data: {
+      await prisma.sequenceStepExecution.createMany({
+        data: buildEnrollmentExecutions(enrollment.enrolledAt, sequence.steps).map((row) => ({
+          ...row,
           enrollmentId: enrollment.id,
-          stepId: firstStep.id,
-          status: "PENDING",
-          scheduledAt,
-        },
+        })),
+        skipDuplicates: true,
       });
     }
   }

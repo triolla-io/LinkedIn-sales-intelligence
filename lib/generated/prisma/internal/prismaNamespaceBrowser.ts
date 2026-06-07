@@ -78,7 +78,9 @@ export const ModelName = {
   ExtensionTask: 'ExtensionTask',
   ExtensionSession: 'ExtensionSession',
   ExtensionAlert: 'ExtensionAlert',
-  NameTranslation: 'NameTranslation'
+  NameTranslation: 'NameTranslation',
+  ProspectingRun: 'ProspectingRun',
+  ConnectionRequest: 'ConnectionRequest'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -465,6 +467,8 @@ export const ExtensionTaskScalarFieldEnum = {
   payload: 'payload',
   recipientId: 'recipientId',
   sequenceExecutionId: 'sequenceExecutionId',
+  prospectingRunId: 'prospectingRunId',
+  connectionRequestId: 'connectionRequestId',
   scheduledFor: 'scheduledFor',
   claimedAt: 'claimedAt',
   completedAt: 'completedAt',
@@ -511,6 +515,53 @@ export const NameTranslationScalarFieldEnum = {
 } as const
 
 export type NameTranslationScalarFieldEnum = (typeof NameTranslationScalarFieldEnum)[keyof typeof NameTranslationScalarFieldEnum]
+
+
+export const ProspectingRunScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  name: 'name',
+  keywords: 'keywords',
+  geoUrn: 'geoUrn',
+  searchUrl: 'searchUrl',
+  status: 'status',
+  dailyCap: 'dailyCap',
+  weeklyCap: 'weeklyCap',
+  discoveryDone: 'discoveryDone',
+  connectInFlight: 'connectInFlight',
+  searchFailCount: 'searchFailCount',
+  pausedUntil: 'pausedUntil',
+  nextSearchPage: 'nextSearchPage',
+  totalDiscovered: 'totalDiscovered',
+  totalSent: 'totalSent',
+  createdAt: 'createdAt',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt'
+} as const
+
+export type ProspectingRunScalarFieldEnum = (typeof ProspectingRunScalarFieldEnum)[keyof typeof ProspectingRunScalarFieldEnum]
+
+
+export const ConnectionRequestScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  runId: 'runId',
+  linkedinUrn: 'linkedinUrn',
+  linkedinUrl: 'linkedinUrl',
+  fullName: 'fullName',
+  currentTitle: 'currentTitle',
+  currentCompany: 'currentCompany',
+  location: 'location',
+  status: 'status',
+  skipReason: 'skipReason',
+  sentAt: 'sentAt',
+  attemptCount: 'attemptCount',
+  errorCode: 'errorCode',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt'
+} as const
+
+export type ConnectionRequestScalarFieldEnum = (typeof ConnectionRequestScalarFieldEnum)[keyof typeof ConnectionRequestScalarFieldEnum]
 
 
 export const SortOrder = {

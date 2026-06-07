@@ -133,7 +133,9 @@ export type EnrollmentStatus = (typeof EnrollmentStatus)[keyof typeof Enrollment
 
 export const ExtensionTaskKind = {
   SEND: 'SEND',
-  CHECK_REPLY: 'CHECK_REPLY'
+  CHECK_REPLY: 'CHECK_REPLY',
+  SEARCH: 'SEARCH',
+  CONNECT: 'CONNECT'
 } as const
 
 export type ExtensionTaskKind = (typeof ExtensionTaskKind)[keyof typeof ExtensionTaskKind]
@@ -155,3 +157,26 @@ export const ExtensionAlertKind = {
 } as const
 
 export type ExtensionAlertKind = (typeof ExtensionAlertKind)[keyof typeof ExtensionAlertKind]
+
+
+export const ProspectingRunStatus = {
+  DRAFT: 'DRAFT',
+  RUNNING: 'RUNNING',
+  PAUSED: 'PAUSED',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+} as const
+
+export type ProspectingRunStatus = (typeof ProspectingRunStatus)[keyof typeof ProspectingRunStatus]
+
+
+export const ConnectionRequestStatus = {
+  DISCOVERED: 'DISCOVERED',
+  QUEUED: 'QUEUED',
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+  SKIPPED: 'SKIPPED',
+  ACCEPTED: 'ACCEPTED'
+} as const
+
+export type ConnectionRequestStatus = (typeof ConnectionRequestStatus)[keyof typeof ConnectionRequestStatus]

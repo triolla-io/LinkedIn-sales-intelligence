@@ -9,6 +9,10 @@ Multi-tenant LinkedIn sales intelligence platform. See README.md for full archit
 - Every API route MUST be wrapped with `withTenant()` from `lib/tenancy/with-tenant.ts`
 - Never use raw `prisma` in route handlers for Contact/SentMessage queries — always filter by `ctx.effectiveUserId`
 
+## UI library
+
+Use HeroUI (`@heroui/react`) for all React components.
+
 ## Module conventions
 
 - New service clients go in `lib/<service>/client.ts`
@@ -32,6 +36,8 @@ Multi-tenant LinkedIn sales intelligence platform. See README.md for full archit
 | `sequence.start` | sequence start API | `inngest/functions/sequence-start.ts` |
 | `sequence.tick` | cron / admin trigger | `inngest/functions/sequence-tick.ts` |
 | `sequence.send-execution` | per step due | `inngest/functions/sequence-send-execution.ts` |
+| `prospecting.start` | prospecting start API | `inngest/functions/prospecting-start.ts` |
+| `prospecting.tick` | cron */5 * * * * | `inngest/functions/prospecting-tick.ts` |
 
 ## Next.js version
 
