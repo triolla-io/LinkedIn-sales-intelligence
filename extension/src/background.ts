@@ -26,6 +26,10 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create("hb", { periodInMinutes: HEARTBEAT_INTERVAL_S / 60 });
 });
 
+// Send heartbeat immediately on service-worker startup so the UI shows
+// "connected" right away instead of waiting up to 60s for the first alarm.
+getToken().then((token) => { if (token) heartbeat(VERSION); });
+
 chrome.alarms.onAlarm.addListener(async (a) => {
   if (!(await getToken())) return;
   if (await isPaused()) return;
