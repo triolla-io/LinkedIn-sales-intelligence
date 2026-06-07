@@ -2,6 +2,7 @@ import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { executeSequenceSend } from "@/lib/sequences/execute-send";
 import { computeNextScheduledFor } from "@/lib/extension/task-scheduler";
+import { priorStepGate, maybeCompleteEnrollment } from "@/lib/sequences/gating";
 
 const RETRY_DELAY_MS = 60_000;
 
@@ -31,6 +32,7 @@ export const sequenceSendExecution = inngest.createFunction(
             contact: true,
             sequence: {
               include: {
+                steps: { orderBy: { stepNumber: "asc" }, select: { id: true } },
                 owner: { select: { timezone: true } },
               },
             },
@@ -46,6 +48,21 @@ export const sequenceSendExecution = inngest.createFunction(
       if (execution.status !== "PENDING") return;
       if (execution.enrollment.sequence.status !== "ACTIVE") return;
       if (execution.enrollment.status !== "ACTIVE") return;
+
+      const gate = await priorStepGate(
+        execution.enrollmentId,
+        execution.stepId,
+        execution.enrollment.sequence.steps
+      );
+      if (gate === "defer") return; // stays PENDING; next tick retries
+      if (gate === "skip") {
+        await prisma.sequenceStepExecution.update({
+          where: { id: execution.id },
+          data: { status: "SKIPPED", errorMessage: "prior_step_failed" },
+        });
+        await maybeCompleteEnrollment(execution.enrollmentId);
+        return;
+      }
 
       const linkedinUrl = execution.enrollment.contact.linkedinUrl;
       if (!linkedinUrl) {
@@ -97,6 +114,8 @@ export const sequenceSendExecution = inngest.createFunction(
 
     // Delegate EMAIL / WHATSAPP to existing handler
     const result = await executeSequenceSend(executionId);
+
+    if (result.outcome === "deferred" || result.outcome === "skipped_prior_failed") return;
 
     if (result.outcome === "rate_limited") {
       await inngest.send({
