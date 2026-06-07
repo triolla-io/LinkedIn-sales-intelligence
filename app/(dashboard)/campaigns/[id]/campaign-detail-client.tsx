@@ -626,7 +626,11 @@ export default function CampaignDetailClient({
 
   return (
     <div className="p-8 space-y-6">
-      <AutoRefresher />
+      <AutoRefresher intervalMs={
+        sequence.enrollments.some((e) =>
+          e.executions.some((x) => x.status === "PENDING" || x.status === "QUEUED" || x.status === "SENDING")
+        ) ? 5_000 : 30_000
+      } />
 
       <SequenceHeader sequence={sequence} acting={acting} onAction={doAction} />
 
