@@ -58,9 +58,31 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       });
     }
 
+    // Return full enrollment objects so the client can optimistically update state
+    const fullEnrollments = await prisma.sequenceEnrollment.findMany({
+      where: { id: { in: newEnrollments.map((e) => e.id) } },
+      select: {
+        id: true,
+        contactId: true,
+        status: true,
+        enrolledAt: true,
+        contact: { select: { fullName: true, currentTitle: true, currentCompany: true } },
+        executions: {
+          select: {
+            status: true,
+            sentAt: true,
+            scheduledAt: true,
+            step: { select: { stepNumber: true, channel: true, dayOffset: true } },
+          },
+          orderBy: { scheduledAt: "asc" },
+        },
+      },
+    });
+
     return NextResponse.json({
       enrolled: newEnrollments.length,
       skipped: (contactIds as string[]).length - newEnrollments.length,
+      newEnrollments: fullEnrollments,
     });
   })(req);
 }

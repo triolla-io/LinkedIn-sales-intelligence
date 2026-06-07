@@ -515,9 +515,16 @@ export default function CampaignDetailClient({
         body: JSON.stringify({ contactIds: Array.from(selectedContactIds) }),
       });
       if (res.ok) {
+        const data = await res.json();
         setShowEnrollModal(false);
         setSelectedContactIds(new Set());
-        router.refresh();
+        if (data.newEnrollments?.length > 0) {
+          setSequence((prev) => ({
+            ...prev,
+            enrollments: [...prev.enrollments, ...data.newEnrollments],
+          }));
+        }
+        router.refresh(); // sync server state in background
       }
     } finally {
       setEnrolling(false);
