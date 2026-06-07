@@ -6,6 +6,7 @@ import { waClient } from "@/lib/whatsapp/client";
 import { normalizePhone } from "@/lib/whatsapp/phone";
 import { computeScheduledAt } from "@/lib/sequences/helpers";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
+import { priorStepGate, maybeCompleteEnrollment } from "@/lib/sequences/gating";
 
 const TIMEZONE = "Asia/Jerusalem";
 
@@ -48,7 +49,9 @@ export type ExecuteSendResult =
   | { outcome: "rate_limited"; retryAfterSec: number }
   | { outcome: "missing_variables"; variables: string[] }
   | { outcome: "sent" }
-  | { outcome: "failed"; error: string; willRetry: boolean };
+  | { outcome: "failed"; error: string; willRetry: boolean }
+  | { outcome: "skipped_prior_failed" }
+  | { outcome: "deferred" };
 
 export async function executeSequenceSend(executionId: string): Promise<ExecuteSendResult> {
   const execution = await prisma.sequenceStepExecution.findUnique({
@@ -74,7 +77,19 @@ export async function executeSequenceSend(executionId: string): Promise<ExecuteS
   if (execution.enrollment.sequence.status !== "ACTIVE") return { outcome: "skipped_sequence_inactive" };
   if (execution.enrollment.status !== "ACTIVE") return { outcome: "skipped_enrollment_inactive" };
 
-  const { contact, sequence, enrolledAt } = execution.enrollment;
+  const orderedSteps = execution.enrollment.sequence.steps;
+  const gate = await priorStepGate(execution.enrollmentId, execution.stepId, orderedSteps);
+  if (gate === "defer") return { outcome: "deferred" };
+  if (gate === "skip") {
+    await prisma.sequenceStepExecution.update({
+      where: { id: executionId },
+      data: { status: "SKIPPED", errorMessage: "prior_step_failed" },
+    });
+    await maybeCompleteEnrollment(execution.enrollmentId);
+    return { outcome: "skipped_prior_failed" };
+  }
+
+  const { contact, sequence } = execution.enrollment;
   const step = execution.step;
   const ownerId = sequence.ownerId;
 
@@ -132,7 +147,7 @@ export async function executeSequenceSend(executionId: string): Promise<ExecuteS
       data: { status: "SENT", sentAt: new Date(), sentMessageId: sent.id },
     });
 
-    await maybeAdvance(execution.enrollmentId, step.id, sequence.steps, enrolledAt);
+    await maybeCompleteEnrollment(execution.enrollmentId);
     return { outcome: "sent" };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -143,7 +158,7 @@ export async function executeSequenceSend(executionId: string): Promise<ExecuteS
       data: { status: willRetry ? "PENDING" : "FAILED", errorMessage: msg },
     });
     if (!willRetry) {
-      await maybeAdvance(execution.enrollmentId, step.id, sequence.steps, enrolledAt);
+      await maybeCompleteEnrollment(execution.enrollmentId);
     }
     return { outcome: "failed", error: msg, willRetry };
   }
@@ -165,39 +180,3 @@ export function computeWindowedScheduledAt(
   return new Date(lower + Math.random() * (upper - lower));
 }
 
-async function maybeAdvance(
-  enrollmentId: string,
-  currentStepId: string,
-  allSteps: Array<{ id: string; stepNumber: number; dayOffset: number; sendHour: number; sendMinute: number; sendHourEnd: number | null }>,
-  enrolledAt: Date
-) {
-  const currentIndex = allSteps.findIndex((s) => s.id === currentStepId);
-  const nextStep = allSteps[currentIndex + 1];
-
-  if (nextStep) {
-    await prisma.sequenceStepExecution.create({
-      data: {
-        enrollmentId,
-        stepId: nextStep.id,
-        status: "PENDING",
-        scheduledAt: computeWindowedScheduledAt(enrolledAt, nextStep, new Date()),
-      },
-    });
-  } else {
-    const enrollment = await prisma.sequenceEnrollment.update({
-      where: { id: enrollmentId },
-      data: { status: "COMPLETED" },
-      select: { sequenceId: true },
-    });
-
-    const activeCount = await prisma.sequenceEnrollment.count({
-      where: { sequenceId: enrollment.sequenceId, status: "ACTIVE" },
-    });
-    if (activeCount === 0) {
-      await prisma.sequence.update({
-        where: { id: enrollment.sequenceId },
-        data: { status: "COMPLETED", completedAt: new Date() },
-      });
-    }
-  }
-}
