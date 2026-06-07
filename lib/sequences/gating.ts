@@ -25,3 +25,33 @@ export async function priorStepGate(
   if (prior.status === "FAILED" || prior.status === "SKIPPED") return "skip";
   return "defer"; // PENDING / QUEUED / SENDING
 }
+
+/** Mark the enrollment COMPLETED once all its executions are terminal; complete the sequence if it was the last active enrollment. */
+export async function maybeCompleteEnrollment(enrollmentId: string): Promise<void> {
+  const remaining = await prisma.sequenceStepExecution.count({
+    where: { enrollmentId, status: { notIn: ["SENT", "FAILED", "SKIPPED"] } },
+  });
+  if (remaining > 0) return;
+
+  const updated = await prisma.sequenceEnrollment.updateMany({
+    where: { id: enrollmentId, status: "ACTIVE" },
+    data: { status: "COMPLETED" },
+  });
+  if (updated.count === 0) return; // already completed/removed — avoid double work
+
+  const enrollment = await prisma.sequenceEnrollment.findUnique({
+    where: { id: enrollmentId },
+    select: { sequenceId: true },
+  });
+  if (!enrollment) return;
+
+  const active = await prisma.sequenceEnrollment.count({
+    where: { sequenceId: enrollment.sequenceId, status: "ACTIVE" },
+  });
+  if (active === 0) {
+    await prisma.sequence.update({
+      where: { id: enrollment.sequenceId },
+      data: { status: "COMPLETED", completedAt: new Date() },
+    });
+  }
+}
