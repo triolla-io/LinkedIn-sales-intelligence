@@ -70,6 +70,7 @@ export const sequenceSendExecution = inngest.createFunction(
           where: { id: execution.id },
           data: { status: "FAILED", errorMessage: "missing_linkedin_url" },
         });
+        await maybeCompleteEnrollment(execution.enrollmentId);
         return;
       }
 
