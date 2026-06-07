@@ -87,7 +87,10 @@ describe("maybeCompleteEnrollment", () => {
     mockEnrCount.mockResolvedValue(0);
     await maybeCompleteEnrollment("enr1");
     expect(mockSeqUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: "seq1" }, data: expect.objectContaining({ status: "COMPLETED" }) })
+      expect.objectContaining({
+        where: { id: "seq1" },
+        data: expect.objectContaining({ status: "COMPLETED", completedAt: expect.any(Date) }),
+      })
     );
   });
 
