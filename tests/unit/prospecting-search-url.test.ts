@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildSearchUrl, ISRAEL_GEO_URN } from "@/lib/prospecting/search-url";
+import { buildSearchUrl, GEO_URNS } from "@/lib/prospecting/search-url";
+const ISRAEL_GEO_URN = GEO_URNS.IL.urn;
 
 describe("buildSearchUrl", () => {
   it("encodes keywords and pins 2nd-degree + Israel filters", () => {

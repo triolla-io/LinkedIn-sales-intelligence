@@ -37,6 +37,7 @@ export default function ProspectingPage() {
   const { data, mutate } = useSWR<RunsResponse>("/api/prospecting/runs", fetcher);
   const [name, setName] = useState("");
   const [keywords, setKeywords] = useState("");
+  const [geoCode, setGeoCode] = useState("IL");
   const [submitting, setSubmitting] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
 
@@ -47,10 +48,11 @@ export default function ProspectingPage() {
     await fetch("/api/prospecting/runs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), keywords: keywords.trim() }),
+      body: JSON.stringify({ name: name.trim(), keywords: keywords.trim(), geoCode }),
     });
     setName("");
     setKeywords("");
+    setGeoCode("IL");
     setSubmitting(false);
     mutate();
   }
@@ -102,22 +104,46 @@ export default function ProspectingPage() {
                 className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
               />
             </div>
-            <div>
-              <label htmlFor="run-keywords" className="block text-xs font-medium text-[#6b6866] mb-1">
-                Keywords
-              </label>
-              <textarea
-                id="run-keywords"
-                value={keywords}
-                onChange={(e) => setKeywords(e.target.value)}
-                placeholder="cto, vp r&d, ceo"
-                rows={2}
-                className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors resize-none"
-              />
-              <p className="mt-1 text-xs text-[#9b9895]">
-                Defaults: 15 requests/day, 100/week. 2nd-degree connections in Israel.
-              </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="run-keywords" className="block text-xs font-medium text-[#6b6866] mb-1">
+                  Search keywords
+                </label>
+                <input
+                  id="run-keywords"
+                  type="text"
+                  value={keywords}
+                  onChange={(e) => setKeywords(e.target.value)}
+                  placeholder="cto, vp r&d, ceo"
+                  className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+                />
+              </div>
+              <div>
+                <label htmlFor="run-geo" className="block text-xs font-medium text-[#6b6866] mb-1">
+                  Country
+                </label>
+                <select
+                  id="run-geo"
+                  value={geoCode}
+                  onChange={(e) => setGeoCode(e.target.value)}
+                  className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+                >
+                  <option value="IL">🇮🇱 Israel</option>
+                  <option value="US">🇺🇸 United States</option>
+                  <option value="GB">🇬🇧 United Kingdom</option>
+                  <option value="DE">🇩🇪 Germany</option>
+                  <option value="FR">🇫🇷 France</option>
+                  <option value="CA">🇨🇦 Canada</option>
+                  <option value="AU">🇦🇺 Australia</option>
+                  <option value="NL">🇳🇱 Netherlands</option>
+                  <option value="IN">🇮🇳 India</option>
+                  <option value="SG">🇸🇬 Singapore</option>
+                </select>
+              </div>
             </div>
+            <p className="text-xs text-[#9b9895]">
+              Defaults: 15 requests/day, 100/week. 2nd-degree connections only.
+            </p>
             <button
               type="submit"
               disabled={submitting || !name.trim()}

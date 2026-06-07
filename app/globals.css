@@ -1,4 +1,18 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "@heroui/styles/base";
+@import "@heroui/styles/components/description.css";
+@import "@heroui/styles/components/label.css";
+@import "@heroui/styles/components/button.css";
+@import "@heroui/styles/components/chip.css";
+@import "@heroui/styles/components/checkbox.css";
+@import "@heroui/styles/components/input.css";
+@import "@heroui/styles/components/textfield.css";
+@import "@heroui/styles/components/table.css";
+@import "@heroui/styles/components/skeleton.css";
+@import "@heroui/styles/components/separator.css";
+@import "@heroui/styles/themes/default";
+@import "@heroui/styles/utilities";
 
 :root {
   --background: #f6f5f3;

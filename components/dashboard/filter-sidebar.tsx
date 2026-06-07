@@ -1,13 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Search, X, ChevronDown, ChevronUp, BookMarked, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, BookMarked, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import {
+  Button,
+  Chip,
+  Checkbox,
+  CheckboxControl,
+  CheckboxIndicator,
+  CheckboxContent,
+  TextField,
+  Input,
+} from "@heroui/react";
 import useSWR from "swr";
 import { cn } from "@/lib/cn";
 import { useCollapsed } from "@/lib/hooks/use-collapsed";
 import { type Filters, DEFAULT_FILTERS } from "./filter-types";
 
-// Re-export so existing consumers can still import from this file
 export type { Filters };
 export { DEFAULT_FILTERS };
 
@@ -41,7 +50,6 @@ const INDUSTRY_PILLS = [
   "E-commerce", "Education", "Media", "Manufacturing",
 ];
 
-
 function Section({
   title,
   children,
@@ -55,7 +63,8 @@ function Section({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="border-b border-[#e5e3df] last:border-0">
+    <div>
+      <div className="h-px bg-[#e5e3df]" />
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -70,21 +79,10 @@ function Section({
             </span>
           )}
         </span>
-        {open ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+        <ChevronLeft className={cn("size-3 transition-transform", open ? "rotate-90" : "-rotate-90")} />
       </button>
       {open && <div className="px-4 pb-4">{children}</div>}
     </div>
-  );
-}
-
-function ActivePill({ label, onRemove }: { label: string; onRemove: () => void }) {
-  return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-[#1585ff]/10 text-[#1585ff] border border-[#1585ff]/20">
-      {label}
-      <button type="button" onClick={onRemove} aria-label={`הסר ${label}`} className="hover:text-[#0a65c7] transition-colors">
-        <X className="size-2.5" />
-      </button>
-    </span>
   );
 }
 
@@ -146,7 +144,7 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
   if (collapsed) {
     return (
       <div
-        className="flex flex-col items-center justify-start pt-4 gap-3 h-full bg-white border-l border-[#e5e3df] transition-[width] duration-200 ease-in-out"
+        className="flex flex-col items-center justify-start pt-4 gap-3 h-full bg-white border-r border-[#e5e3df] transition-[width] duration-200 ease-in-out"
         style={{ width: 32 }}
       >
         {activeCount > 0 && (
@@ -154,60 +152,65 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
             {activeCount > 9 ? "9+" : activeCount}
           </span>
         )}
-        <button
-          type="button"
-          onClick={toggleCollapsed}
-          title="הרחב פילטרים"
+        <Button
+          variant="ghost"
+          isIconOnly
+          onPress={toggleCollapsed}
           aria-label="הרחב פילטרים"
-          className="flex items-center justify-center size-6 rounded text-[#9b9895] hover:text-[#6b6866] hover:bg-[#f3f2ef] transition-colors"
+          className="size-6 min-w-0 text-[#9b9895]"
         >
-          <ChevronRight className="size-3.5" />
-        </button>
+          <ChevronLeft className="size-3.5" />
+        </Button>
       </div>
     );
   }
 
   return (
     <div
-      className="flex flex-col h-full bg-white border-l border-[#e5e3df] transition-[width] duration-200 ease-in-out"
+      className="flex flex-col h-full bg-white border-r border-[#e5e3df] transition-[width] duration-200 ease-in-out"
       style={{ width: 224 }}
     >
-      {/* Search */}
+      {/* Header */}
       <div className="p-4 border-b border-[#e5e3df]">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-3">
           <span className="flex-1 text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest">סינון</span>
-          <button
-            type="button"
-            onClick={toggleCollapsed}
-            title="כווץ פילטרים"
+          <Button
+            variant="ghost"
+            isIconOnly
+            onPress={toggleCollapsed}
             aria-label="כווץ פילטרים"
-            className="flex items-center justify-center size-5 rounded text-[#c8c5c2] hover:text-[#6b6866] hover:bg-[#f3f2ef] transition-colors"
+            className="size-5 min-w-0 text-[#c8c5c2]"
           >
-            <ChevronLeft className="size-3.5" />
-          </button>
+            <ChevronRight className="size-3.5" />
+          </Button>
         </div>
-        <div className="relative">
-          {filters.q ? (
-            <button
-              type="button"
-              aria-label="נקה חיפוש"
-              onClick={() => onChange({ ...filters, q: "" })}
-              className="absolute left-3 top-1/2 -translate-y-1/2"
-            >
-              <X className="size-3.5 text-[#9b9895] hover:text-[#6b6866]" />
-            </button>
-          ) : (
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-[#9b9895]" />
-          )}
-          <input
-            type="text"
-            aria-label="חיפוש אנשי קשר"
-            placeholder="חיפוש אנשי קשר…"
-            value={filters.q}
-            onChange={(e) => onChange({ ...filters, q: e.target.value })}
-            className="w-full pl-9 pr-3 py-2 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
-          />
-        </div>
+
+        {/* Search using TextField + Input */}
+        <TextField
+          value={filters.q}
+          onChange={(v: string) => onChange({ ...filters, q: v })}
+          aria-label="חיפוש אנשי קשר"
+          className="w-full"
+        >
+          <div className="relative">
+            {filters.q ? (
+              <button
+                type="button"
+                aria-label="נקה חיפוש"
+                onClick={() => onChange({ ...filters, q: "" })}
+                className="absolute inset-s-3 top-1/2 -translate-y-1/2 z-10"
+              >
+                <X className="size-3.5 text-[#9b9895] hover:text-[#6b6866]" />
+              </button>
+            ) : (
+              <Search className="absolute inset-s-3 top-1/2 -translate-y-1/2 size-3.5 text-[#9b9895] pointer-events-none" />
+            )}
+            <Input
+              placeholder="חיפוש אנשי קשר…"
+              className="w-full ps-9 pe-3 py-2 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+            />
+          </div>
+        </TextField>
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -230,7 +233,7 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                     })
                   }
                   className={cn(
-                    "w-full flex items-center justify-between px-2 py-1.5 rounded-md text-xs transition-colors text-left",
+                    "w-full flex items-center justify-between px-2 py-1.5 rounded-md text-xs transition-colors text-right",
                     filters.listId === list.id
                       ? "bg-[#1585ff]/10 text-[#1585ff] font-medium"
                       : "text-[#6b6866] hover:bg-[#f3f2ef] hover:text-[#111110]"
@@ -246,35 +249,31 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
 
         {/* Company Size */}
         <Section title="גודל חברה" activeCount={filters.companySizeBuckets.length}>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {COMPANY_SIZE_BUCKETS.map((b) => {
               const active = filters.companySizeBuckets.includes(b.value);
               return (
-                <label key={b.value} className="flex items-center gap-2.5 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={active}
-                    onChange={() => toggle("companySizeBuckets", b.value)}
-                    className="sr-only"
-                  />
-                  <div
-                    aria-hidden="true"
-                    className={cn(
-                      "size-3.5 rounded border flex items-center justify-center shrink-0 transition-all",
-                      active
-                        ? "bg-[#1585ff] border-[#1585ff]"
-                        : "bg-white border-[#d4d0cc] group-hover:border-[#9b9895]"
-                    )}
-                  >
-                    {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 -rotate-45" />}
-                  </div>
-                  <span className={cn(
+                <Checkbox
+                  key={b.value}
+                  isSelected={active}
+                  onChange={() => toggle("companySizeBuckets", b.value)}
+                  className="flex items-center gap-2 cursor-pointer group"
+                >
+                  <CheckboxControl className={cn(
+                    "size-3.5 rounded-sm border flex items-center justify-center shrink-0 transition-all",
+                    active ? "bg-[#1585ff] border-[#1585ff]" : "bg-white border-[#d4d0cc] group-hover:border-[#9b9895]"
+                  )}>
+                    <CheckboxIndicator>
+                      {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 -rotate-45" />}
+                    </CheckboxIndicator>
+                  </CheckboxControl>
+                  <CheckboxContent className={cn(
                     "text-xs transition-colors",
                     active ? "text-[#1585ff]" : "text-[#6b6866] group-hover:text-[#111110]"
                   )}>
                     {b.label}
-                  </span>
-                </label>
+                  </CheckboxContent>
+                </Checkbox>
               );
             })}
           </div>
@@ -287,35 +286,49 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
               const active = (filters[pill.filterKey] as string[]).includes(pill.value);
               return (
                 <button
-                  type="button"
                   key={pill.label}
+                  type="button"
                   onClick={() => toggle(pill.filterKey, pill.value)}
-                  className={cn(
-                    "px-2 py-0.5 rounded text-xs font-medium border transition-all",
-                    active
-                      ? "bg-[#1585ff]/10 text-[#1585ff] border-[#1585ff]/30"
-                      : "bg-white text-[#6b6866] border-[#d4d0cc] hover:border-[#9b9895] hover:text-[#111110]"
-                  )}
                 >
-                  {pill.label}
+                  <Chip
+                    color={active ? "accent" : "default"}
+                    variant={active ? "soft" : "secondary"}
+                    size="sm"
+                    className="cursor-pointer"
+                  >
+                    {pill.label}
+                  </Chip>
                 </button>
               );
             })}
           </div>
-          <input
-            type="text"
-            aria-label="הוסף תפקיד"
-            placeholder="הוסף תפקיד…"
+
+          {/* Custom title input */}
+          <TextField
             value={customTitle}
-            onChange={(e) => setCustomTitle(e.target.value)}
-            onKeyDown={addCustomTitle}
-            className="w-full px-3 py-1.5 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-xs text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
-          />
+            onChange={(v: string) => setCustomTitle(v)}
+            aria-label="הוסף תפקיד"
+            className="w-full"
+          >
+            <Input
+              placeholder="הוסף תפקיד…"
+              onKeyDown={addCustomTitle}
+              className="w-full px-3 py-1.5 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-xs text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+            />
+          </TextField>
+
           <div className="flex flex-wrap gap-1 mt-2">
             {filters.titleSearch.flatMap((t) =>
               ROLE_PILLS.some((p) => p.value === t)
                 ? []
-                : [<ActivePill key={t} label={t} onRemove={() => toggle("titleSearch", t)} />]
+                : [
+                    <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-[#1585ff]/10 text-[#1585ff] border border-[#1585ff]/20">
+                      {t}
+                      <button type="button" onClick={() => toggle("titleSearch", t)} aria-label={`הסר ${t}`} className="hover:text-[#0a65c7] transition-colors">
+                        <X className="size-2.5" />
+                      </button>
+                    </span>,
+                  ]
             )}
           </div>
         </Section>
@@ -323,58 +336,58 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
         {/* Industry */}
         <Section title="ענף" defaultOpen={false} activeCount={filters.industry.length}>
           <div className="flex flex-wrap gap-1.5">
-            {INDUSTRY_PILLS.map((industry) => (
-              <button
-                type="button"
-                key={industry}
-                onClick={() => toggle("industry", industry)}
-                className={cn(
-                  "px-2 py-0.5 rounded text-xs font-medium border transition-all",
-                  filters.industry.includes(industry)
-                    ? "bg-[#1585ff]/10 text-[#1585ff] border-[#1585ff]/30"
-                    : "bg-white text-[#6b6866] border-[#d4d0cc] hover:border-[#9b9895] hover:text-[#111110]"
-                )}
-              >
-                {industry}
-              </button>
-            ))}
+            {INDUSTRY_PILLS.map((industry) => {
+              const active = filters.industry.includes(industry);
+              return (
+                <button
+                  key={industry}
+                  type="button"
+                  onClick={() => toggle("industry", industry)}
+                >
+                  <Chip
+                    color={active ? "accent" : "default"}
+                    variant={active ? "soft" : "secondary"}
+                    size="sm"
+                    className="cursor-pointer"
+                  >
+                    {industry}
+                  </Chip>
+                </button>
+              );
+            })}
           </div>
         </Section>
 
         {/* Contact info */}
         <Section title="פרטי קשר" activeCount={(filters.hasEmail ? 1 : 0) + (filters.hasPhone ? 1 : 0)}>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {[
               { key: "hasEmail" as const, label: "יש אימייל" },
               { key: "hasPhone" as const, label: "יש טלפון" },
             ].map(({ key, label }) => {
               const active = !!filters[key];
               return (
-                <label key={key} className="flex items-center gap-2.5 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={active}
-                    onChange={() => onChange({ ...filters, [key]: active ? undefined : true })}
-                    className="sr-only"
-                  />
-                  <div
-                    aria-hidden="true"
-                    className={cn(
-                      "size-3.5 rounded border flex items-center justify-center shrink-0 transition-all",
-                      active
-                        ? "bg-[#1585ff] border-[#1585ff]"
-                        : "bg-white border-[#d4d0cc] group-hover:border-[#9b9895]"
-                    )}
-                  >
-                    {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 -rotate-45" />}
-                  </div>
-                  <span className={cn(
+                <Checkbox
+                  key={key}
+                  isSelected={active}
+                  onChange={() => onChange({ ...filters, [key]: active ? undefined : true })}
+                  className="flex items-center gap-2 cursor-pointer group"
+                >
+                  <CheckboxControl className={cn(
+                    "size-3.5 rounded-sm border flex items-center justify-center shrink-0 transition-all",
+                    active ? "bg-[#1585ff] border-[#1585ff]" : "bg-white border-[#d4d0cc] group-hover:border-[#9b9895]"
+                  )}>
+                    <CheckboxIndicator>
+                      {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 -rotate-45" />}
+                    </CheckboxIndicator>
+                  </CheckboxControl>
+                  <CheckboxContent className={cn(
                     "text-xs transition-colors",
                     active ? "text-[#1585ff]" : "text-[#6b6866] group-hover:text-[#111110]"
                   )}>
                     {label}
-                  </span>
-                </label>
+                  </CheckboxContent>
+                </Checkbox>
               );
             })}
           </div>
@@ -384,14 +397,14 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
       {/* Clear all */}
       {hasFilters && (
         <div className="p-3 border-t border-[#e5e3df]">
-          <button
-            type="button"
-            onClick={() => onChange(DEFAULT_FILTERS)}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-mono text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors"
+          <Button
+            variant="outline"
+            onPress={() => onChange(DEFAULT_FILTERS)}
+            className="w-full font-mono text-xs text-[#6b6866]"
           >
             <X className="size-3" />
             נקה הכל
-          </button>
+          </Button>
         </div>
       )}
     </div>

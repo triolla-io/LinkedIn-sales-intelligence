@@ -65,11 +65,16 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error("Save failed");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData?.error ?? errData?.detail ?? `HTTP ${res.status}`);
+      }
       const updated = await res.json();
       onSaved({ ...contact, ...updated });
-    } catch {
-      setError("שמירה נכשלה. נא לנסות שוב.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[EditContactModal] save failed:", msg);
+      setError(`שמירה נכשלה: ${msg}`);
     } finally {
       setSaving(false);
     }

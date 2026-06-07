@@ -49,6 +49,7 @@ export type ProspectingRunMinAggregateOutputType = {
   ownerId: string | null
   name: string | null
   keywords: string | null
+  geoUrn: string | null
   searchUrl: string | null
   status: $Enums.ProspectingRunStatus | null
   dailyCap: number | null
@@ -70,6 +71,7 @@ export type ProspectingRunMaxAggregateOutputType = {
   ownerId: string | null
   name: string | null
   keywords: string | null
+  geoUrn: string | null
   searchUrl: string | null
   status: $Enums.ProspectingRunStatus | null
   dailyCap: number | null
@@ -91,6 +93,7 @@ export type ProspectingRunCountAggregateOutputType = {
   ownerId: number
   name: number
   keywords: number
+  geoUrn: number
   searchUrl: number
   status: number
   dailyCap: number
@@ -132,6 +135,7 @@ export type ProspectingRunMinAggregateInputType = {
   ownerId?: true
   name?: true
   keywords?: true
+  geoUrn?: true
   searchUrl?: true
   status?: true
   dailyCap?: true
@@ -153,6 +157,7 @@ export type ProspectingRunMaxAggregateInputType = {
   ownerId?: true
   name?: true
   keywords?: true
+  geoUrn?: true
   searchUrl?: true
   status?: true
   dailyCap?: true
@@ -174,6 +179,7 @@ export type ProspectingRunCountAggregateInputType = {
   ownerId?: true
   name?: true
   keywords?: true
+  geoUrn?: true
   searchUrl?: true
   status?: true
   dailyCap?: true
@@ -282,6 +288,7 @@ export type ProspectingRunGroupByOutputType = {
   ownerId: string
   name: string
   keywords: string
+  geoUrn: string
   searchUrl: string
   status: $Enums.ProspectingRunStatus
   dailyCap: number
@@ -326,6 +333,7 @@ export type ProspectingRunWhereInput = {
   ownerId?: Prisma.StringFilter<"ProspectingRun"> | string
   name?: Prisma.StringFilter<"ProspectingRun"> | string
   keywords?: Prisma.StringFilter<"ProspectingRun"> | string
+  geoUrn?: Prisma.StringFilter<"ProspectingRun"> | string
   searchUrl?: Prisma.StringFilter<"ProspectingRun"> | string
   status?: Prisma.EnumProspectingRunStatusFilter<"ProspectingRun"> | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -349,6 +357,7 @@ export type ProspectingRunOrderByWithRelationInput = {
   ownerId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   keywords?: Prisma.SortOrder
+  geoUrn?: Prisma.SortOrder
   searchUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
@@ -375,6 +384,7 @@ export type ProspectingRunWhereUniqueInput = Prisma.AtLeast<{
   ownerId?: Prisma.StringFilter<"ProspectingRun"> | string
   name?: Prisma.StringFilter<"ProspectingRun"> | string
   keywords?: Prisma.StringFilter<"ProspectingRun"> | string
+  geoUrn?: Prisma.StringFilter<"ProspectingRun"> | string
   searchUrl?: Prisma.StringFilter<"ProspectingRun"> | string
   status?: Prisma.EnumProspectingRunStatusFilter<"ProspectingRun"> | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -398,6 +408,7 @@ export type ProspectingRunOrderByWithAggregationInput = {
   ownerId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   keywords?: Prisma.SortOrder
+  geoUrn?: Prisma.SortOrder
   searchUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
@@ -427,6 +438,7 @@ export type ProspectingRunScalarWhereWithAggregatesInput = {
   ownerId?: Prisma.StringWithAggregatesFilter<"ProspectingRun"> | string
   name?: Prisma.StringWithAggregatesFilter<"ProspectingRun"> | string
   keywords?: Prisma.StringWithAggregatesFilter<"ProspectingRun"> | string
+  geoUrn?: Prisma.StringWithAggregatesFilter<"ProspectingRun"> | string
   searchUrl?: Prisma.StringWithAggregatesFilter<"ProspectingRun"> | string
   status?: Prisma.EnumProspectingRunStatusWithAggregatesFilter<"ProspectingRun"> | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
@@ -447,6 +459,7 @@ export type ProspectingRunCreateInput = {
   id?: string
   name: string
   keywords: string
+  geoUrn?: string
   searchUrl: string
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
@@ -470,6 +483,7 @@ export type ProspectingRunUncheckedCreateInput = {
   ownerId: string
   name: string
   keywords: string
+  geoUrn?: string
   searchUrl: string
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
@@ -491,6 +505,7 @@ export type ProspectingRunUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   keywords?: Prisma.StringFieldUpdateOperationsInput | string
+  geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -514,6 +529,7 @@ export type ProspectingRunUncheckedUpdateInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   keywords?: Prisma.StringFieldUpdateOperationsInput | string
+  geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -536,6 +552,7 @@ export type ProspectingRunCreateManyInput = {
   ownerId: string
   name: string
   keywords: string
+  geoUrn?: string
   searchUrl: string
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
@@ -556,6 +573,7 @@ export type ProspectingRunUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   keywords?: Prisma.StringFieldUpdateOperationsInput | string
+  geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -577,6 +595,7 @@ export type ProspectingRunUncheckedUpdateManyInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   keywords?: Prisma.StringFieldUpdateOperationsInput | string
+  geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -608,6 +627,7 @@ export type ProspectingRunCountOrderByAggregateInput = {
   ownerId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   keywords?: Prisma.SortOrder
+  geoUrn?: Prisma.SortOrder
   searchUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
@@ -638,6 +658,7 @@ export type ProspectingRunMaxOrderByAggregateInput = {
   ownerId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   keywords?: Prisma.SortOrder
+  geoUrn?: Prisma.SortOrder
   searchUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
@@ -659,6 +680,7 @@ export type ProspectingRunMinOrderByAggregateInput = {
   ownerId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   keywords?: Prisma.SortOrder
+  geoUrn?: Prisma.SortOrder
   searchUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
@@ -757,6 +779,7 @@ export type ProspectingRunCreateWithoutOwnerInput = {
   id?: string
   name: string
   keywords: string
+  geoUrn?: string
   searchUrl: string
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
@@ -778,6 +801,7 @@ export type ProspectingRunUncheckedCreateWithoutOwnerInput = {
   id?: string
   name: string
   keywords: string
+  geoUrn?: string
   searchUrl: string
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
@@ -829,6 +853,7 @@ export type ProspectingRunScalarWhereInput = {
   ownerId?: Prisma.StringFilter<"ProspectingRun"> | string
   name?: Prisma.StringFilter<"ProspectingRun"> | string
   keywords?: Prisma.StringFilter<"ProspectingRun"> | string
+  geoUrn?: Prisma.StringFilter<"ProspectingRun"> | string
   searchUrl?: Prisma.StringFilter<"ProspectingRun"> | string
   status?: Prisma.EnumProspectingRunStatusFilter<"ProspectingRun"> | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -849,6 +874,7 @@ export type ProspectingRunCreateWithoutRequestsInput = {
   id?: string
   name: string
   keywords: string
+  geoUrn?: string
   searchUrl: string
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
@@ -871,6 +897,7 @@ export type ProspectingRunUncheckedCreateWithoutRequestsInput = {
   ownerId: string
   name: string
   keywords: string
+  geoUrn?: string
   searchUrl: string
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
@@ -907,6 +934,7 @@ export type ProspectingRunUpdateWithoutRequestsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   keywords?: Prisma.StringFieldUpdateOperationsInput | string
+  geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -929,6 +957,7 @@ export type ProspectingRunUncheckedUpdateWithoutRequestsInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   keywords?: Prisma.StringFieldUpdateOperationsInput | string
+  geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -949,6 +978,7 @@ export type ProspectingRunCreateManyOwnerInput = {
   id?: string
   name: string
   keywords: string
+  geoUrn?: string
   searchUrl: string
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
@@ -969,6 +999,7 @@ export type ProspectingRunUpdateWithoutOwnerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   keywords?: Prisma.StringFieldUpdateOperationsInput | string
+  geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -990,6 +1021,7 @@ export type ProspectingRunUncheckedUpdateWithoutOwnerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   keywords?: Prisma.StringFieldUpdateOperationsInput | string
+  geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1011,6 +1043,7 @@ export type ProspectingRunUncheckedUpdateManyWithoutOwnerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   keywords?: Prisma.StringFieldUpdateOperationsInput | string
+  geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1063,6 +1096,7 @@ export type ProspectingRunSelect<ExtArgs extends runtime.Types.Extensions.Intern
   ownerId?: boolean
   name?: boolean
   keywords?: boolean
+  geoUrn?: boolean
   searchUrl?: boolean
   status?: boolean
   dailyCap?: boolean
@@ -1087,6 +1121,7 @@ export type ProspectingRunSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   ownerId?: boolean
   name?: boolean
   keywords?: boolean
+  geoUrn?: boolean
   searchUrl?: boolean
   status?: boolean
   dailyCap?: boolean
@@ -1109,6 +1144,7 @@ export type ProspectingRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   ownerId?: boolean
   name?: boolean
   keywords?: boolean
+  geoUrn?: boolean
   searchUrl?: boolean
   status?: boolean
   dailyCap?: boolean
@@ -1131,6 +1167,7 @@ export type ProspectingRunSelectScalar = {
   ownerId?: boolean
   name?: boolean
   keywords?: boolean
+  geoUrn?: boolean
   searchUrl?: boolean
   status?: boolean
   dailyCap?: boolean
@@ -1147,7 +1184,7 @@ export type ProspectingRunSelectScalar = {
   completedAt?: boolean
 }
 
-export type ProspectingRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "name" | "keywords" | "searchUrl" | "status" | "dailyCap" | "weeklyCap" | "discoveryDone" | "connectInFlight" | "searchFailCount" | "pausedUntil" | "nextSearchPage" | "totalDiscovered" | "totalSent" | "createdAt" | "startedAt" | "completedAt", ExtArgs["result"]["prospectingRun"]>
+export type ProspectingRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "name" | "keywords" | "geoUrn" | "searchUrl" | "status" | "dailyCap" | "weeklyCap" | "discoveryDone" | "connectInFlight" | "searchFailCount" | "pausedUntil" | "nextSearchPage" | "totalDiscovered" | "totalSent" | "createdAt" | "startedAt" | "completedAt", ExtArgs["result"]["prospectingRun"]>
 export type ProspectingRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   requests?: boolean | Prisma.ProspectingRun$requestsArgs<ExtArgs>
@@ -1171,6 +1208,7 @@ export type $ProspectingRunPayload<ExtArgs extends runtime.Types.Extensions.Inte
     ownerId: string
     name: string
     keywords: string
+    geoUrn: string
     searchUrl: string
     status: $Enums.ProspectingRunStatus
     dailyCap: number
@@ -1614,6 +1652,7 @@ export interface ProspectingRunFieldRefs {
   readonly ownerId: Prisma.FieldRef<"ProspectingRun", 'String'>
   readonly name: Prisma.FieldRef<"ProspectingRun", 'String'>
   readonly keywords: Prisma.FieldRef<"ProspectingRun", 'String'>
+  readonly geoUrn: Prisma.FieldRef<"ProspectingRun", 'String'>
   readonly searchUrl: Prisma.FieldRef<"ProspectingRun", 'String'>
   readonly status: Prisma.FieldRef<"ProspectingRun", 'ProspectingRunStatus'>
   readonly dailyCap: Prisma.FieldRef<"ProspectingRun", 'Int'>

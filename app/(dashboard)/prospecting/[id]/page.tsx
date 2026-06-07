@@ -22,9 +22,17 @@ type RunDetail = {
   totalDiscovered: number;
 };
 
+type TaskStats = {
+  search: { pending: number; done: number; failed: number };
+  connect: { pending: number; done: number; failed: number };
+  recentFailures: { kind: string; errorCode: string | null; errorMessage: string | null; at: string }[];
+  lastActivity: string | null;
+};
+
 type RunDetailResponse = {
   run: RunDetail;
   requests: ConnectionRequest[];
+  taskStats: TaskStats;
 };
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
@@ -63,16 +71,16 @@ export default function ProspectingRunDetailPage({
     );
   }
 
-  const { run, requests } = data;
+  const { run, requests, taskStats } = data;
 
   return (
     <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <Link href="/prospecting" className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
-            <ArrowLeft className="size-4" />
-          </Link>
+      <div className="relative flex items-center px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
+        <Link href="/prospecting" className="text-[#9b9895] hover:text-[#6b6866] transition-colors absolute left-5">
+          <ArrowLeft className="size-4" />
+        </Link>
+        <div className="flex items-center gap-3 mx-auto">
           <h1 className="text-sm font-semibold text-[#111110]">{run.name}</h1>
           <span
             className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -88,7 +96,59 @@ export default function ProspectingRunDetailPage({
       </div>
 
       {/* Content */}
-      <div className="px-5 pt-5 pb-8">
+      <div className="px-5 pt-5 pb-8 space-y-4">
+        {/* Task status panel */}
+        {taskStats && (
+          <div className="bg-white border border-[#e5e3df] rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Extension activity</h2>
+              {taskStats.lastActivity && (
+                <span className="text-xs text-[#9b9895]">
+                  Last seen: {new Date(taskStats.lastActivity).toLocaleString()}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {/* Search tasks */}
+              <div className="bg-[#fafaf9] border border-[#e5e3df] rounded-lg p-3">
+                <p className="text-xs font-medium text-[#6b6866] mb-2">Search (discovery)</p>
+                <div className="flex gap-3 text-xs font-mono">
+                  <span className="text-[#9b9895]">⏳ {taskStats.search.pending}</span>
+                  <span className="text-[#059669]">✓ {taskStats.search.done}</span>
+                  <span className="text-[#dc2626]">✗ {taskStats.search.failed}</span>
+                </div>
+              </div>
+              {/* Connect tasks */}
+              <div className="bg-[#fafaf9] border border-[#e5e3df] rounded-lg p-3">
+                <p className="text-xs font-medium text-[#6b6866] mb-2">Connect (friend requests)</p>
+                <div className="flex gap-3 text-xs font-mono">
+                  <span className="text-[#9b9895]">⏳ {taskStats.connect.pending}</span>
+                  <span className="text-[#059669]">✓ {taskStats.connect.done}</span>
+                  <span className="text-[#dc2626]">✗ {taskStats.connect.failed}</span>
+                </div>
+              </div>
+            </div>
+            {/* Recent failures */}
+            {taskStats.recentFailures.length > 0 && (
+              <div className="border-t border-[#e5e3df] pt-3">
+                <p className="text-xs font-semibold text-[#dc2626] mb-2">Recent failures</p>
+                <div className="space-y-1">
+                  {taskStats.recentFailures.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs">
+                      <span className="text-[#9b9895] font-mono">{f.kind}</span>
+                      <span className="font-mono text-[#dc2626] bg-[#fff3f3] px-1.5 py-0.5 rounded">{f.errorCode}</span>
+                      {f.errorMessage && (
+                        <span className="text-[#6b6866] truncate max-w-xs">{f.errorMessage}</span>
+                      )}
+                      <span className="text-[#9b9895] ml-auto">{new Date(f.at).toLocaleTimeString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="bg-white border border-[#e5e3df] rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-[#e5e3df] bg-[#fafaf9]">
             <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">

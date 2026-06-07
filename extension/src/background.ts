@@ -195,28 +195,49 @@ function keyCodeOf(k: "Enter" | "Escape" | "Tab"): number {
 // ---------- SEARCH: scrape LinkedIn search results page ----------
 
 const SCRAPE_FN_SOURCE = `(() => {
-  const cards = Array.from(document.querySelectorAll('[data-chameleon-result-urn], li.reusable-search__result-container, div.search-results-container li'));
+  const section = document.querySelector('section[aria-label="Primary content"]');
+  if (!section) return { candidates: [], hasNextPage: false };
+  const allLinks = Array.from(section.querySelectorAll('a[href*="/in/"]'));
+  const seen = new Set();
   const out = [];
-  for (const card of cards) {
-    const urn = card.getAttribute && card.getAttribute('data-chameleon-result-urn') || '';
-    const link = card.querySelector('a[href*="/in/"]');
-    const profileUrl = link ? link.href.split('?')[0] : '';
-    const name = (card.querySelector('span[aria-hidden="true"]') && card.querySelector('span[aria-hidden="true"]').textContent || '').trim();
-    const degEl = card.querySelector('.entity-result__badge-text, .artdeco-entity-lockup__degree, .entity-result__badge');
-    const degreeRaw = degEl ? degEl.textContent : '';
-    const m = degreeRaw.match(/(1st|2nd|3rd\\+?)/);
-    const degree = m ? (m[1].indexOf('3') === 0 ? '3rd' : m[1]) : null;
-    const subEl = card.querySelector('.entity-result__primary-subtitle, .artdeco-entity-lockup__subtitle');
-    const subtitle = (subEl ? subEl.textContent : '').trim();
-    const locEl = card.querySelector('.entity-result__secondary-subtitle, .artdeco-entity-lockup__caption');
-    const location = (locEl ? locEl.textContent : '').trim() || null;
-    let title = null, company = null;
-    if (subtitle.indexOf(' at ') !== -1) { const p = subtitle.split(' at '); title = p[0].trim(); company = p.slice(1).join(' at ').trim(); }
-    else { title = subtitle || null; }
-    if (urn && profileUrl && name) out.push({ urn, profileUrl, name, title, company, location, degree });
+  for (const link of allLinks) {
+    const profileUrl = link.href.split('?')[0];
+    if (seen.has(profileUrl) || !profileUrl.match(/linkedin\\.com\\/in\\/[^\\/]+\\/?$/)) continue;
+    seen.add(profileUrl);
+    // derive a stable urn from the profile slug
+    const slug = profileUrl.replace(/\\/$/, '').split('/in/')[1] || '';
+    const urn = 'urn:li:member:' + slug;
+    // raw text of the card subtree (2-3 levels up from the link)
+    const container = link.parentElement?.parentElement?.parentElement || link.parentElement;
+    const raw = (container ? container.innerText : '').replace(/\\s+/g, ' ').trim();
+    // name: first part of link text before " • "
+    const nameRaw = link.innerText.trim().split('\\n')[0];
+    const name = nameRaw.replace(/\\s*•\\s*(1st|2nd|3rd\\+?).*/, '').replace(/\\s*★.*/, '').trim();
+    if (!name || name.length < 2) continue;
+    // degree
+    const degM = raw.match(/(1st|2nd|3rd\\+?)/);
+    const degree = degM ? (degM[1].startsWith('3') ? '3rd' : degM[1]) : null;
+    // title + company: look for "X at Y" or "X" pattern in raw text after name
+    const afterName = raw.substring(raw.indexOf(name) + name.length).replace(/^[^a-zA-Zא-ת]+/, '');
+    const atMatch = afterName.match(/^([^|•\\n]+?) at ([^|•\\n]+)/);
+    let title = null, company = null, location = null;
+    if (atMatch) {
+      title = atMatch[1].trim();
+      const rest = atMatch[2];
+      // location is often after company — split on newline or " | "
+      const locM = rest.split(/\\||\\n/);
+      company = locM[0].trim();
+      location = locM[1] ? locM[1].trim() : null;
+    } else {
+      const lines = afterName.split(/\\n|\\|/).map(s => s.trim()).filter(Boolean);
+      title = lines[0] || null;
+      location = lines[1] || null;
+    }
+    out.push({ urn, profileUrl, name, title, company, location, degree });
   }
-  const next = document.querySelector('button[aria-label="Next"]');
-  const hasNextPage = !!next && !next.hasAttribute('disabled');
+  const nextBtns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText.trim() === 'Next');
+  const next = nextBtns[0];
+  const hasNextPage = !!next && !next.disabled;
   return { candidates: out, hasNextPage };
 })()`;
 

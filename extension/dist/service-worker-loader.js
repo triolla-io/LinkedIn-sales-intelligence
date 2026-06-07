@@ -1,1 +1,1 @@
-import './assets/background.ts-35onweAF.js';
+import './assets/background.ts-CwmyOPTX.js';

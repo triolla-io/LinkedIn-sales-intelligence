@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronLeft, ChevronRight, Check, Columns3, GripVertical } from "lucide-react";
+import { ChevronLeft, ChevronRight, Columns3, GripVertical, Check } from "lucide-react";
+import { Button, Chip, Skeleton } from "@heroui/react";
 import { cn } from "@/lib/cn";
 import { displayCompanySize } from "@/lib/contacts/display";
 import { classify } from "@/lib/classifier/seniority";
@@ -46,13 +47,13 @@ interface ContactTableProps {
   extraRowAction?: (contact: Contact) => React.ReactNode;
 }
 
-const SENIORITY_BADGE: Record<string, string> = {
-  C_LEVEL: "text-amber-700 bg-amber-50 border-amber-200",
-  VP: "text-blue-600 bg-blue-50 border-blue-200",
-  DIRECTOR: "text-violet-600 bg-violet-50 border-violet-200",
-  MANAGER: "text-emerald-600 bg-emerald-50 border-emerald-200",
-  IC: "text-stone-500 bg-stone-100 border-stone-200",
-  OTHER: "text-stone-500 bg-stone-100 border-stone-200",
+const SENIORITY_CHIP_COLOR: Record<string, "warning" | "accent" | "success" | "default"> = {
+  C_LEVEL: "warning",
+  VP: "accent",
+  DIRECTOR: "accent",
+  MANAGER: "success",
+  IC: "default",
+  OTHER: "default",
 };
 
 const SENIORITY_LABEL: Record<string, string> = {
@@ -63,7 +64,6 @@ const SENIORITY_LABEL: Record<string, string> = {
   IC: "IC",
   OTHER: "Other",
 };
-
 
 interface TooltipCellProps {
   text: string;
@@ -98,8 +98,6 @@ function TooltipCell({ text, className, mono = false }: TooltipCellProps) {
     </div>
   );
 }
-
-// ── Column system ──────────────────────────────────────────────────────────────
 
 type ColumnId = "name" | "company" | "title" | "email" | "phone" | "seniority" | "industry";
 
@@ -149,19 +147,18 @@ function CellRenderer({ col, contact }: { col: ColumnDef; contact: Contact }) {
       const { value: empCount } = displayCompanySize(contact);
       return (
         <div className="min-w-0">
-          {contact.currentCompany
-            ? (
-              <div className="min-w-0">
-                <TooltipCell text={contact.currentCompany} className="text-sm text-[#1585ff]" />
-                {empCount != null && empCount > 0 && (
-                  <p className="text-[11px] font-mono text-[#9b9895] tabular-nums mt-0.5" dir="ltr">
-                    {empCount.toLocaleString()}
-                  </p>
-                )}
-              </div>
-            )
-            : <span className="text-[#c8c5c2]" aria-label="אין חברה">-</span>
-          }
+          {contact.currentCompany ? (
+            <div className="min-w-0">
+              <TooltipCell text={contact.currentCompany} className="text-sm text-[#1585ff]" />
+              {empCount != null && empCount > 0 && (
+                <p className="text-[11px] font-mono text-[#9b9895] tabular-nums mt-0.5" dir="ltr">
+                  {empCount.toLocaleString()}
+                </p>
+              )}
+            </div>
+          ) : (
+            <span className="text-[#c8c5c2]">-</span>
+          )}
         </div>
       );
     }
@@ -170,8 +167,7 @@ function CellRenderer({ col, contact }: { col: ColumnDef; contact: Contact }) {
         <div className="min-w-0">
           {contact.currentTitle
             ? <TooltipCell text={contact.currentTitle} className="text-xs text-[#6b6866]" />
-            : <span className="text-[#c8c5c2]" aria-label="אין תפקיד">-</span>
-          }
+            : <span className="text-[#c8c5c2]">-</span>}
         </div>
       );
     case "email":
@@ -179,8 +175,7 @@ function CellRenderer({ col, contact }: { col: ColumnDef; contact: Contact }) {
         <div className="min-w-0">
           {contact.email
             ? <TooltipCell text={contact.email} className="text-xs text-[#6b6866]" mono />
-            : <span className="text-[#c8c5c2]" aria-label="אין אימייל">-</span>
-          }
+            : <span className="text-[#c8c5c2]">-</span>}
         </div>
       );
     case "phone":
@@ -188,21 +183,21 @@ function CellRenderer({ col, contact }: { col: ColumnDef; contact: Contact }) {
         <div className="min-w-0">
           {contact.phone
             ? <TooltipCell text={contact.phone} className="text-xs text-[#6b6866]" mono />
-            : <span className="text-[#c8c5c2]" aria-label="אין טלפון">-</span>
-          }
+            : <span className="text-[#c8c5c2]">-</span>}
         </div>
       );
     case "seniority": {
       const seniority = contact.currentTitle ? classify(contact.currentTitle).seniority : contact.seniority;
       return seniority ? (
-        <span className={cn(
-          "inline-block px-1.5 py-0.5 rounded border text-[10px] font-medium whitespace-nowrap",
-          SENIORITY_BADGE[seniority] ?? SENIORITY_BADGE.OTHER
-        )}>
+        <Chip
+          color={SENIORITY_CHIP_COLOR[seniority] ?? "default"}
+          variant="soft"
+          size="sm"
+        >
           {SENIORITY_LABEL[seniority] ?? seniority}
-        </span>
+        </Chip>
       ) : (
-        <span className="text-[#c8c5c2]" aria-label="אין seniority">-</span>
+        <span className="text-[#c8c5c2]">-</span>
       );
     }
     case "industry": {
@@ -211,8 +206,7 @@ function CellRenderer({ col, contact }: { col: ColumnDef; contact: Contact }) {
         <div className="min-w-0">
           {industry
             ? <TooltipCell text={industry} className="text-xs text-[#9b9895]" />
-            : <span className="text-[#c8c5c2]" aria-label="אין ענף">-</span>
-          }
+            : <span className="text-[#c8c5c2]">-</span>}
         </div>
       );
     }
@@ -227,9 +221,9 @@ function SkeletonRow({ cols, colCount }: { cols: string; colCount: number }) {
       className="grid items-center gap-3 px-4 border-b border-[#e5e3df]/70 animate-pulse"
       style={{ gridTemplateColumns: cols, height: 56 }}
     >
-      <div className="size-3.5 bg-[#e5e3df] rounded" />
+      <Skeleton className="size-3.5 rounded" />
       {Array.from({ length: colCount }).map((_, i) => (
-        <div key={i} className="h-3.5 bg-[#e5e3df] rounded w-3/4" />
+        <Skeleton key={i} className="h-3.5 rounded w-3/4" />
       ))}
     </div>
   );
@@ -263,7 +257,6 @@ export default function ContactTable({
   const firstItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const lastItem = Math.min(page * pageSize, total);
 
-  // Close column menu on outside click
   useEffect(() => {
     if (!showColMenu) return;
     function handleClick(e: MouseEvent) {
@@ -316,181 +309,178 @@ export default function ContactTable({
 
   return (
     <div className="relative">
-    <div className="rounded-xl border border-[#e5e3df] bg-white overflow-hidden flex flex-col">
-      {/* Shared horizontal scroll wrapper keeps header + rows in sync */}
-      <div className="overflow-x-auto flex-1 min-h-0 flex flex-col">
-        {/* Header row */}
-        <div
-          className="grid items-center gap-3 px-4 py-2.5 bg-[#f8f7f5] border-b border-[#e5e3df] text-[10px] font-mono text-[#9b9895] uppercase tracking-widest shrink-0 text-left"
-          style={{ gridTemplateColumns: cols }}
-        >
-          {loading ? (
-            <div className="size-3.5 bg-[#e5e3df] rounded" />
-          ) : (
-            <input
-              type="checkbox"
-              aria-label="בחר הכל"
-              checked={allSelected}
-              onChange={onSelectAll}
-              className="rounded-sm border-[#d4d0cc] bg-white text-[#1585ff] size-3.5 focus:ring-0 focus:ring-offset-0 cursor-pointer"
-            />
-          )}
+      <div className="rounded-xl border border-[#e5e3df] bg-white overflow-hidden flex flex-col">
+        <div className="overflow-x-auto flex-1 min-h-0 flex flex-col">
+          {/* min-w-max forces the scroll container to respect column minimums */}
+          <div className="min-w-max w-full">
 
-          {visibleCols.map((col) => (
-            <span key={col.id}>{col.label}</span>
-          ))}
-
-          {extraRowAction && <span />}
-        </div>
-
-        {/* Rows */}
-        <div className="overflow-hidden">
-        {loading ? (
-          Array.from({ length: pageSize || 8 }).map((_, i) => (
-            <SkeletonRow key={i} cols={cols} colCount={visibleCols.length} />
-          ))
-        ) : contacts.length === 0 ? (
-          <div className="flex items-center justify-center py-16">
-            <p className="text-sm text-[#9b9895] font-mono">לא נמצאו אנשי קשר.</p>
+          {/* Header */}
+          <div
+            className="grid items-center gap-3 px-4 py-2.5 bg-[#f8f7f5] border-b border-[#e5e3df] text-[10px] font-mono text-[#9b9895] uppercase tracking-widest shrink-0"
+            style={{ gridTemplateColumns: cols }}
+          >
+            {loading ? (
+              <Skeleton className="size-3.5 rounded" />
+            ) : (
+              <input
+                type="checkbox"
+                aria-label="בחר הכל"
+                checked={allSelected}
+                onChange={onSelectAll}
+                className="rounded-sm border-[#d4d0cc] bg-white text-[#1585ff] size-3.5 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+              />
+            )}
+            {visibleCols.map((col) => (
+              <span key={col.id} className="text-center">{col.label}</span>
+            ))}
+            {extraRowAction && <span />}
           </div>
-        ) : (
-          contacts.map((contact) => {
-            const isSelected = selectedIds.has(contact.id);
-            return (
-              <div
-                key={contact.id}
-                className={cn(
-                  "relative grid items-center gap-3 px-4 border-b border-[#e5e3df]/70 transition-colors group w-full text-left",
-                  isSelected ? "bg-[#eff5ff]" : "hover:bg-[#f8f7f5]"
-                )}
-                style={{ gridTemplateColumns: cols, height: ROW_HEIGHT }}
-              >
-                {/* Stretched button covers the whole row for mouse/keyboard row-open */}
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  aria-hidden="true"
-                  onClick={() => onOpenDrawer(contact)}
-                  className="absolute inset-0 cursor-pointer"
-                />
-                <input
-                  type="checkbox"
-                  aria-label={`בחר ${contact.fullName}`}
-                  checked={isSelected}
-                  onChange={(e) => { e.stopPropagation(); onToggle(contact.id); }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="relative z-10 rounded-sm border-[#d4d0cc] bg-white text-[#1585ff] size-3.5 focus:ring-0 focus:ring-offset-0 cursor-pointer"
-                />
 
-                {visibleCols.map((col) => (
-                  <div key={col.id} className="relative z-10 min-w-0 pointer-events-none">
-                    <CellRenderer col={col} contact={contact} />
-                  </div>
-                ))}
-
-                {extraRowAction && (
-                  <div className="relative z-10 flex items-center justify-end" onClick={(e) => e.stopPropagation()} role="presentation">
-                    {extraRowAction(contact)}
-                  </div>
-                )}
+          {/* Rows */}
+          <div>
+            {loading ? (
+              Array.from({ length: pageSize || 8 }).map((_, i) => (
+                <SkeletonRow key={i} cols={cols} colCount={visibleCols.length} />
+              ))
+            ) : contacts.length === 0 ? (
+              <div className="flex items-center justify-center py-16">
+                <p className="text-sm text-[#9b9895] font-mono">לא נמצאו אנשי קשר.</p>
               </div>
-            );
-          })
-        )}
+            ) : (
+              contacts.map((contact) => {
+                const isSelected = selectedIds.has(contact.id);
+                return (
+                  <div
+                    key={contact.id}
+                    className={cn(
+                      "relative grid items-center gap-3 px-4 border-b border-[#e5e3df]/70 transition-colors group w-full",
+                      isSelected ? "bg-[#eff5ff]" : "hover:bg-[#f8f7f5]"
+                    )}
+                    style={{ gridTemplateColumns: cols, height: ROW_HEIGHT }}
+                  >
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      aria-hidden="true"
+                      onClick={() => onOpenDrawer(contact)}
+                      className="absolute inset-0 cursor-pointer"
+                    />
+                    <input
+                      type="checkbox"
+                      aria-label={`בחר ${contact.fullName}`}
+                      checked={isSelected}
+                      onChange={(e) => { e.stopPropagation(); onToggle(contact.id); }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="relative z-10 rounded-sm border-[#d4d0cc] bg-white text-[#1585ff] size-3.5 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                    />
+                    {visibleCols.map((col) => (
+                      <div key={col.id} className="relative z-10 min-w-0 pointer-events-none">
+                        <CellRenderer col={col} contact={contact} />
+                      </div>
+                    ))}
+                    {extraRowAction && (
+                      <div className="relative z-10 flex items-center justify-end" onClick={(e) => e.stopPropagation()} role="presentation">
+                        {extraRowAction(contact)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+          </div>{/* end min-w-max */}
         </div>
-      </div>{/* end shared scroll wrapper */}
 
-      {/* Pagination footer */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-2 border-t border-[#e5e3df] bg-[#f8f7f5]">
-        <span className="text-[11px] font-mono text-[#9b9895]">
-          {loading
-            ? "בטעינה…"
-            : total > 0
-            ? `${firstItem.toLocaleString()}–${lastItem.toLocaleString()} מתוך ${total.toLocaleString()} אנשי קשר`
-            : "0 תוצאות"}
-        </span>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => onPageChange(page - 1)}
-            disabled={page <= 1 || loading}
-            className="p-1 rounded text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            aria-label="עמוד קודם"
-            title="עמוד קודם"
-          >
-            <ChevronRight className="size-4" />
-          </button>
-          <span className="text-[11px] font-mono text-[#9b9895] px-2 tabular-nums">
-            {loading ? "…" : `${page} / ${totalPages || 1}`}
+        {/* Pagination footer */}
+        <div className="shrink-0 flex items-center justify-between px-4 py-2 border-t border-[#e5e3df] bg-[#f8f7f5]">
+          <span className="text-[11px] font-mono text-[#9b9895]">
+            {loading
+              ? "בטעינה…"
+              : total > 0
+              ? `${firstItem.toLocaleString()}–${lastItem.toLocaleString()} מתוך ${total.toLocaleString()} אנשי קשר`
+              : "0 תוצאות"}
           </span>
-          <button
-            type="button"
-            onClick={() => onPageChange(page + 1)}
-            disabled={page >= totalPages || loading}
-            className="p-1 rounded text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            aria-label="עמוד הבא"
-            title="עמוד הבא"
-          >
-            <ChevronLeft className="size-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              isIconOnly
+              onPress={() => onPageChange(page - 1)}
+              isDisabled={page <= 1 || loading}
+              aria-label="עמוד קודם"
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+            <span className="text-[11px] font-mono text-[#9b9895] px-2 tabular-nums">
+              {loading ? "…" : `${page} / ${totalPages || 1}`}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              isIconOnly
+              onPress={() => onPageChange(page + 1)}
+              isDisabled={page >= totalPages || loading}
+              aria-label="עמוד הבא"
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
 
-    {/* Column visibility toggle — outside overflow-hidden so the dropdown isn't clipped */}
-    <div ref={colMenuRef} className="absolute right-1 top-0 h-9 flex items-center z-20">
-      <button
-        type="button"
-        onClick={() => setShowColMenu((v) => !v)}
-        title="Toggle columns"
-        aria-label="הצג/הסתר עמודות"
-        className={cn(
-          "p-1 rounded transition-colors",
-          showColMenu ? "bg-[#e8f0fe] text-[#1585ff]" : "text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef]"
-        )}
-      >
-        <Columns3 className="size-3.5" />
-      </button>
+      {/* Column visibility toggle – outside overflow-hidden so dropdown isn't clipped */}
+      <div ref={colMenuRef} className="absolute right-1 top-0 h-9 flex items-center z-20">
+        <button
+          type="button"
+          onClick={() => setShowColMenu((v) => !v)}
+          aria-label="הצג/הסתר עמודות"
+          className={cn(
+            "p-1 rounded transition-colors",
+            showColMenu ? "bg-[#e8f0fe] text-[#1585ff]" : "text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef]"
+          )}
+        >
+          <Columns3 className="size-3.5" />
+        </button>
 
-      {showColMenu && (
-        <div className="absolute top-full right-0 mt-1 z-50 bg-white border border-[#e5e3df] rounded-lg shadow-lg py-1.5 w-52">
-          <p className="text-[9px] font-mono text-[#9b9895] uppercase tracking-widest px-3 pt-0.5 pb-2">
-            עמודות
-          </p>
-          {columns.map((col) => (
-            <div
-              key={col.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, col.id)}
-              onDragOver={(e) => handleDragOver(e, col.id)}
-              onDrop={() => handleDrop(col.id)}
-              onDragEnd={handleDragEnd}
-              className={cn(
-                "flex items-center gap-2 px-2 py-1.5 transition-colors select-none",
-                overColId === col.id && dragColId !== col.id ? "bg-[#e8f0fe]" : "hover:bg-[#f8f7f5]",
-                dragColId === col.id && "opacity-40"
-              )}
-            >
-              <GripVertical className="size-3.5 text-[#c8c5c2] cursor-grab active:cursor-grabbing shrink-0" />
-              <button
-                type="button"
-                onClick={() => toggleColVisibility(col.id)}
-                aria-label={`${col.visible ? "הסתר" : "הצג"} עמודת ${col.label}`}
-                className="flex items-center gap-2 flex-1 min-w-0"
+        {showColMenu && (
+          <div className="absolute top-full right-0 mt-1 z-50 bg-white border border-[#e5e3df] rounded-lg shadow-lg py-1.5 w-52">
+            <p className="text-[9px] font-mono text-[#9b9895] uppercase tracking-widest px-3 pt-0.5 pb-2">
+              עמודות
+            </p>
+            {columns.map((col) => (
+              <div
+                key={col.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, col.id)}
+                onDragOver={(e) => handleDragOver(e, col.id)}
+                onDrop={() => handleDrop(col.id)}
+                onDragEnd={handleDragEnd}
+                className={cn(
+                  "flex items-center gap-2 px-2 py-1.5 transition-colors select-none",
+                  overColId === col.id && dragColId !== col.id ? "bg-[#e8f0fe]" : "hover:bg-[#f8f7f5]",
+                  dragColId === col.id && "opacity-40"
+                )}
               >
-                <div className={cn(
-                  "size-3.5 rounded border flex items-center justify-center shrink-0 transition-colors",
-                  col.visible ? "bg-[#1585ff] border-[#1585ff]" : "border-[#d4d0cc]"
-                )}>
-                  {col.visible && <Check className="size-2.5 text-white" strokeWidth={3} />}
-                </div>
-                <span className="text-xs text-[#111110] truncate">{col.label}</span>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+                <GripVertical className="size-3.5 text-[#c8c5c2] cursor-grab active:cursor-grabbing shrink-0" />
+                <button
+                  type="button"
+                  onClick={() => toggleColVisibility(col.id)}
+                  aria-label={`${col.visible ? "הסתר" : "הצג"} עמודת ${col.label}`}
+                  className="flex items-center gap-2 flex-1 min-w-0"
+                >
+                  <div className={cn(
+                    "size-3.5 rounded border flex items-center justify-center shrink-0 transition-colors",
+                    col.visible ? "bg-[#1585ff] border-[#1585ff]" : "border-[#d4d0cc]"
+                  )}>
+                    {col.visible && <Check className="size-2.5 text-white" strokeWidth={3} />}
+                  </div>
+                  <span className="text-xs text-[#111110] truncate">{col.label}</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

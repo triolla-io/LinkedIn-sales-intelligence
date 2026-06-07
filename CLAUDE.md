@@ -9,6 +9,10 @@ Multi-tenant LinkedIn sales intelligence platform. See README.md for full archit
 - Every API route MUST be wrapped with `withTenant()` from `lib/tenancy/with-tenant.ts`
 - Never use raw `prisma` in route handlers for Contact/SentMessage queries — always filter by `ctx.effectiveUserId`
 
+## UI library
+
+Use HeroUI (`@heroui/react`) for all React components.
+
 ## Module conventions
 
 - New service clients go in `lib/<service>/client.ts`

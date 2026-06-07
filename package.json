@@ -22,6 +22,7 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
     "@google/genai": "^2.4.0",
+    "@heroui/react": "^3.1.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",

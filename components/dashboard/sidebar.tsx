@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { signOut } from "next-auth/react";
 import {
   Users, FileText, Shield, LogOut, LayoutDashboard, Upload,
   BookMarked, GitBranch, ChevronLeft, ChevronRight, Settings, Search,
@@ -44,8 +45,7 @@ const adminItems = [
 ];
 
 async function handleSignOut() {
-  await fetch("/api/auth/signout", { method: "POST" });
-  window.location.href = "/sign-in";
+  await signOut({ callbackUrl: "/sign-in" });
 }
 
 export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
