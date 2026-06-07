@@ -1,5 +1,11 @@
 const HUBSPOT_BASE = "https://api.hubapi.com";
 
+function normalizePhone(phone: string | undefined): string | undefined {
+  if (!phone) return phone;
+  if (/^\+10\d{8,10}$/.test(phone)) return "+972" + phone.slice(2);
+  return phone;
+}
+
 function normalizeLinkedinUrl(url: string): string {
   return url.toLowerCase().replace(/\/$/, "").replace(/^http:/, "https:");
 }
@@ -36,7 +42,7 @@ async function searchByProperty(
   if (!contact) return null;
 
   const email = contact.email || undefined;
-  const phone = contact.phone || undefined;
+  const phone = normalizePhone(contact.phone || undefined);
   if (!email && !phone) return null;
 
   return { email, phone };
@@ -95,7 +101,7 @@ export async function lookupContact(params: {
     if (!contact) return null;
 
     const email = contact.email || undefined;
-    const phone = contact.phone || undefined;
+    const phone = normalizePhone(contact.phone || undefined);
     if (!email && !phone) return null;
 
     return { email, phone };
