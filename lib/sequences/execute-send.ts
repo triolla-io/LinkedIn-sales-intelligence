@@ -164,19 +164,3 @@ export async function executeSequenceSend(executionId: string): Promise<ExecuteS
   }
 }
 
-export function computeWindowedScheduledAt(
-  enrolledAt: Date,
-  step: { dayOffset: number; sendHour: number; sendMinute: number; sendHourEnd: number | null },
-  now: Date
-): Date {
-  const base = computeScheduledAt(enrolledAt, step.dayOffset, step.sendHour, step.sendMinute);
-  if (!step.sendHourEnd) return base;
-
-  const windowEnd = computeScheduledAt(enrolledAt, step.dayOffset, step.sendHourEnd, 0);
-  const lower = Math.max(now.getTime() + 60_000, base.getTime());
-  const upper = windowEnd.getTime() - 60_000;
-
-  if (lower >= upper) return new Date(lower); // window tight or passed — send as soon as possible
-  return new Date(lower + Math.random() * (upper - lower));
-}
-

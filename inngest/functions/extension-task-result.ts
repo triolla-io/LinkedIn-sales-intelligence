@@ -1,7 +1,7 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
-import { computeWindowedScheduledAt } from "@/lib/sequences/execute-send";
+import { maybeCompleteEnrollment } from "@/lib/sequences/gating";
 import { persistCandidates } from "@/lib/prospecting/candidates";
 import { queueNextConnect, releaseConnectSlot, SEARCH_FAIL_CAP } from "@/lib/prospecting/connect-scheduler";
 import type { ScrapedCard } from "@/lib/prospecting/filter";
@@ -69,13 +69,7 @@ async function handleSendSuccess(task: TaskRow) {
         enrollment: {
           select: {
             id: true,
-            enrolledAt: true,
             contact: { select: { id: true } },
-            sequence: {
-              select: {
-                steps: { orderBy: { stepNumber: "asc" }, select: { id: true, stepNumber: true, dayOffset: true, sendHour: true, sendMinute: true, sendHourEnd: true } },
-              },
-            },
           },
         },
       },
@@ -97,24 +91,7 @@ async function handleSendSuccess(task: TaskRow) {
         data: { status: "SENT", sentMessageId: sent.id },
       });
 
-      const { steps } = execution.enrollment.sequence;
-      const currentIndex = steps.findIndex((s) => s.id === execution.stepId);
-      const nextStep = steps[currentIndex + 1];
-      if (nextStep) {
-        await prisma.sequenceStepExecution.create({
-          data: {
-            enrollmentId: execution.enrollmentId,
-            stepId: nextStep.id,
-            status: "PENDING",
-            scheduledAt: computeWindowedScheduledAt(execution.enrollment.enrolledAt, nextStep, new Date()),
-          },
-        });
-      } else {
-        await prisma.sequenceEnrollment.update({
-          where: { id: execution.enrollmentId },
-          data: { status: "COMPLETED" },
-        });
-      }
+      await maybeCompleteEnrollment(execution.enrollmentId);
     }
   }
 }
@@ -155,6 +132,7 @@ async function handleSendFailure(task: TaskRow) {
       where: { id: task.sequenceExecutionId },
       data: { status: "FAILED", errorMessage: task.errorMessage ?? task.errorCode ?? "extension_failed" },
     });
+    await maybeCompleteEnrollment(task.sequenceExecutionId);
   }
 }
 
