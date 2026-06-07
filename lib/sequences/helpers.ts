@@ -1,4 +1,5 @@
 import { fromZonedTime } from "date-fns-tz";
+import { spacedSlotMs, assignWindowIndices, SAFE_GAP_MIN } from "@/lib/sequences/spacing";
 
 const TIMEZONE = "Asia/Jerusalem";
 
@@ -65,4 +66,40 @@ export function parseSteps(input: unknown): ParsedStep[] | null {
     });
   }
   return steps;
+}
+
+export { SAFE_GAP_MIN };
+
+export function computeSpacedScheduledAt(
+  enrolledAt: Date,
+  step: { dayOffset: number; sendHour: number; sendMinute: number; sendHourEnd: number | null },
+  indexInWindow: number,
+  gapMin: number = SAFE_GAP_MIN
+): Date {
+  const windowStart = computeScheduledAt(enrolledAt, step.dayOffset, step.sendHour, step.sendMinute).getTime();
+  const windowEnd =
+    step.sendHourEnd === null
+      ? null
+      : computeScheduledAt(enrolledAt, step.dayOffset, step.sendHourEnd, 0).getTime();
+  return new Date(spacedSlotMs(windowStart, windowEnd, indexInWindow, gapMin));
+}
+
+export type EnrollmentExecutionRow = { stepId: string; status: "PENDING"; scheduledAt: Date };
+
+/** Build PENDING execution rows for every step of one enrollment, spaced within each shared window. */
+export function buildEnrollmentExecutions(
+  enrolledAt: Date,
+  orderedSteps: Array<{
+    id: string;
+    dayOffset: number;
+    sendHour: number;
+    sendMinute: number;
+    sendHourEnd: number | null;
+  }>
+): EnrollmentExecutionRow[] {
+  return assignWindowIndices(orderedSteps).map((step) => ({
+    stepId: step.id,
+    status: "PENDING" as const,
+    scheduledAt: computeSpacedScheduledAt(enrolledAt, step, step.indexInWindow),
+  }));
 }
