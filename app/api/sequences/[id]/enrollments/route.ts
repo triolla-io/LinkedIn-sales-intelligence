@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
-import { computeScheduledAt } from "@/lib/sequences/helpers";
+import { buildEnrollmentExecutions } from "@/lib/sequences/helpers";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,12 +15,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const sequence = await prisma.sequence.findFirst({
       where: { id, ownerId: ctx.effectiveUserId },
-      include: { steps: { orderBy: { stepNumber: "asc" }, take: 1 } },
+      include: {
+        steps: {
+          orderBy: { stepNumber: "asc" },
+          select: { id: true, dayOffset: true, sendHour: true, sendMinute: true, sendHourEnd: true },
+        },
+      },
     });
     if (!sequence) return NextResponse.json({ error: "not found" }, { status: 404 });
 
-    const firstStep = sequence.steps[0];
-    if (!firstStep) return NextResponse.json({ error: "no steps configured" }, { status: 400 });
+    if (sequence.steps.length === 0)
+      return NextResponse.json({ error: "no steps configured" }, { status: 400 });
 
     await prisma.sequenceEnrollment.createMany({
       data: (contactIds as string[]).map((contactId) => ({
@@ -43,17 +48,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const newEnrollments = enrollments.filter((e) => e.executions.length === 0);
     if (newEnrollments.length > 0) {
       await prisma.sequenceStepExecution.createMany({
-        data: newEnrollments.map((enr) => ({
-          enrollmentId: enr.id,
-          stepId: firstStep.id,
-          status: "PENDING" as const,
-          scheduledAt: computeScheduledAt(
-            enr.enrolledAt,
-            firstStep.dayOffset,
-            firstStep.sendHour,
-            firstStep.sendMinute
-          ),
-        })),
+        data: newEnrollments.flatMap((enr) =>
+          buildEnrollmentExecutions(enr.enrolledAt, sequence.steps).map((row) => ({
+            ...row,
+            enrollmentId: enr.id,
+          }))
+        ),
         skipDuplicates: true,
       });
     }
