@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { executeSequenceSend } from "@/lib/sequences/execute-send";
 import { computeNextScheduledFor } from "@/lib/extension/task-scheduler";
 import { priorStepGate, maybeCompleteEnrollment } from "@/lib/sequences/gating";
+import { renderTemplate } from "@/lib/campaigns/render-template";
 
 const RETRY_DELAY_MS = 60_000;
 
@@ -26,14 +27,14 @@ export const sequenceSendExecution = inngest.createFunction(
     const execution = await prisma.sequenceStepExecution.findUnique({
       where: { id: executionId },
       include: {
-        step: true,
+        step: { include: { template: true } },
         enrollment: {
           include: {
             contact: true,
             sequence: {
               include: {
                 steps: { orderBy: { stepNumber: "asc" }, select: { id: true } },
-                owner: { select: { timezone: true } },
+                owner: { include: { org: { select: { name: true } } } },
               },
             },
           },
@@ -74,19 +75,33 @@ export const sequenceSendExecution = inngest.createFunction(
         return;
       }
 
-      const text = execution.renderedBody ?? "";
-      const { sentTodayCount, sentLastHourCount, lastSentAt } = await getSendStats(
-        execution.enrollment.sequence.ownerId
-      );
+      const { contact, sequence } = execution.enrollment;
+      const owner = sequence.owner;
+      const sender = {
+        firstName: owner.name?.trim().split(/\s+/)[0] ?? null,
+        lastName: owner.name?.trim().split(/\s+/).slice(1).join(" ") || null,
+        company: owner.org?.name ?? null,
+        title: owner.title ?? null,
+      };
+      const recipient = {
+        firstName: contact.fullName?.trim().split(/\s+/)[0] ?? null,
+        lastName: contact.fullName?.trim().split(/\s+/).slice(1).join(" ") || null,
+        company: contact.currentCompany,
+        title: contact.currentTitle,
+        hebrewFirstName: contact.hebrewFirstName ?? null,
+      };
+      const { body: text } = renderTemplate(execution.step.template.body, { sender, recipient });
 
-      const tz = execution.enrollment.sequence.owner?.timezone ?? "Asia/Jerusalem";
+      const { sentTodayCount, sentLastHourCount, lastSentAt } = await getSendStats(sequence.ownerId);
+
+      const tz = owner.timezone ?? "Asia/Jerusalem";
       const windowStart = execution.step.sendHour;
       const windowEnd = execution.step.sendHourEnd ?? execution.step.sendHour + 1;
 
       const scheduledFor = computeNextScheduledFor({
         timezone: tz,
-        workingHoursStart: windowStart,
-        workingHoursEnd: windowEnd,
+        workingHoursStart: 0,  // window already enforced by scheduledAt; here we only need rate-limit jitter
+        workingHoursEnd: 24,
         weekdaysOnly: false,
         lastSentAt,
         sentTodayCount,
@@ -97,9 +112,9 @@ export const sequenceSendExecution = inngest.createFunction(
 
       await prisma.extensionTask.create({
         data: {
-          userId: execution.enrollment.sequence.ownerId,
+          userId: sequence.ownerId,
           kind: "SEND",
-          payload: { linkedinUrl, text, recipientName: execution.enrollment.contact.fullName ?? "" },
+          payload: { linkedinUrl, text, recipientName: contact.fullName ?? "" },
           sequenceExecutionId: execution.id,
           scheduledFor,
         },
@@ -107,7 +122,7 @@ export const sequenceSendExecution = inngest.createFunction(
 
       await prisma.sequenceStepExecution.update({
         where: { id: execution.id },
-        data: { status: "QUEUED" },
+        data: { status: "QUEUED", renderedBody: text },
       });
 
       return;
