@@ -20,7 +20,7 @@
 
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../lib/generated/prisma";
+import { PrismaClient } from "../lib/generated/prisma/client";
 import { buildEnrollmentExecutions } from "../lib/sequences/helpers";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
