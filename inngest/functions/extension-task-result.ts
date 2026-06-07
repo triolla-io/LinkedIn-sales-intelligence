@@ -132,7 +132,11 @@ async function handleSendFailure(task: TaskRow) {
       where: { id: task.sequenceExecutionId },
       data: { status: "FAILED", errorMessage: task.errorMessage ?? task.errorCode ?? "extension_failed" },
     });
-    await maybeCompleteEnrollment(task.sequenceExecutionId);
+    const failedExec = await prisma.sequenceStepExecution.findUnique({
+      where: { id: task.sequenceExecutionId },
+      select: { enrollmentId: true },
+    });
+    if (failedExec) await maybeCompleteEnrollment(failedExec.enrollmentId);
   }
 }
 
