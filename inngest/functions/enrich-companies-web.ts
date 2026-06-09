@@ -1,6 +1,6 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
-import { enrichCompanyViaOpenRouter } from "@/lib/enrichment/openrouter-search";
+import { enrichCompanyViaOpenRouter, isOpenRouterConfigured } from "@/lib/enrichment/openrouter-search";
 
 const BATCH = 40;       // companies per Inngest step
 const CONCURRENCY = 8;  // parallel OpenRouter calls
@@ -14,6 +14,10 @@ export const enrichCompaniesWeb = inngest.createFunction(
     triggers: [{ event: "companies.enrich-web" as const }],
   },
   async ({ event, step }: any) => {
+    if (!isOpenRouterConfigured()) {
+      throw new Error("OPENROUTER_API_KEY not configured — company enrichment cannot run");
+    }
+
     const orgId: string | undefined = event.data?.orgId;
 
     // Load ALL companies needing enrichment, most-connected first
@@ -97,7 +101,7 @@ export const enrichCompaniesWeb = inngest.createFunction(
                 }
               } catch (e: any) {
                 if (e?.message?.includes("rate limit") || e?.message?.includes("429")) throw e;
-                // Other errors (timeout, parse failure) — skip silently
+                console.error(`[enrich-companies-web] "${company.name}" failed:`, (e as Error)?.message);
               }
             }),
           );
@@ -110,6 +114,7 @@ export const enrichCompaniesWeb = inngest.createFunction(
       totalSkipped += skipped;
     }
 
+    console.log(`[enrich-companies-web] done: enriched=${totalEnriched} skipped=${totalSkipped} total=${companies.length} orgId=${orgId ?? "ALL"}`);
     return { enriched: totalEnriched, skipped: totalSkipped, total: companies.length };
   },
 );
