@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat, agentStep } from "./lib/api";
-import { attach, detach, click, pressKey, typeText, insertTextIntoNamedCompose, clickSendButton, closeAllComposeOverlays, takeScreenshot, scrollBy, scanButtons, clickMessageButton, send } from "./lib/cdp";
+import { attach, detach, click, pressKey, typeText, insertTextIntoNamedCompose, clickSendButton, closeAllComposeOverlays, takeScreenshot, scrollBy, scanButtons, findMessageButton, send } from "./lib/cdp";
 
 // ---------- Shared types ----------
 
@@ -18,8 +18,31 @@ const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
 const VERSION = "0.2.0";
 
-// Semaphore — only one send task runs at a time
+// In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
+
+// Track the tab opened by the current task in local storage so orphaned tabs
+// can be closed if the service worker is restarted mid-task.
+async function trackActiveTab(tabId: number) {
+  await chrome.storage.local.set({ swActiveTabId: tabId });
+}
+async function clearActiveTab() {
+  await chrome.storage.local.remove("swActiveTabId");
+}
+
+// On every SW startup: close any tab left open from a previous killed run.
+(async () => {
+  try {
+    const { swActiveTabId } = await chrome.storage.local.get("swActiveTabId");
+    if (swActiveTabId) {
+      console.log("[startup] closing orphaned tab", swActiveTabId);
+      await chrome.tabs.remove(swActiveTabId).catch(() => {});
+      await clearActiveTab();
+    }
+  } catch (e) {
+    console.warn("[startup] cleanup error", e);
+  }
+})();
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create("poll", { periodInMinutes: POLL_INTERVAL_S / 60 });
@@ -108,6 +131,7 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
   const tab = await chrome.tabs.create({ url: profileUrl, active: true });
   if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
   const tabId = tab.id;
+  await trackActiveTab(tabId);
 
   let attached = false;
   let caughtError: Error | null = null;
@@ -120,6 +144,11 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     const tabInfo = await chrome.tabs.get(tabId);
     if (tabInfo.windowId) await chrome.windows.update(tabInfo.windowId, { focused: true });
     await sleep(300);
+
+    const preTab = await chrome.tabs.get(tabId);
+    if (preTab.url && preTab.url.includes("/checkpoint")) {
+      throw withCode(new Error("checkpoint"), "checkpoint");
+    }
 
     await attach(tabId);
     attached = true;
@@ -139,15 +168,26 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     });
     await sleep(200);
 
-    // Close ALL open compose overlays from previous attempts before opening a new one
-    const closedCount = await closeAllComposeOverlays(tabId);
-    if (closedCount > 0) { console.log("[agent] closed", closedCount, "existing compose overlay(s)"); await sleep(500); }
+    // Close any compose overlays left from previous attempts (returns void).
+    await closeAllComposeOverlays(tabId);
+    await sleep(500);
 
-    // Phase 1: click Message button directly via CSS selector (reliable, no Gemini)
-    const msgBtn = await clickMessageButton(tabId);
-    console.log("[agent] clickMessageButton:", msgBtn);
+    // Phase 1: find the Message button and click it with a trusted CDP click.
+    let msgBtn = await findMessageButton(tabId);
+    if (!msgBtn) {
+      // Fallback: open the "More" overflow menu, then look again.
+      const buttons = await scanButtons(tabId);
+      const more = buttons.find((b) => /^more$/i.test(b.text) || /^more$/i.test(b.aria) || /^עוד$/.test(b.text));
+      if (more) {
+        await click(tabId, more.x + Math.round(more.w / 2), more.y + Math.round(more.h / 2));
+        await sleep(700);
+        msgBtn = await findMessageButton(tabId);
+      }
+    }
+    console.log("[agent] findMessageButton:", msgBtn);
     if (!msgBtn) throw withCode(new Error("message_button_not_found"), "not_messageable");
-    // The link navigates to /messaging/compose/ — wait for page load
+    await click(tabId, msgBtn.x, msgBtn.y);
+    // The action opens compose (overlay) or navigates to /messaging/compose/.
     await waitForTabLoad(tabId).catch(() => {}); // may or may not navigate
     await sleep(2500);
 
@@ -175,6 +215,8 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     return { sentAt: new Date().toISOString(), conversationUrl: profileUrl, steps: 3 };
   } catch (err) {
     caughtError = err as Error;
+    const failedTab = await chrome.tabs.get(tabId).catch(() => null);
+    if (failedTab?.url) caughtError.message = `${caughtError.message} (url=${failedTab.url})`;
     if (attached) {
       try {
         const [screenshot, buttons] = await Promise.all([
@@ -189,6 +231,7 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
   } finally {
     if (attached) await detach(tabId).catch(() => {});
     await chrome.tabs.remove(tabId).catch(() => {});
+    await clearActiveTab();
   }
 }
 
@@ -249,6 +292,7 @@ async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCar
   const tab = await chrome.tabs.create({ url: searchUrl, active: true });
   if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
   const tabId = tab.id;
+  await trackActiveTab(tabId);
 
   let attached = false;
 
@@ -290,21 +334,51 @@ async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCar
   } finally {
     if (attached) await detach(tabId).catch(() => {});
     await chrome.tabs.remove(tabId).catch(() => {});
+    await clearActiveTab();
   }
 }
 
 // ---------- CONNECT: send a LinkedIn connection request ----------
 
+// Find the Connect button using direct DOM query (works regardless of UI language).
+async function findConnectButtonDirect(tabId: number): Promise<{ x: number; y: number; w: number; h: number } | null> {
+  const result = await send<{ result: { value: unknown } }>(tabId, "Runtime.evaluate", {
+    expression: `(() => {
+      const selectors = [
+        'button[aria-label*="connect" i]',
+        'button[aria-label*="invite" i]',
+        'a[aria-label*="connect" i]',
+        'a[aria-label*="invite" i]',
+        'a[href*="custom-invite"]',
+        'a[href*="preload/custom-invite"]',
+      ];
+      for (const sel of selectors) {
+        const els = [...document.querySelectorAll(sel)];
+        for (const el of els) {
+          const r = el.getBoundingClientRect();
+          if (r.width > 0 && r.height > 0) {
+            return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height), label: el.getAttribute('aria-label') };
+          }
+        }
+      }
+      return null;
+    })()`,
+    returnByValue: true,
+  });
+  return (result?.result?.value as { x: number; y: number; w: number; h: number } | null) ?? null;
+}
+
 async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string }> {
   const tab = await chrome.tabs.create({ url: profileUrl, active: true });
   if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
   const tabId = tab.id;
+  await trackActiveTab(tabId);
 
   let attached = false;
 
   try {
     await waitForTabLoad(tabId);
-    await sleep(2500);
+    await sleep(4000);
 
     // Bring window to front
     const tabInfo = await chrome.tabs.get(tabId);
@@ -320,18 +394,33 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
     await attach(tabId);
     attached = true;
 
-    // Scan for Connect button — may be direct or behind a "More" dropdown
-    let buttons = await scanButtons(tabId);
-    let connectBtn = buttons.find((b) => /^connect$/i.test(b.text) || /^connect$/i.test(b.aria));
+    // Try direct CSS selector first (most reliable — LinkedIn profile action buttons).
+    // aria-label contains "Connect" or "Invite" in English regardless of UI language.
+    const directBtn = await findConnectButtonDirect(tabId);
+    console.log("[connect] directBtn:", directBtn);
+
+    let connectBtn = directBtn;
 
     if (!connectBtn) {
-      // Try "More" dropdown
-      const moreBtn = buttons.find((b) => /^more$/i.test(b.text) || /^more$/i.test(b.aria));
-      if (moreBtn) {
-        await click(tabId, moreBtn.x + Math.round(moreBtn.w / 2), moreBtn.y + Math.round(moreBtn.h / 2));
-        await sleep(700);
-        buttons = await scanButtons(tabId);
-        connectBtn = buttons.find((b) => /connect/i.test(b.text) || /connect/i.test(b.aria));
+      // Fallback: scan visible buttons
+      let buttons = await scanButtons(tabId);
+      console.log("[connect] buttons found:", buttons.map(b => `"${b.text}" aria="${b.aria}" y=${b.y}`));
+      connectBtn = buttons.find((b) => /^connect$/i.test(b.text) || /connect/i.test(b.aria)) ?? null;
+
+      if (!connectBtn) {
+        // Try "More" dropdown
+        const moreBtn = buttons.find((b) => /^more$/i.test(b.text) || /^more$/i.test(b.aria));
+        if (moreBtn) {
+          await click(tabId, moreBtn.x + Math.round(moreBtn.w / 2), moreBtn.y + Math.round(moreBtn.h / 2));
+          await sleep(700);
+          buttons = await scanButtons(tabId);
+          console.log("[connect] buttons after More:", buttons.map(b => `"${b.text}" aria="${b.aria}" y=${b.y}`));
+          connectBtn = buttons.find((b) => /^connect$/i.test(b.text) || /connect/i.test(b.aria)) ?? null;
+          if (!connectBtn) {
+            // Also try direct selector again after More opens
+            connectBtn = await findConnectButtonDirect(tabId);
+          }
+        }
       }
     }
 
@@ -340,26 +429,45 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
     }
 
     // Click Connect
-    await click(tabId, connectBtn.x + Math.round(connectBtn.w / 2), connectBtn.y + Math.round(connectBtn.h / 2));
-    await sleep(900);
+    await click(tabId, connectBtn.x + Math.round((connectBtn.w ?? 80) / 2), connectBtn.y + Math.round((connectBtn.h ?? 36) / 2));
+    await sleep(1500);
 
-    // Find "Send without a note" (or fallback "Send") in the dialog
-    const afterButtons = await scanButtons(tabId);
-    const sendBtn =
-      afterButtons.find((b) => /send without a note/i.test(b.text) || /send without a note/i.test(b.aria)) ||
-      afterButtons.find((b) => /^send$/i.test(b.text) || /^send$/i.test(b.aria));
+    // Find "Send without a note" (or fallback "Send") in the dialog.
+    // Try direct DOM query first (works in any language).
+    const sendBtnDirect = await send<{ result: { value: { x: number; y: number; w: number; h: number } | null } }>(tabId, "Runtime.evaluate", {
+      expression: `(() => {
+        const patterns = [/send without/i, /שלח ללא/i, /^send$/i, /^שלח$/i];
+        const btns = [...document.querySelectorAll('button,[role="button"]')];
+        for (const b of btns) {
+          const t = (b.textContent || '').trim();
+          const a = b.getAttribute('aria-label') || '';
+          if (patterns.some(p => p.test(t) || p.test(a))) {
+            const r = b.getBoundingClientRect();
+            if (r.width > 0 && r.height > 0) return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
+          }
+        }
+        return null;
+      })()`,
+      returnByValue: true,
+    });
 
-    if (!sendBtn) {
+    const sendCoords = sendBtnDirect?.result?.value;
+    console.log("[connect] sendBtn direct:", sendCoords);
+
+    if (!sendCoords) {
+      const afterButtons = await scanButtons(tabId);
+      console.log("[connect] afterButtons:", afterButtons.map(b => `"${b.text}" aria="${b.aria}"`));
       throw withCode(new Error("send_dialog_not_found"), "already_or_blocked");
     }
 
-    await click(tabId, sendBtn.x + Math.round(sendBtn.w / 2), sendBtn.y + Math.round(sendBtn.h / 2));
+    await click(tabId, sendCoords.x + Math.round(sendCoords.w / 2), sendCoords.y + Math.round(sendCoords.h / 2));
     await sleep(800);
 
     return { sentAt: new Date().toISOString() };
   } finally {
     if (attached) await detach(tabId).catch(() => {});
     await chrome.tabs.remove(tabId).catch(() => {});
+    await clearActiveTab();
   }
 }
 
