@@ -185,6 +185,12 @@ model Contact {
   enrichmentRanAt  DateTime?
   enrichmentError  String?
 
+  // job change detection
+  jobSnapshotTitle   String?
+  jobSnapshotCompany String?
+  lastJobCheckAt     DateTime?
+  jobChanges         ContactJobChange[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -529,6 +535,7 @@ model ContactList {
   sequences Sequence[]
 
   @@index([ownerId])
+  @@unique([ownerId, name])
 }
 
 model ContactListMember {
@@ -729,4 +736,20 @@ model ConnectionRequest {
   @@unique([ownerId, linkedinUrn])
   @@index([runId, status])
   @@index([ownerId, status])
+}
+
+// ─── Job change detection ──────────────────────────────────────────────────────
+
+model ContactJobChange {
+  id          String   @id @default(cuid())
+  contactId   String
+  detectedAt  DateTime @default(now())
+  prevTitle   String?
+  newTitle    String?
+  prevCompany String?
+  newCompany  String?
+
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
 }

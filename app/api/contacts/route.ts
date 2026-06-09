@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
+import { lookupContact } from "@/lib/hubspot/client";
 import { z } from "zod";
 
 const COMPANY_SIZE_BUCKETS: Record<string, [number, number | null]> = {
@@ -217,16 +218,26 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   manualFields.push("fullName");
 
   const placeholderId = `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const linkedinUrl = fields.linkedinUrl ?? `https://linkedin.com/manual/${placeholderId}`;
+
+  const hubspot = (!fields.email && !fields.phone)
+    ? await lookupContact({ linkedinUrl, fullName, company: fields.currentCompany ?? undefined })
+    : null;
+  const email = fields.email ?? hubspot?.email ?? null;
+  const phone = fields.phone ?? hubspot?.phone ?? null;
+  const enrichmentFields = hubspot?.email || hubspot?.phone
+    ? { enrichmentSource: "hubspot", enrichmentRanAt: new Date(), enrichedAt: new Date(), enrichmentError: null }
+    : {};
 
   const contact = await prisma.contact.create({
     data: {
       ownerId: ctx.effectiveUserId,
       fullName,
-      linkedinUrl: fields.linkedinUrl ?? `https://linkedin.com/manual/${placeholderId}`,
+      linkedinUrl,
       linkedinUrn: placeholderId,
       hebrewFirstName: fields.hebrewFirstName,
-      email: fields.email,
-      phone: fields.phone,
+      email,
+      phone,
       currentTitle: fields.currentTitle,
       currentCompany: fields.currentCompany,
       location: fields.location,
@@ -234,6 +245,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       ...(seniority ? { seniority: seniority as any } : {}),
       lastSyncedAt: new Date(),
       manualFields,
+      ...enrichmentFields,
     },
   });
 
