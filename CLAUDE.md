@@ -38,6 +38,7 @@ Use HeroUI (`@heroui/react`) for all React components.
 | `sequence.send-execution` | per step due | `inngest/functions/sequence-send-execution.ts` |
 | `prospecting.start` | prospecting start API | `inngest/functions/prospecting-start.ts` |
 | `prospecting.tick` | cron */5 * * * * | `inngest/functions/prospecting-tick.ts` |
+| `import.process` | CSV upload API | `inngest/functions/import-process.ts` |
 
 ## Next.js version
 
