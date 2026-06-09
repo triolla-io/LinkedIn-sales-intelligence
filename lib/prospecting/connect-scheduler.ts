@@ -108,6 +108,21 @@ export async function queueNextConnect(runId: string): Promise<string | null> {
       scheduledFor = new Date(Date.now() + 7 * DAY_MS);
     }
 
+    // Defense in depth: never create a 2nd CONNECT for this run while one is still live,
+    // even if connectInFlight was wrongly reset by a race. Reclaim the candidate and bail.
+    const liveConnect = await prisma.extensionTask.findFirst({
+      where: { prospectingRunId: runId, kind: "CONNECT", status: { in: ["PENDING", "CLAIMED"] } },
+      select: { id: true },
+    });
+    if (liveConnect) {
+      await prisma.connectionRequest.updateMany({
+        where: { id: next.id, status: "QUEUED" },
+        data: { status: "DISCOVERED" },
+      });
+      await releaseConnectSlot(runId);
+      return null;
+    }
+
     await prisma.extensionTask.create({
       data: {
         userId: run.ownerId,
