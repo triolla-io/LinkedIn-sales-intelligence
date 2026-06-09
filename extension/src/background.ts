@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat, agentStep } from "./lib/api";
-import { attach, detach, click, pressKey, typeText, insertTextIntoNamedCompose, clickSendButton, closeAllComposeOverlays, takeScreenshot, scrollBy, scanButtons, findMessageButton, send } from "./lib/cdp";
+import { attach, detach, click, pressKey, typeText, insertTextIntoNamedCompose, clickSendButton, closeAllComposeOverlays, takeScreenshot, scrollBy, scanButtons, findMessageButton, send, getAutomationWindow, openTabInAutomationWindow } from "./lib/cdp";
 
 // ---------- Shared types ----------
 
@@ -259,7 +259,9 @@ const SCRAPE_FN_SOURCE = `(() => {
     const raw = (container ? container.innerText : '').replace(/\\s+/g, ' ').trim();
     // name: first part of link text before " • "
     const nameRaw = link.innerText.trim().split('\\n')[0];
-    const name = nameRaw.replace(/\\s*•\\s*(1st|2nd|3rd\\+?).*/, '').replace(/\\s*★.*/, '').trim();
+    // Strip: connection degree (" • 2nd"), favorite stars, and the inline "+N" shared-connection
+    // badge LinkedIn glues to names in search cards (e.g. "+1 Yuval Bar Or"). Names never contain "+digits".
+    const name = nameRaw.replace(/\\s*•\\s*(1st|2nd|3rd\\+?).*/, '').replace(/\\s*★.*/, '').replace(/\\+\\d+/g, ' ').replace(/\\s+/g, ' ').trim();
     if (!name || name.length < 2) continue;
     // degree
     const degM = raw.match(/(1st|2nd|3rd\\+?)/);
@@ -289,9 +291,12 @@ const SCRAPE_FN_SOURCE = `(() => {
 })()`;
 
 async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCard[]; hasNextPage: boolean }> {
-  const tab = await chrome.tabs.create({ url: searchUrl, active: true });
-  if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
-  const tabId = tab.id;
+  let tabId: number;
+  try {
+    tabId = await openTabInAutomationWindow(searchUrl);
+  } catch {
+    throw withCode(new Error("tab_create_failed"), "tab_load");
+  }
   await trackActiveTab(tabId);
 
   let attached = false;
@@ -299,11 +304,7 @@ async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCar
   try {
     await waitForTabLoad(tabId);
     await sleep(2500);
-
-    // Bring window to front
-    const tabInfo = await chrome.tabs.get(tabId);
-    if (tabInfo.windowId) await chrome.windows.update(tabInfo.windowId, { focused: true });
-    await sleep(300);
+    // Do NOT focus the window — runs in the background automation window.
 
     // Checkpoint detection (before attach — check URL)
     const freshTab = await chrome.tabs.get(tabId);
@@ -341,27 +342,83 @@ async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCar
 // ---------- CONNECT: send a LinkedIn connection request ----------
 
 // Find the Connect button using direct DOM query (works regardless of UI language).
-async function findConnectButtonDirect(tabId: number): Promise<{ x: number; y: number; w: number; h: number } | null> {
+//
+// Two live-LinkedIn pitfalls this guards against:
+//   1. A profile renders the Connect action TWICE — once in the main top-card and once in a
+//      sticky header that is positioned behind the global nav. The sticky-header copy reports a
+//      valid bounding box but is occluded, so a synthetic click lands on the nav and nothing opens.
+//      We use document.elementFromPoint() to keep only the instance that is actually clickable.
+//   2. The "People also viewed" sidebar lists Connect buttons for OTHER members. Their
+//      custom-invite href carries a different vanityName, so we scope to the target profile's slug.
+async function findConnectButtonDirect(
+  tabId: number,
+  slug: string,
+): Promise<{ x: number; y: number; w: number; h: number } | null> {
   const result = await send<{ result: { value: unknown } }>(tabId, "Runtime.evaluate", {
     expression: `(() => {
-      const selectors = [
-        'button[aria-label*="connect" i]',
-        'button[aria-label*="invite" i]',
-        'a[aria-label*="connect" i]',
-        'a[aria-label*="invite" i]',
-        'a[href*="custom-invite"]',
-        'a[href*="preload/custom-invite"]',
-      ];
-      for (const sel of selectors) {
-        const els = [...document.querySelectorAll(sel)];
-        for (const el of els) {
-          const r = el.getBoundingClientRect();
-          if (r.width > 0 && r.height > 0) {
-            return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height), label: el.getAttribute('aria-label') };
+      const slug = ${JSON.stringify(slug)};
+      const cands = [...document.querySelectorAll(
+        'a[href*="custom-invite" i], button[aria-label*="invite" i], button[aria-label*="connect" i], a[aria-label*="connect" i], [role="button"][aria-label*="invite" i]'
+      )];
+      let fallback = null;
+      for (const el of cands) {
+        const href = (el.getAttribute('href') || '').toLowerCase();
+        // Skip custom-invite links that target a DIFFERENT member (sidebar suggestions).
+        if (href.includes('custom-invite') && slug && !href.includes('vanityname=' + slug)) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width <= 0 || r.height <= 0) continue;
+        const cx = Math.round(r.left + r.width / 2), cy = Math.round(r.top + r.height / 2);
+        const at = document.elementFromPoint(cx, cy);
+        const clickable = !!at && (at === el || el.contains(at) || at.contains(el));
+        if (!clickable) continue; // occluded (e.g. sticky-header copy behind the nav)
+        const box = { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
+        // Prefer a slug-scoped match; otherwise remember the first clickable connect/invite.
+        if (href.includes('custom-invite') && slug && href.includes('vanityname=' + slug)) return box;
+        if (!fallback) fallback = box;
+      }
+      return fallback;
+    })()`,
+    returnByValue: true,
+  });
+  return (result?.result?.value as { x: number; y: number; w: number; h: number } | null) ?? null;
+}
+
+// Find the "Send without a note" (or "Send") button inside the invite dialog.
+// LinkedIn renders this modal inside a SHADOW ROOT (the "interop-outlet" web-component layer),
+// so a plain document.querySelectorAll() never sees it — the lookup must pierce shadow roots.
+async function findSendButtonDeep(
+  tabId: number,
+): Promise<{ x: number; y: number; w: number; h: number } | null> {
+  const result = await send<{ result: { value: unknown } }>(tabId, "Runtime.evaluate", {
+    expression: `(() => {
+      let dlg = null;
+      const findDlg = (root) => {
+        if (dlg) return;
+        const m = root.querySelector('[role="dialog"], .artdeco-modal');
+        if (m) { dlg = m; return; }
+        for (const el of root.querySelectorAll('*')) if (el.shadowRoot) { findDlg(el.shadowRoot); if (dlg) return; }
+      };
+      findDlg(document);
+      const scope = dlg || document;
+      const patterns = [/send without/i, /שלח ללא/i, /^send$/i, /^שלח$/i];
+      let found = null;
+      const collect = (root) => {
+        if (found) return;
+        for (const el of root.querySelectorAll('button,[role="button"]')) {
+          const t = (el.textContent || '').trim();
+          const a = el.getAttribute('aria-label') || '';
+          if (patterns.some(p => p.test(t) || p.test(a))) {
+            const r = el.getBoundingClientRect();
+            if (r.width > 0 && r.height > 0) {
+              found = { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
+              return;
+            }
           }
         }
-      }
-      return null;
+        for (const el of root.querySelectorAll('*')) if (el.shadowRoot) { collect(el.shadowRoot); if (found) return; }
+      };
+      collect(scope);
+      return found;
     })()`,
     returnByValue: true,
   });
@@ -369,9 +426,12 @@ async function findConnectButtonDirect(tabId: number): Promise<{ x: number; y: n
 }
 
 async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string }> {
-  const tab = await chrome.tabs.create({ url: profileUrl, active: true });
-  if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
-  const tabId = tab.id;
+  let tabId: number;
+  try {
+    tabId = await openTabInAutomationWindow(profileUrl);
+  } catch {
+    throw withCode(new Error("tab_create_failed"), "tab_load");
+  }
   await trackActiveTab(tabId);
 
   let attached = false;
@@ -379,11 +439,7 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
   try {
     await waitForTabLoad(tabId);
     await sleep(4000);
-
-    // Bring window to front
-    const tabInfo = await chrome.tabs.get(tabId);
-    if (tabInfo.windowId) await chrome.windows.update(tabInfo.windowId, { focused: true });
-    await sleep(300);
+    // Do NOT focus the window — runs in the background automation window.
 
     // Checkpoint detection
     const freshTab = await chrome.tabs.get(tabId);
@@ -394,12 +450,14 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
     await attach(tabId);
     attached = true;
 
+    // The target profile's vanityName (slug) — used to scope the Connect button to THIS person
+    // and exclude "People also viewed" sidebar suggestions.
+    const slug = (profileUrl.split("/in/")[1] ?? "").replace(/[/?#].*/, "").toLowerCase();
+
     // Try direct CSS selector first (most reliable — LinkedIn profile action buttons).
     // aria-label contains "Connect" or "Invite" in English regardless of UI language.
-    const directBtn = await findConnectButtonDirect(tabId);
-    console.log("[connect] directBtn:", directBtn);
-
-    let connectBtn = directBtn;
+    let connectBtn = await findConnectButtonDirect(tabId, slug);
+    console.log("[connect] directBtn:", connectBtn);
 
     if (!connectBtn) {
       // Fallback: scan visible buttons
@@ -418,7 +476,7 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
           connectBtn = buttons.find((b) => /^connect$/i.test(b.text) || /connect/i.test(b.aria)) ?? null;
           if (!connectBtn) {
             // Also try direct selector again after More opens
-            connectBtn = await findConnectButtonDirect(tabId);
+            connectBtn = await findConnectButtonDirect(tabId, slug);
           }
         }
       }
@@ -430,29 +488,16 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
 
     // Click Connect
     await click(tabId, connectBtn.x + Math.round((connectBtn.w ?? 80) / 2), connectBtn.y + Math.round((connectBtn.h ?? 36) / 2));
-    await sleep(1500);
 
-    // Find "Send without a note" (or fallback "Send") in the dialog.
-    // Try direct DOM query first (works in any language).
-    const sendBtnDirect = await send<{ result: { value: { x: number; y: number; w: number; h: number } | null } }>(tabId, "Runtime.evaluate", {
-      expression: `(() => {
-        const patterns = [/send without/i, /שלח ללא/i, /^send$/i, /^שלח$/i];
-        const btns = [...document.querySelectorAll('button,[role="button"]')];
-        for (const b of btns) {
-          const t = (b.textContent || '').trim();
-          const a = b.getAttribute('aria-label') || '';
-          if (patterns.some(p => p.test(t) || p.test(a))) {
-            const r = b.getBoundingClientRect();
-            if (r.width > 0 && r.height > 0) return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
-          }
-        }
-        return null;
-      })()`,
-      returnByValue: true,
-    });
-
-    const sendCoords = sendBtnDirect?.result?.value;
-    console.log("[connect] sendBtn direct:", sendCoords);
+    // The invite dialog opens inside a shadow root and can take a moment to render.
+    // Poll the shadow-piercing finder instead of a single fixed-delay query.
+    let sendCoords: { x: number; y: number; w: number; h: number } | null = null;
+    for (let i = 0; i < 6; i++) {
+      await sleep(i === 0 ? 1500 : 800);
+      sendCoords = await findSendButtonDeep(tabId);
+      if (sendCoords) break;
+    }
+    console.log("[connect] sendBtn:", sendCoords);
 
     if (!sendCoords) {
       const afterButtons = await scanButtons(tabId);

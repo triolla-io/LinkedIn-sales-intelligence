@@ -2,6 +2,41 @@
 
 const CDP_VERSION = "1.3";
 
+// ---------- Dedicated automation window ----------
+// All prospecting automation runs in ONE separate Chrome window that is never focused,
+// so it does not steal focus from the user. Created lazily; recreated if the user closes it.
+let automationWindowId: number | null = null;
+
+async function windowExists(id: number): Promise<boolean> {
+  try {
+    await chrome.windows.get(id);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Get (or lazily create) the dedicated, non-focused automation window. Returns its windowId. */
+export async function getAutomationWindow(): Promise<number> {
+  if (automationWindowId !== null && (await windowExists(automationWindowId))) {
+    return automationWindowId;
+  }
+  // Try minimized first (fully out of the way). If a later live test shows clicks don't land in a
+  // minimized window, switch `state` to "normal" with an off-screen `left` (see plan fallback).
+  const win = await chrome.windows.create({ focused: false, state: "minimized" });
+  if (!win?.id) throw new Error("automation_window_create_failed");
+  automationWindowId = win.id;
+  return automationWindowId;
+}
+
+/** Open a tab inside the automation window WITHOUT focusing the window. Returns the tabId. */
+export async function openTabInAutomationWindow(url: string): Promise<number> {
+  const windowId = await getAutomationWindow();
+  const tab = await chrome.tabs.create({ windowId, url, active: true });
+  if (!tab.id) throw new Error("tab_create_failed");
+  return tab.id;
+}
+
 export async function attach(tabId: number): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     chrome.debugger.attach({ tabId }, CDP_VERSION, () => {
