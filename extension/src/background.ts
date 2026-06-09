@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat, agentStep } from "./lib/api";
-import { attach, detach, click, pressKey, typeText, insertTextIntoNamedCompose, clickSendButton, closeAllComposeOverlays, takeScreenshot, scrollBy, scanButtons, findMessageButton, send, getAutomationWindow, openTabInAutomationWindow } from "./lib/cdp";
+import { attach, detach, click, pressKey, typeText, insertTextIntoNamedCompose, clickSendButton, closeAllComposeOverlays, takeScreenshot, scrollBy, scanButtons, findMessageButton, send, getAutomationWindow, openTabInAutomationWindow, closeStaleAutomationWindow } from "./lib/cdp";
 
 // ---------- Shared types ----------
 
@@ -33,6 +33,7 @@ async function clearActiveTab() {
 // On every SW startup: close any tab left open from a previous killed run.
 (async () => {
   try {
+    await closeStaleAutomationWindow().catch(() => {});
     const { swActiveTabId } = await chrome.storage.local.get("swActiveTabId");
     if (swActiveTabId) {
       console.log("[startup] closing orphaned tab", swActiveTabId);
@@ -291,12 +292,9 @@ const SCRAPE_FN_SOURCE = `(() => {
 })()`;
 
 async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCard[]; hasNextPage: boolean }> {
-  let tabId: number;
-  try {
-    tabId = await openTabInAutomationWindow(searchUrl);
-  } catch {
+  const tabId = await openTabInAutomationWindow(searchUrl).catch(() => {
     throw withCode(new Error("tab_create_failed"), "tab_load");
-  }
+  });
   await trackActiveTab(tabId);
 
   let attached = false;
@@ -426,12 +424,9 @@ async function findSendButtonDeep(
 }
 
 async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string }> {
-  let tabId: number;
-  try {
-    tabId = await openTabInAutomationWindow(profileUrl);
-  } catch {
+  const tabId = await openTabInAutomationWindow(profileUrl).catch(() => {
     throw withCode(new Error("tab_create_failed"), "tab_load");
-  }
+  });
   await trackActiveTab(tabId);
 
   let attached = false;

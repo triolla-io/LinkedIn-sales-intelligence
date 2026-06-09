@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { normalizeApolloPhone } from "@/lib/apollo/client";
 
 /** Normalise a LinkedIn profile URL to its canonical /in/<slug> form. */
 function normalizeLinkedinUrl(url: string): string {
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
   }
 
   const phones = payload.person?.phone_numbers ?? [];
-  const phone = pickPhone(phones);
+  const phone = normalizeApolloPhone(pickPhone(phones));
   if (!phone) {
     return NextResponse.json({ ok: true, updated: false });
   }

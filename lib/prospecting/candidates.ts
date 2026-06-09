@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
-import { decideCandidate, type ScrapedCard } from "@/lib/prospecting/filter";
+import { cleanScrapedName, decideCandidate, type ScrapedCard } from "@/lib/prospecting/filter";
 
 export type PersistResult = { inserted: number; skipped: number };
 
@@ -42,6 +42,8 @@ export async function persistCandidates(
     if (seenInBatch.has(card.urn)) continue; // de-dupe within the same page
     seenInBatch.add(card.urn);
 
+    const fullName = cleanScrapedName(card.name);
+
     const decision = decideCandidate(card, ctx);
     if (decision.action === "skip") {
       if (decision.skipReason === "already_pending") continue; // idempotent: row already exists
@@ -52,7 +54,7 @@ export async function persistCandidates(
             runId,
             linkedinUrn: card.urn,
             linkedinUrl: card.profileUrl,
-            fullName: card.name,
+            fullName,
             currentTitle: card.title,
             currentCompany: card.company,
             location: card.location,
@@ -79,7 +81,7 @@ export async function persistCandidates(
           runId,
           linkedinUrn: card.urn,
           linkedinUrl: card.profileUrl,
-          fullName: card.name,
+          fullName,
           currentTitle: card.title,
           currentCompany: card.company,
           location: card.location,
