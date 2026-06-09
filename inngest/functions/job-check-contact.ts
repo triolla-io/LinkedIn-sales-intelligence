@@ -18,24 +18,20 @@ export const jobCheckContact = inngest.createFunction(
           linkedinUrl: true,
           jobSnapshotTitle: true,
           jobSnapshotCompany: true,
+          currentTitle: true,
+          currentCompany: true,
         },
       })
     );
 
     // First run: no snapshot yet — save current enrichment values as baseline.
     if (contact.jobSnapshotTitle === null && contact.jobSnapshotCompany === null) {
-      const current = await step.run("load-current-values", () =>
-        prisma.contact.findUniqueOrThrow({
-          where: { id: contactId },
-          select: { currentTitle: true, currentCompany: true },
-        })
-      );
       await step.run("save-initial-snapshot", () =>
         prisma.contact.update({
           where: { id: contactId },
           data: {
-            jobSnapshotTitle: current.currentTitle,
-            jobSnapshotCompany: current.currentCompany,
+            jobSnapshotTitle: contact.currentTitle,
+            jobSnapshotCompany: contact.currentCompany,
             lastJobCheckAt: new Date(),
           },
         })
@@ -88,11 +84,19 @@ export const jobCheckContact = inngest.createFunction(
 
     // Change detected: log, add to list, update snapshot — all in one DB transaction.
     await step.run("record-change", async () => {
-      const list = await prisma.contactList.upsert({
-        where: { ownerId_name: { ownerId: contact.ownerId, name: "Job Changes" } },
-        create: { ownerId: contact.ownerId, name: "Job Changes" },
-        update: {},
-      });
+      let list;
+      try {
+        list = await prisma.contactList.upsert({
+          where: { ownerId_name: { ownerId: contact.ownerId, name: "Job Changes" } },
+          create: { ownerId: contact.ownerId, name: "Job Changes" },
+          update: {},
+        });
+      } catch {
+        // Race: another concurrent job.check created the list — look it up directly
+        list = await prisma.contactList.findUniqueOrThrow({
+          where: { ownerId_name: { ownerId: contact.ownerId, name: "Job Changes" } },
+        });
+      }
 
       await prisma.$transaction([
         prisma.contactJobChange.create({
