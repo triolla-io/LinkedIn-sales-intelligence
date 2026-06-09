@@ -435,14 +435,23 @@ export default function ImportPage() {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const pollJob = useCallback(async (jobId: string) => {
+  const pollJob = useCallback(async (jobId: string, signal?: AbortSignal) => {
+    let networkErrors = 0;
     while (true) {
+      if (signal?.aborted) return;
       let res: Response;
       try {
-        res = await fetch(`/api/import/jobs/${jobId}`);
-      } catch {
-        dispatch({ errorMsg: "Network error. Please try again.", state: "error" });
-        return;
+        res = await fetch(`/api/import/jobs/${jobId}`, { signal });
+        networkErrors = 0; // reset on success
+      } catch (e: unknown) {
+        if ((e as Error)?.name === "AbortError") return;
+        networkErrors++;
+        if (networkErrors >= 3) {
+          dispatch({ errorMsg: "Network error. Please try again.", state: "error" });
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 1500));
+        continue;
       }
       if (!res.ok) {
         dispatch({ errorMsg: "Import job not found", state: "error" });
@@ -465,24 +474,29 @@ export default function ImportPage() {
         });
         return;
       }
+      if (signal?.aborted) return;
       await new Promise((r) => setTimeout(r, 1500));
     }
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
     (async () => {
       try {
-        const res = await fetch("/api/import/active");
-        if (!res.ok || cancelled) return;
+        const res = await fetch("/api/import/active", { signal: controller.signal });
+        if (!res.ok) return;
         const { job } = await res.json();
-        if (job && !cancelled) {
+        if (job && !controller.signal.aborted) {
           dispatch({ fileName: job.fileName, state: "uploading", progress: job.processed ?? 0, progressTotal: job.total ?? 0 });
-          pollJob(job.id);
+          pollJob(job.id, controller.signal);
         }
-      } catch { /* ignore */ }
+      } catch (e: unknown) {
+        if ((e as Error)?.name !== "AbortError") {
+          // ignore non-abort errors on mount
+        }
+      }
     })();
-    return () => { cancelled = true; };
+    return () => { controller.abort(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
