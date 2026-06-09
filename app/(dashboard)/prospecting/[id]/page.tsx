@@ -152,7 +152,7 @@ export default function ProspectingRunDetailPage({
         <div className="bg-white border border-[#e5e3df] rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-[#e5e3df] bg-[#fafaf9]">
             <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">
-              Awaiting connection approval ({requests.length})
+              Sent Connection Requests ({requests.length})
             </h2>
           </div>
 

@@ -57,6 +57,16 @@ export const JobStatus = {
 export type JobStatus = (typeof JobStatus)[keyof typeof JobStatus]
 
 
+export const ImportJobStatus = {
+  QUEUED: 'QUEUED',
+  PROCESSING: 'PROCESSING',
+  DONE: 'DONE',
+  ERROR: 'ERROR'
+} as const
+
+export type ImportJobStatus = (typeof ImportJobStatus)[keyof typeof ImportJobStatus]
+
+
 export const MessageStatus = {
   QUEUED: 'QUEUED',
   SENT: 'SENT',

@@ -427,6 +427,36 @@ export type EnumRecipientStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumRecipientStatusFilter<$PrismaModel>
 }
 
+export type EnumImportJobStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ImportJobStatus | Prisma.EnumImportJobStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ImportJobStatus[] | Prisma.ListEnumImportJobStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ImportJobStatus[] | Prisma.ListEnumImportJobStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumImportJobStatusFilter<$PrismaModel> | $Enums.ImportJobStatus
+}
+
+export type BoolFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
+}
+
+export type EnumImportJobStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ImportJobStatus | Prisma.EnumImportJobStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ImportJobStatus[] | Prisma.ListEnumImportJobStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ImportJobStatus[] | Prisma.ListEnumImportJobStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumImportJobStatusWithAggregatesFilter<$PrismaModel> | $Enums.ImportJobStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumImportJobStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumImportJobStatusFilter<$PrismaModel>
+}
+
+export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedBoolFilter<$PrismaModel>
+  _max?: Prisma.NestedBoolFilter<$PrismaModel>
+}
+
 export type EnumSequenceStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.SequenceStatus | Prisma.EnumSequenceStatusFieldRefInput<$PrismaModel>
   in?: $Enums.SequenceStatus[] | Prisma.ListEnumSequenceStatusFieldRefInput<$PrismaModel>
@@ -519,11 +549,6 @@ export type EnumProspectingRunStatusFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumProspectingRunStatusFilter<$PrismaModel> | $Enums.ProspectingRunStatus
 }
 
-export type BoolFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
-}
-
 export type EnumProspectingRunStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.ProspectingRunStatus | Prisma.EnumProspectingRunStatusFieldRefInput<$PrismaModel>
   in?: $Enums.ProspectingRunStatus[] | Prisma.ListEnumProspectingRunStatusFieldRefInput<$PrismaModel>
@@ -532,14 +557,6 @@ export type EnumProspectingRunStatusWithAggregatesFilter<$PrismaModel = never> =
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumProspectingRunStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumProspectingRunStatusFilter<$PrismaModel>
-}
-
-export type BoolWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedBoolFilter<$PrismaModel>
-  _max?: Prisma.NestedBoolFilter<$PrismaModel>
 }
 
 export type EnumConnectionRequestStatusFilter<$PrismaModel = never> = {
@@ -931,6 +948,36 @@ export type NestedEnumRecipientStatusWithAggregatesFilter<$PrismaModel = never> 
   _max?: Prisma.NestedEnumRecipientStatusFilter<$PrismaModel>
 }
 
+export type NestedEnumImportJobStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ImportJobStatus | Prisma.EnumImportJobStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ImportJobStatus[] | Prisma.ListEnumImportJobStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ImportJobStatus[] | Prisma.ListEnumImportJobStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumImportJobStatusFilter<$PrismaModel> | $Enums.ImportJobStatus
+}
+
+export type NestedBoolFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
+}
+
+export type NestedEnumImportJobStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ImportJobStatus | Prisma.EnumImportJobStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ImportJobStatus[] | Prisma.ListEnumImportJobStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ImportJobStatus[] | Prisma.ListEnumImportJobStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumImportJobStatusWithAggregatesFilter<$PrismaModel> | $Enums.ImportJobStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumImportJobStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumImportJobStatusFilter<$PrismaModel>
+}
+
+export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedBoolFilter<$PrismaModel>
+  _max?: Prisma.NestedBoolFilter<$PrismaModel>
+}
+
 export type NestedEnumSequenceStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.SequenceStatus | Prisma.EnumSequenceStatusFieldRefInput<$PrismaModel>
   in?: $Enums.SequenceStatus[] | Prisma.ListEnumSequenceStatusFieldRefInput<$PrismaModel>
@@ -1023,11 +1070,6 @@ export type NestedEnumProspectingRunStatusFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumProspectingRunStatusFilter<$PrismaModel> | $Enums.ProspectingRunStatus
 }
 
-export type NestedBoolFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
-}
-
 export type NestedEnumProspectingRunStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.ProspectingRunStatus | Prisma.EnumProspectingRunStatusFieldRefInput<$PrismaModel>
   in?: $Enums.ProspectingRunStatus[] | Prisma.ListEnumProspectingRunStatusFieldRefInput<$PrismaModel>
@@ -1036,14 +1078,6 @@ export type NestedEnumProspectingRunStatusWithAggregatesFilter<$PrismaModel = ne
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumProspectingRunStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumProspectingRunStatusFilter<$PrismaModel>
-}
-
-export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedBoolFilter<$PrismaModel>
-  _max?: Prisma.NestedBoolFilter<$PrismaModel>
 }
 
 export type NestedEnumConnectionRequestStatusFilter<$PrismaModel = never> = {

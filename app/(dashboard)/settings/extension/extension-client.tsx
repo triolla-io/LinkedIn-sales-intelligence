@@ -51,7 +51,7 @@ export function ExtensionClient({
     const interval = setInterval(async () => {
       const s = await fetch("/api/extension/sessions").then((r) => r.json());
       if (s.session) setSession(s.session);
-    }, 8000);
+    }, 3000);
     return () => clearInterval(interval);
   }, [session?.id, session?.revokedAt]);
 

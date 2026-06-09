@@ -79,7 +79,7 @@ export default function ProspectingPage() {
       <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <Search className="size-4 text-[#9b9895]" />
-          <h1 className="text-sm font-semibold text-[#111110]">Prospecting</h1>
+          <h1 className="text-sm font-semibold text-[#111110]">Routine</h1>
           {data && (
             <span className="text-xs font-mono text-[#9b9895]">{runs.length} runs</span>
           )}
@@ -89,7 +89,7 @@ export default function ProspectingPage() {
       <div className="px-5 pt-5 pb-8 space-y-6">
         {/* New Run Form */}
         <div className="bg-white border border-[#e5e3df] rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-[#111110] mb-4">New Prospecting Run</h2>
+          <h2 className="text-sm font-semibold text-[#111110] mb-4">New Routine</h2>
           <form onSubmit={createRun} className="space-y-3">
             <div>
               <label htmlFor="run-name" className="block text-xs font-medium text-[#6b6866] mb-1">
@@ -169,10 +169,10 @@ export default function ProspectingPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#e5e3df] bg-[#fafaf9]">
-                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Name</th>
-                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Status</th>
-                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Sent / Found</th>
-                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Caps (day / week)</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">שם</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">סטטוס</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">נמצאו / נשלחו</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">מכסה (יום / שבוע)</th>
                   <th className="px-4 py-2.5" />
                 </tr>
               </thead>

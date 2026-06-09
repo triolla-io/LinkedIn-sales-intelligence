@@ -34,7 +34,7 @@ const navItems = [
   { href: "/contacts", label: "אנשי קשר", icon: Users },
   { href: "/lists", label: "רשימות תפוצה", icon: BookMarked },
   { href: "/campaigns", label: "קמפיינים", icon: GitBranch },
-  { href: "/prospecting", label: "Prospecting", icon: Search },
+  { href: "/prospecting", label: "Routine", icon: Search },
   { href: "/templates", label: "טמפלטים", icon: FileText },
   { href: "/import", label: "ייבוא נתונים", icon: Upload },
   { href: "/settings", label: "הגדרות", icon: Settings },

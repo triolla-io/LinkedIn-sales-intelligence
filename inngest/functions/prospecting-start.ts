@@ -18,6 +18,15 @@ export const prospectingStart = inngest.createFunction(
       return;
     }
 
+    // If there are already discovered candidates waiting, kick off sending immediately
+    // without waiting for the next SEARCH result to trigger queueNextConnect.
+    const pendingCount = await prisma.connectionRequest.count({
+      where: { runId, status: "DISCOVERED" },
+    });
+    if (pendingCount > 0) {
+      await queueNextConnect(runId);
+    }
+
     // Reset discovery cursor and kick off page 1.
     const searchUrl = buildSearchUrl(run.keywords, run.nextSearchPage, run.geoUrn);
     await prisma.prospectingRun.update({

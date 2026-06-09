@@ -69,6 +69,7 @@ export const ModelName = {
   CampaignRecipient: 'CampaignRecipient',
   Invite: 'Invite',
   Import: 'Import',
+  ImportJob: 'ImportJob',
   ContactList: 'ContactList',
   ContactListMember: 'ContactListMember',
   Sequence: 'Sequence',
@@ -375,6 +376,30 @@ export const ImportScalarFieldEnum = {
 } as const
 
 export type ImportScalarFieldEnum = (typeof ImportScalarFieldEnum)[keyof typeof ImportScalarFieldEnum]
+
+
+export const ImportJobScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  fileName: 'fileName',
+  status: 'status',
+  updateOnly: 'updateOnly',
+  stage: 'stage',
+  total: 'total',
+  processed: 'processed',
+  payload: 'payload',
+  error: 'error',
+  added: 'added',
+  updated: 'updated',
+  removed: 'removed',
+  unchanged: 'unchanged',
+  companies: 'companies',
+  newCompanies: 'newCompanies',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ImportJobScalarFieldEnum = (typeof ImportJobScalarFieldEnum)[keyof typeof ImportJobScalarFieldEnum]
 
 
 export const ContactListScalarFieldEnum = {

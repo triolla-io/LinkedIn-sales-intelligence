@@ -3,6 +3,8 @@ type Input = {
   workingHoursStart: number; // 0-23
   workingHoursEnd: number;   // 0-23
   weekdaysOnly: boolean;
+  /** Weekday numbers that count as working days (0=Sun … 6=Sat). Defaults to Mon-Fri [1-5]. */
+  workingWeekdays?: number[];
   lastSentAt: Date | null;
   sentTodayCount: number;
   sentLastHourCount: number;
@@ -15,14 +17,20 @@ const MAX_GAP_MIN = 10;
 
 export function computeNextScheduledFor(input: Input): Date {
   const now = new Date();
-  const candidate = addRandomMinutes(now, MIN_GAP_MIN, MAX_GAP_MIN);
 
   if (input.sentTodayCount >= input.dailyCap) {
     return nextWorkdayStart(now, input);
   }
   if (input.sentLastHourCount >= input.hourlyCap) {
-    return roundUpToNextHour(candidate);
+    return roundUpToNextHour(now);
   }
+
+  // First ever send — schedule immediately so the extension picks it up in the next poll cycle.
+  if (input.lastSentAt === null) {
+    return clampToWorkingHours(now, input);
+  }
+
+  const candidate = addRandomMinutes(now, MIN_GAP_MIN, MAX_GAP_MIN);
   return clampToWorkingHours(candidate, input);
 }
 
@@ -38,11 +46,15 @@ function roundUpToNextHour(d: Date): Date {
   return out;
 }
 
+function isWorkingDay(weekday: number, input: Input): boolean {
+  const days = input.workingWeekdays ?? [1, 2, 3, 4, 5];
+  return days.includes(weekday);
+}
+
 function clampToWorkingHours(d: Date, input: Input): Date {
   const local = toZonedParts(d, input.timezone);
   const inHours = local.hour >= input.workingHoursStart && local.hour < input.workingHoursEnd;
-  const isWeekday = local.weekday >= 1 && local.weekday <= 5;
-  if (inHours && (!input.weekdaysOnly || isWeekday)) return d;
+  if (inHours && (!input.weekdaysOnly || isWorkingDay(local.weekday, input))) return d;
   return nextWorkdayStart(d, input);
 }
 
@@ -51,8 +63,7 @@ function nextWorkdayStart(from: Date, input: Input): Date {
   cursor.setUTCDate(cursor.getUTCDate() + 1);
   while (true) {
     const parts = toZonedParts(cursor, input.timezone);
-    const isWeekday = parts.weekday >= 1 && parts.weekday <= 5;
-    if (!input.weekdaysOnly || isWeekday) {
+    if (!input.weekdaysOnly || isWorkingDay(parts.weekday, input)) {
       return setHourInZone(cursor, input.timezone, input.workingHoursStart);
     }
     cursor.setUTCDate(cursor.getUTCDate() + 1);

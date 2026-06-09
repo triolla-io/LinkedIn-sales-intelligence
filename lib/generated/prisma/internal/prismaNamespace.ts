@@ -402,6 +402,7 @@ export const ModelName = {
   CampaignRecipient: 'CampaignRecipient',
   Invite: 'Invite',
   Import: 'Import',
+  ImportJob: 'ImportJob',
   ContactList: 'ContactList',
   ContactListMember: 'ContactListMember',
   Sequence: 'Sequence',
@@ -429,7 +430,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "connectionRequest"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "connectionRequest"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1765,6 +1766,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ImportJob: {
+      payload: Prisma.$ImportJobPayload<ExtArgs>
+      fields: Prisma.ImportJobFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ImportJobFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportJobPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ImportJobFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportJobPayload>
+        }
+        findFirst: {
+          args: Prisma.ImportJobFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportJobPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ImportJobFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportJobPayload>
+        }
+        findMany: {
+          args: Prisma.ImportJobFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportJobPayload>[]
+        }
+        create: {
+          args: Prisma.ImportJobCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportJobPayload>
+        }
+        createMany: {
+          args: Prisma.ImportJobCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ImportJobCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportJobPayload>[]
+        }
+        delete: {
+          args: Prisma.ImportJobDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportJobPayload>
+        }
+        update: {
+          args: Prisma.ImportJobUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportJobPayload>
+        }
+        deleteMany: {
+          args: Prisma.ImportJobDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ImportJobUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ImportJobUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportJobPayload>[]
+        }
+        upsert: {
+          args: Prisma.ImportJobUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportJobPayload>
+        }
+        aggregate: {
+          args: Prisma.ImportJobAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateImportJob>
+        }
+        groupBy: {
+          args: Prisma.ImportJobGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImportJobGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ImportJobCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImportJobCountAggregateOutputType> | number
+        }
+      }
+    }
     ContactList: {
       payload: Prisma.$ContactListPayload<ExtArgs>
       fields: Prisma.ContactListFieldRefs
@@ -2970,6 +3045,30 @@ export const ImportScalarFieldEnum = {
 export type ImportScalarFieldEnum = (typeof ImportScalarFieldEnum)[keyof typeof ImportScalarFieldEnum]
 
 
+export const ImportJobScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  fileName: 'fileName',
+  status: 'status',
+  updateOnly: 'updateOnly',
+  stage: 'stage',
+  total: 'total',
+  processed: 'processed',
+  payload: 'payload',
+  error: 'error',
+  added: 'added',
+  updated: 'updated',
+  removed: 'removed',
+  unchanged: 'unchanged',
+  companies: 'companies',
+  newCompanies: 'newCompanies',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ImportJobScalarFieldEnum = (typeof ImportJobScalarFieldEnum)[keyof typeof ImportJobScalarFieldEnum]
+
+
 export const ContactListScalarFieldEnum = {
   id: 'id',
   ownerId: 'ownerId',
@@ -3380,6 +3479,27 @@ export type ListEnumRecipientStatusFieldRefInput<$PrismaModel> = FieldRefInputTy
 
 
 /**
+ * Reference to a field of type 'ImportJobStatus'
+ */
+export type EnumImportJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ImportJobStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ImportJobStatus[]'
+ */
+export type ListEnumImportJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ImportJobStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'SequenceStatus'
  */
 export type EnumSequenceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SequenceStatus'>
@@ -3460,13 +3580,6 @@ export type EnumProspectingRunStatusFieldRefInput<$PrismaModel> = FieldRefInputT
  * Reference to a field of type 'ProspectingRunStatus[]'
  */
 export type ListEnumProspectingRunStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProspectingRunStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -3625,6 +3738,7 @@ export type GlobalOmitConfig = {
   campaignRecipient?: Prisma.CampaignRecipientOmit
   invite?: Prisma.InviteOmit
   import?: Prisma.ImportOmit
+  importJob?: Prisma.ImportJobOmit
   contactList?: Prisma.ContactListOmit
   contactListMember?: Prisma.ContactListMemberOmit
   sequence?: Prisma.SequenceOmit

@@ -757,10 +757,6 @@ export type EnumProspectingRunStatusFieldUpdateOperationsInput = {
   set?: $Enums.ProspectingRunStatus
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type ProspectingRunCreateNestedOneWithoutRequestsInput = {
   create?: Prisma.XOR<Prisma.ProspectingRunCreateWithoutRequestsInput, Prisma.ProspectingRunUncheckedCreateWithoutRequestsInput>
   connectOrCreate?: Prisma.ProspectingRunCreateOrConnectWithoutRequestsInput
