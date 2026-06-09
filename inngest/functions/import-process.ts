@@ -18,11 +18,13 @@ export const importProcess = inngest.createFunction(
     retries: 2,
     onFailure: async ({ event }: any) => {
       const importJobId = event?.data?.event?.data?.importJobId as string | undefined;
-      if (importJobId) {
-        await prisma.importJob
-          .update({ where: { id: importJobId }, data: { status: "ERROR", error: "Import failed after retries" } })
-          .catch(() => {});
+      if (!importJobId) {
+        console.error("[import-process] onFailure: could not resolve importJobId from event", JSON.stringify(event?.data?.event?.data));
+        return;
       }
+      await prisma.importJob
+        .update({ where: { id: importJobId }, data: { status: "ERROR", error: "Import failed after retries" } })
+        .catch(() => {});
     },
   },
   async ({ event, step }: any) => {
@@ -66,7 +68,8 @@ export const importProcess = inngest.createFunction(
         select: { linkedinUrlNormalized: true, email: true, phone: true },
       }) : [];
 
-      const toUpsertCount = contacts.filter((c) => !diff.unchanged.includes(c.linkedinUrn)).length;
+      const unchangedUrns = new Set(diff.unchanged);
+      const toUpsertCount = contacts.filter((c) => !unchangedUrns.has(c.linkedinUrn)).length;
       await prisma.importJob.update({
         where: { id: importJobId },
         data: { total: toUpsertCount, processed: 0 },

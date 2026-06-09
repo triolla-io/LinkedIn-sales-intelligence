@@ -434,6 +434,8 @@ export default function ImportPage() {
   );
 
   const inputRef = useRef<HTMLInputElement>(null);
+  // Holds the AbortController for the active poll loop (mount re-attach or upload).
+  const pollAbortRef = useRef<AbortController | null>(null);
 
   const pollJob = useCallback(async (jobId: string, signal?: AbortSignal) => {
     let networkErrors = 0;
@@ -481,6 +483,7 @@ export default function ImportPage() {
 
   useEffect(() => {
     const controller = new AbortController();
+    pollAbortRef.current = controller;
     (async () => {
       try {
         const res = await fetch("/api/import/active", { signal: controller.signal });
@@ -501,6 +504,11 @@ export default function ImportPage() {
   }, []);
 
   const upload = useCallback(async (file: File, updateOnly: boolean) => {
+    // Abort any previous poll (e.g. mount re-attach) before starting a new upload.
+    pollAbortRef.current?.abort();
+    const controller = new AbortController();
+    pollAbortRef.current = controller;
+
     dispatch({ fileName: file.name, state: "uploading", errorMsg: "", progress: 0, progressTotal: 0 });
     const form = new FormData();
     form.append("file", file);
@@ -518,7 +526,7 @@ export default function ImportPage() {
       dispatch({ errorMsg: "Network error. Please try again.", state: "error" });
       return;
     }
-    await pollJob(jobId);
+    await pollJob(jobId, controller.signal);
   }, [pollJob]);
 
   const onDrop = useCallback(
