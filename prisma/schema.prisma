@@ -45,6 +45,13 @@ enum JobStatus {
   CANCELLED
 }
 
+enum ImportJobStatus {
+  QUEUED
+  PROCESSING
+  DONE
+  ERROR
+}
+
 enum MessageStatus {
   QUEUED
   SENT
@@ -136,6 +143,7 @@ model User {
   auditTargeted   AuditEvent[]      @relation("AuditTarget")
   campaigns       Campaign[]
   imports         Import[]
+  importJobs      ImportJob[]
   contactLists    ContactList[]
   linkedinSession  LinkedinSession?
   sequences        Sequence[]
@@ -480,6 +488,32 @@ model Import {
 
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
+  @@index([ownerId, createdAt])
+}
+
+model ImportJob {
+  id           String          @id @default(cuid())
+  ownerId      String
+  fileName     String
+  status       ImportJobStatus @default(QUEUED)
+  updateOnly   Boolean         @default(false)
+  stage        String          @default("queued")
+  total        Int             @default(0)
+  processed    Int             @default(0)
+  payload      Json
+  error        String?
+  added        Int @default(0)
+  updated      Int @default(0)
+  removed      Int @default(0)
+  unchanged    Int @default(0)
+  companies    Int @default(0)
+  newCompanies Int @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, status])
   @@index([ownerId, createdAt])
 }
 
