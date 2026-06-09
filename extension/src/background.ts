@@ -512,6 +512,19 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
     await sleep(800);
 
     return { sentAt: new Date().toISOString() };
+  } catch (err) {
+    const e = err as Error & { code?: string; screenshot?: string; buttons?: unknown };
+    const failedTab = await chrome.tabs.get(tabId).catch(() => null);
+    if (failedTab?.url) e.message = `${e.message} (url=${failedTab.url})`;
+    // Don't attach heavy diagnostics for benign already_* or checkpoint outcomes.
+    if (attached && e.code !== "already_pending" && e.code !== "already_connected" && e.code !== "checkpoint") {
+      try {
+        const [screenshot, buttons] = await Promise.all([takeScreenshot(tabId), scanButtons(tabId)]);
+        e.screenshot = screenshot;
+        e.buttons = buttons;
+      } catch { /* ignore */ }
+    }
+    throw e;
   } finally {
     if (attached) await detach(tabId).catch(() => {});
     await chrome.tabs.remove(tabId).catch(() => {});
