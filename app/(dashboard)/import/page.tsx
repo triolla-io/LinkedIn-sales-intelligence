@@ -81,7 +81,7 @@ function StatCard({
 }
 
 function BackgroundStatus() {
-  const [status, setStatus] = useState<{ pendingEnrichment: number; pendingCompanies: number } | null>(null);
+  const [status, setStatus] = useState<{ pendingEnrichment: number; pendingCompanies: number; enrichmentConfigured?: boolean } | null>(null);
   const [retrying, setRetrying] = useState(false);
   const stuckRef = useRef(0); // polls with same pendingCompanies value
 
@@ -116,6 +116,20 @@ function BackgroundStatus() {
   };
 
   if (!status || (status.pendingEnrichment === 0 && status.pendingCompanies === 0)) return null;
+
+  if (status.enrichmentConfigured === false && status.pendingCompanies > 0) {
+    return (
+      <div className="mt-4 px-4 py-3 rounded-xl border border-amber-200 bg-amber-50 flex items-start gap-3">
+        <AlertCircle className="size-4 shrink-0 mt-0.5 text-amber-500" />
+        <div className="space-y-1 flex-1">
+          <p className="text-xs font-medium text-[#111110]">העשרת חברות אינה מוגדרת</p>
+          <p className="text-xs text-[#6b6866]">
+            {status.pendingCompanies.toLocaleString()} חברות ממתינות, אך מפתח ה-API להעשרה חסר. פנה למנהל המערכת.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const isStuck = stuckRef.current >= 4; // ~32s with no change
 

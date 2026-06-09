@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
+import { isOpenRouterConfigured } from "@/lib/enrichment/openrouter-search";
 
 export const GET = withTenant(async (_req, ctx) => {
   const userId = ctx.effectiveUserId;
@@ -25,5 +26,5 @@ export const GET = withTenant(async (_req, ctx) => {
     }),
   ]);
 
-  return NextResponse.json({ pendingEnrichment, pendingCompanies });
+  return NextResponse.json({ pendingEnrichment, pendingCompanies, enrichmentConfigured: isOpenRouterConfigured() });
 });
