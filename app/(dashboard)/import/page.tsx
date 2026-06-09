@@ -435,41 +435,77 @@ export default function ImportPage() {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const pollJob = useCallback(async (jobId: string) => {
+    while (true) {
+      let res: Response;
+      try {
+        res = await fetch(`/api/import/jobs/${jobId}`);
+      } catch {
+        dispatch({ errorMsg: "Network error. Please try again.", state: "error" });
+        return;
+      }
+      if (!res.ok) {
+        dispatch({ errorMsg: "Import job not found", state: "error" });
+        return;
+      }
+      const job = await res.json();
+      if (job.status === "ERROR") {
+        dispatch({ errorMsg: job.error ?? "Import failed", state: "error" });
+        return;
+      }
+      dispatch({ progress: job.processed ?? 0, progressTotal: job.total ?? 0 });
+      if (job.status === "DONE") {
+        dispatch({
+          result: {
+            imported: (job.added ?? 0) + (job.updated ?? 0) + (job.unchanged ?? 0),
+            added: job.added ?? 0, updated: job.updated ?? 0, removed: job.removed ?? 0,
+            unchanged: job.unchanged ?? 0, companies: job.companies ?? 0, newCompanies: job.newCompanies ?? 0,
+          },
+          state: "done",
+        });
+        return;
+      }
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/import/active");
+        if (!res.ok || cancelled) return;
+        const { job } = await res.json();
+        if (job && !cancelled) {
+          dispatch({ fileName: job.fileName, state: "uploading", progress: job.processed ?? 0, progressTotal: job.total ?? 0 });
+          pollJob(job.id);
+        }
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const upload = useCallback(async (file: File, updateOnly: boolean) => {
     dispatch({ fileName: file.name, state: "uploading", errorMsg: "", progress: 0, progressTotal: 0 });
     const form = new FormData();
     form.append("file", file);
     form.append("updateOnly", String(updateOnly));
+    let jobId: string;
     try {
       const res = await fetch("/api/import/csv", { method: "POST", body: form });
-      if (!res.ok || !res.body) {
-        const data = await res.json().catch(() => ({}));
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.jobId) {
         dispatch({ errorMsg: data.error ?? "Import failed", state: "error" });
         return;
       }
-      const reader = res.body.getReader();
-      const dec = new TextDecoder();
-      let buf = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, { stream: true });
-        const lines = buf.split("\n");
-        buf = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          try {
-            const msg = JSON.parse(line);
-            if (msg.error) { dispatch({ errorMsg: msg.error, state: "error" }); return; }
-            if (msg.progress !== undefined) dispatch({ progress: msg.progress, progressTotal: msg.total });
-            if (msg.done) dispatch({ result: msg, state: "done" });
-          } catch { /* malformed line, skip */ }
-        }
-      }
+      jobId = data.jobId;
     } catch {
       dispatch({ errorMsg: "Network error. Please try again.", state: "error" });
+      return;
     }
-  }, []);
+    await pollJob(jobId);
+  }, [pollJob]);
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
