@@ -308,11 +308,10 @@ export default function ContactTable({
   }
 
   return (
-    <div className="relative">
+    <div className="relative w-full min-w-0" dir="ltr">
       <div className="rounded-xl border border-[#e5e3df] bg-white overflow-hidden flex flex-col">
-        <div className="overflow-x-auto flex-1 min-h-0 flex flex-col">
-          {/* min-w-max forces the scroll container to respect column minimums */}
-          <div className="min-w-max w-full">
+        <div className="flex-1 min-h-0 flex flex-col">
+          <div className="w-full">
 
           {/* Header */}
           <div
