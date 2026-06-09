@@ -38,6 +38,7 @@ export default function ProspectingPage() {
   const [name, setName] = useState("");
   const [keywords, setKeywords] = useState("");
   const [geoCode, setGeoCode] = useState("IL");
+  const [dailyCap, setDailyCap] = useState(8);
   const [submitting, setSubmitting] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
 
@@ -48,11 +49,12 @@ export default function ProspectingPage() {
     await fetch("/api/prospecting/runs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), keywords: keywords.trim(), geoCode }),
+      body: JSON.stringify({ name: name.trim(), keywords: keywords.trim(), geoCode, dailyCap }),
     });
     setName("");
     setKeywords("");
     setGeoCode("IL");
+    setDailyCap(8);
     setSubmitting(false);
     mutate();
   }
@@ -104,7 +106,7 @@ export default function ProspectingPage() {
                 className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <label htmlFor="run-keywords" className="block text-xs font-medium text-[#6b6866] mb-1">
                   Search keywords
@@ -140,9 +142,23 @@ export default function ProspectingPage() {
                   <option value="SG">🇸🇬 Singapore</option>
                 </select>
               </div>
+              <div>
+                <label htmlFor="run-daily" className="block text-xs font-medium text-[#6b6866] mb-1">
+                  הצעות חברות ביום
+                </label>
+                <input
+                  id="run-daily"
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={dailyCap}
+                  onChange={(e) => setDailyCap(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+                  className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+                />
+              </div>
             </div>
             <p className="text-xs text-[#9b9895]">
-              Defaults: 15 requests/day, 100/week. 2nd-degree connections only.
+              {dailyCap} בקשות/יום (מומלץ עד 8), 100/שבוע. חיבורים מדרגה 2 בלבד.
             </p>
             <button
               type="submit"

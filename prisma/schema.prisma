@@ -689,7 +689,7 @@ model ProspectingRun {
   geoUrn          String               @default("101620260")
   searchUrl       String
   status          ProspectingRunStatus @default(DRAFT)
-  dailyCap        Int                  @default(15)
+  dailyCap        Int                  @default(8)
   weeklyCap       Int                  @default(100)
   discoveryDone   Boolean              @default(false)
   connectInFlight Boolean              @default(false)
