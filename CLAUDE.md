@@ -39,6 +39,8 @@ Use HeroUI (`@heroui/react`) for all React components.
 | `prospecting.start` | prospecting start API | `inngest/functions/prospecting-start.ts` |
 | `prospecting.tick` | cron */5 * * * * | `inngest/functions/prospecting-tick.ts` |
 | `import.process` | CSV upload API | `inngest/functions/import-process.ts` |
+| `job.check` | nightly cron dispatch | `inngest/functions/job-check-contact.ts` |
+| *(cron 0 2 \* \* \*)* | nightly job-change batch trigger | `inngest/functions/job-check-tick.ts` |
 
 ## Next.js version
 

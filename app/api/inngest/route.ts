@@ -12,6 +12,8 @@ import { extensionHeartbeatWatch } from "@/inngest/functions/extension-heartbeat
 import { prospectingStart } from "@/inngest/functions/prospecting-start";
 import { prospectingTick } from "@/inngest/functions/prospecting-tick";
 import { importProcess } from "@/inngest/functions/import-process";
+import { jobCheckTick } from "@/inngest/functions/job-check-tick";
+import { jobCheckContact } from "@/inngest/functions/job-check-contact";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -29,5 +31,7 @@ export const { GET, POST, PUT } = serve({
     prospectingStart,
     prospectingTick,
     importProcess,
+    jobCheckTick,
+    jobCheckContact,
   ],
 });
