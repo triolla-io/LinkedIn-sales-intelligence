@@ -1,6 +1,7 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat, agentStep } from "./lib/api";
 import { attach, detach, click, pressKey, typeText, insertTextIntoNamedCompose, clickSendButton, closeAllComposeOverlays, takeScreenshot, scrollBy, scanButtons, findMessageButton, send, getAutomationWindow, openTabInAutomationWindow, closeStaleAutomationWindow } from "./lib/cdp";
+import { PROFILE_STATE_FN_SOURCE } from "./lib/dom-detect";
 
 // ---------- Shared types ----------
 
@@ -478,6 +479,13 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
     }
 
     if (!connectBtn) {
+      const stateRes = await send<{ result: { value: string } }>(tabId, "Runtime.evaluate", {
+        expression: PROFILE_STATE_FN_SOURCE,
+        returnByValue: true,
+      });
+      const state = stateRes?.result?.value;
+      if (state === "pending") throw withCode(new Error("invitation_already_pending"), "already_pending");
+      if (state === "connected") throw withCode(new Error("already_connected"), "already_connected");
       throw withCode(new Error("connect_button_not_found"), "no_connect");
     }
 
