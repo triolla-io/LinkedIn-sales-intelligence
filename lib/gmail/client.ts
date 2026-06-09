@@ -5,15 +5,26 @@ function encodeSubject(subject: string): string {
   return `=?UTF-8?B?${Buffer.from(subject).toString("base64")}?=`;
 }
 
+export function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
-function buildRfc2822(from: string, to: string, subject: string, body: string): string {
-  const encodedBody = Buffer.from(body).toString("base64");
+export function htmlBody(body: string): string {
+  return `<div dir="auto" style="white-space:pre-wrap; font-family:Arial,Helvetica,sans-serif">${escapeHtml(body)}</div>`;
+}
+
+export function buildRfc2822(from: string, to: string, subject: string, body: string): string {
+  const encodedBody = Buffer.from(htmlBody(body)).toString("base64");
   return [
     `From: ${from}`,
     `To: ${to}`,
     `Subject: ${encodeSubject(subject)}`,
     `MIME-Version: 1.0`,
-    `Content-Type: text/plain; charset=utf-8`,
+    `Content-Type: text/html; charset=utf-8`,
     `Content-Transfer-Encoding: base64`,
     ``,
     encodedBody,
