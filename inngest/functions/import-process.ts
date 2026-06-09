@@ -13,6 +13,7 @@ export const importProcess = inngest.createFunction(
   {
     id: "import-process",
     name: "Process CSV import",
+    triggers: [{ event: "import.process" as const }],
     concurrency: { limit: 1, key: "event.data.ownerId" },
     retries: 2,
     onFailure: async ({ event }: any) => {
