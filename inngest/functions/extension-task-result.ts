@@ -10,7 +10,7 @@ import { buildSearchUrl } from "@/lib/prospecting/search-url";
 const REPLY_CHECK_OFFSETS_HOURS = [24, 72, 168];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function extensionTaskResultHandler({ event }: any) {
+export async function extensionTaskResultHandler({ event }: any) {
   const { taskId } = event.data as { taskId: string };
   const task = await prisma.extensionTask.findUnique({ where: { id: taskId } });
   if (!task) return;
@@ -281,6 +281,26 @@ async function handleConnectFailure(task: TaskRow) {
         message: "LinkedIn flagged your account while sending a connection request — paused for 24h.",
       },
     });
+  }
+  // Already pending/connected is not a failure — the relationship already exists. Mark SENT.
+  if (task.errorCode === "already_pending" || task.errorCode === "already_connected") {
+    if (task.connectionRequestId) {
+      const updated = await prisma.connectionRequest.updateMany({
+        where: { id: task.connectionRequestId, status: { not: "SENT" } },
+        data: { status: "SENT", sentAt: new Date() },
+      });
+      if (updated.count === 1 && task.prospectingRunId) {
+        await prisma.prospectingRun.update({
+          where: { id: task.prospectingRunId },
+          data: { totalSent: { increment: 1 } },
+        });
+      }
+    }
+    if (task.prospectingRunId) {
+      await releaseConnectSlot(task.prospectingRunId);
+      await maybeCompleteOrContinue(task.prospectingRunId);
+    }
+    return;
   }
   if (task.connectionRequestId) {
     await prisma.connectionRequest.updateMany({
