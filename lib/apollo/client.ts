@@ -3,7 +3,7 @@
  * (e.g. "+10506463464" instead of "+972506463464"). This is safe to fix because
  * no valid NANP number has "0" as the first digit of the area code.
  */
-function normalizeApolloPhone(phone: string | undefined): string | undefined {
+export function normalizeApolloPhone(phone: string | undefined): string | undefined {
   if (!phone) return phone;
   // +10XXXXXXXXX → +9720XXXXXXXXX (Israeli mobile/landline, wrong +1 prefix)
   if (/^\+10\d{8,10}$/.test(phone)) {

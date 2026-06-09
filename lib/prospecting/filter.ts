@@ -8,6 +8,17 @@ export type ScrapedCard = {
   degree: string | null; // "1st" | "2nd" | "3rd" | "3rd+" | null
 };
 
+/**
+ * Strip LinkedIn badge artifacts that ride along with a profile name in search-result cards.
+ * The common offender is a "+N" shared-connection/overflow badge rendered inline with the name
+ * (e.g. "+1 Yuval Bar Or"). Human names never contain a "+<digits>" token, so removing them
+ * everywhere is safe. This is the server-side backstop for the extension's own scrape-time strip,
+ * protecting against already-installed extension builds that still emit "+N" names.
+ */
+export function cleanScrapedName(name: string): string {
+  return name.replace(/\+\d+/g, " ").replace(/\s+/g, " ").trim();
+}
+
 export type DecisionCtx = {
   existingContactUrns: Set<string>;
   existingRequestUrns: Set<string>;
