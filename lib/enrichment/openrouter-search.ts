@@ -57,6 +57,10 @@ function tryParseJson(text: string): WebEnrichResult | null {
   }
 }
 
+export function isOpenRouterConfigured(): boolean {
+  return (process.env.OPENROUTER_API_KEY ?? "").trim().length > 0;
+}
+
 export async function enrichCompanyViaOpenRouter(name: string): Promise<WebEnrichResult> {
   const empty: WebEnrichResult = { staffCount: null, industry: null, website: null, description: null, confidence: "none" };
 
