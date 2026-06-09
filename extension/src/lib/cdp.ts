@@ -65,25 +65,24 @@ export async function pressKey(tabId: number, key: string, keyCode: number): Pro
   });
 }
 
-// Find and click the "Message" button on a LinkedIn profile page.
-// Only looks in the top 60% of the page to avoid the floating Messaging panel.
-// Returns CSS-pixel coords if found (and clicks via JS), or null.
-export async function clickMessageButton(tabId: number): Promise<{ x: number; y: number } | null> {
+// Find the "Message" action on a LinkedIn profile. Returns center coords for a
+// trusted CDP click (does NOT click in-page — JS .click() is unreliable for
+// LinkedIn's SPA navigation). Avoids the floating messaging panel (bottom-right).
+export async function findMessageButton(tabId: number): Promise<{ x: number; y: number } | null> {
   const result = await send<{ result: { value: { x: number; y: number } | null } }>(tabId, "Runtime.evaluate", {
     expression: `(function() {
-      // LinkedIn Message button is an <a> linking to /messaging/compose/
+      const isMsgText = (t) => t === 'Message' || t === 'הודעה' || t === 'Message ';
       const candidates = [
         ...document.querySelectorAll('a[href*="/messaging/compose/"]'),
-        // fallback: any element with exact text "Message" in top 60% of page
-        ...[...document.querySelectorAll('a,button,[role="button"]')].filter(el => {
-          const t = el.textContent?.trim();
-          return t === 'Message' || t === 'הודעה';
-        }),
+        ...document.querySelectorAll('button[aria-label*="Message" i]'),
+        ...document.querySelectorAll('a[aria-label*="Message" i]'),
+        ...document.querySelectorAll('button[aria-label*="הודעה"]'),
+        ...document.querySelectorAll('a[aria-label*="הודעה"]'),
+        ...[...document.querySelectorAll('a,button,[role="button"]')].filter(el => isMsgText((el.textContent || '').trim())),
       ];
       for (const el of candidates) {
         const r = el.getBoundingClientRect();
-        if (r.width > 0 && r.top < window.innerHeight * 0.65) {
-          el.click();
+        if (r.width > 0 && r.height > 0 && r.top < window.innerHeight * 0.65) {
           return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
         }
       }
@@ -236,7 +235,7 @@ export async function evalFindCompose(tabId: number): Promise<{ x: number; y: nu
 // Scan page for visible buttons — returns list for debugging
 export async function scanButtons(tabId: number): Promise<Array<{cls: string; aria: string; text: string; x: number; y: number; w: number; h: number}>> {
   const result = await send<{ result: { value: unknown } }>(tabId, "Runtime.evaluate", {
-    expression: `[...document.querySelectorAll('button,[role="button"]')].map(b=>{const r=b.getBoundingClientRect();return{cls:b.className.slice(0,80),aria:b.getAttribute('aria-label')||'',text:b.textContent?.trim().slice(0,30)||'',x:Math.round(r.left),y:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height)}}).filter(b=>b.w>0&&b.h>0&&b.y<500)`,
+    expression: `[...document.querySelectorAll('button,[role="button"]')].map(b=>{const r=b.getBoundingClientRect();return{cls:b.className.slice(0,80),aria:b.getAttribute('aria-label')||'',text:b.textContent?.trim().slice(0,30)||'',x:Math.round(r.left),y:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height)}}).filter(b=>b.w>0&&b.h>0&&b.y<800)`,
     returnByValue: true,
   });
   return (result?.result?.value as Array<{cls: string; aria: string; text: string; x: number; y: number; w: number; h: number}>) ?? [];
