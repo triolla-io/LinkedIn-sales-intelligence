@@ -41,6 +41,7 @@ export type ConnectionRequestMinAggregateOutputType = {
   linkedinUrn: string | null
   linkedinUrl: string | null
   fullName: string | null
+  headline: string | null
   currentTitle: string | null
   currentCompany: string | null
   location: string | null
@@ -60,6 +61,7 @@ export type ConnectionRequestMaxAggregateOutputType = {
   linkedinUrn: string | null
   linkedinUrl: string | null
   fullName: string | null
+  headline: string | null
   currentTitle: string | null
   currentCompany: string | null
   location: string | null
@@ -79,6 +81,7 @@ export type ConnectionRequestCountAggregateOutputType = {
   linkedinUrn: number
   linkedinUrl: number
   fullName: number
+  headline: number
   currentTitle: number
   currentCompany: number
   location: number
@@ -108,6 +111,7 @@ export type ConnectionRequestMinAggregateInputType = {
   linkedinUrn?: true
   linkedinUrl?: true
   fullName?: true
+  headline?: true
   currentTitle?: true
   currentCompany?: true
   location?: true
@@ -127,6 +131,7 @@ export type ConnectionRequestMaxAggregateInputType = {
   linkedinUrn?: true
   linkedinUrl?: true
   fullName?: true
+  headline?: true
   currentTitle?: true
   currentCompany?: true
   location?: true
@@ -146,6 +151,7 @@ export type ConnectionRequestCountAggregateInputType = {
   linkedinUrn?: true
   linkedinUrl?: true
   fullName?: true
+  headline?: true
   currentTitle?: true
   currentCompany?: true
   location?: true
@@ -252,6 +258,7 @@ export type ConnectionRequestGroupByOutputType = {
   linkedinUrn: string
   linkedinUrl: string
   fullName: string | null
+  headline: string | null
   currentTitle: string | null
   currentCompany: string | null
   location: string | null
@@ -294,6 +301,7 @@ export type ConnectionRequestWhereInput = {
   linkedinUrn?: Prisma.StringFilter<"ConnectionRequest"> | string
   linkedinUrl?: Prisma.StringFilter<"ConnectionRequest"> | string
   fullName?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
+  headline?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   currentTitle?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   currentCompany?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   location?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
@@ -315,6 +323,7 @@ export type ConnectionRequestOrderByWithRelationInput = {
   linkedinUrn?: Prisma.SortOrder
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrderInput | Prisma.SortOrder
+  headline?: Prisma.SortOrderInput | Prisma.SortOrder
   currentTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   currentCompany?: Prisma.SortOrderInput | Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -340,6 +349,7 @@ export type ConnectionRequestWhereUniqueInput = Prisma.AtLeast<{
   linkedinUrn?: Prisma.StringFilter<"ConnectionRequest"> | string
   linkedinUrl?: Prisma.StringFilter<"ConnectionRequest"> | string
   fullName?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
+  headline?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   currentTitle?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   currentCompany?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   location?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
@@ -361,6 +371,7 @@ export type ConnectionRequestOrderByWithAggregationInput = {
   linkedinUrn?: Prisma.SortOrder
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrderInput | Prisma.SortOrder
+  headline?: Prisma.SortOrderInput | Prisma.SortOrder
   currentTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   currentCompany?: Prisma.SortOrderInput | Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -388,6 +399,7 @@ export type ConnectionRequestScalarWhereWithAggregatesInput = {
   linkedinUrn?: Prisma.StringWithAggregatesFilter<"ConnectionRequest"> | string
   linkedinUrl?: Prisma.StringWithAggregatesFilter<"ConnectionRequest"> | string
   fullName?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
+  headline?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
   currentTitle?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
   currentCompany?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
   location?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
@@ -405,6 +417,7 @@ export type ConnectionRequestCreateInput = {
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
+  headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
   location?: string | null
@@ -426,6 +439,7 @@ export type ConnectionRequestUncheckedCreateInput = {
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
+  headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
   location?: string | null
@@ -443,6 +457,7 @@ export type ConnectionRequestUpdateInput = {
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -464,6 +479,7 @@ export type ConnectionRequestUncheckedUpdateInput = {
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -483,6 +499,7 @@ export type ConnectionRequestCreateManyInput = {
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
+  headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
   location?: string | null
@@ -500,6 +517,7 @@ export type ConnectionRequestUpdateManyMutationInput = {
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -519,6 +537,7 @@ export type ConnectionRequestUncheckedUpdateManyInput = {
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -553,6 +572,7 @@ export type ConnectionRequestCountOrderByAggregateInput = {
   linkedinUrn?: Prisma.SortOrder
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
+  headline?: Prisma.SortOrder
   currentTitle?: Prisma.SortOrder
   currentCompany?: Prisma.SortOrder
   location?: Prisma.SortOrder
@@ -576,6 +596,7 @@ export type ConnectionRequestMaxOrderByAggregateInput = {
   linkedinUrn?: Prisma.SortOrder
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
+  headline?: Prisma.SortOrder
   currentTitle?: Prisma.SortOrder
   currentCompany?: Prisma.SortOrder
   location?: Prisma.SortOrder
@@ -595,6 +616,7 @@ export type ConnectionRequestMinOrderByAggregateInput = {
   linkedinUrn?: Prisma.SortOrder
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
+  headline?: Prisma.SortOrder
   currentTitle?: Prisma.SortOrder
   currentCompany?: Prisma.SortOrder
   location?: Prisma.SortOrder
@@ -704,6 +726,7 @@ export type ConnectionRequestCreateWithoutOwnerInput = {
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
+  headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
   location?: string | null
@@ -723,6 +746,7 @@ export type ConnectionRequestUncheckedCreateWithoutOwnerInput = {
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
+  headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
   location?: string | null
@@ -771,6 +795,7 @@ export type ConnectionRequestScalarWhereInput = {
   linkedinUrn?: Prisma.StringFilter<"ConnectionRequest"> | string
   linkedinUrl?: Prisma.StringFilter<"ConnectionRequest"> | string
   fullName?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
+  headline?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   currentTitle?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   currentCompany?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   location?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
@@ -788,6 +813,7 @@ export type ConnectionRequestCreateWithoutRunInput = {
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
+  headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
   location?: string | null
@@ -807,6 +833,7 @@ export type ConnectionRequestUncheckedCreateWithoutRunInput = {
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
+  headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
   location?: string | null
@@ -851,6 +878,7 @@ export type ConnectionRequestCreateManyOwnerInput = {
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
+  headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
   location?: string | null
@@ -868,6 +896,7 @@ export type ConnectionRequestUpdateWithoutOwnerInput = {
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -887,6 +916,7 @@ export type ConnectionRequestUncheckedUpdateWithoutOwnerInput = {
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -905,6 +935,7 @@ export type ConnectionRequestUncheckedUpdateManyWithoutOwnerInput = {
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -923,6 +954,7 @@ export type ConnectionRequestCreateManyRunInput = {
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
+  headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
   location?: string | null
@@ -940,6 +972,7 @@ export type ConnectionRequestUpdateWithoutRunInput = {
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -959,6 +992,7 @@ export type ConnectionRequestUncheckedUpdateWithoutRunInput = {
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -977,6 +1011,7 @@ export type ConnectionRequestUncheckedUpdateManyWithoutRunInput = {
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -998,6 +1033,7 @@ export type ConnectionRequestSelect<ExtArgs extends runtime.Types.Extensions.Int
   linkedinUrn?: boolean
   linkedinUrl?: boolean
   fullName?: boolean
+  headline?: boolean
   currentTitle?: boolean
   currentCompany?: boolean
   location?: boolean
@@ -1019,6 +1055,7 @@ export type ConnectionRequestSelectCreateManyAndReturn<ExtArgs extends runtime.T
   linkedinUrn?: boolean
   linkedinUrl?: boolean
   fullName?: boolean
+  headline?: boolean
   currentTitle?: boolean
   currentCompany?: boolean
   location?: boolean
@@ -1040,6 +1077,7 @@ export type ConnectionRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   linkedinUrn?: boolean
   linkedinUrl?: boolean
   fullName?: boolean
+  headline?: boolean
   currentTitle?: boolean
   currentCompany?: boolean
   location?: boolean
@@ -1061,6 +1099,7 @@ export type ConnectionRequestSelectScalar = {
   linkedinUrn?: boolean
   linkedinUrl?: boolean
   fullName?: boolean
+  headline?: boolean
   currentTitle?: boolean
   currentCompany?: boolean
   location?: boolean
@@ -1073,7 +1112,7 @@ export type ConnectionRequestSelectScalar = {
   createdAt?: boolean
 }
 
-export type ConnectionRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "runId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "currentTitle" | "currentCompany" | "location" | "status" | "skipReason" | "sentAt" | "attemptCount" | "errorCode" | "errorMessage" | "createdAt", ExtArgs["result"]["connectionRequest"]>
+export type ConnectionRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "runId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "headline" | "currentTitle" | "currentCompany" | "location" | "status" | "skipReason" | "sentAt" | "attemptCount" | "errorCode" | "errorMessage" | "createdAt", ExtArgs["result"]["connectionRequest"]>
 export type ConnectionRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   run?: boolean | Prisma.ProspectingRunDefaultArgs<ExtArgs>
@@ -1100,6 +1139,7 @@ export type $ConnectionRequestPayload<ExtArgs extends runtime.Types.Extensions.I
     linkedinUrn: string
     linkedinUrl: string
     fullName: string | null
+    headline: string | null
     currentTitle: string | null
     currentCompany: string | null
     location: string | null
@@ -1541,6 +1581,7 @@ export interface ConnectionRequestFieldRefs {
   readonly linkedinUrn: Prisma.FieldRef<"ConnectionRequest", 'String'>
   readonly linkedinUrl: Prisma.FieldRef<"ConnectionRequest", 'String'>
   readonly fullName: Prisma.FieldRef<"ConnectionRequest", 'String'>
+  readonly headline: Prisma.FieldRef<"ConnectionRequest", 'String'>
   readonly currentTitle: Prisma.FieldRef<"ConnectionRequest", 'String'>
   readonly currentCompany: Prisma.FieldRef<"ConnectionRequest", 'String'>
   readonly location: Prisma.FieldRef<"ConnectionRequest", 'String'>

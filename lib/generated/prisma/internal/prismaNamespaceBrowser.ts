@@ -578,6 +578,7 @@ export const ConnectionRequestScalarFieldEnum = {
   linkedinUrn: 'linkedinUrn',
   linkedinUrl: 'linkedinUrl',
   fullName: 'fullName',
+  headline: 'headline',
   currentTitle: 'currentTitle',
   currentCompany: 'currentCompany',
   location: 'location',

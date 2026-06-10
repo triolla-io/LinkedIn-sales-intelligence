@@ -722,6 +722,7 @@ model ConnectionRequest {
   linkedinUrn    String
   linkedinUrl    String
   fullName       String?
+  headline       String?
   currentTitle   String?
   currentCompany String?
   location       String?

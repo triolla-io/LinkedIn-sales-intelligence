@@ -2,6 +2,7 @@ export type ScrapedCard = {
   urn: string;
   profileUrl: string;
   name: string;
+  headline: string | null;
   title: string | null;
   company: string | null;
   location: string | null;

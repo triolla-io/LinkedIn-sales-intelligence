@@ -251,6 +251,9 @@ async function handleSearchFailure(task: TaskRow) {
 async function handleConnectSuccess(task: TaskRow) {
   if (!task.connectionRequestId || !task.prospectingRunId) return;
   // Idempotent: only transition + count if not already SENT (guards at-least-once redelivery).
+  const cr = await prisma.connectionRequest.findUnique({ where: { id: task.connectionRequestId } });
+  if (!cr) return;
+
   const updated = await prisma.connectionRequest.updateMany({
     where: { id: task.connectionRequestId, status: { not: "SENT" } },
     data: { status: "SENT", sentAt: new Date() },
@@ -259,6 +262,30 @@ async function handleConnectSuccess(task: TaskRow) {
     await prisma.prospectingRun.update({
       where: { id: task.prospectingRunId },
       data: { totalSent: { increment: 1 } },
+    });
+
+    // Upsert a Contact so the person appears in the contacts list and can be
+    // added to sequences/campaigns. Uses the same fields we scraped at discovery time.
+    await prisma.contact.upsert({
+      where: { ownerId_linkedinUrn: { ownerId: cr.ownerId, linkedinUrn: cr.linkedinUrn } },
+      create: {
+        ownerId: cr.ownerId,
+        linkedinUrn: cr.linkedinUrn,
+        linkedinUrl: cr.linkedinUrl,
+        fullName: cr.fullName ?? "",
+        headline: cr.headline,
+        currentTitle: cr.currentTitle,
+        currentCompany: cr.currentCompany,
+        location: cr.location,
+        lastSyncedAt: new Date(),
+      },
+      update: {
+        // Only fill in blanks — don't overwrite richer data from a full LinkedIn sync.
+        ...(cr.headline ? { headline: cr.headline } : {}),
+        ...(cr.currentTitle ? { currentTitle: cr.currentTitle } : {}),
+        ...(cr.currentCompany ? { currentCompany: cr.currentCompany } : {}),
+        ...(cr.location ? { location: cr.location } : {}),
+      },
     });
   }
   await releaseConnectSlot(task.prospectingRunId);
@@ -295,21 +322,6 @@ async function handleConnectFailure(task: TaskRow) {
           data: { totalSent: { increment: 1 } },
         });
       }
-    }
-    if (task.prospectingRunId) {
-      await releaseConnectSlot(task.prospectingRunId);
-      await maybeCompleteOrContinue(task.prospectingRunId);
-    }
-    return;
-  }
-  // Follow-only profiles cannot be sent a connection request (no Connect action exists).
-  // This is not a failure to retry — skip the candidate and move on to the next one.
-  if (task.errorCode === "follow_only") {
-    if (task.connectionRequestId) {
-      await prisma.connectionRequest.updateMany({
-        where: { id: task.connectionRequestId, status: { notIn: ["SENT", "FAILED", "SKIPPED"] } },
-        data: { status: "SKIPPED", skipReason: "follow_only", errorCode: task.errorCode },
-      });
     }
     if (task.prospectingRunId) {
       await releaseConnectSlot(task.prospectingRunId);

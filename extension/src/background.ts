@@ -288,7 +288,10 @@ const SCRAPE_FN_SOURCE = `(() => {
       title = lines[0] || null;
       location = lines[1] || null;
     }
-    out.push({ urn, profileUrl, name, title, company, location, degree });
+    // headline: the raw first line after the name (LinkedIn's professional tagline)
+    const headlineRaw = afterName.split(/\\n/)[0]?.replace(/^[•|\\s]+|[•|\\s]+$/g, '').trim() || null;
+    const headline = headlineRaw && headlineRaw.length > 2 ? headlineRaw : null;
+    out.push({ urn, profileUrl, name, headline, title, company, location, degree });
   }
   const nextBtns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText.trim() === 'Next');
   const next = nextBtns[0];
@@ -490,16 +493,6 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
       const state = stateRes?.result?.value;
       if (state === "pending") throw withCode(new Error("invitation_already_pending"), "already_pending");
       if (state === "connected") throw withCode(new Error("already_connected"), "already_connected");
-
-      // No Connect button anywhere (direct, button scan, or "More" menu). If the profile
-      // instead exposes a primary "Follow" action, this member cannot be sent a connection
-      // request (e.g. creators / out-of-network). Report a distinct code so the backend can
-      // SKIP them rather than mark them as a failure to retry.
-      const scanned = await scanButtons(tabId);
-      const followOnly = scanned.some(
-        (b) => /^follow$/i.test(b.text.trim()) || /^follow$/i.test(b.aria.trim()) || /^עקוב$/.test(b.text.trim()),
-      );
-      if (followOnly) throw withCode(new Error("follow_only_profile"), "follow_only");
 
       throw withCode(new Error("connect_button_not_found"), "no_connect");
     }
