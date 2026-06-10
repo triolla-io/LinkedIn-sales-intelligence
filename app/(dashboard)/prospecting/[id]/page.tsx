@@ -3,7 +3,7 @@
 import { use } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 
 type ConnectionRequest = {
   id: string;
@@ -24,7 +24,7 @@ type RunDetail = {
 
 type TaskStats = {
   search: { pending: number; done: number; failed: number };
-  connect: { pending: number; done: number; failed: number };
+  connect: { pending: number; done: number; failed: number; skipped: number };
   recentFailures: { kind: string; errorCode: string | null; errorMessage: string | null; at: string }[];
   lastActivity: string | null;
 };
@@ -74,13 +74,13 @@ export default function ProspectingRunDetailPage({
   const { run, requests, taskStats } = data;
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
+    <div dir="rtl" className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
       {/* Header */}
       <div className="relative flex items-center px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
-        <Link href="/prospecting" className="text-[#9b9895] hover:text-[#6b6866] transition-colors absolute left-5">
-          <ArrowLeft className="size-4" />
+        <Link href="/prospecting" className="text-[#9b9895] hover:text-[#6b6866] transition-colors absolute right-5">
+          <ArrowRight className="size-4" />
         </Link>
-        <div className="flex items-center gap-3 mx-auto">
+        <div className="flex items-center gap-3 mr-8">
           <h1 className="text-sm font-semibold text-[#111110]">{run.name}</h1>
           <span
             className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -89,8 +89,8 @@ export default function ProspectingRunDetailPage({
           >
             {STATUS_LABELS[run.status] ?? run.status}
           </span>
-          <span className="text-xs font-mono text-[#9b9895]">
-            {run.totalSent} sent / {run.totalDiscovered} discovered
+          <span className="text-xs text-[#9b9895]">
+            {run.totalSent} נשלחו · {run.totalDiscovered} נמצאו
           </span>
         </div>
       </div>
@@ -101,37 +101,40 @@ export default function ProspectingRunDetailPage({
         {taskStats && (
           <div className="bg-white border border-[#e5e3df] rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Extension activity</h2>
+              <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">פעילות התוסף</h2>
               {taskStats.lastActivity && (
                 <span className="text-xs text-[#9b9895]">
-                  Last seen: {new Date(taskStats.lastActivity).toLocaleString()}
+                  נראה לאחרונה: {new Date(taskStats.lastActivity).toLocaleString("he-IL")}
                 </span>
               )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               {/* Search tasks */}
               <div className="bg-[#fafaf9] border border-[#e5e3df] rounded-lg p-3">
-                <p className="text-xs font-medium text-[#6b6866] mb-2">Search (discovery)</p>
-                <div className="flex gap-3 text-xs font-mono">
-                  <span className="text-[#9b9895]">⏳ {taskStats.search.pending}</span>
-                  <span className="text-[#059669]">✓ {taskStats.search.done}</span>
-                  <span className="text-[#dc2626]">✗ {taskStats.search.failed}</span>
+                <p className="text-xs font-medium text-[#6b6866] mb-2">חיפוש (איתור אנשים)</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                  <span className="text-[#9b9895]">ממתינים: {taskStats.search.pending}</span>
+                  <span className="text-[#059669]">הצליחו: {taskStats.search.done}</span>
+                  <span className="text-[#dc2626]">נכשלו: {taskStats.search.failed}</span>
                 </div>
               </div>
               {/* Connect tasks */}
               <div className="bg-[#fafaf9] border border-[#e5e3df] rounded-lg p-3">
-                <p className="text-xs font-medium text-[#6b6866] mb-2">Connect (friend requests)</p>
-                <div className="flex gap-3 text-xs font-mono">
-                  <span className="text-[#9b9895]">⏳ {taskStats.connect.pending}</span>
-                  <span className="text-[#059669]">✓ {taskStats.connect.done}</span>
-                  <span className="text-[#dc2626]">✗ {taskStats.connect.failed}</span>
+                <p className="text-xs font-medium text-[#6b6866] mb-2">הצעות חברות</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                  <span className="text-[#9b9895]">ממתינות: {taskStats.connect.pending}</span>
+                  <span className="text-[#059669]">נשלחו: {taskStats.connect.done}</span>
+                  <span className="text-[#dc2626]">נכשלו: {taskStats.connect.failed}</span>
+                  {taskStats.connect.skipped > 0 && (
+                    <span className="text-[#9b9895]">דולגו (עוקב בלבד): {taskStats.connect.skipped}</span>
+                  )}
                 </div>
               </div>
             </div>
             {/* Recent failures */}
             {taskStats.recentFailures.length > 0 && (
               <div className="border-t border-[#e5e3df] pt-3">
-                <p className="text-xs font-semibold text-[#dc2626] mb-2">Recent failures</p>
+                <p className="text-xs font-semibold text-[#dc2626] mb-2">כשלים אחרונים</p>
                 <div className="space-y-1">
                   {taskStats.recentFailures.map((f, i) => (
                     <div key={i} className="flex items-center gap-2 text-xs">
@@ -140,7 +143,7 @@ export default function ProspectingRunDetailPage({
                       {f.errorMessage && (
                         <span className="text-[#6b6866] truncate max-w-xs">{f.errorMessage}</span>
                       )}
-                      <span className="text-[#9b9895] ml-auto">{new Date(f.at).toLocaleTimeString()}</span>
+                      <span className="text-[#9b9895] ms-auto">{new Date(f.at).toLocaleTimeString("he-IL")}</span>
                     </div>
                   ))}
                 </div>
@@ -152,23 +155,23 @@ export default function ProspectingRunDetailPage({
         <div className="bg-white border border-[#e5e3df] rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-[#e5e3df] bg-[#fafaf9]">
             <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">
-              Sent Connection Requests ({requests.length})
+              בקשות חברות שנשלחו ({requests.length})
             </h2>
           </div>
 
           {requests.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-sm text-[#9b9895]">No pending connection requests.</p>
+              <p className="text-sm text-[#9b9895]">עדיין לא נשלחו בקשות חברות.</p>
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#e5e3df]">
-                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Name</th>
-                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Title</th>
-                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Company</th>
-                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Location</th>
-                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">Sent</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">שם</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">תפקיד</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">חברה</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">מיקום</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">נשלח</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e5e3df]">

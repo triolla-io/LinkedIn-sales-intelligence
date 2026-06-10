@@ -27,6 +27,10 @@ export async function openTabInAutomationWindow(url: string): Promise<number> {
   const windowId = await getAutomationWindow();
   const tab = await chrome.tabs.create({ windowId, url, active: true });
   if (!tab.id) throw new Error("tab_create_failed");
+  // Activating a tab restores (un-minimizes) its window, so the automation window
+  // would pop to the foreground and "take over the screen". Push it back down so
+  // the run stays in the background. CDP input/screenshots still work minimized.
+  await chrome.windows.update(windowId, { focused: false, state: "minimized" }).catch(() => {});
   return tab.id;
 }
 

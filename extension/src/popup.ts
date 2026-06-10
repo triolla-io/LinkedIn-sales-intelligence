@@ -66,6 +66,7 @@ document.getElementById("connect-btn")!.addEventListener("click", async () => {
   await setApiBase(apiBase);
   await setToken(token);
   tokenInput.value = "";
+  chrome.runtime.sendMessage({ type: "heartbeat" });
   await render();
 });
 

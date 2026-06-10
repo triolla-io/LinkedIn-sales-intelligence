@@ -81,7 +81,8 @@ export const ModelName = {
   ExtensionAlert: 'ExtensionAlert',
   NameTranslation: 'NameTranslation',
   ProspectingRun: 'ProspectingRun',
-  ConnectionRequest: 'ConnectionRequest'
+  ConnectionRequest: 'ConnectionRequest',
+  ContactJobChange: 'ContactJobChange'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -192,6 +193,9 @@ export const ContactScalarFieldEnum = {
   enrichmentLog: 'enrichmentLog',
   enrichmentRanAt: 'enrichmentRanAt',
   enrichmentError: 'enrichmentError',
+  jobSnapshotTitle: 'jobSnapshotTitle',
+  jobSnapshotCompany: 'jobSnapshotCompany',
+  lastJobCheckAt: 'lastJobCheckAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   companyId: 'companyId'
@@ -587,6 +591,19 @@ export const ConnectionRequestScalarFieldEnum = {
 } as const
 
 export type ConnectionRequestScalarFieldEnum = (typeof ConnectionRequestScalarFieldEnum)[keyof typeof ConnectionRequestScalarFieldEnum]
+
+
+export const ContactJobChangeScalarFieldEnum = {
+  id: 'id',
+  contactId: 'contactId',
+  detectedAt: 'detectedAt',
+  prevTitle: 'prevTitle',
+  newTitle: 'newTitle',
+  prevCompany: 'prevCompany',
+  newCompany: 'newCompany'
+} as const
+
+export type ContactJobChangeScalarFieldEnum = (typeof ContactJobChangeScalarFieldEnum)[keyof typeof ContactJobChangeScalarFieldEnum]
 
 
 export const SortOrder = {

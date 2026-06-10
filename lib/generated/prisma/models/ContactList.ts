@@ -200,6 +200,7 @@ export type ContactListOrderByWithRelationInput = {
 
 export type ContactListWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  ownerId_name?: Prisma.ContactListOwnerIdNameCompoundUniqueInput
   AND?: Prisma.ContactListWhereInput | Prisma.ContactListWhereInput[]
   OR?: Prisma.ContactListWhereInput[]
   NOT?: Prisma.ContactListWhereInput | Prisma.ContactListWhereInput[]
@@ -210,7 +211,7 @@ export type ContactListWhereUniqueInput = Prisma.AtLeast<{
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   members?: Prisma.ContactListMemberListRelationFilter
   sequences?: Prisma.SequenceListRelationFilter
-}, "id">
+}, "id" | "ownerId_name">
 
 export type ContactListOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -305,6 +306,11 @@ export type ContactListListRelationFilter = {
 
 export type ContactListOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type ContactListOwnerIdNameCompoundUniqueInput = {
+  ownerId: string
+  name: string
 }
 
 export type ContactListCountOrderByAggregateInput = {

@@ -414,7 +414,8 @@ export const ModelName = {
   ExtensionAlert: 'ExtensionAlert',
   NameTranslation: 'NameTranslation',
   ProspectingRun: 'ProspectingRun',
-  ConnectionRequest: 'ConnectionRequest'
+  ConnectionRequest: 'ConnectionRequest',
+  ContactJobChange: 'ContactJobChange'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -430,7 +431,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "connectionRequest"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "connectionRequest" | "contactJobChange"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2728,6 +2729,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ContactJobChange: {
+      payload: Prisma.$ContactJobChangePayload<ExtArgs>
+      fields: Prisma.ContactJobChangeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ContactJobChangeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactJobChangePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ContactJobChangeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactJobChangePayload>
+        }
+        findFirst: {
+          args: Prisma.ContactJobChangeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactJobChangePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ContactJobChangeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactJobChangePayload>
+        }
+        findMany: {
+          args: Prisma.ContactJobChangeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactJobChangePayload>[]
+        }
+        create: {
+          args: Prisma.ContactJobChangeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactJobChangePayload>
+        }
+        createMany: {
+          args: Prisma.ContactJobChangeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ContactJobChangeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactJobChangePayload>[]
+        }
+        delete: {
+          args: Prisma.ContactJobChangeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactJobChangePayload>
+        }
+        update: {
+          args: Prisma.ContactJobChangeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactJobChangePayload>
+        }
+        deleteMany: {
+          args: Prisma.ContactJobChangeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ContactJobChangeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ContactJobChangeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactJobChangePayload>[]
+        }
+        upsert: {
+          args: Prisma.ContactJobChangeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactJobChangePayload>
+        }
+        aggregate: {
+          args: Prisma.ContactJobChangeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateContactJobChange>
+        }
+        groupBy: {
+          args: Prisma.ContactJobChangeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContactJobChangeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ContactJobChangeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContactJobChangeCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2859,6 +2934,9 @@ export const ContactScalarFieldEnum = {
   enrichmentLog: 'enrichmentLog',
   enrichmentRanAt: 'enrichmentRanAt',
   enrichmentError: 'enrichmentError',
+  jobSnapshotTitle: 'jobSnapshotTitle',
+  jobSnapshotCompany: 'jobSnapshotCompany',
+  lastJobCheckAt: 'lastJobCheckAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   companyId: 'companyId'
@@ -3254,6 +3332,19 @@ export const ConnectionRequestScalarFieldEnum = {
 } as const
 
 export type ConnectionRequestScalarFieldEnum = (typeof ConnectionRequestScalarFieldEnum)[keyof typeof ConnectionRequestScalarFieldEnum]
+
+
+export const ContactJobChangeScalarFieldEnum = {
+  id: 'id',
+  contactId: 'contactId',
+  detectedAt: 'detectedAt',
+  prevTitle: 'prevTitle',
+  newTitle: 'newTitle',
+  prevCompany: 'prevCompany',
+  newCompany: 'newCompany'
+} as const
+
+export type ContactJobChangeScalarFieldEnum = (typeof ContactJobChangeScalarFieldEnum)[keyof typeof ContactJobChangeScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -3751,6 +3842,7 @@ export type GlobalOmitConfig = {
   nameTranslation?: Prisma.NameTranslationOmit
   prospectingRun?: Prisma.ProspectingRunOmit
   connectionRequest?: Prisma.ConnectionRequestOmit
+  contactJobChange?: Prisma.ContactJobChangeOmit
 }
 
 /* Types for Logging */

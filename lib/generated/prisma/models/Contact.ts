@@ -60,6 +60,9 @@ export type ContactMinAggregateOutputType = {
   enrichmentSource: string | null
   enrichmentRanAt: Date | null
   enrichmentError: string | null
+  jobSnapshotTitle: string | null
+  jobSnapshotCompany: string | null
+  lastJobCheckAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   companyId: string | null
@@ -91,6 +94,9 @@ export type ContactMaxAggregateOutputType = {
   enrichmentSource: string | null
   enrichmentRanAt: Date | null
   enrichmentError: string | null
+  jobSnapshotTitle: string | null
+  jobSnapshotCompany: string | null
+  lastJobCheckAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   companyId: string | null
@@ -124,6 +130,9 @@ export type ContactCountAggregateOutputType = {
   enrichmentLog: number
   enrichmentRanAt: number
   enrichmentError: number
+  jobSnapshotTitle: number
+  jobSnapshotCompany: number
+  lastJobCheckAt: number
   createdAt: number
   updatedAt: number
   companyId: number
@@ -165,6 +174,9 @@ export type ContactMinAggregateInputType = {
   enrichmentSource?: true
   enrichmentRanAt?: true
   enrichmentError?: true
+  jobSnapshotTitle?: true
+  jobSnapshotCompany?: true
+  lastJobCheckAt?: true
   createdAt?: true
   updatedAt?: true
   companyId?: true
@@ -196,6 +208,9 @@ export type ContactMaxAggregateInputType = {
   enrichmentSource?: true
   enrichmentRanAt?: true
   enrichmentError?: true
+  jobSnapshotTitle?: true
+  jobSnapshotCompany?: true
+  lastJobCheckAt?: true
   createdAt?: true
   updatedAt?: true
   companyId?: true
@@ -229,6 +244,9 @@ export type ContactCountAggregateInputType = {
   enrichmentLog?: true
   enrichmentRanAt?: true
   enrichmentError?: true
+  jobSnapshotTitle?: true
+  jobSnapshotCompany?: true
+  lastJobCheckAt?: true
   createdAt?: true
   updatedAt?: true
   companyId?: true
@@ -349,6 +367,9 @@ export type ContactGroupByOutputType = {
   enrichmentLog: runtime.JsonValue | null
   enrichmentRanAt: Date | null
   enrichmentError: string | null
+  jobSnapshotTitle: string | null
+  jobSnapshotCompany: string | null
+  lastJobCheckAt: Date | null
   createdAt: Date
   updatedAt: Date
   companyId: string | null
@@ -405,9 +426,13 @@ export type ContactWhereInput = {
   enrichmentLog?: Prisma.JsonNullableFilter<"Contact">
   enrichmentRanAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   enrichmentError?: Prisma.StringNullableFilter<"Contact"> | string | null
+  jobSnapshotTitle?: Prisma.StringNullableFilter<"Contact"> | string | null
+  jobSnapshotCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
+  lastJobCheckAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   companyId?: Prisma.StringNullableFilter<"Contact"> | string | null
+  jobChanges?: Prisma.ContactJobChangeListRelationFilter
   company?: Prisma.XOR<Prisma.CompanyNullableScalarRelationFilter, Prisma.CompanyWhereInput> | null
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   messages?: Prisma.SentMessageListRelationFilter
@@ -444,9 +469,13 @@ export type ContactOrderByWithRelationInput = {
   enrichmentLog?: Prisma.SortOrderInput | Prisma.SortOrder
   enrichmentRanAt?: Prisma.SortOrderInput | Prisma.SortOrder
   enrichmentError?: Prisma.SortOrderInput | Prisma.SortOrder
+  jobSnapshotTitle?: Prisma.SortOrderInput | Prisma.SortOrder
+  jobSnapshotCompany?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastJobCheckAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   companyId?: Prisma.SortOrderInput | Prisma.SortOrder
+  jobChanges?: Prisma.ContactJobChangeOrderByRelationAggregateInput
   company?: Prisma.CompanyOrderByWithRelationInput
   owner?: Prisma.UserOrderByWithRelationInput
   messages?: Prisma.SentMessageOrderByRelationAggregateInput
@@ -487,9 +516,13 @@ export type ContactWhereUniqueInput = Prisma.AtLeast<{
   enrichmentLog?: Prisma.JsonNullableFilter<"Contact">
   enrichmentRanAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   enrichmentError?: Prisma.StringNullableFilter<"Contact"> | string | null
+  jobSnapshotTitle?: Prisma.StringNullableFilter<"Contact"> | string | null
+  jobSnapshotCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
+  lastJobCheckAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   companyId?: Prisma.StringNullableFilter<"Contact"> | string | null
+  jobChanges?: Prisma.ContactJobChangeListRelationFilter
   company?: Prisma.XOR<Prisma.CompanyNullableScalarRelationFilter, Prisma.CompanyWhereInput> | null
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   messages?: Prisma.SentMessageListRelationFilter
@@ -526,6 +559,9 @@ export type ContactOrderByWithAggregationInput = {
   enrichmentLog?: Prisma.SortOrderInput | Prisma.SortOrder
   enrichmentRanAt?: Prisma.SortOrderInput | Prisma.SortOrder
   enrichmentError?: Prisma.SortOrderInput | Prisma.SortOrder
+  jobSnapshotTitle?: Prisma.SortOrderInput | Prisma.SortOrder
+  jobSnapshotCompany?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastJobCheckAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   companyId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -567,6 +603,9 @@ export type ContactScalarWhereWithAggregatesInput = {
   enrichmentLog?: Prisma.JsonNullableWithAggregatesFilter<"Contact">
   enrichmentRanAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Contact"> | Date | string | null
   enrichmentError?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
+  jobSnapshotTitle?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
+  jobSnapshotCompany?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
+  lastJobCheckAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Contact"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Contact"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Contact"> | Date | string
   companyId?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
@@ -599,8 +638,12 @@ export type ContactCreateInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
   company?: Prisma.CompanyCreateNestedOneWithoutContactsInput
   owner: Prisma.UserCreateNestedOneWithoutContactsInput
   messages?: Prisma.SentMessageCreateNestedManyWithoutContactInput
@@ -637,9 +680,13 @@ export type ContactUncheckedCreateInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedCreateNestedManyWithoutContactInput
   messages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutContactInput
   campaignRecipients?: Prisma.CampaignRecipientUncheckedCreateNestedManyWithoutContactInput
   lists?: Prisma.ContactListMemberUncheckedCreateNestedManyWithoutContactInput
@@ -673,8 +720,12 @@ export type ContactUpdateInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
   company?: Prisma.CompanyUpdateOneWithoutContactsNestedInput
   owner?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
   messages?: Prisma.SentMessageUpdateManyWithoutContactNestedInput
@@ -711,9 +762,13 @@ export type ContactUncheckedUpdateInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedUpdateManyWithoutContactNestedInput
   messages?: Prisma.SentMessageUncheckedUpdateManyWithoutContactNestedInput
   campaignRecipients?: Prisma.CampaignRecipientUncheckedUpdateManyWithoutContactNestedInput
   lists?: Prisma.ContactListMemberUncheckedUpdateManyWithoutContactNestedInput
@@ -748,6 +803,9 @@ export type ContactCreateManyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -780,6 +838,9 @@ export type ContactUpdateManyMutationInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -812,6 +873,9 @@ export type ContactUncheckedUpdateManyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -868,6 +932,9 @@ export type ContactCountOrderByAggregateInput = {
   enrichmentLog?: Prisma.SortOrder
   enrichmentRanAt?: Prisma.SortOrder
   enrichmentError?: Prisma.SortOrder
+  jobSnapshotTitle?: Prisma.SortOrder
+  jobSnapshotCompany?: Prisma.SortOrder
+  lastJobCheckAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
@@ -903,6 +970,9 @@ export type ContactMaxOrderByAggregateInput = {
   enrichmentSource?: Prisma.SortOrder
   enrichmentRanAt?: Prisma.SortOrder
   enrichmentError?: Prisma.SortOrder
+  jobSnapshotTitle?: Prisma.SortOrder
+  jobSnapshotCompany?: Prisma.SortOrder
+  lastJobCheckAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
@@ -934,6 +1004,9 @@ export type ContactMinOrderByAggregateInput = {
   enrichmentSource?: Prisma.SortOrder
   enrichmentRanAt?: Prisma.SortOrder
   enrichmentError?: Prisma.SortOrder
+  jobSnapshotTitle?: Prisma.SortOrder
+  jobSnapshotCompany?: Prisma.SortOrder
+  lastJobCheckAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
@@ -1105,6 +1178,20 @@ export type ContactUpdateOneRequiredWithoutSequenceEnrollmentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ContactUpdateToOneWithWhereWithoutSequenceEnrollmentsInput, Prisma.ContactUpdateWithoutSequenceEnrollmentsInput>, Prisma.ContactUncheckedUpdateWithoutSequenceEnrollmentsInput>
 }
 
+export type ContactCreateNestedOneWithoutJobChangesInput = {
+  create?: Prisma.XOR<Prisma.ContactCreateWithoutJobChangesInput, Prisma.ContactUncheckedCreateWithoutJobChangesInput>
+  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutJobChangesInput
+  connect?: Prisma.ContactWhereUniqueInput
+}
+
+export type ContactUpdateOneRequiredWithoutJobChangesNestedInput = {
+  create?: Prisma.XOR<Prisma.ContactCreateWithoutJobChangesInput, Prisma.ContactUncheckedCreateWithoutJobChangesInput>
+  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutJobChangesInput
+  upsert?: Prisma.ContactUpsertWithoutJobChangesInput
+  connect?: Prisma.ContactWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ContactUpdateToOneWithWhereWithoutJobChangesInput, Prisma.ContactUpdateWithoutJobChangesInput>, Prisma.ContactUncheckedUpdateWithoutJobChangesInput>
+}
+
 export type ContactCreateWithoutOwnerInput = {
   id?: string
   linkedinUrn: string
@@ -1132,8 +1219,12 @@ export type ContactCreateWithoutOwnerInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
   company?: Prisma.CompanyCreateNestedOneWithoutContactsInput
   messages?: Prisma.SentMessageCreateNestedManyWithoutContactInput
   campaignRecipients?: Prisma.CampaignRecipientCreateNestedManyWithoutContactInput
@@ -1168,9 +1259,13 @@ export type ContactUncheckedCreateWithoutOwnerInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedCreateNestedManyWithoutContactInput
   messages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutContactInput
   campaignRecipients?: Prisma.CampaignRecipientUncheckedCreateNestedManyWithoutContactInput
   lists?: Prisma.ContactListMemberUncheckedCreateNestedManyWithoutContactInput
@@ -1234,6 +1329,9 @@ export type ContactScalarWhereInput = {
   enrichmentLog?: Prisma.JsonNullableFilter<"Contact">
   enrichmentRanAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   enrichmentError?: Prisma.StringNullableFilter<"Contact"> | string | null
+  jobSnapshotTitle?: Prisma.StringNullableFilter<"Contact"> | string | null
+  jobSnapshotCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
+  lastJobCheckAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   companyId?: Prisma.StringNullableFilter<"Contact"> | string | null
@@ -1266,8 +1364,12 @@ export type ContactCreateWithoutMessagesInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
   company?: Prisma.CompanyCreateNestedOneWithoutContactsInput
   owner: Prisma.UserCreateNestedOneWithoutContactsInput
   campaignRecipients?: Prisma.CampaignRecipientCreateNestedManyWithoutContactInput
@@ -1303,9 +1405,13 @@ export type ContactUncheckedCreateWithoutMessagesInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedCreateNestedManyWithoutContactInput
   campaignRecipients?: Prisma.CampaignRecipientUncheckedCreateNestedManyWithoutContactInput
   lists?: Prisma.ContactListMemberUncheckedCreateNestedManyWithoutContactInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
@@ -1354,8 +1460,12 @@ export type ContactUpdateWithoutMessagesInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
   company?: Prisma.CompanyUpdateOneWithoutContactsNestedInput
   owner?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
   campaignRecipients?: Prisma.CampaignRecipientUpdateManyWithoutContactNestedInput
@@ -1391,9 +1501,13 @@ export type ContactUncheckedUpdateWithoutMessagesInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedUpdateManyWithoutContactNestedInput
   campaignRecipients?: Prisma.CampaignRecipientUncheckedUpdateManyWithoutContactNestedInput
   lists?: Prisma.ContactListMemberUncheckedUpdateManyWithoutContactNestedInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
@@ -1426,8 +1540,12 @@ export type ContactCreateWithoutCompanyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
   owner: Prisma.UserCreateNestedOneWithoutContactsInput
   messages?: Prisma.SentMessageCreateNestedManyWithoutContactInput
   campaignRecipients?: Prisma.CampaignRecipientCreateNestedManyWithoutContactInput
@@ -1463,8 +1581,12 @@ export type ContactUncheckedCreateWithoutCompanyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  jobChanges?: Prisma.ContactJobChangeUncheckedCreateNestedManyWithoutContactInput
   messages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutContactInput
   campaignRecipients?: Prisma.CampaignRecipientUncheckedCreateNestedManyWithoutContactInput
   lists?: Prisma.ContactListMemberUncheckedCreateNestedManyWithoutContactInput
@@ -1524,8 +1646,12 @@ export type ContactCreateWithoutCampaignRecipientsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
   company?: Prisma.CompanyCreateNestedOneWithoutContactsInput
   owner: Prisma.UserCreateNestedOneWithoutContactsInput
   messages?: Prisma.SentMessageCreateNestedManyWithoutContactInput
@@ -1561,9 +1687,13 @@ export type ContactUncheckedCreateWithoutCampaignRecipientsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedCreateNestedManyWithoutContactInput
   messages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutContactInput
   lists?: Prisma.ContactListMemberUncheckedCreateNestedManyWithoutContactInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
@@ -1612,8 +1742,12 @@ export type ContactUpdateWithoutCampaignRecipientsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
   company?: Prisma.CompanyUpdateOneWithoutContactsNestedInput
   owner?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
   messages?: Prisma.SentMessageUpdateManyWithoutContactNestedInput
@@ -1649,9 +1783,13 @@ export type ContactUncheckedUpdateWithoutCampaignRecipientsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedUpdateManyWithoutContactNestedInput
   messages?: Prisma.SentMessageUncheckedUpdateManyWithoutContactNestedInput
   lists?: Prisma.ContactListMemberUncheckedUpdateManyWithoutContactNestedInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
@@ -1684,8 +1822,12 @@ export type ContactCreateWithoutListsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
   company?: Prisma.CompanyCreateNestedOneWithoutContactsInput
   owner: Prisma.UserCreateNestedOneWithoutContactsInput
   messages?: Prisma.SentMessageCreateNestedManyWithoutContactInput
@@ -1721,9 +1863,13 @@ export type ContactUncheckedCreateWithoutListsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedCreateNestedManyWithoutContactInput
   messages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutContactInput
   campaignRecipients?: Prisma.CampaignRecipientUncheckedCreateNestedManyWithoutContactInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
@@ -1772,8 +1918,12 @@ export type ContactUpdateWithoutListsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
   company?: Prisma.CompanyUpdateOneWithoutContactsNestedInput
   owner?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
   messages?: Prisma.SentMessageUpdateManyWithoutContactNestedInput
@@ -1809,9 +1959,13 @@ export type ContactUncheckedUpdateWithoutListsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedUpdateManyWithoutContactNestedInput
   messages?: Prisma.SentMessageUncheckedUpdateManyWithoutContactNestedInput
   campaignRecipients?: Prisma.CampaignRecipientUncheckedUpdateManyWithoutContactNestedInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
@@ -1844,8 +1998,12 @@ export type ContactCreateWithoutSequenceEnrollmentsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
   company?: Prisma.CompanyCreateNestedOneWithoutContactsInput
   owner: Prisma.UserCreateNestedOneWithoutContactsInput
   messages?: Prisma.SentMessageCreateNestedManyWithoutContactInput
@@ -1881,9 +2039,13 @@ export type ContactUncheckedCreateWithoutSequenceEnrollmentsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedCreateNestedManyWithoutContactInput
   messages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutContactInput
   campaignRecipients?: Prisma.CampaignRecipientUncheckedCreateNestedManyWithoutContactInput
   lists?: Prisma.ContactListMemberUncheckedCreateNestedManyWithoutContactInput
@@ -1932,8 +2094,12 @@ export type ContactUpdateWithoutSequenceEnrollmentsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
   company?: Prisma.CompanyUpdateOneWithoutContactsNestedInput
   owner?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
   messages?: Prisma.SentMessageUpdateManyWithoutContactNestedInput
@@ -1969,12 +2135,192 @@ export type ContactUncheckedUpdateWithoutSequenceEnrollmentsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedUpdateManyWithoutContactNestedInput
+  messages?: Prisma.SentMessageUncheckedUpdateManyWithoutContactNestedInput
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedUpdateManyWithoutContactNestedInput
+  lists?: Prisma.ContactListMemberUncheckedUpdateManyWithoutContactNestedInput
+}
+
+export type ContactCreateWithoutJobChangesInput = {
+  id?: string
+  linkedinUrn: string
+  linkedinUrl: string
+  fullName: string
+  hebrewFirstName?: string | null
+  headline?: string | null
+  currentTitle?: string | null
+  currentCompany?: string | null
+  currentCompanyId?: string | null
+  companySize?: number | null
+  seniority?: $Enums.Seniority | null
+  function?: $Enums.Function | null
+  location?: string | null
+  industry?: string | null
+  profilePicUrl?: string | null
+  connectedAt?: Date | string | null
+  lastSyncedAt: Date | string
+  removedAt?: Date | string | null
+  email?: string | null
+  phone?: string | null
+  enrichedAt?: Date | string | null
+  enrichmentSource?: string | null
+  manualFields?: Prisma.ContactCreatemanualFieldsInput | string[]
+  enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  enrichmentRanAt?: Date | string | null
+  enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  company?: Prisma.CompanyCreateNestedOneWithoutContactsInput
+  owner: Prisma.UserCreateNestedOneWithoutContactsInput
+  messages?: Prisma.SentMessageCreateNestedManyWithoutContactInput
+  campaignRecipients?: Prisma.CampaignRecipientCreateNestedManyWithoutContactInput
+  lists?: Prisma.ContactListMemberCreateNestedManyWithoutContactInput
+  sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
+}
+
+export type ContactUncheckedCreateWithoutJobChangesInput = {
+  id?: string
+  ownerId: string
+  linkedinUrn: string
+  linkedinUrl: string
+  fullName: string
+  hebrewFirstName?: string | null
+  headline?: string | null
+  currentTitle?: string | null
+  currentCompany?: string | null
+  currentCompanyId?: string | null
+  companySize?: number | null
+  seniority?: $Enums.Seniority | null
+  function?: $Enums.Function | null
+  location?: string | null
+  industry?: string | null
+  profilePicUrl?: string | null
+  connectedAt?: Date | string | null
+  lastSyncedAt: Date | string
+  removedAt?: Date | string | null
+  email?: string | null
+  phone?: string | null
+  enrichedAt?: Date | string | null
+  enrichmentSource?: string | null
+  manualFields?: Prisma.ContactCreatemanualFieldsInput | string[]
+  enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  enrichmentRanAt?: Date | string | null
+  enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  companyId?: string | null
+  messages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutContactInput
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedCreateNestedManyWithoutContactInput
+  lists?: Prisma.ContactListMemberUncheckedCreateNestedManyWithoutContactInput
+  sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
+}
+
+export type ContactCreateOrConnectWithoutJobChangesInput = {
+  where: Prisma.ContactWhereUniqueInput
+  create: Prisma.XOR<Prisma.ContactCreateWithoutJobChangesInput, Prisma.ContactUncheckedCreateWithoutJobChangesInput>
+}
+
+export type ContactUpsertWithoutJobChangesInput = {
+  update: Prisma.XOR<Prisma.ContactUpdateWithoutJobChangesInput, Prisma.ContactUncheckedUpdateWithoutJobChangesInput>
+  create: Prisma.XOR<Prisma.ContactCreateWithoutJobChangesInput, Prisma.ContactUncheckedCreateWithoutJobChangesInput>
+  where?: Prisma.ContactWhereInput
+}
+
+export type ContactUpdateToOneWithWhereWithoutJobChangesInput = {
+  where?: Prisma.ContactWhereInput
+  data: Prisma.XOR<Prisma.ContactUpdateWithoutJobChangesInput, Prisma.ContactUncheckedUpdateWithoutJobChangesInput>
+}
+
+export type ContactUpdateWithoutJobChangesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companySize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  seniority?: Prisma.NullableEnumSeniorityFieldUpdateOperationsInput | $Enums.Seniority | null
+  function?: Prisma.NullableEnumFunctionFieldUpdateOperationsInput | $Enums.Function | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enrichedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enrichmentSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualFields?: Prisma.ContactUpdatemanualFieldsInput | string[]
+  enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  company?: Prisma.CompanyUpdateOneWithoutContactsNestedInput
+  owner?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
+  messages?: Prisma.SentMessageUpdateManyWithoutContactNestedInput
+  campaignRecipients?: Prisma.CampaignRecipientUpdateManyWithoutContactNestedInput
+  lists?: Prisma.ContactListMemberUpdateManyWithoutContactNestedInput
+  sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
+}
+
+export type ContactUncheckedUpdateWithoutJobChangesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companySize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  seniority?: Prisma.NullableEnumSeniorityFieldUpdateOperationsInput | $Enums.Seniority | null
+  function?: Prisma.NullableEnumFunctionFieldUpdateOperationsInput | $Enums.Function | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enrichedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enrichmentSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualFields?: Prisma.ContactUpdatemanualFieldsInput | string[]
+  enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   messages?: Prisma.SentMessageUncheckedUpdateManyWithoutContactNestedInput
   campaignRecipients?: Prisma.CampaignRecipientUncheckedUpdateManyWithoutContactNestedInput
   lists?: Prisma.ContactListMemberUncheckedUpdateManyWithoutContactNestedInput
+  sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
 }
 
 export type ContactCreateManyOwnerInput = {
@@ -2004,6 +2350,9 @@ export type ContactCreateManyOwnerInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -2036,8 +2385,12 @@ export type ContactUpdateWithoutOwnerInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
   company?: Prisma.CompanyUpdateOneWithoutContactsNestedInput
   messages?: Prisma.SentMessageUpdateManyWithoutContactNestedInput
   campaignRecipients?: Prisma.CampaignRecipientUpdateManyWithoutContactNestedInput
@@ -2072,9 +2425,13 @@ export type ContactUncheckedUpdateWithoutOwnerInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedUpdateManyWithoutContactNestedInput
   messages?: Prisma.SentMessageUncheckedUpdateManyWithoutContactNestedInput
   campaignRecipients?: Prisma.CampaignRecipientUncheckedUpdateManyWithoutContactNestedInput
   lists?: Prisma.ContactListMemberUncheckedUpdateManyWithoutContactNestedInput
@@ -2108,6 +2465,9 @@ export type ContactUncheckedUpdateManyWithoutOwnerInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2141,6 +2501,9 @@ export type ContactCreateManyCompanyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2172,8 +2535,12 @@ export type ContactUpdateWithoutCompanyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
   owner?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
   messages?: Prisma.SentMessageUpdateManyWithoutContactNestedInput
   campaignRecipients?: Prisma.CampaignRecipientUpdateManyWithoutContactNestedInput
@@ -2209,8 +2576,12 @@ export type ContactUncheckedUpdateWithoutCompanyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  jobChanges?: Prisma.ContactJobChangeUncheckedUpdateManyWithoutContactNestedInput
   messages?: Prisma.SentMessageUncheckedUpdateManyWithoutContactNestedInput
   campaignRecipients?: Prisma.CampaignRecipientUncheckedUpdateManyWithoutContactNestedInput
   lists?: Prisma.ContactListMemberUncheckedUpdateManyWithoutContactNestedInput
@@ -2245,6 +2616,9 @@ export type ContactUncheckedUpdateManyWithoutCompanyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2255,6 +2629,7 @@ export type ContactUncheckedUpdateManyWithoutCompanyInput = {
  */
 
 export type ContactCountOutputType = {
+  jobChanges: number
   messages: number
   campaignRecipients: number
   lists: number
@@ -2262,6 +2637,7 @@ export type ContactCountOutputType = {
 }
 
 export type ContactCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  jobChanges?: boolean | ContactCountOutputTypeCountJobChangesArgs
   messages?: boolean | ContactCountOutputTypeCountMessagesArgs
   campaignRecipients?: boolean | ContactCountOutputTypeCountCampaignRecipientsArgs
   lists?: boolean | ContactCountOutputTypeCountListsArgs
@@ -2276,6 +2652,13 @@ export type ContactCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exte
    * Select specific fields to fetch from the ContactCountOutputType
    */
   select?: Prisma.ContactCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ContactCountOutputType without action
+ */
+export type ContactCountOutputTypeCountJobChangesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ContactJobChangeWhereInput
 }
 
 /**
@@ -2335,9 +2718,13 @@ export type ContactSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   enrichmentLog?: boolean
   enrichmentRanAt?: boolean
   enrichmentError?: boolean
+  jobSnapshotTitle?: boolean
+  jobSnapshotCompany?: boolean
+  lastJobCheckAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   companyId?: boolean
+  jobChanges?: boolean | Prisma.Contact$jobChangesArgs<ExtArgs>
   company?: boolean | Prisma.Contact$companyArgs<ExtArgs>
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   messages?: boolean | Prisma.Contact$messagesArgs<ExtArgs>
@@ -2375,6 +2762,9 @@ export type ContactSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   enrichmentLog?: boolean
   enrichmentRanAt?: boolean
   enrichmentError?: boolean
+  jobSnapshotTitle?: boolean
+  jobSnapshotCompany?: boolean
+  lastJobCheckAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   companyId?: boolean
@@ -2410,6 +2800,9 @@ export type ContactSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   enrichmentLog?: boolean
   enrichmentRanAt?: boolean
   enrichmentError?: boolean
+  jobSnapshotTitle?: boolean
+  jobSnapshotCompany?: boolean
+  lastJobCheckAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   companyId?: boolean
@@ -2445,13 +2838,17 @@ export type ContactSelectScalar = {
   enrichmentLog?: boolean
   enrichmentRanAt?: boolean
   enrichmentError?: boolean
+  jobSnapshotTitle?: boolean
+  jobSnapshotCompany?: boolean
+  lastJobCheckAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   companyId?: boolean
 }
 
-export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "hebrewFirstName" | "headline" | "currentTitle" | "currentCompany" | "currentCompanyId" | "companySize" | "seniority" | "function" | "location" | "industry" | "profilePicUrl" | "connectedAt" | "lastSyncedAt" | "removedAt" | "email" | "phone" | "enrichedAt" | "enrichmentSource" | "manualFields" | "enrichmentLog" | "enrichmentRanAt" | "enrichmentError" | "createdAt" | "updatedAt" | "companyId", ExtArgs["result"]["contact"]>
+export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "hebrewFirstName" | "headline" | "currentTitle" | "currentCompany" | "currentCompanyId" | "companySize" | "seniority" | "function" | "location" | "industry" | "profilePicUrl" | "connectedAt" | "lastSyncedAt" | "removedAt" | "email" | "phone" | "enrichedAt" | "enrichmentSource" | "manualFields" | "enrichmentLog" | "enrichmentRanAt" | "enrichmentError" | "jobSnapshotTitle" | "jobSnapshotCompany" | "lastJobCheckAt" | "createdAt" | "updatedAt" | "companyId", ExtArgs["result"]["contact"]>
 export type ContactInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  jobChanges?: boolean | Prisma.Contact$jobChangesArgs<ExtArgs>
   company?: boolean | Prisma.Contact$companyArgs<ExtArgs>
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   messages?: boolean | Prisma.Contact$messagesArgs<ExtArgs>
@@ -2472,6 +2869,7 @@ export type ContactIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
 export type $ContactPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Contact"
   objects: {
+    jobChanges: Prisma.$ContactJobChangePayload<ExtArgs>[]
     company: Prisma.$CompanyPayload<ExtArgs> | null
     owner: Prisma.$UserPayload<ExtArgs>
     messages: Prisma.$SentMessagePayload<ExtArgs>[]
@@ -2507,6 +2905,9 @@ export type $ContactPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     enrichmentLog: runtime.JsonValue | null
     enrichmentRanAt: Date | null
     enrichmentError: string | null
+    jobSnapshotTitle: string | null
+    jobSnapshotCompany: string | null
+    lastJobCheckAt: Date | null
     createdAt: Date
     updatedAt: Date
     companyId: string | null
@@ -2904,6 +3305,7 @@ readonly fields: ContactFieldRefs;
  */
 export interface Prisma__ContactClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  jobChanges<T extends Prisma.Contact$jobChangesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Contact$jobChangesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContactJobChangePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   company<T extends Prisma.Contact$companyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Contact$companyArgs<ExtArgs>>): Prisma.Prisma__CompanyClient<runtime.Types.Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   owner<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   messages<T extends Prisma.Contact$messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Contact$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SentMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2966,6 +3368,9 @@ export interface ContactFieldRefs {
   readonly enrichmentLog: Prisma.FieldRef<"Contact", 'Json'>
   readonly enrichmentRanAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly enrichmentError: Prisma.FieldRef<"Contact", 'String'>
+  readonly jobSnapshotTitle: Prisma.FieldRef<"Contact", 'String'>
+  readonly jobSnapshotCompany: Prisma.FieldRef<"Contact", 'String'>
+  readonly lastJobCheckAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly companyId: Prisma.FieldRef<"Contact", 'String'>
@@ -3367,6 +3772,30 @@ export type ContactDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Limit how many Contacts to delete.
    */
   limit?: number
+}
+
+/**
+ * Contact.jobChanges
+ */
+export type Contact$jobChangesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ContactJobChange
+   */
+  select?: Prisma.ContactJobChangeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ContactJobChange
+   */
+  omit?: Prisma.ContactJobChangeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ContactJobChangeInclude<ExtArgs> | null
+  where?: Prisma.ContactJobChangeWhereInput
+  orderBy?: Prisma.ContactJobChangeOrderByWithRelationInput | Prisma.ContactJobChangeOrderByWithRelationInput[]
+  cursor?: Prisma.ContactJobChangeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ContactJobChangeScalarFieldEnum | Prisma.ContactJobChangeScalarFieldEnum[]
 }
 
 /**

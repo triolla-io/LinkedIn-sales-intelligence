@@ -40,10 +40,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       connect: {
         pending: tasks.filter((t) => t.kind === "CONNECT" && (t.status === "PENDING" || t.status === "CLAIMED")).length,
         done: tasks.filter((t) => t.kind === "CONNECT" && t.status === "DONE").length,
-        failed: tasks.filter((t) => t.kind === "CONNECT" && t.status === "FAILED").length,
+        // follow_only is an intentional skip, not a failure to surface as an error.
+        failed: tasks.filter((t) => t.kind === "CONNECT" && t.status === "FAILED" && t.errorCode !== "follow_only").length,
+        skipped: tasks.filter((t) => t.kind === "CONNECT" && t.errorCode === "follow_only").length,
       },
       recentFailures: tasks
-        .filter((t) => t.status === "FAILED" && t.errorCode)
+        .filter((t) => t.status === "FAILED" && t.errorCode && t.errorCode !== "follow_only")
         .slice(0, 5)
         .map((t) => ({ kind: t.kind, errorCode: t.errorCode, errorMessage: t.errorMessage, at: t.completedAt ?? t.createdAt })),
       lastActivity: tasks[0]?.claimedAt ?? tasks[0]?.createdAt ?? null,

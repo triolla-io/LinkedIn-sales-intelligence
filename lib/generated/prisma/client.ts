@@ -196,3 +196,8 @@ export type ProspectingRun = Prisma.ProspectingRunModel
  * 
  */
 export type ConnectionRequest = Prisma.ConnectionRequestModel
+/**
+ * Model ContactJobChange
+ * 
+ */
+export type ContactJobChange = Prisma.ContactJobChangeModel

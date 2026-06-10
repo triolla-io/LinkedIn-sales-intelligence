@@ -55,6 +55,10 @@ chrome.runtime.onInstalled.addListener(() => {
 // "connected" right away instead of waiting up to 60s for the first alarm.
 getToken().then((token) => { if (token) heartbeat(VERSION); });
 
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg?.type === "heartbeat") heartbeat(VERSION);
+});
+
 chrome.alarms.onAlarm.addListener(async (a) => {
   if (!(await getToken())) return;
   if (await isPaused()) return;
@@ -486,6 +490,17 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
       const state = stateRes?.result?.value;
       if (state === "pending") throw withCode(new Error("invitation_already_pending"), "already_pending");
       if (state === "connected") throw withCode(new Error("already_connected"), "already_connected");
+
+      // No Connect button anywhere (direct, button scan, or "More" menu). If the profile
+      // instead exposes a primary "Follow" action, this member cannot be sent a connection
+      // request (e.g. creators / out-of-network). Report a distinct code so the backend can
+      // SKIP them rather than mark them as a failure to retry.
+      const scanned = await scanButtons(tabId);
+      const followOnly = scanned.some(
+        (b) => /^follow$/i.test(b.text.trim()) || /^follow$/i.test(b.aria.trim()) || /^עקוב$/.test(b.text.trim()),
+      );
+      if (followOnly) throw withCode(new Error("follow_only_profile"), "follow_only");
+
       throw withCode(new Error("connect_button_not_found"), "no_connect");
     }
 
@@ -533,19 +548,38 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
 }
 
 async function waitForTabLoad(tabId: number): Promise<void> {
+  // Fast path: the tab may already be "complete" before we attach the listener.
+  // This is common for tabs in a non-focused automation window, where the
+  // onUpdated "complete" event can fire before this function runs — in which
+  // case a listener-only wait would hang until the timeout (tab_load_timeout).
+  const existing = await chrome.tabs.get(tabId).catch(() => null);
+  if (existing?.status === "complete") return;
+
   await new Promise<void>((resolve, reject) => {
-    const timeout = setTimeout(() => {
+    let settled = false;
+    const finish = (fn: () => void) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      clearInterval(poll);
       chrome.tabs.onUpdated.removeListener(listener);
-      reject(withCode(new Error("tab_load_timeout"), "tab_load"));
-    }, 30_000);
+      fn();
+    };
+    const timeout = setTimeout(
+      () => finish(() => reject(withCode(new Error("tab_load_timeout"), "tab_load"))),
+      30_000,
+    );
     const listener = (id: number, info: chrome.tabs.TabChangeInfo) => {
-      if (id === tabId && info.status === "complete") {
-        clearTimeout(timeout);
-        chrome.tabs.onUpdated.removeListener(listener);
-        resolve();
-      }
+      if (id === tabId && info.status === "complete") finish(resolve);
     };
     chrome.tabs.onUpdated.addListener(listener);
+    // Backstop poll: covers the case where the "complete" event is missed
+    // entirely (throttled background window) but the tab did finish loading.
+    const poll = setInterval(async () => {
+      const t = await chrome.tabs.get(tabId).catch(() => null);
+      if (!t) return finish(() => reject(withCode(new Error("tab_closed"), "tab_load")));
+      if (t.status === "complete") finish(resolve);
+    }, 1000);
   });
 }
 

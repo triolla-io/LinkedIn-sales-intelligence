@@ -302,6 +302,21 @@ async function handleConnectFailure(task: TaskRow) {
     }
     return;
   }
+  // Follow-only profiles cannot be sent a connection request (no Connect action exists).
+  // This is not a failure to retry — skip the candidate and move on to the next one.
+  if (task.errorCode === "follow_only") {
+    if (task.connectionRequestId) {
+      await prisma.connectionRequest.updateMany({
+        where: { id: task.connectionRequestId, status: { notIn: ["SENT", "FAILED", "SKIPPED"] } },
+        data: { status: "SKIPPED", skipReason: "follow_only", errorCode: task.errorCode },
+      });
+    }
+    if (task.prospectingRunId) {
+      await releaseConnectSlot(task.prospectingRunId);
+      await maybeCompleteOrContinue(task.prospectingRunId);
+    }
+    return;
+  }
   if (task.connectionRequestId) {
     await prisma.connectionRequest.updateMany({
       where: { id: task.connectionRequestId, status: { notIn: ["SENT", "FAILED"] } },
