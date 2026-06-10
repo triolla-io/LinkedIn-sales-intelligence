@@ -88,4 +88,49 @@ describe("ProspectingRun schedule fields", () => {
     expect(run.sendHoursEnd).toBe(18);
     expect(run.sendDays).toEqual([]);
   });
+
+  it("queueNextConnect uses run sendDays — task scheduledFor lands on a Mon–Fri day when sendDays is [1,2,3,4,5]", async () => {
+    const org = await prisma.organization.findFirstOrThrow();
+    const user = await prisma.user.create({
+      data: {
+        email: `sched3-${Date.now()}-${Math.random()}@x.com`,
+        name: "T",
+        orgId: org.id,
+        timezone: "UTC",
+      },
+    });
+    // sendHoursStart: 0, sendHoursEnd: 24 → always "in working hours"
+    // sendDays: [1,2,3,4,5] → Mon–Fri only
+    const run = await prisma.prospectingRun.create({
+      data: {
+        ownerId: user.id,
+        name: "weekdays-only",
+        keywords: "cto",
+        searchUrl: "x",
+        status: "RUNNING",
+        dailyCap: 8,
+        sendHoursStart: 0,
+        sendHoursEnd: 24,
+        sendDays: [1, 2, 3, 4, 5],
+      },
+    });
+    await prisma.connectionRequest.create({
+      data: {
+        ownerId: user.id,
+        runId: run.id,
+        linkedinUrn: `u-wd-${Math.random()}`,
+        linkedinUrl: "u",
+        status: "DISCOVERED",
+      },
+    });
+    await queueNextConnect(run.id);
+    const task = await prisma.extensionTask.findFirst({
+      where: { prospectingRunId: run.id, kind: "CONNECT" },
+      select: { scheduledFor: true },
+    });
+    expect(task).not.toBeNull();
+    // scheduledFor must land on Mon–Fri (UTC weekday 1–5)
+    const dayOfWeek = task!.scheduledFor.getUTCDay();
+    expect([1, 2, 3, 4, 5]).toContain(dayOfWeek);
+  });
 });

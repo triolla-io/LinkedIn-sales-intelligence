@@ -89,11 +89,17 @@ export async function queueNextConnect(runId: string): Promise<string | null> {
     let scheduledFor: Date;
     if (quota.canSendNow) {
       const hourlyCap = Math.max(1, Math.floor(run.dailyCap / 4));
-      const workingWeekdays = tz === "Asia/Jerusalem" ? [0, 1, 2, 3, 4] : [1, 2, 3, 4, 5]; // Israel: Sun-Thu
+      // Use run's stored schedule or fall back to timezone-based defaults
+      const workingWeekdays =
+        run.sendDays.length > 0
+          ? run.sendDays
+          : tz === "Asia/Jerusalem"
+          ? [0, 1, 2, 3, 4] // Israel: Sun–Thu
+          : [1, 2, 3, 4, 5]; // Others: Mon–Fri
       scheduledFor = computeNextScheduledFor({
         timezone: tz,
-        workingHoursStart: 9,
-        workingHoursEnd: 18,
+        workingHoursStart: run.sendHoursStart,
+        workingHoursEnd: run.sendHoursEnd,
         weekdaysOnly: true,
         workingWeekdays,
         lastSentAt,
