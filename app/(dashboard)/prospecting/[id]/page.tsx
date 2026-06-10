@@ -23,7 +23,7 @@ type RunDetail = {
 };
 
 type TaskStats = {
-  search: { pending: number; done: number; failed: number };
+  search: { pending: number; done: number; failed: number; retried: number };
   connect: { pending: number; done: number; failed: number; skipped: number };
   recentFailures: { kind: string; errorCode: string | null; errorMessage: string | null; at: string }[];
   lastActivity: string | null;
@@ -116,6 +116,9 @@ export default function ProspectingRunDetailPage({
                   <span className="text-[#9b9895]">ממתינים: {taskStats.search.pending}</span>
                   <span className="text-[#059669]">הצליחו: {taskStats.search.done}</span>
                   <span className="text-[#dc2626]">נכשלו: {taskStats.search.failed}</span>
+                  {taskStats.search.retried > 0 && (
+                    <span className="text-[#9b9895]">ניסיונות חוזרים: {taskStats.search.retried}</span>
+                  )}
                 </div>
               </div>
               {/* Connect tasks */}

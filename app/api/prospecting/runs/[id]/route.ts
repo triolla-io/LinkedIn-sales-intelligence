@@ -31,11 +31,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       }),
     ]);
 
+    // Tab load/create timeouts are transient: prospecting-tick auto-retries the same
+    // SEARCH page until it succeeds (or hits the fail cap). They are retries, not real
+    // failures, so surface them separately instead of as an alarming red "failed".
+    const isTransientSearch = (t: { kind: string; errorCode: string | null }) =>
+      t.kind === "SEARCH" && t.errorCode === "tab_load";
+
     const taskStats = {
       search: {
         pending: tasks.filter((t) => t.kind === "SEARCH" && (t.status === "PENDING" || t.status === "CLAIMED")).length,
         done: tasks.filter((t) => t.kind === "SEARCH" && t.status === "DONE").length,
-        failed: tasks.filter((t) => t.kind === "SEARCH" && t.status === "FAILED").length,
+        failed: tasks.filter((t) => t.kind === "SEARCH" && t.status === "FAILED" && !isTransientSearch(t)).length,
+        retried: tasks.filter((t) => t.status === "FAILED" && isTransientSearch(t)).length,
       },
       connect: {
         pending: tasks.filter((t) => t.kind === "CONNECT" && (t.status === "PENDING" || t.status === "CLAIMED")).length,
@@ -45,7 +52,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         skipped: tasks.filter((t) => t.kind === "CONNECT" && t.errorCode === "follow_only").length,
       },
       recentFailures: tasks
-        .filter((t) => t.status === "FAILED" && t.errorCode && t.errorCode !== "follow_only")
+        .filter((t) => t.status === "FAILED" && t.errorCode && t.errorCode !== "follow_only" && !isTransientSearch(t))
         .slice(0, 5)
         .map((t) => ({ kind: t.kind, errorCode: t.errorCode, errorMessage: t.errorMessage, at: t.completedAt ?? t.createdAt })),
       lastActivity: tasks[0]?.claimedAt ?? tasks[0]?.createdAt ?? null,
