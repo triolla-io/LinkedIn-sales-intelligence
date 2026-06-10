@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -454,6 +454,10 @@ export default function CampaignDetailClient({
 }) {
   const router = useRouter();
   const [sequence, setSequence] = useState<Sequence>(() => initial);
+
+  useEffect(() => {
+    setSequence(initial);
+  }, [initial]);
   const [acting, setActing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [removing, setRemoving] = useState(false);
