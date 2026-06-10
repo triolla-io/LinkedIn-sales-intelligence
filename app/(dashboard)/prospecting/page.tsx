@@ -19,9 +19,9 @@ type RunsResponse = { runs: ProspectingRun[] };
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => ({
+const HOUR_OPTIONS = Array.from({ length: 25 }, (_, i) => ({
   value: i,
-  label: `${String(i).padStart(2, "0")}:00`,
+  label: i === 24 ? "24:00" : `${String(i).padStart(2, "0")}:00`,
 }));
 
 const DAY_LABELS: Record<number, string> = {

@@ -4,16 +4,21 @@ import { prisma } from "@/lib/prisma";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { buildSearchUrl, GEO_URNS, DEFAULT_GEO } from "@/lib/prospecting/search-url";
 
-const CreateSchema = z.object({
-  name: z.string().trim().min(1).max(120),
-  keywords: z.string().trim().min(1).max(500),
-  geoCode: z.string().optional(),
-  dailyCap: z.number().int().min(1).max(50).optional(),
-  weeklyCap: z.number().int().min(1).max(200).optional(),
-  sendHoursStart: z.number().int().min(0).max(23).optional(),
-  sendHoursEnd: z.number().int().min(1).max(24).optional(),
-  sendDays: z.array(z.number().int().min(0).max(6)).min(1).max(7).optional(),
-});
+const CreateSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120),
+    keywords: z.string().trim().min(1).max(500),
+    geoCode: z.string().optional(),
+    dailyCap: z.number().int().min(1).max(50).optional(),
+    weeklyCap: z.number().int().min(1).max(200).optional(),
+    sendHoursStart: z.number().int().min(0).max(23).optional(),
+    sendHoursEnd: z.number().int().min(1).max(24).optional(),
+    sendDays: z.array(z.number().int().min(0).max(6)).min(1).max(7).optional(),
+  })
+  .refine(
+    (d) => d.sendHoursEnd === undefined || d.sendHoursStart === undefined || d.sendHoursEnd > d.sendHoursStart,
+    { message: "sendHoursEnd must be greater than sendHoursStart", path: ["sendHoursEnd"] }
+  );
 
 export async function POST(req: NextRequest) {
   return withTenant(async (r: NextRequest, ctx) => {
