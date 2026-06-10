@@ -698,6 +698,9 @@ model ProspectingRun {
   status          ProspectingRunStatus @default(DRAFT)
   dailyCap        Int                  @default(8)
   weeklyCap       Int                  @default(100)
+  sendHoursStart  Int                  @default(9)
+  sendHoursEnd    Int                  @default(18)
+  sendDays        Int[]
   discoveryDone   Boolean              @default(false)
   connectInFlight Boolean              @default(false)
   searchFailCount Int                  @default(0)
