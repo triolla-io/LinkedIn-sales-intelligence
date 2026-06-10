@@ -48,3 +48,44 @@ describe("queueNextConnect single-in-flight", () => {
     expect(count).toBe(1);
   });
 });
+
+describe("ProspectingRun schedule fields", () => {
+  it("run created with custom hours and days persists those values", async () => {
+    const org = await prisma.organization.findFirstOrThrow();
+    const user = await prisma.user.create({
+      data: { email: `sched-${Date.now()}-${Math.random()}@x.com`, name: "T", orgId: org.id },
+    });
+    const run = await prisma.prospectingRun.create({
+      data: {
+        ownerId: user.id,
+        name: "custom-hours",
+        keywords: "cto",
+        searchUrl: "x",
+        sendHoursStart: 8,
+        sendHoursEnd: 17,
+        sendDays: [1, 2, 3, 4, 5],
+      },
+    });
+    expect(run.sendHoursStart).toBe(8);
+    expect(run.sendHoursEnd).toBe(17);
+    expect(run.sendDays).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it("run created without schedule fields gets defaults 9/18/[]", async () => {
+    const org = await prisma.organization.findFirstOrThrow();
+    const user = await prisma.user.create({
+      data: { email: `sched2-${Date.now()}-${Math.random()}@x.com`, name: "T", orgId: org.id },
+    });
+    const run = await prisma.prospectingRun.create({
+      data: {
+        ownerId: user.id,
+        name: "defaults",
+        keywords: "cto",
+        searchUrl: "x",
+      },
+    });
+    expect(run.sendHoursStart).toBe(9);
+    expect(run.sendHoursEnd).toBe(18);
+    expect(run.sendDays).toEqual([]);
+  });
+});
