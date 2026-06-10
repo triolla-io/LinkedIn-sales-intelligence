@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, insertTextIntoNamedCompose, clickSendButton, closeAllComposeOverlays, clickModalClose, takeScreenshot, scrollBy, scanButtons, findMessageButton, send, openTabInAutomationWindow, closeStaleAutomationWindow } from "./lib/cdp";
+import { attach, detach, click, clickSendButton, closeAllComposeOverlays, clickModalClose, getComposeUrl, typeIntoCompose, takeScreenshot, scrollBy, scanButtons, send, openTabInAutomationWindow, closeStaleAutomationWindow } from "./lib/cdp";
 import { PROFILE_STATE_FN_SOURCE } from "./lib/dom-detect";
 
 // ---------- Shared types ----------
@@ -188,45 +188,31 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
       await sleep(500);
     }
 
-    // Phase 1: find the Message button and click it with a trusted CDP click.
-    let msgBtn = await findMessageButton(tabId);
-    if (!msgBtn) {
-      // Fallback: open the "More" overflow menu, then look again.
-      const buttons = await scanButtons(tabId);
-      const more = buttons.find((b) => /^more$/i.test(b.text) || /^more$/i.test(b.aria) || /^עוד$/.test(b.text));
-      if (more) {
-        await click(tabId, more.x + Math.round(more.w / 2), more.y + Math.round(more.h / 2));
-        await sleep(700);
-        msgBtn = await findMessageButton(tabId);
-      }
-    }
-    console.log("[agent] findMessageButton:", msgBtn);
-    if (!msgBtn) throw withCode(new Error("message_button_not_found"), "not_messageable");
-    await click(tabId, msgBtn.x, msgBtn.y);
-    // The action opens compose (overlay) or navigates to /messaging/compose/.
-    await waitForTabLoad(tabId).catch(() => {}); // may or may not navigate
+    // Phase 1: extract the compose URL from the Message button's href, then navigate
+    // directly to /messaging/compose/. This is more reliable than clicking the button
+    // and waiting for an overlay — the full messaging page always renders a proper
+    // contenteditable that enables React-driven Send, whereas the overlay's Send button
+    // can stay disabled if execCommand doesn't fire the right synthetic events.
+    const composeUrl = await getComposeUrl(tabId);
+    if (!composeUrl) throw withCode(new Error("message_button_not_found"), "not_messageable");
+    console.log("[agent] composeUrl:", composeUrl);
+
+    await chrome.tabs.update(tabId, { url: composeUrl });
+    await waitForTabLoad(tabId);
     await sleep(2500);
 
-    // Phase 2: insert text with retry
-    let inserted = false;
-    for (let attempt = 0; attempt < 6; attempt++) {
-      inserted = await insertTextIntoNamedCompose(tabId, text, recipientName);
-      console.log(`[agent] insertTextIntoCompose attempt ${attempt + 1}:`, inserted);
-      if (inserted) break;
-      await sleep(600);
-    }
-    if (!inserted) throw withCode(new Error("compose_insert_failed"), "compose_insert_failed");
-    await sleep(800); // let React process the inserted text and enable Send
+    // Phase 2: type the message with CDP Input.insertText (triggers React onChange).
+    // The full messaging page has a stable contenteditable — no retries needed.
+    const typed = await typeIntoCompose(tabId, text);
+    console.log("[agent] typeIntoCompose:", typed);
+    if (!typed) throw withCode(new Error("compose_insert_failed"), "compose_insert_failed");
+    await sleep(600);
 
-    // Phase 3: click Send button directly via shadow DOM
+    // Phase 3: click Send button (enabled after proper typing).
     const sent = await clickSendButton(tabId);
     console.log("[agent] clickSendButton:", sent);
     if (!sent) throw withCode(new Error("send_button_not_found"), "send_button_not_found");
     await sleep(1500);
-
-    // Phase 4: close the compose overlay so it doesn't interfere with the next send
-    await closeAllComposeOverlays(tabId).catch(() => {});
-    await sleep(300);
 
     return { sentAt: new Date().toISOString(), conversationUrl: profileUrl, steps: 3 };
   } catch (err) {

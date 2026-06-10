@@ -196,6 +196,51 @@ export async function focusCompose(tabId: number): Promise<boolean> {
   return result?.result?.value === true;
 }
 
+// Extract the /messaging/compose/ URL from the profile's Message button href.
+// Returns null if the profile has no messageable button (not connected, etc.).
+export async function getComposeUrl(tabId: number): Promise<string | null> {
+  const result = await send<{ result: { value: string | null } }>(tabId, "Runtime.evaluate", {
+    expression: `(function() {
+      const el = document.querySelector('a[href*="/messaging/compose/"]');
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 && r.height === 0) return null;
+      return el.href || null;
+    })()`,
+    returnByValue: true,
+  });
+  return result?.result?.value ?? null;
+}
+
+// Type text into the LinkedIn compose box using CDP Input.insertText, which fires
+// the synthetic keyboard events React listens to (enabling the Send button).
+// Must be called after the /messaging/compose/ page has fully loaded.
+export async function typeIntoCompose(tabId: number, text: string): Promise<boolean> {
+  // Focus the contenteditable via JavaScript first.
+  const focused = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {
+    expression: `(function() {
+      function findEl(root) {
+        for (const sel of ['div.msg-form__contenteditable[contenteditable]','[role="textbox"][contenteditable]','[contenteditable="true"]']) {
+          const el = root.querySelector(sel);
+          if (el) { const r = el.getBoundingClientRect(); if (r.width > 50) return el; }
+        }
+        for (const el of root.querySelectorAll('*')) if (el.shadowRoot) { const f = findEl(el.shadowRoot); if (f) return f; }
+      }
+      const el = findEl(document);
+      if (!el) return false;
+      el.focus();
+      el.click();
+      return true;
+    })()`,
+    returnByValue: true,
+  });
+  if (!focused?.result?.value) return false;
+
+  // Insert text via CDP — fires keydown/keypress/input/keyup which React handles.
+  await send(tabId, "Input.insertText", { text });
+  return true;
+}
+
 // Click the Send button inside LinkedIn's shadow DOM compose
 export async function clickSendButton(tabId: number): Promise<boolean> {
   const result = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {
