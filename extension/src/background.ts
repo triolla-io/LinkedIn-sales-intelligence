@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
-import { pollTask, reportResult, heartbeat, agentStep } from "./lib/api";
-import { attach, detach, click, pressKey, typeText, insertTextIntoNamedCompose, clickSendButton, closeAllComposeOverlays, takeScreenshot, scrollBy, scanButtons, findMessageButton, send, getAutomationWindow, openTabInAutomationWindow, closeStaleAutomationWindow } from "./lib/cdp";
+import { pollTask, reportResult, heartbeat } from "./lib/api";
+import { attach, detach, click, insertTextIntoNamedCompose, clickSendButton, closeAllComposeOverlays, clickModalClose, takeScreenshot, scrollBy, scanButtons, findMessageButton, send, openTabInAutomationWindow, closeStaleAutomationWindow } from "./lib/cdp";
 import { PROFILE_STATE_FN_SOURCE } from "./lib/dom-detect";
 
 // ---------- Shared types ----------
@@ -178,6 +178,16 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     await closeAllComposeOverlays(tabId);
     await sleep(500);
 
+    // Dismiss any promotional popup (e.g. LinkedIn's "upgrade to Premium" interstitial)
+    // that may have loaded after the initial Escape sweep. These popups appear randomly
+    // and occlude the Message button so the CDP click lands on the overlay instead.
+    // clickModalClose looks for a visible Dismiss/Close/× button and clicks it.
+    const dismissed = await clickModalClose(tabId);
+    if (dismissed) {
+      console.log("[agent] dismissed popup before Message click");
+      await sleep(500);
+    }
+
     // Phase 1: find the Message button and click it with a trusted CDP click.
     let msgBtn = await findMessageButton(tabId);
     if (!msgBtn) {
@@ -239,10 +249,6 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     await chrome.tabs.remove(tabId).catch(() => {});
     await clearActiveTab();
   }
-}
-
-function keyCodeOf(k: "Enter" | "Escape" | "Tab"): number {
-  return k === "Enter" ? 13 : k === "Escape" ? 27 : k === "Tab" ? 9 : 0;
 }
 
 // ---------- SEARCH: scrape LinkedIn search results page ----------

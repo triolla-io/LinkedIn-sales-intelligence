@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeFileSync } from "fs";
 import { withExtensionAuth } from "@/lib/extension/with-extension-auth";
-import { callVisionAgent, type AgentHistoryEntry } from "@/lib/extension/openrouter";
+import { callVisionAgent, type AgentHistoryEntry } from "@/lib/extension/vision-agent";
 
 type Body = {
   screenshot?: unknown;
