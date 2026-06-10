@@ -19,6 +19,23 @@ type RunsResponse = { runs: ProspectingRun[] };
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => ({
+  value: i,
+  label: `${String(i).padStart(2, "0")}:00`,
+}));
+
+const DAY_LABELS: Record<number, string> = {
+  0: "א׳",   // Sun
+  1: "ב׳",   // Mon
+  2: "ג׳",   // Tue
+  3: "ד׳",   // Wed
+  4: "ה׳",   // Thu
+  5: "ו׳",   // Fri
+  6: "ש׳",   // Sat
+};
+
+const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
+
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: "bg-[#f3f2ef] text-[#6b6866]",
   RUNNING: "bg-[#e6f4ff] text-[#1585ff]",
@@ -39,8 +56,16 @@ export default function ProspectingPage() {
   const [keywords, setKeywords] = useState("");
   const [geoCode, setGeoCode] = useState("IL");
   const [dailyCap, setDailyCap] = useState(8);
+  const [sendHoursStart, setSendHoursStart] = useState(9);
+  const [sendHoursEnd, setSendHoursEnd] = useState(18);
+  const [sendDays, setSendDays] = useState<number[]>([0, 1, 2, 3, 4]); // IL default Sun–Thu
   const [submitting, setSubmitting] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
+
+  function handleGeoChange(code: string) {
+    setGeoCode(code);
+    setSendDays(code === "IL" ? [0, 1, 2, 3, 4] : [1, 2, 3, 4, 5]);
+  }
 
   async function createRun(e: React.FormEvent) {
     e.preventDefault();
@@ -49,12 +74,23 @@ export default function ProspectingPage() {
     await fetch("/api/prospecting/runs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), keywords: keywords.trim(), geoCode, dailyCap }),
+      body: JSON.stringify({
+        name: name.trim(),
+        keywords: keywords.trim(),
+        geoCode,
+        dailyCap,
+        sendHoursStart,
+        sendHoursEnd,
+        sendDays,
+      }),
     });
     setName("");
     setKeywords("");
     setGeoCode("IL");
     setDailyCap(8);
+    setSendHoursStart(9);
+    setSendHoursEnd(18);
+    setSendDays([0, 1, 2, 3, 4]);
     setSubmitting(false);
     mutate();
   }
@@ -127,7 +163,7 @@ export default function ProspectingPage() {
                 <select
                   id="run-geo"
                   value={geoCode}
-                  onChange={(e) => setGeoCode(e.target.value)}
+                  onChange={(e) => handleGeoChange(e.target.value)}
                   className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
                 >
                   <option value="IL">🇮🇱 Israel</option>
@@ -157,12 +193,69 @@ export default function ProspectingPage() {
                 />
               </div>
             </div>
+            {/* Schedule row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-[#6b6866] mb-1">
+                  שעות שליחה
+                </label>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={sendHoursStart}
+                    onChange={(e) => setSendHoursStart(Number(e.target.value))}
+                    className="flex-1 bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-2 py-2 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+                  >
+                    {HOUR_OPTIONS.map((h) => (
+                      <option key={h.value} value={h.value}>{h.label}</option>
+                    ))}
+                  </select>
+                  <span className="text-xs text-[#9b9895]">עד</span>
+                  <select
+                    value={sendHoursEnd}
+                    onChange={(e) => setSendHoursEnd(Number(e.target.value))}
+                    className="flex-1 bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-2 py-2 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+                  >
+                    {HOUR_OPTIONS.filter((h) => h.value > sendHoursStart).map((h) => (
+                      <option key={h.value} value={h.value}>{h.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[#6b6866] mb-1">
+                  ימי שליחה
+                </label>
+                <div className="flex gap-1 flex-wrap">
+                  {ALL_DAYS.map((day) => {
+                    const active = sendDays.includes(day);
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() =>
+                          setSendDays((prev) =>
+                            active ? prev.filter((d) => d !== day) : [...prev, day].sort((a, b) => a - b)
+                          )
+                        }
+                        className={`px-2 py-1 text-xs font-medium rounded-md border transition-colors ${
+                          active
+                            ? "bg-[#1585ff] text-white border-[#1585ff]"
+                            : "bg-[#f8f7f5] text-[#6b6866] border-[#e5e3df] hover:border-[#c8c5c2]"
+                        }`}
+                      >
+                        {DAY_LABELS[day]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
             <p className="text-xs text-[#9b9895]">
               {dailyCap} בקשות/יום (מומלץ עד 8), 100/שבוע. חיבורים מדרגה 2 בלבד.
             </p>
             <button
               type="submit"
-              disabled={submitting || !name.trim()}
+              disabled={submitting || !name.trim() || sendDays.length === 0}
               className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting && <Loader2 className="size-3.5 animate-spin" />}
