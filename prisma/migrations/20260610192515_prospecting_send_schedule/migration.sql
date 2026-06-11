@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "ProspectingRun" ADD COLUMN "sendDays" INTEGER[],
+ADD COLUMN "sendHoursEnd" INTEGER NOT NULL DEFAULT 18,
+ADD COLUMN "sendHoursStart" INTEGER NOT NULL DEFAULT 9;
