@@ -27,7 +27,7 @@ export const enrichCompaniesWeb = inngest.createFunction(
       prisma.company.findMany({
         where: {
           AND: [
-            { OR: [{ staffCount: null }, { industry: null }] },
+            { OR: [{ staffCount: null }, { industry: null }, { vertical: null }] },
             { OR: [{ lastEnrichedAt: null }, { lastEnrichedAt: { lt: staleDate } }] },
           ],
           name: { not: "" },
@@ -62,9 +62,9 @@ export const enrichCompaniesWeb = inngest.createFunction(
               // DB-first: re-check in case another batch already enriched it
               const fresh = await prisma.company.findUnique({
                 where: { id: company.id },
-                select: { staffCount: true, industry: true },
+                select: { staffCount: true, industry: true, vertical: true },
               });
-              if (fresh?.staffCount != null && fresh?.industry != null) {
+              if (fresh?.staffCount != null && fresh?.industry != null && fresh?.vertical != null) {
                 batchSkipped++;
                 return;
               }
@@ -80,6 +80,7 @@ export const enrichCompaniesWeb = inngest.createFunction(
                     data: {
                       staffCount: result.staffCount ?? undefined,
                       industry: result.industry ?? undefined,
+                      vertical: result.vertical ?? undefined,
                       website: result.website ?? undefined,
                       description: result.description ?? undefined,
                       lastEnrichedAt: new Date(),
