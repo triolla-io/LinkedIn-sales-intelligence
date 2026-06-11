@@ -29,6 +29,9 @@ export type AggregateProspectingRun = {
 export type ProspectingRunAvgAggregateOutputType = {
   dailyCap: number | null
   weeklyCap: number | null
+  sendHoursStart: number | null
+  sendHoursEnd: number | null
+  sendDays: number | null
   searchFailCount: number | null
   nextSearchPage: number | null
   totalDiscovered: number | null
@@ -38,6 +41,9 @@ export type ProspectingRunAvgAggregateOutputType = {
 export type ProspectingRunSumAggregateOutputType = {
   dailyCap: number | null
   weeklyCap: number | null
+  sendHoursStart: number | null
+  sendHoursEnd: number | null
+  sendDays: number[]
   searchFailCount: number | null
   nextSearchPage: number | null
   totalDiscovered: number | null
@@ -54,6 +60,8 @@ export type ProspectingRunMinAggregateOutputType = {
   status: $Enums.ProspectingRunStatus | null
   dailyCap: number | null
   weeklyCap: number | null
+  sendHoursStart: number | null
+  sendHoursEnd: number | null
   discoveryDone: boolean | null
   connectInFlight: boolean | null
   searchFailCount: number | null
@@ -76,6 +84,8 @@ export type ProspectingRunMaxAggregateOutputType = {
   status: $Enums.ProspectingRunStatus | null
   dailyCap: number | null
   weeklyCap: number | null
+  sendHoursStart: number | null
+  sendHoursEnd: number | null
   discoveryDone: boolean | null
   connectInFlight: boolean | null
   searchFailCount: number | null
@@ -98,6 +108,9 @@ export type ProspectingRunCountAggregateOutputType = {
   status: number
   dailyCap: number
   weeklyCap: number
+  sendHoursStart: number
+  sendHoursEnd: number
+  sendDays: number
   discoveryDone: number
   connectInFlight: number
   searchFailCount: number
@@ -115,6 +128,9 @@ export type ProspectingRunCountAggregateOutputType = {
 export type ProspectingRunAvgAggregateInputType = {
   dailyCap?: true
   weeklyCap?: true
+  sendHoursStart?: true
+  sendHoursEnd?: true
+  sendDays?: true
   searchFailCount?: true
   nextSearchPage?: true
   totalDiscovered?: true
@@ -124,6 +140,9 @@ export type ProspectingRunAvgAggregateInputType = {
 export type ProspectingRunSumAggregateInputType = {
   dailyCap?: true
   weeklyCap?: true
+  sendHoursStart?: true
+  sendHoursEnd?: true
+  sendDays?: true
   searchFailCount?: true
   nextSearchPage?: true
   totalDiscovered?: true
@@ -140,6 +159,8 @@ export type ProspectingRunMinAggregateInputType = {
   status?: true
   dailyCap?: true
   weeklyCap?: true
+  sendHoursStart?: true
+  sendHoursEnd?: true
   discoveryDone?: true
   connectInFlight?: true
   searchFailCount?: true
@@ -162,6 +183,8 @@ export type ProspectingRunMaxAggregateInputType = {
   status?: true
   dailyCap?: true
   weeklyCap?: true
+  sendHoursStart?: true
+  sendHoursEnd?: true
   discoveryDone?: true
   connectInFlight?: true
   searchFailCount?: true
@@ -184,6 +207,9 @@ export type ProspectingRunCountAggregateInputType = {
   status?: true
   dailyCap?: true
   weeklyCap?: true
+  sendHoursStart?: true
+  sendHoursEnd?: true
+  sendDays?: true
   discoveryDone?: true
   connectInFlight?: true
   searchFailCount?: true
@@ -293,6 +319,9 @@ export type ProspectingRunGroupByOutputType = {
   status: $Enums.ProspectingRunStatus
   dailyCap: number
   weeklyCap: number
+  sendHoursStart: number
+  sendHoursEnd: number
+  sendDays: number[]
   discoveryDone: boolean
   connectInFlight: boolean
   searchFailCount: number
@@ -338,6 +367,9 @@ export type ProspectingRunWhereInput = {
   status?: Prisma.EnumProspectingRunStatusFilter<"ProspectingRun"> | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFilter<"ProspectingRun"> | number
   weeklyCap?: Prisma.IntFilter<"ProspectingRun"> | number
+  sendHoursStart?: Prisma.IntFilter<"ProspectingRun"> | number
+  sendHoursEnd?: Prisma.IntFilter<"ProspectingRun"> | number
+  sendDays?: Prisma.IntNullableListFilter<"ProspectingRun">
   discoveryDone?: Prisma.BoolFilter<"ProspectingRun"> | boolean
   connectInFlight?: Prisma.BoolFilter<"ProspectingRun"> | boolean
   searchFailCount?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -362,6 +394,9 @@ export type ProspectingRunOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
+  sendHoursStart?: Prisma.SortOrder
+  sendHoursEnd?: Prisma.SortOrder
+  sendDays?: Prisma.SortOrder
   discoveryDone?: Prisma.SortOrder
   connectInFlight?: Prisma.SortOrder
   searchFailCount?: Prisma.SortOrder
@@ -389,6 +424,9 @@ export type ProspectingRunWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumProspectingRunStatusFilter<"ProspectingRun"> | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFilter<"ProspectingRun"> | number
   weeklyCap?: Prisma.IntFilter<"ProspectingRun"> | number
+  sendHoursStart?: Prisma.IntFilter<"ProspectingRun"> | number
+  sendHoursEnd?: Prisma.IntFilter<"ProspectingRun"> | number
+  sendDays?: Prisma.IntNullableListFilter<"ProspectingRun">
   discoveryDone?: Prisma.BoolFilter<"ProspectingRun"> | boolean
   connectInFlight?: Prisma.BoolFilter<"ProspectingRun"> | boolean
   searchFailCount?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -413,6 +451,9 @@ export type ProspectingRunOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
+  sendHoursStart?: Prisma.SortOrder
+  sendHoursEnd?: Prisma.SortOrder
+  sendDays?: Prisma.SortOrder
   discoveryDone?: Prisma.SortOrder
   connectInFlight?: Prisma.SortOrder
   searchFailCount?: Prisma.SortOrder
@@ -443,6 +484,9 @@ export type ProspectingRunScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumProspectingRunStatusWithAggregatesFilter<"ProspectingRun"> | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
   weeklyCap?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
+  sendHoursStart?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
+  sendHoursEnd?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
+  sendDays?: Prisma.IntNullableListFilter<"ProspectingRun">
   discoveryDone?: Prisma.BoolWithAggregatesFilter<"ProspectingRun"> | boolean
   connectInFlight?: Prisma.BoolWithAggregatesFilter<"ProspectingRun"> | boolean
   searchFailCount?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
@@ -464,6 +508,9 @@ export type ProspectingRunCreateInput = {
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
+  sendHoursStart?: number
+  sendHoursEnd?: number
+  sendDays?: Prisma.ProspectingRunCreatesendDaysInput | number[]
   discoveryDone?: boolean
   connectInFlight?: boolean
   searchFailCount?: number
@@ -488,6 +535,9 @@ export type ProspectingRunUncheckedCreateInput = {
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
+  sendHoursStart?: number
+  sendHoursEnd?: number
+  sendDays?: Prisma.ProspectingRunCreatesendDaysInput | number[]
   discoveryDone?: boolean
   connectInFlight?: boolean
   searchFailCount?: number
@@ -510,6 +560,9 @@ export type ProspectingRunUpdateInput = {
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursStart?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursEnd?: Prisma.IntFieldUpdateOperationsInput | number
+  sendDays?: Prisma.ProspectingRunUpdatesendDaysInput | number[]
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -534,6 +587,9 @@ export type ProspectingRunUncheckedUpdateInput = {
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursStart?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursEnd?: Prisma.IntFieldUpdateOperationsInput | number
+  sendDays?: Prisma.ProspectingRunUpdatesendDaysInput | number[]
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -557,6 +613,9 @@ export type ProspectingRunCreateManyInput = {
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
+  sendHoursStart?: number
+  sendHoursEnd?: number
+  sendDays?: Prisma.ProspectingRunCreatesendDaysInput | number[]
   discoveryDone?: boolean
   connectInFlight?: boolean
   searchFailCount?: number
@@ -578,6 +637,9 @@ export type ProspectingRunUpdateManyMutationInput = {
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursStart?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursEnd?: Prisma.IntFieldUpdateOperationsInput | number
+  sendDays?: Prisma.ProspectingRunUpdatesendDaysInput | number[]
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -600,6 +662,9 @@ export type ProspectingRunUncheckedUpdateManyInput = {
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursStart?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursEnd?: Prisma.IntFieldUpdateOperationsInput | number
+  sendDays?: Prisma.ProspectingRunUpdatesendDaysInput | number[]
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -622,6 +687,14 @@ export type ProspectingRunOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type IntNullableListFilter<$PrismaModel = never> = {
+  equals?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel> | null
+  has?: number | Prisma.IntFieldRefInput<$PrismaModel> | null
+  hasEvery?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  hasSome?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
+}
+
 export type ProspectingRunCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   ownerId?: Prisma.SortOrder
@@ -632,6 +705,9 @@ export type ProspectingRunCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
+  sendHoursStart?: Prisma.SortOrder
+  sendHoursEnd?: Prisma.SortOrder
+  sendDays?: Prisma.SortOrder
   discoveryDone?: Prisma.SortOrder
   connectInFlight?: Prisma.SortOrder
   searchFailCount?: Prisma.SortOrder
@@ -647,6 +723,9 @@ export type ProspectingRunCountOrderByAggregateInput = {
 export type ProspectingRunAvgOrderByAggregateInput = {
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
+  sendHoursStart?: Prisma.SortOrder
+  sendHoursEnd?: Prisma.SortOrder
+  sendDays?: Prisma.SortOrder
   searchFailCount?: Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
@@ -663,6 +742,8 @@ export type ProspectingRunMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
+  sendHoursStart?: Prisma.SortOrder
+  sendHoursEnd?: Prisma.SortOrder
   discoveryDone?: Prisma.SortOrder
   connectInFlight?: Prisma.SortOrder
   searchFailCount?: Prisma.SortOrder
@@ -685,6 +766,8 @@ export type ProspectingRunMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
+  sendHoursStart?: Prisma.SortOrder
+  sendHoursEnd?: Prisma.SortOrder
   discoveryDone?: Prisma.SortOrder
   connectInFlight?: Prisma.SortOrder
   searchFailCount?: Prisma.SortOrder
@@ -700,6 +783,9 @@ export type ProspectingRunMinOrderByAggregateInput = {
 export type ProspectingRunSumOrderByAggregateInput = {
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
+  sendHoursStart?: Prisma.SortOrder
+  sendHoursEnd?: Prisma.SortOrder
+  sendDays?: Prisma.SortOrder
   searchFailCount?: Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
@@ -753,8 +839,17 @@ export type ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput = {
   deleteMany?: Prisma.ProspectingRunScalarWhereInput | Prisma.ProspectingRunScalarWhereInput[]
 }
 
+export type ProspectingRunCreatesendDaysInput = {
+  set: number[]
+}
+
 export type EnumProspectingRunStatusFieldUpdateOperationsInput = {
   set?: $Enums.ProspectingRunStatus
+}
+
+export type ProspectingRunUpdatesendDaysInput = {
+  set?: number[]
+  push?: number | number[]
 }
 
 export type ProspectingRunCreateNestedOneWithoutRequestsInput = {
@@ -780,6 +875,9 @@ export type ProspectingRunCreateWithoutOwnerInput = {
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
+  sendHoursStart?: number
+  sendHoursEnd?: number
+  sendDays?: Prisma.ProspectingRunCreatesendDaysInput | number[]
   discoveryDone?: boolean
   connectInFlight?: boolean
   searchFailCount?: number
@@ -802,6 +900,9 @@ export type ProspectingRunUncheckedCreateWithoutOwnerInput = {
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
+  sendHoursStart?: number
+  sendHoursEnd?: number
+  sendDays?: Prisma.ProspectingRunCreatesendDaysInput | number[]
   discoveryDone?: boolean
   connectInFlight?: boolean
   searchFailCount?: number
@@ -854,6 +955,9 @@ export type ProspectingRunScalarWhereInput = {
   status?: Prisma.EnumProspectingRunStatusFilter<"ProspectingRun"> | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFilter<"ProspectingRun"> | number
   weeklyCap?: Prisma.IntFilter<"ProspectingRun"> | number
+  sendHoursStart?: Prisma.IntFilter<"ProspectingRun"> | number
+  sendHoursEnd?: Prisma.IntFilter<"ProspectingRun"> | number
+  sendDays?: Prisma.IntNullableListFilter<"ProspectingRun">
   discoveryDone?: Prisma.BoolFilter<"ProspectingRun"> | boolean
   connectInFlight?: Prisma.BoolFilter<"ProspectingRun"> | boolean
   searchFailCount?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -875,6 +979,9 @@ export type ProspectingRunCreateWithoutRequestsInput = {
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
+  sendHoursStart?: number
+  sendHoursEnd?: number
+  sendDays?: Prisma.ProspectingRunCreatesendDaysInput | number[]
   discoveryDone?: boolean
   connectInFlight?: boolean
   searchFailCount?: number
@@ -898,6 +1005,9 @@ export type ProspectingRunUncheckedCreateWithoutRequestsInput = {
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
+  sendHoursStart?: number
+  sendHoursEnd?: number
+  sendDays?: Prisma.ProspectingRunCreatesendDaysInput | number[]
   discoveryDone?: boolean
   connectInFlight?: boolean
   searchFailCount?: number
@@ -935,6 +1045,9 @@ export type ProspectingRunUpdateWithoutRequestsInput = {
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursStart?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursEnd?: Prisma.IntFieldUpdateOperationsInput | number
+  sendDays?: Prisma.ProspectingRunUpdatesendDaysInput | number[]
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -958,6 +1071,9 @@ export type ProspectingRunUncheckedUpdateWithoutRequestsInput = {
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursStart?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursEnd?: Prisma.IntFieldUpdateOperationsInput | number
+  sendDays?: Prisma.ProspectingRunUpdatesendDaysInput | number[]
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -979,6 +1095,9 @@ export type ProspectingRunCreateManyOwnerInput = {
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
+  sendHoursStart?: number
+  sendHoursEnd?: number
+  sendDays?: Prisma.ProspectingRunCreatesendDaysInput | number[]
   discoveryDone?: boolean
   connectInFlight?: boolean
   searchFailCount?: number
@@ -1000,6 +1119,9 @@ export type ProspectingRunUpdateWithoutOwnerInput = {
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursStart?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursEnd?: Prisma.IntFieldUpdateOperationsInput | number
+  sendDays?: Prisma.ProspectingRunUpdatesendDaysInput | number[]
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1022,6 +1144,9 @@ export type ProspectingRunUncheckedUpdateWithoutOwnerInput = {
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursStart?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursEnd?: Prisma.IntFieldUpdateOperationsInput | number
+  sendDays?: Prisma.ProspectingRunUpdatesendDaysInput | number[]
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1044,6 +1169,9 @@ export type ProspectingRunUncheckedUpdateManyWithoutOwnerInput = {
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursStart?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursEnd?: Prisma.IntFieldUpdateOperationsInput | number
+  sendDays?: Prisma.ProspectingRunUpdatesendDaysInput | number[]
   discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1097,6 +1225,9 @@ export type ProspectingRunSelect<ExtArgs extends runtime.Types.Extensions.Intern
   status?: boolean
   dailyCap?: boolean
   weeklyCap?: boolean
+  sendHoursStart?: boolean
+  sendHoursEnd?: boolean
+  sendDays?: boolean
   discoveryDone?: boolean
   connectInFlight?: boolean
   searchFailCount?: boolean
@@ -1122,6 +1253,9 @@ export type ProspectingRunSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   status?: boolean
   dailyCap?: boolean
   weeklyCap?: boolean
+  sendHoursStart?: boolean
+  sendHoursEnd?: boolean
+  sendDays?: boolean
   discoveryDone?: boolean
   connectInFlight?: boolean
   searchFailCount?: boolean
@@ -1145,6 +1279,9 @@ export type ProspectingRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   status?: boolean
   dailyCap?: boolean
   weeklyCap?: boolean
+  sendHoursStart?: boolean
+  sendHoursEnd?: boolean
+  sendDays?: boolean
   discoveryDone?: boolean
   connectInFlight?: boolean
   searchFailCount?: boolean
@@ -1168,6 +1305,9 @@ export type ProspectingRunSelectScalar = {
   status?: boolean
   dailyCap?: boolean
   weeklyCap?: boolean
+  sendHoursStart?: boolean
+  sendHoursEnd?: boolean
+  sendDays?: boolean
   discoveryDone?: boolean
   connectInFlight?: boolean
   searchFailCount?: boolean
@@ -1180,7 +1320,7 @@ export type ProspectingRunSelectScalar = {
   completedAt?: boolean
 }
 
-export type ProspectingRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "name" | "keywords" | "geoUrn" | "searchUrl" | "status" | "dailyCap" | "weeklyCap" | "discoveryDone" | "connectInFlight" | "searchFailCount" | "pausedUntil" | "nextSearchPage" | "totalDiscovered" | "totalSent" | "createdAt" | "startedAt" | "completedAt", ExtArgs["result"]["prospectingRun"]>
+export type ProspectingRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "name" | "keywords" | "geoUrn" | "searchUrl" | "status" | "dailyCap" | "weeklyCap" | "sendHoursStart" | "sendHoursEnd" | "sendDays" | "discoveryDone" | "connectInFlight" | "searchFailCount" | "pausedUntil" | "nextSearchPage" | "totalDiscovered" | "totalSent" | "createdAt" | "startedAt" | "completedAt", ExtArgs["result"]["prospectingRun"]>
 export type ProspectingRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   requests?: boolean | Prisma.ProspectingRun$requestsArgs<ExtArgs>
@@ -1209,6 +1349,9 @@ export type $ProspectingRunPayload<ExtArgs extends runtime.Types.Extensions.Inte
     status: $Enums.ProspectingRunStatus
     dailyCap: number
     weeklyCap: number
+    sendHoursStart: number
+    sendHoursEnd: number
+    sendDays: number[]
     discoveryDone: boolean
     connectInFlight: boolean
     searchFailCount: number
@@ -1653,6 +1796,9 @@ export interface ProspectingRunFieldRefs {
   readonly status: Prisma.FieldRef<"ProspectingRun", 'ProspectingRunStatus'>
   readonly dailyCap: Prisma.FieldRef<"ProspectingRun", 'Int'>
   readonly weeklyCap: Prisma.FieldRef<"ProspectingRun", 'Int'>
+  readonly sendHoursStart: Prisma.FieldRef<"ProspectingRun", 'Int'>
+  readonly sendHoursEnd: Prisma.FieldRef<"ProspectingRun", 'Int'>
+  readonly sendDays: Prisma.FieldRef<"ProspectingRun", 'Int[]'>
   readonly discoveryDone: Prisma.FieldRef<"ProspectingRun", 'Boolean'>
   readonly connectInFlight: Prisma.FieldRef<"ProspectingRun", 'Boolean'>
   readonly searchFailCount: Prisma.FieldRef<"ProspectingRun", 'Int'>

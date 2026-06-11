@@ -8,7 +8,7 @@ const CONCURRENCY = 8;  // parallel OpenRouter calls
 export const enrichCompaniesWeb = inngest.createFunction(
   {
     id: "enrich-companies-web",
-    name: "Enrich companies via Apollo (DB-first cache)",
+    name: "Enrich companies via OpenRouter (DB-first cache)",
     concurrency: { limit: 1 },
     retries: 1,
     triggers: [{ event: "companies.enrich-web" as const }],

@@ -39,6 +39,7 @@ export type CompanyMinAggregateOutputType = {
   universalName: string | null
   name: string | null
   industry: string | null
+  vertical: string | null
   staffCount: number | null
   website: string | null
   description: string | null
@@ -52,6 +53,7 @@ export type CompanyMaxAggregateOutputType = {
   universalName: string | null
   name: string | null
   industry: string | null
+  vertical: string | null
   staffCount: number | null
   website: string | null
   description: string | null
@@ -65,6 +67,7 @@ export type CompanyCountAggregateOutputType = {
   universalName: number
   name: number
   industry: number
+  vertical: number
   staffCount: number
   website: number
   description: number
@@ -88,6 +91,7 @@ export type CompanyMinAggregateInputType = {
   universalName?: true
   name?: true
   industry?: true
+  vertical?: true
   staffCount?: true
   website?: true
   description?: true
@@ -101,6 +105,7 @@ export type CompanyMaxAggregateInputType = {
   universalName?: true
   name?: true
   industry?: true
+  vertical?: true
   staffCount?: true
   website?: true
   description?: true
@@ -114,6 +119,7 @@ export type CompanyCountAggregateInputType = {
   universalName?: true
   name?: true
   industry?: true
+  vertical?: true
   staffCount?: true
   website?: true
   description?: true
@@ -214,6 +220,7 @@ export type CompanyGroupByOutputType = {
   universalName: string
   name: string
   industry: string | null
+  vertical: string | null
   staffCount: number | null
   website: string | null
   description: string | null
@@ -250,6 +257,7 @@ export type CompanyWhereInput = {
   universalName?: Prisma.StringFilter<"Company"> | string
   name?: Prisma.StringFilter<"Company"> | string
   industry?: Prisma.StringNullableFilter<"Company"> | string | null
+  vertical?: Prisma.StringNullableFilter<"Company"> | string | null
   staffCount?: Prisma.IntNullableFilter<"Company"> | number | null
   website?: Prisma.StringNullableFilter<"Company"> | string | null
   description?: Prisma.StringNullableFilter<"Company"> | string | null
@@ -264,6 +272,7 @@ export type CompanyOrderByWithRelationInput = {
   universalName?: Prisma.SortOrder
   name?: Prisma.SortOrder
   industry?: Prisma.SortOrderInput | Prisma.SortOrder
+  vertical?: Prisma.SortOrderInput | Prisma.SortOrder
   staffCount?: Prisma.SortOrderInput | Prisma.SortOrder
   website?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -281,6 +290,7 @@ export type CompanyWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.CompanyWhereInput | Prisma.CompanyWhereInput[]
   name?: Prisma.StringFilter<"Company"> | string
   industry?: Prisma.StringNullableFilter<"Company"> | string | null
+  vertical?: Prisma.StringNullableFilter<"Company"> | string | null
   staffCount?: Prisma.IntNullableFilter<"Company"> | number | null
   website?: Prisma.StringNullableFilter<"Company"> | string | null
   description?: Prisma.StringNullableFilter<"Company"> | string | null
@@ -295,6 +305,7 @@ export type CompanyOrderByWithAggregationInput = {
   universalName?: Prisma.SortOrder
   name?: Prisma.SortOrder
   industry?: Prisma.SortOrderInput | Prisma.SortOrder
+  vertical?: Prisma.SortOrderInput | Prisma.SortOrder
   staffCount?: Prisma.SortOrderInput | Prisma.SortOrder
   website?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -316,6 +327,7 @@ export type CompanyScalarWhereWithAggregatesInput = {
   universalName?: Prisma.StringWithAggregatesFilter<"Company"> | string
   name?: Prisma.StringWithAggregatesFilter<"Company"> | string
   industry?: Prisma.StringNullableWithAggregatesFilter<"Company"> | string | null
+  vertical?: Prisma.StringNullableWithAggregatesFilter<"Company"> | string | null
   staffCount?: Prisma.IntNullableWithAggregatesFilter<"Company"> | number | null
   website?: Prisma.StringNullableWithAggregatesFilter<"Company"> | string | null
   description?: Prisma.StringNullableWithAggregatesFilter<"Company"> | string | null
@@ -329,6 +341,7 @@ export type CompanyCreateInput = {
   universalName: string
   name: string
   industry?: string | null
+  vertical?: string | null
   staffCount?: number | null
   website?: string | null
   description?: string | null
@@ -343,6 +356,7 @@ export type CompanyUncheckedCreateInput = {
   universalName: string
   name: string
   industry?: string | null
+  vertical?: string | null
   staffCount?: number | null
   website?: string | null
   description?: string | null
@@ -357,6 +371,7 @@ export type CompanyUpdateInput = {
   universalName?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vertical?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -371,6 +386,7 @@ export type CompanyUncheckedUpdateInput = {
   universalName?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vertical?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -385,6 +401,7 @@ export type CompanyCreateManyInput = {
   universalName: string
   name: string
   industry?: string | null
+  vertical?: string | null
   staffCount?: number | null
   website?: string | null
   description?: string | null
@@ -398,6 +415,7 @@ export type CompanyUpdateManyMutationInput = {
   universalName?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vertical?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -411,6 +429,7 @@ export type CompanyUncheckedUpdateManyInput = {
   universalName?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vertical?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -429,6 +448,7 @@ export type CompanyCountOrderByAggregateInput = {
   universalName?: Prisma.SortOrder
   name?: Prisma.SortOrder
   industry?: Prisma.SortOrder
+  vertical?: Prisma.SortOrder
   staffCount?: Prisma.SortOrder
   website?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -446,6 +466,7 @@ export type CompanyMaxOrderByAggregateInput = {
   universalName?: Prisma.SortOrder
   name?: Prisma.SortOrder
   industry?: Prisma.SortOrder
+  vertical?: Prisma.SortOrder
   staffCount?: Prisma.SortOrder
   website?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -459,6 +480,7 @@ export type CompanyMinOrderByAggregateInput = {
   universalName?: Prisma.SortOrder
   name?: Prisma.SortOrder
   industry?: Prisma.SortOrder
+  vertical?: Prisma.SortOrder
   staffCount?: Prisma.SortOrder
   website?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -492,6 +514,7 @@ export type CompanyCreateWithoutContactsInput = {
   universalName: string
   name: string
   industry?: string | null
+  vertical?: string | null
   staffCount?: number | null
   website?: string | null
   description?: string | null
@@ -505,6 +528,7 @@ export type CompanyUncheckedCreateWithoutContactsInput = {
   universalName: string
   name: string
   industry?: string | null
+  vertical?: string | null
   staffCount?: number | null
   website?: string | null
   description?: string | null
@@ -534,6 +558,7 @@ export type CompanyUpdateWithoutContactsInput = {
   universalName?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vertical?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -547,6 +572,7 @@ export type CompanyUncheckedUpdateWithoutContactsInput = {
   universalName?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vertical?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -591,6 +617,7 @@ export type CompanySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   universalName?: boolean
   name?: boolean
   industry?: boolean
+  vertical?: boolean
   staffCount?: boolean
   website?: boolean
   description?: boolean
@@ -606,6 +633,7 @@ export type CompanySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   universalName?: boolean
   name?: boolean
   industry?: boolean
+  vertical?: boolean
   staffCount?: boolean
   website?: boolean
   description?: boolean
@@ -619,6 +647,7 @@ export type CompanySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   universalName?: boolean
   name?: boolean
   industry?: boolean
+  vertical?: boolean
   staffCount?: boolean
   website?: boolean
   description?: boolean
@@ -632,6 +661,7 @@ export type CompanySelectScalar = {
   universalName?: boolean
   name?: boolean
   industry?: boolean
+  vertical?: boolean
   staffCount?: boolean
   website?: boolean
   description?: boolean
@@ -640,7 +670,7 @@ export type CompanySelectScalar = {
   updatedAt?: boolean
 }
 
-export type CompanyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "universalName" | "name" | "industry" | "staffCount" | "website" | "description" | "lastEnrichedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["company"]>
+export type CompanyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "universalName" | "name" | "industry" | "vertical" | "staffCount" | "website" | "description" | "lastEnrichedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["company"]>
 export type CompanyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contacts?: boolean | Prisma.Company$contactsArgs<ExtArgs>
   _count?: boolean | Prisma.CompanyCountOutputTypeDefaultArgs<ExtArgs>
@@ -658,6 +688,7 @@ export type $CompanyPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     universalName: string
     name: string
     industry: string | null
+    vertical: string | null
     staffCount: number | null
     website: string | null
     description: string | null
@@ -1092,6 +1123,7 @@ export interface CompanyFieldRefs {
   readonly universalName: Prisma.FieldRef<"Company", 'String'>
   readonly name: Prisma.FieldRef<"Company", 'String'>
   readonly industry: Prisma.FieldRef<"Company", 'String'>
+  readonly vertical: Prisma.FieldRef<"Company", 'String'>
   readonly staffCount: Prisma.FieldRef<"Company", 'Int'>
   readonly website: Prisma.FieldRef<"Company", 'String'>
   readonly description: Prisma.FieldRef<"Company", 'String'>

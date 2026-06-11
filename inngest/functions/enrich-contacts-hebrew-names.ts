@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { lookupHebrew } from "@/lib/enrichment/name-lookup";
 import { translateNames, type NameInput } from "@/lib/enrichment/gemini-names";
 
-const BATCH = 20;
+const BATCH = 200;
 const OR_BATCH = 50;
 
 // Nightly cron: find every user with contacts missing hebrewFirstName and fan out
