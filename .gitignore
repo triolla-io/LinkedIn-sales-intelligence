@@ -63,5 +63,10 @@ db-backups/
 .claude/
 .superpowers/
 
+# understand-anything local scratch files (knowledge graph is committed)
+.understand-anything/intermediate/
+.understand-anything/diff-overlay.json
+.understand-anything/.trash*/
+
 # superpowers plans & specs (keep local, new files won't be tracked)
 docs/superpowers/
