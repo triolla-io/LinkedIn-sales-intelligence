@@ -36,7 +36,7 @@ industry should be a short English string like "Cybersecurity", "Financial Servi
 vertical should be a single broad market vertical in English: one of "Cybersecurity", "Fintech", "Healthcare", "Gaming", "E-commerce", "SaaS", "Media", "Real Estate", "Legal", "Education", "Manufacturing", "Logistics", "HR Tech", "Marketing Tech", "Dev Tools", or another concise label if none fit. Return null if unknown.`;
 
 const USER = (name: string) =>
-  `Company name: "${name}"\n\nFill in staffCount, industry, website, description, confidence.`;
+  `Company name: "${name}"\n\nFill in staffCount, industry, vertical, website, description, confidence.`;
 
 function tryParseJson(text: string): WebEnrichResult | null {
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
