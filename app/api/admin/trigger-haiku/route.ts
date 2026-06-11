@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
   for (const user of users) {
     await inngest.send({
-      name: "contacts.enrich-haiku" as const,
+      name: "contacts.enrich-hebrew-names" as const,
       data: { ownerId: user.id },
     });
   }

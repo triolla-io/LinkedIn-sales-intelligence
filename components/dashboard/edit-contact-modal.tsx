@@ -83,6 +83,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      aria-hidden="true"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl border border-[#e5e3df] mx-4">
@@ -109,6 +110,7 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
               <input
                 ref={i === 0 ? firstInputRef : undefined}
                 id={`edit-${key}`}
+                aria-label={label}
                 type={type ?? "text"}
                 dir={dir}
                 value={form[key]}

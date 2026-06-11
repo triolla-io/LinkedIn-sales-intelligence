@@ -31,6 +31,6 @@ export async function checkSendQuota(
   return { ok: true };
 }
 
-export function jitterSeconds(): number {
+function jitterSeconds(): number {
   return 45 + Math.floor(Math.random() * 76); // 45–120s
 }

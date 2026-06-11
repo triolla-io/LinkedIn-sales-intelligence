@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -142,6 +142,7 @@ function RecipientsTable({
             </button>
           )}
           <button
+            type="button"
             onClick={onOpenEnrollModal}
             className="flex items-center gap-2 bg-blue-600 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-blue-700"
           >
@@ -453,11 +454,7 @@ export default function CampaignDetailClient({
   contacts: ContactOption[];
 }) {
   const router = useRouter();
-  const [sequence, setSequence] = useState<Sequence>(() => initial);
-
-  useEffect(() => {
-    setSequence(initial);
-  }, [initial]);
+  const [sequence, setSequence] = useState<Sequence>(initial);
   const [acting, setActing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [removing, setRemoving] = useState(false);
@@ -478,11 +475,11 @@ export default function CampaignDetailClient({
 
   // Enrollment modal computed values
   const enrolledContactIds = new Set(sequence.enrollments.map((e) => e.contactId));
-  const filteredContacts = contacts
-    .filter((c) => !enrolledContactIds.has(c.id))
-    .filter((c) =>
-      enrollSearch ? c.fullName.toLowerCase().includes(enrollSearch.toLowerCase()) : true
-    );
+  const filteredContacts = contacts.filter(
+    (c) =>
+      !enrolledContactIds.has(c.id) &&
+      (enrollSearch ? c.fullName.toLowerCase().includes(enrollSearch.toLowerCase()) : true)
+  );
 
   const activeStep = currentStepNumber(sequence.enrollments);
 
@@ -682,6 +679,7 @@ export default function CampaignDetailClient({
             <h3 className="text-lg font-semibold">הוסף אנשי קשר לקמפיין</h3>
             <input
               type="text"
+              aria-label="חיפוש אנשי קשר"
               value={enrollSearch}
               onChange={(e) => setEnrollSearch(e.target.value)}
               placeholder="חיפוש..."
@@ -713,6 +711,7 @@ export default function CampaignDetailClient({
             </div>
             <div className="flex gap-3">
               <button
+                type="button"
                 onClick={doEnroll}
                 disabled={enrolling || selectedContactIds.size === 0}
                 className="flex-1 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
@@ -720,6 +719,7 @@ export default function CampaignDetailClient({
                 {enrolling ? "מוסיף..." : `הוסף (${selectedContactIds.size})`}
               </button>
               <button
+                type="button"
                 onClick={() => setShowEnrollModal(false)}
                 className="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
               >

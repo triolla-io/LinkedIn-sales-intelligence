@@ -3,7 +3,7 @@ import { inngest } from "@/inngest/client";
 import { enrichContact } from "@/inngest/functions/enrich-contact";
 import { enrichCompanies } from "@/inngest/functions/enrich-companies";
 import { enrichCompaniesWeb } from "@/inngest/functions/enrich-companies-web";
-import { enrichContactsHaiku, enrichContactsHaikuScheduled } from "@/inngest/functions/enrich-contacts-haiku";
+import { enrichContactsHebrewNames, enrichContactsHebrewNamesScheduled } from "@/inngest/functions/enrich-contacts-hebrew-names";
 import { sequenceStart } from "@/inngest/functions/sequence-start";
 import { sequenceTick } from "@/inngest/functions/sequence-tick";
 import { sequenceSendExecution } from "@/inngest/functions/sequence-send-execution";
@@ -21,8 +21,8 @@ export const { GET, POST, PUT } = serve({
     enrichContact,
     enrichCompanies,
     enrichCompaniesWeb,
-    enrichContactsHaiku,
-    enrichContactsHaikuScheduled,
+    enrichContactsHebrewNames,
+    enrichContactsHebrewNamesScheduled,
     sequenceStart,
     sequenceTick,
     sequenceSendExecution,

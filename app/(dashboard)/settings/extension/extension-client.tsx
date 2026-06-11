@@ -46,14 +46,16 @@ export function ExtensionClient({
     setBusy(false);
   }
 
+  const sessionId = session?.id ?? null;
+  const sessionRevoked = !!session?.revokedAt;
   useEffect(() => {
-    if (!session || session.revokedAt) return;
+    if (!sessionId || sessionRevoked) return;
     const interval = setInterval(async () => {
       const s = await fetch("/api/extension/sessions").then((r) => r.json());
       if (s.session) setSession(s.session);
     }, 3000);
     return () => clearInterval(interval);
-  }, [session?.id, session?.revokedAt]);
+  }, [sessionId, sessionRevoked]);
 
   async function copyToken(text: string) {
     await navigator.clipboard.writeText(text);

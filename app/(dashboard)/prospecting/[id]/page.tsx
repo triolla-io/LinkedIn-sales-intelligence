@@ -139,8 +139,8 @@ export default function ProspectingRunDetailPage({
               <div className="border-t border-[#e5e3df] pt-3">
                 <p className="text-xs font-semibold text-[#dc2626] mb-2">כשלים אחרונים</p>
                 <div className="space-y-1">
-                  {taskStats.recentFailures.map((f, i) => (
-                    <div key={i} className="flex items-center gap-2 text-xs">
+                  {taskStats.recentFailures.map((f) => (
+                    <div key={`${f.kind}-${f.at}`} className="flex items-center gap-2 text-xs">
                       <span className="text-[#9b9895] font-mono">{f.kind}</span>
                       <span className="font-mono text-[#dc2626] bg-[#fff3f3] px-1.5 py-0.5 rounded">{f.errorCode}</span>
                       {f.errorMessage && (

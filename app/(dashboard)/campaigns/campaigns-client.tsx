@@ -263,7 +263,7 @@ export default function CampaignsClient({
       )}
 
       {deletingSeq && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => { setDeletingSeq(null); setDeleteError(null); }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" aria-hidden="true" onClick={() => { setDeletingSeq(null); setDeleteError(null); }}>
           <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-sm font-semibold text-[#111110] mb-1">מחיקת קמפיין</h2>
             <p className="text-sm text-[#6b6866] mb-3">

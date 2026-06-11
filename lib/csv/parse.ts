@@ -48,7 +48,7 @@ export function parseCsvLine(line: string): string[] {
 }
 
 /** Convert an uploaded file to { header, rows } regardless of CSV/XLSX format. */
-export async function parseFile(file: File): Promise<{ header: string[]; rows: string[][] }> {
+async function parseFile(file: File): Promise<{ header: string[]; rows: string[][] }> {
   const isXlsx = file.name.endsWith(".xlsx") || file.name.endsWith(".xls") ||
     file.type.includes("spreadsheet") || file.type.includes("excel");
 

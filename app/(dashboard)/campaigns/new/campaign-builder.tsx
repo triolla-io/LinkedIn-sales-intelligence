@@ -200,8 +200,9 @@ export default function CampaignBuilder({
 
       <section className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">שם הקמפיין *</label>
+          <label htmlFor="campaign-name" className="block text-sm font-medium text-gray-700 mb-1">שם הקמפיין *</label>
           <input
+            id="campaign-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -210,10 +211,11 @@ export default function CampaignBuilder({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="contact-list" className="block text-sm font-medium text-gray-700 mb-1">
             רשימה מקושרת <span className="text-gray-400">(אופציונלי)</span>
           </label>
           <select
+            id="contact-list"
             value={contactListId}
             onChange={(e) => setContactListId(e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -252,6 +254,7 @@ export default function CampaignBuilder({
                 {!isActive && (
                   <div className="flex items-center gap-1">
                     <button
+                      type="button"
                       onClick={() => moveStep(step.localId, "up")}
                       disabled={idx === 0}
                       className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
@@ -259,6 +262,7 @@ export default function CampaignBuilder({
                       <ChevronUp size={16} />
                     </button>
                     <button
+                      type="button"
                       onClick={() => moveStep(step.localId, "down")}
                       disabled={idx === steps.length - 1}
                       className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
@@ -267,6 +271,7 @@ export default function CampaignBuilder({
                     </button>
                     {steps.length > 1 && (
                       <button
+                        type="button"
                         onClick={() => removeStep(step.localId)}
                         className="p-1 rounded hover:bg-red-50 text-red-500"
                       >
@@ -279,8 +284,9 @@ export default function CampaignBuilder({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">ערוץ</label>
+                  <label htmlFor={`step-channel-${step.localId}`} className="block text-xs text-gray-500 mb-1">ערוץ</label>
                   <select
+                    id={`step-channel-${step.localId}`}
                     value={step.channel}
                     disabled={isActive}
                     onChange={(e) =>
@@ -300,8 +306,9 @@ export default function CampaignBuilder({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">תבנית *</label>
+                  <label htmlFor={`step-template-${step.localId}`} className="block text-xs text-gray-500 mb-1">תבנית *</label>
                   <select
+                    id={`step-template-${step.localId}`}
                     value={step.templateId}
                     disabled={isActive}
                     onChange={(e) => updateStep(step.localId, { templateId: e.target.value })}
@@ -319,8 +326,10 @@ export default function CampaignBuilder({
 
               {step.channel === "EMAIL" && (
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">נושא המייל *</label>
+                  <label htmlFor={`step-subject-${step.localId}`} className="block text-xs text-gray-500 mb-1">נושא המייל *</label>
                   <input
+                    id={`step-subject-${step.localId}`}
+                    aria-label="נושא המייל"
                     type="text"
                     value={step.subject}
                     disabled={isActive}
@@ -333,8 +342,10 @@ export default function CampaignBuilder({
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">אחרי כמה ימים</label>
+                  <label htmlFor={`step-day-offset-${step.localId}`} className="block text-xs text-gray-500 mb-1">אחרי כמה ימים</label>
                   <input
+                    id={`step-day-offset-${step.localId}`}
+                    aria-label="אחרי כמה ימים"
                     type="number"
                     min={0}
                     value={step.dayOffset}
@@ -346,8 +357,10 @@ export default function CampaignBuilder({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">שעת התחלה</label>
+                  <label htmlFor={`step-send-hour-${step.localId}`} className="block text-xs text-gray-500 mb-1">שעת התחלה</label>
                   <input
+                    id={`step-send-hour-${step.localId}`}
+                    aria-label="שעת התחלה"
                     type="number"
                     min={0}
                     max={23}
@@ -360,8 +373,10 @@ export default function CampaignBuilder({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">שעת סיום</label>
+                  <label htmlFor={`step-send-hour-end-${step.localId}`} className="block text-xs text-gray-500 mb-1">שעת סיום</label>
                   <input
+                    id={`step-send-hour-end-${step.localId}`}
+                    aria-label="שעת סיום"
                     type="number"
                     min={0}
                     max={23}
@@ -382,6 +397,7 @@ export default function CampaignBuilder({
 
         {!isActive && (
           <button
+            type="button"
             onClick={addStep}
             className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
@@ -399,6 +415,7 @@ export default function CampaignBuilder({
 
       <div className="flex gap-3">
         <button
+          type="button"
           onClick={() => save(false)}
           disabled={saving}
           className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
@@ -406,6 +423,7 @@ export default function CampaignBuilder({
           {saving ? "שומר..." : "שמור כטיוטה"}
         </button>
         <button
+          type="button"
           onClick={() => save(true)}
           disabled={saving || (!!sequenceId && isActive)}
           className="flex-1 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
@@ -413,6 +431,7 @@ export default function CampaignBuilder({
           {saving ? "מפעיל..." : sequenceId && !isActive ? "עדכן והפעל" : "שמור והפעל"}
         </button>
         <button
+          type="button"
           onClick={() => router.back()}
           disabled={saving}
           className="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"

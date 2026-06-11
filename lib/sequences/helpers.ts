@@ -68,9 +68,7 @@ export function parseSteps(input: unknown): ParsedStep[] | null {
   return steps;
 }
 
-export { SAFE_GAP_MIN };
-
-export function computeSpacedScheduledAt(
+function computeSpacedScheduledAt(
   enrolledAt: Date,
   step: { dayOffset: number; sendHour: number; sendMinute: number; sendHourEnd: number | null },
   indexInWindow: number,

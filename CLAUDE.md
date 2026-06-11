@@ -25,7 +25,7 @@ Use HeroUI (`@heroui/react`) for all React components.
 | Event | Trigger | Function file |
 |---|---|---|
 | `enrich.contact` | manual / bulk trigger | `inngest/functions/enrich-contact.ts` |
-| `contacts.enrich-haiku` | after CSV import | `inngest/functions/enrich-contacts-haiku.ts` |
+| `contacts.enrich-hebrew-names` | after CSV import | `inngest/functions/enrich-contacts-hebrew-names.ts` |
 | `companies.enrich` | after sync | `inngest/functions/enrich-companies.ts` |
 | `companies.enrich-web` | after CSV import | `inngest/functions/enrich-companies-web.ts` |
 | `campaign.start` | campaign start API | `inngest/functions/campaign-start.ts` |

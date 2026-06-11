@@ -514,8 +514,7 @@ export default function ImportPage() {
       }
     })();
     return () => { controller.abort(); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [pollJob]);
 
   const upload = useCallback(async (file: File, updateOnly: boolean) => {
     // Abort any previous poll (e.g. mount re-attach) before starting a new upload.

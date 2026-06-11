@@ -30,14 +30,20 @@ export const importProcess = inngest.createFunction(
     const { importJobId } = event.data as { importJobId: string; ownerId: string };
 
     const job = await step.run("load-job", () =>
-      prisma.importJob.findUnique({ where: { id: importJobId } }),
+      prisma.importJob.findUnique({
+        where: { id: importJobId },
+        select: { status: true, ownerId: true, updateOnly: true, fileName: true },
+      }),
     );
     if (!job) return { skipped: "job-not-found" };
     if (job.status === "DONE") return { skipped: "already-done" };
 
     const userId: string = job.ownerId;
     const updateOnly: boolean = job.updateOnly;
-    const contacts = job.payload as unknown as ParsedContact[];
+
+    // Fetch payload outside a step to avoid bloating step output with thousands of contacts.
+    const rawJob = await prisma.importJob.findUnique({ where: { id: importJobId }, select: { payload: true } });
+    const contacts = (rawJob?.payload ?? []) as unknown as ParsedContact[];
 
     const prep = await step.run("prepare-diff", async () => {
       await prisma.importJob.update({
@@ -236,8 +242,8 @@ export const importProcess = inngest.createFunction(
       } else {
         console.error("[import-process] no orgId for user", userId, "— skipping company enrichment");
       }
-      await inngest.send({ name: "contacts.enrich-haiku" as const, data: { ownerId: userId } })
-        .catch((e) => console.error("[import-process] enrich-haiku send failed", e));
+      await inngest.send({ name: "contacts.enrich-hebrew-names" as const, data: { ownerId: userId } })
+        .catch((e) => console.error("[import-process] enrich-hebrew-names send failed", e));
     });
 
     return { processed: contacts.length, companies: companyResult.companies };

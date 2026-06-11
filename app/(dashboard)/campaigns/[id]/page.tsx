@@ -35,18 +35,19 @@ export default async function CampaignDetailPage({
 
   if (!sequence) notFound();
 
-  const extensionSession = await prisma.extensionSession.findFirst({
-    where: { userId, revokedAt: null },
-    orderBy: { lastSeenAt: "desc" },
-    select: { lastSeenAt: true },
-  });
-
-  const contacts = await prisma.contact.findMany({
-    where: { ownerId: userId },
-    select: { id: true, fullName: true, currentTitle: true, currentCompany: true },
-    orderBy: { fullName: "asc" },
-    take: 500,
-  });
+  const [extensionSession, contacts] = await Promise.all([
+    prisma.extensionSession.findFirst({
+      where: { userId, revokedAt: null },
+      orderBy: { lastSeenAt: "desc" },
+      select: { lastSeenAt: true },
+    }),
+    prisma.contact.findMany({
+      where: { ownerId: userId },
+      select: { id: true, fullName: true, currentTitle: true, currentCompany: true },
+      orderBy: { fullName: "asc" },
+      take: 500,
+    }),
+  ]);
 
   return (
     <CampaignDetailClient

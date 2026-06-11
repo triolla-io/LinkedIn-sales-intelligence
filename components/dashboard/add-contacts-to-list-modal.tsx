@@ -19,44 +19,28 @@ interface AddContactsToListModalProps {
   onAdded: (count: number) => void;
 }
 
-export default function AddContactsToListModal({
-  open,
-  onClose,
+function ModalContent({
   listId,
+  onClose,
   onAdded,
-}: AddContactsToListModalProps) {
+}: Omit<AddContactsToListModalProps, "open">) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ContactResult[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [searching, setSearching] = useState(false);
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Reset state on open
   useEffect(() => {
-    if (open) {
-      setQuery("");
-      setResults([]);
-      setSelected(new Set());
-      setSearching(false);
-      setAdding(false);
-      setAddError(null);
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [open]);
+    const id = setTimeout(() => inputRef.current?.focus(), 50);
+    return () => clearTimeout(id);
+  }, []);
 
-  // Debounced search
   useEffect(() => {
-    clearTimeout(debounceRef.current);
-    if (!query.trim()) {
-      setResults([]);
-      setSearching(false);
-      return;
-    }
-    setSearching(true);
-    debounceRef.current = setTimeout(async () => {
+    if (!query.trim()) return;
+    const id = setTimeout(async () => {
+      setSearching(true);
       try {
         const res = await fetch(
           `/api/contacts/search?q=${encodeURIComponent(query)}&excludeListId=${listId}&limit=20`
@@ -68,8 +52,10 @@ export default function AddContactsToListModal({
         setSearching(false);
       }
     }, 300);
-    return () => clearTimeout(debounceRef.current);
+    return () => clearTimeout(id);
   }, [query, listId]);
+
+  const displayedResults = query.trim() ? results : [];
 
   function toggleContact(id: string) {
     setSelected((prev) => {
@@ -100,9 +86,7 @@ export default function AddContactsToListModal({
     }
   }
 
-  if (!open) return null;
-
-  return createPortal(
+  return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
       <div className="bg-white rounded-xl border border-[#e5e3df] shadow-2xl shadow-black/10 w-full max-w-md mx-4 flex flex-col overflow-hidden">
         {/* Header */}
@@ -112,6 +96,7 @@ export default function AddContactsToListModal({
             <span className="text-sm font-semibold text-[#111110]">הוסף אנשי קשר לרשימה</span>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="text-[#9b9895] hover:text-[#6b6866] transition-colors"
           >
@@ -123,6 +108,7 @@ export default function AddContactsToListModal({
         <div className="px-4 pt-3 pb-2">
           <input
             ref={inputRef}
+            aria-label="חיפוש אנשי קשר"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="חפש לפי שם או אימייל…"
@@ -140,15 +126,16 @@ export default function AddContactsToListModal({
           {!searching && query.trim() === "" && (
             <p className="text-xs text-[#9b9895] text-center py-8">חפש אנשי קשר להוספה</p>
           )}
-          {!searching && query.trim() !== "" && results.length === 0 && (
+          {!searching && query.trim() !== "" && displayedResults.length === 0 && (
             <p className="text-xs text-[#9b9895] text-center py-8">לא נמצאו אנשי קשר</p>
           )}
           {!searching &&
-            results.map((contact) => {
+            displayedResults.map((contact) => {
               const isSelected = selected.has(contact.id);
               return (
                 <button
                   key={contact.id}
+                  type="button"
                   onClick={() => toggleContact(contact.id)}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 text-right transition-colors ${
                     isSelected ? "bg-[#1585ff]/5" : "hover:bg-[#f8f7f5]"
@@ -188,12 +175,14 @@ export default function AddContactsToListModal({
           )}
           <div className="flex items-center justify-between gap-2">
             <button
+              type="button"
               onClick={onClose}
               className="px-3 py-1.5 text-xs font-medium text-[#6b6866] hover:text-[#111110] transition-colors"
             >
               ביטול
             </button>
             <button
+              type="button"
               onClick={handleAdd}
               disabled={selected.size === 0 || adding}
               className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors disabled:opacity-40"
@@ -208,7 +197,14 @@ export default function AddContactsToListModal({
           </div>
         </div>
       </div>
-    </div>,
-    document.body
+    </div>
   );
+}
+
+export default function AddContactsToListModal({
+  open,
+  ...props
+}: AddContactsToListModalProps) {
+  if (!open) return null;
+  return createPortal(<ModalContent {...props} />, document.body);
 }

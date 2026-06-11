@@ -189,7 +189,7 @@ export default function ProspectingPage() {
                   <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">סטטוס</th>
                   <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">נמצאו / נשלחו</th>
                   <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">מכסה (יום / שבוע)</th>
-                  <th className="px-4 py-2.5" />
+                  <th className="px-4 py-2.5" aria-label="פעולות" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e5e3df]">
