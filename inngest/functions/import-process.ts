@@ -18,12 +18,11 @@ export const importProcess = inngest.createFunction(
     retries: 2,
     onFailure: async ({ event }: any) => {
       const importJobId = event?.data?.event?.data?.importJobId as string | undefined;
-      if (!importJobId) {
-        console.error("[import-process] onFailure: could not resolve importJobId from event", JSON.stringify(event?.data?.event?.data));
-        return;
-      }
+      const errorMessage: string = event?.data?.error?.message ?? "Import failed after retries";
+      console.error("[import-process] onFailure", { importJobId, error: errorMessage, stack: event?.data?.error?.stack });
+      if (!importJobId) return;
       await prisma.importJob
-        .update({ where: { id: importJobId }, data: { status: "ERROR", error: "Import failed after retries" } })
+        .update({ where: { id: importJobId }, data: { status: "ERROR", error: errorMessage } })
         .catch(() => {});
     },
   },
@@ -61,31 +60,35 @@ export const importProcess = inngest.createFunction(
       }));
       const diff = diffContacts(existingMap, incoming);
 
-      const orgId = (await prisma.user.findUnique({ where: { id: userId }, select: { orgId: true } }))?.orgId ?? null;
-      const normalizedUrlList = contacts.map((c) => normalizeLinkedinUrl(c.linkedinUrl));
-      const cached = orgId ? await prisma.personEnrichment.findMany({
-        where: { orgId, linkedinUrlNormalized: { in: normalizedUrlList } },
-        select: { linkedinUrlNormalized: true, email: true, phone: true },
-      }) : [];
-
-      const unchangedUrns = new Set(diff.unchanged);
-      const toUpsertCount = contacts.filter((c) => !unchangedUrns.has(c.linkedinUrn)).length;
+      const toUpsertCount = contacts.length - diff.unchanged.length;
       await prisma.importJob.update({
         where: { id: importJobId },
         data: { total: toUpsertCount, processed: 0 },
       });
 
-      return { diff, cached };
+      // Return only counts — large URN arrays and enrichment records would exceed
+      // Inngest's step output size limit for big imports.
+      return {
+        added: diff.added.length,
+        updated: diff.updated.length,
+        unchanged: diff.unchanged.length,
+        removed: diff.removed.length,
+      };
     });
 
+    // Re-query enrichment cache outside the step to avoid bloating step output.
+    const orgId = (await prisma.user.findUnique({ where: { id: userId }, select: { orgId: true } }))?.orgId ?? null;
+    const normalizedUrlList = contacts.map((c) => normalizeLinkedinUrl(c.linkedinUrl));
+    const cachedEnrichments = orgId ? await prisma.personEnrichment.findMany({
+      where: { orgId, linkedinUrlNormalized: { in: normalizedUrlList } },
+      select: { linkedinUrlNormalized: true, email: true, phone: true },
+    }) : [];
     const enrichmentCacheMap = new Map<string, { linkedinUrlNormalized: string; email: string | null; phone: string | null }>(
-      prep.cached.map((e: any) => [e.linkedinUrlNormalized, e]),
+      cachedEnrichments.map((e) => [e.linkedinUrlNormalized, e]),
     );
-    const unchangedSet = new Set<string>(prep.diff.unchanged);
-    const toUpsert = contacts.filter((c) => !unchangedSet.has(c.linkedinUrn));
 
-    for (let i = 0; i < toUpsert.length; i += UPSERT_BATCH) {
-      const batch = toUpsert.slice(i, i + UPSERT_BATCH);
+    for (let i = 0; i < contacts.length; i += UPSERT_BATCH) {
+      const batch = contacts.slice(i, i + UPSERT_BATCH);
       await step.run(`upsert-${i}`, async () => {
         await Promise.all(batch.map(async (c) => {
           const classified = classify(c.currentTitle ?? "");
@@ -130,10 +133,11 @@ export const importProcess = inngest.createFunction(
       });
     }
 
-    if (!updateOnly && prep.diff.removed.length > 0) {
+    if (!updateOnly && prep.removed > 0) {
+      const importedUrns = contacts.map((c) => c.linkedinUrn);
       await step.run("soft-remove", () =>
         prisma.contact.updateMany({
-          where: { ownerId: userId, linkedinUrn: { in: prep.diff.removed } },
+          where: { ownerId: userId, linkedinUrn: { notIn: importedUrns }, removedAt: null },
           data: { removedAt: new Date() },
         }),
       );
@@ -210,8 +214,8 @@ export const importProcess = inngest.createFunction(
       await prisma.import.create({
         data: {
           ownerId: userId, fileName: job.fileName, totalRows: contacts.length,
-          added: prep.diff.added.length, updated: prep.diff.updated.length,
-          removed: updateOnly ? 0 : prep.diff.removed.length,
+          added: prep.added, updated: prep.updated,
+          removed: updateOnly ? 0 : prep.removed,
           companies: companyResult.companies, newCompanies: companyResult.newCompanies,
         },
       });
@@ -219,9 +223,9 @@ export const importProcess = inngest.createFunction(
       await prisma.importJob.update({
         where: { id: importJobId },
         data: {
-          status: "DONE", stage: "done", processed: toUpsert.length, payload: [],
-          added: prep.diff.added.length, updated: prep.diff.updated.length,
-          removed: updateOnly ? 0 : prep.diff.removed.length, unchanged: prep.diff.unchanged.length,
+          status: "DONE", stage: "done", processed: contacts.length, payload: [],
+          added: prep.added, updated: prep.updated,
+          removed: updateOnly ? 0 : prep.removed, unchanged: prep.unchanged,
           companies: companyResult.companies, newCompanies: companyResult.newCompanies,
         },
       });
@@ -236,6 +240,6 @@ export const importProcess = inngest.createFunction(
         .catch((e) => console.error("[import-process] enrich-haiku send failed", e));
     });
 
-    return { processed: toUpsert.length, companies: companyResult.companies };
+    return { processed: contacts.length, companies: companyResult.companies };
   },
 );
