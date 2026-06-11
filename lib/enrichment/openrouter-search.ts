@@ -13,6 +13,7 @@
 export type WebEnrichResult = {
   staffCount: number | null;
   industry: string | null;
+  vertical: string | null;
   website: string | null;
   description: string | null;
   confidence: "high" | "low" | "none";
@@ -24,12 +25,15 @@ Return strict JSON only — no prose, no markdown fences. Exact shape:
 {
   "staffCount": number or null,
   "industry": string or null,
+  "vertical": string or null,
   "website": string or null,
   "description": string or null,
   "confidence": "high" | "low" | "none"
 }
 Use "high" when you're confident, "low" when uncertain, "none" if you don't recognise the company.
-staffCount must be a realistic integer (e.g. 4500) or null. Industry should be a short English string like "Cybersecurity", "Financial Services", "Recruiting".`;
+staffCount must be a realistic integer (e.g. 4500) or null.
+industry should be a short English string like "Cybersecurity", "Financial Services", "Recruiting".
+vertical should be a single broad market vertical in English: one of "Cybersecurity", "Fintech", "Healthcare", "Gaming", "E-commerce", "SaaS", "Media", "Real Estate", "Legal", "Education", "Manufacturing", "Logistics", "HR Tech", "Marketing Tech", "Dev Tools", or another concise label if none fit. Return null if unknown.`;
 
 const USER = (name: string) =>
   `Company name: "${name}"\n\nFill in staffCount, industry, website, description, confidence.`;
@@ -46,6 +50,7 @@ function tryParseJson(text: string): WebEnrichResult | null {
     return {
       staffCount,
       industry: typeof parsed.industry === "string" ? parsed.industry : null,
+      vertical: typeof parsed.vertical === "string" ? parsed.vertical.slice(0, 100) : null,
       website: typeof parsed.website === "string" ? parsed.website : null,
       description: typeof parsed.description === "string" ? parsed.description.slice(0, 500) : null,
       confidence:
@@ -62,7 +67,7 @@ export function isOpenRouterConfigured(): boolean {
 }
 
 export async function enrichCompanyViaOpenRouter(name: string): Promise<WebEnrichResult> {
-  const empty: WebEnrichResult = { staffCount: null, industry: null, website: null, description: null, confidence: "none" };
+  const empty: WebEnrichResult = { staffCount: null, industry: null, vertical: null, website: null, description: null, confidence: "none" };
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return empty;
@@ -88,7 +93,7 @@ export async function enrichCompanyViaOpenRouter(name: string): Promise<WebEnric
           { role: "user", content: USER(name) },
         ],
         temperature: 0,
-        max_tokens: 256,
+        max_tokens: 320,
         response_format: { type: "json_object" },
       }),
     });
