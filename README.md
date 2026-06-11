@@ -42,14 +42,14 @@ Built for small sales teams (1–10 people) at Israeli B2B companies.
 │  API Routes  (/api/*)  — all wrapped in withTenant()     │
 ├──────────────────────────────────────────────────────────┤
 │  Background Jobs  (Inngest)                               │
-│  enrich-contact · enrich-contacts-haiku                  │
+│  enrich-contact · enrich-contacts-hebrew-names            │
 │  enrich-companies · enrich-companies-web                 │
 │  campaign-start · campaign-send-one · campaign-finalize  │
 │  sequence-start · sequence-tick · sequence-send-execution│
 ├──────────────────────────────────────────────────────────┤
 │  Service Clients  (lib/)                                  │
 │  Apollo · HubSpot · Gmail · WhatsApp sidecar             │
-│  LinkedIn Voyager · Gemini search · Claude Haiku         │
+│  LinkedIn Voyager · OpenRouter (deepseek-chat)            │
 ├──────────────────────────────────────────────────────────┤
 │  Tenancy  — withTenant() + scopedPrisma()                │
 ├──────────────────────────────────────────────────────────┤
@@ -117,7 +117,7 @@ Organization
    - [`PersonEnrichment`](prisma/schema.prisma) cache checked (org-scoped, free)
    - HubSpot lookup via [`lib/hubspot/client.ts`](lib/hubspot/client.ts) if no cache hit
 5. Company stubs created + contacts linked by `universalName` slug
-6. Inngest events fired: `contacts.enrich-haiku`, `companies.enrich-web`
+6. Inngest events fired: `contacts.enrich-hebrew-names`, `companies.enrich-web`
 7. Import history record created
 
 ### 2. Enrichment Pipeline
@@ -128,8 +128,8 @@ Manual enrich button (not fired on CSV import)
        ├─ 1. PersonEnrichment cache  — free, org-scoped
        ├─ 2. HubSpot matchPerson     — free
        └─ 3. Apollo matchPerson      — 1 credit, budget-gated per org/month
-  └─ enrich-contacts-haiku  (inngest/functions/enrich-contacts-haiku.ts)
-       └─ Gemini → hebrewFirstName field
+  └─ enrich-contacts-hebrew-names  (inngest/functions/enrich-contacts-hebrew-names.ts)
+       └─ OpenRouter → hebrewFirstName field
   └─ enrich-companies-web  (inngest/functions/enrich-companies-web.ts)
        └─ Gemini web search → staffCount, website, description
 ```

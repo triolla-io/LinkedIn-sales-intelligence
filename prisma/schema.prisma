@@ -327,6 +327,7 @@ model Company {
   universalName  String    @unique // slug used to look up via Voyager (e.g. "microsoft")
   name           String
   industry       String?
+  vertical       String?
   staffCount     Int? // exact headcount from Voyager (e.g. 231227)
   website        String?
   description    String?   @db.Text
