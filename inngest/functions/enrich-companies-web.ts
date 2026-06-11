@@ -73,7 +73,7 @@ export const enrichCompaniesWeb = inngest.createFunction(
                 const result = await enrichCompanyViaOpenRouter(company.name || company.universalName);
                 if (
                   result.confidence !== "none" &&
-                  (result.staffCount != null || result.industry || result.description)
+                  (result.staffCount != null || result.industry || result.vertical || result.description)
                 ) {
                   const result_data = await prisma.company.update({
                     where: { id: company.id },
