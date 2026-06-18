@@ -6,6 +6,7 @@ import { slugifyCompany } from "@/lib/utils/slug-utils";
 import { diffContacts, type IncomingContact } from "@/lib/csv/diff";
 import { lookupContact } from "@/lib/hubspot/client";
 import { normalizeLinkedinUrl, type ParsedContact } from "@/lib/csv/parse";
+import { toIsraeliE164 } from "@/lib/phone/normalize";
 
 const UPSERT_BATCH = 25;
 
@@ -107,7 +108,8 @@ export const importProcess = inngest.createFunction(
             linkedinUrl: c.linkedinUrl, fullName: c.fullName, company: c.currentCompany ?? undefined,
           });
           const email = c.email ?? cacheHit?.email ?? hubspot?.email ?? null;
-          const phone = c.phone ?? cacheHit?.phone ?? hubspot?.phone ?? null;
+          const rawPhone = c.phone ?? cacheHit?.phone ?? hubspot?.phone ?? null;
+          const phone = rawPhone ? (toIsraeliE164(rawPhone) ?? rawPhone) : null;
           const enrichmentFields = cacheHit?.email || cacheHit?.phone
             ? { enrichmentSource: "cache", enrichmentRanAt: new Date(), enrichmentError: null }
             : hubspot?.email || hubspot?.phone

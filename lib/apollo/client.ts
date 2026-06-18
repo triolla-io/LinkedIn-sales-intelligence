@@ -1,15 +1,14 @@
+import { toIsraeliE164 } from "@/lib/phone/normalize";
+
 /**
  * Apollo sometimes returns Israeli numbers with a "+1" prefix instead of "+972"
- * (e.g. "+10506463464" instead of "+972506463464"). This is safe to fix because
- * no valid NANP number has "0" as the first digit of the area code.
+ * (e.g. "+10506463464"). Delegate to the canonical normalizer, which repairs
+ * that and emits E.164. Falls back to the raw value if it can't be parsed, so we
+ * never drop a number we don't understand.
  */
 export function normalizeApolloPhone(phone: string | undefined): string | undefined {
   if (!phone) return phone;
-  // +10XXXXXXXXX → +9720XXXXXXXXX (Israeli mobile/landline, wrong +1 prefix)
-  if (/^\+10\d{8,10}$/.test(phone)) {
-    return "+972" + phone.slice(2); // strip "+1", prepend "+972"
-  }
-  return phone;
+  return toIsraeliE164(phone) ?? phone;
 }
 
 const APOLLO_HEADERS = () => ({
