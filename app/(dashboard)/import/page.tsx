@@ -52,6 +52,7 @@ type State = {
   progress: number;
   progressTotal: number;
   updateOnly: boolean;
+  jobId: string;
 };
 
 function StatCard({
@@ -170,12 +171,16 @@ function LinkedInImportSection({
   onFileChange,
   onDrop,
   dispatch,
+  onCancel,
+  stuck,
 }: {
   s: Pick<State, "state" | "result" | "errorMsg" | "fileName" | "progress" | "progressTotal" | "updateOnly">;
   inputRef: RefObject<HTMLInputElement | null>;
   onFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onDrop: (e: React.DragEvent) => void;
   dispatch: Dispatch<Partial<State>>;
+  onCancel: () => void;
+  stuck: boolean;
 }) {
   return (
     <>
@@ -244,6 +249,18 @@ function LinkedInImportSection({
             ) : (
               <p className="text-xs text-[#6b6866] mt-1">מנתח קובץ…</p>
             )}
+            {stuck && (
+              <p className="text-xs text-amber-600 mt-3">
+                הייבוא לוקח יותר מהצפוי. אפשר לבטל ולהעלות מחדש.
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={onCancel}
+              className="mt-3 text-xs text-[#6b6866] hover:text-red-500 hover:underline transition-colors"
+            >
+              ביטול והעלאה מחדש
+            </button>
           </div>
         </div>
       )}
@@ -444,6 +461,7 @@ export default function ImportPage() {
       progress: 0,
       progressTotal: 0,
       updateOnly: false,
+      jobId: "",
     },
   );
 
@@ -504,7 +522,7 @@ export default function ImportPage() {
         if (!res.ok) return;
         const { job } = await res.json();
         if (job && !controller.signal.aborted) {
-          dispatch({ fileName: job.fileName, state: "uploading", progress: job.processed ?? 0, progressTotal: job.total ?? 0 });
+          dispatch({ fileName: job.fileName, state: "uploading", progress: job.processed ?? 0, progressTotal: job.total ?? 0, jobId: job.id });
           pollJob(job.id, controller.signal);
         }
       } catch (e: unknown) {
@@ -522,7 +540,7 @@ export default function ImportPage() {
     const controller = new AbortController();
     pollAbortRef.current = controller;
 
-    dispatch({ fileName: file.name, state: "uploading", errorMsg: "", progress: 0, progressTotal: 0 });
+    dispatch({ fileName: file.name, state: "uploading", errorMsg: "", progress: 0, progressTotal: 0, jobId: "" });
     const form = new FormData();
     form.append("file", file);
     form.append("updateOnly", String(updateOnly));
@@ -539,8 +557,19 @@ export default function ImportPage() {
       dispatch({ errorMsg: "Network error. Please try again.", state: "error" });
       return;
     }
+    dispatch({ jobId });
     await pollJob(jobId, controller.signal);
   }, [pollJob]);
+
+  // User-initiated cancel: stop polling, free the active job server-side so
+  // re-upload is unblocked, and reset to idle. Never leaves the user trapped.
+  const cancel = useCallback(async () => {
+    pollAbortRef.current?.abort();
+    const id = s.jobId;
+    dispatch({ state: "idle", fileName: "", progress: 0, progressTotal: 0, jobId: "" });
+    if (inputRef.current) inputRef.current.value = "";
+    if (id) await fetch(`/api/import/jobs/${id}`, { method: "DELETE" }).catch(() => {});
+  }, [s.jobId]);
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
@@ -560,6 +589,20 @@ export default function ImportPage() {
     [upload, s.updateOnly],
   );
 
+  // Surface a "looks stuck" hint when progress hasn't moved for a while. The
+  // timers reset whenever progress changes or we leave the uploading state.
+  // setState happens only inside the timers (async) to avoid cascading renders.
+  const [stuck, setStuck] = useState(false);
+  useEffect(() => {
+    const reset = setTimeout(() => setStuck(false), 0);
+    if (s.state !== "uploading") return () => clearTimeout(reset);
+    const t = setTimeout(() => setStuck(true), 90_000);
+    return () => {
+      clearTimeout(reset);
+      clearTimeout(t);
+    };
+  }, [s.state, s.progress]);
+
   return (
     <div className="min-h-full bg-[#f6f5f3] p-8">
       <div className="max-w-2xl">
@@ -577,6 +620,8 @@ export default function ImportPage() {
           onFileChange={onFileChange}
           onDrop={onDrop}
           dispatch={dispatch}
+          onCancel={cancel}
+          stuck={stuck}
         />
 
         {s.state !== "uploading" && <BackgroundStatus />}
