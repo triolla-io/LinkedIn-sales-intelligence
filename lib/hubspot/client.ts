@@ -1,9 +1,10 @@
+import { toIsraeliE164 } from "@/lib/phone/normalize";
+
 const HUBSPOT_BASE = "https://api.hubapi.com";
 
 function normalizePhone(phone: string | undefined): string | undefined {
   if (!phone) return phone;
-  if (/^\+10\d{8,10}$/.test(phone)) return "+972" + phone.slice(2);
-  return phone;
+  return toIsraeliE164(phone) ?? phone;
 }
 
 function normalizeLinkedinUrl(url: string): string {
