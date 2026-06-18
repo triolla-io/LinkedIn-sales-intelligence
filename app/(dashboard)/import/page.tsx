@@ -84,7 +84,9 @@ function StatCard({
 function BackgroundStatus() {
   const [status, setStatus] = useState<{ pendingEnrichment: number; pendingCompanies: number; enrichmentConfigured?: boolean } | null>(null);
   const [retrying, setRetrying] = useState(false);
-  const stuckRef = useRef(0); // polls with same pendingCompanies value
+  const [isStuck, setIsStuck] = useState(false);
+  const stuckCountRef = useRef(0); // consecutive polls with the same pendingCompanies value
+  const prevPendingRef = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,14 +96,14 @@ function BackgroundStatus() {
         const res = await fetch("/api/import/status");
         if (!res.ok || cancelled) return;
         const data = await res.json();
-        setStatus((prev) => {
-          if (prev?.pendingCompanies === data.pendingCompanies && data.pendingCompanies > 0) {
-            stuckRef.current += 1;
-          } else {
-            stuckRef.current = 0;
-          }
-          return data;
-        });
+        if (prevPendingRef.current === data.pendingCompanies && data.pendingCompanies > 0) {
+          stuckCountRef.current += 1;
+        } else {
+          stuckCountRef.current = 0;
+        }
+        prevPendingRef.current = data.pendingCompanies;
+        setIsStuck(stuckCountRef.current >= 4); // ~32s with no change
+        setStatus(data);
         if (data.pendingEnrichment > 0 || data.pendingCompanies > 0) {
           timeoutId = setTimeout(poll, 8000);
         }
@@ -131,8 +133,6 @@ function BackgroundStatus() {
       </div>
     );
   }
-
-  const isStuck = stuckRef.current >= 4; // ~32s with no change
 
   return (
     <div className="mt-4 px-4 py-3 rounded-xl border border-[#e5e3df] bg-white flex items-start gap-3">
@@ -209,7 +209,7 @@ function LinkedInImportSection({
           <li>
             <span className="text-[#9b9895]">2.</span> בחר{" "}
             <strong className="text-[#111110]">
-              "Download larger data archive"
+              &quot;Download larger data archive&quot;
             </strong>{" "}
             → Request archive
           </li>
