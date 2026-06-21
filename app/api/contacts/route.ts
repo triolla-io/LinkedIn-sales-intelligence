@@ -30,6 +30,7 @@ const querySchema = z.object({
   page: z.coerce.number().min(1).optional(),
   pageSize: z.coerce.number().min(1).max(500).optional(),
   listId: z.string().optional(),
+  idsOnly: z.enum(["true", "false"]).optional(),
 });
 
 function parseArrayParam(raw: string | null): string[] | undefined {
@@ -56,6 +57,7 @@ export const GET = withTenant(async (req, ctx) => {
     page: url.searchParams.get("page") ?? undefined,
     pageSize: url.searchParams.get("pageSize") ?? undefined,
     listId: url.searchParams.get("listId") ?? undefined,
+    idsOnly: (url.searchParams.get("idsOnly") as "true" | "false") ?? undefined,
   };
 
   const parsed = querySchema.safeParse(raw);
@@ -132,6 +134,17 @@ export const GET = withTenant(async (req, ctx) => {
         }
       : {}),
   };
+
+  // IDs-only mode: return every matching contact id (across all pages) so the
+  // table's "select all" can operate on the full filtered result set.
+  if (params.idsOnly === "true") {
+    const rows = await prisma.contact.findMany({
+      where,
+      orderBy: [{ lastSyncedAt: "desc" as const }, { id: "desc" as const }],
+      select: { id: true },
+    });
+    return NextResponse.json({ ids: rows.map((r) => r.id) });
+  }
 
   const usePageBased = params.page !== undefined && params.pageSize !== undefined;
   const pgSize = params.pageSize ?? params.limit;

@@ -1,8 +1,6 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
-import { matchPerson } from "@/lib/apollo/client";
-import { checkBudget, incrementBudget } from "@/lib/apollo/budget";
-import { lookupContact } from "@/lib/hubspot/client";
+import { enrichContactCore } from "@/lib/enrichment/enrich-contact-core";
 
 export const enrichContact = inngest.createFunction(
   { id: "enrich-contact", triggers: [{ event: "enrich.contact" as const }] },
@@ -19,78 +17,28 @@ export const enrichContact = inngest.createFunction(
       return { contact: c, orgId: c.owner.orgId, monthlyApolloBudget: c.owner.org.monthlyApolloBudget };
     });
 
-    // Try HubSpot first — skip Apollo if we already have the data
-    const hubspotResult = await step.run("hubspot-lookup", async () => {
-      return lookupContact({
-        linkedinUrl: contact.linkedinUrl,
-        fullName: contact.fullName,
-        company: contact.currentCompany ?? undefined,
-      });
-    });
+    // Same cascade as the synchronous drawer route: HubSpot → cache → Apollo,
+    // with cache read+write and per-contact error capture. Runs inside a single
+    // step so Inngest retries the whole cascade atomically on transient failure.
+    const result = await step.run("enrich", () =>
+      enrichContactCore({ contact, orgId, monthlyApolloBudget })
+    );
 
-    if (hubspotResult?.email || hubspotResult?.phone) {
-      await step.run("save-hubspot-results", async () => {
-        const protected_ = new Set(contact.manualFields as string[]);
-        const patch: Record<string, unknown> = {
-          enrichedAt: new Date(),
-          enrichmentSource: "hubspot",
-          enrichmentRanAt: new Date(),
-          enrichmentError: null,
-          enrichmentLog: null,
-        };
-        if (!protected_.has("email") && hubspotResult.email)
-          patch.email = hubspotResult.email;
-        if (!protected_.has("phone") && hubspotResult.phone)
-          patch.phone = hubspotResult.phone;
-        await prisma.contact.update({ where: { id: contactId }, data: patch });
-      });
-
-      return {
-        contactId,
-        email: hubspotResult.email,
-        phone: hubspotResult.phone,
-        source: "hubspot",
-      };
+    if (result.status === "budget_exhausted") {
+      return { contactId, source: "none", skipped: "budget_exhausted" };
+    }
+    if (result.status === "apollo_error") {
+      // Error is persisted to contact.enrichmentError by the core and surfaces
+      // in the contact drawer; return it so it shows in the Inngest run log too.
+      return { contactId, source: "error", error: result.error };
     }
 
-    // HubSpot had nothing — check Apollo budget before calling Apollo
-    await step.run("check-apollo-budget", async () => {
-      const budget = await checkBudget(orgId, monthlyApolloBudget);
-      if (!budget.allowed) throw new Error("BUDGET_EXHAUSTED");
-    });
-
-    const result = await step.run("match-person", async () => {
-      return matchPerson({
-        name: contact.fullName,
-        company: contact.currentCompany ?? undefined,
-        linkedinUrl: contact.linkedinUrl ?? undefined,
-      });
-    });
-
-    await step.run("save-results", async () => {
-      const { email, phone, companySize, currentCompany, industry, raw } = result;
-      const protected_ = new Set(contact.manualFields as string[]);
-
-      const patch: Record<string, unknown> = {
-        enrichedAt: new Date(),
-        enrichmentSource: "apollo",
-        enrichmentRanAt: new Date(),
-        enrichmentError: null,
-        enrichmentLog: raw ?? null,
-      };
-      if (!protected_.has("email") && email) patch.email = email;
-      if (!protected_.has("phone") && phone) patch.phone = phone;
-      if (companySize) patch.companySize = companySize;
-      if (!protected_.has("currentCompany") && currentCompany && !contact.currentCompany)
-        patch.currentCompany = currentCompany;
-      if (!protected_.has("industry") && industry && !contact.industry)
-        patch.industry = industry;
-
-      await prisma.contact.update({ where: { id: contactId }, data: patch });
-      await incrementBudget(orgId);
-    });
-
-    const { email, phone, companySize } = result;
-    return { contactId, email, phone, companySize, source: "apollo" };
+    return {
+      contactId,
+      source: result.source,
+      email: result.email,
+      phone: result.phone,
+      companySize: result.companySize,
+    };
   }
 );

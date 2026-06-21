@@ -87,7 +87,7 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
       ref={dialogRef}
       onClose={onClose}
       aria-labelledby="create-contact-title"
-      className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-white rounded-xl shadow-2xl border border-[#e5e3df] flex flex-col max-h-[90vh] m-0 p-0 open:flex backdrop:bg-black/40"
+      className="fixed inset-0 m-auto z-50 w-full max-w-md h-fit bg-white rounded-xl shadow-2xl border border-[#e5e3df] flex flex-col max-h-[90vh] p-0 open:flex backdrop:bg-black/40"
     >
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e3df] shrink-0">
           <h3 id="create-contact-title" className="text-sm font-semibold text-[#111110]">

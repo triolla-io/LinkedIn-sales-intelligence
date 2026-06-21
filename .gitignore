@@ -70,3 +70,6 @@ db-backups/
 
 # superpowers plans & specs (keep local, new files won't be tracked)
 docs/superpowers/
+
+# local scratch / one-off operational scripts (never pushed)
+scratchpad/

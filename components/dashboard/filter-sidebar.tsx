@@ -48,6 +48,10 @@ const ROLE_PILLS: PillDef[] = [
 const INDUSTRY_PILLS = [
   "SaaS", "Fintech", "Healthcare", "Real Estate",
   "E-commerce", "Education", "Media", "Manufacturing",
+  "Legal", "Consulting", "Government & Nonprofit", "HR & Staffing",
+  "Energy", "Automotive", "Telecom", "Travel & Hospitality",
+  "Food & Beverage", "Agriculture", "Logistics", "Gaming",
+  "Other",
 ];
 
 function Section({
@@ -198,16 +202,16 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                 type="button"
                 aria-label="נקה חיפוש"
                 onClick={() => onChange({ ...filters, q: "" })}
-                className="absolute inset-s-3 top-1/2 -translate-y-1/2 z-10"
+                className="absolute inset-e-3 top-1/2 -translate-y-1/2 z-10"
               >
                 <X className="size-3.5 text-[#9b9895] hover:text-[#6b6866]" />
               </button>
             ) : (
-              <Search className="absolute inset-s-3 top-1/2 -translate-y-1/2 size-3.5 text-[#9b9895] pointer-events-none" />
+              <Search className="absolute inset-e-3 top-1/2 -translate-y-1/2 size-3.5 text-[#9b9895] pointer-events-none" />
             )}
             <Input
               placeholder="חיפוש אנשי קשר…"
-              className="w-full ps-9 pe-3 py-2 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+              className="w-full pe-9 ps-3 py-2 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
             />
           </div>
         </TextField>

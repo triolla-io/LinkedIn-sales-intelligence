@@ -28,11 +28,17 @@ export async function POST(req: NextRequest) {
     }
 
     const validIds = contacts.map((c) => c.id).slice(0, creditsRemaining);
+    // Contacts we couldn't queue because the org ran out of credits this month.
+    const skipped = contacts.length - validIds.length;
 
     await inngest.send(
       validIds.map((id) => ({ name: "enrich.contact" as const, data: { contactId: id, actorId: ctx.user.id } }))
     );
 
-    return NextResponse.json({ queued: validIds.length, creditsRemaining: creditsRemaining - validIds.length });
+    return NextResponse.json({
+      queued: validIds.length,
+      skipped,
+      creditsRemaining: creditsRemaining - validIds.length,
+    });
   })(req);
 }

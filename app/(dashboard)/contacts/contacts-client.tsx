@@ -43,6 +43,26 @@ function buildContactsUrl(filters: Filters, page: number, pageSize: number) {
   return `/api/contacts?${params.toString()}`;
 }
 
+function buildContactIdsUrl(filters: Filters) {
+  const params = new URLSearchParams();
+  if (filters.q) params.set("q", filters.q);
+  if (filters.seniority.length)
+    params.set("seniority", filters.seniority.join(","));
+  if (filters.function.length)
+    params.set("function", filters.function.join(","));
+  if (filters.titleSearch.length)
+    params.set("titleSearch", filters.titleSearch.join(","));
+  if (filters.industry.length)
+    params.set("industry", filters.industry.join(","));
+  if (filters.companySizeBuckets.length)
+    params.set("companySizeBuckets", filters.companySizeBuckets.join(","));
+  if (filters.hasEmail) params.set("hasEmail", "true");
+  if (filters.hasPhone) params.set("hasPhone", "true");
+  if (filters.listId) params.set("listId", filters.listId);
+  params.set("idsOnly", "true");
+  return `/api/contacts?${params.toString()}`;
+}
+
 
 type DataState = {
   contacts: Contact[];
@@ -203,6 +223,28 @@ export default function ContactsClient({
     }
   }
 
+  // Select-all: when the page isn't already fully selected, pull every matching
+  // contact id (all pages, current filters) so the selection spans the whole
+  // result set — not just the rows currently rendered.
+  async function handleSelectAll() {
+    const pageAllSelected =
+      contacts.length > 0 && contacts.every((c) => selectedIds.has(c.id));
+    if (pageAllSelected) {
+      setUiState((prev) => ({ ...prev, selectedIds: new Set() }));
+      return;
+    }
+    try {
+      const res = await fetch(buildContactIdsUrl(filters));
+      if (res.ok) {
+        const data = await res.json();
+        const ids: string[] = data.ids ?? [];
+        setUiState((prev) => ({ ...prev, selectedIds: new Set(ids) }));
+      }
+    } catch (e) {
+      console.error("Failed to select all contacts:", e);
+    }
+  }
+
   const totalPages = pageSize > 0 ? Math.ceil(total / pageSize) : 1;
   const selectedContacts = contacts.filter((c) => selectedIds.has(c.id));
 
@@ -259,13 +301,7 @@ export default function ContactsClient({
                   return { ...prev, selectedIds: next };
                 })
               }
-              onSelectAll={() =>
-                setUiState((prev) =>
-                  contacts.every((c) => prev.selectedIds.has(c.id))
-                    ? { ...prev, selectedIds: new Set() }
-                    : { ...prev, selectedIds: new Set(contacts.map((c) => c.id)) },
-                )
-              }
+              onSelectAll={handleSelectAll}
               onEnrich={handleEnrich}
               onOpenDrawer={(c) => setUiState((prev) => ({ ...prev, drawerContact: c }))}
               loading={loading}

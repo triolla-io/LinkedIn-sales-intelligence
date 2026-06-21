@@ -16,6 +16,7 @@ interface BulkEnrichBarProps {
 type State = {
   enriching: boolean;
   error: string | null;
+  notice: string | null;
   showConfirm: boolean;
   campaignOpen: boolean;
   showListPopover: boolean;
@@ -31,6 +32,7 @@ export default function BulkEnrichBar({
     {
       enriching: false,
       error: null,
+      notice: null,
       showConfirm: false,
       campaignOpen: false,
       showListPopover: false,
@@ -41,7 +43,7 @@ export default function BulkEnrichBar({
   const N = selectedIds.length;
 
   async function doEnrich() {
-    dispatch({ showConfirm: false, enriching: true, error: null });
+    dispatch({ showConfirm: false, enriching: true, error: null, notice: null });
     try {
       const res = await fetch("/api/contacts/bulk-enrich", {
         method: "POST",
@@ -52,6 +54,15 @@ export default function BulkEnrichBar({
         dispatch({ error: res.status === 402 ? "Credit limit reached" : "Enrichment failed" });
         return;
       }
+      const data = (await res.json().catch(() => ({}))) as { queued?: number; skipped?: number };
+      const queued = data.queued ?? 0;
+      const skipped = data.skipped ?? 0;
+      dispatch({
+        notice:
+          skipped > 0
+            ? `${queued} בתור להעשרה · ${skipped} דולגו (חריגה מתקציב הקרדיטים)`
+            : `${queued} בתור להעשרה ברקע`,
+      });
       onDone?.();
     } catch {
       dispatch({ error: "Network error" });
@@ -148,6 +159,9 @@ export default function BulkEnrichBar({
               </span>
               {state.error && (
                 <span className="text-xs text-red-500 font-mono">{state.error}</span>
+              )}
+              {state.notice && !state.enriching && (
+                <span className="text-xs text-amber-600 font-mono">{state.notice}</span>
               )}
               {state.enriching && (
                 <span className="flex items-center gap-1.5 text-xs text-[#9b9895]">
