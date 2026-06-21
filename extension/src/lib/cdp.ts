@@ -241,6 +241,35 @@ export async function typeIntoCompose(tabId: number, text: string): Promise<bool
   return true;
 }
 
+// Diagnostic snapshot of the page state when a compose step fails. Captures where the
+// tab actually is and which candidate editables exist, so we can tell a navigation
+// race (still on the profile / wrong page) apart from a missing compose box.
+export async function composeDiag(tabId: number): Promise<Record<string, unknown>> {
+  const r = await send<{ result: { value: Record<string, unknown> } }>(tabId, "Runtime.evaluate", {
+    expression: `(function() {
+      const countDeep = (sel) => {
+        let n = 0;
+        const walk = (root) => {
+          n += root.querySelectorAll(sel).length;
+          for (const el of root.querySelectorAll('*')) if (el.shadowRoot) walk(el.shadowRoot);
+        };
+        try { walk(document); } catch (e) {}
+        return n;
+      };
+      return {
+        href: location.href,
+        readyState: document.readyState,
+        title: document.title,
+        msgForm: countDeep('div.msg-form__contenteditable[contenteditable]'),
+        textbox: countDeep('[role="textbox"][contenteditable]'),
+        anyEditable: countDeep('[contenteditable="true"]'),
+      };
+    })()`,
+    returnByValue: true,
+  });
+  return r?.result?.value ?? { diag: "eval_failed" };
+}
+
 // Click the Send button inside LinkedIn's shadow DOM compose
 export async function clickSendButton(tabId: number): Promise<boolean> {
   const result = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {

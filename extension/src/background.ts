@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, clickSendButton, closeAllComposeOverlays, clickModalClose, getComposeUrl, typeIntoCompose, takeScreenshot, scrollBy, scanButtons, send, openTabInAutomationWindow, closeStaleAutomationWindow } from "./lib/cdp";
+import { attach, detach, click, clickSendButton, closeAllComposeOverlays, clickModalClose, getComposeUrl, typeIntoCompose, composeDiag, takeScreenshot, scrollBy, scanButtons, send, openTabInAutomationWindow, closeStaleAutomationWindow } from "./lib/cdp";
 import { PROFILE_STATE_FN_SOURCE } from "./lib/dom-detect";
 
 // ---------- Shared types ----------
@@ -201,11 +201,21 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     await waitForTabLoad(tabId);
     await sleep(2500);
 
+    // DIAGNOSTIC: capture where the tab actually landed after navigating to the compose
+    // URL, so we can distinguish a navigation race (still on profile) from a missing box.
+    const navDiag = await composeDiag(tabId);
+    console.log("[agent] post-nav diag:", navDiag);
+
     // Phase 2: type the message with CDP Input.insertText (triggers React onChange).
     // The full messaging page has a stable contenteditable — no retries needed.
     const typed = await typeIntoCompose(tabId, text);
     console.log("[agent] typeIntoCompose:", typed);
-    if (!typed) throw withCode(new Error("compose_insert_failed"), "compose_insert_failed");
+    if (!typed) {
+      throw withCode(
+        new Error(`compose_insert_failed diag=${JSON.stringify(navDiag)}`),
+        "compose_insert_failed",
+      );
+    }
     await sleep(600);
 
     // Phase 3: click Send button (enabled after proper typing).
