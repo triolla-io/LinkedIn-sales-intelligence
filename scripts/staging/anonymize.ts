@@ -10,6 +10,7 @@ async function main() {
   const pool = parsePool(process.env.STAGING_TEST_LINKEDIN_URLS);
 
   try {
+    // Keep in sync with anonymizeEmail() in anonymize.lib.ts (same rule, expressed as SQL).
     // 1. Contact emails -> ariel+<id>@triolla.io (deterministic per row).
     await prisma.$executeRawUnsafe(
       `UPDATE "Contact" SET "email" = 'ariel+' || "id" || '@triolla.io' WHERE "email" IS NOT NULL`
@@ -41,6 +42,13 @@ async function main() {
     await prisma.$executeRawUnsafe(
       `UPDATE "Account" SET "access_token" = NULL, "refresh_token" = NULL, "id_token" = NULL`
     );
+
+    // Clear sender/auth credentials copied from prod so staging can never act as a prod identity.
+    // (Users log in fresh via Google, and reconnect the extension + LinkedIn in staging.)
+    await prisma.$executeRawUnsafe(`DELETE FROM "LinkedinSession"`);
+    await prisma.$executeRawUnsafe(`DELETE FROM "ExtensionSession"`);
+    await prisma.$executeRawUnsafe(`DELETE FROM "Session"`);
+    await prisma.$executeRawUnsafe(`DELETE FROM "VerificationToken"`);
 
     const [{ count }] = await prisma.$queryRawUnsafe<{ count: bigint }[]>(
       `SELECT count(*)::bigint AS count FROM "Contact"`
