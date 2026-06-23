@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Rubik, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { StagingBanner } from "@/components/staging-banner";
 
 const rubik = Rubik({
   variable: "--font-rubik",
@@ -29,7 +30,10 @@ export default function RootLayout({
       dir="rtl"
       className={`${rubik.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <StagingBanner />
+        {children}
+      </body>
     </html>
   );
 }
