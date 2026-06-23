@@ -199,11 +199,23 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
 
     await chrome.tabs.update(tabId, { url: composeUrl });
     await waitForTabLoad(tabId);
-    await sleep(2500);
 
-    // DIAGNOSTIC: capture where the tab actually landed after navigating to the compose
-    // URL, so we can distinguish a navigation race (still on profile) from a missing box.
-    const navDiag = await composeDiag(tabId);
+    // The Message-button navigation reuses the already-"complete" profile tab, so
+    // waitForTabLoad's fast path can return before the compose page has even begun
+    // loading. A fixed sleep then races the SPA render: if it loses, typeIntoCompose
+    // runs against the profile (no compose box) and fails with compose_insert_failed
+    // — the captured url= in those failures was the profile, not /messaging/compose/.
+    // Poll until LinkedIn's compose box actually exists before typing.
+    let navDiag = await composeDiag(tabId);
+    const composeDeadline = Date.now() + 15_000;
+    while (
+      Date.now() < composeDeadline &&
+      (navDiag.msgForm as number) === 0 &&
+      (navDiag.anyEditable as number) === 0
+    ) {
+      await sleep(500);
+      navDiag = await composeDiag(tabId);
+    }
     console.log("[agent] post-nav diag:", navDiag);
 
     // Phase 2: type the message with CDP Input.insertText (triggers React onChange).
