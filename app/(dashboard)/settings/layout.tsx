@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 const NAV = [
   { href: "/settings/extension", label: "LinkedIn Extension" },
   { href: "/settings/whatsapp", label: "WhatsApp" },
+  { href: "/settings/signature", label: "חתימת אימייל" },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {

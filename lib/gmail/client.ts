@@ -1,24 +1,25 @@
 import { prisma } from "@/lib/prisma";
+import { composeEmailHtml, escapeHtml } from "@/lib/email/render";
+
+export { escapeHtml };
 
 function encodeSubject(subject: string): string {
   if (/^[\x00-\x7F]*$/.test(subject)) return subject;
   return `=?UTF-8?B?${Buffer.from(subject).toString("base64")}?=`;
 }
 
-export function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+export function htmlBody(body: string, signatureHtml?: string | null): string {
+  return composeEmailHtml(body, signatureHtml);
 }
 
-export function htmlBody(body: string): string {
-  return `<div dir="auto" style="white-space:pre-wrap; font-family:Arial,Helvetica,sans-serif">${escapeHtml(body)}</div>`;
-}
-
-export function buildRfc2822(from: string, to: string, subject: string, body: string): string {
-  const encodedBody = Buffer.from(htmlBody(body)).toString("base64");
+export function buildRfc2822(
+  from: string,
+  to: string,
+  subject: string,
+  body: string,
+  signatureHtml?: string | null
+): string {
+  const encodedBody = Buffer.from(htmlBody(body, signatureHtml)).toString("base64");
   return [
     `From: ${from}`,
     `To: ${to}`,
@@ -68,7 +69,7 @@ async function refreshAccessToken(refreshToken: string): Promise<{ accessToken: 
 
 export async function sendEmail(
   userId: string,
-  { to, subject, body }: { to: string; subject: string; body: string }
+  { to, subject, body, signatureHtml }: { to: string; subject: string; body: string; signatureHtml?: string | null }
 ): Promise<string> {
   const account = await prisma.account.findFirst({
     where: { userId, provider: "google" },
@@ -94,7 +95,7 @@ export async function sendEmail(
   });
   const from = user?.name ? `${user.name} <${user.email}>` : (user?.email ?? "unknown");
 
-  const raw = buildRfc2822(from, to, subject, body);
+  const raw = buildRfc2822(from, to, subject, body, signatureHtml);
   const encoded = encodeMessage(raw);
 
   const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {

@@ -11,14 +11,18 @@ describe("escapeHtml", () => {
 });
 
 describe("htmlBody", () => {
-  it("wraps body in a dir=auto, pre-wrap container", () => {
+  it("wraps body in a dir=auto container with the typography spec (no pre-wrap)", () => {
     const out = htmlBody("Hello\nWorld");
     expect(out).toContain('dir="auto"');
-    expect(out).toContain("white-space:pre-wrap");
-    expect(out).toContain("Hello\nWorld");
+    expect(out).toContain("font-size:14px");
+    expect(out).not.toContain("white-space:pre-wrap");
+    expect(out).toContain("<div>Hello</div><div>World</div>");
   });
   it("escapes the body so injected markup is inert", () => {
     expect(htmlBody("<script>x</script>")).toContain("&lt;script&gt;x&lt;/script&gt;");
+  });
+  it("appends a signature when provided", () => {
+    expect(htmlBody("Hi", '<img src="logo">')).toContain('<img src="logo">');
   });
 });
 

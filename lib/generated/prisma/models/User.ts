@@ -34,6 +34,7 @@ export type UserMinAggregateOutputType = {
   title: string | null
   role: $Enums.Role | null
   timezone: string | null
+  emailSignature: string | null
   createdAt: Date | null
 }
 
@@ -47,6 +48,7 @@ export type UserMaxAggregateOutputType = {
   title: string | null
   role: $Enums.Role | null
   timezone: string | null
+  emailSignature: string | null
   createdAt: Date | null
 }
 
@@ -60,6 +62,7 @@ export type UserCountAggregateOutputType = {
   title: number
   role: number
   timezone: number
+  emailSignature: number
   createdAt: number
   _all: number
 }
@@ -75,6 +78,7 @@ export type UserMinAggregateInputType = {
   title?: true
   role?: true
   timezone?: true
+  emailSignature?: true
   createdAt?: true
 }
 
@@ -88,6 +92,7 @@ export type UserMaxAggregateInputType = {
   title?: true
   role?: true
   timezone?: true
+  emailSignature?: true
   createdAt?: true
 }
 
@@ -101,6 +106,7 @@ export type UserCountAggregateInputType = {
   title?: true
   role?: true
   timezone?: true
+  emailSignature?: true
   createdAt?: true
   _all?: true
 }
@@ -187,6 +193,7 @@ export type UserGroupByOutputType = {
   title: string | null
   role: $Enums.Role
   timezone: string
+  emailSignature: string | null
   createdAt: Date
   _count: UserCountAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
@@ -221,6 +228,7 @@ export type UserWhereInput = {
   title?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   timezone?: Prisma.StringFilter<"User"> | string
+  emailSignature?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   org?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   accounts?: Prisma.AccountListRelationFilter
@@ -255,6 +263,7 @@ export type UserOrderByWithRelationInput = {
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
+  emailSignature?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   org?: Prisma.OrganizationOrderByWithRelationInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
@@ -292,6 +301,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   title?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   timezone?: Prisma.StringFilter<"User"> | string
+  emailSignature?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   org?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   accounts?: Prisma.AccountListRelationFilter
@@ -326,6 +336,7 @@ export type UserOrderByWithAggregationInput = {
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
+  emailSignature?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
@@ -345,6 +356,7 @@ export type UserScalarWhereWithAggregatesInput = {
   title?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   role?: Prisma.EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
   timezone?: Prisma.StringWithAggregatesFilter<"User"> | string
+  emailSignature?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
 
@@ -357,6 +369,7 @@ export type UserCreateInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -391,6 +404,7 @@ export type UserUncheckedCreateInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -423,6 +437,7 @@ export type UserUpdateInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -457,6 +472,7 @@ export type UserUncheckedUpdateInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -490,6 +506,7 @@ export type UserCreateManyInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
 }
 
@@ -502,6 +519,7 @@ export type UserUpdateManyMutationInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -515,6 +533,7 @@ export type UserUncheckedUpdateManyInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -543,6 +562,7 @@ export type UserCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   role?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
+  emailSignature?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -556,6 +576,7 @@ export type UserMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   role?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
+  emailSignature?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -569,6 +590,7 @@ export type UserMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   role?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
+  emailSignature?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -918,6 +940,7 @@ export type UserCreateWithoutAccountsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
@@ -951,6 +974,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -998,6 +1022,7 @@ export type UserUpdateWithoutAccountsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
@@ -1031,6 +1056,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -1062,6 +1088,7 @@ export type UserCreateWithoutSessionsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1095,6 +1122,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -1142,6 +1170,7 @@ export type UserUpdateWithoutSessionsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1175,6 +1204,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -1206,6 +1236,7 @@ export type UserCreateWithoutOrgInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
@@ -1238,6 +1269,7 @@ export type UserUncheckedCreateWithoutOrgInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1300,6 +1332,7 @@ export type UserScalarWhereInput = {
   title?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   timezone?: Prisma.StringFilter<"User"> | string
+  emailSignature?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
 }
 
@@ -1312,6 +1345,7 @@ export type UserCreateWithoutContactsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1345,6 +1379,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1392,6 +1427,7 @@ export type UserUpdateWithoutContactsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1425,6 +1461,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1456,6 +1493,7 @@ export type UserCreateWithoutTemplatesInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1489,6 +1527,7 @@ export type UserUncheckedCreateWithoutTemplatesInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1536,6 +1575,7 @@ export type UserUpdateWithoutTemplatesInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1569,6 +1609,7 @@ export type UserUncheckedUpdateWithoutTemplatesInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1600,6 +1641,7 @@ export type UserCreateWithoutSentMessagesInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1633,6 +1675,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1669,6 +1712,7 @@ export type UserCreateWithoutActedMessagesInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1702,6 +1746,7 @@ export type UserUncheckedCreateWithoutActedMessagesInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1749,6 +1794,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1782,6 +1828,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1824,6 +1871,7 @@ export type UserUpdateWithoutActedMessagesInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1857,6 +1905,7 @@ export type UserUncheckedUpdateWithoutActedMessagesInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1888,6 +1937,7 @@ export type UserCreateWithoutSavedViewsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1921,6 +1971,7 @@ export type UserUncheckedCreateWithoutSavedViewsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1968,6 +2019,7 @@ export type UserUpdateWithoutSavedViewsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2001,6 +2053,7 @@ export type UserUncheckedUpdateWithoutSavedViewsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2032,6 +2085,7 @@ export type UserCreateWithoutAuditActedInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2065,6 +2119,7 @@ export type UserUncheckedCreateWithoutAuditActedInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2101,6 +2156,7 @@ export type UserCreateWithoutAuditTargetedInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2134,6 +2190,7 @@ export type UserUncheckedCreateWithoutAuditTargetedInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2181,6 +2238,7 @@ export type UserUpdateWithoutAuditActedInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2214,6 +2272,7 @@ export type UserUncheckedUpdateWithoutAuditActedInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2256,6 +2315,7 @@ export type UserUpdateWithoutAuditTargetedInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2289,6 +2349,7 @@ export type UserUncheckedUpdateWithoutAuditTargetedInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2320,6 +2381,7 @@ export type UserCreateWithoutLinkedinSessionInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2353,6 +2415,7 @@ export type UserUncheckedCreateWithoutLinkedinSessionInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2400,6 +2463,7 @@ export type UserUpdateWithoutLinkedinSessionInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2433,6 +2497,7 @@ export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2464,6 +2529,7 @@ export type UserCreateWithoutCampaignsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2497,6 +2563,7 @@ export type UserUncheckedCreateWithoutCampaignsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2544,6 +2611,7 @@ export type UserUpdateWithoutCampaignsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2577,6 +2645,7 @@ export type UserUncheckedUpdateWithoutCampaignsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2608,6 +2677,7 @@ export type UserCreateWithoutImportsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2641,6 +2711,7 @@ export type UserUncheckedCreateWithoutImportsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2688,6 +2759,7 @@ export type UserUpdateWithoutImportsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2721,6 +2793,7 @@ export type UserUncheckedUpdateWithoutImportsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2752,6 +2825,7 @@ export type UserCreateWithoutImportJobsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2785,6 +2859,7 @@ export type UserUncheckedCreateWithoutImportJobsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2832,6 +2907,7 @@ export type UserUpdateWithoutImportJobsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2865,6 +2941,7 @@ export type UserUncheckedUpdateWithoutImportJobsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2896,6 +2973,7 @@ export type UserCreateWithoutContactListsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2929,6 +3007,7 @@ export type UserUncheckedCreateWithoutContactListsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2976,6 +3055,7 @@ export type UserUpdateWithoutContactListsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3009,6 +3089,7 @@ export type UserUncheckedUpdateWithoutContactListsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3040,6 +3121,7 @@ export type UserCreateWithoutSequencesInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -3073,6 +3155,7 @@ export type UserUncheckedCreateWithoutSequencesInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -3120,6 +3203,7 @@ export type UserUpdateWithoutSequencesInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3153,6 +3237,7 @@ export type UserUncheckedUpdateWithoutSequencesInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3184,6 +3269,7 @@ export type UserCreateWithoutExtensionTasksInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -3217,6 +3303,7 @@ export type UserUncheckedCreateWithoutExtensionTasksInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -3264,6 +3351,7 @@ export type UserUpdateWithoutExtensionTasksInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3297,6 +3385,7 @@ export type UserUncheckedUpdateWithoutExtensionTasksInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3328,6 +3417,7 @@ export type UserCreateWithoutExtensionSessionInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -3361,6 +3451,7 @@ export type UserUncheckedCreateWithoutExtensionSessionInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -3408,6 +3499,7 @@ export type UserUpdateWithoutExtensionSessionInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3441,6 +3533,7 @@ export type UserUncheckedUpdateWithoutExtensionSessionInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3472,6 +3565,7 @@ export type UserCreateWithoutExtensionAlertsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -3505,6 +3599,7 @@ export type UserUncheckedCreateWithoutExtensionAlertsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -3552,6 +3647,7 @@ export type UserUpdateWithoutExtensionAlertsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3585,6 +3681,7 @@ export type UserUncheckedUpdateWithoutExtensionAlertsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3616,6 +3713,7 @@ export type UserCreateWithoutProspectingRunsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -3649,6 +3747,7 @@ export type UserUncheckedCreateWithoutProspectingRunsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -3696,6 +3795,7 @@ export type UserUpdateWithoutProspectingRunsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3729,6 +3829,7 @@ export type UserUncheckedUpdateWithoutProspectingRunsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3760,6 +3861,7 @@ export type UserCreateWithoutConnectionRequestsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -3793,6 +3895,7 @@ export type UserUncheckedCreateWithoutConnectionRequestsInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -3840,6 +3943,7 @@ export type UserUpdateWithoutConnectionRequestsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3873,6 +3977,7 @@ export type UserUncheckedUpdateWithoutConnectionRequestsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3904,6 +4009,7 @@ export type UserCreateManyOrgInput = {
   title?: string | null
   role?: $Enums.Role
   timezone?: string
+  emailSignature?: string | null
   createdAt?: Date | string
 }
 
@@ -3916,6 +4022,7 @@ export type UserUpdateWithoutOrgInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
@@ -3948,6 +4055,7 @@ export type UserUncheckedUpdateWithoutOrgInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3980,6 +4088,7 @@ export type UserUncheckedUpdateManyWithoutOrgInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -4177,6 +4286,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   title?: boolean
   role?: boolean
   timezone?: boolean
+  emailSignature?: boolean
   createdAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -4212,6 +4322,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   title?: boolean
   role?: boolean
   timezone?: boolean
+  emailSignature?: boolean
   createdAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -4226,6 +4337,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   title?: boolean
   role?: boolean
   timezone?: boolean
+  emailSignature?: boolean
   createdAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -4240,10 +4352,11 @@ export type UserSelectScalar = {
   title?: boolean
   role?: boolean
   timezone?: boolean
+  emailSignature?: boolean
   createdAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "email" | "emailVerified" | "name" | "image" | "title" | "role" | "timezone" | "createdAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "email" | "emailVerified" | "name" | "image" | "title" | "role" | "timezone" | "emailSignature" | "createdAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -4310,6 +4423,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     title: string | null
     role: $Enums.Role
     timezone: string
+    emailSignature: string | null
     createdAt: Date
   }, ExtArgs["result"]["user"]>
   composites: {}
@@ -4764,6 +4878,7 @@ export interface UserFieldRefs {
   readonly title: Prisma.FieldRef<"User", 'String'>
   readonly role: Prisma.FieldRef<"User", 'Role'>
   readonly timezone: Prisma.FieldRef<"User", 'String'>
+  readonly emailSignature: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
 }
     

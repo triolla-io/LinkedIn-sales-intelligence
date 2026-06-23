@@ -121,7 +121,12 @@ export async function executeSequenceSend(executionId: string): Promise<ExecuteS
     if (step.channel === "EMAIL") {
       if (!contact.email) throw new Error("no_email");
       if (!step.subject) throw new Error("no_subject");
-      await sendEmail(ownerId, { to: contact.email, subject: step.subject, body });
+      await sendEmail(ownerId, {
+        to: contact.email,
+        subject: step.subject,
+        body,
+        signatureHtml: sequence.owner.emailSignature,
+      });
     } else {
       const rawPhone = contact.phone;
       if (!rawPhone) throw new Error("no_phone");
