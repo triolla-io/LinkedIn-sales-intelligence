@@ -11,6 +11,13 @@ export default auth((req) => {
   const providedSecret = req.headers.get("x-admin-secret");
   if (adminSecret && providedSecret === adminSecret) return NextResponse.next();
 
+  // Token-authenticated clients (the Chrome extension) carry a Bearer token, not
+  // an Auth.js session cookie. Let them through so the route handler's
+  // withExtensionAuth can validate the token — without it the proxy would
+  // redirect every extension poll to /sign-in (307). Routes that use withTenant
+  // instead still enforce their own session check, so this exposes nothing.
+  if (req.headers.get("authorization")?.startsWith("Bearer ")) return NextResponse.next();
+
   const isProtected =
     pathname.startsWith("/contacts") ||
     pathname.startsWith("/admin") ||
