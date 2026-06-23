@@ -11,8 +11,9 @@ const OPTIONS: sanitizeHtml.IOptions = {
     font: ["color", "face", "size", "style"],
     "*": ["style", "align", "dir"],
   },
-  allowedSchemes: ["http", "https", "mailto", "tel", "cid", "data"],
-  allowProtocolRelative: true,
+  allowedSchemes: ["http", "https", "mailto", "tel", "cid"],
+  allowedSchemesByTag: { img: ["http", "https", "cid", "data"] },
+  allowProtocolRelative: false,
   // sanitize-html drops on* handlers and disallowed schemes (incl. javascript:) by default.
 };
 

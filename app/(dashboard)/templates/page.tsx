@@ -62,6 +62,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
     (async () => {
       try {
         const res = await fetch("/api/settings/signature");
+        if (!res.ok) return;
         const data = await res.json();
         setSignature(data.signature ?? "");
       } catch {}

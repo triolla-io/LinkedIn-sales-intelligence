@@ -16,6 +16,7 @@ export default function SignatureSettingsPage() {
     (async () => {
       try {
         const res = await fetch("/api/settings/signature");
+        if (!res.ok) throw new Error();
         const data = await res.json();
         const html = data.signature ?? "";
         if (editorRef.current) editorRef.current.innerHTML = html;
@@ -72,9 +73,11 @@ export default function SignatureSettingsPage() {
         תצוגה מקדימה
       </label>
       <div className="border border-[#e5e3df] rounded-lg px-4 py-3 bg-[#fafaf9]">
-        <div dir="auto" style={{ all: "initial" }}>
-          <div dir="auto" dangerouslySetInnerHTML={{ __html: state.html }} />
-        </div>
+        <div
+          dir="auto"
+          style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: "14px", lineHeight: 1.5, color: "#222222" }}
+          dangerouslySetInnerHTML={{ __html: state.html }}
+        />
       </div>
 
       {state.error && (
