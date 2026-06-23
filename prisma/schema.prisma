@@ -128,8 +128,9 @@ model User {
   image         String?
   title         String?
   role          Role      @default(SALESPERSON)
-  timezone      String    @default("UTC")
-  createdAt     DateTime  @default(now())
+  timezone        String    @default("UTC")
+  emailSignature  String?   @db.Text
+  createdAt       DateTime  @default(now())
 
   org             Organization      @relation(fields: [orgId], references: [id])
   accounts        Account[]
