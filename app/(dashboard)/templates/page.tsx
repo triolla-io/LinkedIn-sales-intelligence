@@ -1,6 +1,7 @@
 "use client";
 
-import { useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
+import { textToEmailHtml } from "@/lib/email/render";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import { FileText, Plus, Trash2, Edit2, RefreshCw, Zap } from "lucide-react";
 
@@ -56,6 +57,35 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
   );
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const [signature, setSignature] = useState<string>("");
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/settings/signature");
+        const data = await res.json();
+        setSignature(data.signature ?? "");
+      } catch {}
+    })();
+  }, []);
+
+  const SAMPLE: Record<string, string> = {
+    firstName: "ארי",
+    hebrewFirstName: "ארי",
+    lastName: "לוי",
+    company: "Acme",
+    title: "מנכ״ל",
+    senderFirstName: "ישראל",
+    senderLastName: "ישראלי",
+    senderCompany: "Triolla",
+    senderTitle: "מנהל מכירות",
+  };
+  const previewText = formState.body.replace(/\{\{([a-zA-Z]+)(?:\|([^}]*))?\}\}/g, (_m, name, fallback) =>
+    SAMPLE[name] ?? (fallback ?? "")
+  );
+  const previewHtml = `${textToEmailHtml(previewText)}${
+    signature.trim() ? `<div><br></div><div><br></div>${signature}` : ""
+  }`;
+
   function insertChip(chip: string) {
     const ta = textareaRef.current;
     if (!ta) { formDispatch({ body: formState.body + chip }); return; }
@@ -108,10 +138,11 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
           ref={textareaRef}
           value={formState.body}
           onChange={(e) => formDispatch({ body: e.target.value })}
-          rows={6}
+          rows={8}
           placeholder={"שלום {{firstName}},\n\nשמתי לב שאתה ב-{{company}}..."}
-          className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-lg px-3 py-2.5 text-sm text-[#111110] placeholder-[#c8c5c2] resize-none focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors font-mono leading-relaxed"
-          dir="rtl"
+          className="w-full bg-white border border-[#e5e3df] rounded-lg px-4 py-3 text-[#111110] placeholder-[#c8c5c2] resize-none focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+          style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: "14px", lineHeight: 1.5, color: "#222222" }}
+          dir="auto"
         />
         <div className="mt-2 flex flex-wrap gap-1.5">
           {VARIABLE_CHIPS.map((v) => (
@@ -124,6 +155,16 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
               {v}
             </button>
           ))}
+        </div>
+        <div className="mt-4">
+          <p className="text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">תצוגה מקדימה</p>
+          <div className="border border-[#e5e3df] rounded-lg px-4 py-3 bg-[#fafaf9]">
+            <div
+              dir="auto"
+              style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: "14px", lineHeight: 1.5, color: "#222222" }}
+              dangerouslySetInnerHTML={{ __html: previewHtml }}
+            />
+          </div>
         </div>
       </div>
       {formState.error && (
