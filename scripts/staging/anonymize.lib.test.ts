@@ -38,6 +38,9 @@ describe("parsePool", () => {
   it("throws on empty input", () => {
     expect(() => parsePool("")).toThrow(/pool/i);
   });
+  it("throws on undefined input", () => {
+    expect(() => parsePool(undefined)).toThrow(/pool/i);
+  });
 });
 
 describe("assertStagingDatabase (fail closed)", () => {
@@ -51,5 +54,8 @@ describe("assertStagingDatabase (fail closed)", () => {
   });
   it("throws when confirm flag is missing", () => {
     expect(() => assertStagingDatabase(stagingUrl, undefined)).toThrow(/confirm/i);
+  });
+  it("throws (fail-closed) when URL cannot be parsed", () => {
+    expect(() => assertStagingDatabase("not-a-valid-url-staging", "1")).toThrow(/not a valid URL/i);
   });
 });

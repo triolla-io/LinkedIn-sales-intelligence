@@ -25,13 +25,13 @@ export function parsePool(raw: string | undefined): string[] {
 }
 
 export function assertStagingDatabase(databaseUrl: string, confirmFlag: string | undefined): void {
-  const dbName = (() => {
-    try {
-      return new URL(databaseUrl).pathname.replace(/^\//, "");
-    } catch {
-      return databaseUrl;
-    }
-  })();
+  let parsed: URL;
+  try {
+    parsed = new URL(databaseUrl);
+  } catch {
+    throw new Error(`Refusing to run: DATABASE_URL is not a valid URL and cannot be verified as staging`);
+  }
+  const dbName = parsed.pathname.replace(/^\//, "");
   if (!/staging/i.test(dbName)) {
     throw new Error(`Refusing to run: DATABASE_URL db name "${dbName}" does not contain "staging"`);
   }
