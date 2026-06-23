@@ -23,18 +23,18 @@ async function main() {
 
     // 3. Contact LinkedIn URLs -> cycle through the controlled test-profile pool.
     //    Map each row to pool[rownum % poolLen] using a window function.
-    const values = pool.map((u, i) => `(${i}, '${u.replace(/'/g, "''")}')`).join(",");
+    const valuesSql = pool.map((_, i) => `(${i}, $${i + 1}::text)`).join(",");
     await prisma.$executeRawUnsafe(`
       WITH numbered AS (
         SELECT "id", (ROW_NUMBER() OVER (ORDER BY "id") - 1) % ${pool.length} AS slot
         FROM "Contact"
       ),
-      poolmap("slot","url") AS ( VALUES ${values} )
+      poolmap("slot","url") AS ( VALUES ${valuesSql} )
       UPDATE "Contact" c
       SET "linkedinUrl" = p."url"
       FROM numbered n JOIN poolmap p ON p."slot" = n."slot"
       WHERE c."id" = n."id"
-    `);
+    `, ...pool);
 
     // 4. Clear OAuth tokens so staging never sends as prod-connected Google accounts.
     //    (Users re-connect their own Google in staging.)
