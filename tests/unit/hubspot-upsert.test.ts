@@ -42,7 +42,6 @@ describe("upsertContact", () => {
       linkedinUrl: "https://linkedin.com/in/x",
       email: "x@y.com",
       mobilePhone: "+972521234567",
-      companySize: 50,
     });
     expect(res).toEqual({ ok: true, hubspotId: "123" });
 
@@ -56,7 +55,6 @@ describe("upsertContact", () => {
     expect(patchCall[1].method).toBe("PATCH");
     const body = JSON.parse(patchCall[1].body);
     expect(body.properties.mobilephone).toBe("+972521234567");
-    expect(body.properties.numemployees).toBe(50);
     expect(body.properties.lead_source).toBeUndefined(); // marker only on create
   });
 

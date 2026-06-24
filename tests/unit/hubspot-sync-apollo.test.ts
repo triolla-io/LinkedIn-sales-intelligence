@@ -25,7 +25,7 @@ describe("hubspotSyncApollo", () => {
 
   it("upserts each apollo-sourced contact and stamps hubspotSyncedAt on success", async () => {
     findMany.mockResolvedValue([
-      { id: "c1", linkedinUrl: "u1", email: "a@x.com", phone: "+972521111111", currentCompany: "Acme", industry: "Tech", companySize: 10, enrichedAt: new Date("2024-01-02"), hubspotSyncedAt: new Date("2024-01-01") },
+      { id: "c1", linkedinUrl: "u1", email: "a@x.com", phone: "+972521111111", currentCompany: "Acme", industry: "Tech", enrichedAt: new Date("2024-01-02"), hubspotSyncedAt: new Date("2024-01-01") },
     ]);
     upsertContact.mockResolvedValue({ ok: true, hubspotId: "h1" });
 
@@ -37,7 +37,6 @@ describe("hubspotSyncApollo", () => {
       mobilePhone: "+972521111111",
       company: "Acme",
       industry: "Tech",
-      companySize: 10,
     });
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: "c1" }, data: expect.objectContaining({ hubspotSyncedAt: expect.any(Date) }) })
@@ -46,12 +45,24 @@ describe("hubspotSyncApollo", () => {
   });
 
   it("does not stamp hubspotSyncedAt when upsert fails", async () => {
-    findMany.mockResolvedValue([{ id: "c2", linkedinUrl: "u2", email: "b@x.com", phone: null, currentCompany: null, industry: null, companySize: null, enrichedAt: new Date(), hubspotSyncedAt: null }]);
+    findMany.mockResolvedValue([{ id: "c2", linkedinUrl: "u2", email: "b@x.com", phone: null, currentCompany: null, industry: null, enrichedAt: new Date(), hubspotSyncedAt: null }]);
     upsertContact.mockResolvedValue({ ok: false });
 
     const res = await runHandler();
 
     expect(update).not.toHaveBeenCalled();
     expect(res).toEqual({ synced: 0, failed: 1 });
+  });
+
+  it("skips contacts where hubspotSyncedAt is newer than enrichedAt (already synced)", async () => {
+    const alreadySynced = { id: "c3", linkedinUrl: "u3", email: "c@x.com", phone: null, currentCompany: null, industry: null, enrichedAt: new Date("2024-05-01"), hubspotSyncedAt: new Date("2024-06-01") };
+    findMany.mockResolvedValue([alreadySynced]);
+    upsertContact.mockResolvedValue({ ok: true, hubspotId: "h3" });
+
+    const res = await runHandler();
+
+    expect(upsertContact).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
+    expect(res).toEqual({ synced: 0, failed: 0 });
   });
 });

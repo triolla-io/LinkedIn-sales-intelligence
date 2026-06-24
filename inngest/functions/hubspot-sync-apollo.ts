@@ -26,7 +26,6 @@ export const hubspotSyncApollo = inngest.createFunction(
         phone: true,
         currentCompany: true,
         industry: true,
-        companySize: true,
         enrichedAt: true,
         hubspotSyncedAt: true,
       },
@@ -49,7 +48,6 @@ export const hubspotSyncApollo = inngest.createFunction(
         mobilePhone: c.phone,
         company: c.currentCompany,
         industry: c.industry,
-        companySize: c.companySize,
       });
 
       if (result.ok) {

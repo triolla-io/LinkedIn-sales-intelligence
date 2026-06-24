@@ -150,7 +150,6 @@ export async function upsertContact(params: {
   mobilePhone?: string | null;
   company?: string | null;
   industry?: string | null;
-  companySize?: number | null;
 }): Promise<{ ok: boolean; hubspotId?: string }> {
   if (!process.env.HUBSPOT_API_KEY) return { ok: false };
 
@@ -160,7 +159,6 @@ export async function upsertContact(params: {
     if (params.mobilePhone) properties.mobilephone = params.mobilePhone;
     if (params.company) properties.company = params.company;
     if (params.industry) properties.industry = params.industry;
-    if (params.companySize != null) properties.numemployees = params.companySize;
     if (params.linkedinUrl) {
       properties.hs_linkedin_profile_url = normalizeLinkedinUrl(params.linkedinUrl);
     }
@@ -173,7 +171,11 @@ export async function upsertContact(params: {
         headers: headers(),
         body: JSON.stringify({ properties }),
       });
-      if (!res.ok) return { ok: false };
+      if (!res.ok) {
+        const errBody = await res.text().catch(() => "");
+        console.error("[hubspot] upsertContact write failed", res.status, errBody);
+        return { ok: false };
+      }
       return { ok: true, hubspotId: existingId };
     }
 
@@ -184,7 +186,11 @@ export async function upsertContact(params: {
       headers: headers(),
       body: JSON.stringify({ properties }),
     });
-    if (!res.ok) return { ok: false };
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      console.error("[hubspot] upsertContact write failed", res.status, errBody);
+      return { ok: false };
+    }
     const data = await res.json();
     return { ok: true, hubspotId: data.id };
   } catch (error) {
