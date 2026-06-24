@@ -17,7 +17,7 @@ export type ScrapedCard = {
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.2.0";
+const VERSION = "0.2.1";
 
 // In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
@@ -87,11 +87,12 @@ async function runOneCycle(): Promise<boolean> {
     const errorCode = (err as Error & { code?: string }).code ?? "unknown";
     const screenshot = (err as Error & { screenshot?: string }).screenshot;
     const buttons = (err as Error & { buttons?: unknown }).buttons;
+    const diag = (err as Error & { diag?: unknown }).diag;
     await reportResult(task.id, {
       ok: false,
       errorCode,
       errorMessage: (err as Error).message,
-      ...(screenshot || buttons ? { result: { debugScreenshot: screenshot, buttons } } : {}),
+      ...(screenshot || buttons || diag ? { result: { debugScreenshot: screenshot, buttons, diag } } : {}),
     });
   } finally {
     taskRunning = false;
@@ -133,6 +134,38 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "S
   throw withCode(new Error("unknown_kind"), "bad_payload");
 }
 
+// Collect environment hints to diagnose tab-hijack / extension-conflict failures
+// remotely (the result is persisted to the DB). Captures the tab's actual state and
+// the list of installed extensions — when another extension redirects our LinkedIn
+// tab to its own chrome-extension:// page, chrome.debugger.attach fails with
+// "Cannot access a chrome-extension:// URL of different extension", and this reveals
+// WHICH extension (the offending id appears both in the hijacked URL and this list).
+async function gatherEnvHints(tabId: number): Promise<Record<string, unknown>> {
+  const hints: Record<string, unknown> = {};
+  try {
+    const t = await chrome.tabs.get(tabId);
+    hints.tabUrl = t.url ?? null;
+    hints.tabStatus = t.status ?? null;
+    hints.tabTitle = t.title ?? null;
+    hints.windowId = t.windowId ?? null;
+  } catch (e) {
+    hints.tabGetError = String((e as Error)?.message ?? e);
+  }
+  try {
+    if (chrome.management?.getAll) {
+      const all = await chrome.management.getAll();
+      hints.extensions = all
+        .filter((x) => x.type === "extension")
+        .map((x) => ({ id: x.id, name: x.name, enabled: x.enabled }));
+    } else {
+      hints.extensions = "management_api_unavailable";
+    }
+  } catch (e) {
+    hints.managementError = String((e as Error)?.message ?? e);
+  }
+  return hints;
+}
+
 async function sendLinkedInMessage(profileUrl: string, text: string, recipientName = ""): Promise<{ sentAt: string; conversationUrl: string; steps: number }> {
   const tab = await chrome.tabs.create({ url: profileUrl, active: true });
   if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
@@ -154,6 +187,15 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     const preTab = await chrome.tabs.get(tabId);
     if (preTab.url && preTab.url.includes("/checkpoint")) {
       throw withCode(new Error("checkpoint"), "checkpoint");
+    }
+
+    // Detect a hijacked tab BEFORE attaching the debugger. We opened this tab on a
+    // linkedin.com URL; if it now points elsewhere — especially a chrome-extension://
+    // page — another installed extension redirected it, and chrome.debugger.attach
+    // would fail with the opaque "Cannot access a chrome-extension:// URL of different
+    // extension". Surface a clear code + the hijacking URL (its id) instead.
+    if (preTab.url && !preTab.url.includes("linkedin.com")) {
+      throw withCode(new Error(`tab_hijacked url=${preTab.url}`), "tab_hijacked");
     }
 
     await attach(tabId);
@@ -241,6 +283,9 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     caughtError = err as Error;
     const failedTab = await chrome.tabs.get(tabId).catch(() => null);
     if (failedTab?.url) caughtError.message = `${caughtError.message} (url=${failedTab.url})`;
+    // Always gather environment hints (tab state + installed extensions), even when
+    // the failure happened before attach — this is exactly when we need them.
+    (caughtError as Error & { diag?: unknown }).diag = await gatherEnvHints(tabId).catch(() => ({ diagError: true }));
     if (attached) {
       try {
         const [screenshot, buttons] = await Promise.all([
