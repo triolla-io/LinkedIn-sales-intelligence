@@ -1,5 +1,5 @@
 export const EMAIL_TYPOGRAPHY =
-  "font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:1.5; font-weight:400; color:#222222; -webkit-text-size-adjust:100%; text-size-adjust:100%";
+  "font-family:Arial,Helvetica,sans-serif; font-size:16px; line-height:1.5; font-weight:400; color:#222222; -webkit-text-size-adjust:100%; text-size-adjust:100%";
 
 export function escapeHtml(s: string): string {
   return s
