@@ -635,6 +635,12 @@ export default function CampaignDetailClient({
   return (
     <div className="p-8 space-y-6">
       <AutoRefresher intervalMs={
+        // Poll fast (5s) while the campaign is still "settling": just started
+        // (QUEUED) or activated but enrollments are still being created by the
+        // async sequence.start job, so participants appear on their own. Also
+        // poll fast while any execution is live. Otherwise back off to 30s.
+        sequence.status === "QUEUED" ||
+        (sequence.status === "ACTIVE" && sequence.enrollments.length === 0) ||
         sequence.enrollments.some((e) =>
           e.executions.some((x) => x.status === "PENDING" || x.status === "QUEUED" || x.status === "SENDING")
         ) ? 5_000 : 30_000
