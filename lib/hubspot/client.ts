@@ -1,3 +1,5 @@
+import { toIsraeliE164, isIsraeliMobile } from "@/lib/phone/normalize";
+
 const HUBSPOT_BASE = "https://api.hubapi.com";
 
 function normalizeLinkedinUrl(url: string): string {
@@ -11,10 +13,18 @@ function headers() {
   };
 }
 
+// HubSpot has a single untyped `phone` field. Keep it only when it normalizes
+// to an Israeli mobile (05X); drop landline (02/03/04/08/09) and VoIP (07X).
+function acceptMobilePhone(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const e164 = toIsraeliE164(raw);
+  return e164 && isIsraeliMobile(e164) ? e164 : undefined;
+}
+
 async function searchByProperty(
   property: string,
   value: string
-): Promise<{ email?: string } | null> {
+): Promise<{ email?: string; phone?: string } | null> {
   const res = await fetch(`${HUBSPOT_BASE}/crm/v3/objects/contacts/search`, {
     method: "POST",
     headers: headers(),
@@ -35,19 +45,18 @@ async function searchByProperty(
   const contact = data.results?.[0]?.properties;
   if (!contact) return null;
 
-  // HubSpot returns a single untyped `phone` field — no way to tell mobile from
-  // a private/landline number — so we never bring it in. Email only.
   const email = contact.email || undefined;
-  if (!email) return null;
+  const phone = acceptMobilePhone(contact.phone || undefined);
+  if (!email && !phone) return null;
 
-  return { email };
+  return { email, phone };
 }
 
 export async function lookupContact(params: {
   linkedinUrl: string;
   fullName: string;
   company?: string;
-}): Promise<{ email?: string } | null> {
+}): Promise<{ email?: string; phone?: string } | null> {
   if (!process.env.HUBSPOT_API_KEY) return null;
 
   try {
@@ -96,9 +105,10 @@ export async function lookupContact(params: {
     if (!contact) return null;
 
     const email = contact.email || undefined;
-    if (!email) return null;
+    const phone = acceptMobilePhone(contact.phone || undefined);
+    if (!email && !phone) return null;
 
-    return { email };
+    return { email, phone };
   } catch (error) {
     console.error("[hubspot] lookupContact failed silently", error);
     return null;

@@ -131,4 +131,26 @@ describe("lookupContact", () => {
     });
     expect(result).toBeNull();
   });
+
+  it("drops a landline phone, returning email only", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(makeSearchResponse("jane@example.com", "+97236123456")); // 03 landline
+    vi.stubGlobal("fetch", fetchMock);
+    const { lookupContact } = await import("@/lib/hubspot/client");
+    const result = await lookupContact({
+      linkedinUrl: "https://linkedin.com/in/jane",
+      fullName: "Jane Doe",
+    });
+    expect(result).toEqual({ email: "jane@example.com" });
+  });
+
+  it("keeps a mobile phone normalized to E.164", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(makeSearchResponse("k@example.com", "052-123-4567")); // 052 mobile
+    vi.stubGlobal("fetch", fetchMock);
+    const { lookupContact } = await import("@/lib/hubspot/client");
+    const result = await lookupContact({
+      linkedinUrl: "https://linkedin.com/in/k",
+      fullName: "K Person",
+    });
+    expect(result).toEqual({ email: "k@example.com", phone: "+972521234567" });
+  });
 });
