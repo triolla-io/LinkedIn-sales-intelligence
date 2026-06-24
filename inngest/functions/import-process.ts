@@ -108,7 +108,7 @@ export const importProcess = inngest.createFunction(
             linkedinUrl: c.linkedinUrl, fullName: c.fullName, company: c.currentCompany ?? undefined,
           });
           const email = c.email ?? cacheHit?.email ?? hubspot?.email ?? null;
-          const rawPhone = c.phone ?? cacheHit?.phone ?? null;
+          const rawPhone = c.phone ?? cacheHit?.phone ?? hubspot?.phone ?? null;
           const phone = rawPhone ? (toIsraeliE164(rawPhone) ?? rawPhone) : null;
           const enrichmentFields = cacheHit?.email || cacheHit?.phone
             ? { enrichmentSource: "cache", enrichmentRanAt: new Date(), enrichmentError: null }

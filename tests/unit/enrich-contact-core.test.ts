@@ -94,4 +94,15 @@ describe("enrichContactCore", () => {
       expect.objectContaining({ data: expect.objectContaining({ enrichmentError: "429: rate limited" }) })
     );
   });
+
+  it("applies HubSpot phone when present and not manually protected", async () => {
+    mockLookupContact.mockResolvedValue({ email: "a@b.com", phone: "+972521234567" });
+
+    const result = await run();
+
+    expect(result).toMatchObject({ status: "ok", source: "hubspot", phone: "+972521234567" });
+    expect(mockContactUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ phone: "+972521234567" }) })
+    );
+  });
 });
