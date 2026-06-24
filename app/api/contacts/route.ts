@@ -238,7 +238,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     : null;
   const email = fields.email ?? hubspot?.email ?? null;
   const phone = fields.phone ?? hubspot?.phone ?? null;
-  const enrichmentFields = hubspot?.email
+  const enrichmentFields = (hubspot?.email || hubspot?.phone)
     ? { enrichmentSource: "hubspot", enrichmentRanAt: new Date(), enrichedAt: new Date(), enrichmentError: null }
     : {};
 
