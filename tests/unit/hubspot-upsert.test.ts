@@ -24,8 +24,11 @@ describe("upsertContact", () => {
 
   it("returns {ok:false} when API key missing", async () => {
     delete process.env.HUBSPOT_API_KEY;
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
     const { upsertContact } = await import("@/lib/hubspot/client");
     expect(await upsertContact({ linkedinUrl: "x" })).toEqual({ ok: false });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("PATCHes an existing contact found by LinkedIn URL", async () => {
@@ -42,6 +45,12 @@ describe("upsertContact", () => {
       companySize: 50,
     });
     expect(res).toEqual({ ok: true, hubspotId: "123" });
+
+    // Assert FIRST call was LinkedIn URL search
+    const searchCall = fetchMock.mock.calls[0];
+    const searchBody = JSON.parse(searchCall[1].body);
+    expect(searchBody.filterGroups[0].filters[0].propertyName).toBe("hs_linkedin_profile_url");
+
     const patchCall = fetchMock.mock.calls[1];
     expect(patchCall[0]).toContain("/crm/v3/objects/contacts/123");
     expect(patchCall[1].method).toBe("PATCH");
