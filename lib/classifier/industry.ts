@@ -4,7 +4,8 @@
 // match falls through to "Other".
 const INDUSTRY_GROUPS: Array<[string, string[]]> = [
   ["Fintech",       ["fintech", "finance", "financial", "bank", "payment", "insurance", "invest", "capital", "fund"]],
-  ["SaaS",          ["saas", "software", "cloud", "platform", "tech", "technology", "ai", "data", "cyber", "security"]],
+  ["Cyber Security", ["cyber", "cybersecurity", "infosec", "security", "appsec", "threat", "soc ", "siem", "endpoint", "firewall", "pentest", "vulnerability"]],
+  ["SaaS",          ["saas", "software", "cloud", "platform", "tech", "technology", "ai", "data"]],
   ["Healthcare",    ["health", "medical", "pharma", "biotech", "clinic", "hospital", "wellness", "dental", "therapy"]],
   ["E-commerce",    ["ecommerce", "e-commerce", "retail", "shop", "marketplace", "store", "commerce"]],
   ["Real Estate",   ["real estate", "property", "realty", "construction", "builders", "housing", "mortgage"]],

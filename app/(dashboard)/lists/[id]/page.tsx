@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Pencil, Check, Loader2, Zap, UserPlus } from "lucide-react";
+import { ArrowLeft, Pencil, Check, Loader2, Zap, UserPlus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
 import ContactDrawer from "@/components/dashboard/contact-drawer";
@@ -91,15 +91,12 @@ export default function ListDetailPage() {
     dispatch({ savingName: false, editingName: false });
   }
 
-  async function removeContact(contactId: string) {
+  async function deleteContact(contactId: string) {
     dispatch({ removingId: contactId });
-    await fetch(`/api/lists/${id}/members`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ remove: [contactId] }),
-    });
+    await fetch(`/api/contacts/${contactId}`, { method: "DELETE" });
     dispatch({
       contacts: state.contacts.filter((c) => c.id !== contactId),
+      total: state.total - 1,
       list: state.list ? { ...state.list, memberCount: state.list.memberCount - 1 } : state.list,
       removingId: null,
     });
@@ -262,11 +259,17 @@ export default function ListDetailPage() {
           extraRowAction={(contact) => (
             <button
               type="button"
-              onClick={() => removeContact(contact.id)}
+              onClick={() => deleteContact(contact.id)}
               disabled={state.removingId === contact.id}
-              className="text-[10px] text-[#9b9895] hover:text-red-400 transition-colors font-mono"
+              aria-label={`מחק את ${contact.fullName}`}
+              title="מחק איש קשר"
+              className="p-1.5 text-[#d4d0cc] hover:text-red-400 transition-colors disabled:opacity-40"
             >
-              {state.removingId === contact.id ? "…" : "הסר"}
+              {state.removingId === contact.id ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="size-3.5" />
+              )}
             </button>
           )}
         />

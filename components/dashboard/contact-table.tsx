@@ -408,7 +408,7 @@ export default function ContactTable({
               isDisabled={page <= 1 || loading}
               aria-label="עמוד קודם"
             >
-              <ChevronRight className="size-4" />
+              <ChevronLeft className="size-4" />
             </Button>
             <span className="text-[11px] font-mono text-[#9b9895] px-2 tabular-nums">
               {loading ? "…" : `${page} / ${totalPages || 1}`}
@@ -421,7 +421,7 @@ export default function ContactTable({
               isDisabled={page >= totalPages || loading}
               aria-label="עמוד הבא"
             >
-              <ChevronLeft className="size-4" />
+              <ChevronRight className="size-4" />
             </Button>
           </div>
         </div>

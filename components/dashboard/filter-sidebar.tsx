@@ -46,7 +46,7 @@ const ROLE_PILLS: PillDef[] = [
 ];
 
 const INDUSTRY_PILLS = [
-  "SaaS", "Fintech", "Healthcare", "Real Estate",
+  "Cyber Security", "SaaS", "Fintech", "Healthcare", "Real Estate",
   "E-commerce", "Education", "Media", "Manufacturing",
   "Legal", "Consulting", "Government & Nonprofit", "HR & Staffing",
   "Energy", "Automotive", "Telecom", "Travel & Hospitality",

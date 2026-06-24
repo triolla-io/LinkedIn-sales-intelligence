@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducer, useRef } from "react";
-import { Zap, RefreshCw, X, Download, Megaphone, Bookmark } from "lucide-react";
+import { Zap, RefreshCw, X, Megaphone, Bookmark } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Contact } from "./contact-table";
 import { NewCampaignModal } from "./new-campaign-modal";
@@ -24,7 +24,6 @@ type State = {
 
 export default function BulkEnrichBar({
   selectedIds,
-  selectedContacts,
   onDone,
 }: BulkEnrichBarProps) {
   const [state, dispatch] = useReducer(
@@ -74,33 +73,6 @@ export default function BulkEnrichBar({
   function handleEnrich() {
     if (N > 50) dispatch({ showConfirm: true });
     else doEnrich();
-  }
-
-  function exportCsv() {
-    const headers = [
-      "Name", "Title", "Company", "Email", "Phone", "Location", "Industry", "Seniority", "LinkedIn",
-    ];
-    const rows = selectedContacts.map((c) => [
-      c.fullName,
-      c.currentTitle ?? "",
-      c.currentCompany ?? "",
-      c.email ?? "",
-      c.phone ?? "",
-      c.location ?? "",
-      c.industry ?? "",
-      c.seniority ?? "",
-      c.linkedinUrl,
-    ]);
-    const csv = [headers, ...rows]
-      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `contacts-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   if (N === 0) return null;
@@ -212,14 +184,6 @@ export default function BulkEnrichBar({
               >
                 <Megaphone className="size-3.5" />
                 שלח קמפיין
-              </button>
-              <button
-                type="button"
-                onClick={exportCsv}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-600 border border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 rounded-md transition-all"
-              >
-                <Download className="size-3.5" />
-                ייצוא CSV
               </button>
               <button
                 type="button"

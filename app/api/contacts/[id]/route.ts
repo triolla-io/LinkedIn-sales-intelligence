@@ -75,3 +75,21 @@ export const PATCH = withTenant(async (req, ctx) => {
 
   return NextResponse.json(updated);
 });
+
+export const DELETE = withTenant(async (req, ctx) => {
+  const id = req.nextUrl.pathname.split("/").at(-1)!;
+
+  const contact = await prisma.contact.findFirst({
+    where: { id, ownerId: ctx.effectiveUserId, removedAt: null },
+    select: { id: true },
+  });
+  if (!contact) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // Soft-delete the contact and unlink it from every list so it disappears everywhere.
+  await prisma.$transaction([
+    prisma.contactListMember.deleteMany({ where: { contactId: id } }),
+    prisma.contact.update({ where: { id }, data: { removedAt: new Date() } }),
+  ]);
+
+  return NextResponse.json({ ok: true });
+});
