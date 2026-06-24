@@ -60,6 +60,7 @@ export type ContactMinAggregateOutputType = {
   enrichmentSource: string | null
   enrichmentRanAt: Date | null
   enrichmentError: string | null
+  hubspotSyncedAt: Date | null
   jobSnapshotTitle: string | null
   jobSnapshotCompany: string | null
   lastJobCheckAt: Date | null
@@ -94,6 +95,7 @@ export type ContactMaxAggregateOutputType = {
   enrichmentSource: string | null
   enrichmentRanAt: Date | null
   enrichmentError: string | null
+  hubspotSyncedAt: Date | null
   jobSnapshotTitle: string | null
   jobSnapshotCompany: string | null
   lastJobCheckAt: Date | null
@@ -130,6 +132,7 @@ export type ContactCountAggregateOutputType = {
   enrichmentLog: number
   enrichmentRanAt: number
   enrichmentError: number
+  hubspotSyncedAt: number
   jobSnapshotTitle: number
   jobSnapshotCompany: number
   lastJobCheckAt: number
@@ -174,6 +177,7 @@ export type ContactMinAggregateInputType = {
   enrichmentSource?: true
   enrichmentRanAt?: true
   enrichmentError?: true
+  hubspotSyncedAt?: true
   jobSnapshotTitle?: true
   jobSnapshotCompany?: true
   lastJobCheckAt?: true
@@ -208,6 +212,7 @@ export type ContactMaxAggregateInputType = {
   enrichmentSource?: true
   enrichmentRanAt?: true
   enrichmentError?: true
+  hubspotSyncedAt?: true
   jobSnapshotTitle?: true
   jobSnapshotCompany?: true
   lastJobCheckAt?: true
@@ -244,6 +249,7 @@ export type ContactCountAggregateInputType = {
   enrichmentLog?: true
   enrichmentRanAt?: true
   enrichmentError?: true
+  hubspotSyncedAt?: true
   jobSnapshotTitle?: true
   jobSnapshotCompany?: true
   lastJobCheckAt?: true
@@ -367,6 +373,7 @@ export type ContactGroupByOutputType = {
   enrichmentLog: runtime.JsonValue | null
   enrichmentRanAt: Date | null
   enrichmentError: string | null
+  hubspotSyncedAt: Date | null
   jobSnapshotTitle: string | null
   jobSnapshotCompany: string | null
   lastJobCheckAt: Date | null
@@ -426,6 +433,7 @@ export type ContactWhereInput = {
   enrichmentLog?: Prisma.JsonNullableFilter<"Contact">
   enrichmentRanAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   enrichmentError?: Prisma.StringNullableFilter<"Contact"> | string | null
+  hubspotSyncedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   jobSnapshotTitle?: Prisma.StringNullableFilter<"Contact"> | string | null
   jobSnapshotCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
   lastJobCheckAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
@@ -469,6 +477,7 @@ export type ContactOrderByWithRelationInput = {
   enrichmentLog?: Prisma.SortOrderInput | Prisma.SortOrder
   enrichmentRanAt?: Prisma.SortOrderInput | Prisma.SortOrder
   enrichmentError?: Prisma.SortOrderInput | Prisma.SortOrder
+  hubspotSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   jobSnapshotTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   jobSnapshotCompany?: Prisma.SortOrderInput | Prisma.SortOrder
   lastJobCheckAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -516,6 +525,7 @@ export type ContactWhereUniqueInput = Prisma.AtLeast<{
   enrichmentLog?: Prisma.JsonNullableFilter<"Contact">
   enrichmentRanAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   enrichmentError?: Prisma.StringNullableFilter<"Contact"> | string | null
+  hubspotSyncedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   jobSnapshotTitle?: Prisma.StringNullableFilter<"Contact"> | string | null
   jobSnapshotCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
   lastJobCheckAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
@@ -559,6 +569,7 @@ export type ContactOrderByWithAggregationInput = {
   enrichmentLog?: Prisma.SortOrderInput | Prisma.SortOrder
   enrichmentRanAt?: Prisma.SortOrderInput | Prisma.SortOrder
   enrichmentError?: Prisma.SortOrderInput | Prisma.SortOrder
+  hubspotSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   jobSnapshotTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   jobSnapshotCompany?: Prisma.SortOrderInput | Prisma.SortOrder
   lastJobCheckAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -603,6 +614,7 @@ export type ContactScalarWhereWithAggregatesInput = {
   enrichmentLog?: Prisma.JsonNullableWithAggregatesFilter<"Contact">
   enrichmentRanAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Contact"> | Date | string | null
   enrichmentError?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
+  hubspotSyncedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Contact"> | Date | string | null
   jobSnapshotTitle?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
   jobSnapshotCompany?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
   lastJobCheckAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Contact"> | Date | string | null
@@ -638,6 +650,7 @@ export type ContactCreateInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -680,6 +693,7 @@ export type ContactUncheckedCreateInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -720,6 +734,7 @@ export type ContactUpdateInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -762,6 +777,7 @@ export type ContactUncheckedUpdateInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -803,6 +819,7 @@ export type ContactCreateManyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -838,6 +855,7 @@ export type ContactUpdateManyMutationInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -873,6 +891,7 @@ export type ContactUncheckedUpdateManyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -932,6 +951,7 @@ export type ContactCountOrderByAggregateInput = {
   enrichmentLog?: Prisma.SortOrder
   enrichmentRanAt?: Prisma.SortOrder
   enrichmentError?: Prisma.SortOrder
+  hubspotSyncedAt?: Prisma.SortOrder
   jobSnapshotTitle?: Prisma.SortOrder
   jobSnapshotCompany?: Prisma.SortOrder
   lastJobCheckAt?: Prisma.SortOrder
@@ -970,6 +990,7 @@ export type ContactMaxOrderByAggregateInput = {
   enrichmentSource?: Prisma.SortOrder
   enrichmentRanAt?: Prisma.SortOrder
   enrichmentError?: Prisma.SortOrder
+  hubspotSyncedAt?: Prisma.SortOrder
   jobSnapshotTitle?: Prisma.SortOrder
   jobSnapshotCompany?: Prisma.SortOrder
   lastJobCheckAt?: Prisma.SortOrder
@@ -1004,6 +1025,7 @@ export type ContactMinOrderByAggregateInput = {
   enrichmentSource?: Prisma.SortOrder
   enrichmentRanAt?: Prisma.SortOrder
   enrichmentError?: Prisma.SortOrder
+  hubspotSyncedAt?: Prisma.SortOrder
   jobSnapshotTitle?: Prisma.SortOrder
   jobSnapshotCompany?: Prisma.SortOrder
   lastJobCheckAt?: Prisma.SortOrder
@@ -1219,6 +1241,7 @@ export type ContactCreateWithoutOwnerInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -1259,6 +1282,7 @@ export type ContactUncheckedCreateWithoutOwnerInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -1329,6 +1353,7 @@ export type ContactScalarWhereInput = {
   enrichmentLog?: Prisma.JsonNullableFilter<"Contact">
   enrichmentRanAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   enrichmentError?: Prisma.StringNullableFilter<"Contact"> | string | null
+  hubspotSyncedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   jobSnapshotTitle?: Prisma.StringNullableFilter<"Contact"> | string | null
   jobSnapshotCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
   lastJobCheckAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
@@ -1364,6 +1389,7 @@ export type ContactCreateWithoutMessagesInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -1405,6 +1431,7 @@ export type ContactUncheckedCreateWithoutMessagesInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -1460,6 +1487,7 @@ export type ContactUpdateWithoutMessagesInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1501,6 +1529,7 @@ export type ContactUncheckedUpdateWithoutMessagesInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1540,6 +1569,7 @@ export type ContactCreateWithoutCompanyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -1581,6 +1611,7 @@ export type ContactUncheckedCreateWithoutCompanyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -1646,6 +1677,7 @@ export type ContactCreateWithoutCampaignRecipientsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -1687,6 +1719,7 @@ export type ContactUncheckedCreateWithoutCampaignRecipientsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -1742,6 +1775,7 @@ export type ContactUpdateWithoutCampaignRecipientsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1783,6 +1817,7 @@ export type ContactUncheckedUpdateWithoutCampaignRecipientsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1822,6 +1857,7 @@ export type ContactCreateWithoutListsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -1863,6 +1899,7 @@ export type ContactUncheckedCreateWithoutListsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -1918,6 +1955,7 @@ export type ContactUpdateWithoutListsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1959,6 +1997,7 @@ export type ContactUncheckedUpdateWithoutListsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1998,6 +2037,7 @@ export type ContactCreateWithoutSequenceEnrollmentsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -2039,6 +2079,7 @@ export type ContactUncheckedCreateWithoutSequenceEnrollmentsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -2094,6 +2135,7 @@ export type ContactUpdateWithoutSequenceEnrollmentsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2135,6 +2177,7 @@ export type ContactUncheckedUpdateWithoutSequenceEnrollmentsInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2174,6 +2217,7 @@ export type ContactCreateWithoutJobChangesInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -2215,6 +2259,7 @@ export type ContactUncheckedCreateWithoutJobChangesInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -2270,6 +2315,7 @@ export type ContactUpdateWithoutJobChangesInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2311,6 +2357,7 @@ export type ContactUncheckedUpdateWithoutJobChangesInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2350,6 +2397,7 @@ export type ContactCreateManyOwnerInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -2385,6 +2433,7 @@ export type ContactUpdateWithoutOwnerInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2425,6 +2474,7 @@ export type ContactUncheckedUpdateWithoutOwnerInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2465,6 +2515,7 @@ export type ContactUncheckedUpdateManyWithoutOwnerInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2501,6 +2552,7 @@ export type ContactCreateManyCompanyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Date | string | null
   enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
   jobSnapshotTitle?: string | null
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
@@ -2535,6 +2587,7 @@ export type ContactUpdateWithoutCompanyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2576,6 +2629,7 @@ export type ContactUncheckedUpdateWithoutCompanyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2616,6 +2670,7 @@ export type ContactUncheckedUpdateManyWithoutCompanyInput = {
   enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2718,6 +2773,7 @@ export type ContactSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   enrichmentLog?: boolean
   enrichmentRanAt?: boolean
   enrichmentError?: boolean
+  hubspotSyncedAt?: boolean
   jobSnapshotTitle?: boolean
   jobSnapshotCompany?: boolean
   lastJobCheckAt?: boolean
@@ -2762,6 +2818,7 @@ export type ContactSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   enrichmentLog?: boolean
   enrichmentRanAt?: boolean
   enrichmentError?: boolean
+  hubspotSyncedAt?: boolean
   jobSnapshotTitle?: boolean
   jobSnapshotCompany?: boolean
   lastJobCheckAt?: boolean
@@ -2800,6 +2857,7 @@ export type ContactSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   enrichmentLog?: boolean
   enrichmentRanAt?: boolean
   enrichmentError?: boolean
+  hubspotSyncedAt?: boolean
   jobSnapshotTitle?: boolean
   jobSnapshotCompany?: boolean
   lastJobCheckAt?: boolean
@@ -2838,6 +2896,7 @@ export type ContactSelectScalar = {
   enrichmentLog?: boolean
   enrichmentRanAt?: boolean
   enrichmentError?: boolean
+  hubspotSyncedAt?: boolean
   jobSnapshotTitle?: boolean
   jobSnapshotCompany?: boolean
   lastJobCheckAt?: boolean
@@ -2846,7 +2905,7 @@ export type ContactSelectScalar = {
   companyId?: boolean
 }
 
-export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "hebrewFirstName" | "headline" | "currentTitle" | "currentCompany" | "currentCompanyId" | "companySize" | "seniority" | "function" | "location" | "industry" | "profilePicUrl" | "connectedAt" | "lastSyncedAt" | "removedAt" | "email" | "phone" | "enrichedAt" | "enrichmentSource" | "manualFields" | "enrichmentLog" | "enrichmentRanAt" | "enrichmentError" | "jobSnapshotTitle" | "jobSnapshotCompany" | "lastJobCheckAt" | "createdAt" | "updatedAt" | "companyId", ExtArgs["result"]["contact"]>
+export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "hebrewFirstName" | "headline" | "currentTitle" | "currentCompany" | "currentCompanyId" | "companySize" | "seniority" | "function" | "location" | "industry" | "profilePicUrl" | "connectedAt" | "lastSyncedAt" | "removedAt" | "email" | "phone" | "enrichedAt" | "enrichmentSource" | "manualFields" | "enrichmentLog" | "enrichmentRanAt" | "enrichmentError" | "hubspotSyncedAt" | "jobSnapshotTitle" | "jobSnapshotCompany" | "lastJobCheckAt" | "createdAt" | "updatedAt" | "companyId", ExtArgs["result"]["contact"]>
 export type ContactInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   jobChanges?: boolean | Prisma.Contact$jobChangesArgs<ExtArgs>
   company?: boolean | Prisma.Contact$companyArgs<ExtArgs>
@@ -2905,6 +2964,7 @@ export type $ContactPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     enrichmentLog: runtime.JsonValue | null
     enrichmentRanAt: Date | null
     enrichmentError: string | null
+    hubspotSyncedAt: Date | null
     jobSnapshotTitle: string | null
     jobSnapshotCompany: string | null
     lastJobCheckAt: Date | null
@@ -3368,6 +3428,7 @@ export interface ContactFieldRefs {
   readonly enrichmentLog: Prisma.FieldRef<"Contact", 'Json'>
   readonly enrichmentRanAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly enrichmentError: Prisma.FieldRef<"Contact", 'String'>
+  readonly hubspotSyncedAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly jobSnapshotTitle: Prisma.FieldRef<"Contact", 'String'>
   readonly jobSnapshotCompany: Prisma.FieldRef<"Contact", 'String'>
   readonly lastJobCheckAt: Prisma.FieldRef<"Contact", 'DateTime'>

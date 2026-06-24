@@ -185,6 +185,7 @@ model Contact {
   enrichmentLog    Json?
   enrichmentRanAt  DateTime?
   enrichmentError  String?
+  hubspotSyncedAt  DateTime?
 
   // job change detection
   jobSnapshotTitle   String?
