@@ -3,8 +3,10 @@
  *
  * 1. Streams every HubSpot contact (free, no per-lookup cost).
  * 2. Builds in-memory indexes: by normalized LinkedIn URL, and by lowercased name+company.
- * 3. Iterates DB contacts missing email or phone, ordered C_LEVEL first.
- * 4. Fills email/phone from HubSpot when matched. Marks enrichmentSource = 'hubspot'.
+ * 3. Iterates DB contacts missing email, ordered C_LEVEL first.
+ * 4. Fills email from HubSpot when matched. Marks enrichmentSource = 'hubspot'.
+ *    Phone is never synced from HubSpot — its single untyped phone field can't be
+ *    distinguished from a private/landline number.
  *
  * Run:  DATABASE_URL=... HUBSPOT_API_KEY=... npx tsx scripts/hubspot-bulk-sync.ts
  */
@@ -21,7 +23,6 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 type HubspotRecord = {
   email?: string;
-  phone?: string;
   firstName?: string;
   lastName?: string;
   company?: string;
@@ -53,7 +54,7 @@ async function fetchHubspotPage(after?: string): Promise<{ results: any[]; next?
   url.searchParams.set("limit", "100");
   url.searchParams.set(
     "properties",
-    "email,phone,firstname,lastname,company,hs_linkedin_profile_url"
+    "email,firstname,lastname,company,hs_linkedin_profile_url"
   );
   if (after) url.searchParams.set("after", after);
 
@@ -88,10 +89,10 @@ async function loadAllHubspot(): Promise<{
     const { results, next } = await fetchHubspotPage(after);
     for (const r of results) {
       const p = r.properties ?? {};
-      if (!p.email && !p.phone) continue;
+      // HubSpot phone is a single untyped field — never bring it in. Email only.
+      if (!p.email) continue;
       const record: HubspotRecord = {
         email: p.email || undefined,
-        phone: p.phone || undefined,
         firstName: p.firstname || undefined,
         lastName: p.lastname || undefined,
         company: p.company || undefined,
@@ -125,11 +126,11 @@ async function syncTier(
   byName: Map<string, HubspotRecord>
 ): Promise<{ scanned: number; matched: number }> {
   const { rows } = await client.query(
-    `SELECT id, "fullName", "linkedinUrl", "currentCompany", email, phone, "manualFields"
+    `SELECT id, "fullName", "linkedinUrl", "currentCompany", email, "manualFields"
      FROM "Contact"
      WHERE "seniority" = $1
        AND "removedAt" IS NULL
-       AND (email IS NULL OR phone IS NULL)`,
+       AND email IS NULL`,
     [seniority]
   );
 
@@ -142,26 +143,23 @@ async function syncTier(
       const { first, last } = splitName(c.fullName ?? "");
       hit = byName.get(nameKey(first, last, c.currentCompany));
     }
-    if (!hit || (!hit.email && !hit.phone)) continue;
+    if (!hit || !hit.email) continue;
 
     const protected_ = new Set<string>(c.manualFields ?? []);
     const newEmail =
       !protected_.has("email") && hit.email && !c.email ? hit.email : c.email;
-    const newPhone =
-      !protected_.has("phone") && hit.phone && !c.phone ? hit.phone : c.phone;
 
-    if (newEmail === c.email && newPhone === c.phone) continue;
+    if (newEmail === c.email) continue;
 
     await client.query(
       `UPDATE "Contact"
        SET email = $1,
-           phone = $2,
            "enrichmentSource" = 'hubspot',
            "enrichmentRanAt" = NOW(),
            "enrichedAt" = NOW(),
            "enrichmentError" = NULL
-       WHERE id = $3`,
-      [newEmail, newPhone, c.id]
+       WHERE id = $2`,
+      [newEmail, c.id]
     );
     matched++;
   }
@@ -182,11 +180,11 @@ async function main() {
 
     // Contacts without a seniority
     const { rows } = await client.query(
-      `SELECT id, "fullName", "linkedinUrl", "currentCompany", email, phone, "manualFields"
+      `SELECT id, "fullName", "linkedinUrl", "currentCompany", email, "manualFields"
        FROM "Contact"
        WHERE "seniority" IS NULL
          AND "removedAt" IS NULL
-         AND (email IS NULL OR phone IS NULL)`
+         AND email IS NULL`
     );
     let unmatched = 0;
     let unmatchedHits = 0;
@@ -198,19 +196,17 @@ async function main() {
         const { first, last } = splitName(c.fullName ?? "");
         hit = byName.get(nameKey(first, last, c.currentCompany));
       }
-      if (!hit || (!hit.email && !hit.phone)) continue;
+      if (!hit || !hit.email) continue;
       const protected_ = new Set<string>(c.manualFields ?? []);
       const newEmail =
         !protected_.has("email") && hit.email && !c.email ? hit.email : c.email;
-      const newPhone =
-        !protected_.has("phone") && hit.phone && !c.phone ? hit.phone : c.phone;
-      if (newEmail === c.email && newPhone === c.phone) continue;
+      if (newEmail === c.email) continue;
       await client.query(
-        `UPDATE "Contact" SET email = $1, phone = $2,
+        `UPDATE "Contact" SET email = $1,
            "enrichmentSource" = 'hubspot', "enrichmentRanAt" = NOW(),
            "enrichedAt" = NOW(), "enrichmentError" = NULL
-         WHERE id = $3`,
-        [newEmail, newPhone, c.id]
+         WHERE id = $2`,
+        [newEmail, c.id]
       );
       unmatchedHits++;
       unmatched++;

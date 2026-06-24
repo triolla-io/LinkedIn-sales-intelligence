@@ -132,12 +132,12 @@ export async function matchPerson(input: {
       seen.add(p.sanitized_number);
       return true;
     });
+    // Only callable business/mobile numbers — never home/other/landline.
+    // If the person has only a private (home/other) number, leave phone empty.
     const rawPhone =
       uniquePhones.find((p) => p.type === "work_direct")?.sanitized_number ??
       uniquePhones.find((p) => p.type === "work")?.sanitized_number ??
-      uniquePhones.find((p) => p.type === "other")?.sanitized_number ??
-      uniquePhones.find((p) => p.type === "mobile")?.sanitized_number ??
-      uniquePhones[0]?.sanitized_number;
+      uniquePhones.find((p) => p.type === "mobile")?.sanitized_number;
     const phone = normalizeApolloPhone(rawPhone);
     const email = person?.email ?? contact?.email ?? undefined;
     return {

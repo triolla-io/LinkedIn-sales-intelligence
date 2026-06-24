@@ -237,8 +237,8 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     ? await lookupContact({ linkedinUrl, fullName, company: fields.currentCompany ?? undefined })
     : null;
   const email = fields.email ?? hubspot?.email ?? null;
-  const phone = fields.phone ?? hubspot?.phone ?? null;
-  const enrichmentFields = hubspot?.email || hubspot?.phone
+  const phone = fields.phone ?? null;
+  const enrichmentFields = hubspot?.email
     ? { enrichmentSource: "hubspot", enrichmentRanAt: new Date(), enrichedAt: new Date(), enrichmentError: null }
     : {};
 

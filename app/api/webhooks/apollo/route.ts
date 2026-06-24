@@ -13,16 +13,18 @@ function normalizeLinkedinUrl(url: string): string {
   }
 }
 
-/** Apply the same phone priority logic used in matchPerson: work_direct > work > other > mobile > phones[0]. */
+/**
+ * Apply the same phone priority logic used in matchPerson: work_direct > work > mobile.
+ * Only callable business/mobile numbers — never home/other/landline. If the person has
+ * only a private (home/other) number, returns undefined and we leave phone empty.
+ */
 function pickPhone(
   phones: Array<{ sanitized_number?: string; type?: string }>
 ): string | undefined {
   return (
     phones.find((p) => p.type === "work_direct")?.sanitized_number ??
     phones.find((p) => p.type === "work")?.sanitized_number ??
-    phones.find((p) => p.type === "other")?.sanitized_number ??
-    phones.find((p) => p.type === "mobile")?.sanitized_number ??
-    phones[0]?.sanitized_number
+    phones.find((p) => p.type === "mobile")?.sanitized_number
   );
 }
 

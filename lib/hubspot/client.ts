@@ -1,11 +1,4 @@
-import { toIsraeliE164 } from "@/lib/phone/normalize";
-
 const HUBSPOT_BASE = "https://api.hubapi.com";
-
-function normalizePhone(phone: string | undefined): string | undefined {
-  if (!phone) return phone;
-  return toIsraeliE164(phone) ?? phone;
-}
 
 function normalizeLinkedinUrl(url: string): string {
   return url.toLowerCase().replace(/\/$/, "").replace(/^http:/, "https:");
@@ -21,7 +14,7 @@ function headers() {
 async function searchByProperty(
   property: string,
   value: string
-): Promise<{ email?: string; phone?: string } | null> {
+): Promise<{ email?: string } | null> {
   const res = await fetch(`${HUBSPOT_BASE}/crm/v3/objects/contacts/search`, {
     method: "POST",
     headers: headers(),
@@ -42,18 +35,19 @@ async function searchByProperty(
   const contact = data.results?.[0]?.properties;
   if (!contact) return null;
 
+  // HubSpot returns a single untyped `phone` field — no way to tell mobile from
+  // a private/landline number — so we never bring it in. Email only.
   const email = contact.email || undefined;
-  const phone = normalizePhone(contact.phone || undefined);
-  if (!email && !phone) return null;
+  if (!email) return null;
 
-  return { email, phone };
+  return { email };
 }
 
 export async function lookupContact(params: {
   linkedinUrl: string;
   fullName: string;
   company?: string;
-}): Promise<{ email?: string; phone?: string } | null> {
+}): Promise<{ email?: string } | null> {
   if (!process.env.HUBSPOT_API_KEY) return null;
 
   try {
@@ -102,10 +96,9 @@ export async function lookupContact(params: {
     if (!contact) return null;
 
     const email = contact.email || undefined;
-    const phone = normalizePhone(contact.phone || undefined);
-    if (!email && !phone) return null;
+    if (!email) return null;
 
-    return { email, phone };
+    return { email };
   } catch (error) {
     console.error("[hubspot] lookupContact failed silently", error);
     return null;
