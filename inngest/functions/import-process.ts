@@ -112,7 +112,7 @@ export const importProcess = inngest.createFunction(
           const phone = rawPhone ? (toIsraeliE164(rawPhone) ?? rawPhone) : null;
           const enrichmentFields = cacheHit?.email || cacheHit?.phone
             ? { enrichmentSource: "cache", enrichmentRanAt: new Date(), enrichmentError: null }
-            : hubspot?.email
+            : (hubspot?.email || hubspot?.phone)
             ? { enrichmentSource: "hubspot", enrichmentRanAt: new Date(), enrichmentError: null }
             : {};
           const connectedAt = c.connectedAt ? new Date(c.connectedAt) : null;
