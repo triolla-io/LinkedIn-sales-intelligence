@@ -17,7 +17,7 @@ export type ScrapedCard = {
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.2.1";
+const VERSION = "0.2.2";
 
 // In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
@@ -167,7 +167,14 @@ async function gatherEnvHints(tabId: number): Promise<Record<string, unknown>> {
 }
 
 async function sendLinkedInMessage(profileUrl: string, text: string, recipientName = ""): Promise<{ sentAt: string; conversationUrl: string; steps: number }> {
-  const tab = await chrome.tabs.create({ url: profileUrl, active: true });
+  // Open a BLANK tab first, NOT the profile URL. chrome.debugger.attach is refused
+  // when the target tab already hosts frames belonging to OTHER extensions — e.g.
+  // HubSpot Sales / Datanyze inject chrome-extension:// frames into every linkedin.com
+  // page, so attaching to an already-loaded profile fails with "Cannot access a
+  // chrome-extension:// URL of different extension". Attaching while the tab is still
+  // about:blank passes Chrome's attach-time security check; the debugger session then
+  // persists across the CDP navigation to LinkedIn, even as those extensions inject.
+  const tab = await chrome.tabs.create({ url: "about:blank", active: true });
   if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
   const tabId = tab.id;
   await trackActiveTab(tabId);
@@ -176,30 +183,25 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
   let caughtError: Error | null = null;
 
   try {
+    // Attach on the blank page (no foreign frames yet), then drive navigation via CDP.
     await waitForTabLoad(tabId);
-    await sleep(2500);
+    await attach(tabId);
+    attached = true;
 
     // Bring the window to front so CDP clicks land on a focused window
     const tabInfo = await chrome.tabs.get(tabId);
     if (tabInfo.windowId) await chrome.windows.update(tabInfo.windowId, { focused: true });
     await sleep(300);
 
+    // Navigate to the profile through the already-attached debugger session.
+    await send(tabId, "Page.navigate", { url: profileUrl });
+    await waitForTabLoad(tabId);
+    await sleep(2500);
+
     const preTab = await chrome.tabs.get(tabId);
     if (preTab.url && preTab.url.includes("/checkpoint")) {
       throw withCode(new Error("checkpoint"), "checkpoint");
     }
-
-    // Detect a hijacked tab BEFORE attaching the debugger. We opened this tab on a
-    // linkedin.com URL; if it now points elsewhere — especially a chrome-extension://
-    // page — another installed extension redirected it, and chrome.debugger.attach
-    // would fail with the opaque "Cannot access a chrome-extension:// URL of different
-    // extension". Surface a clear code + the hijacking URL (its id) instead.
-    if (preTab.url && !preTab.url.includes("linkedin.com")) {
-      throw withCode(new Error(`tab_hijacked url=${preTab.url}`), "tab_hijacked");
-    }
-
-    await attach(tabId);
-    attached = true;
 
     // Get device pixel ratio so we can normalize screenshot coords to CSS coords
     const dprResult = await (await import("./lib/cdp")).send<{ result: { value: number } }>(

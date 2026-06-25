@@ -128,6 +128,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
           onChange={(e) => formDispatch({ name: e.target.value })}
           placeholder="למשל: יצירת קשר ראשונה"
           className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-lg px-3 py-2.5 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+          dir="rtl"
         />
       </div>
       <div>
