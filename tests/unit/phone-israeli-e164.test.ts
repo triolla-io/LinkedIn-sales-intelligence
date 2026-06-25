@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toIsraeliE164 } from "@/lib/phone/normalize";
+import { isIsraeliMobile, toIsraeliE164 } from "@/lib/phone/normalize";
 
 describe("toIsraeliE164", () => {
   it("repairs the Apollo/HubSpot '+1' mis-prefix on an Israeli mobile (drops the trunk 0)", () => {
@@ -39,5 +39,36 @@ describe("toIsraeliE164", () => {
     expect(toIsraeliE164(null)).toBeNull();
     expect(toIsraeliE164(undefined)).toBeNull();
     expect(toIsraeliE164("not-a-phone")).toBeNull();
+  });
+});
+
+describe("isIsraeliMobile", () => {
+  it("accepts Israeli mobile prefixes (05X)", () => {
+    expect(isIsraeliMobile("+972506463464")).toBe(true); // 050
+    expect(isIsraeliMobile("+972521234567")).toBe(true); // 052
+    expect(isIsraeliMobile("+972581234567")).toBe(true); // 058
+  });
+
+  it("rejects Israeli landline numbers", () => {
+    expect(isIsraeliMobile("+97226701234")).toBe(false); // 02
+    expect(isIsraeliMobile("+97235123456")).toBe(false); // 03
+    expect(isIsraeliMobile("+97297654321")).toBe(false); // 09
+  });
+
+  it("rejects Israeli VoIP / non-geographic numbers", () => {
+    expect(isIsraeliMobile("+972732345678")).toBe(false); // 073
+    expect(isIsraeliMobile("+972773334444")).toBe(false); // 077
+    expect(isIsraeliMobile("+972722501234")).toBe(false); // 072
+  });
+
+  it("rejects non-Israeli numbers", () => {
+    expect(isIsraeliMobile("+16505551234")).toBe(false);
+  });
+
+  it("rejects null / empty / unparseable", () => {
+    expect(isIsraeliMobile(null)).toBe(false);
+    expect(isIsraeliMobile(undefined)).toBe(false);
+    expect(isIsraeliMobile("")).toBe(false);
+    expect(isIsraeliMobile("not a phone")).toBe(false);
   });
 });

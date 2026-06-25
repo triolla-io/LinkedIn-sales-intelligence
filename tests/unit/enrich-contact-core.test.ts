@@ -94,4 +94,29 @@ describe("enrichContactCore", () => {
       expect.objectContaining({ data: expect.objectContaining({ enrichmentError: "429: rate limited" }) })
     );
   });
+
+  it("applies HubSpot phone when present and not manually protected", async () => {
+    mockLookupContact.mockResolvedValue({ email: "a@b.com", phone: "+972521234567" });
+
+    const result = await run();
+
+    expect(result).toMatchObject({ status: "ok", source: "hubspot", phone: "+972521234567" });
+    expect(mockContactUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ phone: "+972521234567" }) })
+    );
+  });
+
+  it("does NOT write HubSpot phone to the contact when phone is in manualFields (protected)", async () => {
+    const { enrichContactCore } = await import("@/lib/enrichment/enrich-contact-core");
+    const protectedContact = { ...contact, manualFields: ["phone"] };
+    mockLookupContact.mockResolvedValue({ email: "a@b.com", phone: "+972521234567" });
+
+    const result = await enrichContactCore({ contact: protectedContact, orgId: "org1", monthlyApolloBudget: 100 });
+
+    expect(result).toMatchObject({ status: "ok", source: "hubspot" });
+    expect(mockContactUpdate).toHaveBeenCalledTimes(1);
+    const updateData = mockContactUpdate.mock.calls[0][0].data;
+    expect(updateData).not.toHaveProperty("phone");
+    expect(updateData).toHaveProperty("email", "a@b.com");
+  });
 });

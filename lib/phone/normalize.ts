@@ -46,3 +46,24 @@ export function toIsraeliE164(input: string | null | undefined): string | null {
     return null;
   }
 }
+
+/**
+ * True only for an Israeli mobile number (+972, national part starts with "5",
+ * i.e. 05X). Used to gate phones read from HubSpot's single untyped `phone`
+ * field: we keep mobiles, drop landline (02/03/04/08/09) and VoIP (07X).
+ *
+ * Prefix-based on purpose: libphonenumber's getType() returns UNKNOWN for valid
+ * mobile prefixes like 052/058 under both the default and `/max` metadata, so a
+ * "keep only MOBILE" rule would wrongly drop real mobiles.
+ */
+export function isIsraeliMobile(e164: string | null | undefined): boolean {
+  if (!e164 || !e164.trim()) return false;
+  try {
+    const parsed = parsePhoneNumber(e164, "IL");
+    if (!parsed?.isValid()) return false;
+    if (parsed.countryCallingCode !== "972") return false;
+    return parsed.nationalNumber.startsWith("5");
+  } catch {
+    return false;
+  }
+}

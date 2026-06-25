@@ -41,6 +41,7 @@ Use HeroUI (`@heroui/react`) for all React components.
 | `import.process` | CSV upload API | `inngest/functions/import-process.ts` |
 | `job.check` | nightly cron dispatch | `inngest/functions/job-check-contact.ts` |
 | *(cron 0 2 \* \* \*)* | nightly job-change batch trigger | `inngest/functions/job-check-tick.ts` |
+| *(cron 0 3 \* \* \*)* | daily Apollo→HubSpot sync | `inngest/functions/hubspot-sync-apollo.ts` |
 
 ## Next.js version
 

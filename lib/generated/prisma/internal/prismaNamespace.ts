@@ -2935,6 +2935,7 @@ export const ContactScalarFieldEnum = {
   enrichmentLog: 'enrichmentLog',
   enrichmentRanAt: 'enrichmentRanAt',
   enrichmentError: 'enrichmentError',
+  hubspotSyncedAt: 'hubspotSyncedAt',
   jobSnapshotTitle: 'jobSnapshotTitle',
   jobSnapshotCompany: 'jobSnapshotCompany',
   lastJobCheckAt: 'lastJobCheckAt',

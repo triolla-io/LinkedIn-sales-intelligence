@@ -78,7 +78,7 @@ export async function enrichContactCore(opts: {
     company: contact.currentCompany ?? undefined,
   });
 
-  if (hubspotResult?.email) {
+  if (hubspotResult?.email || hubspotResult?.phone) {
     const patch: Record<string, unknown> = {
       enrichedAt: ranAt,
       enrichmentSource: "hubspot",
@@ -86,13 +86,14 @@ export async function enrichContactCore(opts: {
       enrichmentError: null,
     };
     if (!protectedFields.has("email") && hubspotResult.email) patch.email = hubspotResult.email;
+    if (!protectedFields.has("phone") && hubspotResult.phone) patch.phone = hubspotResult.phone;
     await prisma.contact.update({ where: { id: contact.id }, data: patch });
 
     return {
       status: "ok",
       source: "hubspot",
       email: hubspotResult.email ?? null,
-      phone: null,
+      phone: hubspotResult.phone ?? null,
       companySize: null,
       currentCompany: null,
       industry: null,
