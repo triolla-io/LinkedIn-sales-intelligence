@@ -2,17 +2,28 @@ import { describe, it, expect } from "vitest";
 
 // Inline the pure helpers (same pattern as lists-api.test.ts — can't import route files in vitest)
 
+const SEARCH_FIELDS = [
+  "fullName",
+  "email",
+  "currentCompany",
+  "currentTitle",
+  "hebrewFirstName",
+] as const;
+
 function buildSearchWhere(ownerId: string, q: string, excludeListId?: string) {
-  const orClause = q.trim()
-    ? [
-        { fullName: { contains: q.trim(), mode: "insensitive" as const } },
-        { email: { contains: q.trim(), mode: "insensitive" as const } },
-      ]
+  const tokens = q.trim().split(/\s+/).filter(Boolean);
+
+  const andClause = tokens.length
+    ? tokens.map((token) => ({
+        OR: SEARCH_FIELDS.map((field) => ({
+          [field]: { contains: token, mode: "insensitive" as const },
+        })),
+      }))
     : undefined;
 
   return {
     ownerId,
-    ...(orClause ? { OR: orClause } : {}),
+    ...(andClause ? { AND: andClause } : {}),
     ...(excludeListId
       ? { lists: { none: { listId: excludeListId } } }
       : {}),
@@ -36,20 +47,35 @@ describe("buildSearchWhere", () => {
     expect(buildSearchWhere("u1", "")).toEqual({ ownerId: "u1" });
   });
 
-  it("adds OR clause for fullName/email when q is provided", () => {
+  it("adds an AND clause matching the token across all search fields", () => {
     const w = buildSearchWhere("u1", "alice");
     expect(w).toEqual({
       ownerId: "u1",
-      OR: [
-        { fullName: { contains: "alice", mode: "insensitive" } },
-        { email: { contains: "alice", mode: "insensitive" } },
+      AND: [
+        {
+          OR: [
+            { fullName: { contains: "alice", mode: "insensitive" } },
+            { email: { contains: "alice", mode: "insensitive" } },
+            { currentCompany: { contains: "alice", mode: "insensitive" } },
+            { currentTitle: { contains: "alice", mode: "insensitive" } },
+            { hebrewFirstName: { contains: "alice", mode: "insensitive" } },
+          ],
+        },
       ],
     });
   });
 
-  it("trims whitespace in q", () => {
+  it("creates one AND entry per whitespace-separated token", () => {
+    const w = buildSearchWhere("u1", "alice acme");
+    expect(w.AND).toHaveLength(2);
+    expect(w.AND![0].OR[0]).toEqual({ fullName: { contains: "alice", mode: "insensitive" } });
+    expect(w.AND![1].OR[0]).toEqual({ fullName: { contains: "acme", mode: "insensitive" } });
+  });
+
+  it("trims and collapses surrounding whitespace in q", () => {
     const w = buildSearchWhere("u1", "  bob  ");
-    expect(w.OR![0]).toEqual({ fullName: { contains: "bob", mode: "insensitive" } });
+    expect(w.AND).toHaveLength(1);
+    expect(w.AND![0].OR[0]).toEqual({ fullName: { contains: "bob", mode: "insensitive" } });
   });
 
   it("excludes list members when excludeListId provided", () => {
@@ -62,7 +88,7 @@ describe("buildSearchWhere", () => {
 
   it("combines q and excludeListId", () => {
     const w = buildSearchWhere("u1", "carol", "list-99");
-    expect(w.OR).toHaveLength(2);
+    expect(w.AND).toHaveLength(1);
     expect(w.lists).toEqual({ none: { listId: "list-99" } });
   });
 });

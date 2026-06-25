@@ -39,23 +39,38 @@ function ModalContent({
 
   useEffect(() => {
     if (!query.trim()) return;
+    // Abort the previous in-flight request so a slower earlier response can
+    // never overwrite the results of a newer query (out-of-order race).
+    const controller = new AbortController();
     const id = setTimeout(async () => {
       setSearching(true);
       try {
         const res = await fetch(
-          `/api/contacts/search?q=${encodeURIComponent(query)}&excludeListId=${listId}&limit=20`
+          `/api/contacts/search?q=${encodeURIComponent(query)}&excludeListId=${listId}&limit=20`,
+          { signal: controller.signal }
         );
         if (!res.ok) return;
         const data = await res.json();
         setResults(data.contacts ?? []);
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return;
       } finally {
-        setSearching(false);
+        // Only clear the spinner if this request wasn't superseded — otherwise
+        // it could flip off while a newer request is still running.
+        if (!controller.signal.aborted) setSearching(false);
       }
     }, 300);
-    return () => clearTimeout(id);
+    return () => {
+      clearTimeout(id);
+      controller.abort();
+    };
   }, [query, listId]);
 
-  const displayedResults = query.trim() ? results : [];
+  // Derive empty-query UI from `query` in render rather than clearing state in
+  // the effect — a stale `results`/`searching` value never leaks through.
+  const hasQuery = query.trim() !== "";
+  const isSearching = hasQuery && searching;
+  const displayedResults = hasQuery ? results : [];
 
   function toggleContact(id: string) {
     setSelected((prev) => {
@@ -111,25 +126,25 @@ function ModalContent({
             aria-label="חיפוש אנשי קשר"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="חפש לפי שם או אימייל…"
+            placeholder="חפש לפי שם, חברה, תפקיד או אימייל…"
             className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60"
           />
         </div>
 
         {/* Results list */}
         <div className="flex-1 overflow-y-auto min-h-[120px] max-h-72">
-          {searching && (
+          {isSearching && (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-4 h-4 text-[#9b9895] animate-spin" />
             </div>
           )}
-          {!searching && query.trim() === "" && (
+          {!hasQuery && (
             <p className="text-xs text-[#9b9895] text-center py-8">חפש אנשי קשר להוספה</p>
           )}
-          {!searching && query.trim() !== "" && displayedResults.length === 0 && (
+          {!isSearching && hasQuery && displayedResults.length === 0 && (
             <p className="text-xs text-[#9b9895] text-center py-8">לא נמצאו אנשי קשר</p>
           )}
-          {!searching &&
+          {!isSearching &&
             displayedResults.map((contact) => {
               const isSelected = selected.has(contact.id);
               return (

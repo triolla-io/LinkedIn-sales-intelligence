@@ -2,17 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 
+const SEARCH_FIELDS = [
+  "fullName",
+  "email",
+  "currentCompany",
+  "currentTitle",
+  "hebrewFirstName",
+] as const;
+
 export function buildSearchWhere(ownerId: string, q: string, excludeListId?: string) {
-  const orClause = q.trim()
-    ? [
-        { fullName: { contains: q.trim(), mode: "insensitive" as const } },
-        { email: { contains: q.trim(), mode: "insensitive" as const } },
-      ]
+  // Split into tokens so "אריאל טריולה" matches name + company in any order,
+  // and each token matches across all searchable fields.
+  const tokens = q.trim().split(/\s+/).filter(Boolean);
+
+  const andClause = tokens.length
+    ? tokens.map((token) => ({
+        OR: SEARCH_FIELDS.map((field) => ({
+          [field]: { contains: token, mode: "insensitive" as const },
+        })),
+      }))
     : undefined;
 
   return {
     ownerId,
-    ...(orClause ? { OR: orClause } : {}),
+    ...(andClause ? { AND: andClause } : {}),
     ...(excludeListId
       ? { lists: { none: { listId: excludeListId } } }
       : {}),

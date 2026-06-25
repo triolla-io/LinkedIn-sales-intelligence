@@ -116,7 +116,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} dir="rtl" className="space-y-4">
       <div>
         <label htmlFor="template-name" className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
           שם
@@ -127,7 +127,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
           value={formState.name}
           onChange={(e) => formDispatch({ name: e.target.value })}
           placeholder="למשל: יצירת קשר ראשונה"
-          className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-lg px-3 py-2.5 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+          className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-lg px-3 py-2.5 text-sm text-right text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
           dir="rtl"
         />
       </div>
@@ -142,9 +142,9 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
           onChange={(e) => formDispatch({ body: e.target.value })}
           rows={8}
           placeholder={"שלום {{firstName}},\n\nשמתי לב שאתה ב-{{company}}..."}
-          className="w-full bg-white border border-[#e5e3df] rounded-lg px-4 py-3 text-[#111110] placeholder-[#c8c5c2] resize-none focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+          className="w-full bg-white border border-[#e5e3df] rounded-lg px-4 py-3 text-right text-[#111110] placeholder-[#c8c5c2] resize-none focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
           style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: "14px", lineHeight: 1.5, color: "#222222" }}
-          dir="auto"
+          dir="rtl"
         />
         <div className="mt-2 flex flex-wrap gap-1.5">
           {VARIABLE_CHIPS.map((v) => (
