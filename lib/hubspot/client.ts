@@ -115,8 +115,6 @@ export async function lookupContact(params: {
   }
 }
 
-const LEAD_SOURCE_VALUE = "Triolla Sales Intelligence";
-
 async function findContactId(linkedinUrl: string, email?: string | null): Promise<string | null> {
   const search = async (propertyName: string, value: string) => {
     const res = await fetch(`${HUBSPOT_BASE}/crm/v3/objects/contacts/search`, {
@@ -179,8 +177,6 @@ export async function upsertContact(params: {
       return { ok: true, hubspotId: existingId };
     }
 
-    // Create: tag the source so CRM users can filter Triolla-originated records.
-    properties.lead_source = LEAD_SOURCE_VALUE;
     const res = await fetch(`${HUBSPOT_BASE}/crm/v3/objects/contacts`, {
       method: "POST",
       headers: headers(),

@@ -55,10 +55,9 @@ describe("upsertContact", () => {
     expect(patchCall[1].method).toBe("PATCH");
     const body = JSON.parse(patchCall[1].body);
     expect(body.properties.mobilephone).toBe("+972521234567");
-    expect(body.properties.lead_source).toBeUndefined(); // marker only on create
   });
 
-  it("creates a new contact with lead_source marker when no match", async () => {
+  it("creates a new contact when no match", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(searchMiss()) // search by linkedin
@@ -74,7 +73,6 @@ describe("upsertContact", () => {
     const createCall = fetchMock.mock.calls[2];
     expect(createCall[1].method).toBe("POST");
     const body = JSON.parse(createCall[1].body);
-    expect(body.properties.lead_source).toBe("Triolla Sales Intelligence");
     expect(body.properties.hs_linkedin_profile_url).toBe("https://linkedin.com/in/new");
   });
 });
