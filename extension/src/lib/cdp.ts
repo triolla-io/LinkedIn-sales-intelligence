@@ -348,49 +348,61 @@ export async function evalFindCompose(tabId: number): Promise<{ x: number; y: nu
   return result?.result?.value ?? null;
 }
 
-// Scan page for visible buttons — returns list for debugging
-export async function scanButtons(tabId: number): Promise<Array<{cls: string; aria: string; text: string; x: number; y: number; w: number; h: number}>> {
-  const result = await send<{ result: { value: unknown } }>(tabId, "Runtime.evaluate", {
-    expression: `[...document.querySelectorAll('button,[role="button"]')].map(b=>{const r=b.getBoundingClientRect();return{cls:b.className.slice(0,80),aria:b.getAttribute('aria-label')||'',text:b.textContent?.trim().slice(0,30)||'',x:Math.round(r.left),y:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height)}}).filter(b=>b.w>0&&b.h>0&&b.y<800)`,
-    returnByValue: true,
-  });
-  return (result?.result?.value as Array<{cls: string; aria: string; text: string; x: number; y: number; w: number; h: number}>) ?? [];
+export interface ScannedButton {
+  cls: string;
+  aria: string;
+  text: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  // Whether the button lives inside an actual modal/dialog/toast container.
+  // The geometric close-button fallback only fires for in-modal buttons — clicking
+  // chrome (the global nav) is what navigated the tab to LinkedIn Learning.
+  inModal: boolean;
 }
 
-// Find and click any modal dismiss/close button on the page
-export async function clickModalClose(tabId: number): Promise<boolean> {
-  const buttons = await scanButtons(tabId);
+// Selectors for containers that count as a dismissible overlay. A close button only
+// makes sense inside one of these — anything outside is page chrome, never a dismiss.
+const MODAL_CONTAINER_SEL =
+  '[role="dialog"],[aria-modal="true"],.artdeco-modal,.artdeco-toast-item,.artdeco-hovercard';
 
-  // Try known selectors first (exact aria-label or class)
+// Scan page for visible buttons — returns list for debugging and close-button detection.
+export async function scanButtons(tabId: number): Promise<ScannedButton[]> {
+  const result = await send<{ result: { value: unknown } }>(tabId, "Runtime.evaluate", {
+    expression: `[...document.querySelectorAll('button,[role="button"]')].map(b=>{const r=b.getBoundingClientRect();return{cls:b.className.slice(0,80),aria:b.getAttribute('aria-label')||'',text:b.textContent?.trim().slice(0,30)||'',x:Math.round(r.left),y:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height),inModal:!!b.closest('${MODAL_CONTAINER_SEL}')}}).filter(b=>b.w>0&&b.h>0&&b.y<800)`,
+    returnByValue: true,
+  });
+  return (result?.result?.value as ScannedButton[]) ?? [];
+}
+
+// Choose which scanned button (if any) to click to dismiss a modal. Pure so it can be
+// unit-tested without CDP. Returns null when there is nothing safe to click — which
+// MUST be the case on a clean profile page with only nav icons.
+export function pickCloseButton(buttons: ScannedButton[]): ScannedButton | null {
+  // 1. Explicit dismiss affordance (reliable aria-label / class / glyph).
   for (const btn of buttons) {
     const isClose =
       /^(dismiss|close|cancel)$/i.test(btn.aria) ||
       /artdeco-modal__dismiss/i.test(btn.cls) ||
       /dismiss/i.test(btn.cls) ||
       btn.text === '×' || btn.text === '✕' || btn.text === '✖';
-    if (isClose) {
-      await click(tabId, btn.x + Math.round(btn.w / 2), btn.y + Math.round(btn.h / 2));
-      return true;
-    }
+    if (isClose) return btn;
   }
 
-  // Broad fallback: small button (likely X) in top area, near right side of screen
-  const screenWidth = await getScreenWidth(tabId);
-  const closeCandidate = buttons.find(b => b.w < 50 && b.h < 50 && b.y < 300 && b.x > screenWidth * 0.4);
-  if (closeCandidate) {
-    await click(tabId, closeCandidate.x + Math.round(closeCandidate.w / 2), closeCandidate.y + Math.round(closeCandidate.h / 2));
-    return true;
-  }
-
-  return false;
+  // 2. Fallback: a small unlabeled icon button, but ONLY when it sits inside a real
+  //    modal/dialog. Never guess at page chrome — that is how we used to click the
+  //    global-nav "Learning" / "For Business" links and navigate the tab away.
+  return buttons.find(b => b.inModal && b.w < 50 && b.h < 50) ?? null;
 }
 
-async function getScreenWidth(tabId: number): Promise<number> {
-  const result = await send<{ result: { value: number } }>(tabId, "Runtime.evaluate", {
-    expression: "window.innerWidth",
-    returnByValue: true,
-  });
-  return result?.result?.value ?? 1440;
+// Find and click any modal dismiss/close button on the page
+export async function clickModalClose(tabId: number): Promise<boolean> {
+  const buttons = await scanButtons(tabId);
+  const target = pickCloseButton(buttons);
+  if (!target) return false;
+  await click(tabId, target.x + Math.round(target.w / 2), target.y + Math.round(target.h / 2));
+  return true;
 }
 
 // Insert text into the LinkedIn compose area using execCommand — trusted by React.
