@@ -20,7 +20,7 @@ export async function logProspectingEvent(input: {
         detail: input.detail as Prisma.InputJsonValue | undefined,
       },
     });
-  } catch {
-    // Logging must never break the pipeline.
+  } catch (err) {
+    console.warn("[prospecting] failed to write ProspectingEvent", err);
   }
 }

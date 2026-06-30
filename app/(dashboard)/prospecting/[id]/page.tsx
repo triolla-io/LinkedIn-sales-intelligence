@@ -81,6 +81,20 @@ const STATUS_LABELS: Record<string, string> = {
   COMPLETED: "הושלם",
 };
 
+const EVENT_LABELS: Record<string, string> = {
+  DISCOVERED: "נמצא",
+  SKIPPED: "דולג",
+  QUEUED: "נכנס לתור",
+  SCHEDULED: "תוזמן",
+  QUOTA_DEFERRED: "נדחה (מכסה)",
+  SEND_ATTEMPT: "ניסיון שליחה",
+  SENT: "נשלח",
+  FAILED: "נכשל",
+  ALREADY_PENDING: "כבר ממתין",
+  ALREADY_CONNECTED: "כבר מחובר",
+  CHECKPOINT: "החשבון מוקפא",
+};
+
 export default function ProspectingRunDetailPage({
   params,
 }: {
@@ -273,7 +287,7 @@ export default function ProspectingRunDetailPage({
             <ul className="divide-y divide-[#f3f2ef]">
               {events.map((e, i) => (
                 <li key={`${e.type}-${e.createdAt}-${i}`} className="flex items-center gap-3 px-4 py-2 text-xs">
-                  <span className="font-mono text-[#6b6866] w-32 shrink-0">{REQ_STATUS[e.type]?.label ?? e.type}</span>
+                  <span className="font-mono text-[#6b6866] w-32 shrink-0 truncate">{EVENT_LABELS[e.type] ?? e.type}</span>
                   <span className="text-[#6b6866] truncate flex-1">{e.message}</span>
                   <span className="text-[#9b9895] shrink-0">{new Date(e.createdAt).toLocaleString("he-IL")}</span>
                 </li>
