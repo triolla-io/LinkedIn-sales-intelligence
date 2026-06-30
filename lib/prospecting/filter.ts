@@ -27,21 +27,27 @@ export type DecisionCtx = {
 
 export type Decision =
   | { action: "insert" }
-  | { action: "skip"; skipReason: "already_contact" | "already_pending" | "not_2nd" | "not_israel" };
+  | { action: "skip"; skipReason: "already_contact" | "already_pending" | "already_connected" };
 
-const ISRAEL_MATCHERS = ["israel", "ישראל"];
-
-function isInIsrael(location: string | null): boolean {
-  if (!location) return false;
-  const lc = location.toLowerCase();
-  return ISRAEL_MATCHERS.some((m) => lc.includes(m));
-}
-
-/** Order matters: dedup first (cheapest signal of intent), then the LinkedIn filters. */
+/**
+ * Decide whether a scraped search card should become a connection-request candidate.
+ *
+ * Degree and location are NOT used as rejection criteria. The LinkedIn search URL already
+ * constrains results to 2nd-degree connections in the target geo (network=["S"] + geoUrn — see
+ * buildSearchUrl), and that server-side facet is the reliable source of truth. The extension's
+ * client-side card parsing, by contrast, is brittle against LinkedIn's frequently-changing DOM:
+ * `degree` and `location` routinely come back null or garbled, so filtering on them rejected every
+ * real candidate (observed in production: Tel Aviv / JFrog-Israel people skipped as not_israel,
+ * clearly-2nd people skipped as not_2nd). We therefore trust the search facets and only act on the
+ * one positive signal that still matters: a 1st-degree connection is already connected, so a
+ * connection request would be pointless. Everything else is inserted; a non-connectable profile
+ * that slips through is handled gracefully at send time (already_connected / no_connect).
+ *
+ * Order matters: dedup first (cheapest signal of intent), then the degree guard.
+ */
 export function decideCandidate(card: ScrapedCard, ctx: DecisionCtx): Decision {
   if (ctx.existingContactUrns.has(card.urn)) return { action: "skip", skipReason: "already_contact" };
   if (ctx.existingRequestUrns.has(card.urn)) return { action: "skip", skipReason: "already_pending" };
-  if (card.degree !== "2nd") return { action: "skip", skipReason: "not_2nd" };
-  if (!isInIsrael(card.location)) return { action: "skip", skipReason: "not_israel" };
+  if (card.degree === "1st") return { action: "skip", skipReason: "already_connected" };
   return { action: "insert" };
 }
