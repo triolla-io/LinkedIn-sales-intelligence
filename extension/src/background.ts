@@ -1,6 +1,6 @@
 import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
-import { attach, detach, click, clickSendButton, closeAllComposeOverlays, clickModalClose, getComposeUrl, typeIntoCompose, composeDiag, takeScreenshot, scrollBy, scanButtons, send, openTabInAutomationWindow, closeStaleAutomationWindow } from "./lib/cdp";
+import { attach, detach, clickSendButton, closeAllComposeOverlays, clickModalClose, getComposeUrl, typeIntoCompose, composeDiag, takeScreenshot, scrollBy, scanButtons, send, openTabInAutomationWindow, closeStaleAutomationWindow } from "./lib/cdp";
 import { PROFILE_STATE_FN_SOURCE } from "./lib/dom-detect";
 
 // ---------- Shared types ----------
@@ -17,7 +17,7 @@ export type ScrapedCard = {
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.3.2";
+const VERSION = "0.3.3";
 
 // In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
@@ -420,55 +420,65 @@ async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCar
 
 // ---------- CONNECT: send a LinkedIn connection request ----------
 
-// Find the Connect button using direct DOM query (works regardless of UI language).
+// Find AND click the Connect button in-page via element.click().
 //
-// Two live-LinkedIn pitfalls this guards against:
-//   1. A profile renders the Connect action TWICE — once in the main top-card and once in a
-//      sticky header that is positioned behind the global nav. The sticky-header copy reports a
-//      valid bounding box but is occluded, so a synthetic click lands on the nav and nothing opens.
-//      We use document.elementFromPoint() to keep only the instance that is actually clickable.
-//   2. The "People also viewed" sidebar lists Connect buttons for OTHER members. Their
-//      custom-invite href carries a different vanityName, so we scope to the target profile's slug.
-async function findConnectButtonDirect(
-  tabId: number,
-  slug: string,
-): Promise<{ x: number; y: number; w: number; h: number } | null> {
-  const result = await send<{ result: { value: unknown } }>(tabId, "Runtime.evaluate", {
+// Why in-page .click() instead of a coordinate click: in the minimized, never-foregrounded
+// automation window getBoundingClientRect()/elementFromPoint() are unreliable (the page can lay
+// out at 0×0), so coordinate clicks miss — the root cause of both no_connect (Connect button
+// "not found" because its rect was 0×0) and already_or_blocked (the invite dialog's Send button
+// rejected for the same reason). element.click() dispatches straight to the element regardless of
+// layout, scroll, or occlusion, so the old sticky-header-occlusion guard is no longer needed.
+//
+// We still exclude the "People also viewed" / "More profiles" sidebar (which renders Connect
+// buttons for OTHER members) and prefer the slug-scoped custom-invite link for the target profile.
+async function clickConnectInPage(tabId: number, slug: string): Promise<boolean> {
+  const result = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {
     expression: `(() => {
       const slug = ${JSON.stringify(slug)};
-      const cands = [...document.querySelectorAll(
-        'a[href*="custom-invite" i], button[aria-label*="invite" i], button[aria-label*="connect" i], a[aria-label*="connect" i], [role="button"][aria-label*="invite" i]'
-      )];
-      let fallback = null;
-      for (const el of cands) {
+      const all = [];
+      const walk = (root) => {
+        for (const el of root.querySelectorAll('button, a, [role="button"]')) all.push(el);
+        for (const el of root.querySelectorAll('*')) if (el.shadowRoot) walk(el.shadowRoot);
+      };
+      walk(document);
+      const inSidebar = (el) => {
+        let p = el;
+        while (p) {
+          if (p.tagName === 'ASIDE') return true;
+          const cls = typeof p.className === 'string' ? p.className : '';
+          if (/similar|browsemap|pymk|discovery/i.test(cls)) return true;
+          p = p.parentElement || (p.getRootNode && p.getRootNode().host) || null;
+        }
+        return false;
+      };
+      const isConnect = (el) => {
+        const t = (el.textContent || '').trim();
+        const a = el.getAttribute('aria-label') || '';
         const href = (el.getAttribute('href') || '').toLowerCase();
-        // Skip custom-invite links that target a DIFFERENT member (sidebar suggestions).
-        if (href.includes('custom-invite') && slug && !href.includes('vanityname=' + slug)) continue;
-        const r = el.getBoundingClientRect();
-        if (r.width <= 0 || r.height <= 0) continue;
-        const cx = Math.round(r.left + r.width / 2), cy = Math.round(r.top + r.height / 2);
-        const at = document.elementFromPoint(cx, cy);
-        const clickable = !!at && (at === el || el.contains(at) || at.contains(el));
-        if (!clickable) continue; // occluded (e.g. sticky-header copy behind the nav)
-        const box = { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
-        // Prefer a slug-scoped match; otherwise remember the first clickable connect/invite.
-        if (href.includes('custom-invite') && slug && href.includes('vanityname=' + slug)) return box;
-        if (!fallback) fallback = box;
-      }
-      return fallback;
+        if (href.includes('custom-invite')) return !(slug && !href.includes('vanityname=' + slug));
+        if (/invite\\b.*\\bto connect/i.test(a) || /^connect$/i.test(a)) return true;
+        if (/^(connect|התחבר)$/i.test(t)) return true;
+        return false;
+      };
+      const cands = all.filter(isConnect);
+      const slugMatch = cands.find(el => (el.getAttribute('href') || '').toLowerCase().includes('vanityname=' + slug));
+      const mainCard = cands.find(el => !inSidebar(el));
+      const target = slugMatch || mainCard || cands[0];
+      if (target) { target.click(); return true; }
+      return false;
     })()`,
     returnByValue: true,
   });
-  return (result?.result?.value as { x: number; y: number; w: number; h: number } | null) ?? null;
+  return result?.result?.value === true;
 }
 
-// Find the "Send without a note" (or "Send") button inside the invite dialog.
-// LinkedIn renders this modal inside a SHADOW ROOT (the "interop-outlet" web-component layer),
-// so a plain document.querySelectorAll() never sees it — the lookup must pierce shadow roots.
-async function findSendButtonDeep(
-  tabId: number,
-): Promise<{ x: number; y: number; w: number; h: number } | null> {
-  const result = await send<{ result: { value: unknown } }>(tabId, "Runtime.evaluate", {
+// Find AND click the Send button in the invite dialog ("Add a note to your invitation?") in-page.
+// LinkedIn may render this modal inside a shadow root, so the lookup pierces shadow roots. We click
+// via element.click() (not coordinates) so a 0×0 layout in the minimized automation window can't
+// make us miss. Matches the Send action across variants — "Send" / "Send invitation" / "Send now" /
+// "Send without a note" (+ Hebrew) — and falls back to the dialog's primary action button.
+async function clickSendInPage(tabId: number): Promise<boolean> {
+  const result = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {
     expression: `(() => {
       let dlg = null;
       const findDlg = (root) => {
@@ -479,36 +489,30 @@ async function findSendButtonDeep(
       };
       findDlg(document);
       const scope = dlg || document;
-      // Match the invite dialog's Send action across LinkedIn's variants:
-      // "Send" / "Send invitation" / "Send now" / "Send without a note" (+ Hebrew). Anchored to the
-      // START of the text so "Resend"/unrelated buttons don't match, but NOT requiring an exact word.
       const SEND = [/^send\\b/i, /send without/i, /^שלח/, /שלח ללא/];
       const SKIP = /cancel|בטל|add a note|הוסף הערה|dismiss|got it|close|סגור/i;
       let found = null, primary = null;
       const collect = (root) => {
         if (found) return;
         for (const el of root.querySelectorAll('button,[role="button"]')) {
-          const r = el.getBoundingClientRect();
-          if (r.width <= 0 || r.height <= 0) continue;
-          const box = { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
           const t = (el.textContent || '').trim();
           const a = el.getAttribute('aria-label') || '';
-          if (SEND.some(p => p.test(t) || p.test(a))) { found = box; return; }
-          // Fallback: remember the dialog's primary action button (the invite "Send" on dialogs
-          // whose label we don't recognise), excluding Cancel / Add-a-note / Dismiss.
+          if (SEND.some(p => p.test(t) || p.test(a))) { found = el; return; }
           const cls = typeof el.className === 'string' ? el.className : '';
-          if (!primary && /artdeco-button--primary/.test(cls) && !SKIP.test(t + ' ' + a)) primary = box;
+          if (!primary && /artdeco-button--primary/.test(cls) && !SKIP.test(t + ' ' + a)) primary = el;
         }
         for (const el of root.querySelectorAll('*')) if (el.shadowRoot) { collect(el.shadowRoot); if (found) return; }
       };
       collect(scope);
       // Only trust the primary-button fallback when we actually located the invite dialog, so we
       // never click a stray primary button elsewhere on the page when no dialog opened.
-      return found || (dlg ? primary : null);
+      const target = found || (dlg ? primary : null);
+      if (target) { target.click(); return true; }
+      return false;
     })()`,
     returnByValue: true,
   });
-  return (result?.result?.value as { x: number; y: number; w: number; h: number } | null) ?? null;
+  return result?.result?.value === true;
 }
 
 async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string }> {
@@ -551,35 +555,32 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
     // and exclude "People also viewed" sidebar suggestions.
     const slug = (profileUrl.split("/in/")[1] ?? "").replace(/[/?#].*/, "").toLowerCase();
 
-    // Try direct CSS selector first (most reliable — LinkedIn profile action buttons).
-    // aria-label contains "Connect" or "Invite" in English regardless of UI language.
-    let connectBtn = await findConnectButtonDirect(tabId, slug);
-    console.log("[connect] directBtn:", connectBtn);
+    // Click "Connect" via an in-page element.click() — NOT a coordinate click. In the minimized
+    // automation window getBoundingClientRect()/elementFromPoint() are unreliable (0×0 layout), so
+    // coordinate clicks miss (root cause of no_connect / already_or_blocked). The message flow
+    // already proves in-page clicks work for LinkedIn React action buttons.
+    let connected = await clickConnectInPage(tabId, slug);
+    console.log("[connect] clickConnectInPage:", connected);
 
-    if (!connectBtn) {
-      // Fallback: scan visible buttons
-      let buttons = await scanButtons(tabId);
-      console.log("[connect] buttons found:", buttons.map(b => `"${b.text}" aria="${b.aria}" y=${b.y}`));
-      connectBtn = buttons.find((b) => /^connect$/i.test(b.text) || /connect/i.test(b.aria)) ?? null;
-
-      if (!connectBtn) {
-        // Try "More" dropdown
-        const moreBtn = buttons.find((b) => /^more$/i.test(b.text) || /^more$/i.test(b.aria));
-        if (moreBtn) {
-          await click(tabId, moreBtn.x + Math.round(moreBtn.w / 2), moreBtn.y + Math.round(moreBtn.h / 2));
-          await sleep(700);
-          buttons = await scanButtons(tabId);
-          console.log("[connect] buttons after More:", buttons.map(b => `"${b.text}" aria="${b.aria}" y=${b.y}`));
-          connectBtn = buttons.find((b) => /^connect$/i.test(b.text) || /connect/i.test(b.aria)) ?? null;
-          if (!connectBtn) {
-            // Also try direct selector again after More opens
-            connectBtn = await findConnectButtonDirect(tabId, slug);
-          }
-        }
+    if (!connected) {
+      // Connect may be tucked inside the "More" menu — open it in-page, then retry.
+      const openedMore = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {
+        expression: `(() => {
+          const btns = [...document.querySelectorAll('button,[role="button"]')];
+          const more = btns.find(b => /^more$/i.test((b.textContent||'').trim()) || /^more actions$/i.test(b.getAttribute('aria-label')||''));
+          if (more) { more.click(); return true; }
+          return false;
+        })()`,
+        returnByValue: true,
+      });
+      if (openedMore?.result?.value) {
+        await sleep(800);
+        connected = await clickConnectInPage(tabId, slug);
+        console.log("[connect] clickConnectInPage after More:", connected);
       }
     }
 
-    if (!connectBtn) {
+    if (!connected) {
       const stateRes = await send<{ result: { value: string } }>(tabId, "Runtime.evaluate", {
         expression: PROFILE_STATE_FN_SOURCE,
         returnByValue: true,
@@ -591,20 +592,17 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
       throw withCode(new Error("connect_button_not_found"), "no_connect");
     }
 
-    // Click Connect
-    await click(tabId, connectBtn.x + Math.round((connectBtn.w ?? 80) / 2), connectBtn.y + Math.round((connectBtn.h ?? 36) / 2));
-
-    // The invite dialog opens inside a shadow root and can take a moment to render.
-    // Poll the shadow-piercing finder instead of a single fixed-delay query.
-    let sendCoords: { x: number; y: number; w: number; h: number } | null = null;
+    // The invite dialog ("Add a note to your invitation?") opens after a short delay. Poll for its
+    // Send button and click it in-page (again, no coordinates).
+    let sent = false;
     for (let i = 0; i < 6; i++) {
       await sleep(i === 0 ? 1500 : 800);
-      sendCoords = await findSendButtonDeep(tabId);
-      if (sendCoords) break;
+      sent = await clickSendInPage(tabId);
+      if (sent) break;
     }
-    console.log("[connect] sendBtn:", sendCoords);
+    console.log("[connect] clickSendInPage:", sent);
 
-    if (!sendCoords) {
+    if (!sent) {
       const afterButtons = await scanButtons(tabId);
       console.log("[connect] afterButtons:", afterButtons.map(b => `"${b.text}" aria="${b.aria}"`));
       // Surface the buttons that WERE on screen in the error message itself, so the dashboard's
@@ -617,9 +615,7 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
       throw withCode(new Error(`send_dialog_not_found; buttons=[${labels}]`), "already_or_blocked");
     }
 
-    await click(tabId, sendCoords.x + Math.round(sendCoords.w / 2), sendCoords.y + Math.round(sendCoords.h / 2));
     await sleep(800);
-
     return { sentAt: new Date().toISOString() };
   } catch (err) {
     const e = err as Error & { code?: string; screenshot?: string; buttons?: unknown };
