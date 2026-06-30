@@ -722,6 +722,7 @@ model ProspectingRun {
   connectInFlight Boolean              @default(false)
   searchFailCount Int                  @default(0)
   pausedUntil     DateTime?
+  nextDiscoveryAt DateTime?
   nextSearchPage  Int                  @default(1)
   totalDiscovered Int                  @default(0)
   totalSent       Int                  @default(0)

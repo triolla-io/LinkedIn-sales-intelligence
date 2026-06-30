@@ -10,6 +10,9 @@ import { logProspectingEvent } from "@/lib/prospecting/events";
 
 const REPLY_CHECK_OFFSETS_HOURS = [24, 72, 168];
 
+/** A prospecting run re-runs discovery this long after exhausting its current pool (recurring routine). */
+const REDISCOVERY_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function extensionTaskResultHandler({ event }: any) {
   const { taskId } = event.data as { taskId: string };
@@ -398,10 +401,13 @@ async function maybeCompleteOrContinue(runId: string) {
       select: { id: true },
     }),
   ]);
-  if (remaining === 0 && !liveConnect) {
+  if (remaining === 0 && !liveConnect && !run.nextDiscoveryAt) {
+    // Recurring routine: the current pool is exhausted, but instead of COMPLETING we schedule the
+    // next discovery sweep so the run keeps catching newly-matching people. The run stays RUNNING
+    // (so the UI shows it as active/waiting, not completed). prospecting-tick re-discovers when due.
     await prisma.prospectingRun.update({
       where: { id: runId },
-      data: { status: "COMPLETED", completedAt: new Date() },
+      data: { nextDiscoveryAt: new Date(Date.now() + REDISCOVERY_INTERVAL_MS) },
     });
   }
 }

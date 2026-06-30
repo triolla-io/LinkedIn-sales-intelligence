@@ -72,6 +72,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       status: run.status,
       pausedUntil: run.pausedUntil,
       nextScheduledFor: nextTask?.scheduledFor ?? null,
+      nextDiscoveryAt: run.nextDiscoveryAt,
       sentToday, dailyCap: run.dailyCap, sentThisWeek, weeklyCap: run.weeklyCap, now,
     });
 

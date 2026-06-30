@@ -70,6 +70,7 @@ const SUMMARY_CLS: Record<string, string> = {
   daily_cap: "bg-[#fff8e6] text-[#b45309] border-[#f5e0a8]",
   completed: "bg-[#e6faf0] text-[#059669] border-[#a8e6c2]",
   waiting: "bg-[#eff5ff] text-[#1585ff] border-[#bcd9ff]",
+  waiting_discovery: "bg-[#eff5ff] text-[#1585ff] border-[#bcd9ff]",
   paused: "bg-[#f3f2ef] text-[#6b6866] border-[#e5e3df]",
   idle: "bg-[#fafaf9] text-[#9b9895] border-[#e5e3df]",
 };

@@ -1,6 +1,10 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { queueNextConnect, SEARCH_FAIL_CAP } from "@/lib/prospecting/connect-scheduler";
+import { buildSearchUrl } from "@/lib/prospecting/search-url";
+
+/** A run re-runs discovery this long after exhausting its pool (recurring routine). */
+const REDISCOVERY_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 export const prospectingTick = inngest.createFunction(
   { id: "prospecting-tick", triggers: [{ cron: "*/5 * * * *" }] },
@@ -46,8 +50,38 @@ export const prospectingTick = inngest.createFunction(
         }
       }
 
-      // Completion: discovery done AND no remaining work AND no live CONNECT task.
-      if (run.discoveryDone) {
+      // Recurring re-discovery: a run that finished its pool sits with nextDiscoveryAt set. When that
+      // time arrives, start a fresh discovery sweep (page 1) — already-seen people are de-duped, so
+      // only NEW matches get added. The run never auto-COMPLETES; it keeps finding people daily until
+      // the user pauses it.
+      if (run.discoveryDone && run.nextDiscoveryAt && run.nextDiscoveryAt <= now) {
+        const reset = await prisma.prospectingRun.updateMany({
+          where: { id: run.id, status: "RUNNING", nextDiscoveryAt: run.nextDiscoveryAt },
+          data: {
+            discoveryDone: false,
+            nextSearchPage: 1,
+            searchUrl: buildSearchUrl(run.keywords, 1, run.geoUrn),
+            searchFailCount: 0,
+            nextDiscoveryAt: null,
+          },
+        });
+        if (reset.count === 1) {
+          await prisma.extensionTask.create({
+            data: {
+              userId: run.ownerId,
+              kind: "SEARCH",
+              payload: { searchUrl: buildSearchUrl(run.keywords, 1, run.geoUrn), page: 1 },
+              prospectingRunId: run.id,
+              scheduledFor: new Date(),
+            },
+          });
+        }
+        continue;
+      }
+
+      // Pool exhausted: instead of completing, schedule the next daily discovery sweep so the run
+      // stays active and keeps catching new people (see extension-task-result for the same logic).
+      if (run.discoveryDone && !run.nextDiscoveryAt) {
         const [remaining, liveConnect] = await Promise.all([
           prisma.connectionRequest.count({ where: { runId: run.id, status: { in: ["DISCOVERED", "QUEUED"] } } }),
           prisma.extensionTask.findFirst({
@@ -57,8 +91,8 @@ export const prospectingTick = inngest.createFunction(
         ]);
         if (remaining === 0 && !liveConnect) {
           await prisma.prospectingRun.updateMany({
-            where: { id: run.id, status: "RUNNING" },
-            data: { status: "COMPLETED", completedAt: new Date() },
+            where: { id: run.id, status: "RUNNING", nextDiscoveryAt: null },
+            data: { nextDiscoveryAt: new Date(now.getTime() + REDISCOVERY_INTERVAL_MS) },
           });
         }
       }

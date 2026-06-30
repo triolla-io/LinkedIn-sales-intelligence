@@ -3382,6 +3382,7 @@ export const ProspectingRunScalarFieldEnum = {
   connectInFlight: 'connectInFlight',
   searchFailCount: 'searchFailCount',
   pausedUntil: 'pausedUntil',
+  nextDiscoveryAt: 'nextDiscoveryAt',
   nextSearchPage: 'nextSearchPage',
   totalDiscovered: 'totalDiscovered',
   totalSent: 'totalSent',

@@ -66,6 +66,7 @@ export type ProspectingRunMinAggregateOutputType = {
   connectInFlight: boolean | null
   searchFailCount: number | null
   pausedUntil: Date | null
+  nextDiscoveryAt: Date | null
   nextSearchPage: number | null
   totalDiscovered: number | null
   totalSent: number | null
@@ -90,6 +91,7 @@ export type ProspectingRunMaxAggregateOutputType = {
   connectInFlight: boolean | null
   searchFailCount: number | null
   pausedUntil: Date | null
+  nextDiscoveryAt: Date | null
   nextSearchPage: number | null
   totalDiscovered: number | null
   totalSent: number | null
@@ -115,6 +117,7 @@ export type ProspectingRunCountAggregateOutputType = {
   connectInFlight: number
   searchFailCount: number
   pausedUntil: number
+  nextDiscoveryAt: number
   nextSearchPage: number
   totalDiscovered: number
   totalSent: number
@@ -165,6 +168,7 @@ export type ProspectingRunMinAggregateInputType = {
   connectInFlight?: true
   searchFailCount?: true
   pausedUntil?: true
+  nextDiscoveryAt?: true
   nextSearchPage?: true
   totalDiscovered?: true
   totalSent?: true
@@ -189,6 +193,7 @@ export type ProspectingRunMaxAggregateInputType = {
   connectInFlight?: true
   searchFailCount?: true
   pausedUntil?: true
+  nextDiscoveryAt?: true
   nextSearchPage?: true
   totalDiscovered?: true
   totalSent?: true
@@ -214,6 +219,7 @@ export type ProspectingRunCountAggregateInputType = {
   connectInFlight?: true
   searchFailCount?: true
   pausedUntil?: true
+  nextDiscoveryAt?: true
   nextSearchPage?: true
   totalDiscovered?: true
   totalSent?: true
@@ -326,6 +332,7 @@ export type ProspectingRunGroupByOutputType = {
   connectInFlight: boolean
   searchFailCount: number
   pausedUntil: Date | null
+  nextDiscoveryAt: Date | null
   nextSearchPage: number
   totalDiscovered: number
   totalSent: number
@@ -374,6 +381,7 @@ export type ProspectingRunWhereInput = {
   connectInFlight?: Prisma.BoolFilter<"ProspectingRun"> | boolean
   searchFailCount?: Prisma.IntFilter<"ProspectingRun"> | number
   pausedUntil?: Prisma.DateTimeNullableFilter<"ProspectingRun"> | Date | string | null
+  nextDiscoveryAt?: Prisma.DateTimeNullableFilter<"ProspectingRun"> | Date | string | null
   nextSearchPage?: Prisma.IntFilter<"ProspectingRun"> | number
   totalDiscovered?: Prisma.IntFilter<"ProspectingRun"> | number
   totalSent?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -402,6 +410,7 @@ export type ProspectingRunOrderByWithRelationInput = {
   connectInFlight?: Prisma.SortOrder
   searchFailCount?: Prisma.SortOrder
   pausedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
+  nextDiscoveryAt?: Prisma.SortOrderInput | Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
   totalSent?: Prisma.SortOrder
@@ -433,6 +442,7 @@ export type ProspectingRunWhereUniqueInput = Prisma.AtLeast<{
   connectInFlight?: Prisma.BoolFilter<"ProspectingRun"> | boolean
   searchFailCount?: Prisma.IntFilter<"ProspectingRun"> | number
   pausedUntil?: Prisma.DateTimeNullableFilter<"ProspectingRun"> | Date | string | null
+  nextDiscoveryAt?: Prisma.DateTimeNullableFilter<"ProspectingRun"> | Date | string | null
   nextSearchPage?: Prisma.IntFilter<"ProspectingRun"> | number
   totalDiscovered?: Prisma.IntFilter<"ProspectingRun"> | number
   totalSent?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -461,6 +471,7 @@ export type ProspectingRunOrderByWithAggregationInput = {
   connectInFlight?: Prisma.SortOrder
   searchFailCount?: Prisma.SortOrder
   pausedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
+  nextDiscoveryAt?: Prisma.SortOrderInput | Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
   totalSent?: Prisma.SortOrder
@@ -494,6 +505,7 @@ export type ProspectingRunScalarWhereWithAggregatesInput = {
   connectInFlight?: Prisma.BoolWithAggregatesFilter<"ProspectingRun"> | boolean
   searchFailCount?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
   pausedUntil?: Prisma.DateTimeNullableWithAggregatesFilter<"ProspectingRun"> | Date | string | null
+  nextDiscoveryAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ProspectingRun"> | Date | string | null
   nextSearchPage?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
   totalDiscovered?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
   totalSent?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
@@ -518,6 +530,7 @@ export type ProspectingRunCreateInput = {
   connectInFlight?: boolean
   searchFailCount?: number
   pausedUntil?: Date | string | null
+  nextDiscoveryAt?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -546,6 +559,7 @@ export type ProspectingRunUncheckedCreateInput = {
   connectInFlight?: boolean
   searchFailCount?: number
   pausedUntil?: Date | string | null
+  nextDiscoveryAt?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -572,6 +586,7 @@ export type ProspectingRunUpdateInput = {
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
   pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextDiscoveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -600,6 +615,7 @@ export type ProspectingRunUncheckedUpdateInput = {
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
   pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextDiscoveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -627,6 +643,7 @@ export type ProspectingRunCreateManyInput = {
   connectInFlight?: boolean
   searchFailCount?: number
   pausedUntil?: Date | string | null
+  nextDiscoveryAt?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -651,6 +668,7 @@ export type ProspectingRunUpdateManyMutationInput = {
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
   pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextDiscoveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -676,6 +694,7 @@ export type ProspectingRunUncheckedUpdateManyInput = {
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
   pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextDiscoveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -719,6 +738,7 @@ export type ProspectingRunCountOrderByAggregateInput = {
   connectInFlight?: Prisma.SortOrder
   searchFailCount?: Prisma.SortOrder
   pausedUntil?: Prisma.SortOrder
+  nextDiscoveryAt?: Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
   totalSent?: Prisma.SortOrder
@@ -755,6 +775,7 @@ export type ProspectingRunMaxOrderByAggregateInput = {
   connectInFlight?: Prisma.SortOrder
   searchFailCount?: Prisma.SortOrder
   pausedUntil?: Prisma.SortOrder
+  nextDiscoveryAt?: Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
   totalSent?: Prisma.SortOrder
@@ -779,6 +800,7 @@ export type ProspectingRunMinOrderByAggregateInput = {
   connectInFlight?: Prisma.SortOrder
   searchFailCount?: Prisma.SortOrder
   pausedUntil?: Prisma.SortOrder
+  nextDiscoveryAt?: Prisma.SortOrder
   nextSearchPage?: Prisma.SortOrder
   totalDiscovered?: Prisma.SortOrder
   totalSent?: Prisma.SortOrder
@@ -903,6 +925,7 @@ export type ProspectingRunCreateWithoutOwnerInput = {
   connectInFlight?: boolean
   searchFailCount?: number
   pausedUntil?: Date | string | null
+  nextDiscoveryAt?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -929,6 +952,7 @@ export type ProspectingRunUncheckedCreateWithoutOwnerInput = {
   connectInFlight?: boolean
   searchFailCount?: number
   pausedUntil?: Date | string | null
+  nextDiscoveryAt?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -985,6 +1009,7 @@ export type ProspectingRunScalarWhereInput = {
   connectInFlight?: Prisma.BoolFilter<"ProspectingRun"> | boolean
   searchFailCount?: Prisma.IntFilter<"ProspectingRun"> | number
   pausedUntil?: Prisma.DateTimeNullableFilter<"ProspectingRun"> | Date | string | null
+  nextDiscoveryAt?: Prisma.DateTimeNullableFilter<"ProspectingRun"> | Date | string | null
   nextSearchPage?: Prisma.IntFilter<"ProspectingRun"> | number
   totalDiscovered?: Prisma.IntFilter<"ProspectingRun"> | number
   totalSent?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -1009,6 +1034,7 @@ export type ProspectingRunCreateWithoutRequestsInput = {
   connectInFlight?: boolean
   searchFailCount?: number
   pausedUntil?: Date | string | null
+  nextDiscoveryAt?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -1036,6 +1062,7 @@ export type ProspectingRunUncheckedCreateWithoutRequestsInput = {
   connectInFlight?: boolean
   searchFailCount?: number
   pausedUntil?: Date | string | null
+  nextDiscoveryAt?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -1077,6 +1104,7 @@ export type ProspectingRunUpdateWithoutRequestsInput = {
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
   pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextDiscoveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1104,6 +1132,7 @@ export type ProspectingRunUncheckedUpdateWithoutRequestsInput = {
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
   pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextDiscoveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1129,6 +1158,7 @@ export type ProspectingRunCreateWithoutEventsInput = {
   connectInFlight?: boolean
   searchFailCount?: number
   pausedUntil?: Date | string | null
+  nextDiscoveryAt?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -1156,6 +1186,7 @@ export type ProspectingRunUncheckedCreateWithoutEventsInput = {
   connectInFlight?: boolean
   searchFailCount?: number
   pausedUntil?: Date | string | null
+  nextDiscoveryAt?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -1197,6 +1228,7 @@ export type ProspectingRunUpdateWithoutEventsInput = {
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
   pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextDiscoveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1224,6 +1256,7 @@ export type ProspectingRunUncheckedUpdateWithoutEventsInput = {
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
   pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextDiscoveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1249,6 +1282,7 @@ export type ProspectingRunCreateManyOwnerInput = {
   connectInFlight?: boolean
   searchFailCount?: number
   pausedUntil?: Date | string | null
+  nextDiscoveryAt?: Date | string | null
   nextSearchPage?: number
   totalDiscovered?: number
   totalSent?: number
@@ -1273,6 +1307,7 @@ export type ProspectingRunUpdateWithoutOwnerInput = {
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
   pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextDiscoveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1299,6 +1334,7 @@ export type ProspectingRunUncheckedUpdateWithoutOwnerInput = {
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
   pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextDiscoveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1325,6 +1361,7 @@ export type ProspectingRunUncheckedUpdateManyWithoutOwnerInput = {
   connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
   searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
   pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextDiscoveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
   totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
   totalSent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1390,6 +1427,7 @@ export type ProspectingRunSelect<ExtArgs extends runtime.Types.Extensions.Intern
   connectInFlight?: boolean
   searchFailCount?: boolean
   pausedUntil?: boolean
+  nextDiscoveryAt?: boolean
   nextSearchPage?: boolean
   totalDiscovered?: boolean
   totalSent?: boolean
@@ -1419,6 +1457,7 @@ export type ProspectingRunSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   connectInFlight?: boolean
   searchFailCount?: boolean
   pausedUntil?: boolean
+  nextDiscoveryAt?: boolean
   nextSearchPage?: boolean
   totalDiscovered?: boolean
   totalSent?: boolean
@@ -1445,6 +1484,7 @@ export type ProspectingRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   connectInFlight?: boolean
   searchFailCount?: boolean
   pausedUntil?: boolean
+  nextDiscoveryAt?: boolean
   nextSearchPage?: boolean
   totalDiscovered?: boolean
   totalSent?: boolean
@@ -1471,6 +1511,7 @@ export type ProspectingRunSelectScalar = {
   connectInFlight?: boolean
   searchFailCount?: boolean
   pausedUntil?: boolean
+  nextDiscoveryAt?: boolean
   nextSearchPage?: boolean
   totalDiscovered?: boolean
   totalSent?: boolean
@@ -1479,7 +1520,7 @@ export type ProspectingRunSelectScalar = {
   completedAt?: boolean
 }
 
-export type ProspectingRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "name" | "keywords" | "geoUrn" | "searchUrl" | "status" | "dailyCap" | "weeklyCap" | "sendHoursStart" | "sendHoursEnd" | "sendDays" | "discoveryDone" | "connectInFlight" | "searchFailCount" | "pausedUntil" | "nextSearchPage" | "totalDiscovered" | "totalSent" | "createdAt" | "startedAt" | "completedAt", ExtArgs["result"]["prospectingRun"]>
+export type ProspectingRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "name" | "keywords" | "geoUrn" | "searchUrl" | "status" | "dailyCap" | "weeklyCap" | "sendHoursStart" | "sendHoursEnd" | "sendDays" | "discoveryDone" | "connectInFlight" | "searchFailCount" | "pausedUntil" | "nextDiscoveryAt" | "nextSearchPage" | "totalDiscovered" | "totalSent" | "createdAt" | "startedAt" | "completedAt", ExtArgs["result"]["prospectingRun"]>
 export type ProspectingRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   requests?: boolean | Prisma.ProspectingRun$requestsArgs<ExtArgs>
@@ -1517,6 +1558,7 @@ export type $ProspectingRunPayload<ExtArgs extends runtime.Types.Extensions.Inte
     connectInFlight: boolean
     searchFailCount: number
     pausedUntil: Date | null
+    nextDiscoveryAt: Date | null
     nextSearchPage: number
     totalDiscovered: number
     totalSent: number
@@ -1965,6 +2007,7 @@ export interface ProspectingRunFieldRefs {
   readonly connectInFlight: Prisma.FieldRef<"ProspectingRun", 'Boolean'>
   readonly searchFailCount: Prisma.FieldRef<"ProspectingRun", 'Int'>
   readonly pausedUntil: Prisma.FieldRef<"ProspectingRun", 'DateTime'>
+  readonly nextDiscoveryAt: Prisma.FieldRef<"ProspectingRun", 'DateTime'>
   readonly nextSearchPage: Prisma.FieldRef<"ProspectingRun", 'Int'>
   readonly totalDiscovered: Prisma.FieldRef<"ProspectingRun", 'Int'>
   readonly totalSent: Prisma.FieldRef<"ProspectingRun", 'Int'>
