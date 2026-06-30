@@ -576,6 +576,23 @@ export type EnumConnectionRequestStatusWithAggregatesFilter<$PrismaModel = never
   _max?: Prisma.NestedEnumConnectionRequestStatusFilter<$PrismaModel>
 }
 
+export type EnumProspectingEventTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProspectingEventType | Prisma.EnumProspectingEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ProspectingEventType[] | Prisma.ListEnumProspectingEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProspectingEventType[] | Prisma.ListEnumProspectingEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProspectingEventTypeFilter<$PrismaModel> | $Enums.ProspectingEventType
+}
+
+export type EnumProspectingEventTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProspectingEventType | Prisma.EnumProspectingEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ProspectingEventType[] | Prisma.ListEnumProspectingEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProspectingEventType[] | Prisma.ListEnumProspectingEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProspectingEventTypeWithAggregatesFilter<$PrismaModel> | $Enums.ProspectingEventType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProspectingEventTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProspectingEventTypeFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1095,6 +1112,23 @@ export type NestedEnumConnectionRequestStatusWithAggregatesFilter<$PrismaModel =
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumConnectionRequestStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumConnectionRequestStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumProspectingEventTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProspectingEventType | Prisma.EnumProspectingEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ProspectingEventType[] | Prisma.ListEnumProspectingEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProspectingEventType[] | Prisma.ListEnumProspectingEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProspectingEventTypeFilter<$PrismaModel> | $Enums.ProspectingEventType
+}
+
+export type NestedEnumProspectingEventTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProspectingEventType | Prisma.EnumProspectingEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ProspectingEventType[] | Prisma.ListEnumProspectingEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProspectingEventType[] | Prisma.ListEnumProspectingEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProspectingEventTypeWithAggregatesFilter<$PrismaModel> | $Enums.ProspectingEventType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProspectingEventTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProspectingEventTypeFilter<$PrismaModel>
 }
 
 

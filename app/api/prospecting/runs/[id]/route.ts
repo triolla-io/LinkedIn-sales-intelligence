@@ -1,42 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withTenant } from "@/lib/tenancy/with-tenant";
+import { computeRunStatusSummary } from "@/lib/prospecting/run-status";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return withTenant(async (_r: NextRequest, ctx) => {
-    const run = await prisma.prospectingRun.findFirst({
-      where: { id, ownerId: ctx.effectiveUserId },
-    });
+    const run = await prisma.prospectingRun.findFirst({ where: { id, ownerId: ctx.effectiveUserId } });
     if (!run) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
-    const [requests, tasks] = await Promise.all([
+    const now = new Date();
+    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const [requests, tasks, events, nextTask, sentToday, sentThisWeek] = await Promise.all([
       prisma.connectionRequest.findMany({
-        where: { runId: id, ownerId: ctx.effectiveUserId, status: "SENT" },
-        orderBy: { sentAt: "desc" },
+        where: { runId: id, ownerId: ctx.effectiveUserId },
+        orderBy: [{ sentAt: "desc" }, { createdAt: "desc" }],
+        take: 500,
       }),
       prisma.extensionTask.findMany({
         where: { prospectingRunId: id },
         orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          kind: true,
-          status: true,
-          errorCode: true,
-          errorMessage: true,
-          createdAt: true,
-          completedAt: true,
-          claimedAt: true,
-        },
+        select: { id: true, kind: true, status: true, errorCode: true, errorMessage: true, createdAt: true, completedAt: true, claimedAt: true },
       }),
+      prisma.prospectingEvent.findMany({
+        where: { runId: id },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+        select: { type: true, message: true, createdAt: true, connectionRequestId: true },
+      }),
+      prisma.extensionTask.findFirst({
+        where: { prospectingRunId: id, kind: "CONNECT", status: { in: ["PENDING", "CLAIMED"] } },
+        orderBy: { scheduledFor: "asc" },
+        select: { scheduledFor: true },
+      }),
+      prisma.connectionRequest.count({ where: { ownerId: ctx.effectiveUserId, status: "SENT", sentAt: { gte: dayAgo } } }),
+      prisma.connectionRequest.count({ where: { ownerId: ctx.effectiveUserId, status: "SENT", sentAt: { gte: weekAgo } } }),
     ]);
 
-    // Tab load/create timeouts are transient: prospecting-tick auto-retries the same
-    // SEARCH page until it succeeds (or hits the fail cap). They are retries, not real
-    // failures, so surface them separately instead of as an alarming red "failed".
-    const isTransientSearch = (t: { kind: string; errorCode: string | null }) =>
-      t.kind === "SEARCH" && t.errorCode === "tab_load";
+    const statusCounts = {
+      discovered: requests.filter((r) => r.status === "DISCOVERED").length,
+      queued: requests.filter((r) => r.status === "QUEUED").length,
+      sent: requests.filter((r) => r.status === "SENT").length,
+      failed: requests.filter((r) => r.status === "FAILED").length,
+      skipped: requests.filter((r) => r.status === "SKIPPED").length,
+    };
 
+    const isTransientSearch = (t: { kind: string; errorCode: string | null }) => t.kind === "SEARCH" && t.errorCode === "tab_load";
     const taskStats = {
       search: {
         pending: tasks.filter((t) => t.kind === "SEARCH" && (t.status === "PENDING" || t.status === "CLAIMED")).length,
@@ -47,7 +58,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       connect: {
         pending: tasks.filter((t) => t.kind === "CONNECT" && (t.status === "PENDING" || t.status === "CLAIMED")).length,
         done: tasks.filter((t) => t.kind === "CONNECT" && t.status === "DONE").length,
-        // follow_only is an intentional skip, not a failure to surface as an error.
         failed: tasks.filter((t) => t.kind === "CONNECT" && t.status === "FAILED" && t.errorCode !== "follow_only").length,
         skipped: tasks.filter((t) => t.kind === "CONNECT" && t.errorCode === "follow_only").length,
       },
@@ -58,6 +68,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       lastActivity: tasks[0]?.claimedAt ?? tasks[0]?.createdAt ?? null,
     };
 
-    return NextResponse.json({ run, requests, taskStats });
+    const summary = computeRunStatusSummary({
+      status: run.status,
+      pausedUntil: run.pausedUntil,
+      nextScheduledFor: nextTask?.scheduledFor ?? null,
+      sentToday, dailyCap: run.dailyCap, sentThisWeek, weeklyCap: run.weeklyCap, now,
+    });
+
+    return NextResponse.json({ run, requests, statusCounts, events, taskStats, summary });
   })(req);
 }

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { cleanScrapedName, decideCandidate, type ScrapedCard } from "@/lib/prospecting/filter";
+import { logProspectingEvent } from "@/lib/prospecting/events";
 
 export type PersistResult = { inserted: number; skipped: number };
 
@@ -64,6 +65,12 @@ export async function persistCandidates(
           },
         });
         skipped++;
+        await logProspectingEvent({
+          runId,
+          type: "SKIPPED",
+          message: `${fullName || card.profileUrl} — ${decision.skipReason}`,
+          detail: { skipReason: decision.skipReason },
+        });
       } catch (e) {
         if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
           // Concurrent insert of the same URN — already recorded, treat as a no-op.
@@ -91,6 +98,12 @@ export async function persistCandidates(
         },
       });
       inserted++;
+      await logProspectingEvent({
+        runId,
+        type: "DISCOVERED",
+        message: fullName || card.profileUrl,
+        detail: { title: card.title, company: card.company, location: card.location },
+      });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
         // Concurrent insert of the same URN — already recorded, treat as a no-op.

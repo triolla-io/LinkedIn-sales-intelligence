@@ -17,7 +17,7 @@ export type ScrapedCard = {
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.2.2";
+const VERSION = "0.3.0";
 
 // In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
@@ -375,6 +375,10 @@ async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCar
     await attach(tabId);
     attached = true;
 
+    await send(tabId, "Emulation.setDeviceMetricsOverride", {
+      width: 1280, height: 900, deviceScaleFactor: 1, mobile: false,
+    }).catch(() => {});
+
     // Lazy-load by scrolling
     for (let i = 0; i < 6; i++) {
       await scrollBy(tabId, 1200);
@@ -486,7 +490,12 @@ async function findSendButtonDeep(
 }
 
 async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string }> {
-  const tabId = await openTabInAutomationWindow(profileUrl).catch(() => {
+  // Open a BLANK tab and attach BEFORE navigating to LinkedIn. Attaching to an
+  // already-loaded profile fails ("Cannot access a chrome-extension:// URL of
+  // different extension") when HubSpot/Datanyze inject chrome-extension:// frames
+  // into linkedin.com. Attaching while about:blank passes the attach-time check;
+  // the session then survives the CDP navigation. Same pattern as sendLinkedInMessage.
+  const tabId = await openTabInAutomationWindow("about:blank", false).catch(() => {
     throw withCode(new Error("tab_create_failed"), "tab_load");
   });
   await trackActiveTab(tabId);
@@ -495,17 +504,26 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
 
   try {
     await waitForTabLoad(tabId);
+    await attach(tabId);
+    attached = true;
+
+    // A never-foregrounded tab in the minimized automation window can lay out at
+    // 0×0, zeroing every getBoundingClientRect() so the Connect/Send coordinate
+    // clicks miss. Force a real layout viewport (same as the message flow).
+    await send(tabId, "Emulation.setDeviceMetricsOverride", {
+      width: 1280, height: 900, deviceScaleFactor: 1, mobile: false,
+    }).catch(() => {});
+
+    // Navigate to the profile through the already-attached debugger session.
+    await send(tabId, "Page.navigate", { url: profileUrl });
+    await waitForTabLoad(tabId);
     await sleep(4000);
-    // Do NOT focus the window — runs in the background automation window.
 
     // Checkpoint detection
     const freshTab = await chrome.tabs.get(tabId);
     if (freshTab.url && freshTab.url.includes("/checkpoint")) {
       throw withCode(new Error("checkpoint"), "checkpoint");
     }
-
-    await attach(tabId);
-    attached = true;
 
     // The target profile's vanityName (slug) — used to scope the Connect button to THIS person
     // and exclude "People also viewed" sidebar suggestions.

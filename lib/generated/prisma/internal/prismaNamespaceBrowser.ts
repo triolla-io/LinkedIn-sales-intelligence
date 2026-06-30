@@ -82,6 +82,7 @@ export const ModelName = {
   NameTranslation: 'NameTranslation',
   ProspectingRun: 'ProspectingRun',
   ConnectionRequest: 'ConnectionRequest',
+  ProspectingEvent: 'ProspectingEvent',
   ContactJobChange: 'ContactJobChange'
 } as const
 
@@ -598,6 +599,19 @@ export const ConnectionRequestScalarFieldEnum = {
 } as const
 
 export type ConnectionRequestScalarFieldEnum = (typeof ConnectionRequestScalarFieldEnum)[keyof typeof ConnectionRequestScalarFieldEnum]
+
+
+export const ProspectingEventScalarFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  connectionRequestId: 'connectionRequestId',
+  type: 'type',
+  message: 'message',
+  detail: 'detail',
+  createdAt: 'createdAt'
+} as const
+
+export type ProspectingEventScalarFieldEnum = (typeof ProspectingEventScalarFieldEnum)[keyof typeof ProspectingEventScalarFieldEnum]
 
 
 export const ContactJobChangeScalarFieldEnum = {

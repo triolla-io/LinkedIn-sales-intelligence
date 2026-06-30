@@ -382,6 +382,7 @@ export type ProspectingRunWhereInput = {
   completedAt?: Prisma.DateTimeNullableFilter<"ProspectingRun"> | Date | string | null
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   requests?: Prisma.ConnectionRequestListRelationFilter
+  events?: Prisma.ProspectingEventListRelationFilter
 }
 
 export type ProspectingRunOrderByWithRelationInput = {
@@ -409,6 +410,7 @@ export type ProspectingRunOrderByWithRelationInput = {
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   owner?: Prisma.UserOrderByWithRelationInput
   requests?: Prisma.ConnectionRequestOrderByRelationAggregateInput
+  events?: Prisma.ProspectingEventOrderByRelationAggregateInput
 }
 
 export type ProspectingRunWhereUniqueInput = Prisma.AtLeast<{
@@ -439,6 +441,7 @@ export type ProspectingRunWhereUniqueInput = Prisma.AtLeast<{
   completedAt?: Prisma.DateTimeNullableFilter<"ProspectingRun"> | Date | string | null
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   requests?: Prisma.ConnectionRequestListRelationFilter
+  events?: Prisma.ProspectingEventListRelationFilter
 }, "id">
 
 export type ProspectingRunOrderByWithAggregationInput = {
@@ -523,6 +526,7 @@ export type ProspectingRunCreateInput = {
   completedAt?: Date | string | null
   owner: Prisma.UserCreateNestedOneWithoutProspectingRunsInput
   requests?: Prisma.ConnectionRequestCreateNestedManyWithoutRunInput
+  events?: Prisma.ProspectingEventCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunUncheckedCreateInput = {
@@ -549,6 +553,7 @@ export type ProspectingRunUncheckedCreateInput = {
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   requests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutRunInput
+  events?: Prisma.ProspectingEventUncheckedCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunUpdateInput = {
@@ -575,6 +580,7 @@ export type ProspectingRunUpdateInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   owner?: Prisma.UserUpdateOneRequiredWithoutProspectingRunsNestedInput
   requests?: Prisma.ConnectionRequestUpdateManyWithoutRunNestedInput
+  events?: Prisma.ProspectingEventUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunUncheckedUpdateInput = {
@@ -601,6 +607,7 @@ export type ProspectingRunUncheckedUpdateInput = {
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   requests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutRunNestedInput
+  events?: Prisma.ProspectingEventUncheckedUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunCreateManyInput = {
@@ -866,6 +873,20 @@ export type ProspectingRunUpdateOneRequiredWithoutRequestsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProspectingRunUpdateToOneWithWhereWithoutRequestsInput, Prisma.ProspectingRunUpdateWithoutRequestsInput>, Prisma.ProspectingRunUncheckedUpdateWithoutRequestsInput>
 }
 
+export type ProspectingRunCreateNestedOneWithoutEventsInput = {
+  create?: Prisma.XOR<Prisma.ProspectingRunCreateWithoutEventsInput, Prisma.ProspectingRunUncheckedCreateWithoutEventsInput>
+  connectOrCreate?: Prisma.ProspectingRunCreateOrConnectWithoutEventsInput
+  connect?: Prisma.ProspectingRunWhereUniqueInput
+}
+
+export type ProspectingRunUpdateOneRequiredWithoutEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.ProspectingRunCreateWithoutEventsInput, Prisma.ProspectingRunUncheckedCreateWithoutEventsInput>
+  connectOrCreate?: Prisma.ProspectingRunCreateOrConnectWithoutEventsInput
+  upsert?: Prisma.ProspectingRunUpsertWithoutEventsInput
+  connect?: Prisma.ProspectingRunWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProspectingRunUpdateToOneWithWhereWithoutEventsInput, Prisma.ProspectingRunUpdateWithoutEventsInput>, Prisma.ProspectingRunUncheckedUpdateWithoutEventsInput>
+}
+
 export type ProspectingRunCreateWithoutOwnerInput = {
   id?: string
   name: string
@@ -889,6 +910,7 @@ export type ProspectingRunCreateWithoutOwnerInput = {
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   requests?: Prisma.ConnectionRequestCreateNestedManyWithoutRunInput
+  events?: Prisma.ProspectingEventCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunUncheckedCreateWithoutOwnerInput = {
@@ -914,6 +936,7 @@ export type ProspectingRunUncheckedCreateWithoutOwnerInput = {
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   requests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutRunInput
+  events?: Prisma.ProspectingEventUncheckedCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunCreateOrConnectWithoutOwnerInput = {
@@ -993,6 +1016,7 @@ export type ProspectingRunCreateWithoutRequestsInput = {
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   owner: Prisma.UserCreateNestedOneWithoutProspectingRunsInput
+  events?: Prisma.ProspectingEventCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunUncheckedCreateWithoutRequestsInput = {
@@ -1018,6 +1042,7 @@ export type ProspectingRunUncheckedCreateWithoutRequestsInput = {
   createdAt?: Date | string
   startedAt?: Date | string | null
   completedAt?: Date | string | null
+  events?: Prisma.ProspectingEventUncheckedCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunCreateOrConnectWithoutRequestsInput = {
@@ -1059,6 +1084,7 @@ export type ProspectingRunUpdateWithoutRequestsInput = {
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   owner?: Prisma.UserUpdateOneRequiredWithoutProspectingRunsNestedInput
+  events?: Prisma.ProspectingEventUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunUncheckedUpdateWithoutRequestsInput = {
@@ -1084,6 +1110,127 @@ export type ProspectingRunUncheckedUpdateWithoutRequestsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  events?: Prisma.ProspectingEventUncheckedUpdateManyWithoutRunNestedInput
+}
+
+export type ProspectingRunCreateWithoutEventsInput = {
+  id?: string
+  name: string
+  keywords: string
+  geoUrn?: string
+  searchUrl: string
+  status?: $Enums.ProspectingRunStatus
+  dailyCap?: number
+  weeklyCap?: number
+  sendHoursStart?: number
+  sendHoursEnd?: number
+  sendDays?: Prisma.ProspectingRunCreatesendDaysInput | number[]
+  discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: number
+  pausedUntil?: Date | string | null
+  nextSearchPage?: number
+  totalDiscovered?: number
+  totalSent?: number
+  createdAt?: Date | string
+  startedAt?: Date | string | null
+  completedAt?: Date | string | null
+  owner: Prisma.UserCreateNestedOneWithoutProspectingRunsInput
+  requests?: Prisma.ConnectionRequestCreateNestedManyWithoutRunInput
+}
+
+export type ProspectingRunUncheckedCreateWithoutEventsInput = {
+  id?: string
+  ownerId: string
+  name: string
+  keywords: string
+  geoUrn?: string
+  searchUrl: string
+  status?: $Enums.ProspectingRunStatus
+  dailyCap?: number
+  weeklyCap?: number
+  sendHoursStart?: number
+  sendHoursEnd?: number
+  sendDays?: Prisma.ProspectingRunCreatesendDaysInput | number[]
+  discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: number
+  pausedUntil?: Date | string | null
+  nextSearchPage?: number
+  totalDiscovered?: number
+  totalSent?: number
+  createdAt?: Date | string
+  startedAt?: Date | string | null
+  completedAt?: Date | string | null
+  requests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutRunInput
+}
+
+export type ProspectingRunCreateOrConnectWithoutEventsInput = {
+  where: Prisma.ProspectingRunWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProspectingRunCreateWithoutEventsInput, Prisma.ProspectingRunUncheckedCreateWithoutEventsInput>
+}
+
+export type ProspectingRunUpsertWithoutEventsInput = {
+  update: Prisma.XOR<Prisma.ProspectingRunUpdateWithoutEventsInput, Prisma.ProspectingRunUncheckedUpdateWithoutEventsInput>
+  create: Prisma.XOR<Prisma.ProspectingRunCreateWithoutEventsInput, Prisma.ProspectingRunUncheckedCreateWithoutEventsInput>
+  where?: Prisma.ProspectingRunWhereInput
+}
+
+export type ProspectingRunUpdateToOneWithWhereWithoutEventsInput = {
+  where?: Prisma.ProspectingRunWhereInput
+  data: Prisma.XOR<Prisma.ProspectingRunUpdateWithoutEventsInput, Prisma.ProspectingRunUncheckedUpdateWithoutEventsInput>
+}
+
+export type ProspectingRunUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  keywords?: Prisma.StringFieldUpdateOperationsInput | string
+  geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
+  searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
+  dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursStart?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursEnd?: Prisma.IntFieldUpdateOperationsInput | number
+  sendDays?: Prisma.ProspectingRunUpdatesendDaysInput | number[]
+  discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
+  pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
+  totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
+  totalSent?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  owner?: Prisma.UserUpdateOneRequiredWithoutProspectingRunsNestedInput
+  requests?: Prisma.ConnectionRequestUpdateManyWithoutRunNestedInput
+}
+
+export type ProspectingRunUncheckedUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  keywords?: Prisma.StringFieldUpdateOperationsInput | string
+  geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
+  searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
+  dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursStart?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursEnd?: Prisma.IntFieldUpdateOperationsInput | number
+  sendDays?: Prisma.ProspectingRunUpdatesendDaysInput | number[]
+  discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
+  pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
+  totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
+  totalSent?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunCreateManyOwnerInput = {
@@ -1133,6 +1280,7 @@ export type ProspectingRunUpdateWithoutOwnerInput = {
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   requests?: Prisma.ConnectionRequestUpdateManyWithoutRunNestedInput
+  events?: Prisma.ProspectingEventUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunUncheckedUpdateWithoutOwnerInput = {
@@ -1158,6 +1306,7 @@ export type ProspectingRunUncheckedUpdateWithoutOwnerInput = {
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   requests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutRunNestedInput
+  events?: Prisma.ProspectingEventUncheckedUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunUncheckedUpdateManyWithoutOwnerInput = {
@@ -1191,10 +1340,12 @@ export type ProspectingRunUncheckedUpdateManyWithoutOwnerInput = {
 
 export type ProspectingRunCountOutputType = {
   requests: number
+  events: number
 }
 
 export type ProspectingRunCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   requests?: boolean | ProspectingRunCountOutputTypeCountRequestsArgs
+  events?: boolean | ProspectingRunCountOutputTypeCountEventsArgs
 }
 
 /**
@@ -1212,6 +1363,13 @@ export type ProspectingRunCountOutputTypeDefaultArgs<ExtArgs extends runtime.Typ
  */
 export type ProspectingRunCountOutputTypeCountRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ConnectionRequestWhereInput
+}
+
+/**
+ * ProspectingRunCountOutputType without action
+ */
+export type ProspectingRunCountOutputTypeCountEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProspectingEventWhereInput
 }
 
 
@@ -1240,6 +1398,7 @@ export type ProspectingRunSelect<ExtArgs extends runtime.Types.Extensions.Intern
   completedAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   requests?: boolean | Prisma.ProspectingRun$requestsArgs<ExtArgs>
+  events?: boolean | Prisma.ProspectingRun$eventsArgs<ExtArgs>
   _count?: boolean | Prisma.ProspectingRunCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["prospectingRun"]>
 
@@ -1324,6 +1483,7 @@ export type ProspectingRunOmit<ExtArgs extends runtime.Types.Extensions.Internal
 export type ProspectingRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   requests?: boolean | Prisma.ProspectingRun$requestsArgs<ExtArgs>
+  events?: boolean | Prisma.ProspectingRun$eventsArgs<ExtArgs>
   _count?: boolean | Prisma.ProspectingRunCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProspectingRunIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1338,6 +1498,7 @@ export type $ProspectingRunPayload<ExtArgs extends runtime.Types.Extensions.Inte
   objects: {
     owner: Prisma.$UserPayload<ExtArgs>
     requests: Prisma.$ConnectionRequestPayload<ExtArgs>[]
+    events: Prisma.$ProspectingEventPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1758,6 +1919,7 @@ export interface Prisma__ProspectingRunClient<T, Null = never, ExtArgs extends r
   readonly [Symbol.toStringTag]: "PrismaPromise"
   owner<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   requests<T extends Prisma.ProspectingRun$requestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProspectingRun$requestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConnectionRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  events<T extends Prisma.ProspectingRun$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProspectingRun$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProspectingEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2231,6 +2393,30 @@ export type ProspectingRun$requestsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.ConnectionRequestScalarFieldEnum | Prisma.ConnectionRequestScalarFieldEnum[]
+}
+
+/**
+ * ProspectingRun.events
+ */
+export type ProspectingRun$eventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProspectingEvent
+   */
+  select?: Prisma.ProspectingEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProspectingEvent
+   */
+  omit?: Prisma.ProspectingEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProspectingEventInclude<ExtArgs> | null
+  where?: Prisma.ProspectingEventWhereInput
+  orderBy?: Prisma.ProspectingEventOrderByWithRelationInput | Prisma.ProspectingEventOrderByWithRelationInput[]
+  cursor?: Prisma.ProspectingEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProspectingEventScalarFieldEnum | Prisma.ProspectingEventScalarFieldEnum[]
 }
 
 /**

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { computeNextScheduledFor } from "@/lib/extension/task-scheduler";
 import { checkConnectQuota } from "@/lib/prospecting/quota";
+import { logProspectingEvent } from "@/lib/prospecting/events";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -74,6 +75,7 @@ export async function queueNextConnect(runId: string): Promise<string | null> {
       await releaseConnectSlot(runId);
       return null;
     }
+    await logProspectingEvent({ runId, type: "QUEUED", connectionRequestId: next.id, message: next.fullName ?? next.linkedinUrl });
 
     const owner = await prisma.user.findUnique({ where: { id: run.ownerId }, select: { timezone: true } });
     const tz = owner?.timezone ?? "Asia/Jerusalem";
@@ -132,6 +134,16 @@ export async function queueNextConnect(runId: string): Promise<string | null> {
         connectionRequestId: next.id,
         scheduledFor,
       },
+    });
+    const deferReason = quota.canSendNow ? null : quota.deferReason;
+    await logProspectingEvent({
+      runId,
+      type: quota.canSendNow ? "SCHEDULED" : "QUOTA_DEFERRED",
+      connectionRequestId: next.id,
+      message: quota.canSendNow
+        ? `נקבע ל-${scheduledFor.toISOString()}`
+        : `נדחה (${deferReason}) ל-${scheduledFor.toISOString()}`,
+      detail: { scheduledFor: scheduledFor.toISOString(), deferReason },
     });
     // Slot intentionally remains held until the CONNECT result calls releaseConnectSlot().
     return next.id;

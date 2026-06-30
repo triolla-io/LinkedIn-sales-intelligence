@@ -12,7 +12,11 @@ type ConnectionRequest = {
   currentCompany: string | null;
   location: string | null;
   linkedinUrl: string | null;
-  sentAt: string;
+  status: string;
+  skipReason: string | null;
+  errorCode: string | null;
+  sentAt: string | null;
+  createdAt: string;
 };
 
 type RunDetail = {
@@ -29,10 +33,17 @@ type TaskStats = {
   lastActivity: string | null;
 };
 
+type ProspectingEventRow = { type: string; message: string | null; at?: string; createdAt: string; connectionRequestId: string | null };
+type StatusCounts = { discovered: number; queued: number; sent: number; failed: number; skipped: number };
+type Summary = { state: string; message: string; nextAt: string | null };
+
 type RunDetailResponse = {
   run: RunDetail;
   requests: ConnectionRequest[];
+  statusCounts: StatusCounts;
+  events: ProspectingEventRow[];
   taskStats: TaskStats;
+  summary: Summary;
 };
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
@@ -44,11 +55,44 @@ const STATUS_COLORS: Record<string, string> = {
   COMPLETED: "bg-[#e6faf0] text-[#059669]",
 };
 
+const REQ_STATUS: Record<string, { label: string; cls: string }> = {
+  DISCOVERED: { label: "ממתין בתור", cls: "bg-[#f3f2ef] text-[#6b6866]" },
+  QUEUED: { label: "בתזמון", cls: "bg-[#fff8e6] text-[#b45309]" },
+  SENT: { label: "נשלח", cls: "bg-[#e6faf0] text-[#059669]" },
+  FAILED: { label: "נכשל", cls: "bg-[#fff3f3] text-[#dc2626]" },
+  SKIPPED: { label: "דולג", cls: "bg-[#f3f2ef] text-[#9b9895]" },
+  ACCEPTED: { label: "התקבל", cls: "bg-[#e6f4ff] text-[#1585ff]" },
+};
+
+const SUMMARY_CLS: Record<string, string> = {
+  frozen: "bg-[#fff3f3] text-[#dc2626] border-[#f5c2c2]",
+  weekly_cap: "bg-[#fff8e6] text-[#b45309] border-[#f5e0a8]",
+  daily_cap: "bg-[#fff8e6] text-[#b45309] border-[#f5e0a8]",
+  completed: "bg-[#e6faf0] text-[#059669] border-[#a8e6c2]",
+  waiting: "bg-[#eff5ff] text-[#1585ff] border-[#bcd9ff]",
+  paused: "bg-[#f3f2ef] text-[#6b6866] border-[#e5e3df]",
+  idle: "bg-[#fafaf9] text-[#9b9895] border-[#e5e3df]",
+};
+
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: "טיוטה",
   RUNNING: "פעיל",
   PAUSED: "מושהה",
   COMPLETED: "הושלם",
+};
+
+const EVENT_LABELS: Record<string, string> = {
+  DISCOVERED: "נמצא",
+  SKIPPED: "דולג",
+  QUEUED: "נכנס לתור",
+  SCHEDULED: "תוזמן",
+  QUOTA_DEFERRED: "נדחה (מכסה)",
+  SEND_ATTEMPT: "ניסיון שליחה",
+  SENT: "נשלח",
+  FAILED: "נכשל",
+  ALREADY_PENDING: "כבר ממתין",
+  ALREADY_CONNECTED: "כבר מחובר",
+  CHECKPOINT: "החשבון מוקפא",
 };
 
 export default function ProspectingRunDetailPage({
@@ -71,7 +115,7 @@ export default function ProspectingRunDetailPage({
     );
   }
 
-  const { run, requests, taskStats } = data;
+  const { run, requests, taskStats, statusCounts, events, summary } = data;
 
   return (
     <div dir="rtl" className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
@@ -97,6 +141,20 @@ export default function ProspectingRunDetailPage({
 
       {/* Content */}
       <div className="px-5 pt-5 pb-8 space-y-4">
+        {summary && (
+          <div className={`rounded-xl border px-4 py-3 text-sm ${SUMMARY_CLS[summary.state] ?? SUMMARY_CLS.idle}`}>
+            {summary.message}
+          </div>
+        )}
+        {statusCounts && (
+          <div className="flex flex-wrap gap-2">
+            <span className="text-xs px-2.5 py-1 rounded-full bg-[#e6faf0] text-[#059669]">נשלחו {statusCounts.sent}</span>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-[#f3f2ef] text-[#6b6866]">בתור {statusCounts.discovered}</span>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-[#fff8e6] text-[#b45309]">בתזמון {statusCounts.queued}</span>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-[#fff3f3] text-[#dc2626]">נכשלו {statusCounts.failed}</span>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-[#f3f2ef] text-[#9b9895]">דולגו {statusCounts.skipped}</span>
+          </div>
+        )}
         {/* Task status panel */}
         {taskStats && (
           <div className="bg-white border border-[#e5e3df] rounded-xl p-4 space-y-3">
@@ -158,23 +216,24 @@ export default function ProspectingRunDetailPage({
         <div className="bg-white border border-[#e5e3df] rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-[#e5e3df] bg-[#fafaf9]">
             <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">
-              בקשות חברות שנשלחו ({requests.length})
+              אנשים בריצה ({requests.length})
             </h2>
           </div>
 
           {requests.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-sm text-[#9b9895]">עדיין לא נשלחו בקשות חברות.</p>
+              <p className="text-sm text-[#9b9895]">עדיין לא נמצאו אנשים בריצה זו.</p>
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#e5e3df]">
                   <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">שם</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">סטטוס</th>
                   <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">תפקיד</th>
                   <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">חברה</th>
                   <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">מיקום</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">נשלח</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">עודכן</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e5e3df]">
@@ -194,6 +253,13 @@ export default function ProspectingRunDetailPage({
                         req.fullName
                       )}
                     </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${REQ_STATUS[req.status]?.cls ?? "bg-[#f3f2ef] text-[#6b6866]"}`}>
+                        {REQ_STATUS[req.status]?.label ?? req.status}
+                      </span>
+                      {req.status === "SKIPPED" && req.skipReason && <span className="text-[10px] text-[#9b9895] block mt-0.5">{req.skipReason}</span>}
+                      {req.status === "FAILED" && req.errorCode && <span className="text-[10px] text-[#dc2626] block mt-0.5">{req.errorCode}</span>}
+                    </td>
                     <td className="px-4 py-3 text-[#6b6866]">
                       {req.currentTitle ?? <span className="text-[#c8c5c2]">—</span>}
                     </td>
@@ -204,7 +270,7 @@ export default function ProspectingRunDetailPage({
                       {req.location ?? <span className="text-[#c8c5c2]">—</span>}
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-[#9b9895]">
-                      {new Date(req.sentAt).toLocaleDateString()}
+                      {new Date(req.sentAt ?? req.createdAt).toLocaleString("he-IL")}
                     </td>
                   </tr>
                 ))}
@@ -212,6 +278,23 @@ export default function ProspectingRunDetailPage({
             </table>
           )}
         </div>
+
+        {events && events.length > 0 && (
+          <div className="bg-white border border-[#e5e3df] rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-[#e5e3df] bg-[#fafaf9]">
+              <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">יומן פעילות</h2>
+            </div>
+            <ul className="divide-y divide-[#f3f2ef]">
+              {events.map((e, i) => (
+                <li key={`${e.type}-${e.createdAt}-${i}`} className="flex items-center gap-3 px-4 py-2 text-xs">
+                  <span className="font-mono text-[#6b6866] w-32 shrink-0 truncate">{EVENT_LABELS[e.type] ?? e.type}</span>
+                  <span className="text-[#6b6866] truncate flex-1">{e.message}</span>
+                  <span className="text-[#9b9895] shrink-0">{new Date(e.createdAt).toLocaleString("he-IL")}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
