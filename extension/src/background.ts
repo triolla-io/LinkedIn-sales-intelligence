@@ -17,7 +17,7 @@ export type ScrapedCard = {
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.3.3";
+const VERSION = "0.3.4";
 
 // In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
@@ -588,6 +588,20 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
       const state = stateRes?.result?.value;
       if (state === "pending") throw withCode(new Error("invitation_already_pending"), "already_pending");
       if (state === "connected") throw withCode(new Error("already_connected"), "already_connected");
+
+      // Follow-only profile: a creator / open-profile whose primary action is "Follow" and which
+      // exposes NO Connect action (not even under "More", which we already opened above). You
+      // cannot send a connection request to these, so this is an intentional SKIP, not a failure.
+      const followOnly = await send<{ result: { value: boolean } }>(tabId, "Runtime.evaluate", {
+        expression: `(() => {
+          const btns = [...document.querySelectorAll('button,[role="button"]')];
+          const hasFollow = btns.some(b => /^follow$/i.test((b.textContent||'').trim()) || /^follow\\b/i.test(b.getAttribute('aria-label')||''));
+          const hasConnect = btns.some(b => /^connect$/i.test((b.textContent||'').trim()) || /\\bto connect$/i.test(b.getAttribute('aria-label')||''));
+          return hasFollow && !hasConnect;
+        })()`,
+        returnByValue: true,
+      });
+      if (followOnly?.result?.value) throw withCode(new Error("follow_only"), "follow_only");
 
       throw withCode(new Error("connect_button_not_found"), "no_connect");
     }

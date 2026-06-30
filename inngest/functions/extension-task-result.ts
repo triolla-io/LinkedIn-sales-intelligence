@@ -339,6 +339,29 @@ async function handleConnectFailure(task: TaskRow) {
     }
     return;
   }
+  // Follow-only profile (creator / open-profile with no Connect action): you cannot send a
+  // connection request, so this is an intentional SKIP — not a failure. Keeps the failure stats
+  // clean and lets the run move on.
+  if (task.errorCode === "follow_only") {
+    if (task.connectionRequestId) {
+      await prisma.connectionRequest.updateMany({
+        where: { id: task.connectionRequestId, status: { notIn: ["SENT", "FAILED"] } },
+        data: { status: "SKIPPED", skipReason: "follow_only" },
+      });
+    }
+    if (task.prospectingRunId) {
+      await logProspectingEvent({
+        runId: task.prospectingRunId,
+        type: "SKIPPED",
+        connectionRequestId: task.connectionRequestId,
+        message: "פרופיל עוקב-בלבד (אין אפשרות לשלוח בקשת חברות)",
+        detail: { skipReason: "follow_only" },
+      });
+      await releaseConnectSlot(task.prospectingRunId);
+      await maybeCompleteOrContinue(task.prospectingRunId);
+    }
+    return;
+  }
   if (task.connectionRequestId) {
     await prisma.connectionRequest.updateMany({
       where: { id: task.connectionRequestId, status: { notIn: ["SENT", "FAILED"] } },
