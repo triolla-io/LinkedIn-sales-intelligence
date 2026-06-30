@@ -190,3 +190,20 @@ export const ConnectionRequestStatus = {
 } as const
 
 export type ConnectionRequestStatus = (typeof ConnectionRequestStatus)[keyof typeof ConnectionRequestStatus]
+
+
+export const ProspectingEventType = {
+  DISCOVERED: 'DISCOVERED',
+  SKIPPED: 'SKIPPED',
+  QUEUED: 'QUEUED',
+  SCHEDULED: 'SCHEDULED',
+  QUOTA_DEFERRED: 'QUOTA_DEFERRED',
+  SEND_ATTEMPT: 'SEND_ATTEMPT',
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+  ALREADY_PENDING: 'ALREADY_PENDING',
+  ALREADY_CONNECTED: 'ALREADY_CONNECTED',
+  CHECKPOINT: 'CHECKPOINT'
+} as const
+
+export type ProspectingEventType = (typeof ProspectingEventType)[keyof typeof ProspectingEventType]

@@ -415,6 +415,7 @@ export const ModelName = {
   NameTranslation: 'NameTranslation',
   ProspectingRun: 'ProspectingRun',
   ConnectionRequest: 'ConnectionRequest',
+  ProspectingEvent: 'ProspectingEvent',
   ContactJobChange: 'ContactJobChange'
 } as const
 
@@ -431,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "connectionRequest" | "contactJobChange"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "connectionRequest" | "prospectingEvent" | "contactJobChange"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2729,6 +2730,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProspectingEvent: {
+      payload: Prisma.$ProspectingEventPayload<ExtArgs>
+      fields: Prisma.ProspectingEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProspectingEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProspectingEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingEventPayload>
+        }
+        findFirst: {
+          args: Prisma.ProspectingEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProspectingEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingEventPayload>
+        }
+        findMany: {
+          args: Prisma.ProspectingEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingEventPayload>[]
+        }
+        create: {
+          args: Prisma.ProspectingEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingEventPayload>
+        }
+        createMany: {
+          args: Prisma.ProspectingEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProspectingEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingEventPayload>[]
+        }
+        delete: {
+          args: Prisma.ProspectingEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingEventPayload>
+        }
+        update: {
+          args: Prisma.ProspectingEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProspectingEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProspectingEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProspectingEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProspectingEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingEventPayload>
+        }
+        aggregate: {
+          args: Prisma.ProspectingEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProspectingEvent>
+        }
+        groupBy: {
+          args: Prisma.ProspectingEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProspectingEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProspectingEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProspectingEventCountAggregateOutputType> | number
+        }
+      }
+    }
     ContactJobChange: {
       payload: Prisma.$ContactJobChangePayload<ExtArgs>
       fields: Prisma.ContactJobChangeFieldRefs
@@ -3341,6 +3416,19 @@ export const ConnectionRequestScalarFieldEnum = {
 export type ConnectionRequestScalarFieldEnum = (typeof ConnectionRequestScalarFieldEnum)[keyof typeof ConnectionRequestScalarFieldEnum]
 
 
+export const ProspectingEventScalarFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  connectionRequestId: 'connectionRequestId',
+  type: 'type',
+  message: 'message',
+  detail: 'detail',
+  createdAt: 'createdAt'
+} as const
+
+export type ProspectingEventScalarFieldEnum = (typeof ProspectingEventScalarFieldEnum)[keyof typeof ProspectingEventScalarFieldEnum]
+
+
 export const ContactJobChangeScalarFieldEnum = {
   id: 'id',
   contactId: 'contactId',
@@ -3696,6 +3784,20 @@ export type ListEnumConnectionRequestStatusFieldRefInput<$PrismaModel> = FieldRe
 
 
 /**
+ * Reference to a field of type 'ProspectingEventType'
+ */
+export type EnumProspectingEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProspectingEventType'>
+    
+
+
+/**
+ * Reference to a field of type 'ProspectingEventType[]'
+ */
+export type ListEnumProspectingEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProspectingEventType[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -3849,6 +3951,7 @@ export type GlobalOmitConfig = {
   nameTranslation?: Prisma.NameTranslationOmit
   prospectingRun?: Prisma.ProspectingRunOmit
   connectionRequest?: Prisma.ConnectionRequestOmit
+  prospectingEvent?: Prisma.ProspectingEventOmit
   contactJobChange?: Prisma.ContactJobChangeOmit
 }
 

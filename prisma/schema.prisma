@@ -422,6 +422,20 @@ enum ConnectionRequestStatus {
   ACCEPTED
 }
 
+enum ProspectingEventType {
+  DISCOVERED
+  SKIPPED
+  QUEUED
+  SCHEDULED
+  QUOTA_DEFERRED
+  SEND_ATTEMPT
+  SENT
+  FAILED
+  ALREADY_PENDING
+  ALREADY_CONNECTED
+  CHECKPOINT
+}
+
 // ─── Campaign models ──────────────────────────────────────────────────────────
 
 model Campaign {
@@ -715,6 +729,7 @@ model ProspectingRun {
   startedAt       DateTime?
   completedAt     DateTime?
   requests        ConnectionRequest[]
+  events          ProspectingEvent[]
 
   @@index([ownerId, status])
 }
@@ -743,6 +758,20 @@ model ConnectionRequest {
   @@unique([ownerId, linkedinUrn])
   @@index([runId, status])
   @@index([ownerId, status])
+}
+
+model ProspectingEvent {
+  id                  String               @id @default(cuid())
+  runId               String
+  run                 ProspectingRun       @relation(fields: [runId], references: [id], onDelete: Cascade)
+  connectionRequestId String?
+  type                ProspectingEventType
+  message             String?
+  detail              Json?
+  createdAt           DateTime             @default(now())
+
+  @@index([runId, createdAt])
+  @@index([connectionRequestId])
 }
 
 // ─── Job change detection ──────────────────────────────────────────────────────
