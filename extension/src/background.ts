@@ -17,7 +17,7 @@ export type ScrapedCard = {
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.3.1";
+const VERSION = "0.3.2";
 
 // In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
@@ -479,25 +479,32 @@ async function findSendButtonDeep(
       };
       findDlg(document);
       const scope = dlg || document;
-      const patterns = [/send without/i, /שלח ללא/i, /^send$/i, /^שלח$/i];
-      let found = null;
+      // Match the invite dialog's Send action across LinkedIn's variants:
+      // "Send" / "Send invitation" / "Send now" / "Send without a note" (+ Hebrew). Anchored to the
+      // START of the text so "Resend"/unrelated buttons don't match, but NOT requiring an exact word.
+      const SEND = [/^send\\b/i, /send without/i, /^שלח/, /שלח ללא/];
+      const SKIP = /cancel|בטל|add a note|הוסף הערה|dismiss|got it|close|סגור/i;
+      let found = null, primary = null;
       const collect = (root) => {
         if (found) return;
         for (const el of root.querySelectorAll('button,[role="button"]')) {
+          const r = el.getBoundingClientRect();
+          if (r.width <= 0 || r.height <= 0) continue;
+          const box = { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
           const t = (el.textContent || '').trim();
           const a = el.getAttribute('aria-label') || '';
-          if (patterns.some(p => p.test(t) || p.test(a))) {
-            const r = el.getBoundingClientRect();
-            if (r.width > 0 && r.height > 0) {
-              found = { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
-              return;
-            }
-          }
+          if (SEND.some(p => p.test(t) || p.test(a))) { found = box; return; }
+          // Fallback: remember the dialog's primary action button (the invite "Send" on dialogs
+          // whose label we don't recognise), excluding Cancel / Add-a-note / Dismiss.
+          const cls = typeof el.className === 'string' ? el.className : '';
+          if (!primary && /artdeco-button--primary/.test(cls) && !SKIP.test(t + ' ' + a)) primary = box;
         }
         for (const el of root.querySelectorAll('*')) if (el.shadowRoot) { collect(el.shadowRoot); if (found) return; }
       };
       collect(scope);
-      return found;
+      // Only trust the primary-button fallback when we actually located the invite dialog, so we
+      // never click a stray primary button elsewhere on the page when no dialog opened.
+      return found || (dlg ? primary : null);
     })()`,
     returnByValue: true,
   });
@@ -600,7 +607,14 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
     if (!sendCoords) {
       const afterButtons = await scanButtons(tabId);
       console.log("[connect] afterButtons:", afterButtons.map(b => `"${b.text}" aria="${b.aria}"`));
-      throw withCode(new Error("send_dialog_not_found"), "already_or_blocked");
+      // Surface the buttons that WERE on screen in the error message itself, so the dashboard's
+      // "recent failures" reveals exactly what LinkedIn rendered (vs. guessing at the dialog).
+      const labels = afterButtons
+        .map(b => (b.text || b.aria || "").trim())
+        .filter(Boolean)
+        .slice(0, 12)
+        .join(" | ");
+      throw withCode(new Error(`send_dialog_not_found; buttons=[${labels}]`), "already_or_blocked");
     }
 
     await click(tabId, sendCoords.x + Math.round(sendCoords.w / 2), sendCoords.y + Math.round(sendCoords.h / 2));
