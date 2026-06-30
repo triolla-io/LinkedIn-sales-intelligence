@@ -6,6 +6,7 @@ import { persistCandidates } from "@/lib/prospecting/candidates";
 import { queueNextConnect, releaseConnectSlot, SEARCH_FAIL_CAP } from "@/lib/prospecting/connect-scheduler";
 import type { ScrapedCard } from "@/lib/prospecting/filter";
 import { buildSearchUrl } from "@/lib/prospecting/search-url";
+import { logProspectingEvent } from "@/lib/prospecting/events";
 
 const REPLY_CHECK_OFFSETS_HOURS = [24, 72, 168];
 
@@ -287,6 +288,7 @@ async function handleConnectSuccess(task: TaskRow) {
         ...(cr.location ? { location: cr.location } : {}),
       },
     });
+    await logProspectingEvent({ runId: task.prospectingRunId, type: "SENT", connectionRequestId: task.connectionRequestId, message: cr.fullName ?? cr.linkedinUrl });
   }
   await releaseConnectSlot(task.prospectingRunId);
   await maybeCompleteOrContinue(task.prospectingRunId);
@@ -308,6 +310,9 @@ async function handleConnectFailure(task: TaskRow) {
         message: "LinkedIn flagged your account while sending a connection request — paused for 24h.",
       },
     });
+    if (task.prospectingRunId) {
+      await logProspectingEvent({ runId: task.prospectingRunId, type: "CHECKPOINT", connectionRequestId: task.connectionRequestId, message: "החשבון סומן ע\"י לינקדאין — מושהה ל-24 שעות" });
+    }
   }
   // Already pending/connected is not a failure — the relationship already exists. Mark SENT.
   if (task.errorCode === "already_pending" || task.errorCode === "already_connected") {
@@ -324,6 +329,11 @@ async function handleConnectFailure(task: TaskRow) {
       }
     }
     if (task.prospectingRunId) {
+      await logProspectingEvent({
+        runId: task.prospectingRunId,
+        type: task.errorCode === "already_pending" ? "ALREADY_PENDING" : "ALREADY_CONNECTED",
+        connectionRequestId: task.connectionRequestId,
+      });
       await releaseConnectSlot(task.prospectingRunId);
       await maybeCompleteOrContinue(task.prospectingRunId);
     }
@@ -333,6 +343,15 @@ async function handleConnectFailure(task: TaskRow) {
     await prisma.connectionRequest.updateMany({
       where: { id: task.connectionRequestId, status: { notIn: ["SENT", "FAILED"] } },
       data: { status: "FAILED", errorCode: task.errorCode, errorMessage: task.errorMessage },
+    });
+  }
+  if (task.connectionRequestId && task.prospectingRunId) {
+    await logProspectingEvent({
+      runId: task.prospectingRunId,
+      type: "FAILED",
+      connectionRequestId: task.connectionRequestId,
+      message: task.errorMessage ?? task.errorCode ?? "unknown",
+      detail: { errorCode: task.errorCode },
     });
   }
   if (task.prospectingRunId) {
