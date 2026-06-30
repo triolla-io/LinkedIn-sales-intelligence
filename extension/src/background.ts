@@ -174,9 +174,12 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
   // chrome-extension:// URL of different extension". Attaching while the tab is still
   // about:blank passes Chrome's attach-time security check; the debugger session then
   // persists across the CDP navigation to LinkedIn, even as those extensions inject.
-  const tab = await chrome.tabs.create({ url: "about:blank", active: true });
-  if (!tab.id) throw withCode(new Error("tab_create_failed"), "tab_load");
-  const tabId = tab.id;
+  // Open the blank tab inside the dedicated, minimized, non-focused automation window
+  // (same path the search/scrape flows use) so a send never steals the user's screen.
+  // CDP input (Input.dispatchMouseEvent / insertText) and JS .click() are dispatched
+  // straight to the renderer, so they work on a minimized, non-focused tab — the old
+  // bring-to-front was unnecessary.
+  const tabId = await openTabInAutomationWindow("about:blank");
   await trackActiveTab(tabId);
 
   let attached = false;
@@ -188,11 +191,6 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     await attach(tabId);
     attached = true;
 
-    // Bring the window to front so CDP clicks land on a focused window
-    const tabInfo = await chrome.tabs.get(tabId);
-    if (tabInfo.windowId) await chrome.windows.update(tabInfo.windowId, { focused: true });
-    await sleep(300);
-
     // Navigate to the profile through the already-attached debugger session.
     await send(tabId, "Page.navigate", { url: profileUrl });
     await waitForTabLoad(tabId);
@@ -202,21 +200,6 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     if (preTab.url && preTab.url.includes("/checkpoint")) {
       throw withCode(new Error("checkpoint"), "checkpoint");
     }
-
-    // Get device pixel ratio so we can normalize screenshot coords to CSS coords
-    const dprResult = await (await import("./lib/cdp")).send<{ result: { value: number } }>(
-      tabId, "Runtime.evaluate", { expression: "window.devicePixelRatio", returnByValue: true }
-    );
-    const dpr = dprResult?.result?.value ?? 1;
-    console.log("[agent] devicePixelRatio:", dpr);
-
-    // Write message text to OS clipboard once, up front
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      func: (t: string) => navigator.clipboard.writeText(t),
-      args: [text],
-    });
-    await sleep(200);
 
     // Close any compose overlays left from previous attempts (returns void).
     await closeAllComposeOverlays(tabId);
