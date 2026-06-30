@@ -179,7 +179,10 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
   // CDP input (Input.dispatchMouseEvent / insertText) and JS .click() are dispatched
   // straight to the renderer, so they work on a minimized, non-focused tab — the old
   // bring-to-front was unnecessary.
-  const tabId = await openTabInAutomationWindow("about:blank");
+  // active:false — the send flow drives the page purely via selectors / CDP (no innerText),
+  // so the tab never needs to be foregrounded. An inactive tab never restores the minimized
+  // automation window, so a send no longer pops to the foreground / takes over the screen.
+  const tabId = await openTabInAutomationWindow("about:blank", false);
   await trackActiveTab(tabId);
 
   let attached = false;
@@ -190,6 +193,13 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     await waitForTabLoad(tabId);
     await attach(tabId);
     attached = true;
+
+    // A never-foregrounded tab can lay out at 0×0, which would zero every
+    // getBoundingClientRect() and break visibility checks (getComposeUrl, Send button).
+    // Force a real layout viewport so the page renders as if visible, without showing it.
+    await send(tabId, "Emulation.setDeviceMetricsOverride", {
+      width: 1280, height: 900, deviceScaleFactor: 1, mobile: false,
+    }).catch(() => {});
 
     // Navigate to the profile through the already-attached debugger session.
     await send(tabId, "Page.navigate", { url: profileUrl });

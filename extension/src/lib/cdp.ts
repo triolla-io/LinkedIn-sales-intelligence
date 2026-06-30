@@ -22,14 +22,23 @@ export async function getAutomationWindow(): Promise<number> {
   return win.id;
 }
 
-/** Open a tab inside the automation window WITHOUT focusing the window. Returns the tabId. */
-export async function openTabInAutomationWindow(url: string): Promise<number> {
+/**
+ * Open a tab inside the automation window WITHOUT focusing the window. Returns the tabId.
+ *
+ * `active` defaults to true because scraping relies on `innerText`, which needs the tab
+ * rendered. Pass `active: false` for flows that drive the page purely via selectors / CDP
+ * (e.g. message sending): an inactive tab never restores the minimized window, so the run
+ * stays fully in the background instead of popping to the foreground every time. Such flows
+ * MUST force a layout viewport via Emulation.setDeviceMetricsOverride, since a never-
+ * foregrounded tab can otherwise lay out at 0×0 and break getBoundingClientRect checks.
+ */
+export async function openTabInAutomationWindow(url: string, active = true): Promise<number> {
   const windowId = await getAutomationWindow();
-  const tab = await chrome.tabs.create({ windowId, url, active: true });
+  const tab = await chrome.tabs.create({ windowId, url, active });
   if (!tab.id) throw new Error("tab_create_failed");
-  // Activating a tab restores (un-minimizes) its window, so the automation window
-  // would pop to the foreground and "take over the screen". Push it back down so
-  // the run stays in the background. CDP input/screenshots still work minimized.
+  // Activating a tab restores (un-minimizes) its window, so an active tab would pop the
+  // automation window to the foreground and "take over the screen". Push it back down.
+  // (Harmless when active=false — the window was never raised.) CDP works minimized.
   await chrome.windows.update(windowId, { focused: false, state: "minimized" }).catch(() => {});
   return tab.id;
 }
