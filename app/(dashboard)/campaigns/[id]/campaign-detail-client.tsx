@@ -455,6 +455,17 @@ export default function CampaignDetailClient({
 }) {
   const router = useRouter();
   const [sequence, setSequence] = useState<Sequence>(initial);
+  // Sync fresh server data into local state whenever the server component
+  // re-renders with new props (via router.refresh() / AutoRefresher). Without
+  // this, useState(initial) keeps the first-mount value forever, so newly
+  // created enrollments (built asynchronously by the sequence.start Inngest
+  // job) never appear until a full page reload. Detect the prop change during
+  // render — React's recommended pattern — to avoid a stale-data flash.
+  const [prevInitial, setPrevInitial] = useState(initial);
+  if (initial !== prevInitial) {
+    setPrevInitial(initial);
+    setSequence(initial);
+  }
   const [acting, setActing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [removing, setRemoving] = useState(false);
