@@ -59,7 +59,13 @@ function clampToWorkingHours(d: Date, input: Input): Date {
 }
 
 function nextWorkdayStart(from: Date, input: Input): Date {
-  let cursor = new Date(from);
+  const cursor = new Date(from);
+  // Today still counts if its working window hasn't opened yet.
+  const today = toZonedParts(cursor, input.timezone);
+  const todayIsWorkday = !input.weekdaysOnly || isWorkingDay(today.weekday, input);
+  if (todayIsWorkday && today.hour < input.workingHoursStart) {
+    return setHourInZone(cursor, input.timezone, input.workingHoursStart);
+  }
   cursor.setUTCDate(cursor.getUTCDate() + 1);
   while (true) {
     const parts = toZonedParts(cursor, input.timezone);

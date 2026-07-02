@@ -128,7 +128,7 @@ model User {
   image         String?
   title         String?
   role          Role      @default(SALESPERSON)
-  timezone        String    @default("UTC")
+  timezone        String    @default("Asia/Jerusalem")
   emailSignature  String?   @db.Text
   createdAt       DateTime  @default(now())
 
