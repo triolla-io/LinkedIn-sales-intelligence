@@ -1,4 +1,5 @@
 import { inngest } from "@/inngest/client";
+import { priorityTitleWhere } from "@/lib/job-check/priority-titles";
 import { prisma } from "@/lib/prisma";
 
 export const jobCheckTick = inngest.createFunction(
@@ -12,6 +13,7 @@ export const jobCheckTick = inngest.createFunction(
         OR: [{ lastJobCheckAt: null }, { lastJobCheckAt: { lt: cutoff } }],
         linkedinUrl: { not: "" },
         removedAt: null,
+        NOT: priorityTitleWhere(),
       },
       select: { id: true },
       orderBy: { lastJobCheckAt: "asc" }, // oldest-first so the queue drains evenly
