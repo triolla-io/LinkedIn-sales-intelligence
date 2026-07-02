@@ -3,6 +3,7 @@ import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { getSnapshotStatus, getSnapshotResults } from "@/lib/brightdata/client";
 import { recordJobChangeIfAny } from "@/lib/job-check/detect-change";
+import { normalizeLinkedinUrl } from "@/lib/enrichment/enrich-contact-core";
 
 interface CollectPayload {
   ownerId: string;
@@ -30,11 +31,11 @@ export const brightdataJobCheckCollect = inngest.createFunction(
     if (status !== "ready") return { ownerId, snapshotId, status, processed: 0 };
 
     const rows = await step.run("download", () => getSnapshotResults(snapshotId));
-    const byUrl = new Map(rows.map((r) => [r.input_url, r]));
+    const byUrl = new Map(rows.map((r) => [normalizeLinkedinUrl(r.input_url), r]));
 
     let changes = 0;
     for (const c of contacts) {
-      const row = byUrl.get(c.linkedinUrl);
+      const row = byUrl.get(normalizeLinkedinUrl(c.linkedinUrl));
       const firstRun = c.jobSnapshotTitle === null && c.jobSnapshotCompany === null;
 
       if (!row || row.error) {
@@ -49,8 +50,8 @@ export const brightdataJobCheckCollect = inngest.createFunction(
           prisma.contact.update({
             where: { id: c.id },
             data: {
-              jobSnapshotTitle: row.position,
-              jobSnapshotCompany: row.current_company_name,
+              jobSnapshotTitle: row.position ?? c.jobSnapshotTitle,
+              jobSnapshotCompany: row.current_company_name ?? c.jobSnapshotCompany,
               lastJobCheckAt: new Date(),
             },
           })

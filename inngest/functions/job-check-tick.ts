@@ -10,10 +10,12 @@ export const jobCheckTick = inngest.createFunction(
 
     const contacts = await prisma.contact.findMany({
       where: {
-        OR: [{ lastJobCheckAt: null }, { lastJobCheckAt: { lt: cutoff } }],
         linkedinUrl: { not: "" },
         removedAt: null,
-        NOT: priorityTitleWhere(),
+        AND: [
+          { OR: [{ lastJobCheckAt: null }, { lastJobCheckAt: { lt: cutoff } }] },
+          { OR: [{ currentTitle: null }, { NOT: priorityTitleWhere() }] },
+        ],
       },
       select: { id: true },
       orderBy: { lastJobCheckAt: "asc" }, // oldest-first so the queue drains evenly

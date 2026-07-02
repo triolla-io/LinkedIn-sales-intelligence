@@ -26,7 +26,7 @@ export const brightdataJobCheckTick = inngest.createFunction(
             { OR: [{ lastJobCheckAt: null }, { lastJobCheckAt: { lt: cutoff } }] },
           ],
         },
-        select: { id: true, ownerId: true, linkedinUrl: true, jobSnapshotTitle: true, jobSnapshotCompany: true },
+        select: { id: true, ownerId: true, linkedinUrl: true, jobSnapshotTitle: true, jobSnapshotCompany: true, owner: { select: { orgId: true } } },
         orderBy: { lastJobCheckAt: "asc" },
         take: 2000,
       })
@@ -44,7 +44,8 @@ export const brightdataJobCheckTick = inngest.createFunction(
 
     let triggeredTotal = 0;
     for (const [ownerId, contacts] of byOwner) {
-      const remaining = await step.run(`budget-${ownerId}`, () => brightDataRemaining(ownerId));
+      const orgId = contacts[0].owner.orgId;
+      const remaining = await step.run(`budget-${orgId}`, () => brightDataRemaining(orgId));
       const take = Math.min(DAILY_CAP, remaining, contacts.length);
       if (take <= 0) continue;
 
@@ -52,7 +53,7 @@ export const brightdataJobCheckTick = inngest.createFunction(
       const { snapshotId } = await step.run(`trigger-${ownerId}`, () =>
         triggerProfileCollection(batch.map((c) => c.linkedinUrl))
       );
-      await step.run(`spend-${ownerId}`, () => addBrightDataSpend(ownerId, batch.length));
+      await step.run(`spend-${orgId}`, () => addBrightDataSpend(orgId, batch.length));
 
       await step.sendEvent(`emit-${ownerId}`, {
         name: "brightdata.job-check.collect" as const,
