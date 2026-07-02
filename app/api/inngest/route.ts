@@ -14,6 +14,7 @@ import { prospectingTick } from "@/inngest/functions/prospecting-tick";
 import { importProcess } from "@/inngest/functions/import-process";
 import { jobCheckTick } from "@/inngest/functions/job-check-tick";
 import { jobCheckContact } from "@/inngest/functions/job-check-contact";
+import { brightdataJobCheckTick } from "@/inngest/functions/brightdata-job-check-tick";
 import { hubspotSyncApollo } from "@/inngest/functions/hubspot-sync-apollo";
 
 export const { GET, POST, PUT } = serve({
@@ -34,6 +35,7 @@ export const { GET, POST, PUT } = serve({
     importProcess,
     jobCheckTick,
     jobCheckContact,
+    brightdataJobCheckTick,
     hubspotSyncApollo,
   ],
 });
