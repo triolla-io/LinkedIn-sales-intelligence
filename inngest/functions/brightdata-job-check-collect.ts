@@ -31,11 +31,16 @@ export const brightdataJobCheckCollect = inngest.createFunction(
     if (status !== "ready") return { ownerId, snapshotId, status, processed: 0 };
 
     const rows = await step.run("download", () => getSnapshotResults(snapshotId));
-    const byUrl = new Map(rows.map((r) => [normalizeLinkedinUrl(r.input_url), r]));
+    const byUrl = new Map(
+      rows
+        .map((r) => [normalizeLinkedinUrl(r.input_url), r] as const)
+        .filter(([k]) => k !== "")
+    );
 
     let changes = 0;
     for (const c of contacts) {
-      const row = byUrl.get(normalizeLinkedinUrl(c.linkedinUrl));
+      const key = normalizeLinkedinUrl(c.linkedinUrl);
+      const row = key ? byUrl.get(key) : undefined;
       const firstRun = c.jobSnapshotTitle === null && c.jobSnapshotCompany === null;
 
       if (!row || row.error) {

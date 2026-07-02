@@ -45,7 +45,7 @@ export const brightdataJobCheckTick = inngest.createFunction(
     let triggeredTotal = 0;
     for (const [ownerId, contacts] of byOwner) {
       const orgId = contacts[0].owner.orgId;
-      const remaining = await step.run(`budget-${orgId}`, () => brightDataRemaining(orgId));
+      const remaining = await step.run(`budget-${ownerId}`, () => brightDataRemaining(orgId));
       const take = Math.min(DAILY_CAP, remaining, contacts.length);
       if (take <= 0) continue;
 
@@ -53,7 +53,7 @@ export const brightdataJobCheckTick = inngest.createFunction(
       const { snapshotId } = await step.run(`trigger-${ownerId}`, () =>
         triggerProfileCollection(batch.map((c) => c.linkedinUrl))
       );
-      await step.run(`spend-${orgId}`, () => addBrightDataSpend(orgId, batch.length));
+      await step.run(`spend-${ownerId}`, () => addBrightDataSpend(orgId, batch.length));
 
       await step.sendEvent(`emit-${ownerId}`, {
         name: "brightdata.job-check.collect" as const,
