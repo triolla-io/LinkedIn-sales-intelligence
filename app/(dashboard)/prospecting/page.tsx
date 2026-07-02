@@ -38,7 +38,7 @@ export default function ProspectingPage() {
   const [name, setName] = useState("");
   const [keywords, setKeywords] = useState("");
   const [geoCode, setGeoCode] = useState("IL");
-  const [dailyCap, setDailyCap] = useState(8);
+  const [dailyCap, setDailyCap] = useState(15);
   const [submitting, setSubmitting] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
 
@@ -158,7 +158,7 @@ export default function ProspectingPage() {
               </div>
             </div>
             <p className="text-xs text-[#9b9895]">
-              {dailyCap} בקשות/יום (מומלץ עד 8), 100/שבוע. חיבורים מדרגה 2 ו-3.
+              {dailyCap} בקשות/יום (מומלץ 15–20), עד 100/שבוע. חיבורים מדרגה 2 ו-3.
             </p>
             <button
               type="submit"
