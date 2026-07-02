@@ -13,11 +13,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    const [requests, tasks, events, nextTask, sentToday, sentThisWeek] = await Promise.all([
+    const [requests, statusGroups, tasks, events, nextTask, sentToday, sentThisWeek] = await Promise.all([
       prisma.connectionRequest.findMany({
         where: { runId: id, ownerId: ctx.effectiveUserId },
-        orderBy: [{ sentAt: "desc" }, { createdAt: "desc" }],
+        orderBy: [{ sentAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
         take: 500,
+      }),
+      prisma.connectionRequest.groupBy({
+        by: ["status"],
+        where: { runId: id, ownerId: ctx.effectiveUserId },
+        _count: true,
       }),
       prisma.extensionTask.findMany({
         where: { prospectingRunId: id },
@@ -39,12 +44,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       prisma.connectionRequest.count({ where: { ownerId: ctx.effectiveUserId, status: "SENT", sentAt: { gte: weekAgo } } }),
     ]);
 
+    const countOf = (status: string) => statusGroups.find((g) => g.status === status)?._count ?? 0;
     const statusCounts = {
-      discovered: requests.filter((r) => r.status === "DISCOVERED").length,
-      queued: requests.filter((r) => r.status === "QUEUED").length,
-      sent: requests.filter((r) => r.status === "SENT").length,
-      failed: requests.filter((r) => r.status === "FAILED").length,
-      skipped: requests.filter((r) => r.status === "SKIPPED").length,
+      discovered: countOf("DISCOVERED"),
+      queued: countOf("QUEUED"),
+      sent: countOf("SENT"),
+      failed: countOf("FAILED"),
+      skipped: countOf("SKIPPED"),
     };
 
     const isTransientSearch = (t: { kind: string; errorCode: string | null }) => t.kind === "SEARCH" && t.errorCode === "tab_load";

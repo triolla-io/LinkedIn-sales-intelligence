@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { ArrowRight, Loader2 } from "lucide-react";
@@ -64,6 +64,14 @@ const REQ_STATUS: Record<string, { label: string; cls: string }> = {
   ACCEPTED: { label: "התקבל", cls: "bg-[#e6f4ff] text-[#1585ff]" },
 };
 
+const STATUS_CHIPS: { key: keyof StatusCounts; status: string; label: string; cls: string }[] = [
+  { key: "sent", status: "SENT", label: "נשלחו", cls: "bg-[#e6faf0] text-[#059669]" },
+  { key: "discovered", status: "DISCOVERED", label: "בתור", cls: "bg-[#f3f2ef] text-[#6b6866]" },
+  { key: "queued", status: "QUEUED", label: "בתזמון", cls: "bg-[#fff8e6] text-[#b45309]" },
+  { key: "failed", status: "FAILED", label: "נכשלו", cls: "bg-[#fff3f3] text-[#dc2626]" },
+  { key: "skipped", status: "SKIPPED", label: "דולגו", cls: "bg-[#f3f2ef] text-[#9b9895]" },
+];
+
 const SUMMARY_CLS: Record<string, string> = {
   frozen: "bg-[#fff3f3] text-[#dc2626] border-[#f5c2c2]",
   weekly_cap: "bg-[#fff8e6] text-[#b45309] border-[#f5e0a8]",
@@ -102,6 +110,7 @@ export default function ProspectingRunDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const { data } = useSWR<RunDetailResponse>(
     `/api/prospecting/runs/${id}`,
     fetcher,
@@ -117,6 +126,9 @@ export default function ProspectingRunDetailPage({
   }
 
   const { run, requests, taskStats, statusCounts, events, summary } = data;
+  const filteredRequests = statusFilter
+    ? requests.filter((r) => r.status === statusFilter)
+    : requests;
 
   return (
     <div dir="rtl" className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
@@ -149,11 +161,20 @@ export default function ProspectingRunDetailPage({
         )}
         {statusCounts && (
           <div className="flex flex-wrap gap-2">
-            <span className="text-xs px-2.5 py-1 rounded-full bg-[#e6faf0] text-[#059669]">נשלחו {statusCounts.sent}</span>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-[#f3f2ef] text-[#6b6866]">בתור {statusCounts.discovered}</span>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-[#fff8e6] text-[#b45309]">בתזמון {statusCounts.queued}</span>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-[#fff3f3] text-[#dc2626]">נכשלו {statusCounts.failed}</span>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-[#f3f2ef] text-[#9b9895]">דולגו {statusCounts.skipped}</span>
+            {STATUS_CHIPS.map((chip) => (
+              <button
+                key={chip.status}
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === chip.status ? null : chip.status)}
+                className={`text-xs px-2.5 py-1 rounded-full transition-shadow cursor-pointer ${chip.cls} ${
+                  statusFilter === chip.status
+                    ? "ring-2 ring-[#1585ff] ring-offset-1"
+                    : "hover:ring-1 hover:ring-[#c8c5c2]"
+                }`}
+              >
+                {chip.label} {statusCounts[chip.key]}
+              </button>
+            ))}
           </div>
         )}
         {/* Task status panel */}
@@ -215,15 +236,33 @@ export default function ProspectingRunDetailPage({
         )}
 
         <div className="bg-white border border-[#e5e3df] rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#e5e3df] bg-[#fafaf9]">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-[#e5e3df] bg-[#fafaf9]">
             <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">
-              אנשים בריצה ({requests.length})
+              אנשים בריצה ({filteredRequests.length})
             </h2>
+            {statusFilter && (
+              <>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${REQ_STATUS[statusFilter]?.cls ?? "bg-[#f3f2ef] text-[#6b6866]"}`}>
+                  {STATUS_CHIPS.find((c) => c.status === statusFilter)?.label ?? statusFilter}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter(null)}
+                  className="text-xs text-[#1585ff] hover:underline cursor-pointer"
+                >
+                  הצג הכל
+                </button>
+              </>
+            )}
           </div>
 
-          {requests.length === 0 ? (
+          {filteredRequests.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-sm text-[#9b9895]">עדיין לא נמצאו אנשים בריצה זו.</p>
+              <p className="text-sm text-[#9b9895]">
+                {statusFilter
+                  ? `אין אנשים בסטטוס "${STATUS_CHIPS.find((c) => c.status === statusFilter)?.label ?? statusFilter}" בריצה זו.`
+                  : "עדיין לא נמצאו אנשים בריצה זו."}
+              </p>
             </div>
           ) : (
             <table className="w-full text-sm">
@@ -238,7 +277,7 @@ export default function ProspectingRunDetailPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e5e3df]">
-                {requests.map((req) => (
+                {filteredRequests.map((req) => (
                   <tr key={req.id} className="hover:bg-[#fafaf9] transition-colors">
                     <td className="px-4 py-3 font-medium text-[#111110]">
                       {req.linkedinUrl ? (
