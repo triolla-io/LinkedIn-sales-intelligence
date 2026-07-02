@@ -13,11 +13,12 @@ export type ScrapedCard = {
   company: string | null;
   location: string | null;
   degree: string | null;
+  cardAction: string | null; // "connect" | "follow" | "following" | "pending" | "message"
 };
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.3.4";
+const VERSION = "0.3.5";
 
 // In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
@@ -360,7 +361,14 @@ const SCRAPE_FN_SOURCE = `(() => {
       const l = content[i];
       if (/,/.test(l) || /israel|ישראל/i.test(l)) { location = l; break; }
     }
-    out.push({ urn, profileUrl, name, headline, title, company, location, degree });
+    // cardAction: the card's action-button label. "Connect" means sendable now; "Pending" means an
+    // invite is already out; "Follow"/"Message" hint the profile may not expose Connect directly.
+    let cardAction = null;
+    for (const l of lines) {
+      const m = l.match(/^(connect|follow|following|pending|message)$/i);
+      if (m) { cardAction = m[1].toLowerCase(); break; }
+    }
+    out.push({ urn, profileUrl, name, headline, title, company, location, degree, cardAction });
   }
   const nextBtns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText.trim() === 'Next');
   const next = nextBtns[0];

@@ -329,7 +329,7 @@ export default function ProspectingRunDetailPage({
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${REQ_STATUS[req.status]?.cls ?? "bg-[#f3f2ef] text-[#6b6866]"}`}>
                         {REQ_STATUS[req.status]?.label ?? req.status}
                       </span>
-                      {req.status === "SKIPPED" && req.skipReason && <span className="text-[10px] text-[#9b9895] block mt-0.5">{req.skipReason}</span>}
+                      {req.status === "SKIPPED" && req.skipReason && <span className="text-[10px] text-[#9b9895] block mt-0.5">{ERROR_CODE_LABELS[req.skipReason] ?? req.skipReason}</span>}
                       {req.status === "FAILED" && req.errorCode && <span className="text-[10px] text-[#dc2626] block mt-0.5">{req.errorCode}</span>}
                     </td>
                     <td className="px-4 py-3 text-[#6b6866]">

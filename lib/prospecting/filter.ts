@@ -7,6 +7,7 @@ export type ScrapedCard = {
   company: string | null;
   location: string | null;
   degree: string | null; // "1st" | "2nd" | "3rd" | "3rd+" | null
+  cardAction?: string | null; // search-card action button: "connect" | "follow" | "following" | "pending" | "message" | null (older extension builds omit it)
 };
 
 /**
@@ -27,7 +28,7 @@ export type DecisionCtx = {
 
 export type Decision =
   | { action: "insert" }
-  | { action: "skip"; skipReason: "already_contact" | "already_pending" | "already_connected" };
+  | { action: "skip"; skipReason: "already_contact" | "already_pending" | "already_connected" | "pending_on_linkedin" };
 
 /**
  * Decide whether a scraped search card should become a connection-request candidate.
@@ -49,5 +50,18 @@ export function decideCandidate(card: ScrapedCard, ctx: DecisionCtx): Decision {
   if (ctx.existingContactUrns.has(card.urn)) return { action: "skip", skipReason: "already_contact" };
   if (ctx.existingRequestUrns.has(card.urn)) return { action: "skip", skipReason: "already_pending" };
   if (card.degree === "1st") return { action: "skip", skipReason: "already_connected" };
+  // The card's own action button saying "Pending" is a positive signal in the same spirit as the
+  // 1st-degree guard: an invitation is already out, so attempting again is pointless.
+  if (card.cardAction === "pending") return { action: "skip", skipReason: "pending_on_linkedin" };
   return { action: "insert" };
+}
+
+/**
+ * Send priority for an inserted candidate. 0 = normal (card shows "Connect" or the action is
+ * unknown), 1 = try last. "Follow"/"Following"/"Message" cards often lack a direct Connect button
+ * (creator mode / open profiles) — many ARE still connectable via the profile's "More" menu, so we
+ * don't skip them; we just attempt them only after the clean Connect pool is exhausted.
+ */
+export function computeSendPriority(card: ScrapedCard): number {
+  return card.cardAction === "follow" || card.cardAction === "following" || card.cardAction === "message" ? 1 : 0;
 }

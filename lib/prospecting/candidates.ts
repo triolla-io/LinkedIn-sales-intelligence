@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
-import { cleanScrapedName, decideCandidate, type ScrapedCard } from "@/lib/prospecting/filter";
+import { cleanScrapedName, computeSendPriority, decideCandidate, type ScrapedCard } from "@/lib/prospecting/filter";
 import { logProspectingEvent } from "@/lib/prospecting/events";
+import { ERROR_CODE_LABELS } from "@/lib/prospecting/format";
 
 export type PersistResult = { inserted: number; skipped: number };
 
@@ -62,13 +63,14 @@ export async function persistCandidates(
             location: card.location,
             status: "SKIPPED",
             skipReason: decision.skipReason,
+            cardAction: card.cardAction ?? null,
           },
         });
         skipped++;
         await logProspectingEvent({
           runId,
           type: "SKIPPED",
-          message: `${fullName || card.profileUrl} — ${decision.skipReason}`,
+          message: `${fullName || card.profileUrl} — ${ERROR_CODE_LABELS[decision.skipReason] ?? decision.skipReason}`,
           detail: { skipReason: decision.skipReason },
         });
       } catch (e) {
@@ -95,6 +97,8 @@ export async function persistCandidates(
           currentCompany: card.company,
           location: card.location,
           status: "DISCOVERED",
+          cardAction: card.cardAction ?? null,
+          sendPriority: computeSendPriority(card),
         },
       });
       inserted++;

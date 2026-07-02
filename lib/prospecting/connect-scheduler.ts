@@ -58,10 +58,11 @@ export async function queueNextConnect(runId: string): Promise<string | null> {
       return null;
     }
 
-    // Atomically claim the oldest DISCOVERED candidate.
+    // Atomically claim the oldest DISCOVERED candidate. Clean "Connect"-card candidates
+    // (sendPriority 0) drain first; Follow/Message-card ones (priority 1) are tried last.
     const next = await prisma.connectionRequest.findFirst({
       where: { runId, status: "DISCOVERED" },
-      orderBy: { createdAt: "asc" },
+      orderBy: [{ sendPriority: "asc" }, { createdAt: "asc" }],
       select: { id: true, linkedinUrl: true, fullName: true },
     });
     if (!next) {

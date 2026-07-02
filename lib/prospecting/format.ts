@@ -41,6 +41,9 @@ export const ERROR_CODE_LABELS: Record<string, string> = {
   missing_payload: "שגיאה פנימית בנתוני המשימה",
   unknown_kind: "שגיאה פנימית בסוג המשימה",
   unknown: "שגיאה לא צפויה",
+  // Discovery-time skip reasons (ConnectionRequest.skipReason)
+  already_contact: "כבר קיים באנשי הקשר",
+  pending_on_linkedin: "הצעת חברות כבר ממתינה (זוהה בחיפוש)",
 };
 
 export const TASK_KIND_LABELS: Record<string, string> = {

@@ -592,6 +592,8 @@ export const ConnectionRequestScalarFieldEnum = {
   location: 'location',
   status: 'status',
   skipReason: 'skipReason',
+  cardAction: 'cardAction',
+  sendPriority: 'sendPriority',
   sentAt: 'sentAt',
   attemptCount: 'attemptCount',
   errorCode: 'errorCode',

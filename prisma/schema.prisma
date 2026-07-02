@@ -750,6 +750,8 @@ model ConnectionRequest {
   location       String?
   status         ConnectionRequestStatus @default(DISCOVERED)
   skipReason     String?
+  cardAction     String?
+  sendPriority   Int                     @default(0)
   sentAt         DateTime?
   attemptCount   Int                     @default(0)
   errorCode      String?

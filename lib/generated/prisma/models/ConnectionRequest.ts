@@ -27,10 +27,12 @@ export type AggregateConnectionRequest = {
 }
 
 export type ConnectionRequestAvgAggregateOutputType = {
+  sendPriority: number | null
   attemptCount: number | null
 }
 
 export type ConnectionRequestSumAggregateOutputType = {
+  sendPriority: number | null
   attemptCount: number | null
 }
 
@@ -47,6 +49,8 @@ export type ConnectionRequestMinAggregateOutputType = {
   location: string | null
   status: $Enums.ConnectionRequestStatus | null
   skipReason: string | null
+  cardAction: string | null
+  sendPriority: number | null
   sentAt: Date | null
   attemptCount: number | null
   errorCode: string | null
@@ -67,6 +71,8 @@ export type ConnectionRequestMaxAggregateOutputType = {
   location: string | null
   status: $Enums.ConnectionRequestStatus | null
   skipReason: string | null
+  cardAction: string | null
+  sendPriority: number | null
   sentAt: Date | null
   attemptCount: number | null
   errorCode: string | null
@@ -87,6 +93,8 @@ export type ConnectionRequestCountAggregateOutputType = {
   location: number
   status: number
   skipReason: number
+  cardAction: number
+  sendPriority: number
   sentAt: number
   attemptCount: number
   errorCode: number
@@ -97,10 +105,12 @@ export type ConnectionRequestCountAggregateOutputType = {
 
 
 export type ConnectionRequestAvgAggregateInputType = {
+  sendPriority?: true
   attemptCount?: true
 }
 
 export type ConnectionRequestSumAggregateInputType = {
+  sendPriority?: true
   attemptCount?: true
 }
 
@@ -117,6 +127,8 @@ export type ConnectionRequestMinAggregateInputType = {
   location?: true
   status?: true
   skipReason?: true
+  cardAction?: true
+  sendPriority?: true
   sentAt?: true
   attemptCount?: true
   errorCode?: true
@@ -137,6 +149,8 @@ export type ConnectionRequestMaxAggregateInputType = {
   location?: true
   status?: true
   skipReason?: true
+  cardAction?: true
+  sendPriority?: true
   sentAt?: true
   attemptCount?: true
   errorCode?: true
@@ -157,6 +171,8 @@ export type ConnectionRequestCountAggregateInputType = {
   location?: true
   status?: true
   skipReason?: true
+  cardAction?: true
+  sendPriority?: true
   sentAt?: true
   attemptCount?: true
   errorCode?: true
@@ -264,6 +280,8 @@ export type ConnectionRequestGroupByOutputType = {
   location: string | null
   status: $Enums.ConnectionRequestStatus
   skipReason: string | null
+  cardAction: string | null
+  sendPriority: number
   sentAt: Date | null
   attemptCount: number
   errorCode: string | null
@@ -307,6 +325,8 @@ export type ConnectionRequestWhereInput = {
   location?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   status?: Prisma.EnumConnectionRequestStatusFilter<"ConnectionRequest"> | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
+  cardAction?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
+  sendPriority?: Prisma.IntFilter<"ConnectionRequest"> | number
   sentAt?: Prisma.DateTimeNullableFilter<"ConnectionRequest"> | Date | string | null
   attemptCount?: Prisma.IntFilter<"ConnectionRequest"> | number
   errorCode?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
@@ -329,6 +349,8 @@ export type ConnectionRequestOrderByWithRelationInput = {
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   skipReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  cardAction?: Prisma.SortOrderInput | Prisma.SortOrder
+  sendPriority?: Prisma.SortOrder
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   errorCode?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -355,6 +377,8 @@ export type ConnectionRequestWhereUniqueInput = Prisma.AtLeast<{
   location?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   status?: Prisma.EnumConnectionRequestStatusFilter<"ConnectionRequest"> | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
+  cardAction?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
+  sendPriority?: Prisma.IntFilter<"ConnectionRequest"> | number
   sentAt?: Prisma.DateTimeNullableFilter<"ConnectionRequest"> | Date | string | null
   attemptCount?: Prisma.IntFilter<"ConnectionRequest"> | number
   errorCode?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
@@ -377,6 +401,8 @@ export type ConnectionRequestOrderByWithAggregationInput = {
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   skipReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  cardAction?: Prisma.SortOrderInput | Prisma.SortOrder
+  sendPriority?: Prisma.SortOrder
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   errorCode?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -405,6 +431,8 @@ export type ConnectionRequestScalarWhereWithAggregatesInput = {
   location?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
   status?: Prisma.EnumConnectionRequestStatusWithAggregatesFilter<"ConnectionRequest"> | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
+  cardAction?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
+  sendPriority?: Prisma.IntWithAggregatesFilter<"ConnectionRequest"> | number
   sentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ConnectionRequest"> | Date | string | null
   attemptCount?: Prisma.IntWithAggregatesFilter<"ConnectionRequest"> | number
   errorCode?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
@@ -423,6 +451,8 @@ export type ConnectionRequestCreateInput = {
   location?: string | null
   status?: $Enums.ConnectionRequestStatus
   skipReason?: string | null
+  cardAction?: string | null
+  sendPriority?: number
   sentAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
@@ -445,6 +475,8 @@ export type ConnectionRequestUncheckedCreateInput = {
   location?: string | null
   status?: $Enums.ConnectionRequestStatus
   skipReason?: string | null
+  cardAction?: string | null
+  sendPriority?: number
   sentAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
@@ -463,6 +495,8 @@ export type ConnectionRequestUpdateInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumConnectionRequestStatusFieldUpdateOperationsInput | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -485,6 +519,8 @@ export type ConnectionRequestUncheckedUpdateInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumConnectionRequestStatusFieldUpdateOperationsInput | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -505,6 +541,8 @@ export type ConnectionRequestCreateManyInput = {
   location?: string | null
   status?: $Enums.ConnectionRequestStatus
   skipReason?: string | null
+  cardAction?: string | null
+  sendPriority?: number
   sentAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
@@ -523,6 +561,8 @@ export type ConnectionRequestUpdateManyMutationInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumConnectionRequestStatusFieldUpdateOperationsInput | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -543,6 +583,8 @@ export type ConnectionRequestUncheckedUpdateManyInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumConnectionRequestStatusFieldUpdateOperationsInput | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -578,6 +620,8 @@ export type ConnectionRequestCountOrderByAggregateInput = {
   location?: Prisma.SortOrder
   status?: Prisma.SortOrder
   skipReason?: Prisma.SortOrder
+  cardAction?: Prisma.SortOrder
+  sendPriority?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   errorCode?: Prisma.SortOrder
@@ -586,6 +630,7 @@ export type ConnectionRequestCountOrderByAggregateInput = {
 }
 
 export type ConnectionRequestAvgOrderByAggregateInput = {
+  sendPriority?: Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
 }
 
@@ -602,6 +647,8 @@ export type ConnectionRequestMaxOrderByAggregateInput = {
   location?: Prisma.SortOrder
   status?: Prisma.SortOrder
   skipReason?: Prisma.SortOrder
+  cardAction?: Prisma.SortOrder
+  sendPriority?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   errorCode?: Prisma.SortOrder
@@ -622,6 +669,8 @@ export type ConnectionRequestMinOrderByAggregateInput = {
   location?: Prisma.SortOrder
   status?: Prisma.SortOrder
   skipReason?: Prisma.SortOrder
+  cardAction?: Prisma.SortOrder
+  sendPriority?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   errorCode?: Prisma.SortOrder
@@ -630,6 +679,7 @@ export type ConnectionRequestMinOrderByAggregateInput = {
 }
 
 export type ConnectionRequestSumOrderByAggregateInput = {
+  sendPriority?: Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
 }
 
@@ -732,6 +782,8 @@ export type ConnectionRequestCreateWithoutOwnerInput = {
   location?: string | null
   status?: $Enums.ConnectionRequestStatus
   skipReason?: string | null
+  cardAction?: string | null
+  sendPriority?: number
   sentAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
@@ -752,6 +804,8 @@ export type ConnectionRequestUncheckedCreateWithoutOwnerInput = {
   location?: string | null
   status?: $Enums.ConnectionRequestStatus
   skipReason?: string | null
+  cardAction?: string | null
+  sendPriority?: number
   sentAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
@@ -801,6 +855,8 @@ export type ConnectionRequestScalarWhereInput = {
   location?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   status?: Prisma.EnumConnectionRequestStatusFilter<"ConnectionRequest"> | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
+  cardAction?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
+  sendPriority?: Prisma.IntFilter<"ConnectionRequest"> | number
   sentAt?: Prisma.DateTimeNullableFilter<"ConnectionRequest"> | Date | string | null
   attemptCount?: Prisma.IntFilter<"ConnectionRequest"> | number
   errorCode?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
@@ -819,6 +875,8 @@ export type ConnectionRequestCreateWithoutRunInput = {
   location?: string | null
   status?: $Enums.ConnectionRequestStatus
   skipReason?: string | null
+  cardAction?: string | null
+  sendPriority?: number
   sentAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
@@ -839,6 +897,8 @@ export type ConnectionRequestUncheckedCreateWithoutRunInput = {
   location?: string | null
   status?: $Enums.ConnectionRequestStatus
   skipReason?: string | null
+  cardAction?: string | null
+  sendPriority?: number
   sentAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
@@ -884,6 +944,8 @@ export type ConnectionRequestCreateManyOwnerInput = {
   location?: string | null
   status?: $Enums.ConnectionRequestStatus
   skipReason?: string | null
+  cardAction?: string | null
+  sendPriority?: number
   sentAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
@@ -902,6 +964,8 @@ export type ConnectionRequestUpdateWithoutOwnerInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumConnectionRequestStatusFieldUpdateOperationsInput | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -922,6 +986,8 @@ export type ConnectionRequestUncheckedUpdateWithoutOwnerInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumConnectionRequestStatusFieldUpdateOperationsInput | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -941,6 +1007,8 @@ export type ConnectionRequestUncheckedUpdateManyWithoutOwnerInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumConnectionRequestStatusFieldUpdateOperationsInput | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -960,6 +1028,8 @@ export type ConnectionRequestCreateManyRunInput = {
   location?: string | null
   status?: $Enums.ConnectionRequestStatus
   skipReason?: string | null
+  cardAction?: string | null
+  sendPriority?: number
   sentAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
@@ -978,6 +1048,8 @@ export type ConnectionRequestUpdateWithoutRunInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumConnectionRequestStatusFieldUpdateOperationsInput | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -998,6 +1070,8 @@ export type ConnectionRequestUncheckedUpdateWithoutRunInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumConnectionRequestStatusFieldUpdateOperationsInput | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1017,6 +1091,8 @@ export type ConnectionRequestUncheckedUpdateManyWithoutRunInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumConnectionRequestStatusFieldUpdateOperationsInput | $Enums.ConnectionRequestStatus
   skipReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1039,6 +1115,8 @@ export type ConnectionRequestSelect<ExtArgs extends runtime.Types.Extensions.Int
   location?: boolean
   status?: boolean
   skipReason?: boolean
+  cardAction?: boolean
+  sendPriority?: boolean
   sentAt?: boolean
   attemptCount?: boolean
   errorCode?: boolean
@@ -1061,6 +1139,8 @@ export type ConnectionRequestSelectCreateManyAndReturn<ExtArgs extends runtime.T
   location?: boolean
   status?: boolean
   skipReason?: boolean
+  cardAction?: boolean
+  sendPriority?: boolean
   sentAt?: boolean
   attemptCount?: boolean
   errorCode?: boolean
@@ -1083,6 +1163,8 @@ export type ConnectionRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   location?: boolean
   status?: boolean
   skipReason?: boolean
+  cardAction?: boolean
+  sendPriority?: boolean
   sentAt?: boolean
   attemptCount?: boolean
   errorCode?: boolean
@@ -1105,6 +1187,8 @@ export type ConnectionRequestSelectScalar = {
   location?: boolean
   status?: boolean
   skipReason?: boolean
+  cardAction?: boolean
+  sendPriority?: boolean
   sentAt?: boolean
   attemptCount?: boolean
   errorCode?: boolean
@@ -1112,7 +1196,7 @@ export type ConnectionRequestSelectScalar = {
   createdAt?: boolean
 }
 
-export type ConnectionRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "runId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "headline" | "currentTitle" | "currentCompany" | "location" | "status" | "skipReason" | "sentAt" | "attemptCount" | "errorCode" | "errorMessage" | "createdAt", ExtArgs["result"]["connectionRequest"]>
+export type ConnectionRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "runId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "headline" | "currentTitle" | "currentCompany" | "location" | "status" | "skipReason" | "cardAction" | "sendPriority" | "sentAt" | "attemptCount" | "errorCode" | "errorMessage" | "createdAt", ExtArgs["result"]["connectionRequest"]>
 export type ConnectionRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   run?: boolean | Prisma.ProspectingRunDefaultArgs<ExtArgs>
@@ -1145,6 +1229,8 @@ export type $ConnectionRequestPayload<ExtArgs extends runtime.Types.Extensions.I
     location: string | null
     status: $Enums.ConnectionRequestStatus
     skipReason: string | null
+    cardAction: string | null
+    sendPriority: number
     sentAt: Date | null
     attemptCount: number
     errorCode: string | null
@@ -1587,6 +1673,8 @@ export interface ConnectionRequestFieldRefs {
   readonly location: Prisma.FieldRef<"ConnectionRequest", 'String'>
   readonly status: Prisma.FieldRef<"ConnectionRequest", 'ConnectionRequestStatus'>
   readonly skipReason: Prisma.FieldRef<"ConnectionRequest", 'String'>
+  readonly cardAction: Prisma.FieldRef<"ConnectionRequest", 'String'>
+  readonly sendPriority: Prisma.FieldRef<"ConnectionRequest", 'Int'>
   readonly sentAt: Prisma.FieldRef<"ConnectionRequest", 'DateTime'>
   readonly attemptCount: Prisma.FieldRef<"ConnectionRequest", 'Int'>
   readonly errorCode: Prisma.FieldRef<"ConnectionRequest", 'String'>

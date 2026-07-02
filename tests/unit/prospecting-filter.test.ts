@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { decideCandidate, type ScrapedCard } from "@/lib/prospecting/filter";
+import { computeSendPriority, decideCandidate, type ScrapedCard } from "@/lib/prospecting/filter";
 
 const base: ScrapedCard = {
   urn: "ACoAA1",
@@ -44,5 +44,30 @@ describe("decideCandidate", () => {
   // so a connection request is pointless. (The search shouldn't return these, but guard anyway.)
   it("skips a 1st-degree connection as already_connected", () => {
     expect(decideCandidate({ ...base, degree: "1st" }, ctx)).toEqual({ action: "skip", skipReason: "already_connected" });
+  });
+
+  // Card action button pre-detection: "Pending" is a positive signal that an invite is already out.
+  it("skips a card whose action button shows Pending", () => {
+    expect(decideCandidate({ ...base, cardAction: "pending" }, ctx)).toEqual({ action: "skip", skipReason: "pending_on_linkedin" });
+  });
+  it("still inserts Follow/Message cards (they may be connectable via the More menu)", () => {
+    expect(decideCandidate({ ...base, cardAction: "follow" }, ctx)).toEqual({ action: "insert" });
+    expect(decideCandidate({ ...base, cardAction: "message" }, ctx)).toEqual({ action: "insert" });
+  });
+  it("inserts when cardAction is missing (older extension builds)", () => {
+    expect(decideCandidate({ ...base, cardAction: undefined }, ctx)).toEqual({ action: "insert" });
+  });
+});
+
+describe("computeSendPriority", () => {
+  it("Connect card / unknown action → normal priority", () => {
+    expect(computeSendPriority({ ...base, cardAction: "connect" })).toBe(0);
+    expect(computeSendPriority({ ...base, cardAction: null })).toBe(0);
+    expect(computeSendPriority(base)).toBe(0);
+  });
+  it("Follow / Following / Message cards → tried last", () => {
+    expect(computeSendPriority({ ...base, cardAction: "follow" })).toBe(1);
+    expect(computeSendPriority({ ...base, cardAction: "following" })).toBe(1);
+    expect(computeSendPriority({ ...base, cardAction: "message" })).toBe(1);
   });
 });
