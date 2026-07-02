@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { computeNextScheduledFor } from "@/lib/extension/task-scheduler";
 import { checkConnectQuota } from "@/lib/prospecting/quota";
 import { logProspectingEvent } from "@/lib/prospecting/events";
+import { formatHebrewTime } from "@/lib/prospecting/format";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -141,8 +142,8 @@ export async function queueNextConnect(runId: string): Promise<string | null> {
       type: quota.canSendNow ? "SCHEDULED" : "QUOTA_DEFERRED",
       connectionRequestId: next.id,
       message: quota.canSendNow
-        ? `נקבע ל-${scheduledFor.toISOString()}`
-        : `נדחה (${deferReason}) ל-${scheduledFor.toISOString()}`,
+        ? `נקבע ${formatHebrewTime(scheduledFor, new Date())}`
+        : `נדחה (${deferReason}) — ${formatHebrewTime(scheduledFor, new Date())}`,
       detail: { scheduledFor: scheduledFor.toISOString(), deferReason },
     });
     // Slot intentionally remains held until the CONNECT result calls releaseConnectSlot().

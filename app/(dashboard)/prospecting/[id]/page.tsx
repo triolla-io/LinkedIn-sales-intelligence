@@ -4,6 +4,7 @@ import { use, useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { ArrowRight, Loader2 } from "lucide-react";
+import { ERROR_CODE_LABELS, TASK_KIND_LABELS } from "@/lib/prospecting/format";
 
 type ConnectionRequest = {
   id: string;
@@ -104,6 +105,28 @@ const EVENT_LABELS: Record<string, string> = {
   CHECKPOINT: "החשבון מוקפא",
 };
 
+const ISO_RE = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z/g;
+const formatIso = (iso: string) =>
+  new Date(iso).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" });
+
+/** Renders raw event/error messages in user language: translates error codes, links profile URLs, localizes ISO timestamps. */
+function HumanMessage({ message }: { message: string | null }) {
+  if (!message) return null;
+  const errMatch = message.match(/^([a-z_]+)\s*\(url=(https?:\/\/\S+?)\/?\)\s*$/);
+  if (errMatch) {
+    const [, code, url] = errMatch;
+    return (
+      <>
+        {ERROR_CODE_LABELS[code] ?? code}{" "}
+        <a href={url} target="_blank" rel="noreferrer" className="text-[#1585ff] hover:underline">
+          לפרופיל
+        </a>
+      </>
+    );
+  }
+  return <>{message.replace(ISO_RE, formatIso)}</>;
+}
+
 export default function ProspectingRunDetailPage({
   params,
 }: {
@@ -112,9 +135,9 @@ export default function ProspectingRunDetailPage({
   const { id } = use(params);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const { data } = useSWR<RunDetailResponse>(
-    `/api/prospecting/runs/${id}`,
+    `/api/prospecting/runs/${id}${statusFilter ? `?status=${statusFilter}` : ""}`,
     fetcher,
-    { refreshInterval: 15000 }
+    { refreshInterval: 15000, keepPreviousData: true }
   );
 
   if (!data) {
@@ -219,16 +242,25 @@ export default function ProspectingRunDetailPage({
               <div className="border-t border-[#e5e3df] pt-3">
                 <p className="text-xs font-semibold text-[#dc2626] mb-2">כשלים אחרונים</p>
                 <div className="space-y-1">
-                  {taskStats.recentFailures.map((f) => (
-                    <div key={`${f.kind}-${f.at}`} className="flex items-center gap-2 text-xs">
-                      <span className="text-[#9b9895] font-mono">{f.kind}</span>
-                      <span className="font-mono text-[#dc2626] bg-[#fff3f3] px-1.5 py-0.5 rounded">{f.errorCode}</span>
-                      {f.errorMessage && (
-                        <span className="text-[#6b6866] truncate max-w-xs">{f.errorMessage}</span>
-                      )}
-                      <span className="text-[#9b9895] ms-auto">{new Date(f.at).toLocaleTimeString("he-IL")}</span>
-                    </div>
-                  ))}
+                  {taskStats.recentFailures.map((f) => {
+                    const profileUrl = f.errorMessage?.match(/url=(https?:\/\/\S+?)\/?\)?\s*$/)?.[1];
+                    const known = f.errorCode ? ERROR_CODE_LABELS[f.errorCode] : undefined;
+                    return (
+                      <div key={`${f.kind}-${f.at}`} className="flex items-center gap-2 text-xs">
+                        <span className="text-[#9b9895]">{TASK_KIND_LABELS[f.kind] ?? f.kind}</span>
+                        <span className="text-[#dc2626] bg-[#fff3f3] px-1.5 py-0.5 rounded">{known ?? f.errorCode}</span>
+                        {profileUrl && (
+                          <a href={profileUrl} target="_blank" rel="noreferrer" className="text-[#1585ff] hover:underline">
+                            לפרופיל
+                          </a>
+                        )}
+                        {!known && f.errorMessage && (
+                          <span className="text-[#6b6866] truncate max-w-xs">{f.errorMessage}</span>
+                        )}
+                        <span className="text-[#9b9895] ms-auto">{new Date(f.at).toLocaleTimeString("he-IL")}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -328,7 +360,7 @@ export default function ProspectingRunDetailPage({
               {events.map((e, i) => (
                 <li key={`${e.type}-${e.createdAt}-${i}`} className="flex items-center gap-3 px-4 py-2 text-xs">
                   <span className="font-mono text-[#6b6866] w-32 shrink-0 truncate">{EVENT_LABELS[e.type] ?? e.type}</span>
-                  <span className="text-[#6b6866] truncate flex-1">{e.message}</span>
+                  <span className="text-[#6b6866] truncate flex-1"><HumanMessage message={e.message} /></span>
                   <span className="text-[#9b9895] shrink-0">{new Date(e.createdAt).toLocaleString("he-IL")}</span>
                 </li>
               ))}

@@ -3,11 +3,19 @@ import { prisma } from "@/lib/prisma";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { computeRunStatusSummary } from "@/lib/prospecting/run-status";
 
+const REQUEST_STATUSES = ["DISCOVERED", "QUEUED", "SENT", "FAILED", "SKIPPED", "ACCEPTED"] as const;
+type RequestStatus = (typeof REQUEST_STATUSES)[number];
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return withTenant(async (_r: NextRequest, ctx) => {
     const run = await prisma.prospectingRun.findFirst({ where: { id, ownerId: ctx.effectiveUserId } });
     if (!run) return NextResponse.json({ error: "not_found" }, { status: 404 });
+
+    const statusParam = req.nextUrl.searchParams.get("status");
+    const statusFilter = REQUEST_STATUSES.includes(statusParam as RequestStatus)
+      ? (statusParam as RequestStatus)
+      : undefined;
 
     const now = new Date();
     const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -15,7 +23,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const [requests, statusGroups, tasks, events, nextTask, sentToday, sentThisWeek] = await Promise.all([
       prisma.connectionRequest.findMany({
-        where: { runId: id, ownerId: ctx.effectiveUserId },
+        where: { runId: id, ownerId: ctx.effectiveUserId, ...(statusFilter ? { status: statusFilter } : {}) },
         orderBy: [{ sentAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
         take: 500,
       }),
