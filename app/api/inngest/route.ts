@@ -15,6 +15,7 @@ import { importProcess } from "@/inngest/functions/import-process";
 import { jobCheckTick } from "@/inngest/functions/job-check-tick";
 import { jobCheckContact } from "@/inngest/functions/job-check-contact";
 import { brightdataJobCheckTick } from "@/inngest/functions/brightdata-job-check-tick";
+import { brightdataJobCheckCollect } from "@/inngest/functions/brightdata-job-check-collect";
 import { hubspotSyncApollo } from "@/inngest/functions/hubspot-sync-apollo";
 
 export const { GET, POST, PUT } = serve({
@@ -36,6 +37,7 @@ export const { GET, POST, PUT } = serve({
     jobCheckTick,
     jobCheckContact,
     brightdataJobCheckTick,
+    brightdataJobCheckCollect,
     hubspotSyncApollo,
   ],
 });
