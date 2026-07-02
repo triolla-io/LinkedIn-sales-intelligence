@@ -6,7 +6,7 @@ import Image from "next/image";
 import { signOut } from "next-auth/react";
 import {
   Users, FileText, Shield, LogOut, LayoutDashboard, Upload,
-  BookMarked, GitBranch, ChevronLeft, ChevronRight, Settings, Search,
+  BookMarked, GitBranch, ChevronLeft, ChevronRight, Settings, Search, PartyPopper,
 } from "lucide-react";
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -33,6 +33,7 @@ const navItems = [
   { href: "/dashboard", label: "דשבורד", icon: LayoutDashboard },
   { href: "/contacts", label: "אנשי קשר", icon: Users },
   { href: "/lists", label: "רשימות תפוצה", icon: BookMarked },
+  { href: "/job-changes", label: "עדכוני תפקיד", icon: PartyPopper },
   { href: "/campaigns", label: "קמפיינים", icon: GitBranch },
   { href: "/prospecting", label: "Routine", icon: Search },
   { href: "/templates", label: "טמפלטים", icon: FileText },
