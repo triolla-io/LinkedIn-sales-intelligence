@@ -6,7 +6,7 @@ describe("computeNextScheduledFor", () => {
     vi.useFakeTimers();
   });
 
-  it("within working hours and no prior send → returns ~3-10 min in future", () => {
+  it("within working hours and no prior send → schedules immediately", () => {
     vi.setSystemTime(new Date("2026-06-01T10:00:00Z")); // Monday 10:00 UTC
     const out = computeNextScheduledFor({
       timezone: "UTC",
@@ -19,9 +19,57 @@ describe("computeNextScheduledFor", () => {
       dailyCap: 30,
       hourlyCap: 8,
     });
-    const deltaMin = (out.getTime() - Date.now()) / 60_000;
-    expect(deltaMin).toBeGreaterThanOrEqual(3);
-    expect(deltaMin).toBeLessThanOrEqual(10);
+    expect(out.getTime()).toBe(Date.now());
+  });
+
+  it("before working hours on a working day → schedules TODAY at window start, not tomorrow", () => {
+    vi.setSystemTime(new Date("2026-07-02T08:20:00Z")); // Thursday 08:20 UTC, window opens 09:00
+    const out = computeNextScheduledFor({
+      timezone: "UTC",
+      workingHoursStart: 9,
+      workingHoursEnd: 18,
+      weekdaysOnly: true,
+      lastSentAt: null,
+      sentTodayCount: 0,
+      sentLastHourCount: 0,
+      dailyCap: 30,
+      hourlyCap: 8,
+    });
+    expect(out.toISOString()).toBe("2026-07-02T09:00:00.000Z");
+  });
+
+  it("Jerusalem Sun-Thu week: before hours on Thursday → same day 09:00 Jerusalem (06:00 UTC)", () => {
+    vi.setSystemTime(new Date("2026-07-02T05:00:00Z")); // Thursday 08:00 Jerusalem
+    const out = computeNextScheduledFor({
+      timezone: "Asia/Jerusalem",
+      workingHoursStart: 9,
+      workingHoursEnd: 18,
+      weekdaysOnly: true,
+      workingWeekdays: [0, 1, 2, 3, 4],
+      lastSentAt: null,
+      sentTodayCount: 0,
+      sentLastHourCount: 0,
+      dailyCap: 15,
+      hourlyCap: 3,
+    });
+    expect(out.toISOString()).toBe("2026-07-02T06:00:00.000Z");
+  });
+
+  it("Jerusalem Sun-Thu week: Friday → pushes to Sunday 09:00 Jerusalem (06:00 UTC)", () => {
+    vi.setSystemTime(new Date("2026-07-03T10:00:00Z")); // Friday 13:00 Jerusalem
+    const out = computeNextScheduledFor({
+      timezone: "Asia/Jerusalem",
+      workingHoursStart: 9,
+      workingHoursEnd: 18,
+      weekdaysOnly: true,
+      workingWeekdays: [0, 1, 2, 3, 4],
+      lastSentAt: null,
+      sentTodayCount: 0,
+      sentLastHourCount: 0,
+      dailyCap: 15,
+      hourlyCap: 3,
+    });
+    expect(out.toISOString()).toBe("2026-07-05T06:00:00.000Z");
   });
 
   it("outside working hours → pushes to next 09:00 in user TZ", () => {
