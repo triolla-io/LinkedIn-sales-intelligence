@@ -18,6 +18,15 @@ export async function POST(
       data: { status: "SKIPPED" },
     });
 
+    // Mark the enrollment itself as removed. This both stops dispatch (the tick
+    // only sends for status: "ACTIVE") and — crucially — keeps the row present
+    // so the tick's "enroll new list members" step won't re-create it (that
+    // check is keyed on contactId regardless of status).
+    await prisma.sequenceEnrollment.update({
+      where: { id: enrollmentId },
+      data: { status: "UNSUBSCRIBED" },
+    });
+
     return NextResponse.json({ ok: true, skipped: count });
   })(req);
 }

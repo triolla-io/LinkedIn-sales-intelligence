@@ -93,15 +93,27 @@ export const GET = withTenant(async (req, ctx) => {
       ],
     });
   }
+  // Role/function pills (title-search pills like "CEO" and the function pills
+  // "HR"/"Sales") share ONE OR group, so selecting several roles widens the
+  // result set instead of intersecting. Without this, picking a title pill AND
+  // a function pill would AND two different fields and collapse to ~empty —
+  // which read as the other filters being "cancelled".
+  const roleOr: any[] = [];
+  if (params.function?.length) {
+    roleOr.push({ function: { in: params.function as any } });
+  }
   if (params.titleSearch?.length) {
-    andClauses.push({
-      OR: params.titleSearch.map((t) => ({
+    for (const t of params.titleSearch) {
+      roleOr.push({
         OR: [
           { currentTitle: { contains: t, mode: "insensitive" as const } },
           { headline: { contains: t, mode: "insensitive" as const } },
         ],
-      })),
-    });
+      });
+    }
+  }
+  if (roleOr.length) {
+    andClauses.push({ OR: roleOr });
   }
   if (params.industry?.length) {
     andClauses.push({
@@ -118,7 +130,6 @@ export const GET = withTenant(async (req, ctx) => {
     ownerId: ctx.effectiveUserId,
     removedAt: null,
     ...(params.seniority?.length ? { seniority: { in: params.seniority as any } } : {}),
-    ...(params.function?.length ? { function: { in: params.function as any } } : {}),
     ...(params.company?.length ? { currentCompany: { in: params.company } } : {}),
     ...(params.location?.length ? { location: { in: params.location } } : {}),
     ...(params.hasEmail === "true" ? { email: { not: null } } : {}),

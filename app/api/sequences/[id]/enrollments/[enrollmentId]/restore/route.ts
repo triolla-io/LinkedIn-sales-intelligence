@@ -18,6 +18,12 @@ export async function POST(
       data: { status: "PENDING" },
     });
 
+    // Re-activate the enrollment so the tick resumes dispatching its steps.
+    await prisma.sequenceEnrollment.update({
+      where: { id: enrollmentId },
+      data: { status: "ACTIVE" },
+    });
+
     return NextResponse.json({ ok: true, restored: count });
   })(req);
 }

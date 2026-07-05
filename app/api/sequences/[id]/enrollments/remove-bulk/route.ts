@@ -35,6 +35,13 @@ export async function POST(
       data: { status: "SKIPPED" },
     });
 
+    // Mark the enrollments as removed — stops dispatch (tick only sends for
+    // ACTIVE) and prevents the tick from re-enrolling these contacts.
+    await prisma.sequenceEnrollment.updateMany({
+      where: { id: { in: ownedIds } },
+      data: { status: "UNSUBSCRIBED" },
+    });
+
     return NextResponse.json({ ok: true, skipped: count });
   })(req);
 }

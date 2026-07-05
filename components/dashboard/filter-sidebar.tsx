@@ -43,6 +43,10 @@ const ROLE_PILLS: PillDef[] = [
   { label: "CPO", filterKey: "titleSearch", value: "CPO" },
   { label: "Sales", filterKey: "function", value: "SALES" },
   { label: "PM", filterKey: "titleSearch", value: "Product Manager" },
+  { label: "VP Product", filterKey: "titleSearch", value: "VP Product" },
+  { label: "Head of Product", filterKey: "titleSearch", value: "Head of Product" },
+  { label: "Product Director", filterKey: "titleSearch", value: "Product Director" },
+  { label: "Head of Design", filterKey: "titleSearch", value: "Head of Design" },
 ];
 
 const INDUSTRY_PILLS = [

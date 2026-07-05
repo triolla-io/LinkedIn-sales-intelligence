@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Pencil, Check, Loader2, Zap, UserPlus, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Check, Loader2, Zap, UserPlus, UserMinus } from "lucide-react";
 import Link from "next/link";
 import ContactTable, { type Contact } from "@/components/dashboard/contact-table";
 import ContactDrawer from "@/components/dashboard/contact-drawer";
@@ -91,9 +91,15 @@ export default function ListDetailPage() {
     dispatch({ savingName: false, editingName: false });
   }
 
-  async function deleteContact(contactId: string) {
+  async function removeFromList(contactId: string) {
     dispatch({ removingId: contactId });
-    await fetch(`/api/contacts/${contactId}`, { method: "DELETE" });
+    // Remove from THIS list only — the contact stays in the system and in any
+    // other lists it belongs to.
+    await fetch(`/api/lists/${id}/members`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ remove: [contactId] }),
+    });
     dispatch({
       contacts: state.contacts.filter((c) => c.id !== contactId),
       total: state.total - 1,
@@ -259,16 +265,16 @@ export default function ListDetailPage() {
           extraRowAction={(contact) => (
             <button
               type="button"
-              onClick={() => deleteContact(contact.id)}
+              onClick={() => removeFromList(contact.id)}
               disabled={state.removingId === contact.id}
-              aria-label={`מחק את ${contact.fullName}`}
-              title="מחק איש קשר"
+              aria-label={`הסר את ${contact.fullName} מהרשימה`}
+              title="הסר מהרשימה"
               className="p-1.5 text-[#d4d0cc] hover:text-red-400 transition-colors disabled:opacity-40"
             >
               {state.removingId === contact.id ? (
                 <Loader2 className="size-3.5 animate-spin" />
               ) : (
-                <Trash2 className="size-3.5" />
+                <UserMinus className="size-3.5" />
               )}
             </button>
           )}

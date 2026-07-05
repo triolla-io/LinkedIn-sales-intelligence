@@ -65,15 +65,25 @@ export default async function ContactsPage({
       ],
     });
   }
+  // Role/function pills share ONE OR group (see app/api/contacts/route.ts) so
+  // e.g. "CEO" + "HR" widens the set (title~CEO OR function=HR) instead of
+  // intersecting to ~empty. Must mirror the API route's logic exactly.
+  const roleOr: any[] = [];
+  if (fn.length) {
+    roleOr.push({ function: { in: fn as any } });
+  }
   if (titleSearch.length) {
-    andClauses.push({
-      OR: titleSearch.map((t) => ({
+    for (const t of titleSearch) {
+      roleOr.push({
         OR: [
           { currentTitle: { contains: t, mode: "insensitive" } },
           { headline: { contains: t, mode: "insensitive" } },
         ],
-      })),
-    });
+      });
+    }
+  }
+  if (roleOr.length) {
+    andClauses.push({ OR: roleOr });
   }
   if (industry.length) {
     andClauses.push({
@@ -87,7 +97,6 @@ export default async function ContactsPage({
     ownerId: session.user.id,
     removedAt: null,
     ...(seniority.length ? { seniority: { in: seniority as any } } : {}),
-    ...(fn.length ? { function: { in: fn as any } } : {}),
     ...(hasEmail ? { email: { not: null } } : {}),
     ...(hasPhone ? { phone: { not: null } } : {}),
     ...(andClauses.length ? { AND: andClauses } : {}),

@@ -102,24 +102,24 @@ function nextStepDate(executions: Array<{ status: string; scheduledAt: Date | st
 
 function RecipientsTable({
   sequence,
+  enrollments,
   selectedIds,
   removing,
   activeStep,
   onToggleSelect,
   onToggleAll,
   onRemoveSingle,
-  onRestoreSingle,
   onRemoveBulk,
   onOpenEnrollModal,
 }: {
   sequence: Sequence;
+  enrollments: Enrollment[];
   selectedIds: Set<string>;
   removing: boolean;
   activeStep: number | null;
   onToggleSelect: (id: string) => void;
   onToggleAll: () => void;
   onRemoveSingle: (id: string) => void;
-  onRestoreSingle: (id: string) => void;
   onRemoveBulk: () => void;
   onOpenEnrollModal: () => void;
 }) {
@@ -127,7 +127,7 @@ function RecipientsTable({
     <div className="border border-[#e5e3df] rounded-xl overflow-hidden bg-white">
       <div className="px-5 py-3 border-b border-[#e5e3df] bg-[#fafaf9] flex items-center justify-between">
         <h2 className="text-sm font-semibold text-[#111110]">
-          אנשי קשר ({sequence.enrollments.length})
+          אנשי קשר ({enrollments.length})
         </h2>
         <div className="flex items-center gap-2">
           {selectedIds.size > 0 && (
@@ -138,7 +138,7 @@ function RecipientsTable({
               className="flex items-center gap-1.5 px-3 py-1.5 bg-[#fff3f3] text-[#dc2626] text-xs font-medium rounded-lg hover:bg-[#fee2e2] transition-colors disabled:opacity-50"
             >
               <X className="size-3" />
-              הסר משלבים עתידיים ({selectedIds.size})
+              הסר מהקמפיין ({selectedIds.size})
             </button>
           )}
           <button
@@ -151,7 +151,7 @@ function RecipientsTable({
           </button>
         </div>
       </div>
-      {sequence.enrollments.length === 0 ? (
+      {enrollments.length === 0 ? (
         <div className="px-5 py-8 text-center text-sm text-[#9b9895]">אין אנשי קשר רשומים</div>
       ) : (
         <table className="w-full text-sm">
@@ -161,8 +161,8 @@ function RecipientsTable({
                 <input
                   type="checkbox"
                   checked={
-                    selectedIds.size === sequence.enrollments.length &&
-                    sequence.enrollments.length > 0
+                    selectedIds.size === enrollments.length &&
+                    enrollments.length > 0
                   }
                   onChange={onToggleAll}
                   aria-label="בחר את כל אנשי הקשר"
@@ -191,7 +191,7 @@ function RecipientsTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f3f2ef]">
-            {sequence.enrollments.map((enr) => (
+            {enrollments.map((enr) => (
               <tr key={enr.id} className="hover:bg-[#fafaf9]">
                 <td className="px-4 py-3">
                   <input
@@ -236,24 +236,12 @@ function RecipientsTable({
                 </td>
                 <td className="p-3">
                   <div className="flex items-center gap-1">
-                    {enr.executions.length > 0 &&
-                      enr.executions.every((ex) => ex.status === "SKIPPED") && (
-                        <button
-                          type="button"
-                          onClick={() => onRestoreSingle(enr.id)}
-                          disabled={removing}
-                          className="p-1 text-[#c8c5c2] hover:text-[#1585ff] hover:bg-[#eff5ff] rounded transition-colors disabled:opacity-50"
-                          title="שחזר שלבים"
-                        >
-                          <RefreshCw className="size-3.5" />
-                        </button>
-                      )}
                     <button
                       type="button"
                       onClick={() => onRemoveSingle(enr.id)}
                       disabled={removing}
                       className="p-1 text-[#c8c5c2] hover:text-[#dc2626] hover:bg-[#fff3f3] rounded transition-colors disabled:opacity-50"
-                      title="הסר משלבים עתידיים"
+                      title="הסר מהקמפיין"
                     >
                       <X className="size-3.5" />
                     </button>
@@ -263,6 +251,57 @@ function RecipientsTable({
             ))}
           </tbody>
         </table>
+      )}
+    </div>
+  );
+}
+
+function RemovedRecipients({
+  enrollments,
+  removing,
+  onRestoreSingle,
+}: {
+  enrollments: Enrollment[];
+  removing: boolean;
+  onRestoreSingle: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  if (enrollments.length === 0) return null;
+  return (
+    <div className="border border-[#e5e3df] rounded-xl overflow-hidden bg-white">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="w-full px-5 py-3 bg-[#fafaf9] flex items-center justify-between text-sm font-semibold text-[#6b6866] hover:text-[#111110] transition-colors"
+      >
+        <span>הוסרו מהקמפיין ({enrollments.length})</span>
+        <span className="text-xs font-normal text-[#9b9895]">{open ? "הסתר" : "הצג"}</span>
+      </button>
+      {open && (
+        <ul className="divide-y divide-[#f3f2ef]">
+          {enrollments.map((enr) => (
+            <li key={enr.id} className="flex items-center justify-between px-5 py-3">
+              <div>
+                <p className="font-medium text-[#6b6866]">{enr.contact.fullName}</p>
+                <p className="text-xs text-[#9b9895]">
+                  {enr.contact.currentTitle}
+                  {enr.contact.currentCompany ? ` · ${enr.contact.currentCompany}` : ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onRestoreSingle(enr.id)}
+                disabled={removing}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1585ff] border border-[#1585ff]/30 hover:bg-[#eff5ff] rounded-lg transition-colors disabled:opacity-50"
+                title="החזר לקמפיין"
+              >
+                <RefreshCw className="size-3.5" />
+                החזר
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
@@ -476,11 +515,16 @@ export default function CampaignDetailClient({
   const [selectedContactIds, setSelectedContactIds] = useState<Set<string>>(new Set());
   const [enrolling, setEnrolling] = useState(false);
 
-  // Metric card computations
-  const totalEnrolled = sequence.enrollments.length;
-  const completed = sequence.enrollments.filter((e) => e.status === "COMPLETED").length;
-  const inProgress = sequence.enrollments.filter((e) => e.status === "ACTIVE").length;
-  const failed = sequence.enrollments.filter((e) =>
+  // Split enrollments: removed people (UNSUBSCRIBED) drop out of the recipients
+  // table and metrics, and live in a collapsible "removed" section instead.
+  const activeEnrollments = sequence.enrollments.filter((e) => e.status !== "UNSUBSCRIBED");
+  const removedEnrollments = sequence.enrollments.filter((e) => e.status === "UNSUBSCRIBED");
+
+  // Metric card computations (over active enrollments only)
+  const totalEnrolled = activeEnrollments.length;
+  const completed = activeEnrollments.filter((e) => e.status === "COMPLETED").length;
+  const inProgress = activeEnrollments.filter((e) => e.status === "ACTIVE").length;
+  const failed = activeEnrollments.filter((e) =>
     e.executions.some((x) => x.status === "FAILED")
   ).length;
 
@@ -492,7 +536,7 @@ export default function CampaignDetailClient({
       (enrollSearch ? c.fullName.toLowerCase().includes(enrollSearch.toLowerCase()) : true)
   );
 
-  const activeStep = currentStepNumber(sequence.enrollments);
+  const activeStep = currentStepNumber(activeEnrollments);
 
   async function doAction(action: "start" | "pause" | "resume" | "cancel") {
     setActing(true);
@@ -544,7 +588,7 @@ export default function CampaignDetailClient({
   }
 
   async function removeSingle(enrollmentId: string) {
-    if (!confirm("האם להסיר איש קשר זה מהשלבים הבאים?")) return;
+    if (!confirm("האם להסיר איש קשר זה מהקמפיין? הודעות שכבר נשלחו יישמרו, ולא יישלחו לו הודעות נוספות.")) return;
     setRemoving(true);
     try {
       await fetch(
@@ -559,6 +603,7 @@ export default function CampaignDetailClient({
           enr.id === enrollmentId
             ? {
                 ...enr,
+                status: "UNSUBSCRIBED",
                 executions: enr.executions.map((ex) =>
                   ex.status === "PENDING" ? { ...ex, status: "SKIPPED" } : ex,
                 ),
@@ -586,6 +631,7 @@ export default function CampaignDetailClient({
           enr.id === enrollmentId
             ? {
                 ...enr,
+                status: "ACTIVE",
                 executions: enr.executions.map((ex) =>
                   ex.status === "SKIPPED" ? { ...ex, status: "PENDING" } : ex,
                 ),
@@ -614,6 +660,7 @@ export default function CampaignDetailClient({
           ids.includes(enr.id)
             ? {
                 ...enr,
+                status: "UNSUBSCRIBED",
                 executions: enr.executions.map((ex) =>
                   ex.status === "PENDING" ? { ...ex, status: "SKIPPED" } : ex,
                 ),
@@ -636,10 +683,10 @@ export default function CampaignDetailClient({
   }
 
   function toggleAll() {
-    if (selectedIds.size === sequence.enrollments.length) {
+    if (selectedIds.size === activeEnrollments.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(sequence.enrollments.map((e) => e.id)));
+      setSelectedIds(new Set(activeEnrollments.map((e) => e.id)));
     }
   }
 
@@ -678,15 +725,21 @@ export default function CampaignDetailClient({
 
       <RecipientsTable
         sequence={sequence}
+        enrollments={activeEnrollments}
         selectedIds={selectedIds}
         removing={removing}
         activeStep={activeStep}
         onToggleSelect={toggleSelect}
         onToggleAll={toggleAll}
         onRemoveSingle={removeSingle}
-        onRestoreSingle={restoreSingle}
         onRemoveBulk={removeBulk}
         onOpenEnrollModal={() => setShowEnrollModal(true)}
+      />
+
+      <RemovedRecipients
+        enrollments={removedEnrollments}
+        removing={removing}
+        onRestoreSingle={restoreSingle}
       />
 
       {/* Manual enrollment modal */}
