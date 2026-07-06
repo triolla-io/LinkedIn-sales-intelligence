@@ -26,6 +26,7 @@ function ModalContent({
 }: Omit<AddContactsToListModalProps, "open">) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ContactResult[]>([]);
+  const [hasMore, setHasMore] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [searching, setSearching] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -46,12 +47,13 @@ function ModalContent({
       setSearching(true);
       try {
         const res = await fetch(
-          `/api/contacts/search?q=${encodeURIComponent(query)}&excludeListId=${listId}&limit=20`,
+          `/api/contacts/search?q=${encodeURIComponent(query)}&excludeListId=${listId}&limit=50`,
           { signal: controller.signal }
         );
         if (!res.ok) return;
         const data = await res.json();
         setResults(data.contacts ?? []);
+        setHasMore(Boolean(data.hasMore));
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
       } finally {
@@ -71,6 +73,8 @@ function ModalContent({
   const hasQuery = query.trim() !== "";
   const isSearching = hasQuery && searching;
   const displayedResults = hasQuery ? results : [];
+  const showTruncationHint =
+    hasQuery && !isSearching && hasMore && displayedResults.length > 0;
 
   function toggleContact(id: string) {
     setSelected((prev) => {
@@ -181,6 +185,11 @@ function ModalContent({
                 </button>
               );
             })}
+          {showTruncationHint && (
+            <p className="text-[11px] text-[#9b9895] text-center py-3 border-t border-[#f0eeea]">
+              יש עוד תוצאות — הוסף שם, חברה או תפקיד כדי לצמצם
+            </p>
+          )}
         </div>
 
         {/* Footer */}

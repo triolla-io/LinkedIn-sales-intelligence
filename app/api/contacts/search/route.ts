@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
+import { rankSearchResults } from "@/lib/contacts/search-ranking";
+
+// Rank a generous pool of matches (not just the first `limit` by name) so that
+// relevance ordering can promote the contact the user actually typed. A single
+// user's name-token search realistically matches far fewer than this.
+const CANDIDATE_POOL = 200;
 
 const SEARCH_FIELDS = [
   "fullName",
@@ -47,12 +53,24 @@ export function parseSearchParams(params: URLSearchParams): {
 export const GET = withTenant(async (req: NextRequest, ctx) => {
   const { q, excludeListId, limit } = parseSearchParams(req.nextUrl.searchParams);
 
-  const contacts = await prisma.contact.findMany({
+  const pool = await prisma.contact.findMany({
     where: buildSearchWhere(ctx.effectiveUserId, q, excludeListId),
-    select: { id: true, fullName: true, currentTitle: true, currentCompany: true, email: true },
+    select: {
+      id: true,
+      fullName: true,
+      hebrewFirstName: true,
+      currentTitle: true,
+      currentCompany: true,
+      email: true,
+    },
     orderBy: { fullName: "asc" },
-    take: limit,
+    take: CANDIDATE_POOL,
   });
 
-  return NextResponse.json({ contacts });
+  const contacts = rankSearchResults(pool, q).slice(0, limit);
+  // The pool is capped, so more matches may exist beyond what we return; tell
+  // the UI so it can prompt the user to narrow instead of silently hiding them.
+  const hasMore = pool.length > contacts.length;
+
+  return NextResponse.json({ contacts, hasMore });
 });
