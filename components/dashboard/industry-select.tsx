@@ -42,7 +42,7 @@ export function IndustrySelect({ value, onChange }: Props) {
           setQuery(e.target.value);
           setOpen(true);
         }}
-        onFocus={() => setOpen(true)}
+        onFocus={() => { if (query) setOpen(true); }}
         onBlur={() => setOpen(false)}
         placeholder="e.g. Software Development"
         autoComplete="off"
