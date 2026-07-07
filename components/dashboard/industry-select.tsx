@@ -10,14 +10,29 @@ type Props = {
   onChange: (ids: string[]) => void;
 };
 
+// Shown before the user types, mirroring the defaults LinkedIn's own Industries
+// facet suggests (observed live 2026-07-07). Search covers the full taxonomy.
+const SUGGESTED_INDUSTRY_IDS = [
+  "1594", // Technology, Information and Media
+  "6", // Technology, Information and Internet
+  "1810", // Professional Services
+  "4", // Software Development
+  "25", // Manufacturing
+  "11", // Business Consulting and Services
+];
+
 export function IndustrySelect({ value, onChange }: Props) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
 
-  const results = useMemo(
-    () => searchIndustries(query, 8 + value.length).filter((i) => !value.includes(i.id)),
-    [query, value]
-  );
+  const results = useMemo(() => {
+    const matches = query.trim()
+      ? searchIndustries(query, 8 + value.length)
+      : SUGGESTED_INDUSTRY_IDS.map((id) => INDUSTRY_BY_ID.get(id)).filter(
+          (i): i is NonNullable<typeof i> => i !== undefined
+        );
+    return matches.filter((i) => !value.includes(i.id));
+  }, [query, value]);
 
   function add(id: string) {
     onChange([...value, id]);
@@ -42,7 +57,8 @@ export function IndustrySelect({ value, onChange }: Props) {
           setQuery(e.target.value);
           setOpen(true);
         }}
-        onFocus={() => { if (query) setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onClick={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         placeholder="e.g. Software Development"
         autoComplete="off"
