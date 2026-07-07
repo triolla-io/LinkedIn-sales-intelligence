@@ -69,9 +69,10 @@ interface TooltipCellProps {
   text: string;
   className?: string;
   mono?: boolean;
+  dir?: "ltr" | "rtl";
 }
 
-function TooltipCell({ text, className, mono = false }: TooltipCellProps) {
+function TooltipCell({ text, className, mono = false, dir = "ltr" }: TooltipCellProps) {
   const [rect, setRect] = useState<DOMRect | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -79,7 +80,7 @@ function TooltipCell({ text, className, mono = false }: TooltipCellProps) {
     <div
       ref={ref}
       className="relative min-w-0"
-      dir="ltr"
+      dir={dir}
       onMouseEnter={() => setRect(ref.current?.getBoundingClientRect() ?? null)}
       onMouseLeave={() => setRect(null)}
     >
@@ -99,7 +100,7 @@ function TooltipCell({ text, className, mono = false }: TooltipCellProps) {
   );
 }
 
-type ColumnId = "name" | "company" | "title" | "email" | "phone" | "seniority" | "industry";
+type ColumnId = "name" | "hebrewName" | "company" | "title" | "email" | "phone" | "seniority" | "industry";
 
 interface ColumnDef {
   id: ColumnId;
@@ -109,13 +110,14 @@ interface ColumnDef {
 }
 
 const INITIAL_COLUMNS: ColumnDef[] = [
-  { id: "name",      label: "שם",       width: "minmax(160px,2fr)",   visible: true },
-  { id: "company",   label: "חברה",     width: "minmax(140px,1.6fr)", visible: true },
-  { id: "title",     label: "תפקיד",    width: "minmax(140px,1.6fr)", visible: true },
-  { id: "email",     label: "אימייל",   width: "minmax(140px,1.4fr)", visible: true },
-  { id: "phone",     label: "טלפון",    width: "minmax(100px,1fr)",   visible: true },
-  { id: "seniority", label: "רמה",      width: "minmax(80px,0.7fr)",  visible: true },
-  { id: "industry",  label: "ענף",      width: "minmax(110px,1.2fr)", visible: false },
+  { id: "name",       label: "Full Name",   width: "minmax(160px,2fr)",   visible: true },
+  { id: "hebrewName", label: "Hebrew Name",  width: "minmax(90px,0.8fr)",  visible: true },
+  { id: "company",    label: "Company",      width: "minmax(140px,1.6fr)", visible: true },
+  { id: "title",      label: "Title",        width: "minmax(140px,1.6fr)", visible: true },
+  { id: "email",      label: "Email",        width: "minmax(140px,1.4fr)", visible: true },
+  { id: "phone",      label: "Phone",        width: "minmax(100px,1fr)",   visible: true },
+  { id: "seniority",  label: "Seniority",    width: "minmax(80px,0.7fr)",  visible: true },
+  { id: "industry",   label: "Industry",     width: "minmax(110px,1.2fr)", visible: false },
 ];
 
 function buildGridTemplate(visibleCols: ColumnDef[], hasAction: boolean): string {
@@ -128,19 +130,20 @@ function CellRenderer({ col, contact }: { col: ColumnDef; contact: Contact }) {
     case "name":
       return (
         <div className="min-w-0">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <p className="text-sm font-medium text-[#111110] truncate group-hover:text-black transition-colors">
-              {contact.fullName}
-            </p>
-            {contact.hebrewFirstName && (
-              <span className="shrink-0 text-[11px] text-[#6b6866] font-medium" dir="rtl">
-                {contact.hebrewFirstName}
-              </span>
-            )}
-          </div>
+          <p className="text-sm font-medium text-[#111110] truncate group-hover:text-black transition-colors">
+            {contact.fullName}
+          </p>
           {contact.headline && (
             <p className="text-[11px] text-[#9b9895] truncate mt-0.5">{contact.headline}</p>
           )}
+        </div>
+      );
+    case "hebrewName":
+      return (
+        <div className="min-w-0">
+          {contact.hebrewFirstName
+            ? <TooltipCell text={contact.hebrewFirstName} className="text-sm text-[#111110] font-medium" />
+            : <span className="text-[#c8c5c2]">-</span>}
         </div>
       );
     case "company": {
@@ -330,7 +333,7 @@ export default function ContactTable({
               />
             )}
             {visibleCols.map((col) => (
-              <span key={col.id} className="text-center">{col.label}</span>
+              <span key={col.id} className="text-left">{col.label}</span>
             ))}
             {extraRowAction && <span />}
           </div>
