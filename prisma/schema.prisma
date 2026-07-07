@@ -711,6 +711,7 @@ model ProspectingRun {
   name            String
   keywords        String
   geoUrn          String               @default("101620260")
+  industryIds     String[]             @default([])
   searchUrl       String
   status          ProspectingRunStatus @default(DRAFT)
   dailyCap        Int                  @default(15)

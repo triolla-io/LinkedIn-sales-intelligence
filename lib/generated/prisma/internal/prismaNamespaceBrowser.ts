@@ -556,6 +556,7 @@ export const ProspectingRunScalarFieldEnum = {
   name: 'name',
   keywords: 'keywords',
   geoUrn: 'geoUrn',
+  industryIds: 'industryIds',
   searchUrl: 'searchUrl',
   status: 'status',
   dailyCap: 'dailyCap',
