@@ -106,18 +106,24 @@ export default function ProspectingPage() {
         <div className="bg-white border border-[#e5e3df] rounded-xl p-5">
           <h2 className="text-sm font-semibold text-[#111110] mb-4">New Routine</h2>
           <form onSubmit={createRun} className="space-y-3">
-            <div>
-              <label htmlFor="run-name" className="block text-xs font-medium text-[#6b6866] mb-1">
-                Run name
-              </label>
-              <input
-                id="run-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Israel CTOs Q2 2026"
-                className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
-              />
+            <div dir="rtl" className="flex gap-4 items-start">
+              <div className="flex-1">
+                <label htmlFor="run-name" className="block text-xs font-medium text-[#6b6866] mb-1" dir="ltr">
+                  Run name
+                </label>
+                <input
+                  id="run-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Israel CTOs Q2 2026"
+                  dir="ltr"
+                  className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+                />
+              </div>
+              <div className="shrink-0 pt-0.5">
+                <SendWindowPicker compact value={sendWindow} onChange={setSendWindow} />
+              </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
@@ -171,9 +177,6 @@ export default function ProspectingPage() {
               </div>
             </div>
             <IndustrySelect value={industryIds} onChange={setIndustryIds} />
-            <div className="border-t border-[#f3f2ef] pt-3">
-              <SendWindowPicker value={sendWindow} onChange={setSendWindow} />
-            </div>
             <p className="text-xs text-[#9b9895]">
               {dailyCap} בקשות/יום (מומלץ 15–20), עד 100/שבוע. חיבורים מדרגה 2 בלבד.
             </p>
