@@ -26,6 +26,7 @@ import ListPopover from "./list-popover";
 import EditContactModal from "./edit-contact-modal";
 import { toast } from "@/lib/toast";
 import { displayCompanySize } from "@/lib/contacts/display";
+import { enrichmentProgress } from "@/lib/enrichment-progress";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -551,6 +552,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
   async function handleEnrich() {
     if (!localContact) return;
     dispatch({ enrichState: "loading", enrichError: null });
+    enrichmentProgress.start({ kind: "single", label: `מעשיר את ${localContact.fullName}`, total: 1 });
 
     try {
       const res = await fetch(`/api/contacts/${localContact.id}/enrich`, { method: "POST" });
@@ -565,6 +567,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
             : "Enrichment failed";
         dispatch({ enrichError: msg, enrichState: "error" });
         toast.error("Enrichment failed", msg);
+        enrichmentProgress.finish();
         return;
       }
 
@@ -589,6 +592,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
       });
 
       dispatch({ enrichState: "done" });
+      enrichmentProgress.finish({ processed: 1, emails: data.email ? 1 : 0, phones: data.phone ? 1 : 0 });
       onEnrich(localContact.id);
 
       if (data.mobilePending) {
@@ -628,6 +632,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
     } catch {
       dispatch({ enrichError: "Network error", enrichState: "error" });
       toast.error("Enrichment failed", "Network error — check your connection.");
+      enrichmentProgress.finish();
     }
   }
 
