@@ -12,7 +12,10 @@ const CreateSchema = z.object({
   industryIds: z
     .array(z.string())
     .max(20)
-    .refine((ids) => ids.every((id) => INDUSTRY_BY_ID.has(id)), { message: "unknown_industry_id" })
+    .refine((ids) => ids.every((id) => INDUSTRY_BY_ID.has(id)), {
+      message: "unknown_industry_id",
+      path: ["industryIds"],
+    })
     .optional(),
   dailyCap: z.number().int().min(1).max(50).optional(),
   weeklyCap: z.number().int().min(1).max(200).optional(),
