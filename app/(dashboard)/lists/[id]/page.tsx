@@ -8,6 +8,8 @@ import ContactTable, { type Contact } from "@/components/dashboard/contact-table
 import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
 import AddContactsToListModal from "@/components/dashboard/add-contacts-to-list-modal";
+import { runBatchEnrichment } from "@/lib/enrichment-progress";
+import { toast } from "@/lib/toast";
 
 type ListDetail = { id: string; name: string; memberCount: number; createdAt: string };
 
@@ -25,8 +27,6 @@ type State = {
   drawerContact: Contact | null;
   removingId: string | null;
   enriching: boolean;
-  enrichProgress: { done: number; target: number } | null;
-  enrichDone: boolean;
   enrichError: string | null;
 };
 
@@ -52,18 +52,14 @@ export default function ListDetailPage() {
       drawerContact: null,
       removingId: null,
       enriching: false,
-      enrichProgress: null,
-      enrichDone: false,
       enrichError: null,
     }
   );
 
   const clearTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   useEffect(() => () => {
     clearTimeout(clearTimerRef.current);
-    clearInterval(pollRef.current);
   }, []);
 
   const fetchList = useCallback(async (pg = state.page) => {
@@ -109,13 +105,9 @@ export default function ListDetailPage() {
   }
 
   async function enrichList() {
-    clearInterval(pollRef.current);
-    dispatch({ enriching: true, enrichProgress: null, enrichDone: false, enrichError: null });
+    dispatch({ enriching: true, enrichError: null });
+    const since = new Date().toISOString();
     try {
-      const statusRes = await fetch(`/api/lists/${id}/enrich`);
-      const statusData = await statusRes.json();
-      const baseline = statusData.withEmail ?? 0;
-
       const postRes = await fetch(`/api/lists/${id}/enrich`, { method: "POST" });
       const postData = await postRes.json();
       if (!postRes.ok) {
@@ -124,31 +116,28 @@ export default function ListDetailPage() {
         clearTimerRef.current = setTimeout(() => dispatch({ enrichError: null }), 4000);
         return;
       }
-      const { queued } = postData;
-      if (queued === 0) {
-        dispatch({ enrichDone: true });
-        clearTimeout(clearTimerRef.current);
-        clearTimerRef.current = setTimeout(() => dispatch({ enrichDone: false }), 4000);
-        return;
+      const { queued, shared, skipped, creditsRemaining, contactIds } = postData as {
+        queued: number;
+        shared: number;
+        skipped: number;
+        creditsRemaining: number;
+        contactIds: string[];
+      };
+      if (queued > 0) {
+        void runBatchEnrichment({
+          kind: "list",
+          label: `מעשיר ${queued} אנשי קשר`,
+          total: queued,
+          contactIds: contactIds ?? [],
+          since,
+          skipped,
+          shared,
+          creditsRemaining,
+        }).then(() => fetchList(state.page));
+      } else {
+        toast.info("אין אנשי קשר חדשים להעשרה", shared > 0 ? `${shared} עודכנו משיתוף` : undefined);
+        fetchList(state.page);
       }
-      dispatch({ enrichProgress: { done: 0, target: queued } });
-
-      pollRef.current = setInterval(async () => {
-        try {
-          const res = await fetch(`/api/lists/${id}/enrich`);
-          if (!res.ok) return;
-          const { withEmail } = await res.json();
-          const done = Math.min(withEmail - baseline, queued);
-          dispatch({ enrichProgress: { done, target: queued } });
-          if (done >= queued) {
-            clearInterval(pollRef.current);
-            dispatch({ enrichProgress: null, enrichDone: true });
-            fetchList(state.page);
-            clearTimeout(clearTimerRef.current);
-            clearTimerRef.current = setTimeout(() => dispatch({ enrichDone: false }), 4000);
-          }
-        } catch { /* ignore poll errors */ }
-      }, 3000);
     } catch {
       dispatch({ enrichError: "Network error" });
       clearTimeout(clearTimerRef.current);
@@ -205,15 +194,6 @@ export default function ListDetailPage() {
           {state.enrichError && (
             <span className="text-xs font-mono text-red-400">{state.enrichError}</span>
           )}
-          {state.enrichDone && !state.enrichError && (
-            <span className="text-xs font-mono text-emerald-600">Done</span>
-          )}
-          {state.enrichProgress && (
-            <span className="text-xs font-mono text-amber-600 flex items-center gap-1">
-              <Loader2 className="size-3 animate-spin" />
-              {state.enrichProgress.done} / {state.enrichProgress.target}
-            </span>
-          )}
           <button
             type="button"
             onClick={() => dispatch({ addContactsOpen: true })}
@@ -225,7 +205,7 @@ export default function ListDetailPage() {
           <button
             type="button"
             onClick={enrichList}
-            disabled={state.total === 0 || state.enriching || !!state.enrichProgress}
+            disabled={state.total === 0 || state.enriching}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-600 border border-amber-300 hover:bg-amber-50 hover:border-amber-400 rounded-md transition-all disabled:opacity-40"
           >
             {state.enriching ? <Loader2 className="size-3.5 animate-spin" /> : <Zap className="size-3.5" />}

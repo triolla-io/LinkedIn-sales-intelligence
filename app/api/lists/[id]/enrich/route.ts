@@ -110,5 +110,6 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     shared: sharedCount,
     skipped: toQueue.length - toEnrich.length,
     creditsRemaining: creditsRemaining - toEnrich.length,
+    contactIds: toEnrich,
   });
 });
