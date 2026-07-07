@@ -1,5 +1,7 @@
 import makeWASocket, {
+  Browsers,
   DisconnectReason,
+  fetchLatestBaileysVersion,
   useMultiFileAuthState,
   WASocket,
 } from "@whiskeysockets/baileys";
@@ -73,10 +75,16 @@ export async function initSession(userId: string): Promise<void> {
 
   const { state, saveCreds } = await useMultiFileAuthState(dir);
 
+  // Pin the current WhatsApp Web protocol version. Without this Baileys uses a
+  // bundled default that goes stale, and WhatsApp rejects the QR link with a 401
+  // ("Couldn't link device — check your connection and try again" on the phone).
+  const { version } = await fetchLatestBaileysVersion();
+
   const socket = makeWASocket({
+    version,
     auth: state,
     printQRInTerminal: false,
-    browser: ["Mac OS", "Safari", "10.15.7"],
+    browser: Browsers.macOS("Desktop"),
   });
 
   // Seed listeners from persistent map so SSE streams subscribed before reinit stay connected
