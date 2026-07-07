@@ -5,6 +5,8 @@ import useSWR from "swr";
 import Link from "next/link";
 import { Play, Pause, Loader2, Search } from "lucide-react";
 import { IndustrySelect } from "@/components/dashboard/industry-select";
+import { SendWindowPicker, type SendWindow } from "@/components/prospecting/send-window-picker";
+import { DEFAULT_SEND_DAYS, DEFAULT_SEND_HOURS_START, DEFAULT_SEND_HOURS_END } from "@/lib/prospecting/send-window";
 
 type ProspectingRun = {
   id: string;
@@ -34,6 +36,12 @@ const STATUS_LABELS: Record<string, string> = {
   COMPLETED: "הושלם",
 };
 
+const DEFAULT_WINDOW: SendWindow = {
+  sendDays: DEFAULT_SEND_DAYS,
+  sendHoursStart: DEFAULT_SEND_HOURS_START,
+  sendHoursEnd: DEFAULT_SEND_HOURS_END,
+};
+
 export default function ProspectingPage() {
   const { data, mutate } = useSWR<RunsResponse>("/api/prospecting/runs", fetcher);
   const [name, setName] = useState("");
@@ -41,6 +49,7 @@ export default function ProspectingPage() {
   const [geoCode, setGeoCode] = useState("IL");
   const [dailyCap, setDailyCap] = useState(15);
   const [industryIds, setIndustryIds] = useState<string[]>([]);
+  const [sendWindow, setSendWindow] = useState<SendWindow>(DEFAULT_WINDOW);
   const [submitting, setSubmitting] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
 
@@ -51,13 +60,14 @@ export default function ProspectingPage() {
     await fetch("/api/prospecting/runs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), keywords: keywords.trim(), geoCode, industryIds, dailyCap }),
+      body: JSON.stringify({ name: name.trim(), keywords: keywords.trim(), geoCode, industryIds, dailyCap, ...sendWindow }),
     });
     setName("");
     setKeywords("");
     setGeoCode("IL");
     setDailyCap(15);
     setIndustryIds([]);
+    setSendWindow(DEFAULT_WINDOW);
     setSubmitting(false);
     mutate();
   }
@@ -161,6 +171,9 @@ export default function ProspectingPage() {
               </div>
             </div>
             <IndustrySelect value={industryIds} onChange={setIndustryIds} />
+            <div className="border-t border-[#f3f2ef] pt-3">
+              <SendWindowPicker value={sendWindow} onChange={setSendWindow} />
+            </div>
             <p className="text-xs text-[#9b9895]">
               {dailyCap} בקשות/יום (מומלץ 15–20), עד 100/שבוע. חיבורים מדרגה 2 בלבד.
             </p>
