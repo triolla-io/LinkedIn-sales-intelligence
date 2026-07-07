@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Pencil, Check, Loader2, Zap, UserPlus, UserMinus } from "lucide-react";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import ContactTable, { type Contact } from "@/components/dashboard/contact-table
 import ContactDrawer from "@/components/dashboard/contact-drawer";
 import BulkEnrichBar from "@/components/dashboard/bulk-enrich-bar";
 import AddContactsToListModal from "@/components/dashboard/add-contacts-to-list-modal";
-import { runBatchEnrichment } from "@/lib/enrichment-progress";
+import { runBatchEnrichment, enrichmentProgress } from "@/lib/enrichment-progress";
 import { toast } from "@/lib/toast";
 
 type ListDetail = { id: string; name: string; memberCount: number; createdAt: string };
@@ -61,6 +61,9 @@ export default function ListDetailPage() {
   useEffect(() => () => {
     clearTimeout(clearTimerRef.current);
   }, []);
+
+  const [jobActive, setJobActive] = useState(false);
+  useEffect(() => enrichmentProgress.subscribe((s) => setJobActive(s.job !== null)), []);
 
   const fetchList = useCallback(async (pg = state.page) => {
     dispatch({ loading: true, selectedIds: new Set() });
@@ -205,7 +208,7 @@ export default function ListDetailPage() {
           <button
             type="button"
             onClick={enrichList}
-            disabled={state.total === 0 || state.enriching}
+            disabled={state.total === 0 || state.enriching || jobActive}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-600 border border-amber-300 hover:bg-amber-50 hover:border-amber-400 rounded-md transition-all disabled:opacity-40"
           >
             {state.enriching ? <Loader2 className="size-3.5 animate-spin" /> : <Zap className="size-3.5" />}

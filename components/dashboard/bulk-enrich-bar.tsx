@@ -1,9 +1,9 @@
 "use client";
 
-import { useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { Zap, RefreshCw, X, Megaphone, Bookmark } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { runBatchEnrichment } from "@/lib/enrichment-progress";
+import { runBatchEnrichment, enrichmentProgress } from "@/lib/enrichment-progress";
 import type { Contact } from "./contact-table";
 import { NewCampaignModal } from "./new-campaign-modal";
 import ListPopover from "./list-popover";
@@ -39,6 +39,9 @@ export default function BulkEnrichBar({
     }
   );
   const listBtnRef = useRef<HTMLButtonElement>(null);
+
+  const [jobActive, setJobActive] = useState(false);
+  useEffect(() => enrichmentProgress.subscribe((s) => setJobActive(s.job !== null)), []);
 
   const N = selectedIds.length;
 
@@ -184,7 +187,7 @@ export default function BulkEnrichBar({
               <button
                 type="button"
                 onClick={handleEnrich}
-                disabled={state.enriching}
+                disabled={state.enriching || jobActive}
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all",
                   state.enriching
