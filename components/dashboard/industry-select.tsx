@@ -15,7 +15,7 @@ export function IndustrySelect({ value, onChange }: Props) {
   const [open, setOpen] = useState(false);
 
   const results = useMemo(
-    () => searchIndustries(query).filter((i) => !value.includes(i.id)),
+    () => searchIndustries(query, 8 + value.length).filter((i) => !value.includes(i.id)),
     [query, value]
   );
 

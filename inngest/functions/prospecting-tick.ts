@@ -42,7 +42,13 @@ export const prospectingTick = inngest.createFunction(
             data: {
               userId: run.ownerId,
               kind: "SEARCH",
-              payload: { searchUrl: run.searchUrl, page: run.nextSearchPage },
+              payload: {
+                searchUrl: buildSearchUrl(
+                  { keywords: run.keywords, geoUrn: run.geoUrn, industryIds: run.industryIds },
+                  run.nextSearchPage
+                ),
+                page: run.nextSearchPage,
+              },
               prospectingRunId: run.id,
               scheduledFor: new Date(),
             },

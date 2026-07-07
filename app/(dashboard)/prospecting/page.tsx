@@ -56,7 +56,7 @@ export default function ProspectingPage() {
     setName("");
     setKeywords("");
     setGeoCode("IL");
-    setDailyCap(8);
+    setDailyCap(15);
     setIndustryIds([]);
     setSubmitting(false);
     mutate();
