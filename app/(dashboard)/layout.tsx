@@ -7,6 +7,7 @@ import ImpersonationBanner from "@/components/dashboard/impersonation-banner";
 import { Toaster } from "@/components/ui/toaster";
 import { ExtensionBanner } from "@/components/extension-banner";
 import { EnrichmentProgressBar } from "@/components/dashboard/enrichment-progress-bar";
+import { EnrichmentSummaryModal } from "@/components/dashboard/enrichment-summary-modal";
 
 export default async function DashboardLayout({
   children,
@@ -51,6 +52,7 @@ export default async function DashboardLayout({
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
       <Toaster />
+      <EnrichmentSummaryModal />
     </div>
   );
 }
