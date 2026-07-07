@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { computeNextScheduledFor } from "@/lib/extension/task-scheduler";
+import { computeNextScheduledFor, isWithinWindow } from "@/lib/extension/task-scheduler";
+import { resolveSendWindow } from "@/lib/prospecting/send-window";
 import { checkConnectQuota } from "@/lib/prospecting/quota";
 import { logProspectingEvent } from "@/lib/prospecting/events";
 import { formatHebrewTime } from "@/lib/prospecting/format";
@@ -93,13 +94,13 @@ export async function queueNextConnect(runId: string): Promise<string | null> {
     let scheduledFor: Date;
     if (quota.canSendNow) {
       const hourlyCap = Math.max(1, Math.floor(run.dailyCap / 4));
-      const workingWeekdays = tz === "Asia/Jerusalem" ? [0, 1, 2, 3, 4] : [1, 2, 3, 4, 5]; // Israel: Sun-Thu
+      const window = resolveSendWindow(run, tz);
       scheduledFor = computeNextScheduledFor({
         timezone: tz,
-        workingHoursStart: 9,
-        workingHoursEnd: 18,
+        workingHoursStart: window.workingHoursStart,
+        workingHoursEnd: window.workingHoursEnd,
         weekdaysOnly: true,
-        workingWeekdays,
+        workingWeekdays: window.workingWeekdays,
         lastSentAt,
         sentTodayCount: sentToday,
         sentLastHourCount: sentLastHour,
@@ -153,4 +154,38 @@ export async function queueNextConnect(runId: string): Promise<string | null> {
     await releaseConnectSlot(runId);
     throw e;
   }
+}
+
+/**
+ * Re-align a run's PENDING CONNECT task with its (possibly just-edited) send
+ * window. No-op when there is no pending task or it already falls inside the
+ * window. Called by PATCH /api/prospecting/runs/[id] so edits apply immediately.
+ */
+export async function rescheduleRunPendingConnect(runId: string): Promise<void> {
+  const run = await prisma.prospectingRun.findUnique({ where: { id: runId } });
+  if (!run) return;
+  const pending = await prisma.extensionTask.findFirst({
+    where: { prospectingRunId: runId, kind: "CONNECT", status: "PENDING" },
+  });
+  if (!pending) return;
+
+  const owner = await prisma.user.findUnique({ where: { id: run.ownerId }, select: { timezone: true } });
+  const tz = owner?.timezone ?? "Asia/Jerusalem";
+  const window = resolveSendWindow(run, tz);
+  if (isWithinWindow(pending.scheduledFor, { timezone: tz, ...window })) return;
+
+  const { sentToday, sentLastHour, lastSentAt } = await getConnectStats(run.ownerId);
+  const scheduledFor = computeNextScheduledFor({
+    timezone: tz,
+    workingHoursStart: window.workingHoursStart,
+    workingHoursEnd: window.workingHoursEnd,
+    weekdaysOnly: true,
+    workingWeekdays: window.workingWeekdays,
+    lastSentAt,
+    sentTodayCount: sentToday,
+    sentLastHourCount: sentLastHour,
+    dailyCap: run.dailyCap,
+    hourlyCap: Math.max(1, Math.floor(run.dailyCap / 4)),
+  });
+  await prisma.extensionTask.update({ where: { id: pending.id }, data: { scheduledFor } });
 }

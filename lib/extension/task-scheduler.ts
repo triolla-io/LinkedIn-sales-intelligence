@@ -58,6 +58,19 @@ function clampToWorkingHours(d: Date, input: Input): Date {
   return nextWorkdayStart(d, input);
 }
 
+/** True when `d` falls on an allowed weekday and inside [start, end) hours, in `timezone`. */
+export function isWithinWindow(
+  d: Date,
+  w: { timezone: string; workingHoursStart: number; workingHoursEnd: number; workingWeekdays: number[] }
+): boolean {
+  const parts = toZonedParts(d, w.timezone);
+  return (
+    w.workingWeekdays.includes(parts.weekday) &&
+    parts.hour >= w.workingHoursStart &&
+    parts.hour < w.workingHoursEnd
+  );
+}
+
 function nextWorkdayStart(from: Date, input: Input): Date {
   const cursor = new Date(from);
   // Today still counts if its working window hasn't opened yet.

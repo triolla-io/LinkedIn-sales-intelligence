@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { computeNextScheduledFor } from "@/lib/extension/task-scheduler";
+import { computeNextScheduledFor, isWithinWindow } from "@/lib/extension/task-scheduler";
 
 describe("computeNextScheduledFor", () => {
   beforeEach(() => {
@@ -153,5 +153,24 @@ describe("computeNextScheduledFor", () => {
     const deltaMin = (out.getTime() - Date.now()) / 60_000;
     expect(deltaMin).toBeGreaterThanOrEqual(60);
     expect(deltaMin).toBeLessThan(75);
+  });
+});
+
+describe("isWithinWindow", () => {
+  // 2026-07-07T07:30:00Z is Tuesday (weekday 2) 10:30 in Asia/Jerusalem (UTC+3).
+  const tueMorning = new Date("2026-07-07T07:30:00Z");
+  const base = { timezone: "Asia/Jerusalem", workingHoursStart: 9, workingHoursEnd: 18, workingWeekdays: [0, 1, 2, 3, 4] };
+
+  it("true inside day+hours", () => {
+    expect(isWithinWindow(tueMorning, base)).toBe(true);
+  });
+  it("false when the weekday is excluded", () => {
+    expect(isWithinWindow(tueMorning, { ...base, workingWeekdays: [5, 6] })).toBe(false);
+  });
+  it("false before opening hour", () => {
+    expect(isWithinWindow(tueMorning, { ...base, workingHoursStart: 11 })).toBe(false);
+  });
+  it("false at/after closing hour (end is exclusive)", () => {
+    expect(isWithinWindow(tueMorning, { ...base, workingHoursEnd: 10 })).toBe(false);
   });
 });
