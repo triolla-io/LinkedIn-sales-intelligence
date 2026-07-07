@@ -125,7 +125,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (updated.count === 0) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
     // Apply the new window immediately to an already-scheduled CONNECT task.
-    await rescheduleRunPendingConnect(id);
+    // Best-effort: the run itself is already updated; the 5-min tick self-heals scheduling.
+    try {
+      await rescheduleRunPendingConnect(id);
+    } catch (e) {
+      console.error("send-window reschedule failed", { runId: id, error: e });
+    }
 
     const run = await prisma.prospectingRun.findUniqueOrThrow({ where: { id } });
     return NextResponse.json({ run: { ...run, sendDays: run.sendDays.length > 0 ? run.sendDays : DEFAULT_SEND_DAYS } });
