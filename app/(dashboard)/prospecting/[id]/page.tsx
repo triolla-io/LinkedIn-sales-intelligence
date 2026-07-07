@@ -142,18 +142,20 @@ function SendWindowCard({ runId, run, onSaved }: { runId: string; run: RunDetail
     if (!draft) return;
     setSaving(true);
     setError(false);
-    const res = await fetch(`/api/prospecting/runs/${runId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(draft),
-    });
-    setSaving(false);
-    if (!res.ok) {
+    try {
+      const res = await fetch(`/api/prospecting/runs/${runId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(draft),
+      });
+      if (!res.ok) throw new Error(`patch_failed_${res.status}`);
+      setDraft(null);
+      onSaved();
+    } catch {
       setError(true);
-      return;
+    } finally {
+      setSaving(false);
     }
-    setDraft(null);
-    onSaved();
   }
 
   return (
