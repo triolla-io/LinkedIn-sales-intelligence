@@ -94,9 +94,9 @@ export default function ProspectingPage() {
       <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <Search className="size-4 text-[#9b9895]" />
-          <h1 className="text-sm font-semibold text-[#111110]">Routine</h1>
+          <h1 className="text-sm font-semibold text-[#111110]">רוטין</h1>
           {data && (
-            <span className="text-xs font-mono text-[#9b9895]">{runs.length} runs</span>
+            <span className="text-xs font-mono text-[#9b9895]">{runs.length} ריצות</span>
           )}
         </div>
       </div>
@@ -104,31 +104,31 @@ export default function ProspectingPage() {
       <div className="px-5 pt-5 pb-8 space-y-6">
         {/* New Run Form */}
         <div className="bg-white border border-[#e5e3df] rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-[#111110] mb-4">New Routine</h2>
-          <form onSubmit={createRun} className="space-y-3">
-            <div dir="rtl" className="flex gap-4 items-start">
-              <div className="flex-1">
-                <label htmlFor="run-name" className="block text-xs font-medium text-[#6b6866] mb-1" dir="ltr">
-                  Run name
+          <h2 className="text-sm font-semibold text-[#111110] mb-4 text-right">רוטין חדש</h2>
+          <form onSubmit={createRun} className="space-y-3" dir="rtl">
+            <div className="flex gap-4 items-start">
+              <div className="w-56 shrink-0">
+                <label htmlFor="run-name" className="block text-xs font-medium text-[#6b6866] mb-1">
+                  שם הריצה
                 </label>
                 <input
                   id="run-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Israel CTOs Q2 2026"
-                  dir="ltr"
+                  placeholder="לדוגמה: מנכ״לים ישראל Q3"
+                  dir="rtl"
                   className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
                 />
               </div>
-              <div className="shrink-0 pt-0.5">
+              <div className="flex-1 pt-0.5">
                 <SendWindowPicker compact value={sendWindow} onChange={setSendWindow} />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <label htmlFor="run-keywords" className="block text-xs font-medium text-[#6b6866] mb-1">
-                  Search keywords
+                  מילות חיפוש
                 </label>
                 <input
                   id="run-keywords"
@@ -136,12 +136,13 @@ export default function ProspectingPage() {
                   value={keywords}
                   onChange={(e) => setKeywords(e.target.value)}
                   placeholder="cto, vp r&d, ceo"
+                  dir="ltr"
                   className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
                 />
               </div>
               <div>
                 <label htmlFor="run-geo" className="block text-xs font-medium text-[#6b6866] mb-1">
-                  Country
+                  מדינה
                 </label>
                 <select
                   id="run-geo"
@@ -149,16 +150,16 @@ export default function ProspectingPage() {
                   onChange={(e) => setGeoCode(e.target.value)}
                   className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
                 >
-                  <option value="IL">🇮🇱 Israel</option>
-                  <option value="US">🇺🇸 United States</option>
-                  <option value="GB">🇬🇧 United Kingdom</option>
-                  <option value="DE">🇩🇪 Germany</option>
-                  <option value="FR">🇫🇷 France</option>
-                  <option value="CA">🇨🇦 Canada</option>
-                  <option value="AU">🇦🇺 Australia</option>
-                  <option value="NL">🇳🇱 Netherlands</option>
-                  <option value="IN">🇮🇳 India</option>
-                  <option value="SG">🇸🇬 Singapore</option>
+                  <option value="IL">🇮🇱 ישראל</option>
+                  <option value="US">🇺🇸 ארה״ב</option>
+                  <option value="GB">🇬🇧 בריטניה</option>
+                  <option value="DE">🇩🇪 גרמניה</option>
+                  <option value="FR">🇫🇷 צרפת</option>
+                  <option value="CA">🇨🇦 קנדה</option>
+                  <option value="AU">🇦🇺 אוסטרליה</option>
+                  <option value="NL">🇳🇱 הולנד</option>
+                  <option value="IN">🇮🇳 הודו</option>
+                  <option value="SG">🇸🇬 סינגפור</option>
                 </select>
               </div>
               <div>
@@ -180,14 +181,16 @@ export default function ProspectingPage() {
             <p className="text-xs text-[#9b9895]">
               {dailyCap} בקשות/יום (מומלץ 15–20), עד 100/שבוע. חיבורים מדרגה 2 בלבד.
             </p>
-            <button
-              type="submit"
-              disabled={submitting || !name.trim()}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting && <Loader2 className="size-3.5 animate-spin" />}
-              Create run
-            </button>
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={submitting || !name.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting && <Loader2 className="size-3.5 animate-spin" />}
+                יצירת ריצה
+              </button>
+            </div>
           </form>
         </div>
 
