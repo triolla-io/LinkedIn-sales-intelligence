@@ -28,7 +28,10 @@ export const prospectingStart = inngest.createFunction(
     }
 
     // Reset discovery cursor and kick off page 1.
-    const searchUrl = buildSearchUrl({ keywords: run.keywords, geoUrn: run.geoUrn }, run.nextSearchPage);
+    const searchUrl = buildSearchUrl(
+      { keywords: run.keywords, geoUrn: run.geoUrn, industryIds: run.industryIds },
+      run.nextSearchPage
+    );
     await prisma.prospectingRun.update({
       where: { id: runId },
       data: { searchUrl, startedAt: run.startedAt ?? new Date() },

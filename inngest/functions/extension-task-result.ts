@@ -197,7 +197,10 @@ async function handleSearchResult(task: TaskRow) {
     // Advance the page cursor monotonically off the DB value (NOT the task payload), guarded so only
     // one concurrent handler advances and creates the next SEARCH task.
     const nextPage = run.nextSearchPage + 1;
-    const searchUrl = buildSearchUrl({ keywords: run.keywords, geoUrn: run.geoUrn }, nextPage);
+    const searchUrl = buildSearchUrl(
+      { keywords: run.keywords, geoUrn: run.geoUrn, industryIds: run.industryIds },
+      nextPage
+    );
     const advanced = await prisma.prospectingRun.updateMany({
       where: { id: run.id, nextSearchPage: run.nextSearchPage },
       data: { nextSearchPage: nextPage, searchUrl },
