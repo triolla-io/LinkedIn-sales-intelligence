@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { computeRunStatusSummary } from "@/lib/prospecting/run-status";
+import { sendWindowFields, sendWindowRefine, normalizeSendDays, DEFAULT_SEND_DAYS } from "@/lib/prospecting/send-window";
+import { rescheduleRunPendingConnect } from "@/lib/prospecting/connect-scheduler";
 
 const REQUEST_STATUSES = ["DISCOVERED", "QUEUED", "SENT", "FAILED", "SKIPPED", "ACCEPTED"] as const;
 type RequestStatus = (typeof REQUEST_STATUSES)[number];
@@ -90,6 +93,41 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       sentToday, dailyCap: run.dailyCap, sentThisWeek, weeklyCap: run.weeklyCap, now,
     });
 
-    return NextResponse.json({ run, requests, statusCounts, events, taskStats, summary });
+    return NextResponse.json({
+      run: { ...run, sendDays: run.sendDays.length > 0 ? run.sendDays : DEFAULT_SEND_DAYS },
+      requests, statusCounts, events, taskStats, summary,
+    });
+  })(req);
+}
+
+const PatchSchema = z
+  .object(sendWindowFields)
+  .refine(sendWindowRefine, { message: "invalid_send_window", path: ["sendHoursEnd"] })
+  .refine((d) => d.sendDays !== undefined || d.sendHoursStart !== undefined, { message: "empty_patch" });
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return withTenant(async (r: NextRequest, ctx) => {
+    const body = await r.json().catch(() => null);
+    const parsed = PatchSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "invalid_input", issues: parsed.error.issues }, { status: 400 });
+    }
+    const { sendDays, sendHoursStart, sendHoursEnd } = parsed.data;
+    const updated = await prisma.prospectingRun.updateMany({
+      where: { id, ownerId: ctx.effectiveUserId },
+      data: {
+        ...(sendDays !== undefined ? { sendDays: normalizeSendDays(sendDays) } : {}),
+        ...(sendHoursStart !== undefined ? { sendHoursStart } : {}),
+        ...(sendHoursEnd !== undefined ? { sendHoursEnd } : {}),
+      },
+    });
+    if (updated.count === 0) return NextResponse.json({ error: "not_found" }, { status: 404 });
+
+    // Apply the new window immediately to an already-scheduled CONNECT task.
+    await rescheduleRunPendingConnect(id);
+
+    const run = await prisma.prospectingRun.findUniqueOrThrow({ where: { id } });
+    return NextResponse.json({ run: { ...run, sendDays: run.sendDays.length > 0 ? run.sendDays : DEFAULT_SEND_DAYS } });
   })(req);
 }
