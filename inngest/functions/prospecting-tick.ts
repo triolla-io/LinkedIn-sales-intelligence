@@ -60,7 +60,7 @@ export const prospectingTick = inngest.createFunction(
           data: {
             discoveryDone: false,
             nextSearchPage: 1,
-            searchUrl: buildSearchUrl(run.keywords, 1, run.geoUrn),
+            searchUrl: buildSearchUrl({ keywords: run.keywords, geoUrn: run.geoUrn }, 1),
             searchFailCount: 0,
             nextDiscoveryAt: null,
           },
@@ -70,7 +70,7 @@ export const prospectingTick = inngest.createFunction(
             data: {
               userId: run.ownerId,
               kind: "SEARCH",
-              payload: { searchUrl: buildSearchUrl(run.keywords, 1, run.geoUrn), page: 1 },
+              payload: { searchUrl: buildSearchUrl({ keywords: run.keywords, geoUrn: run.geoUrn }, 1), page: 1 },
               prospectingRunId: run.id,
               scheduledFor: new Date(),
             },

@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
         name,
         keywords,
         geoUrn,
-        searchUrl: buildSearchUrl(keywords, 1, geoUrn),
+        searchUrl: buildSearchUrl({ keywords, geoUrn }, 1),
         ...(dailyCap !== undefined ? { dailyCap } : {}),
         ...(weeklyCap !== undefined ? { weeklyCap } : {}),
       },

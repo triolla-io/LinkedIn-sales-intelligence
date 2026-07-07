@@ -158,7 +158,7 @@ export default function ProspectingPage() {
               </div>
             </div>
             <p className="text-xs text-[#9b9895]">
-              {dailyCap} בקשות/יום (מומלץ 15–20), עד 100/שבוע. חיבורים מדרגה 2 ו-3.
+              {dailyCap} בקשות/יום (מומלץ 15–20), עד 100/שבוע. חיבורים מדרגה 2 בלבד.
             </p>
             <button
               type="submit"
