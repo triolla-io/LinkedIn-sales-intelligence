@@ -3,8 +3,10 @@
 import { use, useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Clock, Pencil } from "lucide-react";
 import { ERROR_CODE_LABELS, TASK_KIND_LABELS } from "@/lib/prospecting/format";
+import { SendWindowPicker, type SendWindow } from "@/components/prospecting/send-window-picker";
+import { formatSendWindowHe } from "@/lib/prospecting/send-window";
 
 type ConnectionRequest = {
   id: string;
@@ -25,6 +27,9 @@ type RunDetail = {
   status: string;
   totalSent: number;
   totalDiscovered: number;
+  sendDays: number[];
+  sendHoursStart: number;
+  sendHoursEnd: number;
 };
 
 type TaskStats = {
@@ -127,6 +132,83 @@ function HumanMessage({ message }: { message: string | null }) {
   return <>{message.replace(ISO_RE, formatIso)}</>;
 }
 
+/** "חלון שליחה" card: compact summary + pencil → inline picker with save/cancel. */
+function SendWindowCard({ runId, run, onSaved }: { runId: string; run: RunDetail; onSaved: () => void }) {
+  const [draft, setDraft] = useState<SendWindow | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(false);
+
+  async function save() {
+    if (!draft) return;
+    setSaving(true);
+    setError(false);
+    const res = await fetch(`/api/prospecting/runs/${runId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(draft),
+    });
+    setSaving(false);
+    if (!res.ok) {
+      setError(true);
+      return;
+    }
+    setDraft(null);
+    onSaved();
+  }
+
+  return (
+    <div className="bg-white border border-[#e5e3df] rounded-xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">חלון שליחה</h2>
+        {!draft && (
+          <button
+            type="button"
+            aria-label="עריכת חלון שליחה"
+            onClick={() =>
+              setDraft({ sendDays: run.sendDays, sendHoursStart: run.sendHoursStart, sendHoursEnd: run.sendHoursEnd })
+            }
+            className="text-[#9b9895] hover:text-[#1585ff] transition-colors"
+          >
+            <Pencil className="size-3.5" />
+          </button>
+        )}
+      </div>
+      {!draft ? (
+        <div className="flex items-center gap-2 text-sm text-[#6b6866]">
+          <Clock className="size-3.5 text-[#9b9895]" />
+          {formatSendWindowHe(run.sendDays, run.sendHoursStart, run.sendHoursEnd)}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <SendWindowPicker value={draft} onChange={setDraft} />
+          {error && <p className="text-xs text-[#dc2626]">השמירה נכשלה — נסו שוב.</p>}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={save}
+              disabled={saving}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors disabled:opacity-50"
+            >
+              {saving && <Loader2 className="size-3 animate-spin" />}
+              שמירה
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setDraft(null);
+                setError(false);
+              }}
+              className="px-3 py-1.5 text-xs font-medium text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#c8c5c2] rounded-md transition-all"
+            >
+              ביטול
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ProspectingRunDetailPage({
   params,
 }: {
@@ -134,7 +216,7 @@ export default function ProspectingRunDetailPage({
 }) {
   const { id } = use(params);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const { data } = useSWR<RunDetailResponse>(
+  const { data, mutate } = useSWR<RunDetailResponse>(
     `/api/prospecting/runs/${id}${statusFilter ? `?status=${statusFilter}` : ""}`,
     fetcher,
     { refreshInterval: 15000, keepPreviousData: true }
@@ -200,6 +282,7 @@ export default function ProspectingRunDetailPage({
             ))}
           </div>
         )}
+        <SendWindowCard runId={id} run={run} onSaved={() => mutate()} />
         {/* Task status panel */}
         {taskStats && (
           <div className="bg-white border border-[#e5e3df] rounded-xl p-4 space-y-3">
