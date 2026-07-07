@@ -3,6 +3,7 @@
 import { useReducer, useRef } from "react";
 import { Zap, RefreshCw, X, Megaphone, Bookmark } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { runBatchEnrichment } from "@/lib/enrichment-progress";
 import type { Contact } from "./contact-table";
 import { NewCampaignModal } from "./new-campaign-modal";
 import ListPopover from "./list-popover";
@@ -43,6 +44,7 @@ export default function BulkEnrichBar({
 
   async function doEnrich() {
     dispatch({ showConfirm: false, enriching: true, error: null, notice: null });
+    const since = new Date().toISOString();
     try {
       const res = await fetch("/api/contacts/bulk-enrich", {
         method: "POST",
@@ -53,7 +55,11 @@ export default function BulkEnrichBar({
         dispatch({ error: res.status === 402 ? "Credit limit reached" : "Enrichment failed" });
         return;
       }
-      const data = (await res.json().catch(() => ({}))) as { queued?: number; skipped?: number };
+      const data = (await res.json().catch(() => ({}))) as {
+        queued?: number;
+        skipped?: number;
+        creditsRemaining?: number;
+      };
       const queued = data.queued ?? 0;
       const skipped = data.skipped ?? 0;
       dispatch({
@@ -62,6 +68,18 @@ export default function BulkEnrichBar({
             ? `${queued} בתור להעשרה · ${skipped} דולגו (חריגה מתקציב הקרדיטים)`
             : `${queued} בתור להעשרה ברקע`,
       });
+      if (queued > 0) {
+        // Fire-and-forget: the global bar + modal own the rest of the lifecycle.
+        void runBatchEnrichment({
+          kind: "bulk",
+          label: `מעשיר ${queued} אנשי קשר`,
+          total: queued,
+          contactIds: selectedIds,
+          since,
+          skipped,
+          creditsRemaining: data.creditsRemaining ?? null,
+        });
+      }
       onDone?.();
     } catch {
       dispatch({ error: "Network error" });
