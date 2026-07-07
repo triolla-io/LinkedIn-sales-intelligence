@@ -4,6 +4,7 @@ import { useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { Play, Pause, Loader2, Search } from "lucide-react";
+import { IndustrySelect } from "@/components/dashboard/industry-select";
 
 type ProspectingRun = {
   id: string;
@@ -39,6 +40,7 @@ export default function ProspectingPage() {
   const [keywords, setKeywords] = useState("");
   const [geoCode, setGeoCode] = useState("IL");
   const [dailyCap, setDailyCap] = useState(15);
+  const [industryIds, setIndustryIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
 
@@ -49,12 +51,13 @@ export default function ProspectingPage() {
     await fetch("/api/prospecting/runs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), keywords: keywords.trim(), geoCode, dailyCap }),
+      body: JSON.stringify({ name: name.trim(), keywords: keywords.trim(), geoCode, industryIds, dailyCap }),
     });
     setName("");
     setKeywords("");
     setGeoCode("IL");
     setDailyCap(8);
+    setIndustryIds([]);
     setSubmitting(false);
     mutate();
   }
@@ -157,6 +160,7 @@ export default function ProspectingPage() {
                 />
               </div>
             </div>
+            <IndustrySelect value={industryIds} onChange={setIndustryIds} />
             <p className="text-xs text-[#9b9895]">
               {dailyCap} בקשות/יום (מומלץ 15–20), עד 100/שבוע. חיבורים מדרגה 2 בלבד.
             </p>
