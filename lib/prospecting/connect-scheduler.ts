@@ -187,5 +187,8 @@ export async function rescheduleRunPendingConnect(runId: string): Promise<void> 
     dailyCap: run.dailyCap,
     hourlyCap: Math.max(1, Math.floor(run.dailyCap / 4)),
   });
-  await prisma.extensionTask.update({ where: { id: pending.id }, data: { scheduledFor } });
+  await prisma.extensionTask.updateMany({
+    where: { id: pending.id, status: "PENDING" },
+    data: { scheduledFor },
+  });
 }
