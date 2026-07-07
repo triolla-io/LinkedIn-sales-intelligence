@@ -172,9 +172,14 @@ export async function rescheduleRunPendingConnect(runId: string): Promise<void> 
   const owner = await prisma.user.findUnique({ where: { id: run.ownerId }, select: { timezone: true } });
   const tz = owner?.timezone ?? "Asia/Jerusalem";
   const window = resolveSendWindow(run, tz);
-  if (isWithinWindow(pending.scheduledFor, { timezone: tz, ...window })) return;
 
-  const { sentToday, sentLastHour, lastSentAt } = await getConnectStats(run.ownerId);
+  const { sentToday, sentThisWeek, sentLastHour, lastSentAt } = await getConnectStats(run.ownerId);
+  // A quota-deferred task must not be pulled forward by a window edit —
+  // computeNextScheduledFor knows nothing about the weekly cap.
+  const quota = checkConnectQuota({ sentToday, sentThisWeek, dailyCap: run.dailyCap, weeklyCap: run.weeklyCap });
+  if (!quota.canSendNow) return;
+
+  if (isWithinWindow(pending.scheduledFor, { timezone: tz, ...window })) return;
   const scheduledFor = computeNextScheduledFor({
     timezone: tz,
     workingHoursStart: window.workingHoursStart,
