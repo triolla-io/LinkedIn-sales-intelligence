@@ -30,6 +30,11 @@ vi.mock("@/lib/apollo/budget", () => ({
 const mockLookupContact = vi.fn();
 vi.mock("@/lib/hubspot/client", () => ({ lookupContact: (...a: unknown[]) => mockLookupContact(...a) }));
 
+const mockInngestSend = vi.fn();
+vi.mock("@/inngest/client", () => ({
+  inngest: { send: (...a: unknown[]) => mockInngestSend(...a) },
+}));
+
 const contact = {
   id: "c1",
   fullName: "Dana Cohen",
@@ -51,6 +56,7 @@ describe("enrichContactCore", () => {
     mockLookupContact.mockResolvedValue(null);
     mockPersonFindUnique.mockResolvedValue(null);
     mockTransaction.mockResolvedValue([]);
+    mockInngestSend.mockResolvedValue(undefined);
   });
 
   it("stops at the cache and never calls Apollo when a cached hit exists", async () => {
@@ -118,5 +124,28 @@ describe("enrichContactCore", () => {
     const updateData = mockContactUpdate.mock.calls[0][0].data;
     expect(updateData).not.toHaveProperty("phone");
     expect(updateData).toHaveProperty("email", "a@b.com");
+  });
+
+  it("emits enrichment.propagate with the enriched values after an Apollo hit", async () => {
+    mockMatchPerson.mockResolvedValue({
+      email: "dana@acme.com",
+      phone: "+972500000000",
+      companySize: 10,
+      currentCompany: "Acme",
+      industry: "Tech",
+      raw: { x: 1 },
+    });
+
+    await run();
+
+    expect(mockInngestSend).toHaveBeenCalledTimes(1);
+    const evt = mockInngestSend.mock.calls[0][0];
+    expect(evt.name).toBe("enrichment.propagate");
+    expect(evt.data).toMatchObject({
+      orgId: "org1",
+      linkedinUrlNormalized: "https://www.linkedin.com/in/dana-cohen",
+      sourceContactId: "c1",
+      values: { email: "dana@acme.com", phone: "+972500000000", companySize: 10 },
+    });
   });
 });
