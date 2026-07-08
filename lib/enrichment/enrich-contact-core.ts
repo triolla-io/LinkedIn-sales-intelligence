@@ -3,6 +3,8 @@ import { Prisma } from "@/lib/generated/prisma/client";
 import { matchPerson } from "@/lib/apollo/client";
 import { checkBudget, incrementBudget } from "@/lib/apollo/budget";
 import { lookupContact } from "@/lib/hubspot/client";
+import { inngest } from "@/inngest/client";
+import type { PropagatableValues } from "@/lib/enrichment/propagate";
 
 /** Normalise a LinkedIn profile URL to its canonical /in/<slug> form.
  *  Returns empty string if the URL has no real profile slug. */
@@ -45,6 +47,21 @@ export type EnrichmentResult =
       creditsRemaining: number;
     };
 
+/** Fan the enriched values out to sibling contacts in the same org (background). */
+async function emitPropagation(
+  orgId: string,
+  linkedinUrlNormalized: string,
+  sourceContactId: string,
+  values: PropagatableValues
+): Promise<void> {
+  const hasValue = Object.values(values).some((v) => v != null && v !== "");
+  if (!linkedinUrlNormalized || !hasValue) return;
+  await inngest.send({
+    name: "enrichment.propagate" as const,
+    data: { orgId, linkedinUrlNormalized, sourceContactId, values },
+  });
+}
+
 /**
  * Single source of truth for enriching one contact.
  *
@@ -64,6 +81,7 @@ export async function enrichContactCore(opts: {
   const { contact, orgId, monthlyApolloBudget } = opts;
   const protectedFields = new Set((contact.manualFields as string[]) ?? []);
   const ranAt = new Date();
+  const normalizedUrl = contact.linkedinUrl ? normalizeLinkedinUrl(contact.linkedinUrl) : "";
 
   // ── 1. Budget check ─────────────────────────────────────────────────────
   const budget = await checkBudget(orgId, monthlyApolloBudget);
@@ -89,6 +107,10 @@ export async function enrichContactCore(opts: {
     if (!protectedFields.has("phone") && hubspotResult.phone) patch.phone = hubspotResult.phone;
     await prisma.contact.update({ where: { id: contact.id }, data: patch });
 
+    await emitPropagation(orgId, normalizedUrl, contact.id, {
+      email: hubspotResult.email ?? null,
+      phone: hubspotResult.phone ?? null,
+    });
     return {
       status: "ok",
       source: "hubspot",
@@ -105,7 +127,6 @@ export async function enrichContactCore(opts: {
   }
 
   // ── 3. PersonEnrichment cache lookup — free ─────────────────────────────
-  const normalizedUrl = contact.linkedinUrl ? normalizeLinkedinUrl(contact.linkedinUrl) : "";
   const cached = normalizedUrl
     ? await prisma.personEnrichment.findUnique({
         where: { orgId_linkedinUrlNormalized: { orgId, linkedinUrlNormalized: normalizedUrl } },
@@ -129,6 +150,13 @@ export async function enrichContactCore(opts: {
 
     await prisma.contact.update({ where: { id: contact.id }, data: patch });
 
+    await emitPropagation(orgId, normalizedUrl, contact.id, {
+      email: cached.email,
+      phone: cached.phone,
+      companySize: cached.companySize,
+      currentCompany: cached.currentCompany,
+      industry: cached.industry,
+    });
     return {
       status: "ok",
       source: "cache",
@@ -212,6 +240,13 @@ export async function enrichContactCore(opts: {
   await incrementBudget(orgId);
   const newBudget = await checkBudget(orgId, monthlyApolloBudget);
 
+  await emitPropagation(orgId, normalizedUrl, contact.id, {
+    email,
+    phone,
+    companySize,
+    currentCompany,
+    industry,
+  });
   return {
     status: "ok",
     source: "apollo",
