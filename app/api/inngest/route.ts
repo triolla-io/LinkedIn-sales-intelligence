@@ -1,6 +1,7 @@
 import { serve } from "inngest/next";
 import { inngest } from "@/inngest/client";
 import { enrichContact } from "@/inngest/functions/enrich-contact";
+import { enrichmentPropagate } from "@/inngest/functions/enrichment-propagate";
 import { enrichCompanies } from "@/inngest/functions/enrich-companies";
 import { enrichCompaniesWeb } from "@/inngest/functions/enrich-companies-web";
 import { enrichContactsHebrewNames, enrichContactsHebrewNamesScheduled } from "@/inngest/functions/enrich-contacts-hebrew-names";
@@ -22,6 +23,7 @@ export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [
     enrichContact,
+    enrichmentPropagate,
     enrichCompanies,
     enrichCompaniesWeb,
     enrichContactsHebrewNames,
