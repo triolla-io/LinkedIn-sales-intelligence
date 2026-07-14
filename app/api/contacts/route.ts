@@ -2,17 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 import { lookupContact } from "@/lib/hubspot/client";
+import { buildContactWhere, parseArrayParam } from "@/lib/contacts/contact-where";
 import { z } from "zod";
-
-const COMPANY_SIZE_BUCKETS: Record<string, [number, number | null]> = {
-  "1-10": [1, 10],
-  "11-50": [11, 50],
-  "51-200": [51, 200],
-  "201-500": [201, 500],
-  "501-1000": [501, 1000],
-  "1001-5000": [1001, 5000],
-  "5001+": [5001, null],
-};
 
 const querySchema = z.object({
   seniority: z.array(z.string()).optional(),
@@ -32,11 +23,6 @@ const querySchema = z.object({
   listId: z.string().optional(),
   idsOnly: z.enum(["true", "false"]).optional(),
 });
-
-function parseArrayParam(raw: string | null): string[] | undefined {
-  if (!raw) return undefined;
-  return raw.split(",").filter(Boolean);
-}
 
 export const GET = withTenant(async (req, ctx) => {
   const url = req.nextUrl;
@@ -67,84 +53,7 @@ export const GET = withTenant(async (req, ctx) => {
 
   const params = parsed.data;
 
-  // Build company size OR conditions — match either Apollo's companySize or LinkedIn's staffCount
-  const sizeConditions =
-    params.companySizeBuckets
-      ?.map((bucket) => COMPANY_SIZE_BUCKETS[bucket])
-      .filter(Boolean)
-      .map(([min, max]) => {
-        const range = max !== null ? { gte: min, lte: max } : { gte: min };
-        return {
-          OR: [
-            { companySize: range },
-            { company: { staffCount: range } },
-          ],
-        };
-      }) ?? [];
-
-  const andClauses: any[] = [];
-  if (params.q) {
-    andClauses.push({
-      OR: [
-        { fullName: { contains: params.q, mode: "insensitive" } },
-        { headline: { contains: params.q, mode: "insensitive" } },
-        { currentCompany: { contains: params.q, mode: "insensitive" } },
-        { currentTitle: { contains: params.q, mode: "insensitive" } },
-      ],
-    });
-  }
-  // Role/function pills (title-search pills like "CEO" and the function pills
-  // "HR"/"Sales") share ONE OR group, so selecting several roles widens the
-  // result set instead of intersecting. Without this, picking a title pill AND
-  // a function pill would AND two different fields and collapse to ~empty —
-  // which read as the other filters being "cancelled".
-  const roleOr: any[] = [];
-  if (params.function?.length) {
-    roleOr.push({ function: { in: params.function as any } });
-  }
-  if (params.titleSearch?.length) {
-    for (const t of params.titleSearch) {
-      roleOr.push({
-        OR: [
-          { currentTitle: { contains: t, mode: "insensitive" as const } },
-          { headline: { contains: t, mode: "insensitive" as const } },
-        ],
-      });
-    }
-  }
-  if (roleOr.length) {
-    andClauses.push({ OR: roleOr });
-  }
-  if (params.industry?.length) {
-    andClauses.push({
-      OR: params.industry.map((i) => ({
-        industry: { contains: i, mode: "insensitive" as const },
-      })),
-    });
-  }
-  if (sizeConditions.length) {
-    andClauses.push({ OR: sizeConditions });
-  }
-
-  const where: any = {
-    ownerId: ctx.effectiveUserId,
-    removedAt: null,
-    ...(params.seniority?.length ? { seniority: { in: params.seniority as any } } : {}),
-    ...(params.company?.length ? { currentCompany: { in: params.company } } : {}),
-    ...(params.location?.length ? { location: { in: params.location } } : {}),
-    ...(params.hasEmail === "true" ? { email: { not: null } } : {}),
-    ...(params.hasEmail === "false" ? { email: null } : {}),
-    ...(params.hasPhone === "true" ? { phone: { not: null } } : {}),
-    ...(params.hasPhone === "false" ? { phone: null } : {}),
-    ...(andClauses.length ? { AND: andClauses } : {}),
-    ...(params.listId
-      ? {
-          lists: {
-            some: { listId: params.listId },
-          },
-        }
-      : {}),
-  };
+  const where = buildContactWhere(ctx.effectiveUserId, params);
 
   // IDs-only mode: return every matching contact id (across all pages) so the
   // table's "select all" can operate on the full filtered result set.
