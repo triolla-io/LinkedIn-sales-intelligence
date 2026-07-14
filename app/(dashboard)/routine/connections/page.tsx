@@ -220,7 +220,7 @@ export default function ProspectingPage() {
                   <tr key={run.id} className="hover:bg-[#fafaf9] transition-colors">
                     <td className="px-4 py-3">
                       <Link
-                        href={`/prospecting/${run.id}`}
+                        href={`/routine/connections/${run.id}`}
                         className="font-medium text-[#111110] hover:text-[#1585ff] transition-colors"
                       >
                         {run.name}
