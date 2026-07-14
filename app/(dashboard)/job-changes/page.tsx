@@ -85,16 +85,25 @@ export default function JobChangesPage() {
 function ChangeCard({ change: c, onDone }: { change: Change; onDone: () => void }) {
   const [message, setMessage] = useState(c.draftMessage ?? "");
   const [busy, setBusy] = useState<"approve" | "dismiss" | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   async function act(action: "approve" | "dismiss") {
     setBusy(action);
+    setActionError(null);
     try {
-      await fetch(`/api/job-changes/${c.id}`, {
+      const res = await fetch(`/api/job-changes/${c.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(action === "approve" ? { action, message } : { action }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setActionError(data.error ?? "שגיאה בשליחה, נסה שוב");
+        return;
+      }
       onDone();
+    } catch {
+      setActionError("שגיאת רשת, נסה שוב");
     } finally {
       setBusy(null);
     }
@@ -148,6 +157,9 @@ function ChangeCard({ change: c, onDone }: { change: Change; onDone: () => void 
         <div className="mt-3 flex flex-col gap-2">
           {c.lastSendError && (
             <p className="text-xs text-red-600">השליחה הקודמת נכשלה: {c.lastSendError}</p>
+          )}
+          {actionError && (
+            <p className="text-xs text-red-600">{actionError}</p>
           )}
           <TextArea
             aria-label="הודעת ברכה"
