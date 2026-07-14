@@ -32,6 +32,10 @@ export type ContactJobChangeMinAggregateOutputType = {
   newTitle: string | null
   prevCompany: string | null
   newCompany: string | null
+  status: $Enums.JobChangeStatus | null
+  changeType: $Enums.JobChangeType | null
+  draftMessage: string | null
+  sentAt: Date | null
 }
 
 export type ContactJobChangeMaxAggregateOutputType = {
@@ -42,6 +46,10 @@ export type ContactJobChangeMaxAggregateOutputType = {
   newTitle: string | null
   prevCompany: string | null
   newCompany: string | null
+  status: $Enums.JobChangeStatus | null
+  changeType: $Enums.JobChangeType | null
+  draftMessage: string | null
+  sentAt: Date | null
 }
 
 export type ContactJobChangeCountAggregateOutputType = {
@@ -52,6 +60,10 @@ export type ContactJobChangeCountAggregateOutputType = {
   newTitle: number
   prevCompany: number
   newCompany: number
+  status: number
+  changeType: number
+  draftMessage: number
+  sentAt: number
   _all: number
 }
 
@@ -64,6 +76,10 @@ export type ContactJobChangeMinAggregateInputType = {
   newTitle?: true
   prevCompany?: true
   newCompany?: true
+  status?: true
+  changeType?: true
+  draftMessage?: true
+  sentAt?: true
 }
 
 export type ContactJobChangeMaxAggregateInputType = {
@@ -74,6 +90,10 @@ export type ContactJobChangeMaxAggregateInputType = {
   newTitle?: true
   prevCompany?: true
   newCompany?: true
+  status?: true
+  changeType?: true
+  draftMessage?: true
+  sentAt?: true
 }
 
 export type ContactJobChangeCountAggregateInputType = {
@@ -84,6 +104,10 @@ export type ContactJobChangeCountAggregateInputType = {
   newTitle?: true
   prevCompany?: true
   newCompany?: true
+  status?: true
+  changeType?: true
+  draftMessage?: true
+  sentAt?: true
   _all?: true
 }
 
@@ -167,6 +191,10 @@ export type ContactJobChangeGroupByOutputType = {
   newTitle: string | null
   prevCompany: string | null
   newCompany: string | null
+  status: $Enums.JobChangeStatus
+  changeType: $Enums.JobChangeType | null
+  draftMessage: string | null
+  sentAt: Date | null
   _count: ContactJobChangeCountAggregateOutputType | null
   _min: ContactJobChangeMinAggregateOutputType | null
   _max: ContactJobChangeMaxAggregateOutputType | null
@@ -198,6 +226,10 @@ export type ContactJobChangeWhereInput = {
   newTitle?: Prisma.StringNullableFilter<"ContactJobChange"> | string | null
   prevCompany?: Prisma.StringNullableFilter<"ContactJobChange"> | string | null
   newCompany?: Prisma.StringNullableFilter<"ContactJobChange"> | string | null
+  status?: Prisma.EnumJobChangeStatusFilter<"ContactJobChange"> | $Enums.JobChangeStatus
+  changeType?: Prisma.EnumJobChangeTypeNullableFilter<"ContactJobChange"> | $Enums.JobChangeType | null
+  draftMessage?: Prisma.StringNullableFilter<"ContactJobChange"> | string | null
+  sentAt?: Prisma.DateTimeNullableFilter<"ContactJobChange"> | Date | string | null
   contact?: Prisma.XOR<Prisma.ContactScalarRelationFilter, Prisma.ContactWhereInput>
 }
 
@@ -209,6 +241,10 @@ export type ContactJobChangeOrderByWithRelationInput = {
   newTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   prevCompany?: Prisma.SortOrderInput | Prisma.SortOrder
   newCompany?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
+  changeType?: Prisma.SortOrderInput | Prisma.SortOrder
+  draftMessage?: Prisma.SortOrderInput | Prisma.SortOrder
+  sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   contact?: Prisma.ContactOrderByWithRelationInput
 }
 
@@ -223,6 +259,10 @@ export type ContactJobChangeWhereUniqueInput = Prisma.AtLeast<{
   newTitle?: Prisma.StringNullableFilter<"ContactJobChange"> | string | null
   prevCompany?: Prisma.StringNullableFilter<"ContactJobChange"> | string | null
   newCompany?: Prisma.StringNullableFilter<"ContactJobChange"> | string | null
+  status?: Prisma.EnumJobChangeStatusFilter<"ContactJobChange"> | $Enums.JobChangeStatus
+  changeType?: Prisma.EnumJobChangeTypeNullableFilter<"ContactJobChange"> | $Enums.JobChangeType | null
+  draftMessage?: Prisma.StringNullableFilter<"ContactJobChange"> | string | null
+  sentAt?: Prisma.DateTimeNullableFilter<"ContactJobChange"> | Date | string | null
   contact?: Prisma.XOR<Prisma.ContactScalarRelationFilter, Prisma.ContactWhereInput>
 }, "id">
 
@@ -234,6 +274,10 @@ export type ContactJobChangeOrderByWithAggregationInput = {
   newTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   prevCompany?: Prisma.SortOrderInput | Prisma.SortOrder
   newCompany?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
+  changeType?: Prisma.SortOrderInput | Prisma.SortOrder
+  draftMessage?: Prisma.SortOrderInput | Prisma.SortOrder
+  sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ContactJobChangeCountOrderByAggregateInput
   _max?: Prisma.ContactJobChangeMaxOrderByAggregateInput
   _min?: Prisma.ContactJobChangeMinOrderByAggregateInput
@@ -250,6 +294,10 @@ export type ContactJobChangeScalarWhereWithAggregatesInput = {
   newTitle?: Prisma.StringNullableWithAggregatesFilter<"ContactJobChange"> | string | null
   prevCompany?: Prisma.StringNullableWithAggregatesFilter<"ContactJobChange"> | string | null
   newCompany?: Prisma.StringNullableWithAggregatesFilter<"ContactJobChange"> | string | null
+  status?: Prisma.EnumJobChangeStatusWithAggregatesFilter<"ContactJobChange"> | $Enums.JobChangeStatus
+  changeType?: Prisma.EnumJobChangeTypeNullableWithAggregatesFilter<"ContactJobChange"> | $Enums.JobChangeType | null
+  draftMessage?: Prisma.StringNullableWithAggregatesFilter<"ContactJobChange"> | string | null
+  sentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ContactJobChange"> | Date | string | null
 }
 
 export type ContactJobChangeCreateInput = {
@@ -259,6 +307,10 @@ export type ContactJobChangeCreateInput = {
   newTitle?: string | null
   prevCompany?: string | null
   newCompany?: string | null
+  status?: $Enums.JobChangeStatus
+  changeType?: $Enums.JobChangeType | null
+  draftMessage?: string | null
+  sentAt?: Date | string | null
   contact: Prisma.ContactCreateNestedOneWithoutJobChangesInput
 }
 
@@ -270,6 +322,10 @@ export type ContactJobChangeUncheckedCreateInput = {
   newTitle?: string | null
   prevCompany?: string | null
   newCompany?: string | null
+  status?: $Enums.JobChangeStatus
+  changeType?: $Enums.JobChangeType | null
+  draftMessage?: string | null
+  sentAt?: Date | string | null
 }
 
 export type ContactJobChangeUpdateInput = {
@@ -279,6 +335,10 @@ export type ContactJobChangeUpdateInput = {
   newTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   newCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumJobChangeStatusFieldUpdateOperationsInput | $Enums.JobChangeStatus
+  changeType?: Prisma.NullableEnumJobChangeTypeFieldUpdateOperationsInput | $Enums.JobChangeType | null
+  draftMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   contact?: Prisma.ContactUpdateOneRequiredWithoutJobChangesNestedInput
 }
 
@@ -290,6 +350,10 @@ export type ContactJobChangeUncheckedUpdateInput = {
   newTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   newCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumJobChangeStatusFieldUpdateOperationsInput | $Enums.JobChangeStatus
+  changeType?: Prisma.NullableEnumJobChangeTypeFieldUpdateOperationsInput | $Enums.JobChangeType | null
+  draftMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type ContactJobChangeCreateManyInput = {
@@ -300,6 +364,10 @@ export type ContactJobChangeCreateManyInput = {
   newTitle?: string | null
   prevCompany?: string | null
   newCompany?: string | null
+  status?: $Enums.JobChangeStatus
+  changeType?: $Enums.JobChangeType | null
+  draftMessage?: string | null
+  sentAt?: Date | string | null
 }
 
 export type ContactJobChangeUpdateManyMutationInput = {
@@ -309,6 +377,10 @@ export type ContactJobChangeUpdateManyMutationInput = {
   newTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   newCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumJobChangeStatusFieldUpdateOperationsInput | $Enums.JobChangeStatus
+  changeType?: Prisma.NullableEnumJobChangeTypeFieldUpdateOperationsInput | $Enums.JobChangeType | null
+  draftMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type ContactJobChangeUncheckedUpdateManyInput = {
@@ -319,6 +391,10 @@ export type ContactJobChangeUncheckedUpdateManyInput = {
   newTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   newCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumJobChangeStatusFieldUpdateOperationsInput | $Enums.JobChangeStatus
+  changeType?: Prisma.NullableEnumJobChangeTypeFieldUpdateOperationsInput | $Enums.JobChangeType | null
+  draftMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type ContactJobChangeListRelationFilter = {
@@ -339,6 +415,10 @@ export type ContactJobChangeCountOrderByAggregateInput = {
   newTitle?: Prisma.SortOrder
   prevCompany?: Prisma.SortOrder
   newCompany?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  changeType?: Prisma.SortOrder
+  draftMessage?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrder
 }
 
 export type ContactJobChangeMaxOrderByAggregateInput = {
@@ -349,6 +429,10 @@ export type ContactJobChangeMaxOrderByAggregateInput = {
   newTitle?: Prisma.SortOrder
   prevCompany?: Prisma.SortOrder
   newCompany?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  changeType?: Prisma.SortOrder
+  draftMessage?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrder
 }
 
 export type ContactJobChangeMinOrderByAggregateInput = {
@@ -359,6 +443,10 @@ export type ContactJobChangeMinOrderByAggregateInput = {
   newTitle?: Prisma.SortOrder
   prevCompany?: Prisma.SortOrder
   newCompany?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  changeType?: Prisma.SortOrder
+  draftMessage?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrder
 }
 
 export type ContactJobChangeCreateNestedManyWithoutContactInput = {
@@ -403,6 +491,14 @@ export type ContactJobChangeUncheckedUpdateManyWithoutContactNestedInput = {
   deleteMany?: Prisma.ContactJobChangeScalarWhereInput | Prisma.ContactJobChangeScalarWhereInput[]
 }
 
+export type EnumJobChangeStatusFieldUpdateOperationsInput = {
+  set?: $Enums.JobChangeStatus
+}
+
+export type NullableEnumJobChangeTypeFieldUpdateOperationsInput = {
+  set?: $Enums.JobChangeType | null
+}
+
 export type ContactJobChangeCreateWithoutContactInput = {
   id?: string
   detectedAt?: Date | string
@@ -410,6 +506,10 @@ export type ContactJobChangeCreateWithoutContactInput = {
   newTitle?: string | null
   prevCompany?: string | null
   newCompany?: string | null
+  status?: $Enums.JobChangeStatus
+  changeType?: $Enums.JobChangeType | null
+  draftMessage?: string | null
+  sentAt?: Date | string | null
 }
 
 export type ContactJobChangeUncheckedCreateWithoutContactInput = {
@@ -419,6 +519,10 @@ export type ContactJobChangeUncheckedCreateWithoutContactInput = {
   newTitle?: string | null
   prevCompany?: string | null
   newCompany?: string | null
+  status?: $Enums.JobChangeStatus
+  changeType?: $Enums.JobChangeType | null
+  draftMessage?: string | null
+  sentAt?: Date | string | null
 }
 
 export type ContactJobChangeCreateOrConnectWithoutContactInput = {
@@ -458,6 +562,10 @@ export type ContactJobChangeScalarWhereInput = {
   newTitle?: Prisma.StringNullableFilter<"ContactJobChange"> | string | null
   prevCompany?: Prisma.StringNullableFilter<"ContactJobChange"> | string | null
   newCompany?: Prisma.StringNullableFilter<"ContactJobChange"> | string | null
+  status?: Prisma.EnumJobChangeStatusFilter<"ContactJobChange"> | $Enums.JobChangeStatus
+  changeType?: Prisma.EnumJobChangeTypeNullableFilter<"ContactJobChange"> | $Enums.JobChangeType | null
+  draftMessage?: Prisma.StringNullableFilter<"ContactJobChange"> | string | null
+  sentAt?: Prisma.DateTimeNullableFilter<"ContactJobChange"> | Date | string | null
 }
 
 export type ContactJobChangeCreateManyContactInput = {
@@ -467,6 +575,10 @@ export type ContactJobChangeCreateManyContactInput = {
   newTitle?: string | null
   prevCompany?: string | null
   newCompany?: string | null
+  status?: $Enums.JobChangeStatus
+  changeType?: $Enums.JobChangeType | null
+  draftMessage?: string | null
+  sentAt?: Date | string | null
 }
 
 export type ContactJobChangeUpdateWithoutContactInput = {
@@ -476,6 +588,10 @@ export type ContactJobChangeUpdateWithoutContactInput = {
   newTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   newCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumJobChangeStatusFieldUpdateOperationsInput | $Enums.JobChangeStatus
+  changeType?: Prisma.NullableEnumJobChangeTypeFieldUpdateOperationsInput | $Enums.JobChangeType | null
+  draftMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type ContactJobChangeUncheckedUpdateWithoutContactInput = {
@@ -485,6 +601,10 @@ export type ContactJobChangeUncheckedUpdateWithoutContactInput = {
   newTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   newCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumJobChangeStatusFieldUpdateOperationsInput | $Enums.JobChangeStatus
+  changeType?: Prisma.NullableEnumJobChangeTypeFieldUpdateOperationsInput | $Enums.JobChangeType | null
+  draftMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type ContactJobChangeUncheckedUpdateManyWithoutContactInput = {
@@ -494,6 +614,10 @@ export type ContactJobChangeUncheckedUpdateManyWithoutContactInput = {
   newTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   newCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumJobChangeStatusFieldUpdateOperationsInput | $Enums.JobChangeStatus
+  changeType?: Prisma.NullableEnumJobChangeTypeFieldUpdateOperationsInput | $Enums.JobChangeType | null
+  draftMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -506,6 +630,10 @@ export type ContactJobChangeSelect<ExtArgs extends runtime.Types.Extensions.Inte
   newTitle?: boolean
   prevCompany?: boolean
   newCompany?: boolean
+  status?: boolean
+  changeType?: boolean
+  draftMessage?: boolean
+  sentAt?: boolean
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["contactJobChange"]>
 
@@ -517,6 +645,10 @@ export type ContactJobChangeSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   newTitle?: boolean
   prevCompany?: boolean
   newCompany?: boolean
+  status?: boolean
+  changeType?: boolean
+  draftMessage?: boolean
+  sentAt?: boolean
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["contactJobChange"]>
 
@@ -528,6 +660,10 @@ export type ContactJobChangeSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   newTitle?: boolean
   prevCompany?: boolean
   newCompany?: boolean
+  status?: boolean
+  changeType?: boolean
+  draftMessage?: boolean
+  sentAt?: boolean
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["contactJobChange"]>
 
@@ -539,9 +675,13 @@ export type ContactJobChangeSelectScalar = {
   newTitle?: boolean
   prevCompany?: boolean
   newCompany?: boolean
+  status?: boolean
+  changeType?: boolean
+  draftMessage?: boolean
+  sentAt?: boolean
 }
 
-export type ContactJobChangeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contactId" | "detectedAt" | "prevTitle" | "newTitle" | "prevCompany" | "newCompany", ExtArgs["result"]["contactJobChange"]>
+export type ContactJobChangeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contactId" | "detectedAt" | "prevTitle" | "newTitle" | "prevCompany" | "newCompany" | "status" | "changeType" | "draftMessage" | "sentAt", ExtArgs["result"]["contactJobChange"]>
 export type ContactJobChangeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
 }
@@ -565,6 +705,10 @@ export type $ContactJobChangePayload<ExtArgs extends runtime.Types.Extensions.In
     newTitle: string | null
     prevCompany: string | null
     newCompany: string | null
+    status: $Enums.JobChangeStatus
+    changeType: $Enums.JobChangeType | null
+    draftMessage: string | null
+    sentAt: Date | null
   }, ExtArgs["result"]["contactJobChange"]>
   composites: {}
 }
@@ -996,6 +1140,10 @@ export interface ContactJobChangeFieldRefs {
   readonly newTitle: Prisma.FieldRef<"ContactJobChange", 'String'>
   readonly prevCompany: Prisma.FieldRef<"ContactJobChange", 'String'>
   readonly newCompany: Prisma.FieldRef<"ContactJobChange", 'String'>
+  readonly status: Prisma.FieldRef<"ContactJobChange", 'JobChangeStatus'>
+  readonly changeType: Prisma.FieldRef<"ContactJobChange", 'JobChangeType'>
+  readonly draftMessage: Prisma.FieldRef<"ContactJobChange", 'String'>
+  readonly sentAt: Prisma.FieldRef<"ContactJobChange", 'DateTime'>
 }
     
 

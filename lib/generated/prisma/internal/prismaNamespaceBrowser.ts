@@ -504,6 +504,7 @@ export const ExtensionTaskScalarFieldEnum = {
   sequenceExecutionId: 'sequenceExecutionId',
   prospectingRunId: 'prospectingRunId',
   connectionRequestId: 'connectionRequestId',
+  jobChangeId: 'jobChangeId',
   scheduledFor: 'scheduledFor',
   claimedAt: 'claimedAt',
   completedAt: 'completedAt',
@@ -627,7 +628,11 @@ export const ContactJobChangeScalarFieldEnum = {
   prevTitle: 'prevTitle',
   newTitle: 'newTitle',
   prevCompany: 'prevCompany',
-  newCompany: 'newCompany'
+  newCompany: 'newCompany',
+  status: 'status',
+  changeType: 'changeType',
+  draftMessage: 'draftMessage',
+  sentAt: 'sentAt'
 } as const
 
 export type ContactJobChangeScalarFieldEnum = (typeof ContactJobChangeScalarFieldEnum)[keyof typeof ContactJobChangeScalarFieldEnum]

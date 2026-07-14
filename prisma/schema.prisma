@@ -388,6 +388,19 @@ enum EnrollmentStatus {
   UNSUBSCRIBED
 }
 
+enum JobChangeStatus {
+  PENDING_REVIEW
+  APPROVED
+  SENT
+  DISMISSED
+}
+
+enum JobChangeType {
+  COMPANY_MOVE
+  PROMOTION
+  TITLE_CHANGE
+}
+
 enum ExtensionTaskKind {
   SEND
   CHECK_REPLY
@@ -663,6 +676,7 @@ model ExtensionTask {
   sequenceExecutionId String?
   prospectingRunId    String?
   connectionRequestId String?
+  jobChangeId         String?
   scheduledFor        DateTime            @default(now())
   claimedAt           DateTime?
   completedAt         DateTime?
@@ -783,15 +797,20 @@ model ProspectingEvent {
 // ─── Job change detection ──────────────────────────────────────────────────────
 
 model ContactJobChange {
-  id          String   @id @default(cuid())
-  contactId   String
-  detectedAt  DateTime @default(now())
-  prevTitle   String?
-  newTitle    String?
-  prevCompany String?
-  newCompany  String?
+  id           String          @id @default(cuid())
+  contactId    String
+  detectedAt   DateTime        @default(now())
+  prevTitle    String?
+  newTitle     String?
+  prevCompany  String?
+  newCompany   String?
+  status       JobChangeStatus @default(PENDING_REVIEW)
+  changeType   JobChangeType?
+  draftMessage String?
+  sentAt       DateTime?
 
   contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
 
   @@index([contactId])
+  @@index([status])
 }

@@ -141,6 +141,25 @@ export const EnrollmentStatus = {
 export type EnrollmentStatus = (typeof EnrollmentStatus)[keyof typeof EnrollmentStatus]
 
 
+export const JobChangeStatus = {
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  APPROVED: 'APPROVED',
+  SENT: 'SENT',
+  DISMISSED: 'DISMISSED'
+} as const
+
+export type JobChangeStatus = (typeof JobChangeStatus)[keyof typeof JobChangeStatus]
+
+
+export const JobChangeType = {
+  COMPANY_MOVE: 'COMPANY_MOVE',
+  PROMOTION: 'PROMOTION',
+  TITLE_CHANGE: 'TITLE_CHANGE'
+} as const
+
+export type JobChangeType = (typeof JobChangeType)[keyof typeof JobChangeType]
+
+
 export const ExtensionTaskKind = {
   SEND: 'SEND',
   CHECK_REPLY: 'CHECK_REPLY',

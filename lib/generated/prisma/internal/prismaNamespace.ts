@@ -3319,6 +3319,7 @@ export const ExtensionTaskScalarFieldEnum = {
   sequenceExecutionId: 'sequenceExecutionId',
   prospectingRunId: 'prospectingRunId',
   connectionRequestId: 'connectionRequestId',
+  jobChangeId: 'jobChangeId',
   scheduledFor: 'scheduledFor',
   claimedAt: 'claimedAt',
   completedAt: 'completedAt',
@@ -3442,7 +3443,11 @@ export const ContactJobChangeScalarFieldEnum = {
   prevTitle: 'prevTitle',
   newTitle: 'newTitle',
   prevCompany: 'prevCompany',
-  newCompany: 'newCompany'
+  newCompany: 'newCompany',
+  status: 'status',
+  changeType: 'changeType',
+  draftMessage: 'draftMessage',
+  sentAt: 'sentAt'
 } as const
 
 export type ContactJobChangeScalarFieldEnum = (typeof ContactJobChangeScalarFieldEnum)[keyof typeof ContactJobChangeScalarFieldEnum]
@@ -3800,6 +3805,34 @@ export type EnumProspectingEventTypeFieldRefInput<$PrismaModel> = FieldRefInputT
  * Reference to a field of type 'ProspectingEventType[]'
  */
 export type ListEnumProspectingEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProspectingEventType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'JobChangeStatus'
+ */
+export type EnumJobChangeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobChangeStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'JobChangeStatus[]'
+ */
+export type ListEnumJobChangeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobChangeStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'JobChangeType'
+ */
+export type EnumJobChangeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobChangeType'>
+    
+
+
+/**
+ * Reference to a field of type 'JobChangeType[]'
+ */
+export type ListEnumJobChangeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobChangeType[]'>
     
 
 
