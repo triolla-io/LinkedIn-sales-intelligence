@@ -17,9 +17,9 @@ import { importProcess } from "@/inngest/functions/import-process";
 // company-name comparison in recordJobChangeIfAny (exact string match produces
 // false-positive job changes on casing/legal-suffix variants). Re-enable both
 // ticks below once detect-change.ts uses normalized/fuzzy matching.
-// import { jobCheckTick } from "@/inngest/functions/job-check-tick";
+import { jobCheckTick } from "@/inngest/functions/job-check-tick";
 import { jobCheckContact } from "@/inngest/functions/job-check-contact";
-// import { brightdataJobCheckTick } from "@/inngest/functions/brightdata-job-check-tick";
+import { brightdataJobCheckTick } from "@/inngest/functions/brightdata-job-check-tick";
 import { brightdataJobCheckCollect } from "@/inngest/functions/brightdata-job-check-collect";
 import { hubspotSyncApollo } from "@/inngest/functions/hubspot-sync-apollo";
 
@@ -40,9 +40,9 @@ export const { GET, POST, PUT } = serve({
     prospectingStart,
     prospectingTick,
     importProcess,
-    // jobCheckTick,  // DISABLED 2026-07-08 — see note above
+    jobCheckTick,
     jobCheckContact,
-    // brightdataJobCheckTick,  // DISABLED 2026-07-08 — see note above
+    brightdataJobCheckTick,
     brightdataJobCheckCollect,
     hubspotSyncApollo,
   ],
