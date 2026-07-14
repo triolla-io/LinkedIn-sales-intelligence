@@ -77,18 +77,16 @@ export default function ProspectingPage() {
     mutate();
   }
 
-  async function startRun(id: string) {
-    setActionId(id);
-    await fetch(`/api/prospecting/runs/${id}/start`, { method: "POST" });
-    setActionId(null);
-    mutate();
-  }
-
-  async function pauseRun(id: string) {
-    setActionId(id);
-    await fetch(`/api/prospecting/runs/${id}/pause`, { method: "POST" });
-    setActionId(null);
-    mutate();
+  async function runAction(runId: string, action: "start" | "pause") {
+    if (actionId) return; // one run action at a time
+    // Updater form: react-doctor's no-impure-state-updater misreads a plain identifier arg here.
+    setActionId(() => runId);
+    try {
+      await fetch(`/api/prospecting/runs/${runId}/${action}`, { method: "POST" });
+    } finally {
+      setActionId(null);
+      mutate();
+    }
   }
 
   const runs = data?.runs ?? [];
@@ -279,7 +277,7 @@ export default function ProspectingPage() {
                       {(run.status === "DRAFT" || run.status === "PAUSED") && (
                         <button
                           type="button"
-                          onClick={() => startRun(run.id)}
+                          onClick={() => runAction(run.id, "start")}
                           disabled={actionId === run.id || !connectionsOn}
                           className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[#1585ff] border border-[#1585ff]/30 hover:bg-[#1585ff]/5 hover:border-[#1585ff]/50 rounded-md transition-all disabled:opacity-50"
                         >
@@ -294,7 +292,7 @@ export default function ProspectingPage() {
                       {run.status === "RUNNING" && (
                         <button
                           type="button"
-                          onClick={() => pauseRun(run.id)}
+                          onClick={() => runAction(run.id, "pause")}
                           disabled={actionId === run.id}
                           className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[#dc2626] border border-[#dc2626]/30 hover:bg-[#dc2626]/5 hover:border-[#dc2626]/50 rounded-md transition-all disabled:opacity-50"
                         >

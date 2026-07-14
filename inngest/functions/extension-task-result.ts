@@ -202,9 +202,7 @@ async function handleSearchResult(task: TaskRow) {
       where: { id: run.ownerId },
       select: { routineConnectionsEnabled: true },
     });
-    if (ownerFlags && !ownerFlags.routineConnectionsEnabled) {
-      // Module is off — skip the next page chain entirely.
-    } else {
+    if (!ownerFlags || ownerFlags.routineConnectionsEnabled) {
       // Advance the page cursor monotonically off the DB value (NOT the task payload), guarded so only
       // one concurrent handler advances and creates the next SEARCH task.
       const nextPage = run.nextSearchPage + 1;
