@@ -54,6 +54,7 @@ function userPrompt(input: JudgeChangeInput): string {
 }
 
 export function parseJudgeJson(text: string): JudgeChangeResult | null {
+  // Strip markdown fences: defensive against model non-compliance with SYSTEM's "no markdown fences" instruction.
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
   const candidate = (fence ? fence[1] : text).trim();
   try {

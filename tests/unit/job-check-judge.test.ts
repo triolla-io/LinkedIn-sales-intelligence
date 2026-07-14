@@ -87,4 +87,19 @@ describe("judgeJobChange", () => {
     stubOpenRouter("sorry, I cannot help with that");
     await expect(judgeJobChange(INPUT)).rejects.toThrow(/unparseable/);
   });
+
+  it("throws when the response body is not valid JSON at the transport level", async () => {
+    process.env.OPENROUTER_API_KEY = "sk-or-test";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new SyntaxError("Unexpected end of JSON input");
+        },
+      }))
+    );
+    await expect(judgeJobChange(INPUT)).rejects.toThrow();
+  });
 });
