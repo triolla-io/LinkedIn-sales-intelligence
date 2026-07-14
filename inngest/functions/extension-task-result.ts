@@ -194,27 +194,39 @@ async function handleSearchResult(task: TaskRow) {
   }
 
   if (result.hasNextPage) {
-    // Advance the page cursor monotonically off the DB value (NOT the task payload), guarded so only
-    // one concurrent handler advances and creates the next SEARCH task.
-    const nextPage = run.nextSearchPage + 1;
-    const searchUrl = buildSearchUrl(
-      { keywords: run.keywords, geoUrn: run.geoUrn, industryIds: run.industryIds },
-      nextPage
-    );
-    const advanced = await prisma.prospectingRun.updateMany({
-      where: { id: run.id, nextSearchPage: run.nextSearchPage },
-      data: { nextSearchPage: nextPage, searchUrl },
+    // Connections module master switch: if the owner has turned it off, do NOT create the next
+    // SEARCH task — discovery is paused. Run status is never mutated by the toggle.
+    // Resume path: when the module is re-enabled, prospecting-tick re-queues discovery from
+    // nextSearchPage because there will be no live SEARCH task for this run.
+    const ownerFlags = await prisma.user.findUnique({
+      where: { id: run.ownerId },
+      select: { routineConnectionsEnabled: true },
     });
-    if (advanced.count === 1) {
-      await prisma.extensionTask.create({
-        data: {
-          userId: task.userId,
-          kind: "SEARCH",
-          payload: { searchUrl, page: nextPage },
-          prospectingRunId: run.id,
-          scheduledFor: new Date(),
-        },
+    if (ownerFlags && !ownerFlags.routineConnectionsEnabled) {
+      // Module is off — skip the next page chain entirely.
+    } else {
+      // Advance the page cursor monotonically off the DB value (NOT the task payload), guarded so only
+      // one concurrent handler advances and creates the next SEARCH task.
+      const nextPage = run.nextSearchPage + 1;
+      const searchUrl = buildSearchUrl(
+        { keywords: run.keywords, geoUrn: run.geoUrn, industryIds: run.industryIds },
+        nextPage
+      );
+      const advanced = await prisma.prospectingRun.updateMany({
+        where: { id: run.id, nextSearchPage: run.nextSearchPage },
+        data: { nextSearchPage: nextPage, searchUrl },
       });
+      if (advanced.count === 1) {
+        await prisma.extensionTask.create({
+          data: {
+            userId: task.userId,
+            kind: "SEARCH",
+            payload: { searchUrl, page: nextPage },
+            prospectingRunId: run.id,
+            scheduledFor: new Date(),
+          },
+        });
+      }
     }
   } else {
     await prisma.prospectingRun.update({ where: { id: run.id }, data: { discoveryDone: true } });
