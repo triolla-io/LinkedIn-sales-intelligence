@@ -9,10 +9,16 @@ const REDISCOVERY_INTERVAL_MS = 24 * 60 * 60 * 1000;
 export const prospectingTick = inngest.createFunction(
   { id: "prospecting-tick", triggers: [{ cron: "*/5 * * * *" }] },
   async () => {
-    const runs = await prisma.prospectingRun.findMany({ where: { status: "RUNNING" } });
+    const runs = await prisma.prospectingRun.findMany({
+      where: { status: "RUNNING" },
+      include: { owner: { select: { routineConnectionsEnabled: true } } },
+    });
     const now = new Date();
 
     for (const run of runs) {
+      // Connections module off → effective pause: no reconciling, queueing, or discovery.
+      if (!run.owner.routineConnectionsEnabled) continue;
+
       // Respect checkpoint backoff.
       if (run.pausedUntil && run.pausedUntil > now) continue;
 
