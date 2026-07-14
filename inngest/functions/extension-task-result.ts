@@ -43,6 +43,30 @@ async function handleSendSuccess(task: TaskRow) {
   const result = (task.result ?? {}) as { sentAt?: string; conversationUrl?: string };
   const payload = (task.payload ?? {}) as { text?: string };
 
+  if (task.jobChangeId) {
+    const change = await prisma.contactJobChange.findUnique({
+      where: { id: task.jobChangeId },
+      select: { id: true, contactId: true },
+    });
+    if (change) {
+      const sent = await prisma.sentMessage.create({
+        data: {
+          senderId: task.userId,
+          actorId: task.userId,
+          contactId: change.contactId,
+          body: payload.text ?? "",
+          status: "SENT",
+          sentAt: result.sentAt ? new Date(result.sentAt) : new Date(),
+        },
+      });
+      await prisma.contactJobChange.update({
+        where: { id: change.id },
+        data: { status: "SENT", sentAt: sent.sentAt },
+      });
+    }
+    return;
+  }
+
   if (task.recipientId) {
     const recipient = await prisma.campaignRecipient.findUnique({
       where: { id: task.recipientId },
@@ -126,6 +150,16 @@ async function handleSendFailure(task: TaskRow) {
       },
     });
   }
+  if (task.jobChangeId) {
+    // Return to the review queue so the user can simply re-approve; the failed
+    // task's error is surfaced on the row by the job-changes GET endpoint.
+    await prisma.contactJobChange.updateMany({
+      where: { id: task.jobChangeId, status: "APPROVED" },
+      data: { status: "PENDING_REVIEW" },
+    });
+    return;
+  }
+
   if (task.recipientId) {
     await prisma.campaignRecipient.update({
       where: { id: task.recipientId },
