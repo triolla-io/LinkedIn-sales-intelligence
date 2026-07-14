@@ -1,23 +1,13 @@
 import { NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
+import {
+  buildContactWhere,
+  parseArrayParam,
+  type ContactFilterParams,
+} from "@/lib/contacts/contact-where";
 
 export const dynamic = "force-dynamic";
-
-const COMPANY_SIZE_BUCKETS: Record<string, [number, number | null]> = {
-  "1-10": [1, 10],
-  "11-50": [11, 50],
-  "51-200": [51, 200],
-  "201-500": [201, 500],
-  "501-1000": [501, 1000],
-  "1001-5000": [1001, 5000],
-  "5001+": [5001, null],
-};
-
-function parseArrayParam(raw: string | null): string[] | undefined {
-  if (!raw) return undefined;
-  return raw.split(",").filter(Boolean);
-}
 
 function escapeCsv(v: unknown): string {
   return `"${String(v ?? "").replace(/"/g, '""')}"`;
@@ -26,78 +16,21 @@ function escapeCsv(v: unknown): string {
 export const GET = withTenant(async (req, ctx) => {
   const url = req.nextUrl;
 
-  const q = url.searchParams.get("q") ?? undefined;
-  const seniority = parseArrayParam(url.searchParams.get("seniority"));
-  const functionFilter = parseArrayParam(url.searchParams.get("function"));
-  const titleSearch = parseArrayParam(url.searchParams.get("titleSearch"));
-  const industry = parseArrayParam(url.searchParams.get("industry"));
-  const company = parseArrayParam(url.searchParams.get("company"));
-  const location = parseArrayParam(url.searchParams.get("location"));
-  const companySizeBuckets = parseArrayParam(url.searchParams.get("companySizeBuckets"));
-  const hasEmail = url.searchParams.get("hasEmail");
-  const hasPhone = url.searchParams.get("hasPhone");
-  const listId = url.searchParams.get("listId") ?? undefined;
-
-  const sizeConditions =
-    companySizeBuckets
-      ?.map((bucket) => COMPANY_SIZE_BUCKETS[bucket])
-      .filter(Boolean)
-      .map(([min, max]) => {
-        const range = max !== null ? { gte: min, lte: max } : { gte: min };
-        return {
-          OR: [
-            { companySize: range },
-            { company: { staffCount: range } },
-          ],
-        };
-      }) ?? [];
-
-  const andClauses: any[] = [];
-  if (q) {
-    andClauses.push({
-      OR: [
-        { fullName: { contains: q, mode: "insensitive" } },
-        { headline: { contains: q, mode: "insensitive" } },
-        { currentCompany: { contains: q, mode: "insensitive" } },
-        { currentTitle: { contains: q, mode: "insensitive" } },
-      ],
-    });
-  }
-  if (titleSearch?.length) {
-    andClauses.push({
-      OR: titleSearch.map((t) => ({
-        OR: [
-          { currentTitle: { contains: t, mode: "insensitive" as const } },
-          { headline: { contains: t, mode: "insensitive" as const } },
-        ],
-      })),
-    });
-  }
-  if (industry?.length) {
-    andClauses.push({
-      OR: industry.map((i) => ({
-        industry: { contains: i, mode: "insensitive" as const },
-      })),
-    });
-  }
-  if (sizeConditions.length) {
-    andClauses.push({ OR: sizeConditions });
-  }
-
-  const where: any = {
-    ownerId: ctx.effectiveUserId,
-    removedAt: null,
-    ...(seniority?.length ? { seniority: { in: seniority as any } } : {}),
-    ...(functionFilter?.length ? { function: { in: functionFilter as any } } : {}),
-    ...(company?.length ? { currentCompany: { in: company } } : {}),
-    ...(location?.length ? { location: { in: location } } : {}),
-    ...(hasEmail === "true" ? { email: { not: null } } : {}),
-    ...(hasEmail === "false" ? { email: null } : {}),
-    ...(hasPhone === "true" ? { phone: { not: null } } : {}),
-    ...(hasPhone === "false" ? { phone: null } : {}),
-    ...(andClauses.length ? { AND: andClauses } : {}),
-    ...(listId ? { lists: { some: { listId } } } : {}),
+  const params: ContactFilterParams = {
+    q: url.searchParams.get("q") ?? undefined,
+    seniority: parseArrayParam(url.searchParams.get("seniority")),
+    function: parseArrayParam(url.searchParams.get("function")),
+    titleSearch: parseArrayParam(url.searchParams.get("titleSearch")),
+    industry: parseArrayParam(url.searchParams.get("industry")),
+    company: parseArrayParam(url.searchParams.get("company")),
+    location: parseArrayParam(url.searchParams.get("location")),
+    companySizeBuckets: parseArrayParam(url.searchParams.get("companySizeBuckets")),
+    hasEmail: (url.searchParams.get("hasEmail") as "true" | "false") ?? undefined,
+    hasPhone: (url.searchParams.get("hasPhone") as "true" | "false") ?? undefined,
+    listId: url.searchParams.get("listId") ?? undefined,
   };
+
+  const where = buildContactWhere(ctx.effectiveUserId, params);
 
   try {
     const rows = await prisma.contact.findMany({
