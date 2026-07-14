@@ -1,7 +1,9 @@
 "use client";
 
 import { useReducer } from "react";
+import { Switch } from "@heroui/react";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
+import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
 import { PartyPopper, Loader2, ExternalLink } from "lucide-react";
 
 type Change = {
@@ -24,6 +26,9 @@ export default function JobChangesPage() {
     { changes: [], loading: true }
   );
 
+  const { modules, setModule } = useRoutineModules();
+  const jobChecksOn = modules?.jobChecksEnabled ?? false;
+
   async function fetchChanges() {
     try {
       const res = await fetch("/api/job-changes");
@@ -40,9 +45,32 @@ export default function JobChangesPage() {
 
   return (
     <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]" dir="rtl">
-      <div className="flex items-center gap-2 px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
-        <PartyPopper className="w-5 h-5 text-[#c2410c]" />
-        <h1 className="text-lg font-semibold">עדכוני תפקיד</h1>
+      <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
+        <div className="flex items-center gap-2">
+          <PartyPopper className="w-5 h-5 text-[#c2410c]" />
+          <h1 className="text-lg font-semibold">עדכוני תפקיד</h1>
+        </div>
+        {modules && (
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-medium ${jobChecksOn ? "text-[#059669]" : "text-[#b45309]"}`}>
+              {jobChecksOn ? "המודול פעיל" : "המודול כבוי"}
+            </span>
+            <Switch
+              size="sm"
+              isSelected={jobChecksOn}
+              onChange={(v: boolean) => setModule("jobChecks", v)}
+              aria-label="הפעלת מודול עדכוני תפקיד"
+            >
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch>
+          </div>
+        )}
+      </div>
+
+      <div className="px-5 py-2.5 bg-[#fffbeb] border-b border-[#fde68a] text-xs text-[#b45309]">
+        הבדיקה האוטומטית מושבתת זמנית לתחזוקה. ההעדפה נשמרת ותוחל כשהבדיקות יחזרו לפעול.
       </div>
 
       <div className="flex-1 p-5">
