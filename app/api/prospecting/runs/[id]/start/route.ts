@@ -13,6 +13,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (run.status !== "DRAFT" && run.status !== "PAUSED") {
       return NextResponse.json({ error: "only DRAFT or PAUSED runs can be started" }, { status: 409 });
     }
+    const owner = await prisma.user.findUnique({
+      where: { id: ctx.effectiveUserId },
+      select: { routineConnectionsEnabled: true },
+    });
+    if (owner && !owner.routineConnectionsEnabled) {
+      return NextResponse.json({ error: "module_disabled" }, { status: 409 });
+    }
     await prisma.prospectingRun.update({ where: { id }, data: { status: "RUNNING" } });
     await inngest.send({ name: "prospecting.start" as const, data: { runId: id } });
     return NextResponse.json({ ok: true });

@@ -33,9 +33,15 @@ const navItems = [
   { href: "/dashboard", label: "דשבורד", icon: LayoutDashboard },
   { href: "/contacts", label: "אנשי קשר", icon: Users },
   { href: "/lists", label: "רשימות תפוצה", icon: BookMarked },
-  { href: "/job-changes", label: "עדכוני תפקיד", icon: PartyPopper },
   { href: "/campaigns", label: "קמפיינים", icon: GitBranch },
-  { href: "/prospecting", label: "Routine", icon: Search },
+];
+
+const routineItems = [
+  { href: "/routine/connections", label: "בקשות חברות", icon: Search },
+  { href: "/routine/job-changes", label: "עדכוני תפקיד", icon: PartyPopper },
+];
+
+const secondaryItems = [
   { href: "/templates", label: "טמפלטים", icon: FileText },
   { href: "/import", label: "ייבוא נתונים", icon: Upload },
   { href: "/settings", label: "הגדרות", icon: Settings },
@@ -52,6 +58,27 @@ async function handleSignOut() {
 export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
+
+  const renderNavLink = ({ href, label, icon: Icon }: { href: string; label: string; icon: typeof Users }) => {
+    const active = href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
+    return (
+      <Link
+        key={href}
+        href={href}
+        title={collapsed ? label : undefined}
+        className={cn(
+          "flex items-center rounded-md text-sm transition-colors",
+          collapsed ? "justify-center p-2" : "gap-2.5 px-2.5 py-2",
+          active
+            ? "bg-[#eff5ff] text-[#1585ff] font-medium"
+            : "text-[#6b6866] hover:bg-[#f3f2ef] hover:text-[#111110]"
+        )}
+      >
+        <Icon className="size-4 shrink-0" />
+        {!collapsed && label}
+      </Link>
+    );
+  };
 
   return (
     <aside className="flex flex-col h-full bg-white border-l border-[#e5e3df] overflow-hidden">
@@ -86,28 +113,19 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
               : <ChevronRight className="size-3.5" />}
           </button>
         </div>
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const active = href === "/dashboard"
-            ? pathname === "/dashboard"
-            : pathname.startsWith(href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              title={collapsed ? label : undefined}
-              className={cn(
-                "flex items-center rounded-md text-sm transition-colors",
-                collapsed ? "justify-center p-2" : "gap-2.5 px-2.5 py-2",
-                active
-                  ? "bg-[#eff5ff] text-[#1585ff] font-medium"
-                  : "text-[#6b6866] hover:bg-[#f3f2ef] hover:text-[#111110]"
-              )}
-            >
-              <Icon className="size-4 shrink-0" />
-              {!collapsed && label}
-            </Link>
-          );
-        })}
+        {navItems.map(renderNavLink)}
+
+        {!collapsed && (
+          <p className="px-2.5 mt-5 mb-2 text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest">
+            Routine
+          </p>
+        )}
+        {collapsed && <div className="my-2 border-t border-[#e5e3df]" />}
+        {routineItems.map(renderNavLink)}
+
+        {!collapsed && <div className="mt-5" />}
+        {collapsed && <div className="my-2 border-t border-[#e5e3df]" />}
+        {secondaryItems.map(renderNavLink)}
 
         {isAdmin && (
           <>
@@ -117,26 +135,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
               </p>
             )}
             {collapsed && <div className="my-2 border-t border-[#e5e3df]" />}
-            {adminItems.map(({ href, label, icon: Icon }) => {
-              const active = pathname.startsWith(href);
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  title={collapsed ? label : undefined}
-                  className={cn(
-                    "flex items-center rounded-md text-sm transition-colors",
-                    collapsed ? "justify-center p-2" : "gap-2.5 px-2.5 py-2",
-                    active
-                      ? "bg-[#eff5ff] text-[#1585ff] font-medium"
-                      : "text-[#6b6866] hover:bg-[#f3f2ef] hover:text-[#111110]"
-                  )}
-                >
-                  <Icon className="size-4 shrink-0" />
-                  {!collapsed && label}
-                </Link>
-              );
-            })}
+            {adminItems.map(renderNavLink)}
           </>
         )}
       </nav>

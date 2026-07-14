@@ -111,6 +111,7 @@ model Organization {
   name                String
   syncCadenceDays     Int      @default(3)
   monthlyApolloBudget Int      @default(500)
+  jobCheckEnabled     Boolean  @default(false)
   createdAt           DateTime @default(now())
 
   users             User[]
@@ -130,6 +131,7 @@ model User {
   role          Role      @default(SALESPERSON)
   timezone        String    @default("Asia/Jerusalem")
   emailSignature  String?   @db.Text
+  routineConnectionsEnabled Boolean @default(true)
   createdAt       DateTime  @default(now())
 
   org             Organization      @relation(fields: [orgId], references: [id])

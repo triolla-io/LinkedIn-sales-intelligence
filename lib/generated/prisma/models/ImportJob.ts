@@ -729,10 +729,6 @@ export type EnumImportJobStatusFieldUpdateOperationsInput = {
   set?: $Enums.ImportJobStatus
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type ImportJobCreateWithoutOwnerInput = {
   id?: string
   fileName: string
