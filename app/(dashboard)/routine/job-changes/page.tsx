@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducer, useState } from "react";
-import { Button, Chip, Switch, TextArea } from "@heroui/react";
+import { Button, Chip, TextArea, Switch } from "@heroui/react";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
 import { PartyPopper, Loader2, ExternalLink } from "lucide-react";
@@ -85,6 +85,12 @@ export default function JobChangesPage() {
           </div>
         )}
       </div>
+
+      {modules && !jobChecksOn && (
+        <div className="px-5 py-2.5 bg-[#fffbeb] border-b border-[#fde68a] text-xs text-[#b45309]">
+          הבדיקה האוטומטית מושבתת זמנית לתחזוקה. ההעדפה נשמרת ותוחל כשהבדיקות יחזרו לפעול.
+        </div>
+      )}
 
       <div className="flex-1 p-5">
         {state.loading ? (
