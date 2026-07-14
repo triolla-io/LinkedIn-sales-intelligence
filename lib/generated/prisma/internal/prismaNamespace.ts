@@ -2959,6 +2959,7 @@ export const OrganizationScalarFieldEnum = {
   name: 'name',
   syncCadenceDays: 'syncCadenceDays',
   monthlyApolloBudget: 'monthlyApolloBudget',
+  jobCheckEnabled: 'jobCheckEnabled',
   createdAt: 'createdAt'
 } as const
 
@@ -2976,6 +2977,7 @@ export const UserScalarFieldEnum = {
   role: 'role',
   timezone: 'timezone',
   emailSignature: 'emailSignature',
+  routineConnectionsEnabled: 'routineConnectionsEnabled',
   createdAt: 'createdAt'
 } as const
 
@@ -3543,6 +3545,13 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'Role'
  */
 export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
@@ -3679,13 +3688,6 @@ export type EnumImportJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$
  * Reference to a field of type 'ImportJobStatus[]'
  */
 export type ListEnumImportJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ImportJobStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 

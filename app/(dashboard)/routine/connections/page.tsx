@@ -4,9 +4,12 @@ import { useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { Play, Pause, Loader2, Search } from "lucide-react";
+import { Switch } from "@heroui/react";
 import { IndustrySelect } from "@/components/dashboard/industry-select";
 import { SendWindowPicker, type SendWindow } from "@/components/prospecting/send-window-picker";
 import { DEFAULT_SEND_DAYS, DEFAULT_SEND_HOURS_START, DEFAULT_SEND_HOURS_END } from "@/lib/prospecting/send-window";
+import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
+import { cn } from "@/lib/cn";
 
 type ProspectingRun = {
   id: string;
@@ -18,7 +21,7 @@ type ProspectingRun = {
   weeklyCap: number;
 };
 
-type RunsResponse = { runs: ProspectingRun[] };
+type RunsResponse = { runs: ProspectingRun[]; sentToday: number };
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
@@ -44,6 +47,8 @@ const DEFAULT_WINDOW: SendWindow = {
 
 export default function ProspectingPage() {
   const { data, mutate } = useSWR<RunsResponse>("/api/prospecting/runs", fetcher);
+  const { modules, setModule } = useRoutineModules();
+  const connectionsOn = modules?.connectionsEnabled ?? true;
   const [name, setName] = useState("");
   const [keywords, setKeywords] = useState("");
   const [geoCode, setGeoCode] = useState("IL");
@@ -72,18 +77,16 @@ export default function ProspectingPage() {
     mutate();
   }
 
-  async function startRun(id: string) {
-    setActionId(id);
-    await fetch(`/api/prospecting/runs/${id}/start`, { method: "POST" });
-    setActionId(null);
-    mutate();
-  }
-
-  async function pauseRun(id: string) {
-    setActionId(id);
-    await fetch(`/api/prospecting/runs/${id}/pause`, { method: "POST" });
-    setActionId(null);
-    mutate();
+  async function runAction(runId: string, action: "start" | "pause") {
+    if (actionId) return; // one run action at a time
+    // Updater form: react-doctor's no-impure-state-updater misreads a plain identifier arg here.
+    setActionId(() => runId);
+    try {
+      await fetch(`/api/prospecting/runs/${runId}/${action}`, { method: "POST" });
+    } finally {
+      setActionId(null);
+      mutate();
+    }
   }
 
   const runs = data?.runs ?? [];
@@ -94,12 +97,37 @@ export default function ProspectingPage() {
       <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <Search className="size-4 text-[#9b9895]" />
-          <h1 className="text-sm font-semibold text-[#111110]">רוטין</h1>
+          <h1 className="text-sm font-semibold text-[#111110]">בקשות חברות</h1>
           {data && (
-            <span className="text-xs font-mono text-[#9b9895]">{runs.length} ריצות</span>
+            <span className="text-xs font-mono text-[#9b9895]">
+              {runs.filter((r) => r.status === "RUNNING").length} ריצות פעילות · {data.sentToday ?? 0} נשלחו היום
+            </span>
           )}
         </div>
+        {modules && (
+          <div className="flex items-center gap-2" dir="rtl">
+            <span className={cn("text-xs font-medium", connectionsOn ? "text-[#059669]" : "text-[#b45309]")}>
+              {connectionsOn ? "המודול פעיל" : "המודול כבוי"}
+            </span>
+            <Switch
+              size="sm"
+              isSelected={connectionsOn}
+              onChange={(v: boolean) => setModule("connections", v)}
+              aria-label="הפעלת מודול בקשות חברות"
+            >
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch>
+          </div>
+        )}
       </div>
+
+      {!connectionsOn && (
+        <div className="px-5 py-2.5 bg-[#fffbeb] border-b border-[#fde68a] text-xs text-[#b45309]" dir="rtl">
+          המודול כבוי — כל הריצות מושהות. לא יישלחו בקשות חברות עד שהמודול יופעל מחדש.
+        </div>
+      )}
 
       <div className="px-5 pt-5 pb-8 space-y-6">
         {/* New Run Form */}
@@ -220,7 +248,7 @@ export default function ProspectingPage() {
                   <tr key={run.id} className="hover:bg-[#fafaf9] transition-colors">
                     <td className="px-4 py-3">
                       <Link
-                        href={`/prospecting/${run.id}`}
+                        href={`/routine/connections/${run.id}`}
                         className="font-medium text-[#111110] hover:text-[#1585ff] transition-colors"
                       >
                         {run.name}
@@ -229,10 +257,14 @@ export default function ProspectingPage() {
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                          STATUS_COLORS[run.status] ?? "bg-[#f3f2ef] text-[#6b6866]"
+                          !connectionsOn && run.status === "RUNNING"
+                            ? "bg-[#fffbeb] text-[#b45309]"
+                            : STATUS_COLORS[run.status] ?? "bg-[#f3f2ef] text-[#6b6866]"
                         }`}
                       >
-                        {STATUS_LABELS[run.status] ?? run.status}
+                        {!connectionsOn && run.status === "RUNNING"
+                          ? "מושהה ע״י המודול"
+                          : STATUS_LABELS[run.status] ?? run.status}
                       </span>
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-[#6b6866]">
@@ -245,8 +277,8 @@ export default function ProspectingPage() {
                       {(run.status === "DRAFT" || run.status === "PAUSED") && (
                         <button
                           type="button"
-                          onClick={() => startRun(run.id)}
-                          disabled={actionId === run.id}
+                          onClick={() => runAction(run.id, "start")}
+                          disabled={actionId === run.id || !connectionsOn}
                           className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[#1585ff] border border-[#1585ff]/30 hover:bg-[#1585ff]/5 hover:border-[#1585ff]/50 rounded-md transition-all disabled:opacity-50"
                         >
                           {actionId === run.id ? (
@@ -260,7 +292,7 @@ export default function ProspectingPage() {
                       {run.status === "RUNNING" && (
                         <button
                           type="button"
-                          onClick={() => pauseRun(run.id)}
+                          onClick={() => runAction(run.id, "pause")}
                           disabled={actionId === run.id}
                           className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[#dc2626] border border-[#dc2626]/30 hover:bg-[#dc2626]/5 hover:border-[#dc2626]/50 rounded-md transition-all disabled:opacity-50"
                         >

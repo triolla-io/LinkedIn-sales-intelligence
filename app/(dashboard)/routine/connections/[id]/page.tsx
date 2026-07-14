@@ -241,7 +241,7 @@ export default function ProspectingRunDetailPage({
     <div dir="rtl" className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
       {/* Header */}
       <div className="relative flex items-center px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
-        <Link href="/prospecting" className="text-[#9b9895] hover:text-[#6b6866] transition-colors absolute right-5">
+        <Link href="/routine/connections" className="text-[#9b9895] hover:text-[#6b6866] transition-colors absolute right-5">
           <ArrowRight className="size-4" />
         </Link>
         <div className="flex items-center gap-3 mr-8">

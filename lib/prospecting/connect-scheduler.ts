@@ -59,6 +59,17 @@ export async function queueNextConnect(runId: string): Promise<string | null> {
       return null;
     }
 
+    // Connections module master switch: owner turned it off → effective pause.
+    // Release the slot and queue nothing; run statuses are never mutated by the toggle.
+    const ownerFlags = await prisma.user.findUnique({
+      where: { id: run.ownerId },
+      select: { routineConnectionsEnabled: true },
+    });
+    if (ownerFlags && !ownerFlags.routineConnectionsEnabled) {
+      await releaseConnectSlot(runId);
+      return null;
+    }
+
     // Atomically claim the oldest DISCOVERED candidate. Clean "Connect"-card candidates
     // (sendPriority 0) drain first; Follow/Message-card ones (priority 1) are tried last.
     const next = await prisma.connectionRequest.findFirst({

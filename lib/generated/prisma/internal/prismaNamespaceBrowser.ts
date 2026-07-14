@@ -144,6 +144,7 @@ export const OrganizationScalarFieldEnum = {
   name: 'name',
   syncCadenceDays: 'syncCadenceDays',
   monthlyApolloBudget: 'monthlyApolloBudget',
+  jobCheckEnabled: 'jobCheckEnabled',
   createdAt: 'createdAt'
 } as const
 
@@ -161,6 +162,7 @@ export const UserScalarFieldEnum = {
   role: 'role',
   timezone: 'timezone',
   emailSignature: 'emailSignature',
+  routineConnectionsEnabled: 'routineConnectionsEnabled',
   createdAt: 'createdAt'
 } as const
 

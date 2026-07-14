@@ -55,10 +55,16 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   return withTenant(async (_r: NextRequest, ctx) => {
-    const runs = await prisma.prospectingRun.findMany({
-      where: { ownerId: ctx.effectiveUserId },
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json({ runs });
+    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const [runs, sentToday] = await Promise.all([
+      prisma.prospectingRun.findMany({
+        where: { ownerId: ctx.effectiveUserId },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.connectionRequest.count({
+        where: { ownerId: ctx.effectiveUserId, status: "SENT", sentAt: { gte: dayAgo } },
+      }),
+    ]);
+    return NextResponse.json({ runs, sentToday });
   })(req);
 }
