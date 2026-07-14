@@ -593,6 +593,40 @@ export type EnumProspectingEventTypeWithAggregatesFilter<$PrismaModel = never> =
   _max?: Prisma.NestedEnumProspectingEventTypeFilter<$PrismaModel>
 }
 
+export type EnumJobChangeStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobChangeStatus | Prisma.EnumJobChangeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.JobChangeStatus[] | Prisma.ListEnumJobChangeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.JobChangeStatus[] | Prisma.ListEnumJobChangeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumJobChangeStatusFilter<$PrismaModel> | $Enums.JobChangeStatus
+}
+
+export type EnumJobChangeTypeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobChangeType | Prisma.EnumJobChangeTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.JobChangeType[] | Prisma.ListEnumJobChangeTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.JobChangeType[] | Prisma.ListEnumJobChangeTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumJobChangeTypeNullableFilter<$PrismaModel> | $Enums.JobChangeType | null
+}
+
+export type EnumJobChangeStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobChangeStatus | Prisma.EnumJobChangeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.JobChangeStatus[] | Prisma.ListEnumJobChangeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.JobChangeStatus[] | Prisma.ListEnumJobChangeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumJobChangeStatusWithAggregatesFilter<$PrismaModel> | $Enums.JobChangeStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumJobChangeStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumJobChangeStatusFilter<$PrismaModel>
+}
+
+export type EnumJobChangeTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobChangeType | Prisma.EnumJobChangeTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.JobChangeType[] | Prisma.ListEnumJobChangeTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.JobChangeType[] | Prisma.ListEnumJobChangeTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumJobChangeTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.JobChangeType | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumJobChangeTypeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumJobChangeTypeNullableFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1129,6 +1163,40 @@ export type NestedEnumProspectingEventTypeWithAggregatesFilter<$PrismaModel = ne
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumProspectingEventTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumProspectingEventTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumJobChangeStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobChangeStatus | Prisma.EnumJobChangeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.JobChangeStatus[] | Prisma.ListEnumJobChangeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.JobChangeStatus[] | Prisma.ListEnumJobChangeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumJobChangeStatusFilter<$PrismaModel> | $Enums.JobChangeStatus
+}
+
+export type NestedEnumJobChangeTypeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobChangeType | Prisma.EnumJobChangeTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.JobChangeType[] | Prisma.ListEnumJobChangeTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.JobChangeType[] | Prisma.ListEnumJobChangeTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumJobChangeTypeNullableFilter<$PrismaModel> | $Enums.JobChangeType | null
+}
+
+export type NestedEnumJobChangeStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobChangeStatus | Prisma.EnumJobChangeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.JobChangeStatus[] | Prisma.ListEnumJobChangeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.JobChangeStatus[] | Prisma.ListEnumJobChangeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumJobChangeStatusWithAggregatesFilter<$PrismaModel> | $Enums.JobChangeStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumJobChangeStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumJobChangeStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumJobChangeTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobChangeType | Prisma.EnumJobChangeTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.JobChangeType[] | Prisma.ListEnumJobChangeTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.JobChangeType[] | Prisma.ListEnumJobChangeTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumJobChangeTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.JobChangeType | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumJobChangeTypeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumJobChangeTypeNullableFilter<$PrismaModel>
 }
 
 
