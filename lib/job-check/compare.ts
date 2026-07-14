@@ -5,7 +5,8 @@
  */
 
 // Suffix tokens stripped repeatedly from the end of a company name. Hebrew בע"מ
-// loses its gershayim during punctuation stripping, so only the bare form is listed.
+// has its gershayim stripped to empty (not space) before punctuation sweep, so
+// it collapses to a single token בעמ.
 const LEGAL_SUFFIX_TOKENS = new Set([
   "ltd",
   "limited",
@@ -19,14 +20,13 @@ const LEGAL_SUFFIX_TOKENS = new Set([
   "group",
   "holdings",
   "בעמ",
-  "בע",
-  "מ",
 ]);
 
 function baseNormalize(raw: string | null): string {
   if (!raw) return "";
   return raw
     .toLowerCase()
+    .replace(/[״"'']/g, "")
     .replace(/&/g, " and ")
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .replace(/\s+/g, " ")

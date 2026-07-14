@@ -36,6 +36,11 @@ describe("normalizeCompany", () => {
     expect(normalizeCompany("Company Ltd")).toBe("company");
   });
 
+  it("does not strip a real trailing Hebrew word that is not a legal suffix", () => {
+    expect(normalizeCompany("תעשיות ים")).toBe("תעשיות ים");
+    expect(normalizeCompany("מ")).toBe("מ");
+  });
+
   it("returns empty string for null/blank", () => {
     expect(normalizeCompany(null)).toBe("");
     expect(normalizeCompany("   ")).toBe("");
