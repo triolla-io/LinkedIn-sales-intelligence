@@ -132,7 +132,7 @@ export const ROLE_FAMILIES: RoleFamily[] = [
   },
 ];
 
-const QUOTE_CHARS = /["״'׳']/g; // " ״ ' ׳ '
+const QUOTE_CHARS = /["״'׳’“”]/g; // " ״ ' ׳ ’ “ ”
 
 /** Lowercase, strip quote-like chars, collapse whitespace. */
 export function normalizeRoleQuery(s: string): string {

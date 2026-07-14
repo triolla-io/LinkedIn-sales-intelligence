@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expandRoleQuery, normalizeRoleQuery } from "@/lib/roles/families";
+import { expandRoleQuery, normalizeRoleQuery, ROLE_FAMILIES } from "@/lib/roles/families";
 import { ROLE_PILLS } from "@/lib/contacts/filter-options";
 
 describe("normalizeRoleQuery", () => {
@@ -10,6 +10,14 @@ describe("normalizeRoleQuery", () => {
   it("strips ASCII quotes and Hebrew gershayim/geresh", () => {
     expect(normalizeRoleQuery('סמנכ"ל מוצר')).toBe("סמנכל מוצר");
     expect(normalizeRoleQuery("סמנכ״ל מוצר")).toBe("סמנכל מוצר");
+  });
+
+  it("strips curly double quote U+201D", () => {
+    expect(normalizeRoleQuery("סמנכ”ל מוצר")).toBe("סמנכל מוצר");
+  });
+
+  it("strips curly apostrophe U+2019", () => {
+    expect(normalizeRoleQuery("מנכ’ל")).toBe("מנכל");
   });
 });
 
@@ -54,5 +62,21 @@ describe("expandRoleQuery", () => {
     const patterns = expandRoleQuery("CEO")!;
     expect(patterns).toContain("chief executive officer");
     expect(patterns).toContain('מנכ"ל');
+  });
+});
+
+describe("ROLE_FAMILIES integrity", () => {
+  it("no two families share a normalized trigger", () => {
+    const allNormalized = ROLE_FAMILIES.flatMap((f) =>
+      f.triggers.map((t) => normalizeRoleQuery(t))
+    );
+    const unique = new Set(allNormalized);
+    const duplicates = allNormalized.filter(
+      (t, i) => allNormalized.indexOf(t) !== i
+    );
+    expect(
+      allNormalized.length,
+      `Duplicate normalized triggers found: ${[...new Set(duplicates)].join(", ")}`
+    ).toBe(unique.size);
   });
 });
