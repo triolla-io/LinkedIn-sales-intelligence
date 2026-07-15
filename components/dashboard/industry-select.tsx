@@ -31,7 +31,8 @@ export function IndustrySelect({ value, onChange }: Props) {
       : SUGGESTED_INDUSTRY_IDS.map((id) => INDUSTRY_BY_ID.get(id)).filter(
           (i): i is NonNullable<typeof i> => i !== undefined
         );
-    return matches.filter((i) => !value.includes(i.id));
+    const selected = new Set(value);
+    return matches.filter((i) => !selected.has(i.id));
   }, [query, value]);
 
   function add(id: string) {

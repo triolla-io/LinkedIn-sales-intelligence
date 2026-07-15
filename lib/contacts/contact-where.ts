@@ -106,9 +106,10 @@ export function buildContactWhere(
   }
 
   if (!skip.has("size")) {
-    const sizeConditions = (params.companySizeBuckets ?? [])
-      .map(sizeCondition)
-      .filter(Boolean);
+    const sizeConditions = (params.companySizeBuckets ?? []).flatMap((b) => {
+      const c = sizeCondition(b);
+      return c ? [c] : [];
+    });
     if (sizeConditions.length) {
       andClauses.push({ OR: sizeConditions });
     }

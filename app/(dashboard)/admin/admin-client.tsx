@@ -17,6 +17,7 @@ type UserRow = {
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+  timeZone: "Asia/Jerusalem",
 });
 
 function formatDate(iso: string | null): string {

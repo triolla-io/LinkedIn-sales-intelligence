@@ -257,6 +257,7 @@ export default function CampaignBuilder({
                       type="button"
                       onClick={() => moveStep(step.localId, "up")}
                       disabled={idx === 0}
+                      aria-label="הזז שלב למעלה"
                       className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
                     >
                       <ChevronUp size={16} />
@@ -265,6 +266,7 @@ export default function CampaignBuilder({
                       type="button"
                       onClick={() => moveStep(step.localId, "down")}
                       disabled={idx === steps.length - 1}
+                      aria-label="הזז שלב למטה"
                       className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
                     >
                       <ChevronDown size={16} />
@@ -273,6 +275,7 @@ export default function CampaignBuilder({
                       <button
                         type="button"
                         onClick={() => removeStep(step.localId)}
+                        aria-label="מחק שלב"
                         className="p-1 rounded hover:bg-red-50 text-red-500"
                       >
                         <Trash2 size={16} />

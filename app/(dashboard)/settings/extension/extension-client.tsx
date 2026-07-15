@@ -165,6 +165,7 @@ export function ExtensionClient({
                     <button
                       type="button"
                       onClick={() => copyToken(rawToken)}
+                      aria-label="העתקי token"
                       className="shrink-0 text-[#1585ff] hover:text-[#0f6fd4]"
                     >
                       {copied ? (

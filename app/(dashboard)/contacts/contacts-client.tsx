@@ -195,7 +195,9 @@ export default function ContactsClient({
     }
   }
 
-  fetchDataRef.current = fetchData;
+  useEffect(() => {
+    fetchDataRef.current = fetchData;
+  });
 
   const stableRefresh = useCallback(() => { fetchDataRef.current(); }, []);
   useAutoRefresh(stableRefresh, 30_000);

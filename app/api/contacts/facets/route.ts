@@ -44,13 +44,13 @@ export const GET = withTenant(async (req, ctx) => {
   // Count the predefined pills plus any custom titles the user typed in.
   const titleValues = [
     ...new Set([
-      ...ROLE_PILLS.filter((p) => p.filterKey === "titleSearch").map((p) => p.value),
+      ...ROLE_PILLS.flatMap((p) => (p.filterKey === "titleSearch" ? [p.value] : [])),
       ...(params.titleSearch ?? []),
     ]),
   ];
   const functionValues = [
     ...new Set([
-      ...ROLE_PILLS.filter((p) => p.filterKey === "function").map((p) => p.value),
+      ...ROLE_PILLS.flatMap((p) => (p.filterKey === "function" ? [p.value] : [])),
       ...(params.function ?? []),
     ]),
   ];

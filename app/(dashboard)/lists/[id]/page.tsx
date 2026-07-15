@@ -172,7 +172,7 @@ export default function ListDetailPage() {
                 aria-label="שם הרשימה"
                 className="bg-[#f8f7f5] border border-[#1585ff]/60 rounded-md px-2 py-0.5 text-sm text-[#111110] focus:outline-none"
               />
-              <button type="button" onClick={saveName} disabled={state.savingName} className="text-[#1585ff] hover:text-[#0a70e0] transition-colors">
+              <button type="button" onClick={saveName} disabled={state.savingName} aria-label="שמור שם" className="text-[#1585ff] hover:text-[#0a70e0] transition-colors">
                 {state.savingName ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
               </button>
             </div>

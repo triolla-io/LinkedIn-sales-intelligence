@@ -45,6 +45,7 @@ function ToastItem({ toast }: { toast: ToastEntry }) {
       <button
         type="button"
         onClick={() => toastStore.dismiss(toast.id)}
+        aria-label="סגור התראה"
         className="shrink-0 opacity-50 hover:opacity-80 transition-opacity"
       >
         <X className="size-3.5" />

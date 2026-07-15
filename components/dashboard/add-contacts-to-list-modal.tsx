@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Loader2, UserPlus, X } from "lucide-react";
+import { usePortalTarget } from "@/lib/hooks/use-portal-target";
 
 type ContactResult = {
   id: string;
@@ -117,6 +118,7 @@ function ModalContent({
           <button
             type="button"
             onClick={onClose}
+            aria-label="סגור"
             className="text-[#9b9895] hover:text-[#6b6866] transition-colors"
           >
             <X className="w-4 h-4" />
@@ -229,6 +231,8 @@ export default function AddContactsToListModal({
   open,
   ...props
 }: AddContactsToListModalProps) {
-  if (!open) return null;
-  return createPortal(<ModalContent {...props} />, document.body);
+  const portalTarget = usePortalTarget();
+
+  if (!open || !portalTarget) return null;
+  return createPortal(<ModalContent {...props} />, portalTarget);
 }

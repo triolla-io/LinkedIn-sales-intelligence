@@ -292,7 +292,7 @@ export default function ProspectingRunDetailPage({
               <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">פעילות התוסף</h2>
               {taskStats.lastActivity && (
                 <span className="text-xs text-[#9b9895]">
-                  נראה לאחרונה: {new Date(taskStats.lastActivity).toLocaleString("he-IL")}
+                  נראה לאחרונה: {new Date(taskStats.lastActivity).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}
                 </span>
               )}
             </div>
@@ -342,7 +342,7 @@ export default function ProspectingRunDetailPage({
                         {!known && f.errorMessage && (
                           <span className="text-[#6b6866] truncate max-w-xs">{f.errorMessage}</span>
                         )}
-                        <span className="text-[#9b9895] ms-auto">{new Date(f.at).toLocaleTimeString("he-IL")}</span>
+                        <span className="text-[#9b9895] ms-auto">{new Date(f.at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem" })}</span>
                       </div>
                     );
                   })}
@@ -427,7 +427,7 @@ export default function ProspectingRunDetailPage({
                       {req.location ?? <span className="text-[#c8c5c2]">—</span>}
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-[#9b9895]">
-                      {new Date(req.sentAt ?? req.createdAt).toLocaleString("he-IL")}
+                      {new Date(req.sentAt ?? req.createdAt).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}
                     </td>
                   </tr>
                 ))}
@@ -442,11 +442,11 @@ export default function ProspectingRunDetailPage({
               <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">יומן פעילות</h2>
             </div>
             <ul className="divide-y divide-[#f3f2ef]">
-              {events.map((e, i) => (
-                <li key={`${e.type}-${e.createdAt}-${i}`} className="flex items-center gap-3 px-4 py-2 text-xs">
+              {events.map((e) => (
+                <li key={`${e.type}-${e.createdAt}-${e.connectionRequestId ?? ""}-${e.message ?? ""}`} className="flex items-center gap-3 px-4 py-2 text-xs">
                   <span className="font-mono text-[#6b6866] w-32 shrink-0 truncate">{EVENT_LABELS[e.type] ?? e.type}</span>
                   <span className="text-[#6b6866] truncate flex-1"><HumanMessage message={e.message} /></span>
-                  <span className="text-[#9b9895] shrink-0">{new Date(e.createdAt).toLocaleString("he-IL")}</span>
+                  <span className="text-[#9b9895] shrink-0">{new Date(e.createdAt).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}</span>
                 </li>
               ))}
             </ul>

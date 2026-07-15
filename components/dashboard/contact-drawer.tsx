@@ -64,11 +64,13 @@ const SENIORITY_COLOR: Record<string, string> = {
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short", day: "numeric", year: "numeric",
+  timeZone: "Asia/Jerusalem",
 });
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short", day: "numeric", year: "numeric",
   hour: "numeric", minute: "2-digit",
+  timeZone: "Asia/Jerusalem",
 });
 
 function formatDate(iso: string): string {
@@ -188,6 +190,7 @@ function ContactListsSection({
               {list.name}
               <button
                 type="button"
+                aria-label="הסר מרשימה"
                 onClick={async () => {
                   await fetch(`/api/lists/${list.id}/members`, {
                     method: "POST",
@@ -512,13 +515,13 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
   const pollAttemptsRef = useRef(0);
   const capturedPhoneRef = useRef<string | null | undefined>(undefined);
 
-  // Inline state adjustment when contact changes (avoids adjusting state in useEffect)
-  // Uses a ref to avoid triggering re-renders just for tracking the previous id.
-  // Starts as undefined so first render always syncs localContact from the prop.
-  const prevContactIdRef = useRef<string | null>(null);
+  // Inline state adjustment when the contact prop changes (avoids adjusting state in useEffect).
+  // Tracks the previous contact id in state; this setState-during-render batches with the
+  // resync below into one render. Starts as null so the first render with a contact syncs.
+  const [prevContactId, setPrevContactId] = useState<string | null>(null);
   const incomingId = contact?.id ?? null;
-  if (prevContactIdRef.current !== incomingId) {
-    prevContactIdRef.current = incomingId;
+  if (prevContactId !== incomingId) {
+    setPrevContactId(incomingId);
     setLocalContact(contact);
     dispatch({
       showEdit: false,
@@ -716,6 +719,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
               </div>
               <button
                 type="button"
+                aria-label="סגור"
                 onClick={onClose}
                 className="text-[#9b9895] hover:text-[#6b6866] transition-colors shrink-0 mt-0.5"
               >

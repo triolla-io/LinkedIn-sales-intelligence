@@ -1,8 +1,7 @@
 import { getApiBase, getToken } from "./storage";
 
 async function req(path: string, init: RequestInit = {}): Promise<Response> {
-  const base = await getApiBase();
-  const token = await getToken();
+  const [base, token] = await Promise.all([getApiBase(), getToken()]);
   if (!token) throw new Error("no_token");
   return fetch(base + path, {
     ...init,

@@ -104,17 +104,18 @@ server.tool(
     });
     if (!run) return json({ error: `No run ${run_id} owned by you` });
 
-    const byStatus = await prisma.connectionRequest.groupBy({
-      by: ["status"],
-      where: { runId: run_id, ownerId: oid },
-      _count: true,
-    });
-
-    const skipped = await prisma.connectionRequest.findMany({
-      where: { runId: run_id, ownerId: oid, status: "SKIPPED" },
-      select: { fullName: true, currentTitle: true, skipReason: true },
-      take: 25,
-    });
+    const [byStatus, skipped] = await Promise.all([
+      prisma.connectionRequest.groupBy({
+        by: ["status"],
+        where: { runId: run_id, ownerId: oid },
+        _count: true,
+      }),
+      prisma.connectionRequest.findMany({
+        where: { runId: run_id, ownerId: oid, status: "SKIPPED" },
+        select: { fullName: true, currentTitle: true, skipReason: true },
+        take: 25,
+      }),
+    ]);
 
     return json({ run, breakdown: byStatus, skipped });
   },

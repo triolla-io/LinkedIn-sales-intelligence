@@ -6,26 +6,27 @@ export async function GET(req: NextRequest) {
   return withTenant(async (_req, ctx) => {
     const now = new Date();
 
-    const executions = await prisma.sequenceStepExecution.findMany({
-      where: { status: "PENDING", enrollment: { ownerId: ctx.effectiveUserId } },
-      orderBy: { scheduledAt: "asc" },
-      take: 100,
-      include: {
-        enrollment: {
-          include: {
-            contact: { select: { fullName: true, phone: true, email: true } },
-            sequence: { select: { name: true } },
+    const [executions, tasks] = await Promise.all([
+      prisma.sequenceStepExecution.findMany({
+        where: { status: "PENDING", enrollment: { ownerId: ctx.effectiveUserId } },
+        orderBy: { scheduledAt: "asc" },
+        take: 100,
+        include: {
+          enrollment: {
+            include: {
+              contact: { select: { fullName: true, phone: true, email: true } },
+              sequence: { select: { name: true } },
+            },
           },
+          step: { select: { channel: true, stepNumber: true } },
         },
-        step: { select: { channel: true, stepNumber: true } },
-      },
-    });
-
-    const tasks = await prisma.extensionTask.findMany({
-      where: { userId: ctx.effectiveUserId, status: "PENDING" },
-      orderBy: { scheduledFor: "asc" },
-      take: 50,
-    });
+      }),
+      prisma.extensionTask.findMany({
+        where: { userId: ctx.effectiveUserId, status: "PENDING" },
+        orderBy: { scheduledFor: "asc" },
+        take: 50,
+      }),
+    ]);
 
     const formatDiff = (d: Date) => {
       const diffMin = Math.round((d.getTime() - now.getTime()) / 60_000);

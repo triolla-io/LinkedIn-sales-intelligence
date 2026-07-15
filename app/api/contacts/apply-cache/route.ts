@@ -33,9 +33,10 @@ export const POST = withTenant(async (_req, ctx) => {
   if (contacts.length === 0) return NextResponse.json({ updated: 0 });
 
   // Batch-lookup PersonEnrichment cache — filter out any empty-string normalized URLs
-  const normalizedUrls = contacts
-    .map((c) => normalizeLinkedinUrl(c.linkedinUrl!))
-    .filter(Boolean);
+  const normalizedUrls = contacts.flatMap((c) => {
+    const u = normalizeLinkedinUrl(c.linkedinUrl!);
+    return u ? [u] : [];
+  });
   const cached = await prisma.personEnrichment.findMany({
     where: { orgId, linkedinUrlNormalized: { in: normalizedUrls } },
     select: { linkedinUrlNormalized: true, email: true, phone: true },

@@ -29,9 +29,11 @@ export async function POST(req: NextRequest) {
 
   const nameReqs = dirtyNameReqs.filter((r) => PLUS_N.test(r.fullName ?? ""));
   const nameContacts = dirtyNameContacts.filter((c) => PLUS_N.test(c.fullName));
-  const phoneContacts = dirtyPhoneContacts
-    .filter((c): c is { id: string; phone: string } => c.phone !== null)
-    .filter((c) => normalizeApolloPhone(c.phone) !== c.phone);
+  const phoneContacts = dirtyPhoneContacts.flatMap((c) =>
+    c.phone !== null && normalizeApolloPhone(c.phone) !== c.phone
+      ? [c as { id: string; phone: string }]
+      : []
+  );
 
   await Promise.all([
     ...nameReqs.map((r) =>

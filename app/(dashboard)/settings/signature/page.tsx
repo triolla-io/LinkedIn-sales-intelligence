@@ -56,10 +56,11 @@ export default function SignatureSettingsPage() {
         העתק את החתימה שלך מ-Gmail (כולל לוגו ואייקונים) והדבק אותה כאן. החתימה תתווסף אוטומטית לכל אימייל פנייה.
       </p>
 
-      <label className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
+      <label htmlFor="signature-editor" className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
         החתימה שלך
       </label>
       <div
+        id="signature-editor"
         ref={editorRef}
         contentEditable={!state.loading}
         suppressContentEditableWarning
@@ -69,10 +70,10 @@ export default function SignatureSettingsPage() {
         style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: "14px", lineHeight: 1.5, color: "#222222" }}
       />
 
-      <label className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mt-6 mb-2">
+      <label htmlFor="signature-preview" className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mt-6 mb-2">
         תצוגה מקדימה
       </label>
-      <div className="border border-[#e5e3df] rounded-lg px-4 py-3 bg-[#fafaf9]">
+      <div id="signature-preview" className="border border-[#e5e3df] rounded-lg px-4 py-3 bg-[#fafaf9]">
         <div
           dir="auto"
           style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: "14px", lineHeight: 1.5, color: "#222222" }}

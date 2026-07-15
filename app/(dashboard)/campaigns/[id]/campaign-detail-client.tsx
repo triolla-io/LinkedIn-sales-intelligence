@@ -97,6 +97,7 @@ function nextStepDate(executions: Array<{ status: string; scheduledAt: Date | st
     day: "2-digit",
     month: "2-digit",
     year: "2-digit",
+    timeZone: "Asia/Jerusalem",
   });
 }
 
@@ -657,7 +658,7 @@ export default function CampaignDetailClient({
       setSequence((prev) => ({
         ...prev,
         enrollments: prev.enrollments.map((enr) =>
-          ids.includes(enr.id)
+          selectedIds.has(enr.id)
             ? {
                 ...enr,
                 status: "UNSUBSCRIBED",

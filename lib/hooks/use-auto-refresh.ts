@@ -7,7 +7,9 @@ export function useAutoRefresh(
   intervalMs: number = 30_000
 ): void {
   const fnRef = useRef(fn);
-  fnRef.current = fn;
+  useEffect(() => {
+    fnRef.current = fn;
+  });
 
   useEffect(() => {
     fnRef.current();

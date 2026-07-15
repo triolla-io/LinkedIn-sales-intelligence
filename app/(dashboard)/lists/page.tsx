@@ -163,7 +163,7 @@ export default function ListsPage() {
                       {list.memberCount} אנשי קשר
                     </p>
                     <p className="text-[10px] text-[#c8c5c2] mt-2">
-                      {new Date(list.createdAt).toLocaleDateString()}
+                      {new Date(list.createdAt).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" })}
                     </p>
                   </Link>
                   <button

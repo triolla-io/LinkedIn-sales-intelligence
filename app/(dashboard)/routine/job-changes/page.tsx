@@ -158,12 +158,12 @@ function ChangeCard({ change: c, onDone }: { change: Change; onDone: () => void 
           {c.status === "APPROVED" && <Chip size="sm" color="default">בתור לשליחה…</Chip>}
           {c.status === "SENT" && (
             <Chip size="sm" color="success">
-              נשלח {c.sentAt ? new Date(c.sentAt).toLocaleDateString("he-IL") : ""}
+              נשלח {c.sentAt ? new Date(c.sentAt).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" }) : ""}
             </Chip>
           )}
         </div>
         <span className="text-xs text-gray-400">
-          {new Date(c.detectedAt).toLocaleDateString("he-IL")}
+          {new Date(c.detectedAt).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" })}
         </span>
       </div>
 

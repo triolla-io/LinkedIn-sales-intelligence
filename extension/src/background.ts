@@ -155,9 +155,9 @@ async function gatherEnvHints(tabId: number): Promise<Record<string, unknown>> {
   try {
     if (chrome.management?.getAll) {
       const all = await chrome.management.getAll();
-      hints.extensions = all
-        .filter((x) => x.type === "extension")
-        .map((x) => ({ id: x.id, name: x.name, enabled: x.enabled }));
+      hints.extensions = all.flatMap((x) =>
+        x.type === "extension" ? [{ id: x.id, name: x.name, enabled: x.enabled }] : [],
+      );
     } else {
       hints.extensions = "management_api_unavailable";
     }
@@ -630,8 +630,7 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
       // Surface the buttons that WERE on screen in the error message itself, so the dashboard's
       // "recent failures" reveals exactly what LinkedIn rendered (vs. guessing at the dialog).
       const labels = afterButtons
-        .map(b => (b.text || b.aria || "").trim())
-        .filter(Boolean)
+        .flatMap(b => { const l = (b.text || b.aria || "").trim(); return l ? [l] : []; })
         .slice(0, 12)
         .join(" | ");
       throw withCode(new Error(`send_dialog_not_found; buttons=[${labels}]`), "already_or_blocked");

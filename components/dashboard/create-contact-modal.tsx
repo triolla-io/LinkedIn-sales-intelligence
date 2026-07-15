@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { usePortalTarget } from "@/lib/hooks/use-portal-target";
 import type { Contact } from "./contact-table";
 
 interface CreateContactModalProps {
@@ -42,10 +43,11 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const portalTarget = usePortalTarget();
 
   useEffect(() => {
-    dialogRef.current?.showModal();
-  }, []);
+    if (portalTarget) dialogRef.current?.showModal();
+  }, [portalTarget]);
 
   async function handleSave() {
     if (!form.fullName.trim()) {
@@ -81,6 +83,8 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
       setSaving(false);
     }
   }
+
+  if (!portalTarget) return null;
 
   return createPortal(
     <dialog
@@ -165,6 +169,6 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
           </button>
         </div>
     </dialog>,
-    document.body
+    portalTarget
   );
 }

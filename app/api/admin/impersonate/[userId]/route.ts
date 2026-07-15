@@ -4,8 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { recordAudit } from "@/lib/admin/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
-  const { userId } = await params;
-  const session = await auth();
+  const [{ userId }, session] = await Promise.all([params, auth()]);
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const actor = await prisma.user.findUnique({

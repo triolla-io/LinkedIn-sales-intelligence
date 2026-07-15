@@ -14,6 +14,18 @@ interface Template {
 
 const VARIABLE_CHIPS = ["{{firstName}}", "{{hebrewFirstName}}", "{{lastName}}", "{{company}}", "{{title}}"];
 
+const SAMPLE: Record<string, string> = {
+  firstName: "ארי",
+  hebrewFirstName: "ארי",
+  lastName: "לוי",
+  company: "Acme",
+  title: "מנכ״ל",
+  senderFirstName: "ישראל",
+  senderLastName: "ישראלי",
+  senderCompany: "Triolla",
+  senderTitle: "מנהל מכירות",
+};
+
 function HighlightedBody({ text }: { text: string }) {
   type Seg = { pos: number; content: string; isVar: boolean };
   const segments: Seg[] = [];
@@ -69,17 +81,6 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
     })();
   }, []);
 
-  const SAMPLE: Record<string, string> = {
-    firstName: "ארי",
-    hebrewFirstName: "ארי",
-    lastName: "לוי",
-    company: "Acme",
-    title: "מנכ״ל",
-    senderFirstName: "ישראל",
-    senderLastName: "ישראלי",
-    senderCompany: "Triolla",
-    senderTitle: "מנהל מכירות",
-  };
   const previewText = formState.body.replace(/\{\{([a-zA-Z]+)(?:\|([^}]*))?\}\}/g, (_m, name, fallback) =>
     SAMPLE[name] ?? (fallback ?? "")
   );
@@ -365,6 +366,7 @@ export default function TemplatesPage() {
                           month: "short",
                           day: "numeric",
                           year: "numeric",
+                          timeZone: "Asia/Jerusalem",
                         })}
                       </p>
                     </div>

@@ -52,9 +52,9 @@ export function NewCampaignModal({
   const [busy, setBusy] = useState(false);
   const router = useRouter();
 
-  const prevOpen = useRef(open);
-  if (open !== prevOpen.current) {
-    prevOpen.current = open;
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) dispatch({ type: "reset" });
   }
 
@@ -125,9 +125,10 @@ export function NewCampaignModal({
     <dialog
       ref={dialogRef}
       onClose={onClose}
+      aria-labelledby="new-campaign-title"
       className="m-auto w-[520px] rounded-xl border border-[#e5e3df] bg-white p-6 shadow-xl backdrop:bg-black/20"
     >
-        <h2 className="text-lg font-semibold text-[#111110]">New campaign</h2>
+        <h2 id="new-campaign-title" className="text-lg font-semibold text-[#111110]">New campaign</h2>
         <p className="mt-1 text-sm text-[#9b9895]">
           Sending to {contactIds.length} contact
           {contactIds.length === 1 ? "" : "s"}.

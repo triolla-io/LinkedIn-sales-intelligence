@@ -153,7 +153,7 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-3">
                       <p className="text-sm text-gray-500">
                         {user.lastSyncedAt
-                          ? new Date(user.lastSyncedAt).toLocaleDateString()
+                          ? new Date(user.lastSyncedAt).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" })
                           : "לעולם לא"}
                       </p>
                     </td>

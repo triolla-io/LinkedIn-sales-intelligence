@@ -32,9 +32,10 @@ export const brightdataJobCheckCollect = inngest.createFunction(
 
     const rows = await step.run("download", () => getSnapshotResults(snapshotId));
     const byUrl = new Map(
-      rows
-        .map((r) => [normalizeLinkedinUrl(r.input_url), r] as const)
-        .filter(([k]) => k !== "")
+      rows.flatMap((r) => {
+        const k = normalizeLinkedinUrl(r.input_url);
+        return k !== "" ? [[k, r] as const] : [];
+      })
     );
 
     let changes = 0;

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useEffectEvent, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { usePortalTarget } from "@/lib/hooks/use-portal-target";
 import type { Contact } from "./contact-table";
 
 interface EditContactModalProps {
@@ -35,22 +36,25 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
+  const portalTarget = usePortalTarget();
 
-  const initialValues = useRef<Record<EditableField, string>>(
-    Object.fromEntries(
+  const initialValues = useRef<Record<EditableField, string> | null>(null);
+  if (initialValues.current === null) {
+    initialValues.current = Object.fromEntries(
       FIELDS.map(({ key }) => [key, (contact[key] as string | null | undefined) ?? ""])
-    ) as Record<EditableField, string>
-  );
+    ) as Record<EditableField, string>;
+  }
 
-  const isDirty = FIELDS.some(({ key }) => form[key] !== initialValues.current[key]);
+  const isDirty = FIELDS.some(({ key }) => form[key] !== initialValues.current![key]);
   const manualSet = new Set(contact.manualFields ?? []);
 
+  const onEscape = useEffectEvent(() => onClose());
   useEffect(() => {
-    firstInputRef.current?.focus();
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    if (portalTarget) firstInputRef.current?.focus();
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onEscape(); }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [portalTarget]);
 
   async function handleSave() {
     setSaving(true);
@@ -79,6 +83,8 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
       setSaving(false);
     }
   }
+
+  if (!portalTarget) return null;
 
   return createPortal(
     <div
@@ -141,6 +147,6 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
         </div>
       </div>
     </div>,
-    document.body
+    portalTarget
   );
 }
