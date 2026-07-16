@@ -23,30 +23,32 @@ export async function DELETE(
     if (!target)
       return NextResponse.json({ error: "not_found" }, { status: 404 });
 
-    await prisma.prospectingCompanyTarget.update({
-      where: { id: targetId },
-      data: { status: "REMOVED" },
-    });
-
-    // Cancel this company's live discovery tasks (RESOLVE/SEARCH payloads carry targetId).
-    // CLAIMED tasks can't be retracted — their result handler sees REMOVED and drops the page.
-    const cancelledDiscovery = await prisma.extensionTask.updateMany({
-      where: {
-        prospectingRunId: id,
-        status: "PENDING",
-        payload: { path: ["targetId"], equals: targetId },
-      },
-      data: { status: "CANCELLED" },
-    });
-
-    // Cancel unsent people: their PENDING CONNECT tasks first, then the request rows.
-    const unsent = await prisma.connectionRequest.findMany({
-      where: {
-        companyTargetId: targetId,
-        status: { in: ["DISCOVERED", "QUEUED"] },
-      },
-      select: { id: true },
-    });
+    // These three are independent (mark removed / cancel discovery tasks / find unsent people),
+    // so run them together rather than serially.
+    const [, cancelledDiscovery, unsent] = await Promise.all([
+      prisma.prospectingCompanyTarget.update({
+        where: { id: targetId },
+        data: { status: "REMOVED" },
+      }),
+      // Cancel this company's live discovery tasks (RESOLVE/SEARCH payloads carry targetId).
+      // CLAIMED tasks can't be retracted — their result handler sees REMOVED and drops the page.
+      prisma.extensionTask.updateMany({
+        where: {
+          prospectingRunId: id,
+          status: "PENDING",
+          payload: { path: ["targetId"], equals: targetId },
+        },
+        data: { status: "CANCELLED" },
+      }),
+      // Unsent people for this company — their CONNECT tasks + rows are cancelled below.
+      prisma.connectionRequest.findMany({
+        where: {
+          companyTargetId: targetId,
+          status: { in: ["DISCOVERED", "QUEUED"] },
+        },
+        select: { id: true },
+      }),
+    ]);
     const unsentIds = unsent.map((u) => u.id);
     let cancelledConnects = 0;
     if (unsentIds.length > 0) {
