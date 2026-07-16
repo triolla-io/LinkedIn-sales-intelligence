@@ -33,7 +33,7 @@ export function cleanScrapedName(name: string): string {
  * who merely mention an exec term (a PA "to the CEO", etc.).
  */
 const TITLE_SYNONYMS: Record<string, RegExp[]> = {
-  CEO: [/\bCEO\b/i, /chief\s+executive/i, /מנכ"?ל/],
+  CEO: [/\bCEO\b/i, /chief\s+executive/i, /מנכ["״"׳']?ל/],
   CTO: [/\bCTO\b/i, /chief\s+technolog/i, /chief\s+technical/i],
   CFO: [/\bCFO\b/i, /chief\s+financial/i],
   COO: [/\bCOO\b/i, /chief\s+operating/i],

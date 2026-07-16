@@ -12,6 +12,7 @@ describe("titleMatchesHeadline", () => {
 
   it("matches Hebrew exec titles", () => {
     expect(titleMatchesHeadline("CEO", 'מנכ"ל בחברת אקמי')).toBe(true);
+    expect(titleMatchesHeadline("CEO", "מנכ״ל בחברת אקמי")).toBe(true);
     expect(titleMatchesHeadline("Founder", "מייסד ומנהל")).toBe(true);
   });
 
