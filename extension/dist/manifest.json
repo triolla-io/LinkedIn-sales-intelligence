@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Triolla LinkedIn Sender",
-  "version": "0.3.5",
+  "version": "0.4.0",
   "description": "Sends LinkedIn messages for Triolla campaigns",
   "permissions": [
     "storage",
