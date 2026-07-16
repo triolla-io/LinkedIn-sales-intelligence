@@ -24,7 +24,7 @@ export type ScrapedCard = {
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.4.0";
+const VERSION = "0.4.2";
 
 // In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
@@ -329,8 +329,22 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
 // parse line-by-line. Degree/location are no longer used for filtering (the search URL already
 // constrains 2nd-degree + geo — see lib/prospecting/filter.ts), but clean values still drive the UI.
 const SCRAPE_FN_SOURCE = `(() => {
-  const section = document.querySelector('section[aria-label="Primary content"]');
-  if (!section) return { candidates: [], hasNextPage: false };
+  // Results live in <main> (the "skip to main content" landmark). Prefer it over the
+  // aria-label "Primary content", which LinkedIn LOCALIZES (e.g. a Hebrew UI renders a
+  // Hebrew aria-label), so the English match finds nothing and the scrape reads zero even
+  // though the people are on the page.
+  const section = document.querySelector('main')
+    || document.querySelector('section[aria-label="Primary content"]');
+  if (!section) {
+    const b = (document.body && document.body.innerText) || '';
+    return { candidates: [], hasNextPage: false, debug: {
+      title: document.title, href: location.href, vis: document.visibilityState,
+      focus: document.hasFocus(), hasSection: false,
+      inLinksDoc: document.querySelectorAll('a[href*="/in/"]').length,
+      bodyLen: b.length, noResults: /no results found|לא נמצאו תוצאות/i.test(b),
+      snippet: b.slice(0, 240),
+    } };
+  }
   const allLinks = Array.from(section.querySelectorAll('a[href*="/in/"]'));
   const seen = new Set();
   const out = [];
@@ -389,10 +403,19 @@ const SCRAPE_FN_SOURCE = `(() => {
   const nextBtns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText.trim() === 'Next');
   const next = nextBtns[0];
   const hasNextPage = !!next && !next.disabled;
-  return { candidates: out, hasNextPage };
+  const _b = (document.body && document.body.innerText) || '';
+  return { candidates: out, hasNextPage, debug: {
+    title: document.title, href: location.href, vis: document.visibilityState,
+    focus: document.hasFocus(), hasSection: true, inLinksSection: allLinks.length,
+    inLinksDoc: document.querySelectorAll('a[href*="/in/"]').length,
+    bodyLen: _b.length, noResults: /no results found|לא נמצאו תוצאות/i.test(_b),
+    snippet: _b.slice(0, 240),
+  } };
 })()`;
 
-async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCard[]; hasNextPage: boolean }> {
+type ScrapeResult = { candidates: ScrapedCard[]; hasNextPage: boolean; debug?: Record<string, unknown> };
+
+async function scrapeSearch(searchUrl: string): Promise<ScrapeResult> {
   const tabId = await openTabInAutomationWindow(searchUrl).catch(() => {
     throw withCode(new Error("tab_create_failed"), "tab_load");
   });
@@ -402,8 +425,7 @@ async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCar
 
   try {
     await waitForTabLoad(tabId);
-    await sleep(2500);
-    // Do NOT focus the window — runs in the background automation window.
+    await sleep(1500);
 
     // Checkpoint detection (before attach — check URL)
     const freshTab = await chrome.tabs.get(tabId);
@@ -414,24 +436,35 @@ async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCar
     await attach(tabId);
     attached = true;
 
+    // The automation window is MINIMIZED + non-focused, so LinkedIn's search results
+    // (visibility-gated + lazy-rendered) never paint and the scrape reads zero — even
+    // though the same URL shows people in a foreground tab. Send/Connect survive this
+    // because they drive the page via CDP clicks; search READS the rendered text.
+    // Fix: force the page to behave as focused/visible/active without showing it, then
+    // poll until the result cards actually render (background tabs also throttle timers,
+    // so a fixed sleep races the render).
     await send(tabId, "Emulation.setDeviceMetricsOverride", {
       width: 1280, height: 900, deviceScaleFactor: 1, mobile: false,
     }).catch(() => {});
+    await send(tabId, "Emulation.setFocusEmulationEnabled", { enabled: true }).catch(() => {});
+    await send(tabId, "Page.enable", {}).catch(() => {});
+    await send(tabId, "Page.setWebLifecycleState", { state: "active" }).catch(() => {});
 
-    // Lazy-load by scrolling
-    for (let i = 0; i < 6; i++) {
-      await scrollBy(tabId, 1200);
-      await sleep(800);
+    let scraped: ScrapeResult | undefined;
+    // ~18s budget: scroll to trigger lazy-load, then re-scrape until cards appear or
+    // LinkedIn reports "no results". Break early on either.
+    for (let attempt = 0; attempt < 12; attempt++) {
+      await scrollBy(tabId, 1500);
+      await sleep(1200);
+      const evalResult = await send<{ result: { value: ScrapeResult } }>(
+        tabId,
+        "Runtime.evaluate",
+        { expression: SCRAPE_FN_SOURCE, returnByValue: true }
+      );
+      scraped = evalResult?.result?.value;
+      if (scraped && (scraped.candidates.length > 0 || scraped.debug?.noResults === true)) break;
     }
 
-    // Evaluate scraping function in-page, returnByValue
-    const evalResult = await send<{ result: { value: { candidates: ScrapedCard[]; hasNextPage: boolean } } }>(
-      tabId,
-      "Runtime.evaluate",
-      { expression: SCRAPE_FN_SOURCE, returnByValue: true }
-    );
-
-    const scraped = evalResult?.result?.value;
     if (!scraped) throw withCode(new Error("scrape_returned_null"), "scrape_failed");
 
     return scraped;
