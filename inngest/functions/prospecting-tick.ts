@@ -2,6 +2,12 @@ import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { queueNextConnect, SEARCH_FAIL_CAP } from "@/lib/prospecting/connect-scheduler";
 import { buildSearchUrl } from "@/lib/prospecting/search-url";
+import {
+  enqueueCompanySearchTask,
+  enqueueResolveTask,
+  maybeCompleteCompanyRun,
+  startNextPendingTarget,
+} from "@/lib/prospecting/company-discovery";
 
 /** A run re-runs discovery this long after exhausting its pool (recurring routine). */
 const REDISCOVERY_INTERVAL_MS = 24 * 60 * 60 * 1000;
@@ -36,6 +42,42 @@ export const prospectingTick = inngest.createFunction(
 
       // Safety net: queue the next CONNECT if eligible (atomic; no-op if one is in flight).
       await queueNextConnect(run.id);
+
+      if (run.targetType === "COMPANY") {
+        if (!run.discoveryDone) {
+          // Re-queue a dropped RESOLVE/SEARCH for the current in-flight company.
+          const liveDiscovery = await prisma.extensionTask.findFirst({
+            where: {
+              prospectingRunId: run.id,
+              kind: { in: ["RESOLVE_COMPANY", "SEARCH"] },
+              status: { in: ["PENDING", "CLAIMED"] },
+            },
+            select: { id: true },
+          });
+          if (!liveDiscovery) {
+            const inFlight = await prisma.prospectingCompanyTarget.findFirst({
+              where: {
+                runId: run.id,
+                status: { in: ["RESOLVING", "READY", "SEARCHING"] },
+              },
+              orderBy: { createdAt: "asc" },
+            });
+            if (inFlight) {
+              if (inFlight.linkedinCompanyId) {
+                await enqueueCompanySearchTask(run, inFlight, inFlight.searchPage);
+              } else {
+                await enqueueResolveTask(run, inFlight);
+              }
+            } else {
+              await startNextPendingTarget(run.id);
+            }
+          }
+        } else {
+          // No 24h re-discovery for company runs — they complete instead.
+          await maybeCompleteCompanyRun(run.id);
+        }
+        continue; // keyword-run logic below must not touch COMPANY runs
+      }
 
       // Re-queue discovery if a SEARCH page failed and left no live SEARCH task (until the fail cap).
       if (!run.discoveryDone && run.searchFailCount < SEARCH_FAIL_CAP) {
