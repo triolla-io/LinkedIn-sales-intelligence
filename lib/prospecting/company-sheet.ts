@@ -174,11 +174,7 @@ export async function parseCompaniesFile(
     }
     if (header.length === 0)
       return { companies: [], skippedInvalid: 0, error: "no_header" };
-    return {
-      companies: [],
-      skippedInvalid: 0,
-      ...parseCompanyRows(header, rows),
-    };
+    return parseCompanyRows(header, rows);
   } catch {
     return { companies: [], skippedInvalid: 0, error: "parse_failed" };
   }
