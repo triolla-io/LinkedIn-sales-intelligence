@@ -314,6 +314,12 @@ async function handleConnectSuccess(task: TaskRow) {
       where: { id: task.prospectingRunId },
       data: { totalSent: { increment: 1 } },
     });
+    if (cr.companyTargetId) {
+      await prisma.prospectingCompanyTarget.update({
+        where: { id: cr.companyTargetId },
+        data: { sentCount: { increment: 1 } },
+      });
+    }
 
     // Upsert a Contact so the person appears in the contacts list and can be
     // added to sequences/campaigns. Uses the same fields we scraped at discovery time.

@@ -15,7 +15,8 @@ export type PersistResult = { inserted: number; skipped: number };
 export async function persistCandidates(
   ownerId: string,
   runId: string,
-  cards: ScrapedCard[]
+  cards: ScrapedCard[],
+  companyTargetId?: string
 ): Promise<PersistResult> {
   if (cards.length === 0) return { inserted: 0, skipped: 0 };
 
@@ -64,6 +65,7 @@ export async function persistCandidates(
             status: "SKIPPED",
             skipReason: decision.skipReason,
             cardAction: card.cardAction ?? null,
+            companyTargetId: companyTargetId ?? null,
           },
         });
         skipped++;
@@ -99,6 +101,7 @@ export async function persistCandidates(
           status: "DISCOVERED",
           cardAction: card.cardAction ?? null,
           sendPriority: computeSendPriority(card),
+          companyTargetId: companyTargetId ?? null,
         },
       });
       inserted++;
@@ -122,6 +125,13 @@ export async function persistCandidates(
     await prisma.prospectingRun.update({
       where: { id: runId },
       data: { totalDiscovered: { increment: inserted } },
+    });
+  }
+
+  if (companyTargetId && inserted > 0) {
+    await prisma.prospectingCompanyTarget.update({
+      where: { id: companyTargetId },
+      data: { discoveredCount: { increment: inserted } },
     });
   }
 
