@@ -79,7 +79,8 @@ export function parseCardFields(
       l !== name &&
       l !== nameRawNorm &&
       !NOISE.test(l) &&
-      !/^(1st|2nd|3rd\+?)$/.test(l),
+      !/^(1st|2nd|3rd\+?)$/.test(l) &&
+      !/^(התחבר|להתחבר|התחברות|עוקב|עקוב|מעקב|לעקוב|ממתין|בהמתנה|הודעה|שליחת הודעה)$/.test(l),
   );
 
   const headline = content[0] || null;

@@ -60,6 +60,14 @@ describe("parseCardFields — Hebrew UI", () => {
     expect(out?.degree).toBe("2nd");
   });
 
+  it("does not let a Hebrew action-button label become the title when the headline is missing", () => {
+    const out = parseCardFields("Dana Levi • שני", ["Dana Levi • שני", "התחבר"]);
+    expect(out?.headline).toBeNull();
+    expect(out?.title).toBeNull();
+    expect(out?.cardAction).toBe("connect");
+    expect(out?.degree).toBe("2nd");
+  });
+
   it("returns null for a nameless card", () => {
     expect(parseCardFields("", ["", "Some line"])).toBeNull();
   });
