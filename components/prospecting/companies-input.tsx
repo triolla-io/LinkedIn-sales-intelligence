@@ -28,7 +28,7 @@ export function CompaniesInput({
   return (
     <div className="grid gap-2" dir="rtl">
       <div className="flex items-center justify-between">
-        <label htmlFor="companies-text" className="text-sm text-[#6b6866]">
+        <label htmlFor="companies-text" className="text-xs font-medium text-[#6b6866]">
           חברות — שם או קישור LinkedIn, חברה אחת בכל שורה
         </label>
         <span className="text-xs text-[#9b9895] tabular-nums">

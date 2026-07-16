@@ -328,28 +328,31 @@ export default function ProspectingPage() {
             <Tabs.Panel id="companies" className="pt-4">
               <form
                 onSubmit={createCompanyRun}
+                className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300"
                 dir="rtl"
-                className="grid gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300"
               >
-                <div className="grid gap-1.5">
-                  <label htmlFor="company-run-name" className="text-sm text-[#6b6866]">
-                    שם הרוטינה
-                  </label>
-                  <input
-                    id="company-run-name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="לדוגמה: C-Level — לקוחות Q3"
-                    className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
-                  />
+                <div className="flex gap-4 items-start">
+                  <div className="w-56 shrink-0">
+                    <label htmlFor="company-run-name" className="block text-xs font-medium text-[#6b6866] mb-1">
+                      שם הרוטינה
+                    </label>
+                    <input
+                      id="company-run-name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="לדוגמה: C-Level — לקוחות Q3"
+                      className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+                    />
+                  </div>
+                  <div className="flex-1 pt-0.5">
+                    <SendWindowPicker compact value={sendWindow} onChange={setSendWindow} />
+                  </div>
                 </div>
 
-                <div className="grid gap-1.5">
-                  <label htmlFor="company-run-titles" className="text-sm text-[#6b6866]">
-                    תפקידים לחיפוש{" "}
-                    <span className="text-[#9b9895]">
-                      (מאותחל ל-C-Level, ניתן לעריכה)
-                    </span>
+                <div>
+                  <label htmlFor="company-run-titles" className="block text-xs font-medium text-[#6b6866] mb-1">
+                    תפקידים לחיפוש <span className="text-[#9b9895]">(מאותחל ל-C-Level, ניתן לעריכה)</span>
                   </label>
                   <input
                     id="company-run-titles"
@@ -368,9 +371,9 @@ export default function ProspectingPage() {
                   disabled={submitting}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-1.5">
-                    <label htmlFor="company-run-geo" className="text-sm text-[#6b6866]">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="company-run-geo" className="block text-xs font-medium text-[#6b6866] mb-1">
                       אזור
                     </label>
                     <select
@@ -392,8 +395,8 @@ export default function ProspectingPage() {
                       <option value="SG">🇸🇬 סינגפור</option>
                     </select>
                   </div>
-                  <div className="grid gap-1.5">
-                    <label htmlFor="company-run-daily" className="text-sm text-[#6b6866]">
+                  <div>
+                    <label htmlFor="company-run-daily" className="block text-xs font-medium text-[#6b6866] mb-1">
                       בקשות ליום
                     </label>
                     <input
@@ -402,37 +405,26 @@ export default function ProspectingPage() {
                       min={1}
                       max={20}
                       value={dailyCap}
-                      onChange={(e) =>
-                        setDailyCap(
-                          Math.max(1, Math.min(20, Number(e.target.value) || 1)),
-                        )
-                      }
+                      onChange={(e) => setDailyCap(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
                       className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="flex-1 pt-0.5">
-                    <SendWindowPicker compact value={sendWindow} onChange={setSendWindow} />
-                  </div>
+                <p className="text-xs text-[#9b9895]">
+                  המערכת תאתר את אנשי ה-C-Level בכל חברה (דרגה 2 + 3) ותשלח בקשות חברות לפי המכסה והחלון שהוגדרו.
+                </p>
+
+                <div className="flex justify-end">
                   <button
                     type="submit"
                     disabled={submitting || !name.trim()}
-                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-[background-color,transform] active:scale-[0.96] disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-[background-color,transform] active:scale-[0.96] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {submitting ? (
-                      <Loader2 className="size-3.5 animate-spin" />
-                    ) : (
-                      <Building2 className="size-3.5" />
-                    )}
+                    {submitting ? <Loader2 className="size-3.5 animate-spin" /> : <Building2 className="size-3.5" />}
                     צור רוטינת חברות
                   </button>
                 </div>
-                <p className="text-xs text-[#9b9895]">
-                  המערכת תאתר את אנשי ה-C-Level בכל חברה (דרגה 2 + 3) ותשלח בקשות
-                  חברות לפי המכסה והחלון שהוגדרו.
-                </p>
               </form>
             </Tabs.Panel>
           </Tabs>
