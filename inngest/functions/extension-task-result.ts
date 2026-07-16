@@ -7,6 +7,13 @@ import { queueNextConnect, releaseConnectSlot, SEARCH_FAIL_CAP } from "@/lib/pro
 import type { ScrapedCard } from "@/lib/prospecting/filter";
 import { buildSearchUrl } from "@/lib/prospecting/search-url";
 import { logProspectingEvent } from "@/lib/prospecting/events";
+import {
+  buildCompanySearchUrl,
+  failCompanyTarget,
+  interCompanyDelayMs,
+  maybeCompleteCompanyRun,
+  startNextPendingTarget,
+} from "@/lib/prospecting/company-discovery";
 
 const REPLY_CHECK_OFFSETS_HOURS = [24, 72, 168];
 
@@ -31,6 +38,10 @@ export async function extensionTaskResultHandler({ event }: any) {
     await handleSearchResult(task);
   } else if (task.kind === "SEARCH" && task.status === "FAILED") {
     await handleSearchFailure(task);
+  } else if (task.kind === "RESOLVE_COMPANY" && task.status === "DONE") {
+    await handleResolveCompanyResult(task);
+  } else if (task.kind === "RESOLVE_COMPANY" && task.status === "FAILED") {
+    await handleResolveCompanyFailure(task);
   } else if (task.kind === "CONNECT") {
     if (task.status === "DONE") await handleConnectSuccess(task);
     else if (task.status === "FAILED") await handleConnectFailure(task);
@@ -213,13 +224,144 @@ async function handleReplyCheck(task: TaskRow) {
   }
 }
 
+async function handleResolveCompanyResult(task: TaskRow) {
+  if (!task.prospectingRunId) return;
+  const { targetId } = (task.payload ?? {}) as { targetId?: string };
+  if (!targetId) return;
+  const result = (task.result ?? {}) as {
+    companyId?: string;
+    resolvedName?: string;
+    slug?: string;
+    matchedUrl?: string;
+  };
+
+  const [run, target] = await Promise.all([
+    prisma.prospectingRun.findUnique({ where: { id: task.prospectingRunId } }),
+    prisma.prospectingCompanyTarget.findUnique({ where: { id: targetId } }),
+  ]);
+  if (!run || !target) return;
+  if (target.status === "REMOVED") {
+    if (run.status === "RUNNING")
+      await startNextPendingTarget(run.id, interCompanyDelayMs());
+    return;
+  }
+
+  if (!result.companyId) {
+    await failCompanyTarget(run.id, target, "no_id");
+    return;
+  }
+
+  await prisma.prospectingCompanyTarget.update({
+    where: { id: target.id },
+    data: {
+      linkedinCompanyId: result.companyId,
+      resolvedName: result.resolvedName ?? null,
+      linkedinSlug: target.linkedinSlug ?? result.slug ?? null,
+      status: "READY",
+      error: null,
+    },
+  });
+
+  if (run.status !== "RUNNING") return;
+  await prisma.extensionTask.create({
+    data: {
+      userId: task.userId,
+      kind: "SEARCH",
+      payload: {
+        searchUrl: buildCompanySearchUrl(
+          run,
+          result.companyId,
+          target.searchPage,
+        ),
+        page: target.searchPage,
+        targetId: target.id,
+      },
+      prospectingRunId: run.id,
+      scheduledFor: new Date(),
+    },
+  });
+  await prisma.prospectingCompanyTarget.update({
+    where: { id: target.id },
+    data: { status: "SEARCHING" },
+  });
+}
+
+async function handleResolveCompanyFailure(task: TaskRow) {
+  if (!task.prospectingRunId) return;
+  const { targetId } = (task.payload ?? {}) as { targetId?: string };
+  if (!targetId) return;
+  const [run, target] = await Promise.all([
+    prisma.prospectingRun.findUnique({ where: { id: task.prospectingRunId } }),
+    prisma.prospectingCompanyTarget.findUnique({ where: { id: targetId } }),
+  ]);
+  if (!run || !target) return;
+
+  if (task.errorCode === "checkpoint") {
+    await freezeUserTasks(task.userId, 24);
+    await prisma.prospectingRun.update({
+      where: { id: run.id },
+      data: { pausedUntil: new Date(Date.now() + 24 * 60 * 60 * 1000) },
+    });
+    await prisma.extensionAlert.create({
+      data: {
+        userId: task.userId,
+        kind: "CHECKPOINT",
+        message:
+          "LinkedIn flagged your account during company resolve — paused for 24h.",
+      },
+    });
+    // Put the company back in line; prospecting-tick re-queues after the freeze.
+    await prisma.prospectingCompanyTarget.updateMany({
+      where: { id: target.id, status: "RESOLVING" },
+      data: { status: "PENDING" },
+    });
+    return;
+  }
+
+  // Old extension that doesn't know RESOLVE_COMPANY: defer 1h without failing the
+  // target, and surface an "update your extension" hint on the routine page.
+  const isUnsupportedKind =
+    task.errorCode === "unsupported_kind" ||
+    (task.errorCode === "bad_payload" && task.errorMessage === "unknown_kind");
+  if (isUnsupportedKind) {
+    await prisma.extensionTask.create({
+      data: {
+        userId: task.userId,
+        kind: "RESOLVE_COMPANY",
+        payload: task.payload as Prisma.InputJsonValue,
+        prospectingRunId: run.id,
+        scheduledFor: new Date(Date.now() + 60 * 60 * 1000),
+      },
+    });
+    await logProspectingEvent({
+      runId: run.id,
+      type: "FAILED",
+      message: "extension_outdated",
+    });
+    return;
+  }
+
+  if (target.status === "REMOVED") {
+    if (run.status === "RUNNING")
+      await startNextPendingTarget(run.id, interCompanyDelayMs());
+    return;
+  }
+  await failCompanyTarget(run.id, target, task.errorCode ?? "resolve_failed");
+}
+
 async function handleSearchResult(task: TaskRow) {
   if (!task.prospectingRunId) return;
   const result = (task.result ?? {}) as { candidates?: ScrapedCard[]; hasNextPage?: boolean };
+  const payload = (task.payload ?? {}) as { targetId?: string };
+
+  const run = await prisma.prospectingRun.findUnique({ where: { id: task.prospectingRunId } });
+  if (run?.targetType === "COMPANY" && payload.targetId) {
+    await handleCompanySearchResult(task, run, payload.targetId, result);
+    return;
+  }
 
   await persistCandidates(task.userId, task.prospectingRunId, result.candidates ?? []);
 
-  const run = await prisma.prospectingRun.findUnique({ where: { id: task.prospectingRunId } });
   if (!run || run.status !== "RUNNING") return;
 
   // A successful page resets the consecutive-failure counter.
@@ -268,6 +410,84 @@ async function handleSearchResult(task: TaskRow) {
   await queueNextConnect(run.id);
 }
 
+async function handleCompanySearchResult(
+  task: TaskRow,
+  run: NonNullable<
+    Awaited<ReturnType<typeof prisma.prospectingRun.findUnique>>
+  >,
+  targetId: string,
+  result: { candidates?: ScrapedCard[]; hasNextPage?: boolean },
+) {
+  const target = await prisma.prospectingCompanyTarget.findUnique({
+    where: { id: targetId },
+  });
+  if (!target || target.status === "REMOVED") {
+    // Company was removed mid-search — drop the page and keep the loop moving.
+    if (run.status === "RUNNING")
+      await startNextPendingTarget(run.id, interCompanyDelayMs());
+    return;
+  }
+
+  await persistCandidates(
+    task.userId,
+    run.id,
+    result.candidates ?? [],
+    target.id,
+  );
+
+  if (run.status !== "RUNNING") return;
+  if (run.searchFailCount > 0) {
+    await prisma.prospectingRun.update({
+      where: { id: run.id },
+      data: { searchFailCount: 0 },
+    });
+  }
+
+  if (result.hasNextPage) {
+    // Same module master-switch gate as keyword runs.
+    const ownerFlags = await prisma.user.findUnique({
+      where: { id: run.ownerId },
+      select: { routineConnectionsEnabled: true },
+    });
+    if (!ownerFlags || ownerFlags.routineConnectionsEnabled) {
+      // Pagination lives on the TARGET (not run.nextSearchPage); guarded so only one handler advances.
+      const nextPage = target.searchPage + 1;
+      const advanced = await prisma.prospectingCompanyTarget.updateMany({
+        where: { id: target.id, searchPage: target.searchPage },
+        data: { searchPage: nextPage },
+      });
+      if (advanced.count === 1 && target.linkedinCompanyId) {
+        await prisma.extensionTask.create({
+          data: {
+            userId: task.userId,
+            kind: "SEARCH",
+            payload: {
+              searchUrl: buildCompanySearchUrl(
+                run,
+                target.linkedinCompanyId,
+                nextPage,
+              ),
+              page: nextPage,
+              targetId: target.id,
+            },
+            prospectingRunId: run.id,
+            scheduledFor: new Date(),
+          },
+        });
+      }
+    }
+  } else {
+    await prisma.prospectingCompanyTarget.update({
+      where: { id: target.id },
+      data: { status: "DONE" },
+    });
+    // Humanized 2–5 min pause before the next company (sets discoveryDone when none remain).
+    await startNextPendingTarget(run.id, interCompanyDelayMs());
+  }
+
+  await queueNextConnect(run.id);
+}
+
 async function handleSearchFailure(task: TaskRow) {
   if (task.errorCode === "checkpoint") {
     await freezeUserTasks(task.userId, 24);
@@ -287,11 +507,30 @@ async function handleSearchFailure(task: TaskRow) {
     return;
   }
   if (!task.prospectingRunId) return;
-  // Count the failure; give up discovery after too many so the run can still finish.
+  const payload = (task.payload ?? {}) as { targetId?: string };
+  // Count the failure; give up after too many so the run can still finish.
   const run = await prisma.prospectingRun.update({
     where: { id: task.prospectingRunId },
     data: { searchFailCount: { increment: 1 } },
   });
+  if (run.targetType === "COMPANY" && payload.targetId) {
+    if (run.searchFailCount >= SEARCH_FAIL_CAP) {
+      await prisma.prospectingRun.update({
+        where: { id: run.id },
+        data: { searchFailCount: 0 },
+      });
+      const target = await prisma.prospectingCompanyTarget.findUnique({
+        where: { id: payload.targetId },
+      });
+      if (target && target.status !== "REMOVED") {
+        await failCompanyTarget(run.id, target, "search_failed"); // advances to the next company
+      } else {
+        await startNextPendingTarget(run.id);
+      }
+    }
+    // Below the cap: prospecting-tick re-queues the same page for this target.
+    return;
+  }
   if (run.searchFailCount >= SEARCH_FAIL_CAP && !run.discoveryDone) {
     await prisma.prospectingRun.update({ where: { id: run.id }, data: { discoveryDone: true } });
     await queueNextConnect(run.id);
@@ -446,6 +685,12 @@ async function maybeCompleteOrContinue(runId: string) {
 
   const run = await prisma.prospectingRun.findUnique({ where: { id: runId } });
   if (!run || run.status !== "RUNNING" || !run.discoveryDone) return;
+
+  if (run.targetType === "COMPANY") {
+    // Company runs COMPLETE (no 24h re-discovery).
+    await maybeCompleteCompanyRun(runId);
+    return;
+  }
 
   const [remaining, liveConnect] = await Promise.all([
     prisma.connectionRequest.count({ where: { runId, status: { in: ["DISCOVERED", "QUEUED"] } } }),
