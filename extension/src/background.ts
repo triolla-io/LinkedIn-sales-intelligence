@@ -2,6 +2,12 @@ import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
 import { attach, detach, clickSendButton, closeAllComposeOverlays, clickModalClose, getComposeUrl, typeIntoCompose, composeDiag, takeScreenshot, scrollBy, scanButtons, send, openTabInAutomationWindow, closeStaleAutomationWindow } from "./lib/cdp";
 import { PROFILE_STATE_FN_SOURCE } from "./lib/dom-detect";
+import {
+  EXTRACT_COMPANY_FN_SOURCE,
+  TOP_COMPANY_RESULT_FN_SOURCE,
+  companySearchUrl,
+  companySlugFromUrl,
+} from "./lib/resolve-company";
 
 // ---------- Shared types ----------
 
@@ -18,7 +24,7 @@ export type ScrapedCard = {
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.3.5";
+const VERSION = "0.4.0";
 
 // In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
@@ -101,7 +107,7 @@ async function runOneCycle(): Promise<boolean> {
   return true;
 }
 
-async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "SEARCH" | "CONNECT"; payload: unknown }): Promise<unknown> {
+async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "SEARCH" | "CONNECT" | "RESOLVE_COMPANY"; payload: unknown }): Promise<unknown> {
   const payload = task.payload as {
     linkedinUrl?: string;
     conversationUrl?: string;
@@ -111,6 +117,7 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "S
     page?: number;
     profileUrl?: string;
     recipientName?: string;
+    name?: string;
   };
 
   if (task.kind === "SEND") {
@@ -132,7 +139,16 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "S
     return await sendConnectRequest(payload.profileUrl);
   }
 
-  throw withCode(new Error("unknown_kind"), "bad_payload");
+  if (task.kind === "RESOLVE_COMPANY") {
+    if (!payload.linkedinUrl && !payload.name)
+      throw withCode(new Error("missing_payload"), "bad_payload");
+    return await resolveCompany(
+      payload.linkedinUrl ?? null,
+      payload.name ?? null,
+    );
+  }
+
+  throw withCode(new Error("unknown_kind"), "unsupported_kind");
 }
 
 // Collect environment hints to diagnose tab-hijack / extension-conflict failures
@@ -419,6 +435,93 @@ async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCar
     if (!scraped) throw withCode(new Error("scrape_returned_null"), "scrape_failed");
 
     return scraped;
+  } finally {
+    if (attached) await detach(tabId).catch(() => {});
+    await chrome.tabs.remove(tabId).catch(() => {});
+    await clearActiveTab();
+  }
+}
+
+/** Resolve a company (URL or name) to its numeric LinkedIn id. */
+async function resolveCompany(
+  linkedinUrl: string | null,
+  name: string | null,
+): Promise<{
+  companyId: string;
+  resolvedName: string | null;
+  slug: string | null;
+  matchedUrl: string;
+}> {
+  const startUrl = linkedinUrl ?? companySearchUrl(name ?? "");
+  const tabId = await openTabInAutomationWindow(startUrl).catch(() => {
+    throw withCode(new Error("tab_create_failed"), "tab_load");
+  });
+  await trackActiveTab(tabId);
+  let attached = false;
+  try {
+    await waitForTabLoad(tabId);
+    await sleep(2500);
+    let freshTab = await chrome.tabs.get(tabId);
+    if (freshTab.url && freshTab.url.includes("/checkpoint")) {
+      throw withCode(new Error("checkpoint"), "checkpoint");
+    }
+    await attach(tabId);
+    attached = true;
+    await send(tabId, "Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    }).catch(() => {});
+
+    // Name-only: find the top company result, then navigate to its page.
+    if (!linkedinUrl) {
+      const topResult = await send<{
+        result?: { value?: { companyUrl?: string } | null };
+      }>(tabId, "Runtime.evaluate", {
+        expression: TOP_COMPANY_RESULT_FN_SOURCE,
+        returnByValue: true,
+      });
+      const companyUrl = topResult?.result?.value?.companyUrl;
+      if (!companyUrl)
+        throw withCode(new Error("company_not_found"), "not_found");
+      await detach(tabId).catch(() => {});
+      attached = false;
+      await chrome.tabs.update(tabId, { url: companyUrl });
+      await waitForTabLoad(tabId);
+      await sleep(2500);
+      freshTab = await chrome.tabs.get(tabId);
+      if (freshTab.url && freshTab.url.includes("/checkpoint")) {
+        throw withCode(new Error("checkpoint"), "checkpoint");
+      }
+      await attach(tabId);
+      attached = true;
+    }
+
+    const evalResult = await send<{
+      result?: {
+        value?: {
+          companyId?: string | null;
+          resolvedName?: string | null;
+          url?: string;
+        } | null;
+      };
+    }>(tabId, "Runtime.evaluate", {
+      expression: EXTRACT_COMPANY_FN_SOURCE,
+      returnByValue: true,
+    });
+    const extracted = evalResult?.result?.value;
+    if (!extracted || !extracted.companyId) {
+      throw withCode(new Error("company_id_not_found"), "no_id");
+    }
+    const matchedUrl =
+      extracted.url ?? (await chrome.tabs.get(tabId)).url ?? startUrl;
+    return {
+      companyId: extracted.companyId,
+      resolvedName: extracted.resolvedName ?? null,
+      slug: companySlugFromUrl(matchedUrl),
+      matchedUrl,
+    };
   } finally {
     if (attached) await detach(tabId).catch(() => {});
     await chrome.tabs.remove(tabId).catch(() => {});
