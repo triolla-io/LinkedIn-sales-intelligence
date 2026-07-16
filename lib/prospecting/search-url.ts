@@ -20,19 +20,38 @@ export const DEFAULT_GEO = "IL";
 
 export type SearchUrlParams = {
   keywords: string;
+  /** Empty string = worldwide (omit the geoUrn facet). Undefined = IL default. */
   geoUrn?: string;
   // LinkedIn Industry Codes V2 ids (see lib/prospecting/industries.ts). Empty/absent = all industries.
   industryIds?: string[];
+  /** LinkedIn numeric company ids → currentCompany facet. Empty/absent = no company facet. */
+  companyIds?: string[];
+  /** Connection-degree facet override. Default: ["S"] (2nd degree only). */
+  network?: string[];
 };
 
 export function buildSearchUrl(params: SearchUrlParams, page: number): string {
-  const { keywords, geoUrn = GEO_URNS[DEFAULT_GEO].urn, industryIds } = params;
+  const {
+    keywords,
+    geoUrn = GEO_URNS[DEFAULT_GEO].urn,
+    industryIds,
+    companyIds,
+    network,
+  } = params;
   const url = new URL("https://www.linkedin.com/search/results/people/");
   url.searchParams.set("keywords", keywords);
-  url.searchParams.set("network", `["${SECOND_DEGREE}"]`);
-  url.searchParams.set("geoUrn", `["${geoUrn}"]`);
+  url.searchParams.set(
+    "network",
+    JSON.stringify(network && network.length > 0 ? network : [SECOND_DEGREE]),
+  );
+  if (geoUrn !== "") {
+    url.searchParams.set("geoUrn", `["${geoUrn}"]`);
+  }
   if (industryIds && industryIds.length > 0) {
     url.searchParams.set("industry", JSON.stringify(industryIds));
+  }
+  if (companyIds && companyIds.length > 0) {
+    url.searchParams.set("currentCompany", JSON.stringify(companyIds));
   }
   url.searchParams.set("origin", "FACETED_SEARCH");
   if (page > 1) url.searchParams.set("page", String(page));
