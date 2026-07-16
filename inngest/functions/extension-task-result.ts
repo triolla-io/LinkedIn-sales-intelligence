@@ -423,11 +423,15 @@ async function handleCompanySearchResult(
     return;
   }
 
+  // We search ONE title at a time; keep only people whose headline actually matches it.
+  const titles = parseSearchTitles(run.keywords);
+  const currentTitle = titles[target.searchTitleIndex];
   await persistCandidates(
     task.userId,
     run.id,
     result.candidates ?? [],
     target.id,
+    currentTitle,
   );
 
   if (run.status !== "RUNNING") return;
@@ -445,8 +449,6 @@ async function handleCompanySearchResult(
   const moduleEnabled = !ownerFlags || ownerFlags.routineConnectionsEnabled;
   // We search ONE title at a time (LinkedIn URL search can't OR a title list). searchPage
   // paginates the current title; searchTitleIndex walks the list. Company DONE = last title done.
-  const titles = parseSearchTitles(run.keywords);
-  const currentTitle = titles[target.searchTitleIndex];
 
   if (result.hasNextPage) {
     // More pages of the CURRENT title. Same module master-switch gate as keyword runs.
