@@ -57,6 +57,7 @@ export type ProspectingRunMinAggregateOutputType = {
   keywords: string | null
   geoUrn: string | null
   searchUrl: string | null
+  targetType: $Enums.ProspectingTargetType | null
   status: $Enums.ProspectingRunStatus | null
   dailyCap: number | null
   weeklyCap: number | null
@@ -82,6 +83,7 @@ export type ProspectingRunMaxAggregateOutputType = {
   keywords: string | null
   geoUrn: string | null
   searchUrl: string | null
+  targetType: $Enums.ProspectingTargetType | null
   status: $Enums.ProspectingRunStatus | null
   dailyCap: number | null
   weeklyCap: number | null
@@ -108,6 +110,7 @@ export type ProspectingRunCountAggregateOutputType = {
   geoUrn: number
   industryIds: number
   searchUrl: number
+  targetType: number
   status: number
   dailyCap: number
   weeklyCap: number
@@ -160,6 +163,7 @@ export type ProspectingRunMinAggregateInputType = {
   keywords?: true
   geoUrn?: true
   searchUrl?: true
+  targetType?: true
   status?: true
   dailyCap?: true
   weeklyCap?: true
@@ -185,6 +189,7 @@ export type ProspectingRunMaxAggregateInputType = {
   keywords?: true
   geoUrn?: true
   searchUrl?: true
+  targetType?: true
   status?: true
   dailyCap?: true
   weeklyCap?: true
@@ -211,6 +216,7 @@ export type ProspectingRunCountAggregateInputType = {
   geoUrn?: true
   industryIds?: true
   searchUrl?: true
+  targetType?: true
   status?: true
   dailyCap?: true
   weeklyCap?: true
@@ -325,6 +331,7 @@ export type ProspectingRunGroupByOutputType = {
   geoUrn: string
   industryIds: string[]
   searchUrl: string
+  targetType: $Enums.ProspectingTargetType
   status: $Enums.ProspectingRunStatus
   dailyCap: number
   weeklyCap: number
@@ -375,6 +382,7 @@ export type ProspectingRunWhereInput = {
   geoUrn?: Prisma.StringFilter<"ProspectingRun"> | string
   industryIds?: Prisma.StringNullableListFilter<"ProspectingRun">
   searchUrl?: Prisma.StringFilter<"ProspectingRun"> | string
+  targetType?: Prisma.EnumProspectingTargetTypeFilter<"ProspectingRun"> | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFilter<"ProspectingRun"> | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFilter<"ProspectingRun"> | number
   weeklyCap?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -395,6 +403,7 @@ export type ProspectingRunWhereInput = {
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   requests?: Prisma.ConnectionRequestListRelationFilter
   events?: Prisma.ProspectingEventListRelationFilter
+  companyTargets?: Prisma.ProspectingCompanyTargetListRelationFilter
 }
 
 export type ProspectingRunOrderByWithRelationInput = {
@@ -405,6 +414,7 @@ export type ProspectingRunOrderByWithRelationInput = {
   geoUrn?: Prisma.SortOrder
   industryIds?: Prisma.SortOrder
   searchUrl?: Prisma.SortOrder
+  targetType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
@@ -425,6 +435,7 @@ export type ProspectingRunOrderByWithRelationInput = {
   owner?: Prisma.UserOrderByWithRelationInput
   requests?: Prisma.ConnectionRequestOrderByRelationAggregateInput
   events?: Prisma.ProspectingEventOrderByRelationAggregateInput
+  companyTargets?: Prisma.ProspectingCompanyTargetOrderByRelationAggregateInput
 }
 
 export type ProspectingRunWhereUniqueInput = Prisma.AtLeast<{
@@ -438,6 +449,7 @@ export type ProspectingRunWhereUniqueInput = Prisma.AtLeast<{
   geoUrn?: Prisma.StringFilter<"ProspectingRun"> | string
   industryIds?: Prisma.StringNullableListFilter<"ProspectingRun">
   searchUrl?: Prisma.StringFilter<"ProspectingRun"> | string
+  targetType?: Prisma.EnumProspectingTargetTypeFilter<"ProspectingRun"> | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFilter<"ProspectingRun"> | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFilter<"ProspectingRun"> | number
   weeklyCap?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -458,6 +470,7 @@ export type ProspectingRunWhereUniqueInput = Prisma.AtLeast<{
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   requests?: Prisma.ConnectionRequestListRelationFilter
   events?: Prisma.ProspectingEventListRelationFilter
+  companyTargets?: Prisma.ProspectingCompanyTargetListRelationFilter
 }, "id">
 
 export type ProspectingRunOrderByWithAggregationInput = {
@@ -468,6 +481,7 @@ export type ProspectingRunOrderByWithAggregationInput = {
   geoUrn?: Prisma.SortOrder
   industryIds?: Prisma.SortOrder
   searchUrl?: Prisma.SortOrder
+  targetType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
@@ -503,6 +517,7 @@ export type ProspectingRunScalarWhereWithAggregatesInput = {
   geoUrn?: Prisma.StringWithAggregatesFilter<"ProspectingRun"> | string
   industryIds?: Prisma.StringNullableListFilter<"ProspectingRun">
   searchUrl?: Prisma.StringWithAggregatesFilter<"ProspectingRun"> | string
+  targetType?: Prisma.EnumProspectingTargetTypeWithAggregatesFilter<"ProspectingRun"> | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusWithAggregatesFilter<"ProspectingRun"> | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
   weeklyCap?: Prisma.IntWithAggregatesFilter<"ProspectingRun"> | number
@@ -529,6 +544,7 @@ export type ProspectingRunCreateInput = {
   geoUrn?: string
   industryIds?: Prisma.ProspectingRunCreateindustryIdsInput | string[]
   searchUrl: string
+  targetType?: $Enums.ProspectingTargetType
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
@@ -549,6 +565,7 @@ export type ProspectingRunCreateInput = {
   owner: Prisma.UserCreateNestedOneWithoutProspectingRunsInput
   requests?: Prisma.ConnectionRequestCreateNestedManyWithoutRunInput
   events?: Prisma.ProspectingEventCreateNestedManyWithoutRunInput
+  companyTargets?: Prisma.ProspectingCompanyTargetCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunUncheckedCreateInput = {
@@ -559,6 +576,7 @@ export type ProspectingRunUncheckedCreateInput = {
   geoUrn?: string
   industryIds?: Prisma.ProspectingRunCreateindustryIdsInput | string[]
   searchUrl: string
+  targetType?: $Enums.ProspectingTargetType
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
@@ -578,6 +596,7 @@ export type ProspectingRunUncheckedCreateInput = {
   completedAt?: Date | string | null
   requests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutRunInput
   events?: Prisma.ProspectingEventUncheckedCreateNestedManyWithoutRunInput
+  companyTargets?: Prisma.ProspectingCompanyTargetUncheckedCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunUpdateInput = {
@@ -587,6 +606,7 @@ export type ProspectingRunUpdateInput = {
   geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   industryIds?: Prisma.ProspectingRunUpdateindustryIdsInput | string[]
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.EnumProspectingTargetTypeFieldUpdateOperationsInput | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -607,6 +627,7 @@ export type ProspectingRunUpdateInput = {
   owner?: Prisma.UserUpdateOneRequiredWithoutProspectingRunsNestedInput
   requests?: Prisma.ConnectionRequestUpdateManyWithoutRunNestedInput
   events?: Prisma.ProspectingEventUpdateManyWithoutRunNestedInput
+  companyTargets?: Prisma.ProspectingCompanyTargetUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunUncheckedUpdateInput = {
@@ -617,6 +638,7 @@ export type ProspectingRunUncheckedUpdateInput = {
   geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   industryIds?: Prisma.ProspectingRunUpdateindustryIdsInput | string[]
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.EnumProspectingTargetTypeFieldUpdateOperationsInput | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -636,6 +658,7 @@ export type ProspectingRunUncheckedUpdateInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   requests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutRunNestedInput
   events?: Prisma.ProspectingEventUncheckedUpdateManyWithoutRunNestedInput
+  companyTargets?: Prisma.ProspectingCompanyTargetUncheckedUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunCreateManyInput = {
@@ -646,6 +669,7 @@ export type ProspectingRunCreateManyInput = {
   geoUrn?: string
   industryIds?: Prisma.ProspectingRunCreateindustryIdsInput | string[]
   searchUrl: string
+  targetType?: $Enums.ProspectingTargetType
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
@@ -672,6 +696,7 @@ export type ProspectingRunUpdateManyMutationInput = {
   geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   industryIds?: Prisma.ProspectingRunUpdateindustryIdsInput | string[]
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.EnumProspectingTargetTypeFieldUpdateOperationsInput | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -699,6 +724,7 @@ export type ProspectingRunUncheckedUpdateManyInput = {
   geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   industryIds?: Prisma.ProspectingRunUpdateindustryIdsInput | string[]
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.EnumProspectingTargetTypeFieldUpdateOperationsInput | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -744,6 +770,7 @@ export type ProspectingRunCountOrderByAggregateInput = {
   geoUrn?: Prisma.SortOrder
   industryIds?: Prisma.SortOrder
   searchUrl?: Prisma.SortOrder
+  targetType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
@@ -782,6 +809,7 @@ export type ProspectingRunMaxOrderByAggregateInput = {
   keywords?: Prisma.SortOrder
   geoUrn?: Prisma.SortOrder
   searchUrl?: Prisma.SortOrder
+  targetType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
@@ -807,6 +835,7 @@ export type ProspectingRunMinOrderByAggregateInput = {
   keywords?: Prisma.SortOrder
   geoUrn?: Prisma.SortOrder
   searchUrl?: Prisma.SortOrder
+  targetType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   dailyCap?: Prisma.SortOrder
   weeklyCap?: Prisma.SortOrder
@@ -897,6 +926,10 @@ export type ProspectingRunUpdateindustryIdsInput = {
   push?: string | string[]
 }
 
+export type EnumProspectingTargetTypeFieldUpdateOperationsInput = {
+  set?: $Enums.ProspectingTargetType
+}
+
 export type EnumProspectingRunStatusFieldUpdateOperationsInput = {
   set?: $Enums.ProspectingRunStatus
 }
@@ -904,6 +937,20 @@ export type EnumProspectingRunStatusFieldUpdateOperationsInput = {
 export type ProspectingRunUpdatesendDaysInput = {
   set?: number[]
   push?: number | number[]
+}
+
+export type ProspectingRunCreateNestedOneWithoutCompanyTargetsInput = {
+  create?: Prisma.XOR<Prisma.ProspectingRunCreateWithoutCompanyTargetsInput, Prisma.ProspectingRunUncheckedCreateWithoutCompanyTargetsInput>
+  connectOrCreate?: Prisma.ProspectingRunCreateOrConnectWithoutCompanyTargetsInput
+  connect?: Prisma.ProspectingRunWhereUniqueInput
+}
+
+export type ProspectingRunUpdateOneRequiredWithoutCompanyTargetsNestedInput = {
+  create?: Prisma.XOR<Prisma.ProspectingRunCreateWithoutCompanyTargetsInput, Prisma.ProspectingRunUncheckedCreateWithoutCompanyTargetsInput>
+  connectOrCreate?: Prisma.ProspectingRunCreateOrConnectWithoutCompanyTargetsInput
+  upsert?: Prisma.ProspectingRunUpsertWithoutCompanyTargetsInput
+  connect?: Prisma.ProspectingRunWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProspectingRunUpdateToOneWithWhereWithoutCompanyTargetsInput, Prisma.ProspectingRunUpdateWithoutCompanyTargetsInput>, Prisma.ProspectingRunUncheckedUpdateWithoutCompanyTargetsInput>
 }
 
 export type ProspectingRunCreateNestedOneWithoutRequestsInput = {
@@ -941,6 +988,7 @@ export type ProspectingRunCreateWithoutOwnerInput = {
   geoUrn?: string
   industryIds?: Prisma.ProspectingRunCreateindustryIdsInput | string[]
   searchUrl: string
+  targetType?: $Enums.ProspectingTargetType
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
@@ -960,6 +1008,7 @@ export type ProspectingRunCreateWithoutOwnerInput = {
   completedAt?: Date | string | null
   requests?: Prisma.ConnectionRequestCreateNestedManyWithoutRunInput
   events?: Prisma.ProspectingEventCreateNestedManyWithoutRunInput
+  companyTargets?: Prisma.ProspectingCompanyTargetCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunUncheckedCreateWithoutOwnerInput = {
@@ -969,6 +1018,7 @@ export type ProspectingRunUncheckedCreateWithoutOwnerInput = {
   geoUrn?: string
   industryIds?: Prisma.ProspectingRunCreateindustryIdsInput | string[]
   searchUrl: string
+  targetType?: $Enums.ProspectingTargetType
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
@@ -988,6 +1038,7 @@ export type ProspectingRunUncheckedCreateWithoutOwnerInput = {
   completedAt?: Date | string | null
   requests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutRunInput
   events?: Prisma.ProspectingEventUncheckedCreateNestedManyWithoutRunInput
+  companyTargets?: Prisma.ProspectingCompanyTargetUncheckedCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunCreateOrConnectWithoutOwnerInput = {
@@ -1027,6 +1078,7 @@ export type ProspectingRunScalarWhereInput = {
   geoUrn?: Prisma.StringFilter<"ProspectingRun"> | string
   industryIds?: Prisma.StringNullableListFilter<"ProspectingRun">
   searchUrl?: Prisma.StringFilter<"ProspectingRun"> | string
+  targetType?: Prisma.EnumProspectingTargetTypeFilter<"ProspectingRun"> | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFilter<"ProspectingRun"> | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFilter<"ProspectingRun"> | number
   weeklyCap?: Prisma.IntFilter<"ProspectingRun"> | number
@@ -1046,6 +1098,142 @@ export type ProspectingRunScalarWhereInput = {
   completedAt?: Prisma.DateTimeNullableFilter<"ProspectingRun"> | Date | string | null
 }
 
+export type ProspectingRunCreateWithoutCompanyTargetsInput = {
+  id?: string
+  name: string
+  keywords: string
+  geoUrn?: string
+  industryIds?: Prisma.ProspectingRunCreateindustryIdsInput | string[]
+  searchUrl: string
+  targetType?: $Enums.ProspectingTargetType
+  status?: $Enums.ProspectingRunStatus
+  dailyCap?: number
+  weeklyCap?: number
+  sendHoursStart?: number
+  sendHoursEnd?: number
+  sendDays?: Prisma.ProspectingRunCreatesendDaysInput | number[]
+  discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: number
+  pausedUntil?: Date | string | null
+  nextDiscoveryAt?: Date | string | null
+  nextSearchPage?: number
+  totalDiscovered?: number
+  totalSent?: number
+  createdAt?: Date | string
+  startedAt?: Date | string | null
+  completedAt?: Date | string | null
+  owner: Prisma.UserCreateNestedOneWithoutProspectingRunsInput
+  requests?: Prisma.ConnectionRequestCreateNestedManyWithoutRunInput
+  events?: Prisma.ProspectingEventCreateNestedManyWithoutRunInput
+}
+
+export type ProspectingRunUncheckedCreateWithoutCompanyTargetsInput = {
+  id?: string
+  ownerId: string
+  name: string
+  keywords: string
+  geoUrn?: string
+  industryIds?: Prisma.ProspectingRunCreateindustryIdsInput | string[]
+  searchUrl: string
+  targetType?: $Enums.ProspectingTargetType
+  status?: $Enums.ProspectingRunStatus
+  dailyCap?: number
+  weeklyCap?: number
+  sendHoursStart?: number
+  sendHoursEnd?: number
+  sendDays?: Prisma.ProspectingRunCreatesendDaysInput | number[]
+  discoveryDone?: boolean
+  connectInFlight?: boolean
+  searchFailCount?: number
+  pausedUntil?: Date | string | null
+  nextDiscoveryAt?: Date | string | null
+  nextSearchPage?: number
+  totalDiscovered?: number
+  totalSent?: number
+  createdAt?: Date | string
+  startedAt?: Date | string | null
+  completedAt?: Date | string | null
+  requests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutRunInput
+  events?: Prisma.ProspectingEventUncheckedCreateNestedManyWithoutRunInput
+}
+
+export type ProspectingRunCreateOrConnectWithoutCompanyTargetsInput = {
+  where: Prisma.ProspectingRunWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProspectingRunCreateWithoutCompanyTargetsInput, Prisma.ProspectingRunUncheckedCreateWithoutCompanyTargetsInput>
+}
+
+export type ProspectingRunUpsertWithoutCompanyTargetsInput = {
+  update: Prisma.XOR<Prisma.ProspectingRunUpdateWithoutCompanyTargetsInput, Prisma.ProspectingRunUncheckedUpdateWithoutCompanyTargetsInput>
+  create: Prisma.XOR<Prisma.ProspectingRunCreateWithoutCompanyTargetsInput, Prisma.ProspectingRunUncheckedCreateWithoutCompanyTargetsInput>
+  where?: Prisma.ProspectingRunWhereInput
+}
+
+export type ProspectingRunUpdateToOneWithWhereWithoutCompanyTargetsInput = {
+  where?: Prisma.ProspectingRunWhereInput
+  data: Prisma.XOR<Prisma.ProspectingRunUpdateWithoutCompanyTargetsInput, Prisma.ProspectingRunUncheckedUpdateWithoutCompanyTargetsInput>
+}
+
+export type ProspectingRunUpdateWithoutCompanyTargetsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  keywords?: Prisma.StringFieldUpdateOperationsInput | string
+  geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
+  industryIds?: Prisma.ProspectingRunUpdateindustryIdsInput | string[]
+  searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.EnumProspectingTargetTypeFieldUpdateOperationsInput | $Enums.ProspectingTargetType
+  status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
+  dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursStart?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursEnd?: Prisma.IntFieldUpdateOperationsInput | number
+  sendDays?: Prisma.ProspectingRunUpdatesendDaysInput | number[]
+  discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
+  pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextDiscoveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
+  totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
+  totalSent?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  owner?: Prisma.UserUpdateOneRequiredWithoutProspectingRunsNestedInput
+  requests?: Prisma.ConnectionRequestUpdateManyWithoutRunNestedInput
+  events?: Prisma.ProspectingEventUpdateManyWithoutRunNestedInput
+}
+
+export type ProspectingRunUncheckedUpdateWithoutCompanyTargetsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  keywords?: Prisma.StringFieldUpdateOperationsInput | string
+  geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
+  industryIds?: Prisma.ProspectingRunUpdateindustryIdsInput | string[]
+  searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.EnumProspectingTargetTypeFieldUpdateOperationsInput | $Enums.ProspectingTargetType
+  status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
+  dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursStart?: Prisma.IntFieldUpdateOperationsInput | number
+  sendHoursEnd?: Prisma.IntFieldUpdateOperationsInput | number
+  sendDays?: Prisma.ProspectingRunUpdatesendDaysInput | number[]
+  discoveryDone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectInFlight?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  searchFailCount?: Prisma.IntFieldUpdateOperationsInput | number
+  pausedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextDiscoveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextSearchPage?: Prisma.IntFieldUpdateOperationsInput | number
+  totalDiscovered?: Prisma.IntFieldUpdateOperationsInput | number
+  totalSent?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutRunNestedInput
+  events?: Prisma.ProspectingEventUncheckedUpdateManyWithoutRunNestedInput
+}
+
 export type ProspectingRunCreateWithoutRequestsInput = {
   id?: string
   name: string
@@ -1053,6 +1241,7 @@ export type ProspectingRunCreateWithoutRequestsInput = {
   geoUrn?: string
   industryIds?: Prisma.ProspectingRunCreateindustryIdsInput | string[]
   searchUrl: string
+  targetType?: $Enums.ProspectingTargetType
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
@@ -1072,6 +1261,7 @@ export type ProspectingRunCreateWithoutRequestsInput = {
   completedAt?: Date | string | null
   owner: Prisma.UserCreateNestedOneWithoutProspectingRunsInput
   events?: Prisma.ProspectingEventCreateNestedManyWithoutRunInput
+  companyTargets?: Prisma.ProspectingCompanyTargetCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunUncheckedCreateWithoutRequestsInput = {
@@ -1082,6 +1272,7 @@ export type ProspectingRunUncheckedCreateWithoutRequestsInput = {
   geoUrn?: string
   industryIds?: Prisma.ProspectingRunCreateindustryIdsInput | string[]
   searchUrl: string
+  targetType?: $Enums.ProspectingTargetType
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
@@ -1100,6 +1291,7 @@ export type ProspectingRunUncheckedCreateWithoutRequestsInput = {
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   events?: Prisma.ProspectingEventUncheckedCreateNestedManyWithoutRunInput
+  companyTargets?: Prisma.ProspectingCompanyTargetUncheckedCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunCreateOrConnectWithoutRequestsInput = {
@@ -1125,6 +1317,7 @@ export type ProspectingRunUpdateWithoutRequestsInput = {
   geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   industryIds?: Prisma.ProspectingRunUpdateindustryIdsInput | string[]
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.EnumProspectingTargetTypeFieldUpdateOperationsInput | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1144,6 +1337,7 @@ export type ProspectingRunUpdateWithoutRequestsInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   owner?: Prisma.UserUpdateOneRequiredWithoutProspectingRunsNestedInput
   events?: Prisma.ProspectingEventUpdateManyWithoutRunNestedInput
+  companyTargets?: Prisma.ProspectingCompanyTargetUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunUncheckedUpdateWithoutRequestsInput = {
@@ -1154,6 +1348,7 @@ export type ProspectingRunUncheckedUpdateWithoutRequestsInput = {
   geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   industryIds?: Prisma.ProspectingRunUpdateindustryIdsInput | string[]
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.EnumProspectingTargetTypeFieldUpdateOperationsInput | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1172,6 +1367,7 @@ export type ProspectingRunUncheckedUpdateWithoutRequestsInput = {
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   events?: Prisma.ProspectingEventUncheckedUpdateManyWithoutRunNestedInput
+  companyTargets?: Prisma.ProspectingCompanyTargetUncheckedUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunCreateWithoutEventsInput = {
@@ -1181,6 +1377,7 @@ export type ProspectingRunCreateWithoutEventsInput = {
   geoUrn?: string
   industryIds?: Prisma.ProspectingRunCreateindustryIdsInput | string[]
   searchUrl: string
+  targetType?: $Enums.ProspectingTargetType
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
@@ -1200,6 +1397,7 @@ export type ProspectingRunCreateWithoutEventsInput = {
   completedAt?: Date | string | null
   owner: Prisma.UserCreateNestedOneWithoutProspectingRunsInput
   requests?: Prisma.ConnectionRequestCreateNestedManyWithoutRunInput
+  companyTargets?: Prisma.ProspectingCompanyTargetCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunUncheckedCreateWithoutEventsInput = {
@@ -1210,6 +1408,7 @@ export type ProspectingRunUncheckedCreateWithoutEventsInput = {
   geoUrn?: string
   industryIds?: Prisma.ProspectingRunCreateindustryIdsInput | string[]
   searchUrl: string
+  targetType?: $Enums.ProspectingTargetType
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
@@ -1228,6 +1427,7 @@ export type ProspectingRunUncheckedCreateWithoutEventsInput = {
   startedAt?: Date | string | null
   completedAt?: Date | string | null
   requests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutRunInput
+  companyTargets?: Prisma.ProspectingCompanyTargetUncheckedCreateNestedManyWithoutRunInput
 }
 
 export type ProspectingRunCreateOrConnectWithoutEventsInput = {
@@ -1253,6 +1453,7 @@ export type ProspectingRunUpdateWithoutEventsInput = {
   geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   industryIds?: Prisma.ProspectingRunUpdateindustryIdsInput | string[]
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.EnumProspectingTargetTypeFieldUpdateOperationsInput | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1272,6 +1473,7 @@ export type ProspectingRunUpdateWithoutEventsInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   owner?: Prisma.UserUpdateOneRequiredWithoutProspectingRunsNestedInput
   requests?: Prisma.ConnectionRequestUpdateManyWithoutRunNestedInput
+  companyTargets?: Prisma.ProspectingCompanyTargetUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunUncheckedUpdateWithoutEventsInput = {
@@ -1282,6 +1484,7 @@ export type ProspectingRunUncheckedUpdateWithoutEventsInput = {
   geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   industryIds?: Prisma.ProspectingRunUpdateindustryIdsInput | string[]
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.EnumProspectingTargetTypeFieldUpdateOperationsInput | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1300,6 +1503,7 @@ export type ProspectingRunUncheckedUpdateWithoutEventsInput = {
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   requests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutRunNestedInput
+  companyTargets?: Prisma.ProspectingCompanyTargetUncheckedUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunCreateManyOwnerInput = {
@@ -1309,6 +1513,7 @@ export type ProspectingRunCreateManyOwnerInput = {
   geoUrn?: string
   industryIds?: Prisma.ProspectingRunCreateindustryIdsInput | string[]
   searchUrl: string
+  targetType?: $Enums.ProspectingTargetType
   status?: $Enums.ProspectingRunStatus
   dailyCap?: number
   weeklyCap?: number
@@ -1335,6 +1540,7 @@ export type ProspectingRunUpdateWithoutOwnerInput = {
   geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   industryIds?: Prisma.ProspectingRunUpdateindustryIdsInput | string[]
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.EnumProspectingTargetTypeFieldUpdateOperationsInput | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1354,6 +1560,7 @@ export type ProspectingRunUpdateWithoutOwnerInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   requests?: Prisma.ConnectionRequestUpdateManyWithoutRunNestedInput
   events?: Prisma.ProspectingEventUpdateManyWithoutRunNestedInput
+  companyTargets?: Prisma.ProspectingCompanyTargetUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunUncheckedUpdateWithoutOwnerInput = {
@@ -1363,6 +1570,7 @@ export type ProspectingRunUncheckedUpdateWithoutOwnerInput = {
   geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   industryIds?: Prisma.ProspectingRunUpdateindustryIdsInput | string[]
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.EnumProspectingTargetTypeFieldUpdateOperationsInput | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1382,6 +1590,7 @@ export type ProspectingRunUncheckedUpdateWithoutOwnerInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   requests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutRunNestedInput
   events?: Prisma.ProspectingEventUncheckedUpdateManyWithoutRunNestedInput
+  companyTargets?: Prisma.ProspectingCompanyTargetUncheckedUpdateManyWithoutRunNestedInput
 }
 
 export type ProspectingRunUncheckedUpdateManyWithoutOwnerInput = {
@@ -1391,6 +1600,7 @@ export type ProspectingRunUncheckedUpdateManyWithoutOwnerInput = {
   geoUrn?: Prisma.StringFieldUpdateOperationsInput | string
   industryIds?: Prisma.ProspectingRunUpdateindustryIdsInput | string[]
   searchUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.EnumProspectingTargetTypeFieldUpdateOperationsInput | $Enums.ProspectingTargetType
   status?: Prisma.EnumProspectingRunStatusFieldUpdateOperationsInput | $Enums.ProspectingRunStatus
   dailyCap?: Prisma.IntFieldUpdateOperationsInput | number
   weeklyCap?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1418,11 +1628,13 @@ export type ProspectingRunUncheckedUpdateManyWithoutOwnerInput = {
 export type ProspectingRunCountOutputType = {
   requests: number
   events: number
+  companyTargets: number
 }
 
 export type ProspectingRunCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   requests?: boolean | ProspectingRunCountOutputTypeCountRequestsArgs
   events?: boolean | ProspectingRunCountOutputTypeCountEventsArgs
+  companyTargets?: boolean | ProspectingRunCountOutputTypeCountCompanyTargetsArgs
 }
 
 /**
@@ -1449,6 +1661,13 @@ export type ProspectingRunCountOutputTypeCountEventsArgs<ExtArgs extends runtime
   where?: Prisma.ProspectingEventWhereInput
 }
 
+/**
+ * ProspectingRunCountOutputType without action
+ */
+export type ProspectingRunCountOutputTypeCountCompanyTargetsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProspectingCompanyTargetWhereInput
+}
+
 
 export type ProspectingRunSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1458,6 +1677,7 @@ export type ProspectingRunSelect<ExtArgs extends runtime.Types.Extensions.Intern
   geoUrn?: boolean
   industryIds?: boolean
   searchUrl?: boolean
+  targetType?: boolean
   status?: boolean
   dailyCap?: boolean
   weeklyCap?: boolean
@@ -1478,6 +1698,7 @@ export type ProspectingRunSelect<ExtArgs extends runtime.Types.Extensions.Intern
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   requests?: boolean | Prisma.ProspectingRun$requestsArgs<ExtArgs>
   events?: boolean | Prisma.ProspectingRun$eventsArgs<ExtArgs>
+  companyTargets?: boolean | Prisma.ProspectingRun$companyTargetsArgs<ExtArgs>
   _count?: boolean | Prisma.ProspectingRunCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["prospectingRun"]>
 
@@ -1489,6 +1710,7 @@ export type ProspectingRunSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   geoUrn?: boolean
   industryIds?: boolean
   searchUrl?: boolean
+  targetType?: boolean
   status?: boolean
   dailyCap?: boolean
   weeklyCap?: boolean
@@ -1517,6 +1739,7 @@ export type ProspectingRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   geoUrn?: boolean
   industryIds?: boolean
   searchUrl?: boolean
+  targetType?: boolean
   status?: boolean
   dailyCap?: boolean
   weeklyCap?: boolean
@@ -1545,6 +1768,7 @@ export type ProspectingRunSelectScalar = {
   geoUrn?: boolean
   industryIds?: boolean
   searchUrl?: boolean
+  targetType?: boolean
   status?: boolean
   dailyCap?: boolean
   weeklyCap?: boolean
@@ -1564,11 +1788,12 @@ export type ProspectingRunSelectScalar = {
   completedAt?: boolean
 }
 
-export type ProspectingRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "name" | "keywords" | "geoUrn" | "industryIds" | "searchUrl" | "status" | "dailyCap" | "weeklyCap" | "sendHoursStart" | "sendHoursEnd" | "sendDays" | "discoveryDone" | "connectInFlight" | "searchFailCount" | "pausedUntil" | "nextDiscoveryAt" | "nextSearchPage" | "totalDiscovered" | "totalSent" | "createdAt" | "startedAt" | "completedAt", ExtArgs["result"]["prospectingRun"]>
+export type ProspectingRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "name" | "keywords" | "geoUrn" | "industryIds" | "searchUrl" | "targetType" | "status" | "dailyCap" | "weeklyCap" | "sendHoursStart" | "sendHoursEnd" | "sendDays" | "discoveryDone" | "connectInFlight" | "searchFailCount" | "pausedUntil" | "nextDiscoveryAt" | "nextSearchPage" | "totalDiscovered" | "totalSent" | "createdAt" | "startedAt" | "completedAt", ExtArgs["result"]["prospectingRun"]>
 export type ProspectingRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   requests?: boolean | Prisma.ProspectingRun$requestsArgs<ExtArgs>
   events?: boolean | Prisma.ProspectingRun$eventsArgs<ExtArgs>
+  companyTargets?: boolean | Prisma.ProspectingRun$companyTargetsArgs<ExtArgs>
   _count?: boolean | Prisma.ProspectingRunCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProspectingRunIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1584,6 +1809,7 @@ export type $ProspectingRunPayload<ExtArgs extends runtime.Types.Extensions.Inte
     owner: Prisma.$UserPayload<ExtArgs>
     requests: Prisma.$ConnectionRequestPayload<ExtArgs>[]
     events: Prisma.$ProspectingEventPayload<ExtArgs>[]
+    companyTargets: Prisma.$ProspectingCompanyTargetPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1593,6 +1819,7 @@ export type $ProspectingRunPayload<ExtArgs extends runtime.Types.Extensions.Inte
     geoUrn: string
     industryIds: string[]
     searchUrl: string
+    targetType: $Enums.ProspectingTargetType
     status: $Enums.ProspectingRunStatus
     dailyCap: number
     weeklyCap: number
@@ -2007,6 +2234,7 @@ export interface Prisma__ProspectingRunClient<T, Null = never, ExtArgs extends r
   owner<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   requests<T extends Prisma.ProspectingRun$requestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProspectingRun$requestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConnectionRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   events<T extends Prisma.ProspectingRun$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProspectingRun$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProspectingEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  companyTargets<T extends Prisma.ProspectingRun$companyTargetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProspectingRun$companyTargetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProspectingCompanyTargetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2043,6 +2271,7 @@ export interface ProspectingRunFieldRefs {
   readonly geoUrn: Prisma.FieldRef<"ProspectingRun", 'String'>
   readonly industryIds: Prisma.FieldRef<"ProspectingRun", 'String[]'>
   readonly searchUrl: Prisma.FieldRef<"ProspectingRun", 'String'>
+  readonly targetType: Prisma.FieldRef<"ProspectingRun", 'ProspectingTargetType'>
   readonly status: Prisma.FieldRef<"ProspectingRun", 'ProspectingRunStatus'>
   readonly dailyCap: Prisma.FieldRef<"ProspectingRun", 'Int'>
   readonly weeklyCap: Prisma.FieldRef<"ProspectingRun", 'Int'>
@@ -2506,6 +2735,30 @@ export type ProspectingRun$eventsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.ProspectingEventScalarFieldEnum | Prisma.ProspectingEventScalarFieldEnum[]
+}
+
+/**
+ * ProspectingRun.companyTargets
+ */
+export type ProspectingRun$companyTargetsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProspectingCompanyTarget
+   */
+  select?: Prisma.ProspectingCompanyTargetSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProspectingCompanyTarget
+   */
+  omit?: Prisma.ProspectingCompanyTargetOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProspectingCompanyTargetInclude<ExtArgs> | null
+  where?: Prisma.ProspectingCompanyTargetWhereInput
+  orderBy?: Prisma.ProspectingCompanyTargetOrderByWithRelationInput | Prisma.ProspectingCompanyTargetOrderByWithRelationInput[]
+  cursor?: Prisma.ProspectingCompanyTargetWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProspectingCompanyTargetScalarFieldEnum | Prisma.ProspectingCompanyTargetScalarFieldEnum[]
 }
 
 /**

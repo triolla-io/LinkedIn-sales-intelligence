@@ -40,6 +40,7 @@ export type ConnectionRequestMinAggregateOutputType = {
   id: string | null
   ownerId: string | null
   runId: string | null
+  companyTargetId: string | null
   linkedinUrn: string | null
   linkedinUrl: string | null
   fullName: string | null
@@ -62,6 +63,7 @@ export type ConnectionRequestMaxAggregateOutputType = {
   id: string | null
   ownerId: string | null
   runId: string | null
+  companyTargetId: string | null
   linkedinUrn: string | null
   linkedinUrl: string | null
   fullName: string | null
@@ -84,6 +86,7 @@ export type ConnectionRequestCountAggregateOutputType = {
   id: number
   ownerId: number
   runId: number
+  companyTargetId: number
   linkedinUrn: number
   linkedinUrl: number
   fullName: number
@@ -118,6 +121,7 @@ export type ConnectionRequestMinAggregateInputType = {
   id?: true
   ownerId?: true
   runId?: true
+  companyTargetId?: true
   linkedinUrn?: true
   linkedinUrl?: true
   fullName?: true
@@ -140,6 +144,7 @@ export type ConnectionRequestMaxAggregateInputType = {
   id?: true
   ownerId?: true
   runId?: true
+  companyTargetId?: true
   linkedinUrn?: true
   linkedinUrl?: true
   fullName?: true
@@ -162,6 +167,7 @@ export type ConnectionRequestCountAggregateInputType = {
   id?: true
   ownerId?: true
   runId?: true
+  companyTargetId?: true
   linkedinUrn?: true
   linkedinUrl?: true
   fullName?: true
@@ -271,6 +277,7 @@ export type ConnectionRequestGroupByOutputType = {
   id: string
   ownerId: string
   runId: string
+  companyTargetId: string | null
   linkedinUrn: string
   linkedinUrl: string
   fullName: string | null
@@ -316,6 +323,7 @@ export type ConnectionRequestWhereInput = {
   id?: Prisma.StringFilter<"ConnectionRequest"> | string
   ownerId?: Prisma.StringFilter<"ConnectionRequest"> | string
   runId?: Prisma.StringFilter<"ConnectionRequest"> | string
+  companyTargetId?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   linkedinUrn?: Prisma.StringFilter<"ConnectionRequest"> | string
   linkedinUrl?: Prisma.StringFilter<"ConnectionRequest"> | string
   fullName?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
@@ -334,12 +342,14 @@ export type ConnectionRequestWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"ConnectionRequest"> | Date | string
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   run?: Prisma.XOR<Prisma.ProspectingRunScalarRelationFilter, Prisma.ProspectingRunWhereInput>
+  companyTarget?: Prisma.XOR<Prisma.ProspectingCompanyTargetNullableScalarRelationFilter, Prisma.ProspectingCompanyTargetWhereInput> | null
 }
 
 export type ConnectionRequestOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   ownerId?: Prisma.SortOrder
   runId?: Prisma.SortOrder
+  companyTargetId?: Prisma.SortOrderInput | Prisma.SortOrder
   linkedinUrn?: Prisma.SortOrder
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -358,6 +368,7 @@ export type ConnectionRequestOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   owner?: Prisma.UserOrderByWithRelationInput
   run?: Prisma.ProspectingRunOrderByWithRelationInput
+  companyTarget?: Prisma.ProspectingCompanyTargetOrderByWithRelationInput
 }
 
 export type ConnectionRequestWhereUniqueInput = Prisma.AtLeast<{
@@ -368,6 +379,7 @@ export type ConnectionRequestWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.ConnectionRequestWhereInput | Prisma.ConnectionRequestWhereInput[]
   ownerId?: Prisma.StringFilter<"ConnectionRequest"> | string
   runId?: Prisma.StringFilter<"ConnectionRequest"> | string
+  companyTargetId?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   linkedinUrn?: Prisma.StringFilter<"ConnectionRequest"> | string
   linkedinUrl?: Prisma.StringFilter<"ConnectionRequest"> | string
   fullName?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
@@ -386,12 +398,14 @@ export type ConnectionRequestWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"ConnectionRequest"> | Date | string
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   run?: Prisma.XOR<Prisma.ProspectingRunScalarRelationFilter, Prisma.ProspectingRunWhereInput>
+  companyTarget?: Prisma.XOR<Prisma.ProspectingCompanyTargetNullableScalarRelationFilter, Prisma.ProspectingCompanyTargetWhereInput> | null
 }, "id" | "ownerId_linkedinUrn">
 
 export type ConnectionRequestOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   ownerId?: Prisma.SortOrder
   runId?: Prisma.SortOrder
+  companyTargetId?: Prisma.SortOrderInput | Prisma.SortOrder
   linkedinUrn?: Prisma.SortOrder
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -422,6 +436,7 @@ export type ConnectionRequestScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"ConnectionRequest"> | string
   ownerId?: Prisma.StringWithAggregatesFilter<"ConnectionRequest"> | string
   runId?: Prisma.StringWithAggregatesFilter<"ConnectionRequest"> | string
+  companyTargetId?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
   linkedinUrn?: Prisma.StringWithAggregatesFilter<"ConnectionRequest"> | string
   linkedinUrl?: Prisma.StringWithAggregatesFilter<"ConnectionRequest"> | string
   fullName?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
@@ -460,12 +475,14 @@ export type ConnectionRequestCreateInput = {
   createdAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutConnectionRequestsInput
   run: Prisma.ProspectingRunCreateNestedOneWithoutRequestsInput
+  companyTarget?: Prisma.ProspectingCompanyTargetCreateNestedOneWithoutRequestsInput
 }
 
 export type ConnectionRequestUncheckedCreateInput = {
   id?: string
   ownerId: string
   runId: string
+  companyTargetId?: string | null
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
@@ -504,12 +521,14 @@ export type ConnectionRequestUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutConnectionRequestsNestedInput
   run?: Prisma.ProspectingRunUpdateOneRequiredWithoutRequestsNestedInput
+  companyTarget?: Prisma.ProspectingCompanyTargetUpdateOneWithoutRequestsNestedInput
 }
 
 export type ConnectionRequestUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   runId?: Prisma.StringFieldUpdateOperationsInput | string
+  companyTargetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -532,6 +551,7 @@ export type ConnectionRequestCreateManyInput = {
   id?: string
   ownerId: string
   runId: string
+  companyTargetId?: string | null
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
@@ -574,6 +594,7 @@ export type ConnectionRequestUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   runId?: Prisma.StringFieldUpdateOperationsInput | string
+  companyTargetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -611,6 +632,7 @@ export type ConnectionRequestCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   ownerId?: Prisma.SortOrder
   runId?: Prisma.SortOrder
+  companyTargetId?: Prisma.SortOrder
   linkedinUrn?: Prisma.SortOrder
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
@@ -638,6 +660,7 @@ export type ConnectionRequestMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   ownerId?: Prisma.SortOrder
   runId?: Prisma.SortOrder
+  companyTargetId?: Prisma.SortOrder
   linkedinUrn?: Prisma.SortOrder
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
@@ -660,6 +683,7 @@ export type ConnectionRequestMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   ownerId?: Prisma.SortOrder
   runId?: Prisma.SortOrder
+  companyTargetId?: Prisma.SortOrder
   linkedinUrn?: Prisma.SortOrder
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
@@ -767,6 +791,48 @@ export type ConnectionRequestUncheckedUpdateManyWithoutRunNestedInput = {
   deleteMany?: Prisma.ConnectionRequestScalarWhereInput | Prisma.ConnectionRequestScalarWhereInput[]
 }
 
+export type ConnectionRequestCreateNestedManyWithoutCompanyTargetInput = {
+  create?: Prisma.XOR<Prisma.ConnectionRequestCreateWithoutCompanyTargetInput, Prisma.ConnectionRequestUncheckedCreateWithoutCompanyTargetInput> | Prisma.ConnectionRequestCreateWithoutCompanyTargetInput[] | Prisma.ConnectionRequestUncheckedCreateWithoutCompanyTargetInput[]
+  connectOrCreate?: Prisma.ConnectionRequestCreateOrConnectWithoutCompanyTargetInput | Prisma.ConnectionRequestCreateOrConnectWithoutCompanyTargetInput[]
+  createMany?: Prisma.ConnectionRequestCreateManyCompanyTargetInputEnvelope
+  connect?: Prisma.ConnectionRequestWhereUniqueInput | Prisma.ConnectionRequestWhereUniqueInput[]
+}
+
+export type ConnectionRequestUncheckedCreateNestedManyWithoutCompanyTargetInput = {
+  create?: Prisma.XOR<Prisma.ConnectionRequestCreateWithoutCompanyTargetInput, Prisma.ConnectionRequestUncheckedCreateWithoutCompanyTargetInput> | Prisma.ConnectionRequestCreateWithoutCompanyTargetInput[] | Prisma.ConnectionRequestUncheckedCreateWithoutCompanyTargetInput[]
+  connectOrCreate?: Prisma.ConnectionRequestCreateOrConnectWithoutCompanyTargetInput | Prisma.ConnectionRequestCreateOrConnectWithoutCompanyTargetInput[]
+  createMany?: Prisma.ConnectionRequestCreateManyCompanyTargetInputEnvelope
+  connect?: Prisma.ConnectionRequestWhereUniqueInput | Prisma.ConnectionRequestWhereUniqueInput[]
+}
+
+export type ConnectionRequestUpdateManyWithoutCompanyTargetNestedInput = {
+  create?: Prisma.XOR<Prisma.ConnectionRequestCreateWithoutCompanyTargetInput, Prisma.ConnectionRequestUncheckedCreateWithoutCompanyTargetInput> | Prisma.ConnectionRequestCreateWithoutCompanyTargetInput[] | Prisma.ConnectionRequestUncheckedCreateWithoutCompanyTargetInput[]
+  connectOrCreate?: Prisma.ConnectionRequestCreateOrConnectWithoutCompanyTargetInput | Prisma.ConnectionRequestCreateOrConnectWithoutCompanyTargetInput[]
+  upsert?: Prisma.ConnectionRequestUpsertWithWhereUniqueWithoutCompanyTargetInput | Prisma.ConnectionRequestUpsertWithWhereUniqueWithoutCompanyTargetInput[]
+  createMany?: Prisma.ConnectionRequestCreateManyCompanyTargetInputEnvelope
+  set?: Prisma.ConnectionRequestWhereUniqueInput | Prisma.ConnectionRequestWhereUniqueInput[]
+  disconnect?: Prisma.ConnectionRequestWhereUniqueInput | Prisma.ConnectionRequestWhereUniqueInput[]
+  delete?: Prisma.ConnectionRequestWhereUniqueInput | Prisma.ConnectionRequestWhereUniqueInput[]
+  connect?: Prisma.ConnectionRequestWhereUniqueInput | Prisma.ConnectionRequestWhereUniqueInput[]
+  update?: Prisma.ConnectionRequestUpdateWithWhereUniqueWithoutCompanyTargetInput | Prisma.ConnectionRequestUpdateWithWhereUniqueWithoutCompanyTargetInput[]
+  updateMany?: Prisma.ConnectionRequestUpdateManyWithWhereWithoutCompanyTargetInput | Prisma.ConnectionRequestUpdateManyWithWhereWithoutCompanyTargetInput[]
+  deleteMany?: Prisma.ConnectionRequestScalarWhereInput | Prisma.ConnectionRequestScalarWhereInput[]
+}
+
+export type ConnectionRequestUncheckedUpdateManyWithoutCompanyTargetNestedInput = {
+  create?: Prisma.XOR<Prisma.ConnectionRequestCreateWithoutCompanyTargetInput, Prisma.ConnectionRequestUncheckedCreateWithoutCompanyTargetInput> | Prisma.ConnectionRequestCreateWithoutCompanyTargetInput[] | Prisma.ConnectionRequestUncheckedCreateWithoutCompanyTargetInput[]
+  connectOrCreate?: Prisma.ConnectionRequestCreateOrConnectWithoutCompanyTargetInput | Prisma.ConnectionRequestCreateOrConnectWithoutCompanyTargetInput[]
+  upsert?: Prisma.ConnectionRequestUpsertWithWhereUniqueWithoutCompanyTargetInput | Prisma.ConnectionRequestUpsertWithWhereUniqueWithoutCompanyTargetInput[]
+  createMany?: Prisma.ConnectionRequestCreateManyCompanyTargetInputEnvelope
+  set?: Prisma.ConnectionRequestWhereUniqueInput | Prisma.ConnectionRequestWhereUniqueInput[]
+  disconnect?: Prisma.ConnectionRequestWhereUniqueInput | Prisma.ConnectionRequestWhereUniqueInput[]
+  delete?: Prisma.ConnectionRequestWhereUniqueInput | Prisma.ConnectionRequestWhereUniqueInput[]
+  connect?: Prisma.ConnectionRequestWhereUniqueInput | Prisma.ConnectionRequestWhereUniqueInput[]
+  update?: Prisma.ConnectionRequestUpdateWithWhereUniqueWithoutCompanyTargetInput | Prisma.ConnectionRequestUpdateWithWhereUniqueWithoutCompanyTargetInput[]
+  updateMany?: Prisma.ConnectionRequestUpdateManyWithWhereWithoutCompanyTargetInput | Prisma.ConnectionRequestUpdateManyWithWhereWithoutCompanyTargetInput[]
+  deleteMany?: Prisma.ConnectionRequestScalarWhereInput | Prisma.ConnectionRequestScalarWhereInput[]
+}
+
 export type EnumConnectionRequestStatusFieldUpdateOperationsInput = {
   set?: $Enums.ConnectionRequestStatus
 }
@@ -790,11 +856,13 @@ export type ConnectionRequestCreateWithoutOwnerInput = {
   errorMessage?: string | null
   createdAt?: Date | string
   run: Prisma.ProspectingRunCreateNestedOneWithoutRequestsInput
+  companyTarget?: Prisma.ProspectingCompanyTargetCreateNestedOneWithoutRequestsInput
 }
 
 export type ConnectionRequestUncheckedCreateWithoutOwnerInput = {
   id?: string
   runId: string
+  companyTargetId?: string | null
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
@@ -846,6 +914,7 @@ export type ConnectionRequestScalarWhereInput = {
   id?: Prisma.StringFilter<"ConnectionRequest"> | string
   ownerId?: Prisma.StringFilter<"ConnectionRequest"> | string
   runId?: Prisma.StringFilter<"ConnectionRequest"> | string
+  companyTargetId?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   linkedinUrn?: Prisma.StringFilter<"ConnectionRequest"> | string
   linkedinUrl?: Prisma.StringFilter<"ConnectionRequest"> | string
   fullName?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
@@ -883,11 +952,13 @@ export type ConnectionRequestCreateWithoutRunInput = {
   errorMessage?: string | null
   createdAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutConnectionRequestsInput
+  companyTarget?: Prisma.ProspectingCompanyTargetCreateNestedOneWithoutRequestsInput
 }
 
 export type ConnectionRequestUncheckedCreateWithoutRunInput = {
   id?: string
   ownerId: string
+  companyTargetId?: string | null
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
@@ -932,9 +1003,80 @@ export type ConnectionRequestUpdateManyWithWhereWithoutRunInput = {
   data: Prisma.XOR<Prisma.ConnectionRequestUpdateManyMutationInput, Prisma.ConnectionRequestUncheckedUpdateManyWithoutRunInput>
 }
 
+export type ConnectionRequestCreateWithoutCompanyTargetInput = {
+  id?: string
+  linkedinUrn: string
+  linkedinUrl: string
+  fullName?: string | null
+  headline?: string | null
+  currentTitle?: string | null
+  currentCompany?: string | null
+  location?: string | null
+  status?: $Enums.ConnectionRequestStatus
+  skipReason?: string | null
+  cardAction?: string | null
+  sendPriority?: number
+  sentAt?: Date | string | null
+  attemptCount?: number
+  errorCode?: string | null
+  errorMessage?: string | null
+  createdAt?: Date | string
+  owner: Prisma.UserCreateNestedOneWithoutConnectionRequestsInput
+  run: Prisma.ProspectingRunCreateNestedOneWithoutRequestsInput
+}
+
+export type ConnectionRequestUncheckedCreateWithoutCompanyTargetInput = {
+  id?: string
+  ownerId: string
+  runId: string
+  linkedinUrn: string
+  linkedinUrl: string
+  fullName?: string | null
+  headline?: string | null
+  currentTitle?: string | null
+  currentCompany?: string | null
+  location?: string | null
+  status?: $Enums.ConnectionRequestStatus
+  skipReason?: string | null
+  cardAction?: string | null
+  sendPriority?: number
+  sentAt?: Date | string | null
+  attemptCount?: number
+  errorCode?: string | null
+  errorMessage?: string | null
+  createdAt?: Date | string
+}
+
+export type ConnectionRequestCreateOrConnectWithoutCompanyTargetInput = {
+  where: Prisma.ConnectionRequestWhereUniqueInput
+  create: Prisma.XOR<Prisma.ConnectionRequestCreateWithoutCompanyTargetInput, Prisma.ConnectionRequestUncheckedCreateWithoutCompanyTargetInput>
+}
+
+export type ConnectionRequestCreateManyCompanyTargetInputEnvelope = {
+  data: Prisma.ConnectionRequestCreateManyCompanyTargetInput | Prisma.ConnectionRequestCreateManyCompanyTargetInput[]
+  skipDuplicates?: boolean
+}
+
+export type ConnectionRequestUpsertWithWhereUniqueWithoutCompanyTargetInput = {
+  where: Prisma.ConnectionRequestWhereUniqueInput
+  update: Prisma.XOR<Prisma.ConnectionRequestUpdateWithoutCompanyTargetInput, Prisma.ConnectionRequestUncheckedUpdateWithoutCompanyTargetInput>
+  create: Prisma.XOR<Prisma.ConnectionRequestCreateWithoutCompanyTargetInput, Prisma.ConnectionRequestUncheckedCreateWithoutCompanyTargetInput>
+}
+
+export type ConnectionRequestUpdateWithWhereUniqueWithoutCompanyTargetInput = {
+  where: Prisma.ConnectionRequestWhereUniqueInput
+  data: Prisma.XOR<Prisma.ConnectionRequestUpdateWithoutCompanyTargetInput, Prisma.ConnectionRequestUncheckedUpdateWithoutCompanyTargetInput>
+}
+
+export type ConnectionRequestUpdateManyWithWhereWithoutCompanyTargetInput = {
+  where: Prisma.ConnectionRequestScalarWhereInput
+  data: Prisma.XOR<Prisma.ConnectionRequestUpdateManyMutationInput, Prisma.ConnectionRequestUncheckedUpdateManyWithoutCompanyTargetInput>
+}
+
 export type ConnectionRequestCreateManyOwnerInput = {
   id?: string
   runId: string
+  companyTargetId?: string | null
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
@@ -972,11 +1114,13 @@ export type ConnectionRequestUpdateWithoutOwnerInput = {
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   run?: Prisma.ProspectingRunUpdateOneRequiredWithoutRequestsNestedInput
+  companyTarget?: Prisma.ProspectingCompanyTargetUpdateOneWithoutRequestsNestedInput
 }
 
 export type ConnectionRequestUncheckedUpdateWithoutOwnerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   runId?: Prisma.StringFieldUpdateOperationsInput | string
+  companyTargetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -998,6 +1142,7 @@ export type ConnectionRequestUncheckedUpdateWithoutOwnerInput = {
 export type ConnectionRequestUncheckedUpdateManyWithoutOwnerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   runId?: Prisma.StringFieldUpdateOperationsInput | string
+  companyTargetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1019,6 +1164,7 @@ export type ConnectionRequestUncheckedUpdateManyWithoutOwnerInput = {
 export type ConnectionRequestCreateManyRunInput = {
   id?: string
   ownerId: string
+  companyTargetId?: string | null
   linkedinUrn: string
   linkedinUrl: string
   fullName?: string | null
@@ -1056,11 +1202,13 @@ export type ConnectionRequestUpdateWithoutRunInput = {
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutConnectionRequestsNestedInput
+  companyTarget?: Prisma.ProspectingCompanyTargetUpdateOneWithoutRequestsNestedInput
 }
 
 export type ConnectionRequestUncheckedUpdateWithoutRunInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  companyTargetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1082,6 +1230,95 @@ export type ConnectionRequestUncheckedUpdateWithoutRunInput = {
 export type ConnectionRequestUncheckedUpdateManyWithoutRunInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  companyTargetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumConnectionRequestStatusFieldUpdateOperationsInput | $Enums.ConnectionRequestStatus
+  skipReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ConnectionRequestCreateManyCompanyTargetInput = {
+  id?: string
+  ownerId: string
+  runId: string
+  linkedinUrn: string
+  linkedinUrl: string
+  fullName?: string | null
+  headline?: string | null
+  currentTitle?: string | null
+  currentCompany?: string | null
+  location?: string | null
+  status?: $Enums.ConnectionRequestStatus
+  skipReason?: string | null
+  cardAction?: string | null
+  sendPriority?: number
+  sentAt?: Date | string | null
+  attemptCount?: number
+  errorCode?: string | null
+  errorMessage?: string | null
+  createdAt?: Date | string
+}
+
+export type ConnectionRequestUpdateWithoutCompanyTargetInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumConnectionRequestStatusFieldUpdateOperationsInput | $Enums.ConnectionRequestStatus
+  skipReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.UserUpdateOneRequiredWithoutConnectionRequestsNestedInput
+  run?: Prisma.ProspectingRunUpdateOneRequiredWithoutRequestsNestedInput
+}
+
+export type ConnectionRequestUncheckedUpdateWithoutCompanyTargetInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  runId?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumConnectionRequestStatusFieldUpdateOperationsInput | $Enums.ConnectionRequestStatus
+  skipReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ConnectionRequestUncheckedUpdateManyWithoutCompanyTargetInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  runId?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1106,6 +1343,7 @@ export type ConnectionRequestSelect<ExtArgs extends runtime.Types.Extensions.Int
   id?: boolean
   ownerId?: boolean
   runId?: boolean
+  companyTargetId?: boolean
   linkedinUrn?: boolean
   linkedinUrl?: boolean
   fullName?: boolean
@@ -1124,12 +1362,14 @@ export type ConnectionRequestSelect<ExtArgs extends runtime.Types.Extensions.Int
   createdAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   run?: boolean | Prisma.ProspectingRunDefaultArgs<ExtArgs>
+  companyTarget?: boolean | Prisma.ConnectionRequest$companyTargetArgs<ExtArgs>
 }, ExtArgs["result"]["connectionRequest"]>
 
 export type ConnectionRequestSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   ownerId?: boolean
   runId?: boolean
+  companyTargetId?: boolean
   linkedinUrn?: boolean
   linkedinUrl?: boolean
   fullName?: boolean
@@ -1148,12 +1388,14 @@ export type ConnectionRequestSelectCreateManyAndReturn<ExtArgs extends runtime.T
   createdAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   run?: boolean | Prisma.ProspectingRunDefaultArgs<ExtArgs>
+  companyTarget?: boolean | Prisma.ConnectionRequest$companyTargetArgs<ExtArgs>
 }, ExtArgs["result"]["connectionRequest"]>
 
 export type ConnectionRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   ownerId?: boolean
   runId?: boolean
+  companyTargetId?: boolean
   linkedinUrn?: boolean
   linkedinUrl?: boolean
   fullName?: boolean
@@ -1172,12 +1414,14 @@ export type ConnectionRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   createdAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   run?: boolean | Prisma.ProspectingRunDefaultArgs<ExtArgs>
+  companyTarget?: boolean | Prisma.ConnectionRequest$companyTargetArgs<ExtArgs>
 }, ExtArgs["result"]["connectionRequest"]>
 
 export type ConnectionRequestSelectScalar = {
   id?: boolean
   ownerId?: boolean
   runId?: boolean
+  companyTargetId?: boolean
   linkedinUrn?: boolean
   linkedinUrl?: boolean
   fullName?: boolean
@@ -1196,18 +1440,21 @@ export type ConnectionRequestSelectScalar = {
   createdAt?: boolean
 }
 
-export type ConnectionRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "runId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "headline" | "currentTitle" | "currentCompany" | "location" | "status" | "skipReason" | "cardAction" | "sendPriority" | "sentAt" | "attemptCount" | "errorCode" | "errorMessage" | "createdAt", ExtArgs["result"]["connectionRequest"]>
+export type ConnectionRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "runId" | "companyTargetId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "headline" | "currentTitle" | "currentCompany" | "location" | "status" | "skipReason" | "cardAction" | "sendPriority" | "sentAt" | "attemptCount" | "errorCode" | "errorMessage" | "createdAt", ExtArgs["result"]["connectionRequest"]>
 export type ConnectionRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   run?: boolean | Prisma.ProspectingRunDefaultArgs<ExtArgs>
+  companyTarget?: boolean | Prisma.ConnectionRequest$companyTargetArgs<ExtArgs>
 }
 export type ConnectionRequestIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   run?: boolean | Prisma.ProspectingRunDefaultArgs<ExtArgs>
+  companyTarget?: boolean | Prisma.ConnectionRequest$companyTargetArgs<ExtArgs>
 }
 export type ConnectionRequestIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   run?: boolean | Prisma.ProspectingRunDefaultArgs<ExtArgs>
+  companyTarget?: boolean | Prisma.ConnectionRequest$companyTargetArgs<ExtArgs>
 }
 
 export type $ConnectionRequestPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1215,11 +1462,13 @@ export type $ConnectionRequestPayload<ExtArgs extends runtime.Types.Extensions.I
   objects: {
     owner: Prisma.$UserPayload<ExtArgs>
     run: Prisma.$ProspectingRunPayload<ExtArgs>
+    companyTarget: Prisma.$ProspectingCompanyTargetPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     ownerId: string
     runId: string
+    companyTargetId: string | null
     linkedinUrn: string
     linkedinUrl: string
     fullName: string | null
@@ -1632,6 +1881,7 @@ export interface Prisma__ConnectionRequestClient<T, Null = never, ExtArgs extend
   readonly [Symbol.toStringTag]: "PrismaPromise"
   owner<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   run<T extends Prisma.ProspectingRunDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProspectingRunDefaultArgs<ExtArgs>>): Prisma.Prisma__ProspectingRunClient<runtime.Types.Result.GetResult<Prisma.$ProspectingRunPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  companyTarget<T extends Prisma.ConnectionRequest$companyTargetArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ConnectionRequest$companyTargetArgs<ExtArgs>>): Prisma.Prisma__ProspectingCompanyTargetClient<runtime.Types.Result.GetResult<Prisma.$ProspectingCompanyTargetPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1664,6 +1914,7 @@ export interface ConnectionRequestFieldRefs {
   readonly id: Prisma.FieldRef<"ConnectionRequest", 'String'>
   readonly ownerId: Prisma.FieldRef<"ConnectionRequest", 'String'>
   readonly runId: Prisma.FieldRef<"ConnectionRequest", 'String'>
+  readonly companyTargetId: Prisma.FieldRef<"ConnectionRequest", 'String'>
   readonly linkedinUrn: Prisma.FieldRef<"ConnectionRequest", 'String'>
   readonly linkedinUrl: Prisma.FieldRef<"ConnectionRequest", 'String'>
   readonly fullName: Prisma.FieldRef<"ConnectionRequest", 'String'>
@@ -2078,6 +2329,25 @@ export type ConnectionRequestDeleteManyArgs<ExtArgs extends runtime.Types.Extens
    * Limit how many ConnectionRequests to delete.
    */
   limit?: number
+}
+
+/**
+ * ConnectionRequest.companyTarget
+ */
+export type ConnectionRequest$companyTargetArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProspectingCompanyTarget
+   */
+  select?: Prisma.ProspectingCompanyTargetSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProspectingCompanyTarget
+   */
+  omit?: Prisma.ProspectingCompanyTargetOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProspectingCompanyTargetInclude<ExtArgs> | null
+  where?: Prisma.ProspectingCompanyTargetWhereInput
 }
 
 /**

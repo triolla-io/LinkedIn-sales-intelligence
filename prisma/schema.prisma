@@ -121,38 +121,38 @@ model Organization {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  orgId         String
-  email         String    @unique
-  emailVerified DateTime?
-  name          String
-  image         String?
-  title         String?
-  role          Role      @default(SALESPERSON)
-  timezone        String    @default("Asia/Jerusalem")
-  emailSignature  String?   @db.Text
-  routineConnectionsEnabled Boolean @default(true)
-  createdAt       DateTime  @default(now())
+  id                        String    @id @default(cuid())
+  orgId                     String
+  email                     String    @unique
+  emailVerified             DateTime?
+  name                      String
+  image                     String?
+  title                     String?
+  role                      Role      @default(SALESPERSON)
+  timezone                  String    @default("Asia/Jerusalem")
+  emailSignature            String?   @db.Text
+  routineConnectionsEnabled Boolean   @default(true)
+  createdAt                 DateTime  @default(now())
 
-  org             Organization      @relation(fields: [orgId], references: [id])
-  accounts        Account[]
-  sessions        Session[]
-  contacts        Contact[]
-  sentMessages    SentMessage[]     @relation("SentBySender")
-  actedMessages   SentMessage[]     @relation("ActedByActor")
-  savedViews      SavedView[]
-  templates       MessageTemplate[]
-  auditActed      AuditEvent[]      @relation("AuditActor")
-  auditTargeted   AuditEvent[]      @relation("AuditTarget")
-  campaigns       Campaign[]
-  imports         Import[]
-  importJobs      ImportJob[]
-  contactLists    ContactList[]
-  linkedinSession  LinkedinSession?
-  sequences        Sequence[]
-  extensionTasks   ExtensionTask[]   @relation("UserExtensionTasks")
-  extensionSession ExtensionSession? @relation("UserExtensionSession")
-  extensionAlerts  ExtensionAlert[]  @relation("UserExtensionAlerts")
+  org                Organization        @relation(fields: [orgId], references: [id])
+  accounts           Account[]
+  sessions           Session[]
+  contacts           Contact[]
+  sentMessages       SentMessage[]       @relation("SentBySender")
+  actedMessages      SentMessage[]       @relation("ActedByActor")
+  savedViews         SavedView[]
+  templates          MessageTemplate[]
+  auditActed         AuditEvent[]        @relation("AuditActor")
+  auditTargeted      AuditEvent[]        @relation("AuditTarget")
+  campaigns          Campaign[]
+  imports            Import[]
+  importJobs         ImportJob[]
+  contactLists       ContactList[]
+  linkedinSession    LinkedinSession?
+  sequences          Sequence[]
+  extensionTasks     ExtensionTask[]     @relation("UserExtensionTasks")
+  extensionSession   ExtensionSession?   @relation("UserExtensionSession")
+  extensionAlerts    ExtensionAlert[]    @relation("UserExtensionAlerts")
   prospectingRuns    ProspectingRun[]    @relation("UserProspectingRuns")
   connectionRequests ConnectionRequest[] @relation("UserConnectionRequests")
 }
@@ -406,6 +406,7 @@ enum ExtensionTaskKind {
   CHECK_REPLY
   SEARCH
   CONNECT
+  RESOLVE_COMPANY
 }
 
 enum ExtensionTaskStatus {
@@ -413,6 +414,7 @@ enum ExtensionTaskStatus {
   CLAIMED
   DONE
   FAILED
+  CANCELLED
 }
 
 enum ExtensionAlertKind {
@@ -449,6 +451,7 @@ enum ProspectingEventType {
   ALREADY_PENDING
   ALREADY_CONNECTED
   CHECKPOINT
+  COMPLETED
 }
 
 // ─── Campaign models ──────────────────────────────────────────────────────────
@@ -540,14 +543,14 @@ model ImportJob {
   processed    Int             @default(0)
   payload      Json
   error        String?
-  added        Int @default(0)
-  updated      Int @default(0)
-  removed      Int @default(0)
-  unchanged    Int @default(0)
-  companies    Int @default(0)
-  newCompanies Int @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  added        Int             @default(0)
+  updated      Int             @default(0)
+  removed      Int             @default(0)
+  unchanged    Int             @default(0)
+  companies    Int             @default(0)
+  newCompanies Int             @default(0)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
@@ -566,8 +569,8 @@ model ContactList {
   members   ContactListMember[]
   sequences Sequence[]
 
-  @@index([ownerId])
   @@unique([ownerId, name])
+  @@index([ownerId])
 }
 
 model ContactListMember {
@@ -596,8 +599,8 @@ model Sequence {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
-  owner       User                  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  contactList ContactList?          @relation(fields: [contactListId], references: [id], onDelete: SetNull)
+  owner       User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  contactList ContactList?         @relation(fields: [contactListId], references: [id], onDelete: SetNull)
   steps       SequenceStep[]
   enrollments SequenceEnrollment[]
 
@@ -605,18 +608,18 @@ model Sequence {
 }
 
 model SequenceStep {
-  id         String          @id @default(cuid())
-  sequenceId String
-  stepNumber Int
-  dayOffset  Int
-  sendHour   Int             @default(9)
-  sendMinute Int             @default(0)
+  id          String          @id @default(cuid())
+  sequenceId  String
+  stepNumber  Int
+  dayOffset   Int
+  sendHour    Int             @default(9)
+  sendMinute  Int             @default(0)
   sendHourEnd Int?
-  channel    CampaignChannel
-  templateId String
-  subject    String?
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  channel     CampaignChannel
+  templateId  String
+  subject     String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
   sequence   Sequence                @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
   template   MessageTemplate         @relation(fields: [templateId], references: [id])
@@ -721,63 +724,110 @@ model NameTranslation {
 }
 
 model ProspectingRun {
-  id              String               @id @default(cuid())
+  id              String                     @id @default(cuid())
   ownerId         String
-  owner           User                 @relation("UserProspectingRuns", fields: [ownerId], references: [id], onDelete: Cascade)
+  owner           User                       @relation("UserProspectingRuns", fields: [ownerId], references: [id], onDelete: Cascade)
   name            String
   keywords        String
-  geoUrn          String               @default("101620260")
-  industryIds     String[]             @default([])
+  geoUrn          String                     @default("101620260")
+  industryIds     String[]                   @default([])
   searchUrl       String
-  status          ProspectingRunStatus @default(DRAFT)
-  dailyCap        Int                  @default(15)
-  weeklyCap       Int                  @default(100)
-  sendHoursStart  Int                  @default(9)
-  sendHoursEnd    Int                  @default(18)
+  targetType      ProspectingTargetType      @default(KEYWORDS)
+  status          ProspectingRunStatus       @default(DRAFT)
+  dailyCap        Int                        @default(15)
+  weeklyCap       Int                        @default(100)
+  sendHoursStart  Int                        @default(9)
+  sendHoursEnd    Int                        @default(18)
   sendDays        Int[]
-  discoveryDone   Boolean              @default(false)
-  connectInFlight Boolean              @default(false)
-  searchFailCount Int                  @default(0)
+  discoveryDone   Boolean                    @default(false)
+  connectInFlight Boolean                    @default(false)
+  searchFailCount Int                        @default(0)
   pausedUntil     DateTime?
   nextDiscoveryAt DateTime?
-  nextSearchPage  Int                  @default(1)
-  totalDiscovered Int                  @default(0)
-  totalSent       Int                  @default(0)
-  createdAt       DateTime             @default(now())
+  nextSearchPage  Int                        @default(1)
+  totalDiscovered Int                        @default(0)
+  totalSent       Int                        @default(0)
+  createdAt       DateTime                   @default(now())
   startedAt       DateTime?
   completedAt     DateTime?
   requests        ConnectionRequest[]
   events          ProspectingEvent[]
+  companyTargets  ProspectingCompanyTarget[]
 
   @@index([ownerId, status])
 }
 
+enum ProspectingTargetType {
+  KEYWORDS
+  COMPANY
+}
+
+model ProspectingCompanyTarget {
+  id                String              @id @default(cuid())
+  runId             String
+  run               ProspectingRun      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  name              String // display name (English preferred)
+  nameHebrew        String?
+  linkedinUrl       String? // as provided (sheet column or manual paste)
+  linkedinSlug      String? // normalized /company/<slug> — dedup key when URL present
+  linkedinCompanyId String? // numeric ID resolved by the extension
+  resolvedName      String? // canonical name from LinkedIn (match visibility)
+  website           String?
+  vertical          String?
+  dedupKey          String // linkedinSlug ?? normalized(name) — stored at insert
+  status            CompanyTargetStatus @default(PENDING)
+  searchPage        Int                 @default(1) // per-company pagination cursor
+  discoveredCount   Int                 @default(0)
+  sentCount         Int                 @default(0) // denormalized for the companies table UI
+  error             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  requests ConnectionRequest[]
+
+  @@unique([runId, dedupKey])
+  @@index([runId, status])
+}
+
+enum CompanyTargetStatus {
+  PENDING // waiting for its turn
+  RESOLVING // RESOLVE_COMPANY task in flight
+  READY // ID resolved, waiting for search
+  SEARCHING // SEARCH task(s) in flight / paginating
+  DONE // all pages scraped
+  FAILED // resolve/search failed permanently (error set)
+  REMOVED // user removed; unsent people cancelled
+}
+
 model ConnectionRequest {
-  id             String                  @id @default(cuid())
-  ownerId        String
-  owner          User                    @relation("UserConnectionRequests", fields: [ownerId], references: [id], onDelete: Cascade)
-  runId          String
-  run            ProspectingRun          @relation(fields: [runId], references: [id], onDelete: Cascade)
-  linkedinUrn    String
-  linkedinUrl    String
-  fullName       String?
-  headline       String?
-  currentTitle   String?
-  currentCompany String?
-  location       String?
-  status         ConnectionRequestStatus @default(DISCOVERED)
-  skipReason     String?
-  cardAction     String?
-  sendPriority   Int                     @default(0)
-  sentAt         DateTime?
-  attemptCount   Int                     @default(0)
-  errorCode      String?
-  errorMessage   String?
-  createdAt      DateTime                @default(now())
+  id              String                    @id @default(cuid())
+  ownerId         String
+  owner           User                      @relation("UserConnectionRequests", fields: [ownerId], references: [id], onDelete: Cascade)
+  runId           String
+  run             ProspectingRun            @relation(fields: [runId], references: [id], onDelete: Cascade)
+  companyTargetId String?
+  companyTarget   ProspectingCompanyTarget? @relation(fields: [companyTargetId], references: [id], onDelete: SetNull)
+  linkedinUrn     String
+  linkedinUrl     String
+  fullName        String?
+  headline        String?
+  currentTitle    String?
+  currentCompany  String?
+  location        String?
+  status          ConnectionRequestStatus   @default(DISCOVERED)
+  skipReason      String?
+  cardAction      String?
+  sendPriority    Int                       @default(0)
+  sentAt          DateTime?
+  attemptCount    Int                       @default(0)
+  errorCode       String?
+  errorMessage    String?
+  createdAt       DateTime                  @default(now())
 
   @@unique([ownerId, linkedinUrn])
   @@index([runId, status])
   @@index([ownerId, status])
+  @@index([companyTargetId])
 }
 
 model ProspectingEvent {
