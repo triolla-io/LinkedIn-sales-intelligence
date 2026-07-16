@@ -5,10 +5,11 @@ import { maybeCompleteEnrollment } from "@/lib/sequences/gating";
 import { persistCandidates } from "@/lib/prospecting/candidates";
 import { queueNextConnect, releaseConnectSlot, SEARCH_FAIL_CAP } from "@/lib/prospecting/connect-scheduler";
 import type { ScrapedCard } from "@/lib/prospecting/filter";
-import { buildSearchUrl } from "@/lib/prospecting/search-url";
+import { buildSearchUrl, parseSearchTitles } from "@/lib/prospecting/search-url";
 import { logProspectingEvent } from "@/lib/prospecting/events";
 import {
   buildCompanySearchUrl,
+  enqueueCompanySearchTask,
   failCompanyTarget,
   interCompanyDelayMs,
   maybeCompleteCompanyRun,
@@ -263,27 +264,21 @@ async function handleResolveCompanyResult(task: TaskRow) {
   });
 
   if (run.status !== "RUNNING") return;
-  await prisma.extensionTask.create({
-    data: {
-      userId: task.userId,
-      kind: "SEARCH",
-      payload: {
-        searchUrl: buildCompanySearchUrl(
-          run,
-          result.companyId,
-          target.searchPage,
-        ),
-        page: target.searchPage,
-        targetId: target.id,
-      },
-      prospectingRunId: run.id,
-      scheduledFor: new Date(),
+  // Kick off discovery at the first title (searchTitleIndex 0, page 1). enqueueCompanySearchTask
+  // sets SEARCHING and creates the SEARCH task — or, if there are no searchable titles, finishes
+  // the company and moves on.
+  await enqueueCompanySearchTask(
+    run,
+    {
+      id: target.id,
+      name: target.name,
+      linkedinUrl: target.linkedinUrl,
+      linkedinCompanyId: result.companyId,
+      searchPage: target.searchPage,
+      searchTitleIndex: target.searchTitleIndex,
     },
-  });
-  await prisma.prospectingCompanyTarget.update({
-    where: { id: target.id },
-    data: { status: "SEARCHING" },
-  });
+    target.searchPage,
+  );
 }
 
 async function handleResolveCompanyFailure(task: TaskRow) {
@@ -443,17 +438,27 @@ async function handleCompanySearchResult(
     });
   }
 
+  const ownerFlags = await prisma.user.findUnique({
+    where: { id: run.ownerId },
+    select: { routineConnectionsEnabled: true },
+  });
+  const moduleEnabled = !ownerFlags || ownerFlags.routineConnectionsEnabled;
+  // We search ONE title at a time (LinkedIn URL search can't OR a title list). searchPage
+  // paginates the current title; searchTitleIndex walks the list. Company DONE = last title done.
+  const titles = parseSearchTitles(run.keywords);
+  const currentTitle = titles[target.searchTitleIndex];
+
   if (result.hasNextPage) {
-    // Same module master-switch gate as keyword runs.
-    const ownerFlags = await prisma.user.findUnique({
-      where: { id: run.ownerId },
-      select: { routineConnectionsEnabled: true },
-    });
-    if (!ownerFlags || ownerFlags.routineConnectionsEnabled) {
-      // Pagination lives on the TARGET (not run.nextSearchPage); guarded so only one handler advances.
+    // More pages of the CURRENT title. Same module master-switch gate as keyword runs.
+    if (moduleEnabled && currentTitle !== undefined) {
       const nextPage = target.searchPage + 1;
+      // Guard on (searchPage, searchTitleIndex) so only one concurrent handler advances.
       const advanced = await prisma.prospectingCompanyTarget.updateMany({
-        where: { id: target.id, searchPage: target.searchPage },
+        where: {
+          id: target.id,
+          searchPage: target.searchPage,
+          searchTitleIndex: target.searchTitleIndex,
+        },
         data: { searchPage: nextPage },
       });
       if (advanced.count === 1 && target.linkedinCompanyId) {
@@ -466,6 +471,7 @@ async function handleCompanySearchResult(
                 run,
                 target.linkedinCompanyId,
                 nextPage,
+                currentTitle,
               ),
               page: nextPage,
               targetId: target.id,
@@ -477,12 +483,48 @@ async function handleCompanySearchResult(
       }
     }
   } else {
-    await prisma.prospectingCompanyTarget.update({
-      where: { id: target.id },
-      data: { status: "DONE" },
-    });
-    // Humanized 2–5 min pause before the next company (sets discoveryDone when none remain).
-    await startNextPendingTarget(run.id, interCompanyDelayMs());
+    // Current title exhausted → move to the next title, or finish the company.
+    const nextTitleIndex = target.searchTitleIndex + 1;
+    const nextTitle = titles[nextTitleIndex];
+    if (nextTitle !== undefined) {
+      // Advance the title cursor (guarded); reset the page to 1 for the new title.
+      const advanced = await prisma.prospectingCompanyTarget.updateMany({
+        where: {
+          id: target.id,
+          searchTitleIndex: target.searchTitleIndex,
+          status: "SEARCHING",
+        },
+        data: { searchTitleIndex: nextTitleIndex, searchPage: 1 },
+      });
+      if (advanced.count === 1 && moduleEnabled && target.linkedinCompanyId) {
+        await prisma.extensionTask.create({
+          data: {
+            userId: task.userId,
+            kind: "SEARCH",
+            payload: {
+              searchUrl: buildCompanySearchUrl(
+                run,
+                target.linkedinCompanyId,
+                1,
+                nextTitle,
+              ),
+              page: 1,
+              targetId: target.id,
+            },
+            prospectingRunId: run.id,
+            scheduledFor: new Date(),
+          },
+        });
+      }
+    } else {
+      // All titles searched → company DONE; humanized pause before the next company.
+      const done = await prisma.prospectingCompanyTarget.updateMany({
+        where: { id: target.id, status: "SEARCHING" },
+        data: { status: "DONE" },
+      });
+      if (done.count === 1)
+        await startNextPendingTarget(run.id, interCompanyDelayMs());
+    }
   }
 
   await queueNextConnect(run.id);

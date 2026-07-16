@@ -3488,6 +3488,7 @@ export const ProspectingCompanyTargetScalarFieldEnum = {
   dedupKey: 'dedupKey',
   status: 'status',
   searchPage: 'searchPage',
+  searchTitleIndex: 'searchTitleIndex',
   discoveredCount: 'discoveredCount',
   sentCount: 'sentCount',
   error: 'error',

@@ -30,6 +30,33 @@ export type SearchUrlParams = {
   network?: string[];
 };
 
+/** A title is searchable on LinkedIn only if it's pure ASCII (see below). */
+function isAsciiTitle(t: string): boolean {
+  for (const ch of t) if (ch.charCodeAt(0) > 127) return false;
+  return true;
+}
+
+/**
+ * Split the COMPANY-run "titles" field (a comma list) into individual, query-ready
+ * single titles — one LinkedIn people-search per title, results merged/deduped.
+ *
+ * We search ONE title at a time (not `CEO OR CTO OR …`) because LinkedIn's free URL
+ * search does NOT reliably honor boolean `OR` across a title list — it returns zero
+ * even when each title alone returns people. Single-title searches are reliable.
+ *
+ * Each returned title is phrase-wrapped when it has whitespace (`"VP R&D"`). Non-ASCII
+ * (Hebrew) titles like `מנכ"ל` are dropped — LinkedIn URL search returns zero for them;
+ * English titles cover the same execs.
+ */
+export function parseSearchTitles(titles: string): string[] {
+  return titles
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .filter(isAsciiTitle)
+    .map((t) => (/\s/.test(t) ? `"${t.replace(/"/g, "")}"` : t));
+}
+
 export function buildSearchUrl(params: SearchUrlParams, page: number): string {
   const {
     keywords,

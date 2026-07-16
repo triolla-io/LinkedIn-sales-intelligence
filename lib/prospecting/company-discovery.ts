@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { buildSearchUrl } from "@/lib/prospecting/search-url";
+import { buildSearchUrl, parseSearchTitles } from "@/lib/prospecting/search-url";
 import { logProspectingEvent } from "@/lib/prospecting/events";
 
 /** Company runs search 2nd + 3rd degree connections. */
@@ -10,14 +10,16 @@ export function interCompanyDelayMs(): number {
   return 120_000 + Math.floor(Math.random() * 180_000);
 }
 
+/** One company search page for a SINGLE title (LinkedIn URL search can't OR a title list — see search-url.ts). */
 export function buildCompanySearchUrl(
-  run: { keywords: string; geoUrn: string },
+  run: { geoUrn: string },
   companyId: string,
   page: number,
+  title: string,
 ): string {
   return buildSearchUrl(
     {
-      keywords: run.keywords,
+      keywords: title,
       geoUrn: run.geoUrn,
       companyIds: [companyId],
       network: COMPANY_NETWORK,
@@ -28,6 +30,11 @@ export function buildCompanySearchUrl(
 
 type RunRow = { id: string; ownerId: string };
 type TargetRow = { id: string; name: string; linkedinUrl: string | null };
+type SearchTargetRow = TargetRow & {
+  linkedinCompanyId: string | null;
+  searchPage: number;
+  searchTitleIndex: number;
+};
 
 /** Re-queue a RESOLVE_COMPANY task for a target that is already in flight (tick/start recovery). */
 export async function enqueueResolveTask(
@@ -54,14 +61,28 @@ export async function enqueueResolveTask(
   });
 }
 
-/** Queue a company SEARCH page. Falls back to resolve when the numeric ID is missing. */
+/**
+ * Queue a company SEARCH page for the target's CURRENT title (target.searchTitleIndex).
+ * Falls back to resolve when the numeric ID is missing. When the cursor is past the last
+ * searchable title (or there are none), the company is finished and we advance to the next.
+ */
 export async function enqueueCompanySearchTask(
   run: RunRow & { keywords: string; geoUrn: string },
-  target: TargetRow & { linkedinCompanyId: string | null },
+  target: SearchTargetRow,
   page: number,
 ): Promise<void> {
   if (!target.linkedinCompanyId) {
     await enqueueResolveTask(run, target);
+    return;
+  }
+  const title = parseSearchTitles(run.keywords)[target.searchTitleIndex];
+  if (title === undefined) {
+    const done = await prisma.prospectingCompanyTarget.updateMany({
+      where: { id: target.id, status: { in: ["READY", "SEARCHING"] } },
+      data: { status: "DONE" },
+    });
+    if (done.count === 1)
+      await startNextPendingTarget(run.id, interCompanyDelayMs());
     return;
   }
   await prisma.prospectingCompanyTarget.update({
@@ -73,7 +94,12 @@ export async function enqueueCompanySearchTask(
       userId: run.ownerId,
       kind: "SEARCH",
       payload: {
-        searchUrl: buildCompanySearchUrl(run, target.linkedinCompanyId, page),
+        searchUrl: buildCompanySearchUrl(
+          run,
+          target.linkedinCompanyId,
+          page,
+          title,
+        ),
         page,
         targetId: target.id,
       },

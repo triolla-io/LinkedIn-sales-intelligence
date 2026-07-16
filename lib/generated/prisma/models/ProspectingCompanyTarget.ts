@@ -28,12 +28,14 @@ export type AggregateProspectingCompanyTarget = {
 
 export type ProspectingCompanyTargetAvgAggregateOutputType = {
   searchPage: number | null
+  searchTitleIndex: number | null
   discoveredCount: number | null
   sentCount: number | null
 }
 
 export type ProspectingCompanyTargetSumAggregateOutputType = {
   searchPage: number | null
+  searchTitleIndex: number | null
   discoveredCount: number | null
   sentCount: number | null
 }
@@ -52,6 +54,7 @@ export type ProspectingCompanyTargetMinAggregateOutputType = {
   dedupKey: string | null
   status: $Enums.CompanyTargetStatus | null
   searchPage: number | null
+  searchTitleIndex: number | null
   discoveredCount: number | null
   sentCount: number | null
   error: string | null
@@ -73,6 +76,7 @@ export type ProspectingCompanyTargetMaxAggregateOutputType = {
   dedupKey: string | null
   status: $Enums.CompanyTargetStatus | null
   searchPage: number | null
+  searchTitleIndex: number | null
   discoveredCount: number | null
   sentCount: number | null
   error: string | null
@@ -94,6 +98,7 @@ export type ProspectingCompanyTargetCountAggregateOutputType = {
   dedupKey: number
   status: number
   searchPage: number
+  searchTitleIndex: number
   discoveredCount: number
   sentCount: number
   error: number
@@ -105,12 +110,14 @@ export type ProspectingCompanyTargetCountAggregateOutputType = {
 
 export type ProspectingCompanyTargetAvgAggregateInputType = {
   searchPage?: true
+  searchTitleIndex?: true
   discoveredCount?: true
   sentCount?: true
 }
 
 export type ProspectingCompanyTargetSumAggregateInputType = {
   searchPage?: true
+  searchTitleIndex?: true
   discoveredCount?: true
   sentCount?: true
 }
@@ -129,6 +136,7 @@ export type ProspectingCompanyTargetMinAggregateInputType = {
   dedupKey?: true
   status?: true
   searchPage?: true
+  searchTitleIndex?: true
   discoveredCount?: true
   sentCount?: true
   error?: true
@@ -150,6 +158,7 @@ export type ProspectingCompanyTargetMaxAggregateInputType = {
   dedupKey?: true
   status?: true
   searchPage?: true
+  searchTitleIndex?: true
   discoveredCount?: true
   sentCount?: true
   error?: true
@@ -171,6 +180,7 @@ export type ProspectingCompanyTargetCountAggregateInputType = {
   dedupKey?: true
   status?: true
   searchPage?: true
+  searchTitleIndex?: true
   discoveredCount?: true
   sentCount?: true
   error?: true
@@ -279,6 +289,7 @@ export type ProspectingCompanyTargetGroupByOutputType = {
   dedupKey: string
   status: $Enums.CompanyTargetStatus
   searchPage: number
+  searchTitleIndex: number
   discoveredCount: number
   sentCount: number
   error: string | null
@@ -323,6 +334,7 @@ export type ProspectingCompanyTargetWhereInput = {
   dedupKey?: Prisma.StringFilter<"ProspectingCompanyTarget"> | string
   status?: Prisma.EnumCompanyTargetStatusFilter<"ProspectingCompanyTarget"> | $Enums.CompanyTargetStatus
   searchPage?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
+  searchTitleIndex?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   discoveredCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   sentCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   error?: Prisma.StringNullableFilter<"ProspectingCompanyTarget"> | string | null
@@ -346,6 +358,7 @@ export type ProspectingCompanyTargetOrderByWithRelationInput = {
   dedupKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
   searchPage?: Prisma.SortOrder
+  searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
   error?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -373,6 +386,7 @@ export type ProspectingCompanyTargetWhereUniqueInput = Prisma.AtLeast<{
   dedupKey?: Prisma.StringFilter<"ProspectingCompanyTarget"> | string
   status?: Prisma.EnumCompanyTargetStatusFilter<"ProspectingCompanyTarget"> | $Enums.CompanyTargetStatus
   searchPage?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
+  searchTitleIndex?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   discoveredCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   sentCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   error?: Prisma.StringNullableFilter<"ProspectingCompanyTarget"> | string | null
@@ -396,6 +410,7 @@ export type ProspectingCompanyTargetOrderByWithAggregationInput = {
   dedupKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
   searchPage?: Prisma.SortOrder
+  searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
   error?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -425,6 +440,7 @@ export type ProspectingCompanyTargetScalarWhereWithAggregatesInput = {
   dedupKey?: Prisma.StringWithAggregatesFilter<"ProspectingCompanyTarget"> | string
   status?: Prisma.EnumCompanyTargetStatusWithAggregatesFilter<"ProspectingCompanyTarget"> | $Enums.CompanyTargetStatus
   searchPage?: Prisma.IntWithAggregatesFilter<"ProspectingCompanyTarget"> | number
+  searchTitleIndex?: Prisma.IntWithAggregatesFilter<"ProspectingCompanyTarget"> | number
   discoveredCount?: Prisma.IntWithAggregatesFilter<"ProspectingCompanyTarget"> | number
   sentCount?: Prisma.IntWithAggregatesFilter<"ProspectingCompanyTarget"> | number
   error?: Prisma.StringNullableWithAggregatesFilter<"ProspectingCompanyTarget"> | string | null
@@ -445,6 +461,7 @@ export type ProspectingCompanyTargetCreateInput = {
   dedupKey: string
   status?: $Enums.CompanyTargetStatus
   searchPage?: number
+  searchTitleIndex?: number
   discoveredCount?: number
   sentCount?: number
   error?: string | null
@@ -468,6 +485,7 @@ export type ProspectingCompanyTargetUncheckedCreateInput = {
   dedupKey: string
   status?: $Enums.CompanyTargetStatus
   searchPage?: number
+  searchTitleIndex?: number
   discoveredCount?: number
   sentCount?: number
   error?: string | null
@@ -489,6 +507,7 @@ export type ProspectingCompanyTargetUpdateInput = {
   dedupKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumCompanyTargetStatusFieldUpdateOperationsInput | $Enums.CompanyTargetStatus
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
+  searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -512,6 +531,7 @@ export type ProspectingCompanyTargetUncheckedUpdateInput = {
   dedupKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumCompanyTargetStatusFieldUpdateOperationsInput | $Enums.CompanyTargetStatus
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
+  searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -534,6 +554,7 @@ export type ProspectingCompanyTargetCreateManyInput = {
   dedupKey: string
   status?: $Enums.CompanyTargetStatus
   searchPage?: number
+  searchTitleIndex?: number
   discoveredCount?: number
   sentCount?: number
   error?: string | null
@@ -554,6 +575,7 @@ export type ProspectingCompanyTargetUpdateManyMutationInput = {
   dedupKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumCompanyTargetStatusFieldUpdateOperationsInput | $Enums.CompanyTargetStatus
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
+  searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -575,6 +597,7 @@ export type ProspectingCompanyTargetUncheckedUpdateManyInput = {
   dedupKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumCompanyTargetStatusFieldUpdateOperationsInput | $Enums.CompanyTargetStatus
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
+  searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -611,6 +634,7 @@ export type ProspectingCompanyTargetCountOrderByAggregateInput = {
   dedupKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
   searchPage?: Prisma.SortOrder
+  searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
   error?: Prisma.SortOrder
@@ -620,6 +644,7 @@ export type ProspectingCompanyTargetCountOrderByAggregateInput = {
 
 export type ProspectingCompanyTargetAvgOrderByAggregateInput = {
   searchPage?: Prisma.SortOrder
+  searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
 }
@@ -638,6 +663,7 @@ export type ProspectingCompanyTargetMaxOrderByAggregateInput = {
   dedupKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
   searchPage?: Prisma.SortOrder
+  searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
   error?: Prisma.SortOrder
@@ -659,6 +685,7 @@ export type ProspectingCompanyTargetMinOrderByAggregateInput = {
   dedupKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
   searchPage?: Prisma.SortOrder
+  searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
   error?: Prisma.SortOrder
@@ -668,6 +695,7 @@ export type ProspectingCompanyTargetMinOrderByAggregateInput = {
 
 export type ProspectingCompanyTargetSumOrderByAggregateInput = {
   searchPage?: Prisma.SortOrder
+  searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
 }
@@ -752,6 +780,7 @@ export type ProspectingCompanyTargetCreateWithoutRunInput = {
   dedupKey: string
   status?: $Enums.CompanyTargetStatus
   searchPage?: number
+  searchTitleIndex?: number
   discoveredCount?: number
   sentCount?: number
   error?: string | null
@@ -773,6 +802,7 @@ export type ProspectingCompanyTargetUncheckedCreateWithoutRunInput = {
   dedupKey: string
   status?: $Enums.CompanyTargetStatus
   searchPage?: number
+  searchTitleIndex?: number
   discoveredCount?: number
   sentCount?: number
   error?: string | null
@@ -824,6 +854,7 @@ export type ProspectingCompanyTargetScalarWhereInput = {
   dedupKey?: Prisma.StringFilter<"ProspectingCompanyTarget"> | string
   status?: Prisma.EnumCompanyTargetStatusFilter<"ProspectingCompanyTarget"> | $Enums.CompanyTargetStatus
   searchPage?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
+  searchTitleIndex?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   discoveredCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   sentCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   error?: Prisma.StringNullableFilter<"ProspectingCompanyTarget"> | string | null
@@ -844,6 +875,7 @@ export type ProspectingCompanyTargetCreateWithoutRequestsInput = {
   dedupKey: string
   status?: $Enums.CompanyTargetStatus
   searchPage?: number
+  searchTitleIndex?: number
   discoveredCount?: number
   sentCount?: number
   error?: string | null
@@ -866,6 +898,7 @@ export type ProspectingCompanyTargetUncheckedCreateWithoutRequestsInput = {
   dedupKey: string
   status?: $Enums.CompanyTargetStatus
   searchPage?: number
+  searchTitleIndex?: number
   discoveredCount?: number
   sentCount?: number
   error?: string | null
@@ -902,6 +935,7 @@ export type ProspectingCompanyTargetUpdateWithoutRequestsInput = {
   dedupKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumCompanyTargetStatusFieldUpdateOperationsInput | $Enums.CompanyTargetStatus
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
+  searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -924,6 +958,7 @@ export type ProspectingCompanyTargetUncheckedUpdateWithoutRequestsInput = {
   dedupKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumCompanyTargetStatusFieldUpdateOperationsInput | $Enums.CompanyTargetStatus
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
+  searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -944,6 +979,7 @@ export type ProspectingCompanyTargetCreateManyRunInput = {
   dedupKey: string
   status?: $Enums.CompanyTargetStatus
   searchPage?: number
+  searchTitleIndex?: number
   discoveredCount?: number
   sentCount?: number
   error?: string | null
@@ -964,6 +1000,7 @@ export type ProspectingCompanyTargetUpdateWithoutRunInput = {
   dedupKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumCompanyTargetStatusFieldUpdateOperationsInput | $Enums.CompanyTargetStatus
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
+  searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -985,6 +1022,7 @@ export type ProspectingCompanyTargetUncheckedUpdateWithoutRunInput = {
   dedupKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumCompanyTargetStatusFieldUpdateOperationsInput | $Enums.CompanyTargetStatus
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
+  searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1006,6 +1044,7 @@ export type ProspectingCompanyTargetUncheckedUpdateManyWithoutRunInput = {
   dedupKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumCompanyTargetStatusFieldUpdateOperationsInput | $Enums.CompanyTargetStatus
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
+  searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1058,6 +1097,7 @@ export type ProspectingCompanyTargetSelect<ExtArgs extends runtime.Types.Extensi
   dedupKey?: boolean
   status?: boolean
   searchPage?: boolean
+  searchTitleIndex?: boolean
   discoveredCount?: boolean
   sentCount?: boolean
   error?: boolean
@@ -1082,6 +1122,7 @@ export type ProspectingCompanyTargetSelectCreateManyAndReturn<ExtArgs extends ru
   dedupKey?: boolean
   status?: boolean
   searchPage?: boolean
+  searchTitleIndex?: boolean
   discoveredCount?: boolean
   sentCount?: boolean
   error?: boolean
@@ -1104,6 +1145,7 @@ export type ProspectingCompanyTargetSelectUpdateManyAndReturn<ExtArgs extends ru
   dedupKey?: boolean
   status?: boolean
   searchPage?: boolean
+  searchTitleIndex?: boolean
   discoveredCount?: boolean
   sentCount?: boolean
   error?: boolean
@@ -1126,6 +1168,7 @@ export type ProspectingCompanyTargetSelectScalar = {
   dedupKey?: boolean
   status?: boolean
   searchPage?: boolean
+  searchTitleIndex?: boolean
   discoveredCount?: boolean
   sentCount?: boolean
   error?: boolean
@@ -1133,7 +1176,7 @@ export type ProspectingCompanyTargetSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ProspectingCompanyTargetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "runId" | "name" | "nameHebrew" | "linkedinUrl" | "linkedinSlug" | "linkedinCompanyId" | "resolvedName" | "website" | "vertical" | "dedupKey" | "status" | "searchPage" | "discoveredCount" | "sentCount" | "error" | "createdAt" | "updatedAt", ExtArgs["result"]["prospectingCompanyTarget"]>
+export type ProspectingCompanyTargetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "runId" | "name" | "nameHebrew" | "linkedinUrl" | "linkedinSlug" | "linkedinCompanyId" | "resolvedName" | "website" | "vertical" | "dedupKey" | "status" | "searchPage" | "searchTitleIndex" | "discoveredCount" | "sentCount" | "error" | "createdAt" | "updatedAt", ExtArgs["result"]["prospectingCompanyTarget"]>
 export type ProspectingCompanyTargetInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   run?: boolean | Prisma.ProspectingRunDefaultArgs<ExtArgs>
   requests?: boolean | Prisma.ProspectingCompanyTarget$requestsArgs<ExtArgs>
@@ -1166,6 +1209,7 @@ export type $ProspectingCompanyTargetPayload<ExtArgs extends runtime.Types.Exten
     dedupKey: string
     status: $Enums.CompanyTargetStatus
     searchPage: number
+    searchTitleIndex: number
     discoveredCount: number
     sentCount: number
     error: string | null
@@ -1609,6 +1653,7 @@ export interface ProspectingCompanyTargetFieldRefs {
   readonly dedupKey: Prisma.FieldRef<"ProspectingCompanyTarget", 'String'>
   readonly status: Prisma.FieldRef<"ProspectingCompanyTarget", 'CompanyTargetStatus'>
   readonly searchPage: Prisma.FieldRef<"ProspectingCompanyTarget", 'Int'>
+  readonly searchTitleIndex: Prisma.FieldRef<"ProspectingCompanyTarget", 'Int'>
   readonly discoveredCount: Prisma.FieldRef<"ProspectingCompanyTarget", 'Int'>
   readonly sentCount: Prisma.FieldRef<"ProspectingCompanyTarget", 'Int'>
   readonly error: Prisma.FieldRef<"ProspectingCompanyTarget", 'String'>

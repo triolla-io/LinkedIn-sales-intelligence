@@ -776,7 +776,8 @@ model ProspectingCompanyTarget {
   vertical          String?
   dedupKey          String // linkedinSlug ?? normalized(name) — stored at insert
   status            CompanyTargetStatus @default(PENDING)
-  searchPage        Int                 @default(1) // per-company pagination cursor
+  searchPage        Int                 @default(1) // per-company, per-title pagination cursor
+  searchTitleIndex  Int                 @default(0) // which title in the run's list is being searched now
   discoveredCount   Int                 @default(0)
   sentCount         Int                 @default(0) // denormalized for the companies table UI
   error             String?

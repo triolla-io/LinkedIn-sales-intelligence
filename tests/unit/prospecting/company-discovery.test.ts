@@ -31,6 +31,7 @@ vi.mock("@/lib/prisma", () => ({
 import {
   interCompanyDelayMs,
   buildCompanySearchUrl,
+  enqueueCompanySearchTask,
   startNextPendingTarget,
   maybeCompleteCompanyRun,
   failCompanyTarget,
@@ -47,15 +48,13 @@ describe("interCompanyDelayMs", () => {
 });
 
 describe("buildCompanySearchUrl", () => {
-  it("builds a currentCompany search with S+O network and run titles", () => {
-    const url = new URL(
-      buildCompanySearchUrl({ keywords: "CEO, CTO", geoUrn: "" }, "1441", 2),
-    );
+  it("builds a single-title currentCompany search with S+O network", () => {
+    const url = new URL(buildCompanySearchUrl({ geoUrn: "" }, "1441", 2, "CEO"));
     expect(url.searchParams.get("currentCompany")).toBe('["1441"]');
     expect(url.searchParams.get("network")).toBe('["S","O"]');
     expect(url.searchParams.get("geoUrn")).toBeNull();
     expect(url.searchParams.get("page")).toBe("2");
-    expect(url.searchParams.get("keywords")).toBe("CEO, CTO");
+    expect(url.searchParams.get("keywords")).toBe("CEO");
   });
 });
 
@@ -201,6 +200,64 @@ describe("maybeCompleteCompanyRun", () => {
     await maybeCompleteCompanyRun("run1");
     expect(runUpdateMany).not.toHaveBeenCalled();
     expect(targetCount).not.toHaveBeenCalled();
+  });
+});
+
+describe("enqueueCompanySearchTask (per-title)", () => {
+  beforeEach(() => vi.clearAllMocks());
+  const RUN = { id: "run1", ownerId: "u1", keywords: "CEO, CTO", geoUrn: "" };
+  const target = (over: Record<string, unknown>) => ({
+    id: "t1",
+    name: "Acme",
+    linkedinUrl: null,
+    linkedinCompanyId: "1441",
+    searchPage: 1,
+    searchTitleIndex: 0,
+    ...over,
+  });
+
+  it("searches the single title at searchTitleIndex", async () => {
+    targetUpdate.mockResolvedValue({});
+    await enqueueCompanySearchTask(RUN, target({ searchTitleIndex: 1 }), 1);
+    expect(targetUpdate).toHaveBeenCalledWith({
+      where: { id: "t1" },
+      data: { status: "SEARCHING" },
+    });
+    const url = new URL(taskCreate.mock.calls[0][0].data.payload.searchUrl);
+    expect(url.searchParams.get("keywords")).toBe("CTO"); // index 1, not "CEO"
+    expect(url.searchParams.get("currentCompany")).toBe('["1441"]');
+  });
+
+  it("finishes the company (DONE + advance) once the title cursor runs past the list", async () => {
+    targetUpdateMany.mockResolvedValue({ count: 1 });
+    runFindUnique.mockResolvedValue({
+      id: "run1",
+      ownerId: "u1",
+      status: "RUNNING",
+      targetType: "COMPANY",
+      discoveryDone: false,
+    });
+    targetFindFirst.mockResolvedValue(null);
+    runUpdateMany.mockResolvedValue({ count: 1 });
+    targetCount.mockResolvedValue(0);
+    requestCount.mockResolvedValue(0);
+    taskFindFirst.mockResolvedValue(null);
+    await enqueueCompanySearchTask(RUN, target({ searchTitleIndex: 2 }), 1);
+    expect(targetUpdateMany).toHaveBeenCalledWith({
+      where: { id: "t1", status: { in: ["READY", "SEARCHING"] } },
+      data: { status: "DONE" },
+    });
+    expect(taskCreate).not.toHaveBeenCalled();
+  });
+
+  it("falls back to RESOLVE_COMPANY when the numeric id is missing", async () => {
+    targetUpdate.mockResolvedValue({});
+    await enqueueCompanySearchTask(
+      RUN,
+      target({ linkedinCompanyId: null }),
+      1,
+    );
+    expect(taskCreate.mock.calls[0][0].data.kind).toBe("RESOLVE_COMPANY");
   });
 });
 
