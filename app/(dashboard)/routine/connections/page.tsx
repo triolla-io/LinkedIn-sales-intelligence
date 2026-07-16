@@ -3,18 +3,22 @@
 import { useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { Play, Pause, Loader2, Search } from "lucide-react";
-import { Switch } from "@heroui/react";
+import { Play, Pause, Loader2, Search, Building2 } from "lucide-react";
+import { Switch, Tabs } from "@heroui/react";
 import { IndustrySelect } from "@/components/dashboard/industry-select";
 import { SendWindowPicker, type SendWindow } from "@/components/prospecting/send-window-picker";
+import { CompaniesInput } from "@/components/prospecting/companies-input";
+import { parseCompanyLines } from "@/lib/prospecting/company-lines";
 import { DEFAULT_SEND_DAYS, DEFAULT_SEND_HOURS_START, DEFAULT_SEND_HOURS_END } from "@/lib/prospecting/send-window";
 import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
+import { toast } from "@/lib/toast";
 import { cn } from "@/lib/cn";
 
 type ProspectingRun = {
   id: string;
   name: string;
   status: string;
+  targetType?: "KEYWORDS" | "COMPANY";
   totalDiscovered: number;
   totalSent: number;
   dailyCap: number;
@@ -45,6 +49,8 @@ const DEFAULT_WINDOW: SendWindow = {
   sendHoursEnd: DEFAULT_SEND_HOURS_END,
 };
 
+const C_LEVEL_PRESET = 'CEO, CTO, CFO, COO, CMO, Founder, Owner, מנכ"ל, סמנכ"ל';
+
 export default function ProspectingPage() {
   const { data, mutate } = useSWR<RunsResponse>("/api/prospecting/runs", fetcher);
   const { modules, setModule } = useRoutineModules();
@@ -57,6 +63,11 @@ export default function ProspectingPage() {
   const [sendWindow, setSendWindow] = useState<SendWindow>(DEFAULT_WINDOW);
   const [submitting, setSubmitting] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
+  const [tab, setTab] = useState<"keywords" | "companies">("keywords");
+  const [titles, setTitles] = useState(C_LEVEL_PRESET);
+  const [companiesText, setCompaniesText] = useState("");
+  const [companyFile, setCompanyFile] = useState<File | null>(null);
+  const [companyGeo, setCompanyGeo] = useState("WORLD");
 
   async function createRun(e: React.FormEvent) {
     e.preventDefault();
@@ -75,6 +86,79 @@ export default function ProspectingPage() {
     setSendWindow(DEFAULT_WINDOW);
     setSubmitting(false);
     mutate();
+  }
+
+  async function createCompanyRun(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim() || !titles.trim()) return;
+    const companies = parseCompanyLines(companiesText);
+    if (companies.length === 0 && !companyFile) {
+      toast.error(
+        "נדרשת לפחות חברה אחת",
+        "הזן חברות בטקסט או העלה קובץ מהגיליון",
+      );
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/prospecting/runs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetType: "COMPANY",
+          name: name.trim(),
+          keywords: titles.trim(),
+          geoCode: companyGeo,
+          dailyCap,
+          companies,
+          ...sendWindow,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.run) {
+        toast.error(
+          "יצירת הרוטינה נכשלה",
+          typeof data.error === "string" ? data.error : undefined,
+        );
+        return;
+      }
+      let added = data.companies?.added ?? 0;
+      let skipped =
+        (data.companies?.skippedExisting ?? 0) +
+        (data.companies?.skippedInvalid ?? 0);
+      if (companyFile) {
+        const form = new FormData();
+        form.append("file", companyFile);
+        const up = await fetch(`/api/prospecting/runs/${data.run.id}/companies`, {
+          method: "POST",
+          body: form,
+        });
+        const upData = await up.json().catch(() => ({}));
+        if (up.ok) {
+          added += upData.added ?? 0;
+          skipped += (upData.skippedExisting ?? 0) + (upData.skippedInvalid ?? 0);
+        } else {
+          toast.error(
+            "העלאת הקובץ נכשלה",
+            typeof upData.error === "string" ? upData.error : undefined,
+          );
+        }
+      }
+      toast.success(
+        `הרוטינה נוצרה — ${added} חברות נוספו`,
+        skipped > 0 ? `${skipped} שורות דולגו (כפולות או לא תקינות)` : undefined,
+      );
+      setName("");
+      setTitles(C_LEVEL_PRESET);
+      setCompaniesText("");
+      setCompanyFile(null);
+      setCompanyGeo("WORLD");
+      setDailyCap(15);
+      setSendWindow(DEFAULT_WINDOW);
+      mutate();
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function runAction(runId: string, action: "start" | "pause") {
@@ -133,6 +217,25 @@ export default function ProspectingPage() {
         {/* New Run Form */}
         <div className="bg-white border border-[#e5e3df] rounded-xl p-5">
           <h2 className="text-sm font-semibold text-[#111110] mb-4 text-right">רוטין חדש</h2>
+          <Tabs
+            selectedKey={tab}
+            onSelectionChange={(k) => setTab(k as "keywords" | "companies")}
+            className="w-full"
+          >
+            <Tabs.ListContainer>
+              <Tabs.List aria-label="סוג רוטינה">
+                <Tabs.Tab id="keywords">
+                  לפי תפקידים
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab id="companies">
+                  לפי חברות
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+              </Tabs.List>
+            </Tabs.ListContainer>
+
+            <Tabs.Panel id="keywords" className="pt-4">
           <form onSubmit={createRun} className="space-y-3" dir="rtl">
             <div className="flex gap-4 items-start">
               <div className="w-56 shrink-0">
@@ -213,13 +316,126 @@ export default function ProspectingPage() {
               <button
                 type="submit"
                 disabled={submitting || !name.trim()}
-                className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-[background-color,transform] active:scale-[0.96] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting && <Loader2 className="size-3.5 animate-spin" />}
                 יצירת ריצה
               </button>
             </div>
           </form>
+            </Tabs.Panel>
+
+            <Tabs.Panel id="companies" className="pt-4">
+              <form
+                onSubmit={createCompanyRun}
+                dir="rtl"
+                className="grid gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300"
+              >
+                <div className="grid gap-1.5">
+                  <label htmlFor="company-run-name" className="text-sm text-[#6b6866]">
+                    שם הרוטינה
+                  </label>
+                  <input
+                    id="company-run-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="לדוגמה: C-Level — לקוחות Q3"
+                    className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+                  />
+                </div>
+
+                <div className="grid gap-1.5">
+                  <label htmlFor="company-run-titles" className="text-sm text-[#6b6866]">
+                    תפקידים לחיפוש{" "}
+                    <span className="text-[#9b9895]">
+                      (מאותחל ל-C-Level, ניתן לעריכה)
+                    </span>
+                  </label>
+                  <input
+                    id="company-run-titles"
+                    dir="ltr"
+                    value={titles}
+                    onChange={(e) => setTitles(e.target.value)}
+                    className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+                  />
+                </div>
+
+                <CompaniesInput
+                  value={companiesText}
+                  onChange={setCompaniesText}
+                  file={companyFile}
+                  onFileChange={setCompanyFile}
+                  disabled={submitting}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-1.5">
+                    <label htmlFor="company-run-geo" className="text-sm text-[#6b6866]">
+                      אזור
+                    </label>
+                    <select
+                      id="company-run-geo"
+                      value={companyGeo}
+                      onChange={(e) => setCompanyGeo(e.target.value)}
+                      className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+                    >
+                      <option value="WORLD">🌍 כל העולם</option>
+                      <option value="IL">🇮🇱 ישראל</option>
+                      <option value="US">🇺🇸 ארה״ב</option>
+                      <option value="GB">🇬🇧 בריטניה</option>
+                      <option value="DE">🇩🇪 גרמניה</option>
+                      <option value="FR">🇫🇷 צרפת</option>
+                      <option value="CA">🇨🇦 קנדה</option>
+                      <option value="AU">🇦🇺 אוסטרליה</option>
+                      <option value="NL">🇳🇱 הולנד</option>
+                      <option value="IN">🇮🇳 הודו</option>
+                      <option value="SG">🇸🇬 סינגפור</option>
+                    </select>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <label htmlFor="company-run-daily" className="text-sm text-[#6b6866]">
+                      בקשות ליום
+                    </label>
+                    <input
+                      id="company-run-daily"
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={dailyCap}
+                      onChange={(e) =>
+                        setDailyCap(
+                          Math.max(1, Math.min(20, Number(e.target.value) || 1)),
+                        )
+                      }
+                      className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="flex-1 pt-0.5">
+                    <SendWindowPicker compact value={sendWindow} onChange={setSendWindow} />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={submitting || !name.trim()}
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-[background-color,transform] active:scale-[0.96] disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                  >
+                    {submitting ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <Building2 className="size-3.5" />
+                    )}
+                    צור רוטינת חברות
+                  </button>
+                </div>
+                <p className="text-xs text-[#9b9895]">
+                  המערכת תאתר את אנשי ה-C-Level בכל חברה (דרגה 2 + 3) ותשלח בקשות
+                  חברות לפי המכסה והחלון שהוגדרו.
+                </p>
+              </form>
+            </Tabs.Panel>
+          </Tabs>
         </div>
 
         {/* Runs List */}
@@ -247,12 +463,20 @@ export default function ProspectingPage() {
                 {runs.map((run) => (
                   <tr key={run.id} className="hover:bg-[#fafaf9] transition-colors">
                     <td className="px-4 py-3">
-                      <Link
-                        href={`/routine/connections/${run.id}`}
-                        className="font-medium text-[#111110] hover:text-[#1585ff] transition-colors"
-                      >
-                        {run.name}
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/routine/connections/${run.id}`}
+                          className="font-medium text-[#111110] hover:text-[#1585ff] transition-colors"
+                        >
+                          {run.name}
+                        </Link>
+                        {run.targetType === "COMPANY" && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#f3f2ef] text-[10px] text-[#6b6866]">
+                            <Building2 className="w-3 h-3" />
+                            חברות
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <span
