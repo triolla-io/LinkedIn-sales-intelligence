@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
-import { cleanScrapedName, computeSendPriority, decideCandidate, type ScrapedCard } from "@/lib/prospecting/filter";
+import { cleanScrapedName, computeSendPriority, decideCandidate, titleMatchesHeadline, type ScrapedCard } from "@/lib/prospecting/filter";
 import { logProspectingEvent } from "@/lib/prospecting/events";
 import { ERROR_CODE_LABELS } from "@/lib/prospecting/format";
 
@@ -16,7 +16,8 @@ export async function persistCandidates(
   ownerId: string,
   runId: string,
   cards: ScrapedCard[],
-  companyTargetId?: string
+  companyTargetId?: string,
+  matchTitle?: string
 ): Promise<PersistResult> {
   if (cards.length === 0) return { inserted: 0, skipped: 0 };
 
@@ -44,6 +45,14 @@ export async function persistCandidates(
   for (const card of cards) {
     if (seenInBatch.has(card.urn)) continue; // de-dupe within the same page
     seenInBatch.add(card.urn);
+
+    // COMPANY runs: LinkedIn's keyword search is full-text, so it returns anyone at the
+    // company who merely mentions an exec term. Keep only real matches for the searched
+    // title. Drop silently WITHOUT recording a row and WITHOUT marking the URN seen, so the
+    // same person can still qualify under a different title's search.
+    if (matchTitle && !titleMatchesHeadline(matchTitle, card.headline ?? card.title)) {
+      continue;
+    }
 
     const fullName = cleanScrapedName(card.name);
 

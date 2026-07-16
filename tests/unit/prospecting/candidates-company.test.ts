@@ -63,4 +63,35 @@ describe("persistCandidates with companyTargetId", () => {
     });
     expect(targetUpdate).not.toHaveBeenCalled();
   });
+
+  it("drops a card whose headline does not match matchTitle, creating no row", async () => {
+    const offTitle = {
+      ...CARD,
+      urn: "urn:li:member:pa-person",
+      profileUrl: "https://www.linkedin.com/in/pa-person",
+      name: "PA Person",
+      headline: "PA to VP Supply Chain Chief Procurement Officer",
+      title: "PA to VP Supply Chain Chief Procurement Officer",
+      company: null,
+    };
+    const res = await persistCandidates("user1", "run1", [offTitle], "t1", "CEO");
+    expect(res).toEqual({ inserted: 0, skipped: 0 });
+    expect(requestCreate).not.toHaveBeenCalled();
+    expect(targetUpdate).not.toHaveBeenCalled();
+  });
+
+  it("keeps a card whose headline matches matchTitle", async () => {
+    const onTitle = { ...CARD, headline: "Chief Executive Officer", title: "CEO", company: null };
+    const res = await persistCandidates("user1", "run1", [onTitle], "t1", "CEO");
+    expect(res).toEqual({ inserted: 1, skipped: 0 });
+    expect(requestCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({ companyTargetId: "t1", status: "DISCOVERED" }),
+    });
+  });
+
+  it("applies no title filter when matchTitle is omitted (keyword runs)", async () => {
+    const offTitle = { ...CARD, headline: "Algorithm Engineer", title: "Algorithm Engineer" };
+    const res = await persistCandidates("user1", "run1", [offTitle], "t1");
+    expect(res).toEqual({ inserted: 1, skipped: 0 });
+  });
 });
