@@ -44,6 +44,13 @@ export const ERROR_CODE_LABELS: Record<string, string> = {
   // Discovery-time skip reasons (ConnectionRequest.skipReason)
   already_contact: "כבר קיים באנשי הקשר",
   pending_on_linkedin: "הצעת חברות כבר ממתינה (זוהה בחיפוש)",
+  // Company-routine codes
+  not_found: "החברה לא נמצאה בלינקדאין",
+  no_id: "זיהוי מזהה החברה נכשל",
+  search_failed: "החיפוש נכשל שוב ושוב — החברה סומנה ככושלת",
+  unsupported_kind: "גרסת התוסף אינה תומכת בפעולה — נדרש עדכון",
+  resolve_failed: "זיהוי החברה נכשל",
+  company_removed: "החברה הוסרה מהרוטינה",
 };
 
 export const TASK_KIND_LABELS: Record<string, string> = {
@@ -51,4 +58,5 @@ export const TASK_KIND_LABELS: Record<string, string> = {
   SEARCH: "חיפוש",
   CHECK_REPLY: "בדיקת תגובה",
   SEND_MESSAGE: "שליחת הודעה",
+  RESOLVE_COMPANY: "זיהוי חברה",
 };
