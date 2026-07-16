@@ -8,6 +8,7 @@ import {
   companySearchUrl,
   companySlugFromUrl,
 } from "./lib/resolve-company";
+import { SCRAPE_FN_SOURCE } from "./lib/scrape-search";
 
 // ---------- Shared types ----------
 
@@ -24,7 +25,7 @@ export type ScrapedCard = {
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.4.2";
+const VERSION = "0.4.3";
 
 // In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
@@ -317,101 +318,8 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
 }
 
 // ---------- SEARCH: scrape LinkedIn search results page ----------
-
-// Parse LinkedIn people-search result cards.
-//
-// CRITICAL: LinkedIn renders each field of a result card on its OWN line, so the card's
-// innerText carries the structure in its newlines (name / "2nd degree connection" / headline /
-// location / mutual-connections / button labels). The previous version collapsed all whitespace
-// (\\s+ -> ' ') BEFORE parsing, destroying every newline — so the line-based splits downstream
-// were dead, the "X at Y" regex matched the first "at" anywhere in the blob, the "2nd" degree token
-// got sliced into a stray "nd", and location was never recovered. We MUST keep the lines intact and
-// parse line-by-line. Degree/location are no longer used for filtering (the search URL already
-// constrains 2nd-degree + geo — see lib/prospecting/filter.ts), but clean values still drive the UI.
-const SCRAPE_FN_SOURCE = `(() => {
-  // Results live in <main> (the "skip to main content" landmark). Prefer it over the
-  // aria-label "Primary content", which LinkedIn LOCALIZES (e.g. a Hebrew UI renders a
-  // Hebrew aria-label), so the English match finds nothing and the scrape reads zero even
-  // though the people are on the page.
-  const section = document.querySelector('main')
-    || document.querySelector('section[aria-label="Primary content"]');
-  if (!section) {
-    const b = (document.body && document.body.innerText) || '';
-    return { candidates: [], hasNextPage: false, debug: {
-      title: document.title, href: location.href, vis: document.visibilityState,
-      focus: document.hasFocus(), hasSection: false,
-      inLinksDoc: document.querySelectorAll('a[href*="/in/"]').length,
-      bodyLen: b.length, noResults: /no results found|לא נמצאו תוצאות/i.test(b),
-      snippet: b.slice(0, 240),
-    } };
-  }
-  const allLinks = Array.from(section.querySelectorAll('a[href*="/in/"]'));
-  const seen = new Set();
-  const out = [];
-  // Lines that are chrome, not profile data: buttons, the "View X's profile" a11y label,
-  // the degree-connection caption, mutual-connection / follower counts, presence status.
-  const NOISE = /(^view .*profile$|^message$|^connect$|^follow$|^following$|^pending$|^save$|^more$|degree connection$|mutual connection|other mutual|\\bfollowers?$|^status is |^• )/i;
-  for (const link of allLinks) {
-    const profileUrl = link.href.split('?')[0];
-    if (seen.has(profileUrl) || !profileUrl.match(/linkedin\\.com\\/in\\/[^\\/]+\\/?$/)) continue;
-    seen.add(profileUrl);
-    // derive a stable urn from the profile slug
-    const slug = profileUrl.replace(/\\/$/, '').split('/in/')[1] || '';
-    const urn = 'urn:li:member:' + slug;
-    // The whole result card. LinkedIn search results are <li> items; fall back to walking up.
-    const card = link.closest('li') || link.parentElement?.parentElement?.parentElement || link.parentElement;
-    // Keep the line structure (do NOT collapse newlines). Trim each line, drop blanks, and drop
-    // consecutive duplicates (LinkedIn repeats the name for screen readers).
-    let lines = (card ? card.innerText : '').split('\\n').map(s => s.replace(/\\s+/g, ' ').trim()).filter(Boolean);
-    lines = lines.filter((l, i) => i === 0 || l !== lines[i - 1]);
-    // name: first line of the link's own text, minus the degree badge / favourite star / "+N" badge.
-    const nameRaw = (link.innerText || '').split('\\n')[0].trim();
-    const name = nameRaw.replace(/\\s*•\\s*(1st|2nd|3rd\\+?).*/, '').replace(/\\s*★.*/, '').replace(/\\+\\d+/g, ' ').replace(/\\s+/g, ' ').trim();
-    if (!name || name.length < 2) continue;
-    // degree: first line containing a standalone 1st/2nd/3rd token (e.g. "• 2nd" or "2nd degree connection").
-    let degree = null;
-    for (const l of lines) {
-      const m = l.match(/\\b(1st|2nd|3rd\\+?)\\b/);
-      if (m) { degree = m[1].charAt(0) === '3' ? '3rd' : m[1]; break; }
-    }
-    // content lines = everything that isn't the name or chrome. headline first, location later.
-    const content = lines.filter(l =>
-      l !== name && l !== nameRaw && !NOISE.test(l) && !/^(1st|2nd|3rd\\+?)$/.test(l)
-    );
-    const headline = content[0] || null;
-    // title + company from "Title at Company" when present; otherwise the whole headline is the title.
-    let title = null, company = null;
-    if (headline) {
-      const at = headline.match(/^(.*?)\\s+at\\s+(.+)$/);
-      if (at) { title = at[1].trim(); company = at[2].trim(); } else { title = headline; }
-    }
-    // location: the first later content line that reads like a place (has a comma, or names Israel).
-    let location = null;
-    for (let i = 1; i < content.length; i++) {
-      const l = content[i];
-      if (/,/.test(l) || /israel|ישראל/i.test(l)) { location = l; break; }
-    }
-    // cardAction: the card's action-button label. "Connect" means sendable now; "Pending" means an
-    // invite is already out; "Follow"/"Message" hint the profile may not expose Connect directly.
-    let cardAction = null;
-    for (const l of lines) {
-      const m = l.match(/^(connect|follow|following|pending|message)$/i);
-      if (m) { cardAction = m[1].toLowerCase(); break; }
-    }
-    out.push({ urn, profileUrl, name, headline, title, company, location, degree, cardAction });
-  }
-  const nextBtns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText.trim() === 'Next');
-  const next = nextBtns[0];
-  const hasNextPage = !!next && !next.disabled;
-  const _b = (document.body && document.body.innerText) || '';
-  return { candidates: out, hasNextPage, debug: {
-    title: document.title, href: location.href, vis: document.visibilityState,
-    focus: document.hasFocus(), hasSection: true, inLinksSection: allLinks.length,
-    inLinksDoc: document.querySelectorAll('a[href*="/in/"]').length,
-    bodyLen: _b.length, noResults: /no results found|לא נמצאו תוצאות/i.test(_b),
-    snippet: _b.slice(0, 240),
-  } };
-})()`;
+// Parsing lives in lib/scrape-search.ts (parseCardFields, unit-tested); SCRAPE_FN_SOURCE
+// embeds it and adds only the DOM traversal.
 
 type ScrapeResult = { candidates: ScrapedCard[]; hasNextPage: boolean; debug?: Record<string, unknown> };
 
