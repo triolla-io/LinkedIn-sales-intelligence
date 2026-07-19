@@ -414,6 +414,7 @@ export const ModelName = {
   ExtensionAlert: 'ExtensionAlert',
   NameTranslation: 'NameTranslation',
   ProspectingRun: 'ProspectingRun',
+  ProspectingCompanyTarget: 'ProspectingCompanyTarget',
   ConnectionRequest: 'ConnectionRequest',
   ProspectingEvent: 'ProspectingEvent',
   ContactJobChange: 'ContactJobChange'
@@ -432,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "connectionRequest" | "prospectingEvent" | "contactJobChange"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2656,6 +2657,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProspectingCompanyTarget: {
+      payload: Prisma.$ProspectingCompanyTargetPayload<ExtArgs>
+      fields: Prisma.ProspectingCompanyTargetFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProspectingCompanyTargetFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingCompanyTargetPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProspectingCompanyTargetFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingCompanyTargetPayload>
+        }
+        findFirst: {
+          args: Prisma.ProspectingCompanyTargetFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingCompanyTargetPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProspectingCompanyTargetFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingCompanyTargetPayload>
+        }
+        findMany: {
+          args: Prisma.ProspectingCompanyTargetFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingCompanyTargetPayload>[]
+        }
+        create: {
+          args: Prisma.ProspectingCompanyTargetCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingCompanyTargetPayload>
+        }
+        createMany: {
+          args: Prisma.ProspectingCompanyTargetCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProspectingCompanyTargetCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingCompanyTargetPayload>[]
+        }
+        delete: {
+          args: Prisma.ProspectingCompanyTargetDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingCompanyTargetPayload>
+        }
+        update: {
+          args: Prisma.ProspectingCompanyTargetUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingCompanyTargetPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProspectingCompanyTargetDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProspectingCompanyTargetUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProspectingCompanyTargetUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingCompanyTargetPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProspectingCompanyTargetUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProspectingCompanyTargetPayload>
+        }
+        aggregate: {
+          args: Prisma.ProspectingCompanyTargetAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProspectingCompanyTarget>
+        }
+        groupBy: {
+          args: Prisma.ProspectingCompanyTargetGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProspectingCompanyTargetGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProspectingCompanyTargetCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProspectingCompanyTargetCountAggregateOutputType> | number
+        }
+      }
+    }
     ConnectionRequest: {
       payload: Prisma.$ConnectionRequestPayload<ExtArgs>
       fields: Prisma.ConnectionRequestFieldRefs
@@ -3376,6 +3451,7 @@ export const ProspectingRunScalarFieldEnum = {
   geoUrn: 'geoUrn',
   industryIds: 'industryIds',
   searchUrl: 'searchUrl',
+  targetType: 'targetType',
   status: 'status',
   dailyCap: 'dailyCap',
   weeklyCap: 'weeklyCap',
@@ -3398,10 +3474,36 @@ export const ProspectingRunScalarFieldEnum = {
 export type ProspectingRunScalarFieldEnum = (typeof ProspectingRunScalarFieldEnum)[keyof typeof ProspectingRunScalarFieldEnum]
 
 
+export const ProspectingCompanyTargetScalarFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  name: 'name',
+  nameHebrew: 'nameHebrew',
+  linkedinUrl: 'linkedinUrl',
+  linkedinSlug: 'linkedinSlug',
+  linkedinCompanyId: 'linkedinCompanyId',
+  resolvedName: 'resolvedName',
+  website: 'website',
+  vertical: 'vertical',
+  dedupKey: 'dedupKey',
+  status: 'status',
+  searchPage: 'searchPage',
+  searchTitleIndex: 'searchTitleIndex',
+  discoveredCount: 'discoveredCount',
+  sentCount: 'sentCount',
+  error: 'error',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProspectingCompanyTargetScalarFieldEnum = (typeof ProspectingCompanyTargetScalarFieldEnum)[keyof typeof ProspectingCompanyTargetScalarFieldEnum]
+
+
 export const ConnectionRequestScalarFieldEnum = {
   id: 'id',
   ownerId: 'ownerId',
   runId: 'runId',
+  companyTargetId: 'companyTargetId',
   linkedinUrn: 'linkedinUrn',
   linkedinUrl: 'linkedinUrl',
   fullName: 'fullName',
@@ -3767,6 +3869,20 @@ export type ListEnumExtensionAlertKindFieldRefInput<$PrismaModel> = FieldRefInpu
 
 
 /**
+ * Reference to a field of type 'ProspectingTargetType'
+ */
+export type EnumProspectingTargetTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProspectingTargetType'>
+    
+
+
+/**
+ * Reference to a field of type 'ProspectingTargetType[]'
+ */
+export type ListEnumProspectingTargetTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProspectingTargetType[]'>
+    
+
+
+/**
  * Reference to a field of type 'ProspectingRunStatus'
  */
 export type EnumProspectingRunStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProspectingRunStatus'>
@@ -3777,6 +3893,20 @@ export type EnumProspectingRunStatusFieldRefInput<$PrismaModel> = FieldRefInputT
  * Reference to a field of type 'ProspectingRunStatus[]'
  */
 export type ListEnumProspectingRunStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProspectingRunStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'CompanyTargetStatus'
+ */
+export type EnumCompanyTargetStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanyTargetStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'CompanyTargetStatus[]'
+ */
+export type ListEnumCompanyTargetStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanyTargetStatus[]'>
     
 
 
@@ -3989,6 +4119,7 @@ export type GlobalOmitConfig = {
   extensionAlert?: Prisma.ExtensionAlertOmit
   nameTranslation?: Prisma.NameTranslationOmit
   prospectingRun?: Prisma.ProspectingRunOmit
+  prospectingCompanyTarget?: Prisma.ProspectingCompanyTargetOmit
   connectionRequest?: Prisma.ConnectionRequestOmit
   prospectingEvent?: Prisma.ProspectingEventOmit
   contactJobChange?: Prisma.ContactJobChangeOmit

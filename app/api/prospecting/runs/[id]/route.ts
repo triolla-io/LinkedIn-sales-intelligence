@@ -93,9 +93,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       sentToday, dailyCap: run.dailyCap, sentThisWeek, weeklyCap: run.weeklyCap, now,
     });
 
+    const companyTargets =
+      run.targetType === "COMPANY"
+        ? await prisma.prospectingCompanyTarget.findMany({
+            where: { runId: id },
+            orderBy: { createdAt: "asc" },
+          })
+        : [];
+
     return NextResponse.json({
       run: { ...run, sendDays: run.sendDays.length > 0 ? run.sendDays : DEFAULT_SEND_DAYS },
       requests, statusCounts, events, taskStats, summary,
+      companyTargets,
     });
   })(req);
 }

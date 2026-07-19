@@ -20,6 +20,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (owner && !owner.routineConnectionsEnabled) {
       return NextResponse.json({ error: "module_disabled" }, { status: 409 });
     }
+    if (run.targetType === "COMPANY") {
+      const targetCount = await prisma.prospectingCompanyTarget.count({
+        where: { runId: id, status: { not: "REMOVED" } },
+      });
+      if (targetCount === 0) {
+        return NextResponse.json({ error: "no_companies" }, { status: 409 });
+      }
+    }
     await prisma.prospectingRun.update({ where: { id }, data: { status: "RUNNING" } });
     await inngest.send({ name: "prospecting.start" as const, data: { runId: id } });
     return NextResponse.json({ ok: true });

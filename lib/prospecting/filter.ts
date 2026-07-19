@@ -18,7 +18,42 @@ export type ScrapedCard = {
  * protecting against already-installed extension builds that still emit "+N" names.
  */
 export function cleanScrapedName(name: string): string {
-  return name.replace(/\+\d+/g, " ").replace(/\s+/g, " ").trim();
+  return name
+    .replace(/[‎‏‪-‮⁦-⁩]/g, "") // bidi/RTL control marks
+    .split("•")[0] // drop the degree/badge that follows the bullet (locale-independent)
+    .replace(/\+\d+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Exec-title synonyms. Each searched title maps to the patterns that, when found in a
+ * candidate's headline, confirm the person actually holds (a variant of) that title.
+ * Prevents LinkedIn's full-text `keywords=` search from flooding the run with employees
+ * who merely mention an exec term (a PA "to the CEO", etc.).
+ */
+const TITLE_SYNONYMS: Record<string, RegExp[]> = {
+  CEO: [/\bCEO\b/i, /chief\s+executive/i, /מנכ["״"׳']?ל/],
+  CTO: [/\bCTO\b/i, /chief\s+technolog/i, /chief\s+technical/i],
+  CFO: [/\bCFO\b/i, /chief\s+financial/i],
+  COO: [/\bCOO\b/i, /chief\s+operating/i],
+  CMO: [/\bCMO\b/i, /chief\s+marketing/i],
+  FOUNDER: [/\bco-?founder\b/i, /\bfounder\b/i, /מייסד/],
+  OWNER: [/\bowner\b/i, /בעלים/],
+};
+
+/**
+ * True when `headline` shows the person actually holds `searchTitle`. Known exec titles use
+ * the synonym map; anything else falls back to a case-insensitive substring match of the
+ * (unquoted) search title. A null/empty headline never matches.
+ */
+export function titleMatchesHeadline(searchTitle: string, headline: string | null): boolean {
+  if (!headline) return false;
+  const title = searchTitle.replace(/^"|"$/g, "").trim();
+  if (!title) return false;
+  const patterns = TITLE_SYNONYMS[title.toUpperCase()];
+  if (patterns) return patterns.some((re) => re.test(headline));
+  return headline.toLowerCase().includes(title.toLowerCase());
 }
 
 export type DecisionCtx = {

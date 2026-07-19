@@ -7,6 +7,10 @@ import { ArrowRight, Loader2, Clock, Pencil } from "lucide-react";
 import { ERROR_CODE_LABELS, TASK_KIND_LABELS } from "@/lib/prospecting/format";
 import { SendWindowPicker, type SendWindow } from "@/components/prospecting/send-window-picker";
 import { formatSendWindowHe } from "@/lib/prospecting/send-window";
+import {
+  CompanyTargetsCard,
+  type CompanyTargetRow,
+} from "@/components/prospecting/company-targets-card";
 
 type ConnectionRequest = {
   id: string;
@@ -25,6 +29,7 @@ type ConnectionRequest = {
 type RunDetail = {
   name: string;
   status: string;
+  targetType?: "KEYWORDS" | "COMPANY";
   totalSent: number;
   totalDiscovered: number;
   sendDays: number[];
@@ -50,6 +55,7 @@ type RunDetailResponse = {
   events: ProspectingEventRow[];
   taskStats: TaskStats;
   summary: Summary;
+  companyTargets?: CompanyTargetRow[];
 };
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
@@ -108,6 +114,7 @@ const EVENT_LABELS: Record<string, string> = {
   ALREADY_PENDING: "כבר ממתין",
   ALREADY_CONNECTED: "כבר מחובר",
   CHECKPOINT: "החשבון מוקפא",
+  COMPLETED: "הרוטינה הושלמה",
 };
 
 const ISO_RE = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z/g;
@@ -283,6 +290,22 @@ export default function ProspectingRunDetailPage({
               </button>
             ))}
           </div>
+        )}
+        {events?.some((e) => e.message === "extension_outdated") && (
+          <div
+            dir="rtl"
+            className="bg-[#fff8e6] border border-[#f0dfae] text-[#b45309] rounded-xl px-4 py-3 text-sm animate-in fade-in duration-300"
+          >
+            גרסת התוסף שלך אינה תומכת בזיהוי חברות — עדכן את תוסף הכרום כדי
+            שהרוטינה תמשיך לרוץ.
+          </div>
+        )}
+        {run.targetType === "COMPANY" && (
+          <CompanyTargetsCard
+            runId={id}
+            targets={data.companyTargets ?? []}
+            onChanged={() => mutate()}
+          />
         )}
         <SendWindowCard runId={id} run={run} onSaved={() => mutate()} />
         {/* Task status panel */}

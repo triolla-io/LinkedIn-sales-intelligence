@@ -168,6 +168,11 @@ export type NameTranslation = Prisma.NameTranslationModel
  */
 export type ProspectingRun = Prisma.ProspectingRunModel
 /**
+ * Model ProspectingCompanyTarget
+ * 
+ */
+export type ProspectingCompanyTarget = Prisma.ProspectingCompanyTargetModel
+/**
  * Model ConnectionRequest
  * 
  */

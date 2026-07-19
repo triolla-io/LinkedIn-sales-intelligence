@@ -81,6 +81,7 @@ export const ModelName = {
   ExtensionAlert: 'ExtensionAlert',
   NameTranslation: 'NameTranslation',
   ProspectingRun: 'ProspectingRun',
+  ProspectingCompanyTarget: 'ProspectingCompanyTarget',
   ConnectionRequest: 'ConnectionRequest',
   ProspectingEvent: 'ProspectingEvent',
   ContactJobChange: 'ContactJobChange'
@@ -561,6 +562,7 @@ export const ProspectingRunScalarFieldEnum = {
   geoUrn: 'geoUrn',
   industryIds: 'industryIds',
   searchUrl: 'searchUrl',
+  targetType: 'targetType',
   status: 'status',
   dailyCap: 'dailyCap',
   weeklyCap: 'weeklyCap',
@@ -583,10 +585,36 @@ export const ProspectingRunScalarFieldEnum = {
 export type ProspectingRunScalarFieldEnum = (typeof ProspectingRunScalarFieldEnum)[keyof typeof ProspectingRunScalarFieldEnum]
 
 
+export const ProspectingCompanyTargetScalarFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  name: 'name',
+  nameHebrew: 'nameHebrew',
+  linkedinUrl: 'linkedinUrl',
+  linkedinSlug: 'linkedinSlug',
+  linkedinCompanyId: 'linkedinCompanyId',
+  resolvedName: 'resolvedName',
+  website: 'website',
+  vertical: 'vertical',
+  dedupKey: 'dedupKey',
+  status: 'status',
+  searchPage: 'searchPage',
+  searchTitleIndex: 'searchTitleIndex',
+  discoveredCount: 'discoveredCount',
+  sentCount: 'sentCount',
+  error: 'error',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProspectingCompanyTargetScalarFieldEnum = (typeof ProspectingCompanyTargetScalarFieldEnum)[keyof typeof ProspectingCompanyTargetScalarFieldEnum]
+
+
 export const ConnectionRequestScalarFieldEnum = {
   id: 'id',
   ownerId: 'ownerId',
   runId: 'runId',
+  companyTargetId: 'companyTargetId',
   linkedinUrn: 'linkedinUrn',
   linkedinUrl: 'linkedinUrl',
   fullName: 'fullName',

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
-import { cleanScrapedName, computeSendPriority, decideCandidate, type ScrapedCard } from "@/lib/prospecting/filter";
+import { cleanScrapedName, computeSendPriority, decideCandidate, titleMatchesHeadline, type ScrapedCard } from "@/lib/prospecting/filter";
 import { logProspectingEvent } from "@/lib/prospecting/events";
 import { ERROR_CODE_LABELS } from "@/lib/prospecting/format";
 
@@ -15,7 +15,9 @@ export type PersistResult = { inserted: number; skipped: number };
 export async function persistCandidates(
   ownerId: string,
   runId: string,
-  cards: ScrapedCard[]
+  cards: ScrapedCard[],
+  companyTargetId?: string,
+  matchTitle?: string
 ): Promise<PersistResult> {
   if (cards.length === 0) return { inserted: 0, skipped: 0 };
 
@@ -44,6 +46,14 @@ export async function persistCandidates(
     if (seenInBatch.has(card.urn)) continue; // de-dupe within the same page
     seenInBatch.add(card.urn);
 
+    // COMPANY runs: LinkedIn's keyword search is full-text, so it returns anyone at the
+    // company who merely mentions an exec term. Keep only real matches for the searched
+    // title. Drop silently WITHOUT recording a row and WITHOUT marking the URN seen, so the
+    // same person can still qualify under a different title's search.
+    if (matchTitle && !titleMatchesHeadline(matchTitle, card.headline ?? card.title)) {
+      continue;
+    }
+
     const fullName = cleanScrapedName(card.name);
 
     const decision = decideCandidate(card, ctx);
@@ -64,6 +74,7 @@ export async function persistCandidates(
             status: "SKIPPED",
             skipReason: decision.skipReason,
             cardAction: card.cardAction ?? null,
+            companyTargetId: companyTargetId ?? null,
           },
         });
         skipped++;
@@ -99,6 +110,7 @@ export async function persistCandidates(
           status: "DISCOVERED",
           cardAction: card.cardAction ?? null,
           sendPriority: computeSendPriority(card),
+          companyTargetId: companyTargetId ?? null,
         },
       });
       inserted++;
@@ -122,6 +134,13 @@ export async function persistCandidates(
     await prisma.prospectingRun.update({
       where: { id: runId },
       data: { totalDiscovered: { increment: inserted } },
+    });
+  }
+
+  if (companyTargetId && inserted > 0) {
+    await prisma.prospectingCompanyTarget.update({
+      where: { id: companyTargetId },
+      data: { discoveredCount: { increment: inserted } },
     });
   }
 

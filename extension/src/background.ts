@@ -2,6 +2,13 @@ import { getToken, isPaused } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
 import { attach, detach, clickSendButton, closeAllComposeOverlays, clickModalClose, getComposeUrl, typeIntoCompose, composeDiag, takeScreenshot, scrollBy, scanButtons, send, openTabInAutomationWindow, closeStaleAutomationWindow } from "./lib/cdp";
 import { PROFILE_STATE_FN_SOURCE } from "./lib/dom-detect";
+import {
+  EXTRACT_COMPANY_FN_SOURCE,
+  TOP_COMPANY_RESULT_FN_SOURCE,
+  companySearchUrl,
+  companySlugFromUrl,
+} from "./lib/resolve-company";
+import { SCRAPE_FN_SOURCE } from "./lib/scrape-search";
 
 // ---------- Shared types ----------
 
@@ -18,7 +25,7 @@ export type ScrapedCard = {
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.3.5";
+const VERSION = "0.4.3";
 
 // In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
@@ -101,7 +108,7 @@ async function runOneCycle(): Promise<boolean> {
   return true;
 }
 
-async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "SEARCH" | "CONNECT"; payload: unknown }): Promise<unknown> {
+async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "SEARCH" | "CONNECT" | "RESOLVE_COMPANY"; payload: unknown }): Promise<unknown> {
   const payload = task.payload as {
     linkedinUrl?: string;
     conversationUrl?: string;
@@ -111,6 +118,7 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "S
     page?: number;
     profileUrl?: string;
     recipientName?: string;
+    name?: string;
   };
 
   if (task.kind === "SEND") {
@@ -132,7 +140,16 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "S
     return await sendConnectRequest(payload.profileUrl);
   }
 
-  throw withCode(new Error("unknown_kind"), "bad_payload");
+  if (task.kind === "RESOLVE_COMPANY") {
+    if (!payload.linkedinUrl && !payload.name)
+      throw withCode(new Error("missing_payload"), "bad_payload");
+    return await resolveCompany(
+      payload.linkedinUrl ?? null,
+      payload.name ?? null,
+    );
+  }
+
+  throw withCode(new Error("unknown_kind"), "unsupported_kind");
 }
 
 // Collect environment hints to diagnose tab-hijack / extension-conflict failures
@@ -301,82 +318,12 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
 }
 
 // ---------- SEARCH: scrape LinkedIn search results page ----------
+// Parsing lives in lib/scrape-search.ts (parseCardFields, unit-tested); SCRAPE_FN_SOURCE
+// embeds it and adds only the DOM traversal.
 
-// Parse LinkedIn people-search result cards.
-//
-// CRITICAL: LinkedIn renders each field of a result card on its OWN line, so the card's
-// innerText carries the structure in its newlines (name / "2nd degree connection" / headline /
-// location / mutual-connections / button labels). The previous version collapsed all whitespace
-// (\\s+ -> ' ') BEFORE parsing, destroying every newline — so the line-based splits downstream
-// were dead, the "X at Y" regex matched the first "at" anywhere in the blob, the "2nd" degree token
-// got sliced into a stray "nd", and location was never recovered. We MUST keep the lines intact and
-// parse line-by-line. Degree/location are no longer used for filtering (the search URL already
-// constrains 2nd-degree + geo — see lib/prospecting/filter.ts), but clean values still drive the UI.
-const SCRAPE_FN_SOURCE = `(() => {
-  const section = document.querySelector('section[aria-label="Primary content"]');
-  if (!section) return { candidates: [], hasNextPage: false };
-  const allLinks = Array.from(section.querySelectorAll('a[href*="/in/"]'));
-  const seen = new Set();
-  const out = [];
-  // Lines that are chrome, not profile data: buttons, the "View X's profile" a11y label,
-  // the degree-connection caption, mutual-connection / follower counts, presence status.
-  const NOISE = /(^view .*profile$|^message$|^connect$|^follow$|^following$|^pending$|^save$|^more$|degree connection$|mutual connection|other mutual|\\bfollowers?$|^status is |^• )/i;
-  for (const link of allLinks) {
-    const profileUrl = link.href.split('?')[0];
-    if (seen.has(profileUrl) || !profileUrl.match(/linkedin\\.com\\/in\\/[^\\/]+\\/?$/)) continue;
-    seen.add(profileUrl);
-    // derive a stable urn from the profile slug
-    const slug = profileUrl.replace(/\\/$/, '').split('/in/')[1] || '';
-    const urn = 'urn:li:member:' + slug;
-    // The whole result card. LinkedIn search results are <li> items; fall back to walking up.
-    const card = link.closest('li') || link.parentElement?.parentElement?.parentElement || link.parentElement;
-    // Keep the line structure (do NOT collapse newlines). Trim each line, drop blanks, and drop
-    // consecutive duplicates (LinkedIn repeats the name for screen readers).
-    let lines = (card ? card.innerText : '').split('\\n').map(s => s.replace(/\\s+/g, ' ').trim()).filter(Boolean);
-    lines = lines.filter((l, i) => i === 0 || l !== lines[i - 1]);
-    // name: first line of the link's own text, minus the degree badge / favourite star / "+N" badge.
-    const nameRaw = (link.innerText || '').split('\\n')[0].trim();
-    const name = nameRaw.replace(/\\s*•\\s*(1st|2nd|3rd\\+?).*/, '').replace(/\\s*★.*/, '').replace(/\\+\\d+/g, ' ').replace(/\\s+/g, ' ').trim();
-    if (!name || name.length < 2) continue;
-    // degree: first line containing a standalone 1st/2nd/3rd token (e.g. "• 2nd" or "2nd degree connection").
-    let degree = null;
-    for (const l of lines) {
-      const m = l.match(/\\b(1st|2nd|3rd\\+?)\\b/);
-      if (m) { degree = m[1].charAt(0) === '3' ? '3rd' : m[1]; break; }
-    }
-    // content lines = everything that isn't the name or chrome. headline first, location later.
-    const content = lines.filter(l =>
-      l !== name && l !== nameRaw && !NOISE.test(l) && !/^(1st|2nd|3rd\\+?)$/.test(l)
-    );
-    const headline = content[0] || null;
-    // title + company from "Title at Company" when present; otherwise the whole headline is the title.
-    let title = null, company = null;
-    if (headline) {
-      const at = headline.match(/^(.*?)\\s+at\\s+(.+)$/);
-      if (at) { title = at[1].trim(); company = at[2].trim(); } else { title = headline; }
-    }
-    // location: the first later content line that reads like a place (has a comma, or names Israel).
-    let location = null;
-    for (let i = 1; i < content.length; i++) {
-      const l = content[i];
-      if (/,/.test(l) || /israel|ישראל/i.test(l)) { location = l; break; }
-    }
-    // cardAction: the card's action-button label. "Connect" means sendable now; "Pending" means an
-    // invite is already out; "Follow"/"Message" hint the profile may not expose Connect directly.
-    let cardAction = null;
-    for (const l of lines) {
-      const m = l.match(/^(connect|follow|following|pending|message)$/i);
-      if (m) { cardAction = m[1].toLowerCase(); break; }
-    }
-    out.push({ urn, profileUrl, name, headline, title, company, location, degree, cardAction });
-  }
-  const nextBtns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText.trim() === 'Next');
-  const next = nextBtns[0];
-  const hasNextPage = !!next && !next.disabled;
-  return { candidates: out, hasNextPage };
-})()`;
+type ScrapeResult = { candidates: ScrapedCard[]; hasNextPage: boolean; debug?: Record<string, unknown> };
 
-async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCard[]; hasNextPage: boolean }> {
+async function scrapeSearch(searchUrl: string): Promise<ScrapeResult> {
   const tabId = await openTabInAutomationWindow(searchUrl).catch(() => {
     throw withCode(new Error("tab_create_failed"), "tab_load");
   });
@@ -386,8 +333,7 @@ async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCar
 
   try {
     await waitForTabLoad(tabId);
-    await sleep(2500);
-    // Do NOT focus the window — runs in the background automation window.
+    await sleep(1500);
 
     // Checkpoint detection (before attach — check URL)
     const freshTab = await chrome.tabs.get(tabId);
@@ -398,27 +344,125 @@ async function scrapeSearch(searchUrl: string): Promise<{ candidates: ScrapedCar
     await attach(tabId);
     attached = true;
 
+    // The automation window is MINIMIZED + non-focused, so LinkedIn's search results
+    // (visibility-gated + lazy-rendered) never paint and the scrape reads zero — even
+    // though the same URL shows people in a foreground tab. Send/Connect survive this
+    // because they drive the page via CDP clicks; search READS the rendered text.
+    // Fix: force the page to behave as focused/visible/active without showing it, then
+    // poll until the result cards actually render (background tabs also throttle timers,
+    // so a fixed sleep races the render).
     await send(tabId, "Emulation.setDeviceMetricsOverride", {
       width: 1280, height: 900, deviceScaleFactor: 1, mobile: false,
     }).catch(() => {});
+    await send(tabId, "Emulation.setFocusEmulationEnabled", { enabled: true }).catch(() => {});
+    await send(tabId, "Page.enable", {}).catch(() => {});
+    await send(tabId, "Page.setWebLifecycleState", { state: "active" }).catch(() => {});
 
-    // Lazy-load by scrolling
-    for (let i = 0; i < 6; i++) {
-      await scrollBy(tabId, 1200);
-      await sleep(800);
+    let scraped: ScrapeResult | undefined;
+    // ~18s budget: scroll to trigger lazy-load, then re-scrape until cards appear or
+    // LinkedIn reports "no results". Break early on either.
+    for (let attempt = 0; attempt < 12; attempt++) {
+      await scrollBy(tabId, 1500);
+      await sleep(1200);
+      const evalResult = await send<{ result: { value: ScrapeResult } }>(
+        tabId,
+        "Runtime.evaluate",
+        { expression: SCRAPE_FN_SOURCE, returnByValue: true }
+      );
+      scraped = evalResult?.result?.value;
+      if (scraped && (scraped.candidates.length > 0 || scraped.debug?.noResults === true)) break;
     }
 
-    // Evaluate scraping function in-page, returnByValue
-    const evalResult = await send<{ result: { value: { candidates: ScrapedCard[]; hasNextPage: boolean } } }>(
-      tabId,
-      "Runtime.evaluate",
-      { expression: SCRAPE_FN_SOURCE, returnByValue: true }
-    );
-
-    const scraped = evalResult?.result?.value;
     if (!scraped) throw withCode(new Error("scrape_returned_null"), "scrape_failed");
 
     return scraped;
+  } finally {
+    if (attached) await detach(tabId).catch(() => {});
+    await chrome.tabs.remove(tabId).catch(() => {});
+    await clearActiveTab();
+  }
+}
+
+/** Resolve a company (URL or name) to its numeric LinkedIn id. */
+async function resolveCompany(
+  linkedinUrl: string | null,
+  name: string | null,
+): Promise<{
+  companyId: string;
+  resolvedName: string | null;
+  slug: string | null;
+  matchedUrl: string;
+}> {
+  const startUrl = linkedinUrl ?? companySearchUrl(name ?? "");
+  const tabId = await openTabInAutomationWindow(startUrl).catch(() => {
+    throw withCode(new Error("tab_create_failed"), "tab_load");
+  });
+  await trackActiveTab(tabId);
+  let attached = false;
+  try {
+    await waitForTabLoad(tabId);
+    await sleep(2500);
+    let freshTab = await chrome.tabs.get(tabId);
+    if (freshTab.url && freshTab.url.includes("/checkpoint")) {
+      throw withCode(new Error("checkpoint"), "checkpoint");
+    }
+    await attach(tabId);
+    attached = true;
+    await send(tabId, "Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    }).catch(() => {});
+
+    // Name-only: find the top company result, then navigate to its page.
+    if (!linkedinUrl) {
+      const topResult = await send<{
+        result?: { value?: { companyUrl?: string } | null };
+      }>(tabId, "Runtime.evaluate", {
+        expression: TOP_COMPANY_RESULT_FN_SOURCE,
+        returnByValue: true,
+      });
+      const companyUrl = topResult?.result?.value?.companyUrl;
+      if (!companyUrl)
+        throw withCode(new Error("company_not_found"), "not_found");
+      await detach(tabId).catch(() => {});
+      attached = false;
+      await chrome.tabs.update(tabId, { url: companyUrl });
+      await waitForTabLoad(tabId);
+      await sleep(2500);
+      freshTab = await chrome.tabs.get(tabId);
+      if (freshTab.url && freshTab.url.includes("/checkpoint")) {
+        throw withCode(new Error("checkpoint"), "checkpoint");
+      }
+      await attach(tabId);
+      attached = true;
+    }
+
+    const evalResult = await send<{
+      result?: {
+        value?: {
+          companyId?: string | null;
+          resolvedName?: string | null;
+          url?: string;
+        } | null;
+      };
+    }>(tabId, "Runtime.evaluate", {
+      expression: EXTRACT_COMPANY_FN_SOURCE,
+      returnByValue: true,
+    });
+    const extracted = evalResult?.result?.value;
+    if (!extracted || !extracted.companyId) {
+      throw withCode(new Error("company_id_not_found"), "no_id");
+    }
+    const matchedUrl =
+      extracted.url ?? (await chrome.tabs.get(tabId)).url ?? startUrl;
+    return {
+      companyId: extracted.companyId,
+      resolvedName: extracted.resolvedName ?? null,
+      slug: companySlugFromUrl(matchedUrl),
+      matchedUrl,
+    };
   } finally {
     if (attached) await detach(tabId).catch(() => {});
     await chrome.tabs.remove(tabId).catch(() => {});

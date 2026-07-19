@@ -164,7 +164,8 @@ export const ExtensionTaskKind = {
   SEND: 'SEND',
   CHECK_REPLY: 'CHECK_REPLY',
   SEARCH: 'SEARCH',
-  CONNECT: 'CONNECT'
+  CONNECT: 'CONNECT',
+  RESOLVE_COMPANY: 'RESOLVE_COMPANY'
 } as const
 
 export type ExtensionTaskKind = (typeof ExtensionTaskKind)[keyof typeof ExtensionTaskKind]
@@ -174,7 +175,8 @@ export const ExtensionTaskStatus = {
   PENDING: 'PENDING',
   CLAIMED: 'CLAIMED',
   DONE: 'DONE',
-  FAILED: 'FAILED'
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
 } as const
 
 export type ExtensionTaskStatus = (typeof ExtensionTaskStatus)[keyof typeof ExtensionTaskStatus]
@@ -222,7 +224,29 @@ export const ProspectingEventType = {
   FAILED: 'FAILED',
   ALREADY_PENDING: 'ALREADY_PENDING',
   ALREADY_CONNECTED: 'ALREADY_CONNECTED',
-  CHECKPOINT: 'CHECKPOINT'
+  CHECKPOINT: 'CHECKPOINT',
+  COMPLETED: 'COMPLETED'
 } as const
 
 export type ProspectingEventType = (typeof ProspectingEventType)[keyof typeof ProspectingEventType]
+
+
+export const ProspectingTargetType = {
+  KEYWORDS: 'KEYWORDS',
+  COMPANY: 'COMPANY'
+} as const
+
+export type ProspectingTargetType = (typeof ProspectingTargetType)[keyof typeof ProspectingTargetType]
+
+
+export const CompanyTargetStatus = {
+  PENDING: 'PENDING',
+  RESOLVING: 'RESOLVING',
+  READY: 'READY',
+  SEARCHING: 'SEARCHING',
+  DONE: 'DONE',
+  FAILED: 'FAILED',
+  REMOVED: 'REMOVED'
+} as const
+
+export type CompanyTargetStatus = (typeof CompanyTargetStatus)[keyof typeof CompanyTargetStatus]
