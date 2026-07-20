@@ -62,14 +62,20 @@ export async function createDraftsForSignal(signalId: string): Promise<{ created
       });
     }
 
-    await prisma.companySignalDraft.create({
-      data: { signalId: signal.id, contactId: c.id, ownerId: c.ownerId, draftMessage: message, status: "PENDING_REVIEW" },
-    });
-    await prisma.contactListMember.upsert({
-      where: { listId_contactId: { listId: list.id, contactId: c.id } },
-      create: { listId: list.id, contactId: c.id },
-      update: {},
-    });
+    // Wrap the draft-create + list-member-upsert together so a mid-write crash cannot leave a
+    // PENDING_REVIEW draft that the idempotency check would then skip forever without the
+    // contact ever landing on the "איתותי חברה" list. Mirrors lib/job-check/detect-change.ts.
+    // (draftCongrats + the ContactList upsert stay OUTSIDE — no network/DDL inside a tx.)
+    await prisma.$transaction([
+      prisma.companySignalDraft.create({
+        data: { signalId: signal.id, contactId: c.id, ownerId: c.ownerId, draftMessage: message, status: "PENDING_REVIEW" },
+      }),
+      prisma.contactListMember.upsert({
+        where: { listId_contactId: { listId: list.id, contactId: c.id } },
+        create: { listId: list.id, contactId: c.id },
+        update: {},
+      }),
+    ]);
     created += 1;
   }
 

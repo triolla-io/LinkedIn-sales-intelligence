@@ -7,6 +7,7 @@ const mockDraftCreate = vi.fn();
 const mockListUpsert = vi.fn();
 const mockMemberUpsert = vi.fn();
 const mockSignalUpdate = vi.fn();
+const mockTransaction = vi.fn(async (ops: unknown[]) => ops);
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -21,6 +22,7 @@ vi.mock("@/lib/prisma", () => ({
     },
     contactList: { upsert: (...a: unknown[]) => mockListUpsert(...a) },
     contactListMember: { upsert: (...a: unknown[]) => mockMemberUpsert(...a) },
+    $transaction: (ops: unknown[]) => mockTransaction(ops),
   },
 }));
 
@@ -40,6 +42,9 @@ beforeEach(() => {
   mockContactFindUnique_default();
   mockDraftFindUnique.mockResolvedValue(null);
   mockListUpsert.mockResolvedValue({ id: "list1" });
+  // Sentinel return values so we can assert both ops are handed to $transaction together.
+  mockDraftCreate.mockReturnValue({ __op: "draftCreate" });
+  mockMemberUpsert.mockReturnValue({ __op: "memberUpsert" });
   mockDraft.mockResolvedValue("דנה, מזל טוב על הגיוס!");
 });
 function mockContactFindUnique_default() {
@@ -56,6 +61,12 @@ describe("createDraftsForSignal", () => {
       data: expect.objectContaining({ signalId: "sig1", contactId: "ct1", ownerId: "o1", status: "PENDING_REVIEW" }),
     }));
     expect(mockSignalUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: { status: "DRAFTED" } }));
+    // The draft-create and list-member-upsert must be wrapped together in a single
+    // $transaction so a mid-write crash can't leave a draft without its list membership.
+    expect(mockTransaction).toHaveBeenCalledWith(
+      expect.arrayContaining([{ __op: "draftCreate" }, { __op: "memberUpsert" }]),
+    );
+    expect(mockTransaction.mock.calls[0][0]).toHaveLength(2);
   });
 
   it("is idempotent — skips a contact that already has a draft", async () => {
