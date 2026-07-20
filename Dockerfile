@@ -1,7 +1,16 @@
 FROM node:22.15-alpine AS deps
 WORKDIR /app
+# Token for the private @triolla-io GitHub Packages registry, passed as a
+# build arg (set NPM_GITHUB_TOKEN in Coolify env, "Available at Buildtime").
+# It's used only for this npm ci and lives solely in this throwaway deps
+# stage — the final runner image copies node_modules, never ~/.npmrc.
+ARG NPM_GITHUB_TOKEN
 COPY package*.json ./
-RUN npm ci --ignore-scripts
+RUN if [ -n "$NPM_GITHUB_TOKEN" ]; then \
+      npm config set "//npm.pkg.github.com/:_authToken=$NPM_GITHUB_TOKEN"; \
+    fi \
+ && npm ci --ignore-scripts \
+ && rm -f "$HOME/.npmrc"
 COPY prisma ./prisma
 RUN npx prisma generate && echo "export * from './client';" > ./lib/generated/prisma/index.ts
 
