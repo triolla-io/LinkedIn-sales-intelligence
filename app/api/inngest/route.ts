@@ -22,6 +22,9 @@ import { jobCheckContact } from "@/inngest/functions/job-check-contact";
 import { brightdataJobCheckTick } from "@/inngest/functions/brightdata-job-check-tick";
 import { brightdataJobCheckCollect } from "@/inngest/functions/brightdata-job-check-collect";
 import { hubspotSyncApollo } from "@/inngest/functions/hubspot-sync-apollo";
+import { companySignalsTick } from "@/inngest/functions/company-signals-tick";
+import { companySignalsDetect } from "@/inngest/functions/company-signals-detect";
+import { companySignalsDraft } from "@/inngest/functions/company-signals-draft";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -45,5 +48,8 @@ export const { GET, POST, PUT } = serve({
     brightdataJobCheckTick,
     brightdataJobCheckCollect,
     hubspotSyncApollo,
+    companySignalsTick,
+    companySignalsDetect,
+    companySignalsDraft,
   ],
 });

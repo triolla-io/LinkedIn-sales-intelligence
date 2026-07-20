@@ -79,6 +79,30 @@ async function handleSendSuccess(task: TaskRow) {
     return;
   }
 
+  if (task.companySignalDraftId) {
+    const draft = await prisma.companySignalDraft.findUnique({
+      where: { id: task.companySignalDraftId },
+      select: { id: true, contactId: true },
+    });
+    if (draft) {
+      const sent = await prisma.sentMessage.create({
+        data: {
+          senderId: task.userId,
+          actorId: task.userId,
+          contactId: draft.contactId,
+          body: payload.text ?? "",
+          status: "SENT",
+          sentAt: result.sentAt ? new Date(result.sentAt) : new Date(),
+        },
+      });
+      await prisma.companySignalDraft.update({
+        where: { id: draft.id },
+        data: { status: "SENT", sentAt: sent.sentAt },
+      });
+    }
+    return;
+  }
+
   if (task.recipientId) {
     const recipient = await prisma.campaignRecipient.findUnique({
       where: { id: task.recipientId },
@@ -167,6 +191,14 @@ async function handleSendFailure(task: TaskRow) {
     // task's error is surfaced on the row by the job-changes GET endpoint.
     await prisma.contactJobChange.updateMany({
       where: { id: task.jobChangeId, status: "APPROVED" },
+      data: { status: "PENDING_REVIEW" },
+    });
+    return;
+  }
+
+  if (task.companySignalDraftId) {
+    await prisma.companySignalDraft.updateMany({
+      where: { id: task.companySignalDraftId, status: "APPROVED" },
       data: { status: "PENDING_REVIEW" },
     });
     return;

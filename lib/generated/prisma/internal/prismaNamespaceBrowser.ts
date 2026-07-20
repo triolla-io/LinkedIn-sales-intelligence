@@ -85,7 +85,9 @@ export const ModelName = {
   ProspectingCompanyTarget: 'ProspectingCompanyTarget',
   ConnectionRequest: 'ConnectionRequest',
   ProspectingEvent: 'ProspectingEvent',
-  ContactJobChange: 'ContactJobChange'
+  ContactJobChange: 'ContactJobChange',
+  CompanySignal: 'CompanySignal',
+  CompanySignalDraft: 'CompanySignalDraft'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -147,6 +149,7 @@ export const OrganizationScalarFieldEnum = {
   syncCadenceDays: 'syncCadenceDays',
   monthlyApolloBudget: 'monthlyApolloBudget',
   jobCheckEnabled: 'jobCheckEnabled',
+  companySignalsEnabled: 'companySignalsEnabled',
   createdAt: 'createdAt'
 } as const
 
@@ -330,6 +333,7 @@ export const CompanyScalarFieldEnum = {
   website: 'website',
   description: 'description',
   lastEnrichedAt: 'lastEnrichedAt',
+  lastSignalCheckAt: 'lastSignalCheckAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -520,6 +524,7 @@ export const ExtensionTaskScalarFieldEnum = {
   prospectingRunId: 'prospectingRunId',
   connectionRequestId: 'connectionRequestId',
   jobChangeId: 'jobChangeId',
+  companySignalDraftId: 'companySignalDraftId',
   scheduledFor: 'scheduledFor',
   claimedAt: 'claimedAt',
   completedAt: 'completedAt',
@@ -678,6 +683,42 @@ export const ContactJobChangeScalarFieldEnum = {
 } as const
 
 export type ContactJobChangeScalarFieldEnum = (typeof ContactJobChangeScalarFieldEnum)[keyof typeof ContactJobChangeScalarFieldEnum]
+
+
+export const CompanySignalScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  signalType: 'signalType',
+  title: 'title',
+  summary: 'summary',
+  eventDate: 'eventDate',
+  confidence: 'confidence',
+  sources: 'sources',
+  verified: 'verified',
+  dedupeKey: 'dedupeKey',
+  status: 'status',
+  detectedAt: 'detectedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CompanySignalScalarFieldEnum = (typeof CompanySignalScalarFieldEnum)[keyof typeof CompanySignalScalarFieldEnum]
+
+
+export const CompanySignalDraftScalarFieldEnum = {
+  id: 'id',
+  signalId: 'signalId',
+  ownerId: 'ownerId',
+  contactId: 'contactId',
+  draftMessage: 'draftMessage',
+  status: 'status',
+  channel: 'channel',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CompanySignalDraftScalarFieldEnum = (typeof CompanySignalDraftScalarFieldEnum)[keyof typeof CompanySignalDraftScalarFieldEnum]
 
 
 export const SortOrder = {

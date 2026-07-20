@@ -10,7 +10,10 @@ export const PATCH = withTenant(async (req, ctx) => {
   const body = await req.json().catch(() => null);
   const module = body?.module;
   const enabled = body?.enabled;
-  if ((module !== "connections" && module !== "jobChecks") || typeof enabled !== "boolean") {
+  if (
+    (module !== "connections" && module !== "jobChecks" && module !== "companySignals") ||
+    typeof enabled !== "boolean"
+  ) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
   await setRoutineModule(ctx.effectiveUserId, module, enabled);

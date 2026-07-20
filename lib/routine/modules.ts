@@ -1,21 +1,26 @@
 import { prisma } from "@/lib/prisma";
 
-export type RoutineModuleKey = "connections" | "jobChecks";
+export type RoutineModuleKey = "connections" | "jobChecks" | "companySignals";
 
 export type RoutineModuleState = {
   connectionsEnabled: boolean;
   jobChecksEnabled: boolean;
+  companySignalsEnabled: boolean;
 };
 
-/** Both Routine module switches for a user: connections is per-user, job checks is per-org. */
+/** connections is per-user; job checks and company signals are per-org. */
 export async function getRoutineModuleState(userId: string): Promise<RoutineModuleState> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { routineConnectionsEnabled: true, org: { select: { jobCheckEnabled: true } } },
+    select: {
+      routineConnectionsEnabled: true,
+      org: { select: { jobCheckEnabled: true, companySignalsEnabled: true } },
+    },
   });
   return {
     connectionsEnabled: user?.routineConnectionsEnabled ?? true,
     jobChecksEnabled: user?.org.jobCheckEnabled ?? false,
+    companySignalsEnabled: user?.org.companySignalsEnabled ?? false,
   };
 }
 
@@ -29,5 +34,9 @@ export async function setRoutineModule(
     return;
   }
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { orgId: true } });
-  await prisma.organization.update({ where: { id: user.orgId }, data: { jobCheckEnabled: enabled } });
+  if (module === "jobChecks") {
+    await prisma.organization.update({ where: { id: user.orgId }, data: { jobCheckEnabled: enabled } });
+    return;
+  }
+  await prisma.organization.update({ where: { id: user.orgId }, data: { companySignalsEnabled: enabled } });
 }

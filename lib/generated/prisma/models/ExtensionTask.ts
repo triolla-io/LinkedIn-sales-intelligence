@@ -44,6 +44,7 @@ export type ExtensionTaskMinAggregateOutputType = {
   prospectingRunId: string | null
   connectionRequestId: string | null
   jobChangeId: string | null
+  companySignalDraftId: string | null
   scheduledFor: Date | null
   claimedAt: Date | null
   completedAt: Date | null
@@ -63,6 +64,7 @@ export type ExtensionTaskMaxAggregateOutputType = {
   prospectingRunId: string | null
   connectionRequestId: string | null
   jobChangeId: string | null
+  companySignalDraftId: string | null
   scheduledFor: Date | null
   claimedAt: Date | null
   completedAt: Date | null
@@ -83,6 +85,7 @@ export type ExtensionTaskCountAggregateOutputType = {
   prospectingRunId: number
   connectionRequestId: number
   jobChangeId: number
+  companySignalDraftId: number
   scheduledFor: number
   claimedAt: number
   completedAt: number
@@ -113,6 +116,7 @@ export type ExtensionTaskMinAggregateInputType = {
   prospectingRunId?: true
   connectionRequestId?: true
   jobChangeId?: true
+  companySignalDraftId?: true
   scheduledFor?: true
   claimedAt?: true
   completedAt?: true
@@ -132,6 +136,7 @@ export type ExtensionTaskMaxAggregateInputType = {
   prospectingRunId?: true
   connectionRequestId?: true
   jobChangeId?: true
+  companySignalDraftId?: true
   scheduledFor?: true
   claimedAt?: true
   completedAt?: true
@@ -152,6 +157,7 @@ export type ExtensionTaskCountAggregateInputType = {
   prospectingRunId?: true
   connectionRequestId?: true
   jobChangeId?: true
+  companySignalDraftId?: true
   scheduledFor?: true
   claimedAt?: true
   completedAt?: true
@@ -260,6 +266,7 @@ export type ExtensionTaskGroupByOutputType = {
   prospectingRunId: string | null
   connectionRequestId: string | null
   jobChangeId: string | null
+  companySignalDraftId: string | null
   scheduledFor: Date
   claimedAt: Date | null
   completedAt: Date | null
@@ -304,6 +311,7 @@ export type ExtensionTaskWhereInput = {
   prospectingRunId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   connectionRequestId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   jobChangeId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
+  companySignalDraftId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   scheduledFor?: Prisma.DateTimeFilter<"ExtensionTask"> | Date | string
   claimedAt?: Prisma.DateTimeNullableFilter<"ExtensionTask"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"ExtensionTask"> | Date | string | null
@@ -326,6 +334,7 @@ export type ExtensionTaskOrderByWithRelationInput = {
   prospectingRunId?: Prisma.SortOrderInput | Prisma.SortOrder
   connectionRequestId?: Prisma.SortOrderInput | Prisma.SortOrder
   jobChangeId?: Prisma.SortOrderInput | Prisma.SortOrder
+  companySignalDraftId?: Prisma.SortOrderInput | Prisma.SortOrder
   scheduledFor?: Prisma.SortOrder
   claimedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -351,6 +360,7 @@ export type ExtensionTaskWhereUniqueInput = Prisma.AtLeast<{
   prospectingRunId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   connectionRequestId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   jobChangeId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
+  companySignalDraftId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   scheduledFor?: Prisma.DateTimeFilter<"ExtensionTask"> | Date | string
   claimedAt?: Prisma.DateTimeNullableFilter<"ExtensionTask"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"ExtensionTask"> | Date | string | null
@@ -373,6 +383,7 @@ export type ExtensionTaskOrderByWithAggregationInput = {
   prospectingRunId?: Prisma.SortOrderInput | Prisma.SortOrder
   connectionRequestId?: Prisma.SortOrderInput | Prisma.SortOrder
   jobChangeId?: Prisma.SortOrderInput | Prisma.SortOrder
+  companySignalDraftId?: Prisma.SortOrderInput | Prisma.SortOrder
   scheduledFor?: Prisma.SortOrder
   claimedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -402,6 +413,7 @@ export type ExtensionTaskScalarWhereWithAggregatesInput = {
   prospectingRunId?: Prisma.StringNullableWithAggregatesFilter<"ExtensionTask"> | string | null
   connectionRequestId?: Prisma.StringNullableWithAggregatesFilter<"ExtensionTask"> | string | null
   jobChangeId?: Prisma.StringNullableWithAggregatesFilter<"ExtensionTask"> | string | null
+  companySignalDraftId?: Prisma.StringNullableWithAggregatesFilter<"ExtensionTask"> | string | null
   scheduledFor?: Prisma.DateTimeWithAggregatesFilter<"ExtensionTask"> | Date | string
   claimedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ExtensionTask"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ExtensionTask"> | Date | string | null
@@ -422,6 +434,7 @@ export type ExtensionTaskCreateInput = {
   prospectingRunId?: string | null
   connectionRequestId?: string | null
   jobChangeId?: string | null
+  companySignalDraftId?: string | null
   scheduledFor?: Date | string
   claimedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -444,6 +457,7 @@ export type ExtensionTaskUncheckedCreateInput = {
   prospectingRunId?: string | null
   connectionRequestId?: string | null
   jobChangeId?: string | null
+  companySignalDraftId?: string | null
   scheduledFor?: Date | string
   claimedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -464,6 +478,7 @@ export type ExtensionTaskUpdateInput = {
   prospectingRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   connectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -486,6 +501,7 @@ export type ExtensionTaskUncheckedUpdateInput = {
   prospectingRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   connectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -507,6 +523,7 @@ export type ExtensionTaskCreateManyInput = {
   prospectingRunId?: string | null
   connectionRequestId?: string | null
   jobChangeId?: string | null
+  companySignalDraftId?: string | null
   scheduledFor?: Date | string
   claimedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -527,6 +544,7 @@ export type ExtensionTaskUpdateManyMutationInput = {
   prospectingRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   connectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -548,6 +566,7 @@ export type ExtensionTaskUncheckedUpdateManyInput = {
   prospectingRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   connectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -579,6 +598,7 @@ export type ExtensionTaskCountOrderByAggregateInput = {
   prospectingRunId?: Prisma.SortOrder
   connectionRequestId?: Prisma.SortOrder
   jobChangeId?: Prisma.SortOrder
+  companySignalDraftId?: Prisma.SortOrder
   scheduledFor?: Prisma.SortOrder
   claimedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
@@ -603,6 +623,7 @@ export type ExtensionTaskMaxOrderByAggregateInput = {
   prospectingRunId?: Prisma.SortOrder
   connectionRequestId?: Prisma.SortOrder
   jobChangeId?: Prisma.SortOrder
+  companySignalDraftId?: Prisma.SortOrder
   scheduledFor?: Prisma.SortOrder
   claimedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
@@ -622,6 +643,7 @@ export type ExtensionTaskMinOrderByAggregateInput = {
   prospectingRunId?: Prisma.SortOrder
   connectionRequestId?: Prisma.SortOrder
   jobChangeId?: Prisma.SortOrder
+  companySignalDraftId?: Prisma.SortOrder
   scheduledFor?: Prisma.SortOrder
   claimedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
@@ -695,6 +717,7 @@ export type ExtensionTaskCreateWithoutUserInput = {
   prospectingRunId?: string | null
   connectionRequestId?: string | null
   jobChangeId?: string | null
+  companySignalDraftId?: string | null
   scheduledFor?: Date | string
   claimedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -715,6 +738,7 @@ export type ExtensionTaskUncheckedCreateWithoutUserInput = {
   prospectingRunId?: string | null
   connectionRequestId?: string | null
   jobChangeId?: string | null
+  companySignalDraftId?: string | null
   scheduledFor?: Date | string
   claimedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -765,6 +789,7 @@ export type ExtensionTaskScalarWhereInput = {
   prospectingRunId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   connectionRequestId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   jobChangeId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
+  companySignalDraftId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   scheduledFor?: Prisma.DateTimeFilter<"ExtensionTask"> | Date | string
   claimedAt?: Prisma.DateTimeNullableFilter<"ExtensionTask"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"ExtensionTask"> | Date | string | null
@@ -785,6 +810,7 @@ export type ExtensionTaskCreateManyUserInput = {
   prospectingRunId?: string | null
   connectionRequestId?: string | null
   jobChangeId?: string | null
+  companySignalDraftId?: string | null
   scheduledFor?: Date | string
   claimedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -805,6 +831,7 @@ export type ExtensionTaskUpdateWithoutUserInput = {
   prospectingRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   connectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -825,6 +852,7 @@ export type ExtensionTaskUncheckedUpdateWithoutUserInput = {
   prospectingRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   connectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -845,6 +873,7 @@ export type ExtensionTaskUncheckedUpdateManyWithoutUserInput = {
   prospectingRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   connectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -868,6 +897,7 @@ export type ExtensionTaskSelect<ExtArgs extends runtime.Types.Extensions.Interna
   prospectingRunId?: boolean
   connectionRequestId?: boolean
   jobChangeId?: boolean
+  companySignalDraftId?: boolean
   scheduledFor?: boolean
   claimedAt?: boolean
   completedAt?: boolean
@@ -890,6 +920,7 @@ export type ExtensionTaskSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   prospectingRunId?: boolean
   connectionRequestId?: boolean
   jobChangeId?: boolean
+  companySignalDraftId?: boolean
   scheduledFor?: boolean
   claimedAt?: boolean
   completedAt?: boolean
@@ -912,6 +943,7 @@ export type ExtensionTaskSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   prospectingRunId?: boolean
   connectionRequestId?: boolean
   jobChangeId?: boolean
+  companySignalDraftId?: boolean
   scheduledFor?: boolean
   claimedAt?: boolean
   completedAt?: boolean
@@ -934,6 +966,7 @@ export type ExtensionTaskSelectScalar = {
   prospectingRunId?: boolean
   connectionRequestId?: boolean
   jobChangeId?: boolean
+  companySignalDraftId?: boolean
   scheduledFor?: boolean
   claimedAt?: boolean
   completedAt?: boolean
@@ -944,7 +977,7 @@ export type ExtensionTaskSelectScalar = {
   createdAt?: boolean
 }
 
-export type ExtensionTaskOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "kind" | "status" | "payload" | "recipientId" | "sequenceExecutionId" | "prospectingRunId" | "connectionRequestId" | "jobChangeId" | "scheduledFor" | "claimedAt" | "completedAt" | "attemptCount" | "errorCode" | "errorMessage" | "result" | "createdAt", ExtArgs["result"]["extensionTask"]>
+export type ExtensionTaskOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "kind" | "status" | "payload" | "recipientId" | "sequenceExecutionId" | "prospectingRunId" | "connectionRequestId" | "jobChangeId" | "companySignalDraftId" | "scheduledFor" | "claimedAt" | "completedAt" | "attemptCount" | "errorCode" | "errorMessage" | "result" | "createdAt", ExtArgs["result"]["extensionTask"]>
 export type ExtensionTaskInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -971,6 +1004,7 @@ export type $ExtensionTaskPayload<ExtArgs extends runtime.Types.Extensions.Inter
     prospectingRunId: string | null
     connectionRequestId: string | null
     jobChangeId: string | null
+    companySignalDraftId: string | null
     scheduledFor: Date
     claimedAt: Date | null
     completedAt: Date | null
@@ -1413,6 +1447,7 @@ export interface ExtensionTaskFieldRefs {
   readonly prospectingRunId: Prisma.FieldRef<"ExtensionTask", 'String'>
   readonly connectionRequestId: Prisma.FieldRef<"ExtensionTask", 'String'>
   readonly jobChangeId: Prisma.FieldRef<"ExtensionTask", 'String'>
+  readonly companySignalDraftId: Prisma.FieldRef<"ExtensionTask", 'String'>
   readonly scheduledFor: Prisma.FieldRef<"ExtensionTask", 'DateTime'>
   readonly claimedAt: Prisma.FieldRef<"ExtensionTask", 'DateTime'>
   readonly completedAt: Prisma.FieldRef<"ExtensionTask", 'DateTime'>

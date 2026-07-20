@@ -40,11 +40,15 @@ describe("/api/routine/modules", () => {
     mockUserFindUnique.mockResolvedValue(USER);
   });
 
-  it("GET returns both module flags for the effective user", async () => {
+  it("GET returns all module flags for the effective user", async () => {
     const { GET } = await import("@/app/api/routine/modules/route");
     const res = await GET(new NextRequest("http://localhost/api/routine/modules"));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ connectionsEnabled: true, jobChecksEnabled: false });
+    expect(await res.json()).toEqual({
+      connectionsEnabled: true,
+      jobChecksEnabled: false,
+      companySignalsEnabled: false,
+    });
   });
 
   it("PATCH connections=false updates the user flag", async () => {
