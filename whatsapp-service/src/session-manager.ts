@@ -73,6 +73,25 @@ export async function initSession(userId: string): Promise<void> {
   const dir = path.join(SESSIONS_DIR, userId);
   fs.mkdirSync(dir, { recursive: true });
 
+  // DIAGNOSTIC: report on-disk session state before we load it. A "registered"
+  // creds.json on a re-link attempt means Baileys will try to RESUME dead creds
+  // instead of showing a fresh QR — a prime suspect for "couldn't link device".
+  try {
+    const credsPath = path.join(dir, "creds.json");
+    const hasCreds = fs.existsSync(credsPath);
+    let registered: boolean | undefined;
+    if (hasCreds) {
+      const creds = JSON.parse(fs.readFileSync(credsPath, "utf8"));
+      registered = creds?.registered;
+    }
+    const fileCount = fs.readdirSync(dir).length;
+    console.log(
+      `[whatsapp] initSession user=${userId} hasCreds=${hasCreds} registered=${registered} files=${fileCount}`
+    );
+  } catch (err) {
+    console.log(`[whatsapp] initSession user=${userId} disk-inspect failed:`, (err as Error)?.message);
+  }
+
   const { state, saveCreds } = await useMultiFileAuthState(dir);
 
   // Pin the current WhatsApp Web protocol version. Without this Baileys uses a
@@ -101,12 +120,14 @@ export async function initSession(userId: string): Promise<void> {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
+      console.log(`[whatsapp] qr emitted user=${userId}`);
       entry.status = "QR_PENDING";
       entry.qr = qr;
       entry.listeners.forEach((l) => l("qr", qr));
     }
 
     if (connection === "open") {
+      console.log(`[whatsapp] connection open user=${userId}`);
       entry.status = "CONNECTED";
       entry.qr = undefined;
       const rawId = socket.user?.id ?? "";
@@ -121,6 +142,13 @@ export async function initSession(userId: string): Promise<void> {
         code === DisconnectReason.forbidden ||
         code === DisconnectReason.badSession;
       const userInitiatedDisconnect = intentionallyDisconnected.has(userId);
+
+      // DIAGNOSTIC: the exact status code WhatsApp closed with is the single most
+      // useful signal for "couldn't link device". 401=loggedOut, 403=forbidden,
+      // 500=badSession, 428=connectionClosed, 515=restartRequired, etc.
+      console.log(
+        `[whatsapp] connection close user=${userId} code=${code} reason=${DisconnectReason[code as number] ?? "unknown"} loggedOut=${loggedOut} userInitiated=${userInitiatedDisconnect} err=${(lastDisconnect?.error as Error)?.message}`
+      );
 
       entry.status = "DISCONNECTED";
       entry.listeners.forEach((l) =>
