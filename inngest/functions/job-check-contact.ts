@@ -46,6 +46,10 @@ export const jobCheckContact = inngest.createFunction(
         return await matchPerson({
           name: contact.fullName,
           linkedinUrl: contact.linkedinUrl ?? undefined,
+          // Job-change detection only reads title/company/employment_history —
+          // never email or phone. Skip the paid reveal so a nightly check costs
+          // ~1 credit instead of ~9 (a revealed mobile alone is 8 credits).
+          reveal: false,
         });
       } catch {
         return null;

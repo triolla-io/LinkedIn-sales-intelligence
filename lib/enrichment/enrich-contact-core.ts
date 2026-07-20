@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { matchPerson } from "@/lib/apollo/client";
-import { checkBudget, incrementBudget } from "@/lib/apollo/budget";
+import { checkBudget, incrementBudget, enrichmentCreditCost } from "@/lib/apollo/budget";
 import { lookupContact } from "@/lib/hubspot/client";
 import { inngest } from "@/inngest/client";
 import type { PropagatableValues } from "@/lib/enrichment/propagate";
@@ -237,7 +237,9 @@ export async function enrichContactCore(opts: {
     : [];
   await prisma.$transaction([prisma.contact.update({ where: { id: contact.id }, data: patch }), ...cacheOps]);
 
-  await incrementBudget(orgId);
+  // Charge the ACTUAL credits Apollo billed (email + waterfall mobile), not a
+  // flat 1 — otherwise the monthly budget silently allows ~9x its real value.
+  await incrementBudget(orgId, enrichmentCreditCost({ email, phone }));
   const newBudget = await checkBudget(orgId, monthlyApolloBudget);
 
   await emitPropagation(orgId, normalizedUrl, contact.id, {

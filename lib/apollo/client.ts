@@ -120,6 +120,13 @@ export async function matchPerson(input: {
   name: string;
   company?: string;
   linkedinUrl?: string;
+  /**
+   * Whether to reveal contact info (email — and, via Apollo's waterfall, mobile).
+   * Revealing costs credits. Callers that only need profile data (title/company/
+   * employment_history), like job-change detection, MUST pass false to avoid
+   * paying ~9 credits per lookup for data they discard. Defaults to true.
+   */
+  reveal?: boolean;
 }): Promise<{ email?: string; phone?: string; companySize?: number; currentTitle?: string; currentCompany?: string; industry?: string; raw: unknown }> {
   if (!apolloEnabled()) throw new ApolloDisabledError();
   const url = "https://api.apollo.io/v1/people/match";
@@ -127,7 +134,7 @@ export async function matchPerson(input: {
     name: input.name,
     organization_name: input.company,
     linkedin_url: input.linkedinUrl,
-    reveal_personal_emails: true,
+    reveal_personal_emails: input.reveal ?? true,
   });
 
   const delays = [1000, 2000, 4000];

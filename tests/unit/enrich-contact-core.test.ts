@@ -25,6 +25,9 @@ const mockIncrementBudget = vi.fn();
 vi.mock("@/lib/apollo/budget", () => ({
   checkBudget: (...a: unknown[]) => mockCheckBudget(...a),
   incrementBudget: (...a: unknown[]) => mockIncrementBudget(...a),
+  // Pure cost helper — use the real formula so the test reflects real billing.
+  enrichmentCreditCost: (r: { email?: string | null; phone?: string | null }) =>
+    Math.max(1, (r.email ? 1 : 0) + (r.phone ? 8 : 0)),
 }));
 
 const mockLookupContact = vi.fn();
