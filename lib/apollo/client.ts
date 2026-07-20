@@ -17,6 +17,24 @@ const APOLLO_HEADERS = () => ({
 });
 
 /**
+ * Hard kill-switch for ALL paid Apollo calls. Set APOLLO_ENABLED=false to block
+ * every request before it hits the network — no credits can be spent. Default is
+ * enabled so production keeps working unless explicitly disabled; local/dev envs
+ * set APOLLO_ENABLED=false so this environment can never drain the shared
+ * SDR credit pool.
+ */
+export function apolloEnabled(): boolean {
+  return process.env.APOLLO_ENABLED !== "false";
+}
+
+class ApolloDisabledError extends Error {
+  constructor() {
+    super("Apollo is disabled (APOLLO_ENABLED=false) — refusing to spend credits");
+    this.name = "ApolloDisabledError";
+  }
+}
+
+/**
  * Derive the genuinely-current role from an Apollo people/match response.
  *
  * Apollo's top-level `person.title` / `person.organization.name` can point at a
@@ -62,6 +80,7 @@ async function matchOrganization(name: string): Promise<{
   description: string | null;
 }> {
   const empty = { staffCount: null, industry: null, website: null, description: null };
+  if (!apolloEnabled()) return empty;
 
   // Step 1: search by name to get domain
   const searchRes = await fetch("https://api.apollo.io/v1/mixed_companies/search", {
@@ -102,6 +121,7 @@ export async function matchPerson(input: {
   company?: string;
   linkedinUrl?: string;
 }): Promise<{ email?: string; phone?: string; companySize?: number; currentTitle?: string; currentCompany?: string; industry?: string; raw: unknown }> {
+  if (!apolloEnabled()) throw new ApolloDisabledError();
   const url = "https://api.apollo.io/v1/people/match";
   const body = JSON.stringify({
     name: input.name,
@@ -207,6 +227,7 @@ function requestMobileReveal(input: {
   linkedinUrl?: string;
   webhookUrl: string;
 }): void {
+  if (!apolloEnabled()) return;
   const body = JSON.stringify({
     name: input.name,
     organization_name: input.company,
