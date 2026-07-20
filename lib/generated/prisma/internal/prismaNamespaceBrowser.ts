@@ -61,6 +61,7 @@ export const ModelName = {
   SentMessage: 'SentMessage',
   SavedView: 'SavedView',
   AuditEvent: 'AuditEvent',
+  McpAccessToken: 'McpAccessToken',
   EnrichmentSpend: 'EnrichmentSpend',
   PersonEnrichment: 'PersonEnrichment',
   LinkedinSession: 'LinkedinSession',
@@ -262,6 +263,19 @@ export const AuditEventScalarFieldEnum = {
 } as const
 
 export type AuditEventScalarFieldEnum = (typeof AuditEventScalarFieldEnum)[keyof typeof AuditEventScalarFieldEnum]
+
+
+export const McpAccessTokenScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  tokenHash: 'tokenHash',
+  label: 'label',
+  lastUsedAt: 'lastUsedAt',
+  createdAt: 'createdAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type McpAccessTokenScalarFieldEnum = (typeof McpAccessTokenScalarFieldEnum)[keyof typeof McpAccessTokenScalarFieldEnum]
 
 
 export const EnrichmentSpendScalarFieldEnum = {

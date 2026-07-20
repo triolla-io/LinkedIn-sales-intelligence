@@ -394,6 +394,7 @@ export const ModelName = {
   SentMessage: 'SentMessage',
   SavedView: 'SavedView',
   AuditEvent: 'AuditEvent',
+  McpAccessToken: 'McpAccessToken',
   EnrichmentSpend: 'EnrichmentSpend',
   PersonEnrichment: 'PersonEnrichment',
   LinkedinSession: 'LinkedinSession',
@@ -433,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "mcpAccessToken" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1174,6 +1175,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.AuditEventCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.AuditEventCountAggregateOutputType> | number
+        }
+      }
+    }
+    McpAccessToken: {
+      payload: Prisma.$McpAccessTokenPayload<ExtArgs>
+      fields: Prisma.McpAccessTokenFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.McpAccessTokenFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$McpAccessTokenPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.McpAccessTokenFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$McpAccessTokenPayload>
+        }
+        findFirst: {
+          args: Prisma.McpAccessTokenFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$McpAccessTokenPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.McpAccessTokenFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$McpAccessTokenPayload>
+        }
+        findMany: {
+          args: Prisma.McpAccessTokenFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$McpAccessTokenPayload>[]
+        }
+        create: {
+          args: Prisma.McpAccessTokenCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$McpAccessTokenPayload>
+        }
+        createMany: {
+          args: Prisma.McpAccessTokenCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.McpAccessTokenCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$McpAccessTokenPayload>[]
+        }
+        delete: {
+          args: Prisma.McpAccessTokenDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$McpAccessTokenPayload>
+        }
+        update: {
+          args: Prisma.McpAccessTokenUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$McpAccessTokenPayload>
+        }
+        deleteMany: {
+          args: Prisma.McpAccessTokenDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.McpAccessTokenUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.McpAccessTokenUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$McpAccessTokenPayload>[]
+        }
+        upsert: {
+          args: Prisma.McpAccessTokenUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$McpAccessTokenPayload>
+        }
+        aggregate: {
+          args: Prisma.McpAccessTokenAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMcpAccessToken>
+        }
+        groupBy: {
+          args: Prisma.McpAccessTokenGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.McpAccessTokenGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.McpAccessTokenCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.McpAccessTokenCountAggregateOutputType> | number
         }
       }
     }
@@ -3153,6 +3228,19 @@ export const AuditEventScalarFieldEnum = {
 export type AuditEventScalarFieldEnum = (typeof AuditEventScalarFieldEnum)[keyof typeof AuditEventScalarFieldEnum]
 
 
+export const McpAccessTokenScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  tokenHash: 'tokenHash',
+  label: 'label',
+  lastUsedAt: 'lastUsedAt',
+  createdAt: 'createdAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type McpAccessTokenScalarFieldEnum = (typeof McpAccessTokenScalarFieldEnum)[keyof typeof McpAccessTokenScalarFieldEnum]
+
+
 export const EnrichmentSpendScalarFieldEnum = {
   id: 'id',
   orgId: 'orgId',
@@ -4099,6 +4187,7 @@ export type GlobalOmitConfig = {
   sentMessage?: Prisma.SentMessageOmit
   savedView?: Prisma.SavedViewOmit
   auditEvent?: Prisma.AuditEventOmit
+  mcpAccessToken?: Prisma.McpAccessTokenOmit
   enrichmentSpend?: Prisma.EnrichmentSpendOmit
   personEnrichment?: Prisma.PersonEnrichmentOmit
   linkedinSession?: Prisma.LinkedinSessionOmit
