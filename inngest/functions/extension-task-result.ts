@@ -49,6 +49,8 @@ export async function extensionTaskResultHandler({ event }: any) {
     else if (task.status === "FAILED") await handleConnectFailure(task);
   } else if (task.kind === "SCRAPE_PROFILE" && task.status === "DONE") {
     await handleScrapeProfile(task);
+  } else if (task.kind === "SCRAPE_PROFILE" && task.status === "FAILED") {
+    await markScrapeProfileChecked(task);
   }
 }
 
@@ -767,13 +769,32 @@ export async function handleScrapeProfile(task: TaskRow) {
     select: { ownerId: true, jobSnapshotTitle: true, jobSnapshotCompany: true },
   });
   if (!contact) return;
+  const freshTitle = result.title ?? null;
+  const freshCompany = result.company ?? null;
+  // First run: no snapshot yet — seed the baseline and do NOT detect a change.
+  if (contact.jobSnapshotTitle === null && contact.jobSnapshotCompany === null) {
+    await prisma.contact.update({
+      where: { id: payload.contactId },
+      data: { jobSnapshotTitle: freshTitle, jobSnapshotCompany: freshCompany, lastJobCheckAt: new Date() },
+    });
+    return;
+  }
   await recordJobChangeIfAny({
     contactId: payload.contactId,
     ownerId: contact.ownerId,
     snapshotTitle: contact.jobSnapshotTitle,
     snapshotCompany: contact.jobSnapshotCompany,
-    freshTitle: result.title ?? null,
-    freshCompany: result.company ?? null,
+    freshTitle,
+    freshCompany,
+  });
+}
+
+export async function markScrapeProfileChecked(task: TaskRow) {
+  const payload = (task.payload ?? {}) as { contactId?: string };
+  if (!payload.contactId) return;
+  await prisma.contact.update({
+    where: { id: payload.contactId },
+    data: { lastJobCheckAt: new Date() },
   });
 }
 
