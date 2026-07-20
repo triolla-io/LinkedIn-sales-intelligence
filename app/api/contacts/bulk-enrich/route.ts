@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
-import { prisma } from "@/lib/prisma";
+import { selectEnrichableContacts } from "@/lib/contacts/enrich-budget";
 import { inngest } from "@/inngest/client";
 import { z } from "zod";
 
@@ -11,34 +11,25 @@ export async function POST(req: NextRequest) {
     const parsed = schema.parse(await req.json());
     const { contactIds } = parsed;
 
-    const contacts = await prisma.contact.findMany({
-      where: { id: { in: contactIds }, ownerId: ctx.effectiveUserId },
-      select: { id: true },
+    const sel = await selectEnrichableContacts({
+      effectiveUserId: ctx.effectiveUserId,
+      orgId: ctx.org.id,
+      monthlyApolloBudget: ctx.org.monthlyApolloBudget,
+      contactIds,
     });
 
-    const month = new Date().toISOString().slice(0, 7);
-    const spend = await prisma.enrichmentSpend.findUnique({
-      where: { orgId_month: { orgId: ctx.org.id, month } },
-    });
-    const creditsUsed = spend?.credits ?? 0;
-    const creditsRemaining = ctx.org.monthlyApolloBudget - creditsUsed;
-
-    if (creditsRemaining <= 0) {
+    if ("budgetExhausted" in sel) {
       return NextResponse.json({ error: "BUDGET_EXHAUSTED", creditsRemaining: 0 }, { status: 402 });
     }
 
-    const validIds = contacts.map((c) => c.id).slice(0, creditsRemaining);
-    // Contacts we couldn't queue because the org ran out of credits this month.
-    const skipped = contacts.length - validIds.length;
-
     await inngest.send(
-      validIds.map((id) => ({ name: "enrich.contact" as const, data: { contactId: id, actorId: ctx.user.id } }))
+      sel.validIds.map((id) => ({ name: "enrich.contact" as const, data: { contactId: id, actorId: ctx.user.id } }))
     );
 
     return NextResponse.json({
-      queued: validIds.length,
-      skipped,
-      creditsRemaining: creditsRemaining - validIds.length,
+      queued: sel.validIds.length,
+      skipped: sel.skipped,
+      creditsRemaining: sel.creditsRemaining,
     });
   })(req);
 }
