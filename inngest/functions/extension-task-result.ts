@@ -1,6 +1,7 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
+import { recordJobChangeIfAny } from "@/lib/job-check/detect-change";
 import { maybeCompleteEnrollment } from "@/lib/sequences/gating";
 import { persistCandidates } from "@/lib/prospecting/candidates";
 import { queueNextConnect, releaseConnectSlot, SEARCH_FAIL_CAP } from "@/lib/prospecting/connect-scheduler";
@@ -46,6 +47,8 @@ export async function extensionTaskResultHandler({ event }: any) {
   } else if (task.kind === "CONNECT") {
     if (task.status === "DONE") await handleConnectSuccess(task);
     else if (task.status === "FAILED") await handleConnectFailure(task);
+  } else if (task.kind === "SCRAPE_PROFILE" && task.status === "DONE") {
+    await handleScrapeProfile(task);
   }
 }
 
@@ -753,6 +756,25 @@ async function handleConnectFailure(task: TaskRow) {
     // Do not chain forward during a checkpoint backoff; queueNextConnect respects pausedUntil anyway.
     if (task.errorCode !== "checkpoint") await maybeCompleteOrContinue(task.prospectingRunId);
   }
+}
+
+export async function handleScrapeProfile(task: TaskRow) {
+  const payload = (task.payload ?? {}) as { contactId?: string };
+  const result = (task.result ?? {}) as { title?: string | null; company?: string | null };
+  if (!payload.contactId) return;
+  const contact = await prisma.contact.findUnique({
+    where: { id: payload.contactId },
+    select: { ownerId: true, jobSnapshotTitle: true, jobSnapshotCompany: true },
+  });
+  if (!contact) return;
+  await recordJobChangeIfAny({
+    contactId: payload.contactId,
+    ownerId: contact.ownerId,
+    snapshotTitle: contact.jobSnapshotTitle,
+    snapshotCompany: contact.jobSnapshotCompany,
+    freshTitle: result.title ?? null,
+    freshCompany: result.company ?? null,
+  });
 }
 
 async function maybeCompleteOrContinue(runId: string) {
