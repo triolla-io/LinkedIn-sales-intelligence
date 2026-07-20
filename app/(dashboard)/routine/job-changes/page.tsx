@@ -1,230 +1,182 @@
 "use client";
 
-import { useReducer, useState } from "react";
-import { Button, Chip, TextArea, Switch } from "@heroui/react";
-import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
-import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
-import { PartyPopper, Loader2, ExternalLink } from "lucide-react";
+import useSWR from "swr";
+import Link from "next/link";
+import {
+  PartyPopper, Loader2, ExternalLink, Building2, BadgeCheck, Send, ScanLine,
+} from "lucide-react";
+import { coveragePct, estimateFullPassDays } from "@/lib/job-check/stats-pure";
 
-type Change = {
+type ScannedRow = {
   id: string;
-  contactId: string;
   fullName: string;
   linkedinUrl: string;
-  prevTitle: string | null;
-  newTitle: string | null;
-  prevCompany: string | null;
-  newCompany: string | null;
-  detectedAt: string;
-  status: "PENDING_REVIEW" | "APPROVED" | "SENT";
-  changeType: "COMPANY_MOVE" | "PROMOTION" | "TITLE_CHANGE" | null;
-  draftMessage: string | null;
-  sentAt: string | null;
-  lastSendError: string | null;
+  currentTitle: string | null;
+  currentCompany: string | null;
+  lastJobCheckAt: string;
+  nextCheckAt: string;
+  hasChange: boolean;
 };
 
-const CHANGE_TYPE_LABEL: Record<NonNullable<Change["changeType"]>, string> = {
-  COMPANY_MOVE: "מעבר חברה",
-  PROMOTION: "קידום",
-  TITLE_CHANGE: "שינוי תפקיד",
+type JobChangeStats = {
+  scannedThisMonth: number;
+  eligibleTotal: number;
+  coveredLast28d: number;
+  dueNow: number;
+  changedCompanyThisMonth: number;
+  changedRoleThisMonth: number;
+  pendingReview: number;
+  dailyThroughput: number;
+  recentlyScanned: ScannedRow[];
 };
 
-type State = { changes: Change[]; loading: boolean };
+const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
-export default function JobChangesPage() {
-  const [state, dispatch] = useReducer(
-    (s: State, a: Partial<State>) => ({ ...s, ...a }),
-    { changes: [], loading: true }
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" });
+}
+
+export default function JobChangesDashboard() {
+  const { data, isLoading } = useSWR<JobChangeStats>(
+    "/api/job-changes/stats",
+    fetcher,
+    { refreshInterval: 30_000 }
   );
-
-  const { modules, setModule } = useRoutineModules();
-  const jobChecksOn = modules?.jobChecksEnabled ?? false;
-
-  async function fetchChanges() {
-    try {
-      const res = await fetch("/api/job-changes");
-      if (res.ok) {
-        const data = await res.json();
-        dispatch({ changes: data.changes ?? [] });
-      }
-    } finally {
-      dispatch({ loading: false });
-    }
-  }
-
-  useAutoRefresh(fetchChanges, 30_000);
-
-  const pending = state.changes.filter((c) => c.status === "PENDING_REVIEW");
-  const rest = state.changes.filter((c) => c.status !== "PENDING_REVIEW");
 
   return (
     <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]" dir="rtl">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <PartyPopper className="w-5 h-5 text-[#c2410c]" />
-          <h1 className="text-lg font-semibold">עדכוני תפקיד</h1>
-          {pending.length > 0 && (
-            <Chip size="sm" color="warning">{pending.length} ממתינים לאישור</Chip>
-          )}
-        </div>
-        {modules && (
-          <div className="flex items-center gap-2">
-            <span className={`text-xs font-medium ${jobChecksOn ? "text-[#059669]" : "text-[#b45309]"}`}>
-              {jobChecksOn ? "המודול פעיל" : "המודול כבוי"}
-            </span>
-            <Switch
-              size="sm"
-              isSelected={jobChecksOn}
-              onChange={(v: boolean) => setModule("jobChecks", v)}
-              aria-label="הפעלת מודול עדכוני תפקיד"
-            >
-              <Switch.Control>
-                <Switch.Thumb />
-              </Switch.Control>
-            </Switch>
-          </div>
-        )}
+      <div className="flex items-center gap-2 px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
+        <PartyPopper className="w-5 h-5 text-[#c2410c]" />
+        <h1 className="text-lg font-semibold">עדכוני תפקיד — סקירה</h1>
       </div>
 
-      {modules && !jobChecksOn && (
-        <div className="px-5 py-2.5 bg-[#fffbeb] border-b border-[#fde68a] text-xs text-[#b45309]">
-          הבדיקה האוטומטית מושבתת זמנית לתחזוקה. ההעדפה נשמרת ותוחל כשהבדיקות יחזרו לפעול.
+      {isLoading || !data ? (
+        <div className="flex items-center gap-2 text-gray-500 p-5">
+          <Loader2 className="w-4 h-4 animate-spin" /> טוען…
+        </div>
+      ) : (
+        <div className="flex-1 p-5 flex flex-col gap-5">
+          {/* KPI strip */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <StatCard icon={ScanLine} label="נסרקו החודש" value={data.scannedThisMonth} />
+            <StatCard
+              icon={ScanLine}
+              label="כיסוי מתגלגל"
+              value={`${coveragePct(data.coveredLast28d, data.eligibleTotal)}%`}
+            />
+            <StatCard icon={ScanLine} label="ממתינים לבדיקה כעת" value={data.dueNow} />
+            <StatCard
+              icon={Building2}
+              label="החליפו חברה (החודש)"
+              value={data.changedCompanyThisMonth}
+              href="/routine/job-changes/feed?filter=company"
+            />
+            <StatCard
+              icon={BadgeCheck}
+              label="החליפו תפקיד (החודש)"
+              value={data.changedRoleThisMonth}
+              href="/routine/job-changes/feed?filter=role"
+            />
+            <StatCard
+              icon={Send}
+              label="ממתין לשליחה"
+              value={data.pendingReview}
+              href="/routine/job-changes/feed?filter=pending"
+            />
+          </div>
+
+          {/* Coverage bar + rate */}
+          <div className="bg-white rounded-lg border border-[#e5e3df] p-4">
+            <div className="flex items-center justify-between text-sm mb-2">
+              <span className="font-medium">כיסוי מתגלגל (28 יום)</span>
+              <span className="text-gray-500">
+                {data.coveredLast28d}/{data.eligibleTotal}
+              </span>
+            </div>
+            <div className="h-2 rounded-full bg-[#e5e3df] overflow-hidden">
+              <div
+                className="h-full bg-[#c2410c]"
+                style={{ width: `${coveragePct(data.coveredLast28d, data.eligibleTotal)}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-gray-500">
+              ~{data.dailyThroughput} ליום · סבב מלא מסתיים בעוד ~
+              {estimateFullPassDays(data.dueNow, data.dailyThroughput)} ימים
+            </p>
+          </div>
+
+          {/* Recently scanned table */}
+          <ScannedTable rows={data.recentlyScanned} />
         </div>
       )}
-
-      <div className="flex-1 p-5">
-        {state.loading ? (
-          <div className="flex items-center gap-2 text-gray-500">
-            <Loader2 className="w-4 h-4 animate-spin" /> טוען…
-          </div>
-        ) : state.changes.length === 0 ? (
-          <p className="text-gray-500">אין עדכוני תפקיד חדשים. נבדוק שוב בקרוב.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {[...pending, ...rest].map((c) => (
-              <ChangeCard key={c.id} change={c} onDone={fetchChanges} />
-            ))}
-          </ul>
-        )}
-      </div>
     </div>
   );
 }
 
-function ChangeCard({ change: c, onDone }: { change: Change; onDone: () => void }) {
-  const [message, setMessage] = useState(c.draftMessage ?? "");
-  const [busy, setBusy] = useState<"approve" | "dismiss" | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  href,
+}: {
+  icon: typeof ScanLine;
+  label: string;
+  value: number | string;
+  href?: string;
+}) {
+  const inner = (
+    <div className="bg-white rounded-lg border border-[#e5e3df] p-4 h-full flex flex-col gap-1 transition-colors hover:border-[#c2410c]">
+      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+        <Icon className="w-3.5 h-3.5" /> {label}
+      </div>
+      <div className="text-2xl font-semibold text-[#111110]">{value}</div>
+    </div>
+  );
+  return href ? <Link href={href}>{inner}</Link> : inner;
+}
 
-  async function act(action: "approve" | "dismiss") {
-    setBusy(action);
-    setActionError(null);
-    try {
-      const res = await fetch(`/api/job-changes/${c.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(action === "approve" ? { action, message } : { action }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setActionError(data.error ?? "שגיאה בשליחה, נסה שוב");
-        return;
-      }
-      onDone();
-    } catch {
-      setActionError("שגיאת רשת, נסה שוב");
-    } finally {
-      setBusy(null);
-    }
+function ScannedTable({ rows }: { rows: ScannedRow[] }) {
+  if (rows.length === 0) {
+    return <p className="text-gray-500">עוד לא נסרקו אנשי קשר.</p>;
   }
-
   return (
-    <li className="bg-white rounded-lg border border-[#e5e3df] p-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <a
-            href={c.linkedinUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium text-[#0a66c2] inline-flex items-center gap-1"
-          >
-            {c.fullName} <ExternalLink className="w-3 h-3" />
-          </a>
-          {c.changeType && (
-            <Chip size="sm" color={c.changeType === "COMPANY_MOVE" ? "danger" : "success"}>
-              {CHANGE_TYPE_LABEL[c.changeType]}
-            </Chip>
-          )}
-          {c.status === "APPROVED" && <Chip size="sm" color="default">בתור לשליחה…</Chip>}
-          {c.status === "SENT" && (
-            <Chip size="sm" color="success">
-              נשלח {c.sentAt ? new Date(c.sentAt).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" }) : ""}
-            </Chip>
-          )}
-        </div>
-        <span className="text-xs text-gray-400">
-          {new Date(c.detectedAt).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" })}
-        </span>
+    <div className="bg-white rounded-lg border border-[#e5e3df] overflow-hidden">
+      <div className="px-4 py-3 border-b border-[#e5e3df] text-sm font-medium">
+        מי נסרק ומתי הבדיקה הבאה
       </div>
-
-      <div className="mt-1 text-sm text-gray-700">
-        {c.prevTitle !== c.newTitle && (
-          <div>
-            תפקיד: <span className="line-through text-gray-400">{c.prevTitle ?? "—"}</span> ←{" "}
-            <span className="font-medium">{c.newTitle ?? "—"}</span>
-          </div>
-        )}
-        {c.prevCompany !== c.newCompany && (
-          <div>
-            חברה: <span className="line-through text-gray-400">{c.prevCompany ?? "—"}</span> ←{" "}
-            <span className="font-medium">{c.newCompany ?? "—"}</span>
-          </div>
-        )}
-      </div>
-
-      {c.status === "PENDING_REVIEW" && (
-        <div className="mt-3 flex flex-col gap-2">
-          {c.lastSendError && (
-            <p className="text-xs text-red-600">השליחה הקודמת נכשלה: {c.lastSendError}</p>
-          )}
-          {actionError && (
-            <p className="text-xs text-red-600">{actionError}</p>
-          )}
-          <TextArea
-            aria-label="הודעת ברכה"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="w-full"
-          />
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="primary"
-              isDisabled={!message.trim() || busy !== null}
-              onPress={() => act("approve")}
-            >
-              <span className="inline-flex items-center gap-1">
-                {busy === "approve" && <Loader2 className="w-3 h-3 animate-spin" />}
-                אשר ושלח בלינקדאין
-              </span>
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              isDisabled={busy !== null}
-              onPress={() => act("dismiss")}
-            >
-              <span className="inline-flex items-center gap-1">
-                {busy === "dismiss" && <Loader2 className="w-3 h-3 animate-spin" />}
-                דחה
-              </span>
-            </Button>
-          </div>
-        </div>
-      )}
-      {c.status !== "PENDING_REVIEW" && c.draftMessage && (
-        <p className="mt-3 text-sm bg-[#f6f5f3] rounded p-2 whitespace-pre-wrap">{c.draftMessage}</p>
-      )}
-    </li>
+      <table className="w-full text-sm">
+        <thead className="text-xs text-gray-500 bg-[#f6f5f3]">
+          <tr>
+            <th className="text-right px-4 py-2 font-medium">שם</th>
+            <th className="text-right px-4 py-2 font-medium">תפקיד / חברה</th>
+            <th className="text-right px-4 py-2 font-medium">נבדק לאחרונה</th>
+            <th className="text-right px-4 py-2 font-medium">בדיקה הבאה</th>
+            <th className="text-right px-4 py-2 font-medium">שינוי</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.id} className="border-t border-[#e5e3df]">
+              <td className="px-4 py-2">
+                <a
+                  href={r.linkedinUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[#0a66c2] inline-flex items-center gap-1"
+                >
+                  {r.fullName} <ExternalLink className="w-3 h-3" />
+                </a>
+              </td>
+              <td className="px-4 py-2 text-gray-700">
+                {[r.currentTitle, r.currentCompany].filter(Boolean).join(" · ") || "—"}
+              </td>
+              <td className="px-4 py-2 text-gray-500">{fmtDate(r.lastJobCheckAt)}</td>
+              <td className="px-4 py-2 text-gray-500">{fmtDate(r.nextCheckAt)}</td>
+              <td className="px-4 py-2">{r.hasChange ? "✓" : "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
