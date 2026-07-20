@@ -2,8 +2,18 @@
 
 import useSWR from "swr";
 
-export type RoutineModules = { connectionsEnabled: boolean; jobChecksEnabled: boolean };
-export type RoutineModuleKey = "connections" | "jobChecks";
+export type RoutineModules = {
+  connectionsEnabled: boolean;
+  jobChecksEnabled: boolean;
+  companySignalsEnabled: boolean;
+};
+export type RoutineModuleKey = "connections" | "jobChecks" | "companySignals";
+
+const MODULE_STATE_KEY: Record<RoutineModuleKey, keyof RoutineModules> = {
+  connections: "connectionsEnabled",
+  jobChecks: "jobChecksEnabled",
+  companySignals: "companySignalsEnabled",
+};
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
@@ -11,7 +21,7 @@ export function useRoutineModules() {
   const { data, mutate, isLoading } = useSWR<RoutineModules>("/api/routine/modules", fetcher);
 
   async function setModule(module: RoutineModuleKey, enabled: boolean) {
-    const key = module === "connections" ? "connectionsEnabled" : "jobChecksEnabled";
+    const key = MODULE_STATE_KEY[module];
     await mutate(
       async () => {
         const res = await fetch("/api/routine/modules", {
