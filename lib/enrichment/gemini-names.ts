@@ -25,7 +25,10 @@ export async function translateNames(inputs: NameInput[]): Promise<NameOutput[]>
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return [];
 
-  const model = process.env.OPENROUTER_MODEL ?? "deepseek/deepseek-chat";
+  // Hebrew transliteration quality matters (deepseek produced wrong forms like
+  // "Paz"→"פת"), so use a dedicated var defaulting to the same Hebrew-capable
+  // model the job-change judge uses — NOT the shared OPENROUTER_MODEL default.
+  const model = process.env.NAME_TRANSLATION_MODEL ?? "anthropic/claude-haiku-4.5";
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {

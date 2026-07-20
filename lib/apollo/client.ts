@@ -16,6 +16,45 @@ const APOLLO_HEADERS = () => ({
   "X-Api-Key": process.env.APOLLO_API_KEY ?? "",
 });
 
+/**
+ * Derive the genuinely-current role from an Apollo people/match response.
+ *
+ * Apollo's top-level `person.title` / `person.organization.name` can point at a
+ * STALE role: a contact who never closed an old position on LinkedIn (end_date
+ * null) can have multiple `current: true` employments, and Apollo may surface
+ * the wrong one. This mis-flagged Paz Romano as "moving to" his 2015 yacht-club
+ * role instead of his 2025 startup. So prefer `employment_history`, taking the
+ * current entry with the latest `start_date`. Falls back to the top-level
+ * fields when no employment history is present.
+ */
+export function deriveCurrentRole(raw: unknown): { title: string | null; company: string | null } {
+  const person = (raw as { person?: Record<string, unknown> } | null)?.person;
+  if (!person) return { title: null, company: null };
+
+  const history = Array.isArray(person.employment_history)
+    ? (person.employment_history as Array<Record<string, unknown>>)
+    : [];
+  const current = history.filter((e) => e.current === true);
+
+  if (current.length > 0) {
+    // Latest start_date wins; null/missing start_date sorts oldest. ISO
+    // "YYYY-MM-DD" strings compare correctly lexicographically.
+    const best = current.reduce((a, b) =>
+      String(b.start_date ?? "") > String(a.start_date ?? "") ? b : a
+    );
+    return {
+      title: (best.title as string) ?? null,
+      company: (best.organization_name as string) ?? null,
+    };
+  }
+
+  const org = person.organization as { name?: string } | undefined;
+  return {
+    title: (person.title as string) ?? null,
+    company: org?.name ?? null,
+  };
+}
+
 async function matchOrganization(name: string): Promise<{
   staffCount: number | null;
   industry: string | null;
@@ -62,7 +101,7 @@ export async function matchPerson(input: {
   name: string;
   company?: string;
   linkedinUrl?: string;
-}): Promise<{ email?: string; phone?: string; companySize?: number; currentCompany?: string; industry?: string; raw: unknown }> {
+}): Promise<{ email?: string; phone?: string; companySize?: number; currentTitle?: string; currentCompany?: string; industry?: string; raw: unknown }> {
   const url = "https://api.apollo.io/v1/people/match";
   const body = JSON.stringify({
     name: input.name,
@@ -140,11 +179,15 @@ export async function matchPerson(input: {
       uniquePhones.find((p) => p.type === "mobile")?.sanitized_number;
     const phone = normalizeApolloPhone(rawPhone);
     const email = person?.email ?? contact?.email ?? undefined;
+    // Derive the true current role from employment_history — org?.name alone can
+    // be a stale position (see deriveCurrentRole). Fall back to org?.name.
+    const derived = deriveCurrentRole(data);
     return {
       email,
       phone,
       companySize: org?.estimated_num_employees ?? undefined,
-      currentCompany: org?.name ?? undefined,
+      currentTitle: derived.title ?? undefined,
+      currentCompany: derived.company ?? org?.name ?? undefined,
       industry: org?.industry ?? undefined,
       raw: data,
     };

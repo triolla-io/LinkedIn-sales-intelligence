@@ -62,9 +62,10 @@ export const jobCheckContact = inngest.createFunction(
       return { result: "apollo_no_data" };
     }
 
-    // Apollo returns raw title at raw.title; company is a named field.
-    const freshTitle =
-      ((fresh.raw as Record<string, unknown> | null)?.["title"] as string) ?? null;
+    // Use the role derived from employment_history (matchPerson), NOT Apollo's
+    // top-level title/org — those can point at a stale position and produced a
+    // false "job change" (Paz Romano flagged as moving to a 2015 role).
+    const freshTitle = fresh.currentTitle ?? null;
     const freshCompany = fresh.currentCompany ?? null;
 
     return await step.run("detect-and-record", () =>
