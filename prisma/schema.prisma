@@ -155,6 +155,7 @@ model User {
   extensionAlerts    ExtensionAlert[]    @relation("UserExtensionAlerts")
   prospectingRuns    ProspectingRun[]    @relation("UserProspectingRuns")
   connectionRequests ConnectionRequest[] @relation("UserConnectionRequests")
+  mcpTokens          McpAccessToken[]
 }
 
 model Contact {
@@ -280,6 +281,20 @@ model AuditEvent {
   @@index([targetUserId])
   @@index([actorId])
   @@index([createdAt])
+}
+
+model McpAccessToken {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenHash  String    @unique // sha256 hex of the raw token
+  label      String
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model EnrichmentSpend {

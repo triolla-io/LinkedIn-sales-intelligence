@@ -68,6 +68,11 @@ export type SavedView = Prisma.SavedViewModel
  */
 export type AuditEvent = Prisma.AuditEventModel
 /**
+ * Model McpAccessToken
+ * 
+ */
+export type McpAccessToken = Prisma.McpAccessTokenModel
+/**
  * Model EnrichmentSpend
  * 
  */
