@@ -63,9 +63,9 @@ Restart Claude Code / Desktop. Tools appear as `mcp__triolla-sales__*` and you c
 
 ## Access control
 
-- Token auth resolves the user from your organization's member table
+- Token auth resolves the user from the token's owning User row (which carries the orgId)
 - **@triolla.io members only** — external email domains are rejected at token generation time
-- Rate-limited: 100 requests per minute per token
+- Rate-limited: 120 requests per minute per token
 - Mass actions (enrich_contacts, enroll_in_sequence) accept max 200 contact IDs per call
 - No direct message-send tool; sequences and campaigns send through the guarded pipeline
 
