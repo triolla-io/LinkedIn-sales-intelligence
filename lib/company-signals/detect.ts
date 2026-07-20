@@ -45,13 +45,20 @@ export async function detectAndRecordSignals(
     if (existing) continue;
 
     const { verified, confidence } = computeVerified(e.sources, normalizedWebsite);
+    // The extractor only guarantees eventDate is a string, so the LLM may emit a
+    // non-date like "Q1 2025" / "recently". `new Date(...)` on that is an Invalid Date
+    // and Prisma throws RangeError at .create(), aborting the loop before
+    // lastSignalCheckAt advances (→ the company is reprocessed forever). Guard to null.
+    const parsedDate = e.eventDate ? new Date(e.eventDate) : null;
+    const eventDate =
+      parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : null;
     const created = await prisma.companySignal.create({
       data: {
         companyId: company.id,
         signalType: e.signalType,
         title: e.title,
         summary: e.summary,
-        eventDate: e.eventDate ? new Date(e.eventDate) : null,
+        eventDate,
         confidence,
         sources: e.sources as unknown as Prisma.InputJsonValue,
         verified,

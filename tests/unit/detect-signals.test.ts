@@ -77,6 +77,31 @@ describe("detectAndRecordSignals", () => {
     expect(res.verifiedNewIds).toEqual([]);
   });
 
+  it("coerces an unparseable LLM eventDate to null and still advances lastSignalCheckAt", async () => {
+    mockNews.mockResolvedValue([{ title: "t", url: "https://x.com/1", snippet: "s", source: "tavily", publishedAt: null }]);
+    mockExtract.mockResolvedValue([{
+      signalType: "FUNDING", title: "Raised $10M", summary: "s", eventDate: "Q1 2025",
+      sources: [{ name: "TC", url: "https://techcrunch.com/a", publishedAt: null }, { name: "CC", url: "https://calcalist.co.il/b", publishedAt: null }],
+    }]);
+    const res = await detectAndRecordSignals("co1");
+    expect(mockSignalCreate).toHaveBeenCalledOnce();
+    expect(mockSignalCreate.mock.calls[0][0].data.eventDate).toBeNull();
+    expect(res.verifiedNewIds).toEqual(["sig1"]);
+    expect(mockCompanyUpdate).toHaveBeenCalledOnce();
+  });
+
+  it("verifies a single source on the official bare-domain website", async () => {
+    mockCompanyFindUniqueOrThrow.mockResolvedValue({ id: "co1", name: "Acme", website: "acme.com" });
+    mockNews.mockResolvedValue([{ title: "t", url: "https://x.com/1", snippet: "s", source: "tavily", publishedAt: null }]);
+    mockExtract.mockResolvedValue([{
+      signalType: "PRODUCT_LAUNCH", title: "Launched Y", summary: "s", eventDate: null,
+      sources: [{ name: "Acme", url: "https://acme.com/blog/launch", publishedAt: null }],
+    }]);
+    const res = await detectAndRecordSignals("co1");
+    expect(mockSignalCreate).toHaveBeenCalledOnce();
+    expect(res.verifiedNewIds).toEqual(["sig1"]);
+  });
+
   it("exits quietly (still bumps lastSignalCheckAt) when no news", async () => {
     mockNews.mockResolvedValue([]);
     mockExtract.mockResolvedValue([]);
