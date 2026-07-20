@@ -417,7 +417,9 @@ export const ModelName = {
   ProspectingCompanyTarget: 'ProspectingCompanyTarget',
   ConnectionRequest: 'ConnectionRequest',
   ProspectingEvent: 'ProspectingEvent',
-  ContactJobChange: 'ContactJobChange'
+  ContactJobChange: 'ContactJobChange',
+  CompanySignal: 'CompanySignal',
+  CompanySignalDraft: 'CompanySignalDraft'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -433,7 +435,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange" | "companySignal" | "companySignalDraft"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2953,6 +2955,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    CompanySignal: {
+      payload: Prisma.$CompanySignalPayload<ExtArgs>
+      fields: Prisma.CompanySignalFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CompanySignalFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CompanySignalFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalPayload>
+        }
+        findFirst: {
+          args: Prisma.CompanySignalFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CompanySignalFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalPayload>
+        }
+        findMany: {
+          args: Prisma.CompanySignalFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalPayload>[]
+        }
+        create: {
+          args: Prisma.CompanySignalCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalPayload>
+        }
+        createMany: {
+          args: Prisma.CompanySignalCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CompanySignalCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalPayload>[]
+        }
+        delete: {
+          args: Prisma.CompanySignalDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalPayload>
+        }
+        update: {
+          args: Prisma.CompanySignalUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalPayload>
+        }
+        deleteMany: {
+          args: Prisma.CompanySignalDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CompanySignalUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CompanySignalUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalPayload>[]
+        }
+        upsert: {
+          args: Prisma.CompanySignalUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalPayload>
+        }
+        aggregate: {
+          args: Prisma.CompanySignalAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCompanySignal>
+        }
+        groupBy: {
+          args: Prisma.CompanySignalGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CompanySignalGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CompanySignalCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CompanySignalCountAggregateOutputType> | number
+        }
+      }
+    }
+    CompanySignalDraft: {
+      payload: Prisma.$CompanySignalDraftPayload<ExtArgs>
+      fields: Prisma.CompanySignalDraftFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CompanySignalDraftFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalDraftPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CompanySignalDraftFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalDraftPayload>
+        }
+        findFirst: {
+          args: Prisma.CompanySignalDraftFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalDraftPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CompanySignalDraftFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalDraftPayload>
+        }
+        findMany: {
+          args: Prisma.CompanySignalDraftFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalDraftPayload>[]
+        }
+        create: {
+          args: Prisma.CompanySignalDraftCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalDraftPayload>
+        }
+        createMany: {
+          args: Prisma.CompanySignalDraftCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CompanySignalDraftCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalDraftPayload>[]
+        }
+        delete: {
+          args: Prisma.CompanySignalDraftDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalDraftPayload>
+        }
+        update: {
+          args: Prisma.CompanySignalDraftUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalDraftPayload>
+        }
+        deleteMany: {
+          args: Prisma.CompanySignalDraftDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CompanySignalDraftUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CompanySignalDraftUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalDraftPayload>[]
+        }
+        upsert: {
+          args: Prisma.CompanySignalDraftUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanySignalDraftPayload>
+        }
+        aggregate: {
+          args: Prisma.CompanySignalDraftAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCompanySignalDraft>
+        }
+        groupBy: {
+          args: Prisma.CompanySignalDraftGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CompanySignalDraftGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CompanySignalDraftCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CompanySignalDraftCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3035,6 +3185,7 @@ export const OrganizationScalarFieldEnum = {
   syncCadenceDays: 'syncCadenceDays',
   monthlyApolloBudget: 'monthlyApolloBudget',
   jobCheckEnabled: 'jobCheckEnabled',
+  companySignalsEnabled: 'companySignalsEnabled',
   createdAt: 'createdAt'
 } as const
 
@@ -3205,6 +3356,7 @@ export const CompanyScalarFieldEnum = {
   website: 'website',
   description: 'description',
   lastEnrichedAt: 'lastEnrichedAt',
+  lastSignalCheckAt: 'lastSignalCheckAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -3395,6 +3547,7 @@ export const ExtensionTaskScalarFieldEnum = {
   prospectingRunId: 'prospectingRunId',
   connectionRequestId: 'connectionRequestId',
   jobChangeId: 'jobChangeId',
+  companySignalDraftId: 'companySignalDraftId',
   scheduledFor: 'scheduledFor',
   claimedAt: 'claimedAt',
   completedAt: 'completedAt',
@@ -3553,6 +3706,42 @@ export const ContactJobChangeScalarFieldEnum = {
 } as const
 
 export type ContactJobChangeScalarFieldEnum = (typeof ContactJobChangeScalarFieldEnum)[keyof typeof ContactJobChangeScalarFieldEnum]
+
+
+export const CompanySignalScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  signalType: 'signalType',
+  title: 'title',
+  summary: 'summary',
+  eventDate: 'eventDate',
+  confidence: 'confidence',
+  sources: 'sources',
+  verified: 'verified',
+  dedupeKey: 'dedupeKey',
+  status: 'status',
+  detectedAt: 'detectedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CompanySignalScalarFieldEnum = (typeof CompanySignalScalarFieldEnum)[keyof typeof CompanySignalScalarFieldEnum]
+
+
+export const CompanySignalDraftScalarFieldEnum = {
+  id: 'id',
+  signalId: 'signalId',
+  ownerId: 'ownerId',
+  contactId: 'contactId',
+  draftMessage: 'draftMessage',
+  status: 'status',
+  channel: 'channel',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CompanySignalDraftScalarFieldEnum = (typeof CompanySignalDraftScalarFieldEnum)[keyof typeof CompanySignalDraftScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -3967,6 +4156,20 @@ export type ListEnumJobChangeTypeFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
+ * Reference to a field of type 'CompanySignalType'
+ */
+export type EnumCompanySignalTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanySignalType'>
+    
+
+
+/**
+ * Reference to a field of type 'CompanySignalType[]'
+ */
+export type ListEnumCompanySignalTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanySignalType[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -3977,6 +4180,34 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
  * Reference to a field of type 'Float[]'
  */
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+/**
+ * Reference to a field of type 'CompanySignalStatus'
+ */
+export type EnumCompanySignalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanySignalStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'CompanySignalStatus[]'
+ */
+export type ListEnumCompanySignalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanySignalStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'CompanySignalDraftStatus'
+ */
+export type EnumCompanySignalDraftStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanySignalDraftStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'CompanySignalDraftStatus[]'
+ */
+export type ListEnumCompanySignalDraftStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanySignalDraftStatus[]'>
     
 
 /**
@@ -4123,6 +4354,8 @@ export type GlobalOmitConfig = {
   connectionRequest?: Prisma.ConnectionRequestOmit
   prospectingEvent?: Prisma.ProspectingEventOmit
   contactJobChange?: Prisma.ContactJobChangeOmit
+  companySignal?: Prisma.CompanySignalOmit
+  companySignalDraft?: Prisma.CompanySignalDraftOmit
 }
 
 /* Types for Logging */

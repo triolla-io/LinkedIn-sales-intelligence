@@ -107,12 +107,13 @@ model VerificationToken {
 // ─── Application models ──────────────────────────────────────────────────────
 
 model Organization {
-  id                  String   @id @default(cuid())
-  name                String
-  syncCadenceDays     Int      @default(3)
-  monthlyApolloBudget Int      @default(500)
-  jobCheckEnabled     Boolean  @default(false)
-  createdAt           DateTime @default(now())
+  id                    String   @id @default(cuid())
+  name                  String
+  syncCadenceDays       Int      @default(3)
+  monthlyApolloBudget   Int      @default(500)
+  jobCheckEnabled       Boolean  @default(false)
+  companySignalsEnabled Boolean  @default(false)
+  createdAt             DateTime @default(now())
 
   users             User[]
   enrichmentSpends  EnrichmentSpend[]
@@ -134,27 +135,28 @@ model User {
   routineConnectionsEnabled Boolean   @default(true)
   createdAt                 DateTime  @default(now())
 
-  org                Organization        @relation(fields: [orgId], references: [id])
-  accounts           Account[]
-  sessions           Session[]
-  contacts           Contact[]
-  sentMessages       SentMessage[]       @relation("SentBySender")
-  actedMessages      SentMessage[]       @relation("ActedByActor")
-  savedViews         SavedView[]
-  templates          MessageTemplate[]
-  auditActed         AuditEvent[]        @relation("AuditActor")
-  auditTargeted      AuditEvent[]        @relation("AuditTarget")
-  campaigns          Campaign[]
-  imports            Import[]
-  importJobs         ImportJob[]
-  contactLists       ContactList[]
-  linkedinSession    LinkedinSession?
-  sequences          Sequence[]
-  extensionTasks     ExtensionTask[]     @relation("UserExtensionTasks")
-  extensionSession   ExtensionSession?   @relation("UserExtensionSession")
-  extensionAlerts    ExtensionAlert[]    @relation("UserExtensionAlerts")
-  prospectingRuns    ProspectingRun[]    @relation("UserProspectingRuns")
-  connectionRequests ConnectionRequest[] @relation("UserConnectionRequests")
+  org                 Organization         @relation(fields: [orgId], references: [id])
+  accounts            Account[]
+  sessions            Session[]
+  contacts            Contact[]
+  sentMessages        SentMessage[]        @relation("SentBySender")
+  actedMessages       SentMessage[]        @relation("ActedByActor")
+  savedViews          SavedView[]
+  templates           MessageTemplate[]
+  auditActed          AuditEvent[]         @relation("AuditActor")
+  auditTargeted       AuditEvent[]         @relation("AuditTarget")
+  campaigns           Campaign[]
+  imports             Import[]
+  importJobs          ImportJob[]
+  contactLists        ContactList[]
+  linkedinSession     LinkedinSession?
+  sequences           Sequence[]
+  extensionTasks      ExtensionTask[]      @relation("UserExtensionTasks")
+  extensionSession    ExtensionSession?    @relation("UserExtensionSession")
+  extensionAlerts     ExtensionAlert[]     @relation("UserExtensionAlerts")
+  prospectingRuns     ProspectingRun[]     @relation("UserProspectingRuns")
+  connectionRequests  ConnectionRequest[]  @relation("UserConnectionRequests")
+  companySignalDrafts CompanySignalDraft[] @relation("UserCompanySignalDrafts")
 }
 
 model Contact {
@@ -205,6 +207,7 @@ model Contact {
   messages            SentMessage[]
   campaignRecipients  CampaignRecipient[]
   lists               ContactListMember[]
+  companySignalDrafts CompanySignalDraft[]
   sequenceEnrollments SequenceEnrollment[]
 
   @@unique([ownerId, linkedinUrn])
@@ -327,19 +330,21 @@ model LinkedinSession {
 }
 
 model Company {
-  id             String    @id @default(cuid())
-  universalName  String    @unique // slug used to look up via Voyager (e.g. "microsoft")
-  name           String
-  industry       String?
-  vertical       String?
-  staffCount     Int? // exact headcount from Voyager (e.g. 231227)
-  website        String?
-  description    String?   @db.Text
-  lastEnrichedAt DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  universalName     String    @unique // slug used to look up via Voyager (e.g. "microsoft")
+  name              String
+  industry          String?
+  vertical          String?
+  staffCount        Int? // exact headcount from Voyager (e.g. 231227)
+  website           String?
+  description       String?   @db.Text
+  lastEnrichedAt    DateTime?
+  lastSignalCheckAt DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  contacts Contact[]
+  contacts       Contact[]
+  companySignals CompanySignal[]
 
   @@index([industry])
   @@index([staffCount])
@@ -668,26 +673,27 @@ model SequenceStepExecution {
 // ─── Extension models ─────────────────────────────────────────────────────────
 
 model ExtensionTask {
-  id                  String              @id @default(cuid())
-  userId              String
-  user                User                @relation("UserExtensionTasks", fields: [userId], references: [id], onDelete: Cascade)
-  kind                ExtensionTaskKind
-  status              ExtensionTaskStatus @default(PENDING)
-  payload             Json
+  id                   String              @id @default(cuid())
+  userId               String
+  user                 User                @relation("UserExtensionTasks", fields: [userId], references: [id], onDelete: Cascade)
+  kind                 ExtensionTaskKind
+  status               ExtensionTaskStatus @default(PENDING)
+  payload              Json
   // Polymorphic: CampaignRecipient.id (kind=SEND) or SequenceStepExecution.id (kind=CHECK_REPLY). No FK enforced by design.
-  recipientId         String?
-  sequenceExecutionId String?
-  prospectingRunId    String?
-  connectionRequestId String?
-  jobChangeId         String?
-  scheduledFor        DateTime            @default(now())
-  claimedAt           DateTime?
-  completedAt         DateTime?
-  attemptCount        Int                 @default(0)
-  errorCode           String?
-  errorMessage        String?
-  result              Json?
-  createdAt           DateTime            @default(now())
+  recipientId          String?
+  sequenceExecutionId  String?
+  prospectingRunId     String?
+  connectionRequestId  String?
+  jobChangeId          String?
+  companySignalDraftId String?
+  scheduledFor         DateTime            @default(now())
+  claimedAt            DateTime?
+  completedAt          DateTime?
+  attemptCount         Int                 @default(0)
+  errorCode            String?
+  errorMessage         String?
+  result               Json?
+  createdAt            DateTime            @default(now())
 
   @@index([userId, status, scheduledFor])
   @@index([recipientId])
@@ -864,4 +870,71 @@ model ContactJobChange {
 
   @@index([contactId])
   @@index([status])
+}
+
+// ─── Company signals ─────────────────────────────────────────────────────────
+
+model CompanySignal {
+  id         String               @id @default(cuid())
+  companyId  String
+  company    Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  signalType CompanySignalType
+  title      String
+  summary    String               @db.Text
+  eventDate  DateTime?
+  confidence Float                @default(0)
+  sources    Json // [{ name, url, publishedAt }]
+  verified   Boolean              @default(false)
+  dedupeKey  String
+  status     CompanySignalStatus  @default(DETECTED)
+  detectedAt DateTime             @default(now())
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+  drafts     CompanySignalDraft[]
+
+  @@unique([companyId, dedupeKey])
+  @@index([status])
+}
+
+model CompanySignalDraft {
+  id           String                   @id @default(cuid())
+  signalId     String
+  signal       CompanySignal            @relation(fields: [signalId], references: [id], onDelete: Cascade)
+  ownerId      String
+  owner        User                     @relation("UserCompanySignalDrafts", fields: [ownerId], references: [id], onDelete: Cascade)
+  contactId    String
+  contact      Contact                  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  draftMessage String                   @db.Text
+  status       CompanySignalDraftStatus @default(PENDING_REVIEW)
+  channel      String                   @default("LINKEDIN")
+  sentAt       DateTime?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  @@unique([signalId, contactId])
+  @@index([ownerId, status])
+}
+
+enum CompanySignalType {
+  FUNDING
+  HIRING_GROWTH
+  OFFICE_MOVE
+  PRODUCT_LAUNCH
+  AWARD
+  MILESTONE
+  EXEC_HIRE
+}
+
+enum CompanySignalStatus {
+  DETECTED
+  VERIFIED
+  DRAFTED
+  ARCHIVED
+}
+
+enum CompanySignalDraftStatus {
+  PENDING_REVIEW
+  APPROVED
+  SENT
+  DISMISSED
 }

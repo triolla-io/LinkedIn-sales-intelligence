@@ -250,3 +250,36 @@ export const CompanyTargetStatus = {
 } as const
 
 export type CompanyTargetStatus = (typeof CompanyTargetStatus)[keyof typeof CompanyTargetStatus]
+
+
+export const CompanySignalType = {
+  FUNDING: 'FUNDING',
+  HIRING_GROWTH: 'HIRING_GROWTH',
+  OFFICE_MOVE: 'OFFICE_MOVE',
+  PRODUCT_LAUNCH: 'PRODUCT_LAUNCH',
+  AWARD: 'AWARD',
+  MILESTONE: 'MILESTONE',
+  EXEC_HIRE: 'EXEC_HIRE'
+} as const
+
+export type CompanySignalType = (typeof CompanySignalType)[keyof typeof CompanySignalType]
+
+
+export const CompanySignalStatus = {
+  DETECTED: 'DETECTED',
+  VERIFIED: 'VERIFIED',
+  DRAFTED: 'DRAFTED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type CompanySignalStatus = (typeof CompanySignalStatus)[keyof typeof CompanySignalStatus]
+
+
+export const CompanySignalDraftStatus = {
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  APPROVED: 'APPROVED',
+  SENT: 'SENT',
+  DISMISSED: 'DISMISSED'
+} as const
+
+export type CompanySignalDraftStatus = (typeof CompanySignalDraftStatus)[keyof typeof CompanySignalDraftStatus]

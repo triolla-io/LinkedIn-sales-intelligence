@@ -42,6 +42,7 @@ export type OrganizationMinAggregateOutputType = {
   syncCadenceDays: number | null
   monthlyApolloBudget: number | null
   jobCheckEnabled: boolean | null
+  companySignalsEnabled: boolean | null
   createdAt: Date | null
 }
 
@@ -51,6 +52,7 @@ export type OrganizationMaxAggregateOutputType = {
   syncCadenceDays: number | null
   monthlyApolloBudget: number | null
   jobCheckEnabled: boolean | null
+  companySignalsEnabled: boolean | null
   createdAt: Date | null
 }
 
@@ -60,6 +62,7 @@ export type OrganizationCountAggregateOutputType = {
   syncCadenceDays: number
   monthlyApolloBudget: number
   jobCheckEnabled: number
+  companySignalsEnabled: number
   createdAt: number
   _all: number
 }
@@ -81,6 +84,7 @@ export type OrganizationMinAggregateInputType = {
   syncCadenceDays?: true
   monthlyApolloBudget?: true
   jobCheckEnabled?: true
+  companySignalsEnabled?: true
   createdAt?: true
 }
 
@@ -90,6 +94,7 @@ export type OrganizationMaxAggregateInputType = {
   syncCadenceDays?: true
   monthlyApolloBudget?: true
   jobCheckEnabled?: true
+  companySignalsEnabled?: true
   createdAt?: true
 }
 
@@ -99,6 +104,7 @@ export type OrganizationCountAggregateInputType = {
   syncCadenceDays?: true
   monthlyApolloBudget?: true
   jobCheckEnabled?: true
+  companySignalsEnabled?: true
   createdAt?: true
   _all?: true
 }
@@ -195,6 +201,7 @@ export type OrganizationGroupByOutputType = {
   syncCadenceDays: number
   monthlyApolloBudget: number
   jobCheckEnabled: boolean
+  companySignalsEnabled: boolean
   createdAt: Date
   _count: OrganizationCountAggregateOutputType | null
   _avg: OrganizationAvgAggregateOutputType | null
@@ -227,6 +234,7 @@ export type OrganizationWhereInput = {
   syncCadenceDays?: Prisma.IntFilter<"Organization"> | number
   monthlyApolloBudget?: Prisma.IntFilter<"Organization"> | number
   jobCheckEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  companySignalsEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   users?: Prisma.UserListRelationFilter
   enrichmentSpends?: Prisma.EnrichmentSpendListRelationFilter
@@ -240,6 +248,7 @@ export type OrganizationOrderByWithRelationInput = {
   syncCadenceDays?: Prisma.SortOrder
   monthlyApolloBudget?: Prisma.SortOrder
   jobCheckEnabled?: Prisma.SortOrder
+  companySignalsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   users?: Prisma.UserOrderByRelationAggregateInput
   enrichmentSpends?: Prisma.EnrichmentSpendOrderByRelationAggregateInput
@@ -256,6 +265,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   syncCadenceDays?: Prisma.IntFilter<"Organization"> | number
   monthlyApolloBudget?: Prisma.IntFilter<"Organization"> | number
   jobCheckEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  companySignalsEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   users?: Prisma.UserListRelationFilter
   enrichmentSpends?: Prisma.EnrichmentSpendListRelationFilter
@@ -269,6 +279,7 @@ export type OrganizationOrderByWithAggregationInput = {
   syncCadenceDays?: Prisma.SortOrder
   monthlyApolloBudget?: Prisma.SortOrder
   jobCheckEnabled?: Prisma.SortOrder
+  companySignalsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _avg?: Prisma.OrganizationAvgOrderByAggregateInput
@@ -286,6 +297,7 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   syncCadenceDays?: Prisma.IntWithAggregatesFilter<"Organization"> | number
   monthlyApolloBudget?: Prisma.IntWithAggregatesFilter<"Organization"> | number
   jobCheckEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
+  companySignalsEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
 }
 
@@ -295,6 +307,7 @@ export type OrganizationCreateInput = {
   syncCadenceDays?: number
   monthlyApolloBudget?: number
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrgInput
   enrichmentSpends?: Prisma.EnrichmentSpendCreateNestedManyWithoutOrgInput
@@ -308,6 +321,7 @@ export type OrganizationUncheckedCreateInput = {
   syncCadenceDays?: number
   monthlyApolloBudget?: number
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrgInput
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedCreateNestedManyWithoutOrgInput
@@ -321,6 +335,7 @@ export type OrganizationUpdateInput = {
   syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
   monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
   jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrgNestedInput
   enrichmentSpends?: Prisma.EnrichmentSpendUpdateManyWithoutOrgNestedInput
@@ -334,6 +349,7 @@ export type OrganizationUncheckedUpdateInput = {
   syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
   monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
   jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrgNestedInput
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedUpdateManyWithoutOrgNestedInput
@@ -347,6 +363,7 @@ export type OrganizationCreateManyInput = {
   syncCadenceDays?: number
   monthlyApolloBudget?: number
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: Date | string
 }
 
@@ -356,6 +373,7 @@ export type OrganizationUpdateManyMutationInput = {
   syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
   monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
   jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -365,6 +383,7 @@ export type OrganizationUncheckedUpdateManyInput = {
   syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
   monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
   jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -374,6 +393,7 @@ export type OrganizationCountOrderByAggregateInput = {
   syncCadenceDays?: Prisma.SortOrder
   monthlyApolloBudget?: Prisma.SortOrder
   jobCheckEnabled?: Prisma.SortOrder
+  companySignalsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -388,6 +408,7 @@ export type OrganizationMaxOrderByAggregateInput = {
   syncCadenceDays?: Prisma.SortOrder
   monthlyApolloBudget?: Prisma.SortOrder
   jobCheckEnabled?: Prisma.SortOrder
+  companySignalsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -397,6 +418,7 @@ export type OrganizationMinOrderByAggregateInput = {
   syncCadenceDays?: Prisma.SortOrder
   monthlyApolloBudget?: Prisma.SortOrder
   jobCheckEnabled?: Prisma.SortOrder
+  companySignalsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -484,6 +506,7 @@ export type OrganizationCreateWithoutUsersInput = {
   syncCadenceDays?: number
   monthlyApolloBudget?: number
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: Date | string
   enrichmentSpends?: Prisma.EnrichmentSpendCreateNestedManyWithoutOrgInput
   invites?: Prisma.InviteCreateNestedManyWithoutOrgInput
@@ -496,6 +519,7 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   syncCadenceDays?: number
   monthlyApolloBudget?: number
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: Date | string
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedCreateNestedManyWithoutOrgInput
   invites?: Prisma.InviteUncheckedCreateNestedManyWithoutOrgInput
@@ -524,6 +548,7 @@ export type OrganizationUpdateWithoutUsersInput = {
   syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
   monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
   jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   enrichmentSpends?: Prisma.EnrichmentSpendUpdateManyWithoutOrgNestedInput
   invites?: Prisma.InviteUpdateManyWithoutOrgNestedInput
@@ -536,6 +561,7 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
   monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
   jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedUpdateManyWithoutOrgNestedInput
   invites?: Prisma.InviteUncheckedUpdateManyWithoutOrgNestedInput
@@ -548,6 +574,7 @@ export type OrganizationCreateWithoutEnrichmentSpendsInput = {
   syncCadenceDays?: number
   monthlyApolloBudget?: number
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrgInput
   invites?: Prisma.InviteCreateNestedManyWithoutOrgInput
@@ -560,6 +587,7 @@ export type OrganizationUncheckedCreateWithoutEnrichmentSpendsInput = {
   syncCadenceDays?: number
   monthlyApolloBudget?: number
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrgInput
   invites?: Prisma.InviteUncheckedCreateNestedManyWithoutOrgInput
@@ -588,6 +616,7 @@ export type OrganizationUpdateWithoutEnrichmentSpendsInput = {
   syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
   monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
   jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrgNestedInput
   invites?: Prisma.InviteUpdateManyWithoutOrgNestedInput
@@ -600,6 +629,7 @@ export type OrganizationUncheckedUpdateWithoutEnrichmentSpendsInput = {
   syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
   monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
   jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrgNestedInput
   invites?: Prisma.InviteUncheckedUpdateManyWithoutOrgNestedInput
@@ -612,6 +642,7 @@ export type OrganizationCreateWithoutPersonEnrichmentsInput = {
   syncCadenceDays?: number
   monthlyApolloBudget?: number
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrgInput
   enrichmentSpends?: Prisma.EnrichmentSpendCreateNestedManyWithoutOrgInput
@@ -624,6 +655,7 @@ export type OrganizationUncheckedCreateWithoutPersonEnrichmentsInput = {
   syncCadenceDays?: number
   monthlyApolloBudget?: number
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrgInput
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedCreateNestedManyWithoutOrgInput
@@ -652,6 +684,7 @@ export type OrganizationUpdateWithoutPersonEnrichmentsInput = {
   syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
   monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
   jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrgNestedInput
   enrichmentSpends?: Prisma.EnrichmentSpendUpdateManyWithoutOrgNestedInput
@@ -664,6 +697,7 @@ export type OrganizationUncheckedUpdateWithoutPersonEnrichmentsInput = {
   syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
   monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
   jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrgNestedInput
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedUpdateManyWithoutOrgNestedInput
@@ -676,6 +710,7 @@ export type OrganizationCreateWithoutInvitesInput = {
   syncCadenceDays?: number
   monthlyApolloBudget?: number
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrgInput
   enrichmentSpends?: Prisma.EnrichmentSpendCreateNestedManyWithoutOrgInput
@@ -688,6 +723,7 @@ export type OrganizationUncheckedCreateWithoutInvitesInput = {
   syncCadenceDays?: number
   monthlyApolloBudget?: number
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrgInput
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedCreateNestedManyWithoutOrgInput
@@ -716,6 +752,7 @@ export type OrganizationUpdateWithoutInvitesInput = {
   syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
   monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
   jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrgNestedInput
   enrichmentSpends?: Prisma.EnrichmentSpendUpdateManyWithoutOrgNestedInput
@@ -728,6 +765,7 @@ export type OrganizationUncheckedUpdateWithoutInvitesInput = {
   syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
   monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
   jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrgNestedInput
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedUpdateManyWithoutOrgNestedInput
@@ -798,6 +836,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   syncCadenceDays?: boolean
   monthlyApolloBudget?: boolean
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: boolean
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   enrichmentSpends?: boolean | Prisma.Organization$enrichmentSpendsArgs<ExtArgs>
@@ -812,6 +851,7 @@ export type OrganizationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   syncCadenceDays?: boolean
   monthlyApolloBudget?: boolean
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["organization"]>
 
@@ -821,6 +861,7 @@ export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   syncCadenceDays?: boolean
   monthlyApolloBudget?: boolean
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["organization"]>
 
@@ -830,10 +871,11 @@ export type OrganizationSelectScalar = {
   syncCadenceDays?: boolean
   monthlyApolloBudget?: boolean
   jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
   createdAt?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "syncCadenceDays" | "monthlyApolloBudget" | "jobCheckEnabled" | "createdAt", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "syncCadenceDays" | "monthlyApolloBudget" | "jobCheckEnabled" | "companySignalsEnabled" | "createdAt", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   enrichmentSpends?: boolean | Prisma.Organization$enrichmentSpendsArgs<ExtArgs>
@@ -858,6 +900,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     syncCadenceDays: number
     monthlyApolloBudget: number
     jobCheckEnabled: boolean
+    companySignalsEnabled: boolean
     createdAt: Date
   }, ExtArgs["result"]["organization"]>
   composites: {}
@@ -1291,6 +1334,7 @@ export interface OrganizationFieldRefs {
   readonly syncCadenceDays: Prisma.FieldRef<"Organization", 'Int'>
   readonly monthlyApolloBudget: Prisma.FieldRef<"Organization", 'Int'>
   readonly jobCheckEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
+  readonly companySignalsEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Organization", 'DateTime'>
 }
     

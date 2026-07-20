@@ -211,3 +211,13 @@ export type ProspectingEvent = Prisma.ProspectingEventModel
  * 
  */
 export type ContactJobChange = Prisma.ContactJobChangeModel
+/**
+ * Model CompanySignal
+ * 
+ */
+export type CompanySignal = Prisma.CompanySignalModel
+/**
+ * Model CompanySignalDraft
+ * 
+ */
+export type CompanySignalDraft = Prisma.CompanySignalDraftModel

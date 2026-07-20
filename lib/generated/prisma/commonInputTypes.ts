@@ -661,6 +661,84 @@ export type EnumJobChangeTypeNullableWithAggregatesFilter<$PrismaModel = never> 
   _max?: Prisma.NestedEnumJobChangeTypeNullableFilter<$PrismaModel>
 }
 
+export type EnumCompanySignalTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanySignalType | Prisma.EnumCompanySignalTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanySignalType[] | Prisma.ListEnumCompanySignalTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanySignalType[] | Prisma.ListEnumCompanySignalTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanySignalTypeFilter<$PrismaModel> | $Enums.CompanySignalType
+}
+
+export type FloatFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatFilter<$PrismaModel> | number
+}
+
+export type EnumCompanySignalStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanySignalStatus | Prisma.EnumCompanySignalStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanySignalStatus[] | Prisma.ListEnumCompanySignalStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanySignalStatus[] | Prisma.ListEnumCompanySignalStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanySignalStatusFilter<$PrismaModel> | $Enums.CompanySignalStatus
+}
+
+export type EnumCompanySignalTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanySignalType | Prisma.EnumCompanySignalTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanySignalType[] | Prisma.ListEnumCompanySignalTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanySignalType[] | Prisma.ListEnumCompanySignalTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanySignalTypeWithAggregatesFilter<$PrismaModel> | $Enums.CompanySignalType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCompanySignalTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCompanySignalTypeFilter<$PrismaModel>
+}
+
+export type FloatWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatWithAggregatesFilter<$PrismaModel> | number
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatFilter<$PrismaModel>
+  _sum?: Prisma.NestedFloatFilter<$PrismaModel>
+  _min?: Prisma.NestedFloatFilter<$PrismaModel>
+  _max?: Prisma.NestedFloatFilter<$PrismaModel>
+}
+
+export type EnumCompanySignalStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanySignalStatus | Prisma.EnumCompanySignalStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanySignalStatus[] | Prisma.ListEnumCompanySignalStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanySignalStatus[] | Prisma.ListEnumCompanySignalStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanySignalStatusWithAggregatesFilter<$PrismaModel> | $Enums.CompanySignalStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCompanySignalStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCompanySignalStatusFilter<$PrismaModel>
+}
+
+export type EnumCompanySignalDraftStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanySignalDraftStatus | Prisma.EnumCompanySignalDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanySignalDraftStatus[] | Prisma.ListEnumCompanySignalDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanySignalDraftStatus[] | Prisma.ListEnumCompanySignalDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanySignalDraftStatusFilter<$PrismaModel> | $Enums.CompanySignalDraftStatus
+}
+
+export type EnumCompanySignalDraftStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanySignalDraftStatus | Prisma.EnumCompanySignalDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanySignalDraftStatus[] | Prisma.ListEnumCompanySignalDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanySignalDraftStatus[] | Prisma.ListEnumCompanySignalDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanySignalDraftStatusWithAggregatesFilter<$PrismaModel> | $Enums.CompanySignalDraftStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCompanySignalDraftStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCompanySignalDraftStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1265,6 +1343,73 @@ export type NestedEnumJobChangeTypeNullableWithAggregatesFilter<$PrismaModel = n
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumJobChangeTypeNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumJobChangeTypeNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumCompanySignalTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanySignalType | Prisma.EnumCompanySignalTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanySignalType[] | Prisma.ListEnumCompanySignalTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanySignalType[] | Prisma.ListEnumCompanySignalTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanySignalTypeFilter<$PrismaModel> | $Enums.CompanySignalType
+}
+
+export type NestedEnumCompanySignalStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanySignalStatus | Prisma.EnumCompanySignalStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanySignalStatus[] | Prisma.ListEnumCompanySignalStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanySignalStatus[] | Prisma.ListEnumCompanySignalStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanySignalStatusFilter<$PrismaModel> | $Enums.CompanySignalStatus
+}
+
+export type NestedEnumCompanySignalTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanySignalType | Prisma.EnumCompanySignalTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanySignalType[] | Prisma.ListEnumCompanySignalTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanySignalType[] | Prisma.ListEnumCompanySignalTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanySignalTypeWithAggregatesFilter<$PrismaModel> | $Enums.CompanySignalType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCompanySignalTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCompanySignalTypeFilter<$PrismaModel>
+}
+
+export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatWithAggregatesFilter<$PrismaModel> | number
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatFilter<$PrismaModel>
+  _sum?: Prisma.NestedFloatFilter<$PrismaModel>
+  _min?: Prisma.NestedFloatFilter<$PrismaModel>
+  _max?: Prisma.NestedFloatFilter<$PrismaModel>
+}
+
+export type NestedEnumCompanySignalStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanySignalStatus | Prisma.EnumCompanySignalStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanySignalStatus[] | Prisma.ListEnumCompanySignalStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanySignalStatus[] | Prisma.ListEnumCompanySignalStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanySignalStatusWithAggregatesFilter<$PrismaModel> | $Enums.CompanySignalStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCompanySignalStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCompanySignalStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumCompanySignalDraftStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanySignalDraftStatus | Prisma.EnumCompanySignalDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanySignalDraftStatus[] | Prisma.ListEnumCompanySignalDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanySignalDraftStatus[] | Prisma.ListEnumCompanySignalDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanySignalDraftStatusFilter<$PrismaModel> | $Enums.CompanySignalDraftStatus
+}
+
+export type NestedEnumCompanySignalDraftStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanySignalDraftStatus | Prisma.EnumCompanySignalDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanySignalDraftStatus[] | Prisma.ListEnumCompanySignalDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanySignalDraftStatus[] | Prisma.ListEnumCompanySignalDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanySignalDraftStatusWithAggregatesFilter<$PrismaModel> | $Enums.CompanySignalDraftStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCompanySignalDraftStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCompanySignalDraftStatusFilter<$PrismaModel>
 }
 
 
