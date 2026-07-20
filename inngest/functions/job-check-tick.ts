@@ -1,6 +1,8 @@
 import { inngest } from "@/inngest/client";
-import { priorityTitleWhere } from "@/lib/job-check/priority-titles";
 import { prisma } from "@/lib/prisma";
+import { selectDueContacts } from "@/lib/job-check/select-due-contacts";
+
+const DAILY_CAP = 25; // conservative profile-visit budget/run
 
 export const jobCheckTick = inngest.createFunction(
   { id: "job-check-tick", triggers: [{ cron: "0 2 * * *" }] },
@@ -8,29 +10,29 @@ export const jobCheckTick = inngest.createFunction(
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 28);
 
-    const contacts = await prisma.contact.findMany({
+    const due = await prisma.contact.findMany({
       where: {
         linkedinUrl: { not: "" },
         removedAt: null,
-        AND: [
-          { OR: [{ lastJobCheckAt: null }, { lastJobCheckAt: { lt: cutoff } }] },
-          { OR: [{ currentTitle: null }, { NOT: priorityTitleWhere() }] },
-        ],
+        OR: [{ lastJobCheckAt: null }, { lastJobCheckAt: { lt: cutoff } }],
       },
-      select: { id: true },
+      select: { id: true, ownerId: true, linkedinUrl: true, lastJobCheckAt: true },
       orderBy: { lastJobCheckAt: "asc" }, // oldest-first so the queue drains evenly
-      take: 100,
+      take: 500,
     });
 
-    if (contacts.length === 0) return { dispatched: 0 };
+    const chosen = selectDueContacts(due, DAILY_CAP);
 
-    await inngest.send(
-      contacts.map((c) => ({
-        name: "job.check" as const,
-        data: { contactId: c.id },
-      }))
-    );
+    if (chosen.length === 0) return { dispatched: 0 };
 
-    return { dispatched: contacts.length };
+    await prisma.extensionTask.createMany({
+      data: chosen.map((c) => ({
+        userId: c.ownerId,
+        kind: "SCRAPE_PROFILE" as const,
+        payload: { contactId: c.id, linkedinUrl: c.linkedinUrl },
+      })),
+    });
+
+    return { dispatched: chosen.length };
   }
 );
