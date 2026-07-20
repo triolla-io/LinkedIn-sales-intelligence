@@ -1,9 +1,12 @@
 /**
  * Company-signal detection core (source-agnostic, callable by the Inngest detect function).
  * Fetch merged live news → LLM extract → upsert CompanySignal (dedup on companyId+dedupeKey)
- * → advance Company.lastSignalCheckAt. Returns ids of newly-created VERIFIED signals so the
- * caller can fan out drafting. extractCompanySignals THROWS on LLM failure so the Inngest step
- * retries — never guess.
+ * → advance Company.lastSignalCheckAt. Returns the ids of this company's VERIFIED-but-not-yet-
+ * DRAFTED signals so the caller can fan out drafting. That fan-out list is re-queried from
+ * durable state (NOT the ids created in this invocation) so Inngest at-least-once retries of the
+ * enclosing step never drop a draft: a signal created VERIFIED on an earlier attempt is still
+ * returned, and one already DRAFTED drops out (idempotent). extractCompanySignals THROWS on LLM
+ * failure so the Inngest step retries — never guess.
  */
 import { prisma } from "@/lib/prisma";
 import { fetchCompanyNews } from "@/lib/news/fetch-company-news";
@@ -33,7 +36,6 @@ export async function detectAndRecordSignals(
     ? (/^https?:\/\//i.test(company.website) ? company.website : `https://${company.website}`)
     : null;
 
-  const verifiedNewIds: string[] = [];
   let detected = 0;
 
   for (const e of events) {
@@ -65,10 +67,9 @@ export async function detectAndRecordSignals(
         dedupeKey,
         status: verified ? "VERIFIED" : "DETECTED",
       },
-      select: { id: true, verified: true },
+      select: { id: true },
     });
     detected += 1;
-    if (created.verified) verifiedNewIds.push(created.id);
   }
 
   await prisma.company.update({
@@ -76,5 +77,15 @@ export async function detectAndRecordSignals(
     data: { lastSignalCheckAt: new Date() },
   });
 
-  return { detected, verifiedNewIds };
+  // Derive the fan-out list from durable state, not this invocation's creates. Inngest re-runs
+  // the whole enclosing step on any throw; on a retry, already-created signals are skipped by the
+  // dedup `continue` above, so in-invocation ids would come back empty and their drafts would be
+  // lost forever (lastSignalCheckAt already advanced). createDraftsForSignal flips a signal to
+  // DRAFTED once drafts exist, so VERIFIED-but-not-DRAFTED is exactly "needs a draft".
+  const toDraft = await prisma.companySignal.findMany({
+    where: { companyId: company.id, verified: true, status: "VERIFIED" },
+    select: { id: true },
+  });
+
+  return { detected, verifiedNewIds: toDraft.map((s) => s.id) };
 }

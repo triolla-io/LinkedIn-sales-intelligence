@@ -4,6 +4,7 @@ const mockCompanyFindUniqueOrThrow = vi.fn();
 const mockCompanyUpdate = vi.fn();
 const mockSignalFindUnique = vi.fn();
 const mockSignalCreate = vi.fn();
+const mockSignalFindMany = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -14,6 +15,7 @@ vi.mock("@/lib/prisma", () => ({
     companySignal: {
       findUnique: (...a: unknown[]) => mockSignalFindUnique(...a),
       create: (...a: unknown[]) => mockSignalCreate(...a),
+      findMany: (...a: unknown[]) => mockSignalFindMany(...a),
     },
   },
 }));
@@ -39,6 +41,9 @@ beforeEach(() => {
   mockSignalCreate.mockImplementation(async (args: { data: { verified: boolean } }) => ({
     id: "sig1", verified: args.data.verified,
   }));
+  // Fan-out is derived from durable state (verified-but-not-DRAFTED). Default: nothing to draft;
+  // tests that expect a draft set this to the appropriate VERIFIED rows.
+  mockSignalFindMany.mockResolvedValue([]);
 });
 
 describe("detectAndRecordSignals", () => {
@@ -48,9 +53,13 @@ describe("detectAndRecordSignals", () => {
       signalType: "FUNDING", title: "Raised $10M", summary: "s", eventDate: null,
       sources: [{ name: "TC", url: "https://techcrunch.com/a", publishedAt: null }, { name: "CC", url: "https://calcalist.co.il/b", publishedAt: null }],
     }]);
+    mockSignalFindMany.mockResolvedValue([{ id: "sig1" }]);
     const res = await detectAndRecordSignals("co1");
     expect(res.detected).toBe(1);
     expect(res.verifiedNewIds).toEqual(["sig1"]);
+    expect(mockSignalFindMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ companyId: "co1", verified: true, status: "VERIFIED" }),
+    }));
     expect(mockCompanyUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ lastSignalCheckAt: expect.any(Date) }) }));
   });
 
@@ -83,6 +92,7 @@ describe("detectAndRecordSignals", () => {
       signalType: "FUNDING", title: "Raised $10M", summary: "s", eventDate: "Q1 2025",
       sources: [{ name: "TC", url: "https://techcrunch.com/a", publishedAt: null }, { name: "CC", url: "https://calcalist.co.il/b", publishedAt: null }],
     }]);
+    mockSignalFindMany.mockResolvedValue([{ id: "sig1" }]);
     const res = await detectAndRecordSignals("co1");
     expect(mockSignalCreate).toHaveBeenCalledOnce();
     expect(mockSignalCreate.mock.calls[0][0].data.eventDate).toBeNull();
@@ -97,9 +107,28 @@ describe("detectAndRecordSignals", () => {
       signalType: "PRODUCT_LAUNCH", title: "Launched Y", summary: "s", eventDate: null,
       sources: [{ name: "Acme", url: "https://acme.com/blog/launch", publishedAt: null }],
     }]);
+    mockSignalFindMany.mockResolvedValue([{ id: "sig1" }]);
     const res = await detectAndRecordSignals("co1");
     expect(mockSignalCreate).toHaveBeenCalledOnce();
     expect(res.verifiedNewIds).toEqual(["sig1"]);
+  });
+
+  it("returns a VERIFIED signal that already exists (dedup skips create) so Inngest retries don't drop its draft", async () => {
+    // Retry scenario: on a re-run of the enclosing step, the signal was created VERIFIED on a
+    // prior attempt, so findUnique returns it and the dedup `continue` skips create — yet it still
+    // needs a draft. The fan-out must come from durable state (findMany), not this run's creates.
+    mockSignalFindUnique.mockResolvedValue({ id: "existing" });
+    mockNews.mockResolvedValue([{ title: "t", url: "https://x.com/1", snippet: "s", source: "tavily", publishedAt: null }]);
+    mockExtract.mockResolvedValue([{
+      signalType: "FUNDING", title: "Raised $10M", summary: "s", eventDate: null,
+      sources: [{ name: "TC", url: "https://techcrunch.com/a", publishedAt: null }, { name: "CC", url: "https://calcalist.co.il/b", publishedAt: null }],
+    }]);
+    mockSignalFindMany.mockResolvedValue([{ id: "existing" }]);
+    const res = await detectAndRecordSignals("co1");
+    expect(mockSignalCreate).not.toHaveBeenCalled();
+    expect(res.detected).toBe(0);
+    expect(res.verifiedNewIds).toEqual(["existing"]);
+    expect(mockCompanyUpdate).toHaveBeenCalledOnce();
   });
 
   it("exits quietly (still bumps lastSignalCheckAt) when no news", async () => {
