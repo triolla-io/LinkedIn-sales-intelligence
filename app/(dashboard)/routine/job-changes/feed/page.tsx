@@ -2,7 +2,7 @@
 
 import { Suspense, useReducer, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Button, Chip, TextArea, Switch } from "@heroui/react";
+import { Button, Chip, TextArea } from "@heroui/react";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
 import { parseFeedFilter, matchesFilter } from "@/lib/job-check/feed-filter";
@@ -84,16 +84,19 @@ function JobChangesFeed() {
             <span className={`text-xs font-medium ${jobChecksOn ? "text-[#059669]" : "text-[#b45309]"}`}>
               {jobChecksOn ? "המודול פעיל" : "המודול כבוי"}
             </span>
-            <Switch
-              size="sm"
-              isSelected={jobChecksOn}
-              onChange={(v: boolean) => setModule("jobChecks", v)}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={jobChecksOn}
               aria-label="הפעלת מודול עדכוני משתמשים"
+              onClick={() => setModule("jobChecks", !jobChecksOn)}
+              dir="ltr"
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${jobChecksOn ? "bg-[#059669]" : "bg-gray-300"}`}
             >
-              <Switch.Control>
-                <Switch.Thumb />
-              </Switch.Control>
-            </Switch>
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${jobChecksOn ? "translate-x-[22px]" : "translate-x-[2px]"}`}
+              />
+            </button>
           </div>
         )}
       </div>

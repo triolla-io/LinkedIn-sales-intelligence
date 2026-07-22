@@ -6,6 +6,7 @@ import {
   PartyPopper, Loader2, ExternalLink, Building2, BadgeCheck, Send, ScanLine,
 } from "lucide-react";
 import { coveragePct, estimateFullPassDays } from "@/lib/job-check/stats-pure";
+import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
 
 type ScannedRow = {
   id: string;
@@ -43,11 +44,36 @@ export default function JobChangesDashboard() {
     { refreshInterval: 30_000 }
   );
 
+  const { modules, setModule } = useRoutineModules();
+  const jobChecksOn = modules?.jobChecksEnabled ?? false;
+
   return (
     <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]" dir="rtl">
-      <div className="flex items-center gap-2 px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
-        <PartyPopper className="w-5 h-5 text-[#c2410c]" />
-        <h1 className="text-lg font-semibold">עדכוני משתמשים — סקירה</h1>
+      <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
+        <div className="flex items-center gap-2">
+          <PartyPopper className="w-5 h-5 text-[#c2410c]" />
+          <h1 className="text-lg font-semibold">עדכוני משתמשים — סקירה</h1>
+        </div>
+        {modules && (
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <span className={`text-xs font-medium ${jobChecksOn ? "text-[#059669]" : "text-[#b45309]"}`}>
+              {jobChecksOn ? "המודול פעיל" : "המודול כבוי"}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={jobChecksOn}
+              aria-label="הפעלת מודול עדכוני משתמשים"
+              onClick={() => setModule("jobChecks", !jobChecksOn)}
+              dir="ltr"
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${jobChecksOn ? "bg-[#059669]" : "bg-gray-300"}`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${jobChecksOn ? "translate-x-[22px]" : "translate-x-[2px]"}`}
+              />
+            </button>
+          </label>
+        )}
       </div>
 
       {isLoading || !data ? (
@@ -61,7 +87,7 @@ export default function JobChangesDashboard() {
             <StatCard icon={ScanLine} label="נסרקו החודש" value={data.scannedThisMonth} />
             <StatCard
               icon={ScanLine}
-              label="כיסוי מתגלגל"
+              label="כיסוי חודשי"
               value={`${coveragePct(data.coveredLast28d, data.eligibleTotal)}%`}
             />
             <StatCard icon={ScanLine} label="ממתינים לבדיקה כעת" value={data.dueNow} />
@@ -88,7 +114,7 @@ export default function JobChangesDashboard() {
           {/* Coverage bar + rate */}
           <div className="bg-white rounded-lg border border-[#e5e3df] p-4">
             <div className="flex items-center justify-between text-sm mb-2">
-              <span className="font-medium">כיסוי מתגלגל (28 יום)</span>
+              <span className="font-medium">כיסוי חודשי (28 יום)</span>
               <span className="text-gray-500">
                 {data.coveredLast28d}/{data.eligibleTotal}
               </span>
