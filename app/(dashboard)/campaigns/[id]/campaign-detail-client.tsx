@@ -145,7 +145,7 @@ function RecipientsTable({
           <button
             type="button"
             onClick={onOpenEnrollModal}
-            className="flex items-center gap-2 bg-blue-600 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-blue-700"
+            className="flex items-center gap-2 bg-[#1585ff] text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-[#0a70e0] transition-colors"
           >
             <Plus size={16} />
             הוסף אנשי קשר
@@ -353,7 +353,7 @@ function SequenceHeader({
       <div className="flex items-center gap-3">
         <Link
           href={`/campaigns/${sequence.id}/edit`}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          className="border border-[#e7e4dd] rounded-lg px-3 py-2 text-sm text-[#1a1917] hover:bg-[#f6f5f2] transition-colors"
         >
           ערוך
         </Link>
@@ -715,9 +715,9 @@ export default function CampaignDetailClient({
           { label: "בתהליך", value: inProgress },
           { label: "נכשלו", value: failed },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-white border border-gray-200 rounded-xl p-4">
-            <p className="text-2xl font-semibold text-gray-900">{value}</p>
-            <p className="text-sm text-gray-500 mt-1">{label}</p>
+          <div key={label} className="bg-white border border-[#e5e3df] rounded-xl p-4">
+            <p className="text-2xl font-semibold text-[#1a1917] tabular-nums">{value}</p>
+            <p className="text-sm text-[#6b6866] mt-1">{label}</p>
           </div>
         ))}
       </div>
@@ -754,12 +754,12 @@ export default function CampaignDetailClient({
               value={enrollSearch}
               onChange={(e) => setEnrollSearch(e.target.value)}
               placeholder="חיפוש..."
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-white border border-[#dcd8d0] rounded-lg px-3 py-2 text-sm text-[#1a1917] placeholder-[#b8b4ae] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/15 focus:border-[#1585ff] transition"
               autoFocus
             />
             <div className="max-h-64 overflow-y-auto space-y-1">
               {filteredContacts.map((c) => (
-                <label key={c.id} className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-gray-50 cursor-pointer">
+                <label key={c.id} className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-[#f6f5f2] cursor-pointer transition-colors">
                   <input
                     type="checkbox"
                     checked={selectedContactIds.has(c.id)}
@@ -770,14 +770,14 @@ export default function CampaignDetailClient({
                       setSelectedContactIds(next);
                     }}
                   />
-                  <span className="text-sm text-gray-800">{c.fullName}</span>
+                  <span className="text-sm text-[#1a1917]">{c.fullName}</span>
                   {c.currentTitle && (
-                    <span className="text-xs text-gray-400">{c.currentTitle}</span>
+                    <span className="text-xs text-[#9b9895]">{c.currentTitle}</span>
                   )}
                 </label>
               ))}
               {filteredContacts.length === 0 && (
-                <p className="text-sm text-gray-400 text-center py-4">אין תוצאות</p>
+                <p className="text-sm text-[#9b9895] text-center py-4">אין תוצאות</p>
               )}
             </div>
             <div className="flex gap-3">
@@ -785,14 +785,14 @@ export default function CampaignDetailClient({
                 type="button"
                 onClick={doEnroll}
                 disabled={enrolling || selectedContactIds.size === 0}
-                className="flex-1 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                className="flex-1 bg-[#1585ff] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#0a70e0] transition-colors disabled:opacity-50"
               >
                 {enrolling ? "מוסיף..." : `הוסף (${selectedContactIds.size})`}
               </button>
               <button
                 type="button"
                 onClick={() => setShowEnrollModal(false)}
-                className="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                className="border border-[#e7e4dd] rounded-lg px-4 py-2 text-sm text-[#6b6866] hover:bg-[#f6f5f2] transition-colors"
               >
                 ביטול
               </button>

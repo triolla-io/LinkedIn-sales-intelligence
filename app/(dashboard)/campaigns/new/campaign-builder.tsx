@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronUp, ChevronDown, Trash2, Plus } from "lucide-react";
+import { ChevronUp, ChevronDown, Trash2, Plus, Megaphone } from "lucide-react";
+import { ui } from "@/lib/ui";
+import { PageHeader } from "@/components/ui/page-header";
 
 type Channel = "EMAIL" | "WHATSAPP" | "LINKEDIN";
 
@@ -42,6 +44,8 @@ const CHANNEL_LABELS: Record<Channel, string> = {
   WHATSAPP: "WhatsApp",
   LINKEDIN: "LinkedIn",
 };
+
+const fmtHour = (h: number) => `${String(h).padStart(2, "0")}:00`;
 
 let nextLocalId = 1;
 function newStep(stepNumber: number, dayOffset = 0): StepDraft {
@@ -193,254 +197,280 @@ export default function CampaignBuilder({
   const templatesForChannel = (_channel: Channel) => templates;
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4 space-y-8">
-      <h1 className="text-2xl font-semibold text-gray-900">
-        {sequenceId ? "עריכת קמפיין" : "קמפיין חדש"}
-      </h1>
+    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]" dir="rtl">
+      <PageHeader
+        icon={Megaphone}
+        title={sequenceId ? "עריכת קמפיין" : "קמפיין חדש"}
+        subtitle="רצף הודעות אוטומטי — בחר ערוץ, תבנית ותזמון לכל שלב"
+      />
 
-      <section className="space-y-4">
-        <div>
-          <label htmlFor="campaign-name" className="block text-sm font-medium text-gray-700 mb-1">שם הקמפיין *</label>
-          <input
-            id="campaign-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="לדוגמא: Outreach Q3"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label htmlFor="contact-list" className="block text-sm font-medium text-gray-700 mb-1">
-            רשימה מקושרת <span className="text-gray-400">(אופציונלי)</span>
-          </label>
-          <select
-            id="contact-list"
-            value={contactListId}
-            onChange={(e) => setContactListId(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">ללא רשימה</option>
-            {contactLists.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-          </select>
-          <p className="text-xs text-gray-400 mt-1">
-            אנשי קשר שיתווספו לרשימה יירשמו אוטומטית לקמפיין
-          </p>
-        </div>
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-lg font-medium text-gray-800">שלבים</h2>
-
-        {isActive && (
-          <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            הקמפיין פעיל — לא ניתן לשנות שלבים. ניתן לשנות שם ורשימה בלבד.
-          </p>
-        )}
-
-        {steps.map((step, idx) => {
-          const channelTemplates = templatesForChannel(step.channel);
-          return (
-            <div
-              key={step.localId}
-              className="border border-gray-200 rounded-xl p-4 space-y-3 bg-white"
+      <div className="w-full max-w-2xl mx-auto px-6 pt-6 pb-10 space-y-5">
+        {/* Campaign details */}
+        <section className={`${ui.card} p-5 space-y-4`}>
+          <h2 className={ui.sectionTitle}>פרטי הקמפיין</h2>
+          <div>
+            <label htmlFor="campaign-name" className={ui.label}>
+              שם הקמפיין *
+            </label>
+            <input
+              id="campaign-name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="לדוגמא: Outreach Q3"
+              className={ui.input}
+            />
+          </div>
+          <div>
+            <label htmlFor="contact-list" className={ui.label}>
+              רשימה מקושרת <span className="text-[#9b9895]">(אופציונלי)</span>
+            </label>
+            <select
+              id="contact-list"
+              value={contactListId}
+              onChange={(e) => setContactListId(e.target.value)}
+              className={ui.input}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600">שלב {step.stepNumber}</span>
-                {!isActive && (
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => moveStep(step.localId, "up")}
-                      disabled={idx === 0}
-                      aria-label="הזז שלב למעלה"
-                      className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
-                    >
-                      <ChevronUp size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => moveStep(step.localId, "down")}
-                      disabled={idx === steps.length - 1}
-                      aria-label="הזז שלב למטה"
-                      className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
-                    >
-                      <ChevronDown size={16} />
-                    </button>
-                    {steps.length > 1 && (
+              <option value="">ללא רשימה</option>
+              {contactLists.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-[#9b9895] mt-1">
+              אנשי קשר שיתווספו לרשימה יירשמו אוטומטית לקמפיין
+            </p>
+          </div>
+        </section>
+
+        {/* Steps */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h2 className={ui.sectionTitle}>שלבים</h2>
+            <span className="text-xs text-[#9b9895]">
+              {steps.length} {steps.length === 1 ? "שלב" : "שלבים"}
+            </span>
+          </div>
+
+          {isActive && (
+            <p className="text-xs text-[#b45309] bg-[#fffbeb] border border-[#fde68a] rounded-lg px-3 py-2">
+              הקמפיין פעיל — לא ניתן לשנות שלבים. ניתן לשנות שם ורשימה בלבד.
+            </p>
+          )}
+
+          {steps.map((step, idx) => {
+            const channelTemplates = templatesForChannel(step.channel);
+            const endValue = step.sendHourEnd ?? step.sendHour + 1;
+            return (
+              <div key={step.localId} className={`${ui.card} p-4 space-y-3`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="grid place-items-center size-6 rounded-full bg-[#1585ff] text-white text-[11px] font-semibold tabular-nums">
+                      {step.stepNumber}
+                    </span>
+                    <span className="text-sm font-medium text-[#1a1917]">שלב {step.stepNumber}</span>
+                    <span className="text-[11px] text-[#6b6866] bg-[#f3f2ef] rounded-full px-2 py-0.5">
+                      {step.dayOffset === 0 ? "יום ההתחלה" : `יום ${step.dayOffset}`}
+                    </span>
+                  </div>
+                  {!isActive && (
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        onClick={() => removeStep(step.localId)}
-                        aria-label="מחק שלב"
-                        className="p-1 rounded hover:bg-red-50 text-red-500"
+                        onClick={() => moveStep(step.localId, "up")}
+                        disabled={idx === 0}
+                        aria-label="הזז שלב למעלה"
+                        className="p-1 rounded hover:bg-[#f3f2ef] disabled:opacity-30 transition-colors"
                       >
-                        <Trash2 size={16} />
+                        <ChevronUp size={16} />
                       </button>
-                    )}
+                      <button
+                        type="button"
+                        onClick={() => moveStep(step.localId, "down")}
+                        disabled={idx === steps.length - 1}
+                        aria-label="הזז שלב למטה"
+                        className="p-1 rounded hover:bg-[#f3f2ef] disabled:opacity-30 transition-colors"
+                      >
+                        <ChevronDown size={16} />
+                      </button>
+                      {steps.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeStep(step.localId)}
+                          aria-label="מחק שלב"
+                          className="p-1 rounded hover:bg-[#fff3f3] text-[#dc2626] transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor={`step-channel-${step.localId}`} className={ui.label}>
+                      ערוץ
+                    </label>
+                    <select
+                      id={`step-channel-${step.localId}`}
+                      value={step.channel}
+                      disabled={isActive}
+                      onChange={(e) =>
+                        updateStep(step.localId, {
+                          channel: e.target.value as Channel,
+                          templateId: "",
+                          subject: "",
+                        })
+                      }
+                      className={ui.input}
+                    >
+                      {Object.entries(CHANNEL_LABELS).map(([v, label]) => (
+                        <option key={v} value={v}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor={`step-template-${step.localId}`} className={ui.label}>
+                      תבנית *
+                    </label>
+                    <select
+                      id={`step-template-${step.localId}`}
+                      value={step.templateId}
+                      disabled={isActive}
+                      onChange={(e) => updateStep(step.localId, { templateId: e.target.value })}
+                      className={ui.input}
+                    >
+                      <option value="">בחר תבנית</option>
+                      {channelTemplates.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {step.channel === "EMAIL" && (
+                  <div>
+                    <label htmlFor={`step-subject-${step.localId}`} className={ui.label}>
+                      נושא המייל *
+                    </label>
+                    <input
+                      id={`step-subject-${step.localId}`}
+                      aria-label="נושא המייל"
+                      type="text"
+                      value={step.subject}
+                      disabled={isActive}
+                      onChange={(e) => updateStep(step.localId, { subject: e.target.value })}
+                      placeholder="נושא"
+                      className={ui.input}
+                    />
                   </div>
                 )}
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor={`step-channel-${step.localId}`} className="block text-xs text-gray-500 mb-1">ערוץ</label>
-                  <select
-                    id={`step-channel-${step.localId}`}
-                    value={step.channel}
-                    disabled={isActive}
-                    onChange={(e) =>
-                      updateStep(step.localId, {
-                        channel: e.target.value as Channel,
-                        templateId: "",
-                        subject: "",
-                      })
-                    }
-                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {Object.entries(CHANNEL_LABELS).map(([v, label]) => (
-                      <option key={v} value={v}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor={`step-template-${step.localId}`} className="block text-xs text-gray-500 mb-1">תבנית *</label>
-                  <select
-                    id={`step-template-${step.localId}`}
-                    value={step.templateId}
-                    disabled={isActive}
-                    onChange={(e) => updateStep(step.localId, { templateId: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">בחר תבנית</option>
-                    {channelTemplates.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {step.channel === "EMAIL" && (
-                <div>
-                  <label htmlFor={`step-subject-${step.localId}`} className="block text-xs text-gray-500 mb-1">נושא המייל *</label>
-                  <input
-                    id={`step-subject-${step.localId}`}
-                    aria-label="נושא המייל"
-                    type="text"
-                    value={step.subject}
-                    disabled={isActive}
-                    onChange={(e) => updateStep(step.localId, { subject: e.target.value })}
-                    placeholder="נושא"
-                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              )}
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label htmlFor={`step-day-offset-${step.localId}`} className="block text-xs text-gray-500 mb-1">אחרי כמה ימים</label>
-                  <input
-                    id={`step-day-offset-${step.localId}`}
-                    aria-label="אחרי כמה ימים"
-                    type="number"
-                    min={0}
-                    value={step.dayOffset}
-                    disabled={isActive}
-                    onChange={(e) =>
-                      updateStep(step.localId, { dayOffset: parseInt(e.target.value) || 0 })
-                    }
-                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`step-send-hour-${step.localId}`} className="block text-xs text-gray-500 mb-1">שעת התחלה</label>
-                  <input
-                    id={`step-send-hour-${step.localId}`}
-                    aria-label="שעת התחלה"
-                    type="number"
-                    min={0}
-                    max={23}
-                    value={step.sendHour}
-                    disabled={isActive}
-                    onChange={(e) =>
-                      updateStep(step.localId, { sendHour: parseInt(e.target.value) || 0 })
-                    }
-                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`step-send-hour-end-${step.localId}`} className="block text-xs text-gray-500 mb-1">שעת סיום</label>
-                  <input
-                    id={`step-send-hour-end-${step.localId}`}
-                    aria-label="שעת סיום"
-                    type="number"
-                    min={0}
-                    max={23}
-                    value={step.sendHourEnd ?? ""}
-                    disabled={isActive}
-                    onChange={(e) =>
-                      updateStep(step.localId, {
-                        sendHourEnd: e.target.value ? parseInt(e.target.value) : null,
-                      })
-                    }
-                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor={`step-day-offset-${step.localId}`} className={ui.label}>
+                      אחרי כמה ימים
+                    </label>
+                    <input
+                      id={`step-day-offset-${step.localId}`}
+                      aria-label="אחרי כמה ימים"
+                      type="number"
+                      min={0}
+                      value={step.dayOffset}
+                      disabled={isActive}
+                      onChange={(e) =>
+                        updateStep(step.localId, { dayOffset: parseInt(e.target.value) || 0 })
+                      }
+                      className={ui.input}
+                    />
+                  </div>
+                  <div>
+                    <span className={ui.label}>שעות שליחה</span>
+                    <div className="flex items-center gap-2">
+                      <select
+                        aria-label="שעת התחלה"
+                        value={step.sendHour}
+                        disabled={isActive}
+                        onChange={(e) => {
+                          const start = Number(e.target.value);
+                          updateStep(step.localId, {
+                            sendHour: start,
+                            sendHourEnd: Math.max(endValue, start + 1),
+                          });
+                        }}
+                        className={ui.input}
+                      >
+                        {Array.from({ length: 24 }, (_, h) => (
+                          <option key={h} value={h}>
+                            {fmtHour(h)}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="text-xs text-[#9b9895]">—</span>
+                      <select
+                        aria-label="שעת סיום"
+                        value={endValue}
+                        disabled={isActive}
+                        onChange={(e) =>
+                          updateStep(step.localId, { sendHourEnd: Number(e.target.value) })
+                        }
+                        className={ui.input}
+                      >
+                        {Array.from({ length: 24 - step.sendHour }, (_, i) => step.sendHour + 1 + i).map(
+                          (h) => (
+                            <option key={h} value={h}>
+                              {fmtHour(h)}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
 
-        {!isActive && (
+          {!isActive && (
+            <button
+              type="button"
+              onClick={addStep}
+              className="w-full flex items-center justify-center gap-1.5 py-3 text-sm font-medium text-[#6b6866] bg-white/50 border border-dashed border-[#d9d5cd] rounded-2xl hover:border-[#1585ff]/50 hover:text-[#1585ff] hover:bg-[#1585ff]/5 transition-colors"
+            >
+              <Plus size={16} />
+              הוסף שלב
+            </button>
+          )}
+        </div>
+
+        {error && (
+          <p className="text-sm text-[#dc2626] bg-[#fff3f3] border border-[#fde2e2] rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
+
+        <div className="flex items-center gap-2 justify-end">
+          <button type="button" onClick={() => router.back()} disabled={saving} className={ui.btnGhost}>
+            ביטול
+          </button>
+          <button type="button" onClick={() => save(false)} disabled={saving} className={ui.btnSecondary}>
+            {saving ? "שומר..." : "שמור כטיוטה"}
+          </button>
           <button
             type="button"
-            onClick={addStep}
-            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+            onClick={() => save(true)}
+            disabled={saving || (!!sequenceId && isActive)}
+            className={ui.btnPrimary}
           >
-            <Plus size={16} />
-            הוסף שלב
+            {saving ? "מפעיל..." : sequenceId && !isActive ? "עדכן והפעל" : "שמור והפעל"}
           </button>
-        )}
-      </section>
-
-      {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-          {error}
-        </p>
-      )}
-
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={() => save(false)}
-          disabled={saving}
-          className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-        >
-          {saving ? "שומר..." : "שמור כטיוטה"}
-        </button>
-        <button
-          type="button"
-          onClick={() => save(true)}
-          disabled={saving || (!!sequenceId && isActive)}
-          className="flex-1 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-        >
-          {saving ? "מפעיל..." : sequenceId && !isActive ? "עדכן והפעל" : "שמור והפעל"}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          disabled={saving}
-          className="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
-        >
-          ביטול
-        </button>
+        </div>
       </div>
     </div>
   );

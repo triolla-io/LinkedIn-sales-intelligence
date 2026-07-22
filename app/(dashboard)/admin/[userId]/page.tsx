@@ -1,8 +1,10 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowRight, UserRound } from "lucide-react";
 import Link from "next/link";
+import { ui } from "@/lib/ui";
+import { PageHeader } from "@/components/ui/page-header";
 
 async function requireAdmin(): Promise<{ role: string; orgId: string }> {
   const session = await auth();
@@ -24,6 +26,9 @@ interface UserDetails {
   lastSyncedAt: string | null;
   creditsConsumed: number;
 }
+
+const STAT_LABEL = "text-xs font-medium text-[#9b9895] uppercase tracking-wider mb-1";
+const STAT_VALUE = "text-sm text-[#1a1917]";
 
 export default async function AdminUserDetailPage({
   params,
@@ -50,9 +55,9 @@ export default async function AdminUserDetailPage({
 
   if (!targetUser) {
     return (
-      <div className="p-6">
-        <p className="text-gray-500 text-sm">משתמש לא נמצא.</p>
-        <Link href="/admin/users" className="text-blue-600 hover:underline text-sm mt-2 inline-block">
+      <div className="w-full max-w-2xl mx-auto px-6 pt-6" dir="rtl">
+        <p className="text-[#6b6866] text-sm">משתמש לא נמצא.</p>
+        <Link href="/admin/users" className="text-[#1585ff] hover:text-[#0a70e0] text-sm mt-2 inline-block">
           חזור למשתמשים
         </Link>
       </div>
@@ -70,49 +75,42 @@ export default async function AdminUserDetailPage({
   };
 
   return (
-    <div className="p-6 max-w-2xl">
-      <div className="mb-6">
+    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]" dir="rtl">
+      <PageHeader icon={UserRound} title={user.name} subtitle={user.email} />
+
+      <div className="w-full max-w-2xl mx-auto px-6 pt-5 pb-10 space-y-4">
         <Link
           href="/admin/users"
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4 transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-[#6b6866] hover:text-[#1a1917] transition-colors"
         >
-          <ArrowLeft className="size-4" />
+          <ArrowRight className="size-4" />
           חזור למשתמשים
         </Link>
-        <h1 className="text-2xl font-semibold text-gray-900">{user.name}</h1>
-        <p className="text-sm text-gray-500 mt-1">{user.email}</p>
-      </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">תפקיד</p>
-            <p className="text-sm text-gray-900">{user.role}</p>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">סך הכל אנשי קשר</p>
-            <p className="text-sm text-gray-900">{user.contactCount.toLocaleString()}</p>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">קרדיטים בשימוש</p>
-            <p className="text-sm text-gray-900">{user.creditsConsumed}</p>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">סנכרן אחרון</p>
-            <p className="text-sm text-gray-900">
-              {user.lastSyncedAt
-                ? new Date(user.lastSyncedAt).toLocaleString()
-                : "לעולם לא"}
-            </p>
+        <div className={`${ui.card} p-5`}>
+          <div className="grid grid-cols-2 gap-5">
+            <div>
+              <p className={STAT_LABEL}>תפקיד</p>
+              <p className={STAT_VALUE}>{user.role}</p>
+            </div>
+            <div>
+              <p className={STAT_LABEL}>סך הכל אנשי קשר</p>
+              <p className={STAT_VALUE}>{user.contactCount.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className={STAT_LABEL}>קרדיטים בשימוש</p>
+              <p className={STAT_VALUE}>{user.creditsConsumed}</p>
+            </div>
+            <div>
+              <p className={STAT_LABEL}>סנכרן אחרון</p>
+              <p className={STAT_VALUE}>
+                {user.lastSyncedAt ? new Date(user.lastSyncedAt).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }) : "לעולם לא"}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="mt-4">
-        <Link
-          href="/contacts"
-          className="inline-block px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
-        >
+        <Link href="/contacts" className={ui.btnPrimary}>
           צפה באנשי קשר (תצוגת התחזות)
         </Link>
       </div>

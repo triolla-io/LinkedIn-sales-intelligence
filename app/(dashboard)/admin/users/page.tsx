@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw, Shield, ExternalLink } from "lucide-react";
+import { RefreshCw, ExternalLink, Users } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { ui } from "@/lib/ui";
+import { PageHeader } from "@/components/ui/page-header";
 import useSWR from "swr";
 
 interface AdminUser {
@@ -17,21 +19,23 @@ interface AdminUser {
 }
 
 const ROLE_STYLES: Record<string, string> = {
-  SUPER_ADMIN: "bg-purple-100 text-purple-700",
-  ADMIN: "bg-blue-100 text-blue-700",
-  SALESPERSON: "bg-gray-100 text-gray-600",
+  SUPER_ADMIN: "bg-[#f3e8ff] text-[#7c3aed]",
+  ADMIN: "bg-[#e6f4ff] text-[#1585ff]",
+  SALESPERSON: "bg-[#f3f2ef] text-[#6b6866]",
 };
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
   if (res.status === 403) {
-    const err = new Error("You don't have permission to view this page");
-    (err as any).status = 403;
+    const err = new Error("You don't have permission to view this page") as Error & { status?: number };
+    err.status = 403;
     throw err;
   }
   if (!res.ok) throw new Error("Failed to fetch");
   return res.json();
 };
+
+const TH = "text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider";
 
 export default function AdminUsersPage() {
   const router = useRouter();
@@ -62,127 +66,117 @@ export default function AdminUsersPage() {
     }
   }
 
-  const isLoading = users === null && !error;
-
-  if (error) {
-    return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
-          {error === "You don't have permission to view this page" ? "אין לך הרשאה לצפות בדף זה" : error}
-        </div>
-      </div>
-    );
-  }
+  const isLoading = !users && !error;
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">משתמשים</h1>
-          <p className="text-sm text-gray-500 mt-1">נהל משתמשים בארגון שלך</p>
-        </div>
-        <button
-          type="button"
-          onClick={refreshUsers}
-          disabled={refreshing}
-          aria-label="רענן רשימת משתמשים"
-          className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-        >
-          <RefreshCw className={cn("size-4", refreshing && "animate-spin")} />
-          רענן
-        </button>
-      </div>
+    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]" dir="rtl">
+      <PageHeader
+        icon={Users}
+        title="משתמשים"
+        subtitle="נהל משתמשים בארגון שלך"
+        actions={
+          <button
+            type="button"
+            onClick={refreshUsers}
+            disabled={refreshing}
+            aria-label="רענן רשימת משתמשים"
+            className={ui.btnSecondary}
+          >
+            <RefreshCw className={cn("size-4", refreshing && "animate-spin")} />
+            רענן
+          </button>
+        }
+      />
 
-      {isLoading ? (
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-          <div className="animate-pulse">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 p-4 border-b border-gray-100">
-                <div className="h-4 bg-gray-200 rounded w-32" />
-                <div className="h-4 bg-gray-200 rounded w-48" />
-                <div className="h-5 bg-gray-200 rounded-full w-20" />
-                <div className="h-5 bg-gray-200 rounded-full w-16" />
-                <div className="h-4 bg-gray-200 rounded w-12" />
-                <div className="h-4 bg-gray-200 rounded w-24" />
-                <div className="h-4 bg-gray-200 rounded w-16" />
-              </div>
-            ))}
+      <div className="w-full max-w-5xl mx-auto px-6 pt-6 pb-10">
+        {error ? (
+          <div className="bg-[#fff3f3] border border-[#fde2e2] rounded-xl p-4 text-[#dc2626] text-sm">
+            {error === "You don't have permission to view this page" ? "אין לך הרשאה לצפות בדף זה" : error}
           </div>
-        </div>
-      ) : (
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">שם</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">אימייל</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">תפקיד</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">אנשי קשר</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">סנכרן אחרון</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">קרדיטים</th>
-                <th className="px-4 py-3" aria-label="פעולות" />
-              </tr>
-            </thead>
-            <tbody>
-              {(users ?? []).length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-8 text-gray-500 text-sm">
-                    לא נמצאו משתמשים
-                  </td>
+        ) : isLoading ? (
+          <div className={cn(ui.card, "overflow-hidden")}>
+            <div className="animate-pulse divide-y divide-[#e7e4dd]">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 p-4">
+                  <div className="h-4 bg-[#ece9e3] rounded w-32" />
+                  <div className="h-4 bg-[#ece9e3] rounded w-48" />
+                  <div className="h-5 bg-[#ece9e3] rounded-full w-20" />
+                  <div className="h-4 bg-[#ece9e3] rounded w-12" />
+                  <div className="h-4 bg-[#ece9e3] rounded w-24" />
+                  <div className="h-4 bg-[#ece9e3] rounded w-16" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className={cn(ui.card, "overflow-hidden")}>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#e7e4dd] bg-[#fafaf9]">
+                  <th className={TH}>שם</th>
+                  <th className={TH}>אימייל</th>
+                  <th className={TH}>תפקיד</th>
+                  <th className={TH}>אנשי קשר</th>
+                  <th className={TH}>סנכרן אחרון</th>
+                  <th className={TH}>קרדיטים</th>
+                  <th className="px-4 py-2.5" aria-label="פעולות" />
                 </tr>
-              ) : (
-                (users ?? []).map((user) => (
-                  <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3">
-                      <p className="text-sm font-medium text-gray-900">{user.name}</p>
+              </thead>
+              <tbody className="divide-y divide-[#e7e4dd]">
+                {(users ?? []).length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-10 text-[#9b9895] text-sm">
+                      לא נמצאו משתמשים
                     </td>
-                    <td className="px-4 py-3">
-                      <p className="text-sm text-gray-600">{user.email}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={cn(
-                        "inline-block px-2 py-0.5 rounded-full text-xs font-medium",
-                        ROLE_STYLES[user.role] ?? "bg-gray-100 text-gray-600"
-                      )}>
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-sm text-gray-700">{user.contactCount.toLocaleString()}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-sm text-gray-500">
+                  </tr>
+                ) : (
+                  (users ?? []).map((user) => (
+                    <tr key={user.id} className="hover:bg-[#fafaf9] transition-colors">
+                      <td className="px-4 py-3 font-medium text-[#1a1917]">{user.name}</td>
+                      <td className="px-4 py-3 text-[#6b6866]">{user.email}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={cn(
+                            "inline-block px-2 py-0.5 rounded-full text-xs font-medium",
+                            ROLE_STYLES[user.role] ?? "bg-[#f3f2ef] text-[#6b6866]",
+                          )}
+                        >
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 tabular-nums text-[#6b6866]">
+                        {user.contactCount.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-[#9b9895]">
                         {user.lastSyncedAt
                           ? new Date(user.lastSyncedAt).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" })
                           : "לעולם לא"}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-sm text-gray-700">{user.creditsConsumed}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => handleImpersonate(user.id)}
-                        disabled={impersonating === user.id}
-                        aria-label={`צפה בחשבון של ${user.name}`}
-                        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors disabled:opacity-50"
-                      >
-                        {impersonating === user.id ? (
-                          <RefreshCw className="size-3 animate-spin" />
-                        ) : (
-                          <ExternalLink className="size-3" />
-                        )}
-                        צפה כ
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+                      </td>
+                      <td className="px-4 py-3 tabular-nums text-[#6b6866]">{user.creditsConsumed}</td>
+                      <td className="px-4 py-3 text-left">
+                        <button
+                          type="button"
+                          onClick={() => handleImpersonate(user.id)}
+                          disabled={impersonating === user.id}
+                          aria-label={`צפה בחשבון של ${user.name}`}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-[#1585ff] hover:text-[#0a70e0] transition-colors disabled:opacity-50"
+                        >
+                          {impersonating === user.id ? (
+                            <RefreshCw className="size-3 animate-spin" />
+                          ) : (
+                            <ExternalLink className="size-3" />
+                          )}
+                          צפה כ
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
