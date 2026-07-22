@@ -28,3 +28,14 @@ export async function upsertArticles(articles: ExtractedArticle[]): Promise<stri
   }
   return newIds;
 }
+
+/** Article ids created since `sinceMs` epoch-ms that have no ArticleMatch rows yet —
+ *  i.e. created (possibly on a failed prior attempt) but never dispatched to matching.
+ *  Retry-safe: derived from durable state, not in-invocation ids. */
+export async function findDispatchableArticleIds(sinceMs: number): Promise<string[]> {
+  const rows = await prisma.fintechArticle.findMany({
+    where: { createdAt: { gte: new Date(sinceMs) }, matches: { none: {} } },
+    select: { id: true },
+  });
+  return rows.map((r) => r.id);
+}
