@@ -4,13 +4,15 @@ import { prisma } from "@/lib/prisma";
 
 export const GET = withTenant(async (_req, ctx) => {
   const articles = await prisma.fintechArticle.findMany({
-    where: { matches: { some: { ownerId: ctx.effectiveUserId, status: "SUGGESTED" } } },
+    where: {
+      matches: { some: { ownerId: ctx.effectiveUserId, status: "SUGGESTED", draftMessage: { not: null } } },
+    },
     orderBy: { createdAt: "desc" },
     take: 100,
     select: {
       id: true, title: true, summary: true, url: true, source: true, publishedAt: true,
       matches: {
-        where: { ownerId: ctx.effectiveUserId, status: "SUGGESTED" },
+        where: { ownerId: ctx.effectiveUserId, status: "SUGGESTED", draftMessage: { not: null } },
         orderBy: { score: "desc" },
         select: {
           id: true, score: true, reason: true, draftMessage: true,

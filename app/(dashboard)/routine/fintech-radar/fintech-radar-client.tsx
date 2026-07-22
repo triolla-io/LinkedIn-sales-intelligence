@@ -11,7 +11,7 @@ import { cn } from "@/lib/cn";
 import { availableChannels, channelHref, type Channel, type ContactChannels } from "@/lib/fintech-radar/channels";
 
 type Contact = ContactChannels & { fullName: string; currentTitle: string | null };
-type Match = { id: string; score: number; reason: string; draftMessage: string; contact: Contact };
+type Match = { id: string; score: number; reason: string; draftMessage: string | null; contact: Contact };
 type Article = {
   id: string;
   title: string;
@@ -156,7 +156,7 @@ function ArticleCard({ article, onChanged }: { article: Article; onChanged: () =
 }
 
 function MatchPanel({ match, onChanged }: { match: Match; onChanged: () => void }) {
-  const [text, setText] = useState(match.draftMessage);
+  const [text, setText] = useState(match.draftMessage ?? "");
   const [busy, setBusy] = useState<string | null>(null);
 
   async function patch(
@@ -238,7 +238,7 @@ function MatchPanel({ match, onChanged }: { match: Match; onChanged: () => void 
               key={channel}
               size="sm"
               variant="primary"
-              isDisabled={!text.trim() || busy !== null}
+              isDisabled={!(text ?? "").trim() || busy !== null}
               onPress={() => handleSend(channel)}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -248,7 +248,7 @@ function MatchPanel({ match, onChanged }: { match: Match; onChanged: () => void 
             </Button>
           );
         })}
-        <Button size="sm" variant="secondary" isDisabled={!text.trim() || busy !== null} onPress={handleSave}>
+        <Button size="sm" variant="secondary" isDisabled={!(text ?? "").trim() || busy !== null} onPress={handleSave}>
           <span className="inline-flex items-center gap-1.5">
             {busy === "save" && <Loader2 className="size-3.5 animate-spin" />}
             שמור טיוטה

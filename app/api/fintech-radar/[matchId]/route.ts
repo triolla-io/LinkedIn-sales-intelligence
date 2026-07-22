@@ -20,7 +20,10 @@ export const PATCH = withTenant(async (req: NextRequest, ctx) => {
     return NextResponse.json({ ok: true });
   }
   if (body.action === "save") {
-    const message = (body.message ?? "").trim();
+    if (typeof body.message !== "string") {
+      return NextResponse.json({ error: "empty_message" }, { status: 400 });
+    }
+    const message = body.message.trim();
     if (!message) return NextResponse.json({ error: "empty_message" }, { status: 400 });
     await prisma.articleMatch.update({ where: { id: match.id }, data: { draftMessage: message } });
     return NextResponse.json({ ok: true });

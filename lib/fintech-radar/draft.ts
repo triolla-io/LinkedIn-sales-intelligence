@@ -30,6 +30,7 @@ function userPrompt(i: DraftInput): string {
     `Recipient title: ${i.contactTitle ?? "unknown"}`,
     `News item: ${i.articleTitle}`,
     `Details: ${i.articleSummary}`,
+    `Article URL: ${i.articleUrl}`,
   ].join("\n");
 }
 

@@ -44,6 +44,9 @@ describe("GET /api/fintech-radar", () => {
     expect(json.articles[0].matches[0].contact.email).toBe("y@x.com");
     // must scope matches to ownerId
     expect(articleFindMany.mock.calls[0][0].where.matches.some.ownerId).toBe("owner1");
+    // must exclude undrafted matches (draftMessage still null) in both the outer filter and the nested select
+    expect(articleFindMany.mock.calls[0][0].where.matches.some.draftMessage).toEqual({ not: null });
+    expect(articleFindMany.mock.calls[0][0].select.matches.where.draftMessage).toEqual({ not: null });
   });
 });
 
@@ -71,6 +74,15 @@ describe("PATCH /api/fintech-radar/[matchId]", () => {
   it("rejects save with an empty (whitespace-only) message", async () => {
     matchFindFirst.mockResolvedValue({ id: "m1" });
     const res = await PATCH(reqWith("m1", { action: "save", message: "   " }) as never);
+    expect((res as Response).status).toBe(400);
+    const json = await (res as Response).json();
+    expect(json.error).toBe("empty_message");
+    expect(matchUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects save with a non-string message", async () => {
+    matchFindFirst.mockResolvedValue({ id: "m1" });
+    const res = await PATCH(reqWith("m1", { action: "save", message: 123 }) as never);
     expect((res as Response).status).toBe(400);
     const json = await (res as Response).json();
     expect(json.error).toBe("empty_message");
