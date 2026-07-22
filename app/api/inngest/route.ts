@@ -17,9 +17,11 @@ import { jobCheckTick } from "@/inngest/functions/job-check-tick";
 import { jobCheckDispatchOnEnable } from "@/inngest/functions/job-check-dispatch";
 import { hubspotSyncApollo } from "@/inngest/functions/hubspot-sync-apollo";
 import { companySignalsTick } from "@/inngest/functions/company-signals-tick";
+import { companySignalsDispatchOnEnable } from "@/inngest/functions/company-signals-dispatch";
 import { companySignalsDetect } from "@/inngest/functions/company-signals-detect";
 import { companySignalsDraft } from "@/inngest/functions/company-signals-draft";
 import { fintechRadarTick } from "@/inngest/functions/fintech-radar-tick";
+import { fintechRadarDispatchOnEnable } from "@/inngest/functions/fintech-radar-dispatch";
 import { fintechRadarMatch } from "@/inngest/functions/fintech-radar-match";
 import { fintechRadarDraft } from "@/inngest/functions/fintech-radar-draft";
 
@@ -44,9 +46,11 @@ export const { GET, POST, PUT } = serve({
     jobCheckDispatchOnEnable,
     hubspotSyncApollo,
     companySignalsTick,
+    companySignalsDispatchOnEnable,
     companySignalsDetect,
     companySignalsDraft,
     fintechRadarTick,
+    fintechRadarDispatchOnEnable,
     fintechRadarMatch,
     fintechRadarDraft,
   ],

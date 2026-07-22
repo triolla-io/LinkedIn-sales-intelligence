@@ -48,7 +48,15 @@ export async function setRoutineModule(
   }
   if (module === "companySignals") {
     await prisma.organization.update({ where: { id: user.orgId }, data: { companySignalsEnabled: enabled } });
+    // Kick-on-enable: dispatch a first detect batch immediately instead of waiting for the weekly cron.
+    if (enabled) {
+      await inngest.send({ name: "company.signals.enabled" as const, data: { orgId: user.orgId } });
+    }
     return;
   }
   await prisma.organization.update({ where: { id: user.orgId }, data: { fintechRadarEnabled: enabled } });
+  // Kick-on-enable: fetch news + dispatch matching for this org immediately instead of waiting for the weekly cron.
+  if (enabled) {
+    await inngest.send({ name: "fintech.radar.enabled" as const, data: { orgId: user.orgId } });
+  }
 }

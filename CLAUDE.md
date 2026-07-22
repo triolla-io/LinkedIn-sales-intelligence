@@ -43,10 +43,12 @@ Use HeroUI (`@heroui/react`) for all React components.
 | *(cron 0 2 \* \* \*)* | nightly job-change batch trigger — dispatches `SCRAPE_PROFILE` extension tasks (customer's LinkedIn via the extension, no Apollo/Bright Data spend) | `inngest/functions/job-check-tick.ts` |
 | `job-check.enabled` | "Job Changes" module toggled ON (kick-on-enable dispatch) | `inngest/functions/job-check-dispatch.ts` |
 | *(cron 0 3 \* \* \*)* | daily Apollo→HubSpot sync | `inngest/functions/hubspot-sync-apollo.ts` |
-| `company.signals.detect` | weekly tick (cron 0 4 * * 0) | `inngest/functions/company-signals-detect.ts` |
+| `company.signals.enabled` | "Company signals" module toggled ON (kick-on-enable dispatch) | `inngest/functions/company-signals-dispatch.ts` |
+| `company.signals.detect` | weekly tick / kick-on-enable | `inngest/functions/company-signals-detect.ts` |
 | `company.signals.draft` | after a verified signal is detected | `inngest/functions/company-signals-draft.ts` |
 | *(cron 0 4 \* \* 0)* | weekly company-signals trigger | `inngest/functions/company-signals-tick.ts` |
 | *(cron 0 5 \* \* 0)* | weekly fintech-news radar — fetch ~last-7-days topic news, chunk-tag, match to C-level contacts, draft engagement | `inngest/functions/fintech-radar-tick.ts` |
+| `fintech.radar.enabled` | "Fintech Radar" module toggled ON (kick-on-enable: fetch + match for that org) | `inngest/functions/fintech-radar-dispatch.ts` |
 | `fintech.radar.match` | per (org × new article) | `inngest/functions/fintech-radar-match.ts` |
 | `fintech.radar.draft` | per new match | `inngest/functions/fintech-radar-draft.ts` |
 
