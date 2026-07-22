@@ -77,6 +77,7 @@ function InviteContentInner() {
   const redirectToDashboard = useEffectEvent(() => router.replace("/dashboard"));
 
   // Accept invite once session is authenticated and invite is ready
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup -- the returned cleanup clears the timer (`clearTimeout(timeoutId)`); it's set inside a `.then()` callback so the static matcher misses it (false positive)
   useEffect(() => {
     if (status !== "authenticated" || flowState.phase !== "ready") return;
     dispatch({ type: "SET_ACCEPTING" });

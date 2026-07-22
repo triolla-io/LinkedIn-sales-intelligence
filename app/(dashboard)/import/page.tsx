@@ -88,6 +88,7 @@ function BackgroundStatus() {
   const stuckCountRef = useRef(0); // consecutive polls with the same pendingCompanies value
   const prevPendingRef = useRef<number | null>(null);
 
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup -- the returned cleanup clears the timer (`clearTimeout(timeoutId)`); it's set inside an async callback so the static matcher misses it (false positive)
   useEffect(() => {
     let cancelled = false;
     let timeoutId: ReturnType<typeof setTimeout>;
