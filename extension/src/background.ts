@@ -7,6 +7,7 @@ import {
   TOP_COMPANY_RESULT_FN_SOURCE,
   companySearchUrl,
   companySlugFromUrl,
+  pickBestCompany,
 } from "./lib/resolve-company";
 import { SCRAPE_FN_SOURCE } from "./lib/scrape-search";
 import { scrapeProfile } from "./lib/scrape-profile";
@@ -440,14 +441,20 @@ async function resolveCompany(
     // Name-only: find the top company result, then navigate to its page.
     if (!linkedinUrl) {
       const topResult = await send<{
-        result?: { value?: { companyUrl?: string } | null };
+        result?: {
+          value?: Array<{ companyUrl: string; name: string | null }> | null;
+        };
       }>(tabId, "Runtime.evaluate", {
         expression: TOP_COMPANY_RESULT_FN_SOURCE,
         returnByValue: true,
       });
-      const companyUrl = topResult?.result?.value?.companyUrl;
-      if (!companyUrl)
+      const candidates = topResult?.result?.value ?? [];
+      if (candidates.length === 0)
         throw withCode(new Error("company_not_found"), "not_found");
+      const best = pickBestCompany(name ?? "", candidates);
+      if (!best)
+        throw withCode(new Error("ambiguous_match"), "ambiguous_match");
+      const companyUrl = best.companyUrl;
       await detach(tabId).catch(() => {});
       attached = false;
       await chrome.tabs.update(tabId, { url: companyUrl });
