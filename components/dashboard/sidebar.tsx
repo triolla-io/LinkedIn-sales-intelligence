@@ -38,8 +38,8 @@ const navItems = [
 
 const routineItems = [
   { href: "/routine/connections", label: "בקשות חברות", icon: Search },
-  { href: "/routine/job-changes", label: "עדכוני תפקיד", icon: PartyPopper },
-  { href: "/routine/company-signals", label: "איתותי חברות", icon: Sparkles },
+  { href: "/routine/job-changes", label: "עדכוני משתמשים", icon: PartyPopper },
+  { href: "/routine/company-signals", label: "חדשות חברות", icon: Sparkles },
 ];
 
 const secondaryItems = [

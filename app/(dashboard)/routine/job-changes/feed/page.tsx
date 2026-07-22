@@ -32,7 +32,7 @@ const CHANGE_TYPE_LABEL: Record<NonNullable<Change["changeType"]>, string> = {
 };
 
 const FILTER_LABEL: Record<string, string> = {
-  all: "עדכוני תפקיד",
+  all: "עדכוני משתמשים",
   company: "החליפו חברה",
   role: "החליפו תפקיד",
   pending: "ממתין לשליחה",
@@ -88,7 +88,7 @@ function JobChangesFeed() {
               size="sm"
               isSelected={jobChecksOn}
               onChange={(v: boolean) => setModule("jobChecks", v)}
-              aria-label="הפעלת מודול עדכוני תפקיד"
+              aria-label="הפעלת מודול עדכוני משתמשים"
             >
               <Switch.Control>
                 <Switch.Thumb />
@@ -110,7 +110,7 @@ function JobChangesFeed() {
             <Loader2 className="w-4 h-4 animate-spin" /> טוען…
           </div>
         ) : visible.length === 0 ? (
-          <p className="text-gray-500">אין עדכוני תפקיד חדשים. נבדוק שוב בקרוב.</p>
+          <p className="text-gray-500">אין עדכוני משתמשים חדשים. נבדוק שוב בקרוב.</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {[...pending, ...rest].map((c) => (
