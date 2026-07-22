@@ -420,7 +420,9 @@ export const ModelName = {
   ProspectingEvent: 'ProspectingEvent',
   ContactJobChange: 'ContactJobChange',
   CompanySignal: 'CompanySignal',
-  CompanySignalDraft: 'CompanySignalDraft'
+  CompanySignalDraft: 'CompanySignalDraft',
+  FintechArticle: 'FintechArticle',
+  ArticleMatch: 'ArticleMatch'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -436,7 +438,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "mcpAccessToken" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange" | "companySignal" | "companySignalDraft"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "mcpAccessToken" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange" | "companySignal" | "companySignalDraft" | "fintechArticle" | "articleMatch"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3178,6 +3180,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    FintechArticle: {
+      payload: Prisma.$FintechArticlePayload<ExtArgs>
+      fields: Prisma.FintechArticleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FintechArticleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FintechArticlePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FintechArticleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FintechArticlePayload>
+        }
+        findFirst: {
+          args: Prisma.FintechArticleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FintechArticlePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FintechArticleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FintechArticlePayload>
+        }
+        findMany: {
+          args: Prisma.FintechArticleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FintechArticlePayload>[]
+        }
+        create: {
+          args: Prisma.FintechArticleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FintechArticlePayload>
+        }
+        createMany: {
+          args: Prisma.FintechArticleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FintechArticleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FintechArticlePayload>[]
+        }
+        delete: {
+          args: Prisma.FintechArticleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FintechArticlePayload>
+        }
+        update: {
+          args: Prisma.FintechArticleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FintechArticlePayload>
+        }
+        deleteMany: {
+          args: Prisma.FintechArticleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FintechArticleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FintechArticleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FintechArticlePayload>[]
+        }
+        upsert: {
+          args: Prisma.FintechArticleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FintechArticlePayload>
+        }
+        aggregate: {
+          args: Prisma.FintechArticleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFintechArticle>
+        }
+        groupBy: {
+          args: Prisma.FintechArticleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FintechArticleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FintechArticleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FintechArticleCountAggregateOutputType> | number
+        }
+      }
+    }
+    ArticleMatch: {
+      payload: Prisma.$ArticleMatchPayload<ExtArgs>
+      fields: Prisma.ArticleMatchFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ArticleMatchFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ArticleMatchPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ArticleMatchFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ArticleMatchPayload>
+        }
+        findFirst: {
+          args: Prisma.ArticleMatchFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ArticleMatchPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ArticleMatchFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ArticleMatchPayload>
+        }
+        findMany: {
+          args: Prisma.ArticleMatchFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ArticleMatchPayload>[]
+        }
+        create: {
+          args: Prisma.ArticleMatchCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ArticleMatchPayload>
+        }
+        createMany: {
+          args: Prisma.ArticleMatchCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ArticleMatchCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ArticleMatchPayload>[]
+        }
+        delete: {
+          args: Prisma.ArticleMatchDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ArticleMatchPayload>
+        }
+        update: {
+          args: Prisma.ArticleMatchUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ArticleMatchPayload>
+        }
+        deleteMany: {
+          args: Prisma.ArticleMatchDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ArticleMatchUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ArticleMatchUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ArticleMatchPayload>[]
+        }
+        upsert: {
+          args: Prisma.ArticleMatchUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ArticleMatchPayload>
+        }
+        aggregate: {
+          args: Prisma.ArticleMatchAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateArticleMatch>
+        }
+        groupBy: {
+          args: Prisma.ArticleMatchGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ArticleMatchGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ArticleMatchCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ArticleMatchCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3261,6 +3411,7 @@ export const OrganizationScalarFieldEnum = {
   monthlyApolloBudget: 'monthlyApolloBudget',
   jobCheckEnabled: 'jobCheckEnabled',
   companySignalsEnabled: 'companySignalsEnabled',
+  fintechRadarEnabled: 'fintechRadarEnabled',
   createdAt: 'createdAt'
 } as const
 
@@ -3832,6 +3983,38 @@ export const CompanySignalDraftScalarFieldEnum = {
 export type CompanySignalDraftScalarFieldEnum = (typeof CompanySignalDraftScalarFieldEnum)[keyof typeof CompanySignalDraftScalarFieldEnum]
 
 
+export const FintechArticleScalarFieldEnum = {
+  id: 'id',
+  url: 'url',
+  title: 'title',
+  summary: 'summary',
+  topics: 'topics',
+  mentionedCompanies: 'mentionedCompanies',
+  relevantRoles: 'relevantRoles',
+  source: 'source',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type FintechArticleScalarFieldEnum = (typeof FintechArticleScalarFieldEnum)[keyof typeof FintechArticleScalarFieldEnum]
+
+
+export const ArticleMatchScalarFieldEnum = {
+  id: 'id',
+  articleId: 'articleId',
+  contactId: 'contactId',
+  ownerId: 'ownerId',
+  score: 'score',
+  reason: 'reason',
+  draftMessage: 'draftMessage',
+  status: 'status',
+  sentChannel: 'sentChannel',
+  createdAt: 'createdAt'
+} as const
+
+export type ArticleMatchScalarFieldEnum = (typeof ArticleMatchScalarFieldEnum)[keyof typeof ArticleMatchScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4298,6 +4481,20 @@ export type EnumCompanySignalDraftStatusFieldRefInput<$PrismaModel> = FieldRefIn
 export type ListEnumCompanySignalDraftStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanySignalDraftStatus[]'>
     
 
+
+/**
+ * Reference to a field of type 'ArticleMatchStatus'
+ */
+export type EnumArticleMatchStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ArticleMatchStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ArticleMatchStatus[]'
+ */
+export type ListEnumArticleMatchStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ArticleMatchStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -4445,6 +4642,8 @@ export type GlobalOmitConfig = {
   contactJobChange?: Prisma.ContactJobChangeOmit
   companySignal?: Prisma.CompanySignalOmit
   companySignalDraft?: Prisma.CompanySignalDraftOmit
+  fintechArticle?: Prisma.FintechArticleOmit
+  articleMatch?: Prisma.ArticleMatchOmit
 }
 
 /* Types for Logging */

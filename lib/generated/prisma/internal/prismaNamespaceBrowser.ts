@@ -87,7 +87,9 @@ export const ModelName = {
   ProspectingEvent: 'ProspectingEvent',
   ContactJobChange: 'ContactJobChange',
   CompanySignal: 'CompanySignal',
-  CompanySignalDraft: 'CompanySignalDraft'
+  CompanySignalDraft: 'CompanySignalDraft',
+  FintechArticle: 'FintechArticle',
+  ArticleMatch: 'ArticleMatch'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -150,6 +152,7 @@ export const OrganizationScalarFieldEnum = {
   monthlyApolloBudget: 'monthlyApolloBudget',
   jobCheckEnabled: 'jobCheckEnabled',
   companySignalsEnabled: 'companySignalsEnabled',
+  fintechRadarEnabled: 'fintechRadarEnabled',
   createdAt: 'createdAt'
 } as const
 
@@ -719,6 +722,38 @@ export const CompanySignalDraftScalarFieldEnum = {
 } as const
 
 export type CompanySignalDraftScalarFieldEnum = (typeof CompanySignalDraftScalarFieldEnum)[keyof typeof CompanySignalDraftScalarFieldEnum]
+
+
+export const FintechArticleScalarFieldEnum = {
+  id: 'id',
+  url: 'url',
+  title: 'title',
+  summary: 'summary',
+  topics: 'topics',
+  mentionedCompanies: 'mentionedCompanies',
+  relevantRoles: 'relevantRoles',
+  source: 'source',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type FintechArticleScalarFieldEnum = (typeof FintechArticleScalarFieldEnum)[keyof typeof FintechArticleScalarFieldEnum]
+
+
+export const ArticleMatchScalarFieldEnum = {
+  id: 'id',
+  articleId: 'articleId',
+  contactId: 'contactId',
+  ownerId: 'ownerId',
+  score: 'score',
+  reason: 'reason',
+  draftMessage: 'draftMessage',
+  status: 'status',
+  sentChannel: 'sentChannel',
+  createdAt: 'createdAt'
+} as const
+
+export type ArticleMatchScalarFieldEnum = (typeof ArticleMatchScalarFieldEnum)[keyof typeof ArticleMatchScalarFieldEnum]
 
 
 export const SortOrder = {
