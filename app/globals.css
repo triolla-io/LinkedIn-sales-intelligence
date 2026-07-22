@@ -6,8 +6,10 @@
 @import "@heroui/styles/components/button.css";
 @import "@heroui/styles/components/chip.css";
 @import "@heroui/styles/components/checkbox.css";
+@import "@heroui/styles/components/switch.css";
 @import "@heroui/styles/components/input.css";
 @import "@heroui/styles/components/textfield.css";
+@import "@heroui/styles/components/textarea.css";
 @import "@heroui/styles/components/table.css";
 @import "@heroui/styles/components/modal.css";
 @import "@heroui/styles/components/tabs.css";
