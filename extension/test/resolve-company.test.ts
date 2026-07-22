@@ -79,3 +79,86 @@ describe("TOP_COMPANY_RESULT_FN_SOURCE (evaluated in jsdom)", () => {
     expect(eval(TOP_COMPANY_RESULT_FN_SOURCE)).toBeNull();
   });
 });
+
+import {
+  normalizeCompanyName,
+  scoreCompanyMatch,
+  pickBestCompany,
+  MATCH_THRESHOLD,
+} from "../src/lib/resolve-company";
+
+describe("normalizeCompanyName", () => {
+  it("lowercases, strips punctuation, and drops geo + corporate stop-tokens", () => {
+    expect(normalizeCompanyName("H&M Israel")).toEqual(["h&m"]);
+    expect(normalizeCompanyName("Delek Group")).toEqual(["delek"]);
+    expect(normalizeCompanyName("Yves Rocher IL")).toEqual(["yves", "rocher"]);
+    expect(normalizeCompanyName("King David Mattresses")).toEqual([
+      "king",
+      "david",
+      "mattresses",
+    ]);
+    expect(normalizeCompanyName("חברת ישראל")).toEqual(["חברת"]);
+  });
+
+  it("returns an empty array when only stop-tokens remain", () => {
+    expect(normalizeCompanyName("Israel IL")).toEqual([]);
+  });
+});
+
+describe("scoreCompanyMatch", () => {
+  it("scores by fraction of significant requested tokens covered", () => {
+    expect(scoreCompanyMatch("LastPrice", "Lastprice")).toBe(1);
+    expect(scoreCompanyMatch("H&M Israel", "H&M")).toBe(1);
+    expect(scoreCompanyMatch("Delek Israel", "Delek Group")).toBe(1);
+    expect(scoreCompanyMatch("King David Mattresses", "King David")).toBeCloseTo(
+      2 / 3,
+    );
+    expect(scoreCompanyMatch("Vardinon", "Some Unrelated Co")).toBe(0);
+  });
+
+  it("returns 0 when the requested name has no significant tokens", () => {
+    expect(scoreCompanyMatch("Israel IL", "Anything")).toBe(0);
+  });
+});
+
+describe("pickBestCompany", () => {
+  const c = (companyUrl: string, name: string | null) => ({ companyUrl, name });
+
+  it("picks the highest-scoring candidate at or above the threshold", () => {
+    const best = pickBestCompany("Vardinon", [
+      c("https://linkedin.com/company/other/", "Other Corp"),
+      c("https://linkedin.com/company/vardinon/", "Vardinon"),
+    ]);
+    expect(best?.companyUrl).toBe("https://linkedin.com/company/vardinon/");
+  });
+
+  it("breaks ties toward the earlier (higher-ranked) candidate", () => {
+    const best = pickBestCompany("Delek", [
+      c("https://linkedin.com/company/delek-group/", "Delek Group"),
+      c("https://linkedin.com/company/delek-israel/", "Delek Israel"),
+    ]);
+    expect(best?.companyUrl).toBe("https://linkedin.com/company/delek-group/");
+  });
+
+  it("returns null when the best score is below the threshold", () => {
+    expect(
+      pickBestCompany("Vardinon", [c("https://linkedin.com/company/x/", "Totally Different")]),
+    ).toBeNull();
+  });
+
+  it("returns null for an empty candidate list", () => {
+    expect(pickBestCompany("Vardinon", [])).toBeNull();
+  });
+
+  it("falls back to the top-ranked candidate when the requested name is all stop-tokens", () => {
+    const best = pickBestCompany("Israel IL", [
+      c("https://linkedin.com/company/first/", "First"),
+      c("https://linkedin.com/company/second/", "Second"),
+    ]);
+    expect(best?.companyUrl).toBe("https://linkedin.com/company/first/");
+  });
+
+  it("exposes a 0.5 threshold", () => {
+    expect(MATCH_THRESHOLD).toBe(0.5);
+  });
+});

@@ -46,3 +46,62 @@ export function companySlugFromUrl(url: string): string | null {
 export function companySearchUrl(name: string): string {
   return `https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(name)}`;
 }
+
+/** Tokens dropped before scoring: geo qualifiers + generic corporate suffixes. */
+const STOP_TOKENS = new Set([
+  "il",
+  "israel",
+  "ישראל",
+  "group",
+  "ltd",
+  "holdings",
+  "inc",
+  "corp",
+  "co",
+]);
+
+/** Lowercase, strip punctuation, split to tokens, and drop stop-tokens. */
+export function normalizeCompanyName(name: string): string[] {
+  return name
+    .toLowerCase()
+    .replace(/[.,'"()|/\\־-]+/g, " ")
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0 && !STOP_TOKENS.has(t));
+}
+
+/** Fraction of the requested name's significant tokens that the candidate covers (0..1). */
+export function scoreCompanyMatch(requested: string, candidate: string): number {
+  const reqTokens = normalizeCompanyName(requested);
+  if (reqTokens.length === 0) return 0;
+  const candSet = new Set(normalizeCompanyName(candidate));
+  const covered = reqTokens.filter((t) => candSet.has(t)).length;
+  return covered / reqTokens.length;
+}
+
+export const MATCH_THRESHOLD = 0.5;
+
+/**
+ * Best name match among candidates (LinkedIn result order). Ties resolve to the earlier
+ * (higher-ranked) candidate. Returns null when the best score is below `threshold` or the
+ * list is empty. When the requested name has no significant tokens (only geo/suffix words),
+ * falls back to the top-ranked candidate rather than over-failing.
+ */
+export function pickBestCompany(
+  requested: string,
+  candidates: Array<{ companyUrl: string; name: string | null }>,
+  threshold: number = MATCH_THRESHOLD,
+): { companyUrl: string; name: string | null } | null {
+  if (candidates.length === 0) return null;
+  if (normalizeCompanyName(requested).length === 0) return candidates[0];
+  let best: { companyUrl: string; name: string | null } | null = null;
+  let bestScore = -1;
+  for (const cand of candidates) {
+    const score = scoreCompanyMatch(requested, cand.name ?? "");
+    if (score > bestScore) {
+      bestScore = score;
+      best = cand;
+    }
+  }
+  return bestScore >= threshold ? best : null;
+}
