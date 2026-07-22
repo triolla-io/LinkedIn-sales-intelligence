@@ -44,7 +44,12 @@ export async function createMatchesForOrgArticle(
 
   // Derive draft fan-out from durable state (never in-invocation ids) — retry-safe.
   const toDraft = await prisma.articleMatch.findMany({
-    where: { articleId: article.id, status: "SUGGESTED", draftMessage: null },
+    where: {
+      articleId: article.id,
+      ownerId: { in: owners.map((o) => o.id) },
+      status: "SUGGESTED",
+      draftMessage: null,
+    },
     select: { id: true },
   });
   return { created, matchIds: toDraft.map((m) => m.id) };

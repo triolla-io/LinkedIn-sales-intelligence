@@ -40,6 +40,8 @@ describe("createMatchesForOrgArticle", () => {
     const res = await createMatchesForOrgArticle("org1", "a1");
     expect(matchCreate).toHaveBeenCalledTimes(1);
     expect(res.matchIds).toEqual(["m1"]);
+    expect(matchFindMany.mock.calls[0][0].where.ownerId).toEqual({ in: ["owner1"] });
+    expect(matchFindMany.mock.calls[0][0].where.articleId).toBe("a1");
   });
   it("is idempotent — skips an already-existing match", async () => {
     matchFindUnique.mockResolvedValue({ id: "existing" });
