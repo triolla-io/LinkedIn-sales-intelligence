@@ -19,6 +19,9 @@ import { hubspotSyncApollo } from "@/inngest/functions/hubspot-sync-apollo";
 import { companySignalsTick } from "@/inngest/functions/company-signals-tick";
 import { companySignalsDetect } from "@/inngest/functions/company-signals-detect";
 import { companySignalsDraft } from "@/inngest/functions/company-signals-draft";
+import { fintechRadarTick } from "@/inngest/functions/fintech-radar-tick";
+import { fintechRadarMatch } from "@/inngest/functions/fintech-radar-match";
+import { fintechRadarDraft } from "@/inngest/functions/fintech-radar-draft";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -43,5 +46,8 @@ export const { GET, POST, PUT } = serve({
     companySignalsTick,
     companySignalsDetect,
     companySignalsDraft,
+    fintechRadarTick,
+    fintechRadarMatch,
+    fintechRadarDraft,
   ],
 });

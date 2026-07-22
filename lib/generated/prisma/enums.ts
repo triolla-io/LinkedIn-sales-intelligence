@@ -284,3 +284,12 @@ export const CompanySignalDraftStatus = {
 } as const
 
 export type CompanySignalDraftStatus = (typeof CompanySignalDraftStatus)[keyof typeof CompanySignalDraftStatus]
+
+
+export const ArticleMatchStatus = {
+  SUGGESTED: 'SUGGESTED',
+  DISMISSED: 'DISMISSED',
+  SENT: 'SENT'
+} as const
+
+export type ArticleMatchStatus = (typeof ArticleMatchStatus)[keyof typeof ArticleMatchStatus]

@@ -2,7 +2,7 @@ import type { NewsResult } from "@/lib/news/types";
 
 /** GNews API — https://gnews.io. Free tier 100 req/day.
  *  Missing key or any error → [] (never throws). */
-export async function fetchGnews(query: string): Promise<NewsResult[]> {
+export async function fetchGnews(query: string, opts: { max?: number } = {}): Promise<NewsResult[]> {
   const key = (process.env.GNEWS_API_KEY ?? "").trim();
   if (!key) return [];
   try {
@@ -11,7 +11,7 @@ export async function fetchGnews(query: string): Promise<NewsResult[]> {
     const url = new URL("https://gnews.io/api/v4/search");
     url.searchParams.set("q", query);
     url.searchParams.set("lang", "en");
-    url.searchParams.set("max", "10");
+    url.searchParams.set("max", String(opts.max ?? 10));
     url.searchParams.set("apikey", key);
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeout);

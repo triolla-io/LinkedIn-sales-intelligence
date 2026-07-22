@@ -6,8 +6,9 @@ import Image from "next/image";
 import { signOut } from "next-auth/react";
 import {
   Users, FileText, Shield, LogOut, LayoutDashboard, Upload,
-  BookMarked, GitBranch, ChevronLeft, ChevronRight, Settings, Search, PartyPopper, Sparkles,
+  BookMarked, GitBranch, ChevronLeft, ChevronRight, Settings, Search, PartyPopper, Sparkles, Newspaper,
 } from "lucide-react";
+import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -59,6 +60,10 @@ async function handleSignOut() {
 export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
+  const { modules } = useRoutineModules();
+  const visibleRoutineItems = modules?.fintechRadarEnabled
+    ? [...routineItems, { href: "/routine/fintech-radar", label: "פינטק ראדאר", icon: Newspaper }]
+    : routineItems;
 
   const renderNavLink = ({ href, label, icon: Icon }: { href: string; label: string; icon: typeof Users }) => {
     const active = href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
@@ -122,7 +127,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
           </p>
         )}
         {collapsed && <div className="my-2 border-t border-[#e5e3df]" />}
-        {routineItems.map(renderNavLink)}
+        {visibleRoutineItems.map(renderNavLink)}
 
         {!collapsed && <div className="mt-5" />}
         {collapsed && <div className="my-2 border-t border-[#e5e3df]" />}

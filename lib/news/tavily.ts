@@ -2,7 +2,10 @@ import type { NewsResult } from "@/lib/news/types";
 
 /** Tavily Search API — https://docs.tavily.com. Free tier ~1,000 searches/mo.
  *  Missing key or any error → [] (never throws). */
-export async function fetchTavily(query: string): Promise<NewsResult[]> {
+export async function fetchTavily(
+  query: string,
+  opts: { days?: number; maxResults?: number } = {}
+): Promise<NewsResult[]> {
   const key = (process.env.TAVILY_API_KEY ?? "").trim();
   if (!key) return [];
   try {
@@ -17,8 +20,8 @@ export async function fetchTavily(query: string): Promise<NewsResult[]> {
         query,
         topic: "news",
         search_depth: "basic",
-        max_results: 8,
-        days: 30,
+        max_results: opts.maxResults ?? 8,
+        days: opts.days ?? 30,
       }),
     });
     clearTimeout(timeout);

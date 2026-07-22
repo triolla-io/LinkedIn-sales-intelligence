@@ -46,6 +46,9 @@ Use HeroUI (`@heroui/react`) for all React components.
 | `company.signals.detect` | weekly tick (cron 0 4 * * 0) | `inngest/functions/company-signals-detect.ts` |
 | `company.signals.draft` | after a verified signal is detected | `inngest/functions/company-signals-draft.ts` |
 | *(cron 0 4 \* \* 0)* | weekly company-signals trigger | `inngest/functions/company-signals-tick.ts` |
+| *(cron 0 5 \* \* 0)* | weekly fintech-news radar — fetch ~last-7-days topic news, chunk-tag, match to C-level contacts, draft engagement | `inngest/functions/fintech-radar-tick.ts` |
+| `fintech.radar.match` | per (org × new article) | `inngest/functions/fintech-radar-match.ts` |
+| `fintech.radar.draft` | per new match | `inngest/functions/fintech-radar-draft.ts` |
 
 ## Next.js version
 

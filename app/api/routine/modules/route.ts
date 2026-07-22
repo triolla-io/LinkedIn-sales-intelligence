@@ -11,7 +11,10 @@ export const PATCH = withTenant(async (req, ctx) => {
   const module = body?.module;
   const enabled = body?.enabled;
   if (
-    (module !== "connections" && module !== "jobChecks" && module !== "companySignals") ||
+    (module !== "connections" &&
+      module !== "jobChecks" &&
+      module !== "companySignals" &&
+      module !== "fintechRadar") ||
     typeof enabled !== "boolean"
   ) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });

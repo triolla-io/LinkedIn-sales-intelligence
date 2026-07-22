@@ -202,3 +202,13 @@ export type CompanySignal = Prisma.CompanySignalModel
  * 
  */
 export type CompanySignalDraft = Prisma.CompanySignalDraftModel
+/**
+ * Model FintechArticle
+ * 
+ */
+export type FintechArticle = Prisma.FintechArticleModel
+/**
+ * Model ArticleMatch
+ * 
+ */
+export type ArticleMatch = Prisma.ArticleMatchModel

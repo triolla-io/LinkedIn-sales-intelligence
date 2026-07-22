@@ -113,6 +113,7 @@ model Organization {
   monthlyApolloBudget   Int      @default(500)
   jobCheckEnabled       Boolean  @default(false)
   companySignalsEnabled Boolean  @default(false)
+  fintechRadarEnabled   Boolean  @default(false)
   createdAt             DateTime @default(now())
 
   users             User[]
@@ -210,6 +211,7 @@ model Contact {
   lists               ContactListMember[]
   companySignalDrafts CompanySignalDraft[]
   sequenceEnrollments SequenceEnrollment[]
+  articleMatches      ArticleMatch[]
 
   @@unique([ownerId, linkedinUrn])
   @@index([ownerId, seniority])
@@ -953,4 +955,47 @@ enum CompanySignalDraftStatus {
   APPROVED
   SENT
   DISMISSED
+}
+
+enum ArticleMatchStatus {
+  SUGGESTED
+  DISMISSED
+  SENT
+}
+
+model FintechArticle {
+  id                 String   @id @default(cuid())
+  url                String   @unique
+  title              String
+  summary            String   @db.Text
+  topics             String[] @default([])
+  mentionedCompanies String[] @default([])
+  relevantRoles      String[] @default([])
+  source             String
+  publishedAt        DateTime?
+  createdAt          DateTime @default(now())
+
+  matches ArticleMatch[]
+
+  @@index([createdAt])
+}
+
+model ArticleMatch {
+  id           String             @id @default(cuid())
+  articleId    String
+  contactId    String
+  ownerId      String
+  score        Float
+  reason       String             @db.Text
+  draftMessage String?            @db.Text
+  status       ArticleMatchStatus @default(SUGGESTED)
+  sentChannel  String?
+  createdAt    DateTime           @default(now())
+
+  article FintechArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  contact Contact        @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, contactId])
+  @@index([ownerId, status])
+  @@index([ownerId, createdAt])
 }
