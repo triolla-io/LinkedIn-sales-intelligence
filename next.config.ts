@@ -8,6 +8,10 @@ const corsHeaders = [
 
 const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
+  // Persist Turbopack's build cache (written under .next/cache) so warm
+  // rebuilds are much faster. Paired with a BuildKit cache mount on
+  // .next/cache in the Dockerfile so it survives across Coolify deploys.
+  experimental: { turbopackFileSystemCacheForBuild: true },
   async headers() {
     return [
       {

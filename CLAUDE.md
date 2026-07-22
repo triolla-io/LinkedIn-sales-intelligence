@@ -40,11 +40,9 @@ Use HeroUI (`@heroui/react`) for all React components.
 | `prospecting.start` | prospecting start API | `inngest/functions/prospecting-start.ts` |
 | `prospecting.tick` | cron */5 * * * * | `inngest/functions/prospecting-tick.ts` |
 | `import.process` | CSV upload API | `inngest/functions/import-process.ts` |
-| `job.check` | nightly cron dispatch | `inngest/functions/job-check-contact.ts (+ lib/job-check/detect-change.ts)` |
-| *(cron 0 2 \* \* \*)* | nightly job-change batch trigger | `inngest/functions/job-check-tick.ts` |
+| *(cron 0 2 \* \* \*)* | nightly job-change batch trigger — dispatches `SCRAPE_PROFILE` extension tasks (customer's LinkedIn via the extension, no Apollo/Bright Data spend) | `inngest/functions/job-check-tick.ts` |
+| `job-check.enabled` | "Job Changes" module toggled ON (kick-on-enable dispatch) | `inngest/functions/job-check-dispatch.ts` |
 | *(cron 0 3 \* \* \*)* | daily Apollo→HubSpot sync | `inngest/functions/hubspot-sync-apollo.ts` |
-| *(cron 0 3 \* \* \*)* | daily Bright Data priority job-check trigger | `inngest/functions/brightdata-job-check-tick.ts` |
-| `brightdata.job-check.collect` | after tick triggers a snapshot | `inngest/functions/brightdata-job-check-collect.ts` |
 | `company.signals.detect` | weekly tick (cron 0 4 * * 0) | `inngest/functions/company-signals-detect.ts` |
 | `company.signals.draft` | after a verified signal is detected | `inngest/functions/company-signals-draft.ts` |
 | *(cron 0 4 \* \* 0)* | weekly company-signals trigger | `inngest/functions/company-signals-tick.ts` |

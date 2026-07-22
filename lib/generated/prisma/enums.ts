@@ -165,7 +165,8 @@ export const ExtensionTaskKind = {
   CHECK_REPLY: 'CHECK_REPLY',
   SEARCH: 'SEARCH',
   CONNECT: 'CONNECT',
-  RESOLVE_COMPANY: 'RESOLVE_COMPANY'
+  RESOLVE_COMPANY: 'RESOLVE_COMPANY',
+  SCRAPE_PROFILE: 'SCRAPE_PROFILE'
 } as const
 
 export type ExtensionTaskKind = (typeof ExtensionTaskKind)[keyof typeof ExtensionTaskKind]

@@ -9,6 +9,7 @@ import {
   companySlugFromUrl,
 } from "./lib/resolve-company";
 import { SCRAPE_FN_SOURCE } from "./lib/scrape-search";
+import { scrapeProfile } from "./lib/scrape-profile";
 
 // ---------- Shared types ----------
 
@@ -108,7 +109,7 @@ async function runOneCycle(): Promise<boolean> {
   return true;
 }
 
-async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "SEARCH" | "CONNECT" | "RESOLVE_COMPANY"; payload: unknown }): Promise<unknown> {
+async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "SEARCH" | "CONNECT" | "RESOLVE_COMPANY" | "SCRAPE_PROFILE"; payload: unknown }): Promise<unknown> {
   const payload = task.payload as {
     linkedinUrl?: string;
     conversationUrl?: string;
@@ -147,6 +148,11 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "S
       payload.linkedinUrl ?? null,
       payload.name ?? null,
     );
+  }
+
+  if (task.kind === "SCRAPE_PROFILE") {
+    if (!payload.linkedinUrl) throw withCode(new Error("missing_payload"), "bad_payload");
+    return await scrapeProfile(payload.linkedinUrl);
   }
 
   throw withCode(new Error("unknown_kind"), "unsupported_kind");
@@ -317,6 +323,21 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
   }
 }
 
+// Make a minimized / non-focused tab render as if it were visible, WITHOUT showing it.
+// LinkedIn visibility-gates and lazy-renders content (search results especially), so a
+// background tab paints nothing and DOM reads come back empty. These CDP emulation calls
+// force a layout viewport + focused/visible/active lifecycle so reads work while the tab
+// stays in the background — the alternative (opening the tab active) pops the automation
+// window to the foreground. Call once per attached CDP session (re-apply after re-attach).
+async function forceBackgroundRender(tabId: number): Promise<void> {
+  await send(tabId, "Emulation.setDeviceMetricsOverride", {
+    width: 1280, height: 900, deviceScaleFactor: 1, mobile: false,
+  }).catch(() => {});
+  await send(tabId, "Emulation.setFocusEmulationEnabled", { enabled: true }).catch(() => {});
+  await send(tabId, "Page.enable", {}).catch(() => {});
+  await send(tabId, "Page.setWebLifecycleState", { state: "active" }).catch(() => {});
+}
+
 // ---------- SEARCH: scrape LinkedIn search results page ----------
 // Parsing lives in lib/scrape-search.ts (parseCardFields, unit-tested); SCRAPE_FN_SOURCE
 // embeds it and adds only the DOM traversal.
@@ -324,7 +345,13 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
 type ScrapeResult = { candidates: ScrapedCard[]; hasNextPage: boolean; debug?: Record<string, unknown> };
 
 async function scrapeSearch(searchUrl: string): Promise<ScrapeResult> {
-  const tabId = await openTabInAutomationWindow(searchUrl).catch(() => {
+  // active:false — keep the run fully in the background. An active tab restores
+  // (un-minimizes) the automation window, popping it to the foreground in the user's
+  // face. We no longer need the tab foregrounded to render: the CDP force-render below
+  // (setFocusEmulationEnabled + Page.setWebLifecycleState:active) paints the visibility-
+  // gated result list WITHOUT showing the window. Same background pattern as the
+  // connect / message-send flows.
+  const tabId = await openTabInAutomationWindow(searchUrl, false).catch(() => {
     throw withCode(new Error("tab_create_failed"), "tab_load");
   });
   await trackActiveTab(tabId);
@@ -351,12 +378,7 @@ async function scrapeSearch(searchUrl: string): Promise<ScrapeResult> {
     // Fix: force the page to behave as focused/visible/active without showing it, then
     // poll until the result cards actually render (background tabs also throttle timers,
     // so a fixed sleep races the render).
-    await send(tabId, "Emulation.setDeviceMetricsOverride", {
-      width: 1280, height: 900, deviceScaleFactor: 1, mobile: false,
-    }).catch(() => {});
-    await send(tabId, "Emulation.setFocusEmulationEnabled", { enabled: true }).catch(() => {});
-    await send(tabId, "Page.enable", {}).catch(() => {});
-    await send(tabId, "Page.setWebLifecycleState", { state: "active" }).catch(() => {});
+    await forceBackgroundRender(tabId);
 
     let scraped: ScrapeResult | undefined;
     // ~18s budget: scroll to trigger lazy-load, then re-scrape until cards appear or
@@ -394,7 +416,12 @@ async function resolveCompany(
   matchedUrl: string;
 }> {
   const startUrl = linkedinUrl ?? companySearchUrl(name ?? "");
-  const tabId = await openTabInAutomationWindow(startUrl).catch(() => {
+  // active:false — keep the run in the background. An active tab restores (un-minimizes)
+  // the automation window and pops it to the foreground. The company search-results and
+  // company-page DOM reads below are visibility-gated/lazy-rendered, so we render the
+  // background tab via forceBackgroundRender() (same approach as scrapeSearch) instead of
+  // relying on foregrounding.
+  const tabId = await openTabInAutomationWindow(startUrl, false).catch(() => {
     throw withCode(new Error("tab_create_failed"), "tab_load");
   });
   await trackActiveTab(tabId);
@@ -408,12 +435,7 @@ async function resolveCompany(
     }
     await attach(tabId);
     attached = true;
-    await send(tabId, "Emulation.setDeviceMetricsOverride", {
-      width: 1280,
-      height: 900,
-      deviceScaleFactor: 1,
-      mobile: false,
-    }).catch(() => {});
+    await forceBackgroundRender(tabId);
 
     // Name-only: find the top company result, then navigate to its page.
     if (!linkedinUrl) {
@@ -437,6 +459,9 @@ async function resolveCompany(
       }
       await attach(tabId);
       attached = true;
+      // Re-apply after re-attach — a fresh CDP session drops the prior emulation, and the
+      // company page's DOM read below is visibility-gated like the search results.
+      await forceBackgroundRender(tabId);
     }
 
     const evalResult = await send<{

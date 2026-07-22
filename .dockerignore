@@ -1,0 +1,39 @@
+# Reinstalled/rebuilt inside the image — never send from the build context
+node_modules
+.next
+.git
+
+# Secrets & local env (Coolify injects env at runtime)
+.env
+.env.local
+.env.*.local
+.npmrc
+
+# Test & tooling artifacts (not needed by build or runner)
+tests
+playwright.config.ts
+playwright-report
+test-results
+vitest.config.ts
+.pytest_cache
+coverage
+tsconfig.tsbuildinfo
+debugScreenshot
+
+# Docs & editor/agent noise
+docs
+*.md
+.DS_Store
+.github
+.claude
+.agents
+.superpowers
+.understand-anything
+scratchpad
+
+# Separate service with its own Dockerfile
+whatsapp-service
+
+# Docker meta (not needed inside the image)
+Dockerfile*
+docker-compose.yml

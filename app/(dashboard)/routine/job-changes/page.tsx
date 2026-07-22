@@ -47,7 +47,7 @@ export default function JobChangesDashboard() {
     <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]" dir="rtl">
       <div className="flex items-center gap-2 px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
         <PartyPopper className="w-5 h-5 text-[#c2410c]" />
-        <h1 className="text-lg font-semibold">עדכוני תפקיד — סקירה</h1>
+        <h1 className="text-lg font-semibold">עדכוני משתמשים — סקירה</h1>
       </div>
 
       {isLoading || !data ? (

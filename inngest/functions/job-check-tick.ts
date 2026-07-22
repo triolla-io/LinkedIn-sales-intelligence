@@ -1,36 +1,13 @@
 import { inngest } from "@/inngest/client";
-import { priorityTitleWhere } from "@/lib/job-check/priority-titles";
-import { prisma } from "@/lib/prisma";
+import { dispatchJobChecks } from "@/lib/job-check/dispatch";
 
+// Nightly: enqueue SCRAPE_PROFILE extension tasks for contacts due a job-change check,
+// across all orgs with the module enabled. Actual scraping runs in the customer's
+// extension; visits are spread through the day (see dispatchJobChecks).
 export const jobCheckTick = inngest.createFunction(
-  { id: "job-check-tick", triggers: [{ cron: "0 2 * * *" }] },
+  { id: "job-check-tick", name: "Job-change dispatch (daily)", triggers: [{ cron: "0 2 * * *" }] },
   async () => {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 28);
-
-    const contacts = await prisma.contact.findMany({
-      where: {
-        linkedinUrl: { not: "" },
-        removedAt: null,
-        AND: [
-          { OR: [{ lastJobCheckAt: null }, { lastJobCheckAt: { lt: cutoff } }] },
-          { OR: [{ currentTitle: null }, { NOT: priorityTitleWhere() }] },
-        ],
-      },
-      select: { id: true },
-      orderBy: { lastJobCheckAt: "asc" }, // oldest-first so the queue drains evenly
-      take: 100,
-    });
-
-    if (contacts.length === 0) return { dispatched: 0 };
-
-    await inngest.send(
-      contacts.map((c) => ({
-        name: "job.check" as const,
-        data: { contactId: c.id },
-      }))
-    );
-
-    return { dispatched: contacts.length };
+    const dispatched = await dispatchJobChecks();
+    return { dispatched };
   }
 );

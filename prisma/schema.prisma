@@ -429,6 +429,7 @@ enum ExtensionTaskKind {
   SEARCH
   CONNECT
   RESOLVE_COMPANY
+  SCRAPE_PROFILE
 }
 
 enum ExtensionTaskStatus {
