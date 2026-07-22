@@ -28,7 +28,7 @@ export async function fetchTopicNews(): Promise<NewsResult[]> {
   const perTopic = await Promise.all(
     FINTECH_TOPICS.map(async (q) => {
       const [a, b, c] = await Promise.all([
-        fetchTavily(q, { days: 10, maxResults: 8 }),
+        fetchTavily(q, { days: 7, maxResults: 10 }),
         fetchGnews(q, { max: 10 }),
         fetchSerper(q),
       ]);

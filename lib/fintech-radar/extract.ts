@@ -38,7 +38,7 @@ Return strict JSON only — no prose, no markdown fences:
 {"articles":[{"title":"...","url":"https://...","summary":"...","topics":["payments"],"mentionedCompanies":["Acme"],"relevantRoles":["cfo"],"publishedAt":"2026-07-20"}]}`;
 
 function userPrompt(news: NewsResult[]): string {
-  const lines = news.slice(0, 60).map(
+  const lines = news.slice(0, 25).map(
     (n, i) => `[${i + 1}] (${n.source}) ${n.title}\n${n.snippet}\nURL: ${n.url}\nDate: ${n.publishedAt ?? "unknown"}`
   );
   return `Fintech news results:\n${lines.join("\n\n")}`;
@@ -102,7 +102,7 @@ export async function extractArticles(news: NewsResult[]): Promise<ExtractedArti
           { role: "user", content: userPrompt(news) },
         ],
         temperature: 0.2,
-        max_tokens: 3000,
+        max_tokens: 6000,
         response_format: { type: "json_object" },
       }),
     });
@@ -113,4 +113,39 @@ export async function extractArticles(news: NewsResult[]): Promise<ExtractedArti
   } finally {
     clearTimeout(timeout);
   }
+}
+
+/** Split an array into fixed-size chunks (last chunk may be smaller). */
+export function chunkArray<T>(arr: T[], size: number): T[][] {
+  if (size <= 0) return [arr];
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+/**
+ * Extract+tag a large news batch reliably by processing it in small chunks and merging.
+ * A single LLM call on ~100 items truncates its JSON (silently → 0 articles); chunking to
+ * ~20/call keeps each response well within max_tokens. Dedupes merged results by url.
+ * `extractor` is injectable for testing; defaults to the real network extractArticles.
+ */
+export async function extractAllArticles(
+  news: NewsResult[],
+  opts: { chunkSize?: number; extractor?: (n: NewsResult[]) => Promise<ExtractedArticle[]> } = {}
+): Promise<ExtractedArticle[]> {
+  const chunkSize = opts.chunkSize ?? 20;
+  const extractor = opts.extractor ?? extractArticles;
+  const seen = new Set<string>();
+  const out: ExtractedArticle[] = [];
+  for (const chunk of chunkArray(news, chunkSize)) {
+    if (chunk.length === 0) continue;
+    const arts = await extractor(chunk);
+    for (const a of arts) {
+      const key = a.url.trim().toLowerCase();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out.push(a);
+    }
+  }
+  return out;
 }

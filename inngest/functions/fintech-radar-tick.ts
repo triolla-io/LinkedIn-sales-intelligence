@@ -1,21 +1,23 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { fetchTopicNews } from "@/lib/fintech-radar/fetch-topic-news";
-import { extractArticles } from "@/lib/fintech-radar/extract";
+import { extractAllArticles } from "@/lib/fintech-radar/extract";
 import { upsertArticles, findDispatchableArticleIds } from "@/lib/fintech-radar/persist";
 
 // Failure window we need to cover is an Inngest retry of a partially-completed upsert
-// (minutes to a few hours); the tick runs daily. 12h safely spans a retry without
-// reaching back into the prior day's already-dispatched articles.
+// (minutes to a few hours); the tick runs weekly. 12h safely spans a retry without
+// reaching back into a prior week's already-dispatched articles.
 const WINDOW_MS = 12 * 60 * 60 * 1000;
 
 export const fintechRadarTick = inngest.createFunction(
-  { id: "fintech-radar-tick", name: "Fintech Radar (daily)", triggers: [{ cron: "0 5 * * *" }] },
+  { id: "fintech-radar-tick", name: "Fintech Radar (weekly)", triggers: [{ cron: "0 5 * * 0" }] },
   async ({ step }) => {
     await step.run("fetch-extract-upsert", async () => {
       const news = await fetchTopicNews();
       if (news.length === 0) return [] as string[];
-      const articles = await extractArticles(news);
+      // Chunked extraction: a single LLM call on ~100 items truncates its JSON output
+      // (silently → 0 articles). extractAllArticles processes ~20/call and merges.
+      const articles = await extractAllArticles(news);
       if (articles.length === 0) return [] as string[];
       return upsertArticles(articles);
     });
