@@ -91,6 +91,21 @@ describe("TOP_COMPANY_RESULT_FN_SOURCE (evaluated in jsdom)", () => {
     document.body.innerHTML = `<a href="https://www.linkedin.com/in/person">person</a>`;
     expect(eval(TOP_COMPANY_RESULT_FN_SOURCE)).toEqual([]);
   });
+
+  it("caps the result list at 5 candidates", () => {
+    document.body.innerHTML =
+      "<ul>" +
+      [1, 2, 3, 4, 5, 6]
+        .map(
+          (n) =>
+            `<li><a href="https://www.linkedin.com/company/c${n}/">C${n}</a></li>`,
+        )
+        .join("") +
+      "</ul>";
+    const out = eval(TOP_COMPANY_RESULT_FN_SOURCE) as Array<{ companyUrl: string }>;
+    expect(out).toHaveLength(5);
+    expect(out[4].companyUrl).toBe("https://www.linkedin.com/company/c5/");
+  });
 });
 
 import {
@@ -131,6 +146,11 @@ describe("scoreCompanyMatch", () => {
 
   it("returns 0 when the requested name has no significant tokens", () => {
     expect(scoreCompanyMatch("Israel IL", "Anything")).toBe(0);
+  });
+
+  it("does not let a repeated requested token inflate the denominator", () => {
+    // "Delek Delek Energy" → distinct significant tokens {delek, energy}; candidate covers delek only → 1/2
+    expect(scoreCompanyMatch("Delek Delek Energy", "Delek")).toBe(0.5);
   });
 });
 

@@ -80,7 +80,7 @@ export function normalizeCompanyName(name: string): string[] {
 
 /** Fraction of the requested name's significant tokens that the candidate covers (0..1). */
 export function scoreCompanyMatch(requested: string, candidate: string): number {
-  const reqTokens = normalizeCompanyName(requested);
+  const reqTokens = [...new Set(normalizeCompanyName(requested))];
   if (reqTokens.length === 0) return 0;
   const candSet = new Set(normalizeCompanyName(candidate));
   const covered = reqTokens.filter((t) => candSet.has(t)).length;
