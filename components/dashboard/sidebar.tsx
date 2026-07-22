@@ -62,7 +62,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
   const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
   const { modules } = useRoutineModules();
   const visibleRoutineItems = modules?.fintechRadarEnabled
-    ? [...routineItems, { href: "/routine/fintech-radar", label: "פינטק ראדאר", icon: Newspaper }]
+    ? [...routineItems, { href: "/routine/fintech-radar", label: "ראדאר", icon: Newspaper }]
     : routineItems;
 
   const renderNavLink = ({ href, label, icon: Icon }: { href: string; label: string; icon: typeof Users }) => {
