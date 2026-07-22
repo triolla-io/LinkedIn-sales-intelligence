@@ -61,22 +61,35 @@ describe("EXTRACT_COMPANY_FN_SOURCE (evaluated in jsdom)", () => {
 });
 
 describe("TOP_COMPANY_RESULT_FN_SOURCE (evaluated in jsdom)", () => {
-  it("picks the first /company/ result card", () => {
+  it("returns up to 5 distinct /company/ results in order", () => {
     document.body.innerHTML = `
-      <ul><li>
-        <a href="https://www.linkedin.com/company/acme-corp/">Acme Corp</a>
-        <p>Software · Tel Aviv</p>
-      </li></ul>`;
-    const out = eval(TOP_COMPANY_RESULT_FN_SOURCE) as {
+      <ul>
+        <li>
+          <a href="https://www.linkedin.com/company/acme-corp/">Acme Corp</a>
+          <p>Software · Tel Aviv</p>
+        </li>
+        <li>
+          <a href="https://www.linkedin.com/company/beta-inc/?x=1">Beta Inc</a>
+          <p>Retail</p>
+        </li>
+        <li>
+          <a href="https://www.linkedin.com/company/acme-corp/">Acme Corp dup</a>
+        </li>
+      </ul>`;
+    const out = eval(TOP_COMPANY_RESULT_FN_SOURCE) as Array<{
       companyUrl: string;
       name: string | null;
-    } | null;
-    expect(out?.companyUrl).toBe("https://www.linkedin.com/company/acme-corp/");
+    }>;
+    expect(out.map((c) => c.companyUrl)).toEqual([
+      "https://www.linkedin.com/company/acme-corp/",
+      "https://www.linkedin.com/company/beta-inc/",
+    ]);
+    expect(out[0].name).toBe("Acme Corp");
   });
 
-  it("returns null when there are no company links", () => {
+  it("returns an empty array when there are no company links", () => {
     document.body.innerHTML = `<a href="https://www.linkedin.com/in/person">person</a>`;
-    expect(eval(TOP_COMPANY_RESULT_FN_SOURCE)).toBeNull();
+    expect(eval(TOP_COMPANY_RESULT_FN_SOURCE)).toEqual([]);
   });
 });
 

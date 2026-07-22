@@ -27,15 +27,23 @@ export const EXTRACT_COMPANY_FN_SOURCE = `(() => {
   return { companyId, resolvedName, url: location.href.split('?')[0] };
 })()`;
 
-/** Runs on the companies search results page. Picks the top /company/ result. */
+/** Runs on the companies search results page. Returns up to 5 distinct /company/ results in order. */
 export const TOP_COMPANY_RESULT_FN_SOURCE = `(() => {
   const links = Array.from(document.querySelectorAll('a[href*="/company/"]'));
-  const link = links.find((a) => /linkedin\\.com\\/company\\/[^/?#]+\\/?$/.test(a.href.split('?')[0]));
-  if (!link) return null;
-  const card = link.closest('li') || link.parentElement;
-  const text = (card ? card.textContent : link.textContent) || '';
-  const name = text.split('\\n').map((s) => s.trim()).filter(Boolean)[0] || null;
-  return { companyUrl: link.href.split('?')[0], name };
+  const seen = new Set();
+  const out = [];
+  for (const a of links) {
+    const url = a.href.split('?')[0];
+    if (!/linkedin\\.com\\/company\\/[^/?#]+\\/?$/.test(url)) continue;
+    if (seen.has(url)) continue;
+    seen.add(url);
+    const card = a.closest('li') || a.parentElement;
+    const text = (card ? card.textContent : a.textContent) || '';
+    const name = text.split('\\n').map((s) => s.trim()).filter(Boolean)[0] || null;
+    out.push({ companyUrl: url, name });
+    if (out.length >= 5) break;
+  }
+  return out;
 })()`;
 
 export function companySlugFromUrl(url: string): string | null {
