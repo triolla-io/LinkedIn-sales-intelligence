@@ -50,6 +50,7 @@ export const ERROR_CODE_LABELS: Record<string, string> = {
   search_failed: "החיפוש נכשל שוב ושוב — החברה סומנה ככושלת",
   unsupported_kind: "גרסת התוסף אינה תומכת בפעולה — נדרש עדכון",
   resolve_failed: "זיהוי החברה נכשל",
+  ambiguous_match: "לא נמצאה חברה תואמת מספיק בלינקדאין",
   company_removed: "החברה הוסרה מהרוטינה",
 };
 
