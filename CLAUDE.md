@@ -41,6 +41,7 @@ Use HeroUI (`@heroui/react`) for all React components.
 | `prospecting.tick` | cron */5 * * * * | `inngest/functions/prospecting-tick.ts` |
 | `import.process` | CSV upload API | `inngest/functions/import-process.ts` |
 | *(cron 0 2 \* \* \*)* | nightly job-change batch trigger — dispatches `SCRAPE_PROFILE` extension tasks (customer's LinkedIn via the extension, no Apollo/Bright Data spend) | `inngest/functions/job-check-tick.ts` |
+| `job-check.enabled` | "Job Changes" module toggled ON (kick-on-enable dispatch) | `inngest/functions/job-check-dispatch.ts` |
 | *(cron 0 3 \* \* \*)* | daily Apollo→HubSpot sync | `inngest/functions/hubspot-sync-apollo.ts` |
 | `company.signals.detect` | weekly tick (cron 0 4 * * 0) | `inngest/functions/company-signals-detect.ts` |
 | `company.signals.draft` | after a verified signal is detected | `inngest/functions/company-signals-draft.ts` |

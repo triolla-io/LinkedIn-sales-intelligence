@@ -1,58 +1,13 @@
 import { inngest } from "@/inngest/client";
-import { prisma } from "@/lib/prisma";
-import { selectDueContacts } from "@/lib/job-check/select-due-contacts";
+import { dispatchJobChecks } from "@/lib/job-check/dispatch";
 
-const DAILY_CAP = 25; // conservative profile-visit budget/run
-
+// Nightly: enqueue SCRAPE_PROFILE extension tasks for contacts due a job-change check,
+// across all orgs with the module enabled. Actual scraping runs in the customer's
+// extension; visits are spread through the day (see dispatchJobChecks).
 export const jobCheckTick = inngest.createFunction(
-  { id: "job-check-tick", triggers: [{ cron: "0 2 * * *" }] },
+  { id: "job-check-tick", name: "Job-change dispatch (daily)", triggers: [{ cron: "0 2 * * *" }] },
   async () => {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 28);
-
-    const due = await prisma.contact.findMany({
-      where: {
-        linkedinUrl: { not: "" },
-        removedAt: null,
-        // Safety gate: only schedule scrapes for orgs that turned the "Job Changes"
-        // module ON (Org.jobCheckEnabled, default false). Nothing scrapes a
-        // customer's LinkedIn until they explicitly enable it.
-        owner: { org: { jobCheckEnabled: true } },
-        OR: [{ lastJobCheckAt: null }, { lastJobCheckAt: { lt: cutoff } }],
-      },
-      select: { id: true, ownerId: true, linkedinUrl: true, lastJobCheckAt: true },
-      orderBy: { lastJobCheckAt: { sort: "asc", nulls: "first" } }, // oldest/never-checked-first so the queue drains evenly
-      take: 500,
-    });
-
-    const byOwner = new Map<string, typeof due>();
-    for (const c of due) {
-      const arr = byOwner.get(c.ownerId) ?? [];
-      arr.push(c);
-      byOwner.set(c.ownerId, arr);
-    }
-    const chosen = [...byOwner.values()].flatMap((rows) => selectDueContacts(rows, DAILY_CAP));
-
-    if (chosen.length === 0) return { dispatched: 0 };
-
-    const pending = await prisma.extensionTask.findMany({
-      where: { kind: "SCRAPE_PROFILE", status: "PENDING" },
-      select: { payload: true },
-    });
-    const alreadyQueued = new Set(
-      pending.map((t) => (t.payload as { contactId?: string })?.contactId).filter(Boolean)
-    );
-    const toCreate = chosen.filter((c) => !alreadyQueued.has(c.id));
-    if (toCreate.length === 0) return { dispatched: 0 };
-
-    await prisma.extensionTask.createMany({
-      data: toCreate.map((c) => ({
-        userId: c.ownerId,
-        kind: "SCRAPE_PROFILE" as const,
-        payload: { contactId: c.id, linkedinUrl: c.linkedinUrl },
-      })),
-    });
-
-    return { dispatched: toCreate.length };
+    const dispatched = await dispatchJobChecks();
+    return { dispatched };
   }
 );

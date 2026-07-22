@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { inngest } from "@/inngest/client";
 
 export type RoutineModuleKey = "connections" | "jobChecks" | "companySignals";
 
@@ -36,6 +37,11 @@ export async function setRoutineModule(
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { orgId: true } });
   if (module === "jobChecks") {
     await prisma.organization.update({ where: { id: user.orgId }, data: { jobCheckEnabled: enabled } });
+    // Kick-on-enable: dispatch a first batch immediately so it starts working right away
+    // instead of waiting for the nightly cron.
+    if (enabled) {
+      await inngest.send({ name: "job-check.enabled" as const, data: { orgId: user.orgId } });
+    }
     return;
   }
   await prisma.organization.update({ where: { id: user.orgId }, data: { companySignalsEnabled: enabled } });
