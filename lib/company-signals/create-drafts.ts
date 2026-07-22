@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { clevelTitleWhere } from "@/lib/company-signals/clevel";
 import { draftCongrats } from "@/lib/company-signals/draft";
 
-const LIST_NAME = "איתותי חברה";
+const LIST_NAME = "חדשות חברות";
 
 export async function createDraftsForSignal(signalId: string): Promise<{ created: number }> {
   const signal = await prisma.companySignal.findUniqueOrThrow({

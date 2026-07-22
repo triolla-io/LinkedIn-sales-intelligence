@@ -66,7 +66,7 @@ export default function CompanySignalsPage() {
       <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-[#c2410c]" />
-          <h1 className="text-lg font-semibold">איתותי חברות — סקירה</h1>
+          <h1 className="text-lg font-semibold">חדשות חברות — סקירה</h1>
           {state.drafts.length > 0 && (
             <Chip size="sm" color="warning">{state.drafts.length} ממתינים לסקירה</Chip>
           )}
@@ -80,7 +80,7 @@ export default function CompanySignalsPage() {
               size="sm"
               isSelected={signalsOn}
               onChange={(v: boolean) => setModule("companySignals", v)}
-              aria-label="הפעלת מודול איתותי חברות"
+              aria-label="הפעלת מודול חדשות חברות"
             >
               <Switch.Control>
                 <Switch.Thumb />
@@ -92,7 +92,7 @@ export default function CompanySignalsPage() {
 
       {modules && !signalsOn && (
         <div className="px-5 py-2.5 bg-[#fffbeb] border-b border-[#fde68a] text-xs text-[#b45309]">
-          זיהוי האיתותים האוטומטי מושבת. ההעדפה נשמרת ותוחל כשהמודול יופעל.
+          זיהוי החדשות האוטומטי מושבת. ההעדפה נשמרת ותוחל כשהמודול יופעל.
         </div>
       )}
 
