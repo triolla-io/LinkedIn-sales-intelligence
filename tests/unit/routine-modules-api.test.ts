@@ -48,6 +48,7 @@ describe("/api/routine/modules", () => {
       connectionsEnabled: true,
       jobChecksEnabled: false,
       companySignalsEnabled: false,
+      fintechRadarEnabled: false,
     });
   });
 
