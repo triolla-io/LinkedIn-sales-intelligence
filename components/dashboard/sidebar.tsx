@@ -8,7 +8,6 @@ import {
   Users, FileText, Shield, LogOut, LayoutDashboard, Upload,
   BookMarked, GitBranch, ChevronLeft, ChevronRight, Settings, Search, PartyPopper, Sparkles, Newspaper,
 } from "lucide-react";
-import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -41,6 +40,7 @@ const routineItems = [
   { href: "/routine/connections", label: "בקשות חברות", icon: Search },
   { href: "/routine/job-changes", label: "עדכוני משתמשים", icon: PartyPopper },
   { href: "/routine/company-signals", label: "חדשות חברות", icon: Sparkles },
+  { href: "/routine/fintech-radar", label: "ראדאר", icon: Newspaper },
 ];
 
 const secondaryItems = [
@@ -60,11 +60,6 @@ async function handleSignOut() {
 export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
-  const { modules } = useRoutineModules();
-  const visibleRoutineItems = modules?.fintechRadarEnabled
-    ? [...routineItems, { href: "/routine/fintech-radar", label: "ראדאר", icon: Newspaper }]
-    : routineItems;
-
   const renderNavLink = ({ href, label, icon: Icon }: { href: string; label: string; icon: typeof Users }) => {
     const active = href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
     return (
@@ -127,7 +122,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
           </p>
         )}
         {collapsed && <div className="my-2 border-t border-[#e5e3df]" />}
-        {visibleRoutineItems.map(renderNavLink)}
+        {routineItems.map(renderNavLink)}
 
         {!collapsed && <div className="mt-5" />}
         {collapsed && <div className="my-2 border-t border-[#e5e3df]" />}

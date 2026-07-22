@@ -1,6 +1,6 @@
 import { Newspaper } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
-import { FintechRadarClient } from "./fintech-radar-client";
+import { FintechRadarClient, RadarModuleSwitch } from "./fintech-radar-client";
 
 /**
  * Server page for the Fintech Radar feed. Session auth (redirect to
@@ -17,8 +17,9 @@ export default function FintechRadarPage() {
     <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
       <PageHeader
         icon={Newspaper}
-        title="פינטק ראדאר"
-        subtitle="חדשות פינטק יומיות, מותאמות לאנשי הקשר שלך"
+        title="ראדאר"
+        subtitle="חדשות פינטק שבועיות, מותאמות לאנשי הקשר שלך"
+        actions={<RadarModuleSwitch />}
       />
       <FintechRadarClient />
     </div>
