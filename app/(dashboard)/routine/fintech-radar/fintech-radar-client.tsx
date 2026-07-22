@@ -56,6 +56,26 @@ export function FintechRadarClient() {
 
   return (
     <div className="flex-1 p-5" dir="rtl">
+      {/* Topics — currently only Fintech is live; more (e.g. Cyber) are coming. */}
+      <div className="mb-5">
+        <h2 className="text-xs font-medium text-[#9b9895] mb-2">נושאים</h2>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="px-3 py-1.5 rounded-full text-sm font-medium bg-[#1585ff] text-white">
+            Fintech
+          </span>
+          <span
+            aria-disabled="true"
+            title="בקרוב"
+            className="px-3 py-1.5 rounded-full text-sm font-medium bg-[#f0efec] text-[#9b9895] cursor-not-allowed select-none inline-flex items-center gap-1.5"
+          >
+            סייבר
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#e5e3df] text-[#78716c]">
+              בקרוב
+            </span>
+          </span>
+        </div>
+      </div>
+
       {modules && (
         <div className="flex items-center justify-between mb-4">
           <span className="text-xs text-[#9b9895]">
@@ -69,7 +89,7 @@ export function FintechRadarClient() {
               size="sm"
               isSelected={radarOn}
               onChange={(v: boolean) => setModule("fintechRadar", v)}
-              aria-label="הפעלת מודול פינטק ראדאר"
+              aria-label="הפעלת מודול ראדאר"
             >
               <Switch.Control>
                 <Switch.Thumb />
