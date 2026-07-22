@@ -44,11 +44,35 @@ function hostLabel(url: string) {
   }
 }
 
+/** On/off switch for the page header (mirrors the "בקשות חברות" header toggle). */
+export function RadarModuleSwitch() {
+  const { modules, setModule } = useRoutineModules();
+  if (!modules) return null;
+  const on = modules.fintechRadarEnabled ?? false;
+  return (
+    <div className="flex items-center gap-2" dir="rtl">
+      <span className={cn("text-xs font-medium", on ? "text-[#059669]" : "text-[#b45309]")}>
+        {on ? "המודול פעיל" : "המודול כבוי"}
+      </span>
+      <Switch
+        size="sm"
+        isSelected={on}
+        onChange={(v: boolean) => setModule("fintechRadar", v)}
+        aria-label="הפעלת מודול ראדאר"
+      >
+        <Switch.Control>
+          <Switch.Thumb />
+        </Switch.Control>
+      </Switch>
+    </div>
+  );
+}
+
 export function FintechRadarClient() {
   const { data, isLoading, mutate } = useSWR<FeedResponse>("/api/fintech-radar", fetcher, {
     refreshInterval: 30_000,
   });
-  const { modules, setModule } = useRoutineModules();
+  const { modules } = useRoutineModules();
   const radarOn = modules?.fintechRadarEnabled ?? false;
 
   const articles = data?.articles ?? [];
@@ -76,27 +100,8 @@ export function FintechRadarClient() {
         </div>
       </div>
 
-      {modules && (
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-xs text-[#9b9895]">
-            {totalMatches > 0 ? `${totalMatches} התאמות ממתינות` : "אין התאמות חדשות"}
-          </span>
-          <div className="flex items-center gap-2">
-            <span className={cn("text-xs font-medium", radarOn ? "text-[#059669]" : "text-[#b45309]")}>
-              {radarOn ? "המודול פעיל" : "המודול כבוי"}
-            </span>
-            <Switch
-              size="sm"
-              isSelected={radarOn}
-              onChange={(v: boolean) => setModule("fintechRadar", v)}
-              aria-label="הפעלת מודול ראדאר"
-            >
-              <Switch.Control>
-                <Switch.Thumb />
-              </Switch.Control>
-            </Switch>
-          </div>
-        </div>
+      {modules && totalMatches > 0 && (
+        <div className="mb-4 text-xs text-[#9b9895]">{totalMatches} התאמות ממתינות</div>
       )}
 
       {modules && !radarOn && (
