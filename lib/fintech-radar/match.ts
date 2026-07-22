@@ -64,3 +64,84 @@ export function buildCandidateWhere(
   // When we have overlap signals, require at least one; otherwise fall back to plain C-level.
   return overlap.length > 0 ? { AND: [base, { OR: overlap }] } : base;
 }
+
+export type Candidate = {
+  contactId: string;
+  fullName: string;
+  currentTitle: string | null;
+  currentCompany: string | null;
+  industry: string | null;
+  headline: string | null;
+};
+export type ConfirmedMatch = { contactId: string; score: number; reason: string };
+
+const CONFIRM_SYSTEM = `You decide which of a sales rep's contacts would genuinely find a fintech news item relevant enough to receive a friendly outreach about it.
+
+Return only contacts with a real, specific reason (their role/company/industry ties to the item). Be selective — omit weak matches.
+
+Return strict JSON only — no prose, no fences:
+{"matches":[{"contactId":"<id>","score":0.0-1.0,"reason":"one short sentence in Hebrew"}]}`;
+
+export function parseConfirmResponse(text: string, validIds: Set<string>): ConfirmedMatch[] {
+  const fence = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  const candidate = (fence ? fence[1] : text).trim();
+  let parsed: unknown;
+  try { parsed = JSON.parse(candidate); } catch { return []; }
+  const rows = (parsed as { matches?: unknown })?.matches;
+  if (!Array.isArray(rows)) return [];
+  const out: ConfirmedMatch[] = [];
+  for (const r of rows) {
+    const o = r as Record<string, unknown>;
+    const id = String(o.contactId ?? "");
+    if (!validIds.has(id)) continue;
+    const rawScore = Number(o.score);
+    const score = Number.isFinite(rawScore) ? Math.max(0, Math.min(1, rawScore)) : 0.5;
+    out.push({ contactId: id, score, reason: String(o.reason ?? "").trim() });
+  }
+  return out;
+}
+
+export async function confirmMatches(
+  article: { title: string; summary: string; topics: string[] },
+  candidates: Candidate[]
+): Promise<ConfirmedMatch[]> {
+  if (candidates.length === 0) return [];
+  const apiKey = (process.env.OPENROUTER_API_KEY ?? "").trim();
+  if (!apiKey) throw new Error("OPENROUTER_API_KEY is not configured — refusing to confirm matches");
+  const model = process.env.COMPANY_SIGNALS_MODEL ?? "anthropic/claude-haiku-4.5";
+  const user = [
+    `Article: ${article.title}`,
+    `Summary: ${article.summary}`,
+    `Topics: ${article.topics.join(", ") || "n/a"}`,
+    ``,
+    `Contacts:`,
+    ...candidates.map((c) => `- id=${c.contactId} | ${c.fullName} | ${c.currentTitle ?? "?"} @ ${c.currentCompany ?? "?"} | industry: ${c.industry ?? "?"} | ${c.headline ?? ""}`),
+  ].join("\n");
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25_000);
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      signal: controller.signal,
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://sales.triolla.io",
+        "X-Title": "Triolla Sales Intelligence",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [ { role: "system", content: CONFIRM_SYSTEM }, { role: "user", content: user } ],
+        temperature: 0.2,
+        max_tokens: 1500,
+        response_format: { type: "json_object" },
+      }),
+    });
+    if (!res.ok) throw new Error(`fintech-radar confirm failed: HTTP ${res.status}`);
+    const data = await res.json();
+    const text: string = data.choices?.[0]?.message?.content ?? "";
+    return parseConfirmResponse(text, new Set(candidates.map((c) => c.contactId)));
+  } finally {
+    clearTimeout(timeout);
+  }
+}
