@@ -14,6 +14,10 @@ export const jobCheckTick = inngest.createFunction(
       where: {
         linkedinUrl: { not: "" },
         removedAt: null,
+        // Safety gate: only schedule scrapes for orgs that turned the "Job Changes"
+        // module ON (Org.jobCheckEnabled, default false). Nothing scrapes a
+        // customer's LinkedIn until they explicitly enable it.
+        owner: { org: { jobCheckEnabled: true } },
         OR: [{ lastJobCheckAt: null }, { lastJobCheckAt: { lt: cutoff } }],
       },
       select: { id: true, ownerId: true, linkedinUrl: true, lastJobCheckAt: true },
