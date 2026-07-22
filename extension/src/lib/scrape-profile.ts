@@ -38,62 +38,79 @@ export function parseProfileRole(
   return { title: null, company: null };
 }
 
-// ---------- DOM extraction (unverified against a live profile — see TODO below) ----------
+// ---------- DOM extraction ----------
 
 /**
- * Page-context IIFE, same mechanism as SCRAPE_FN_SOURCE in scrape-search.ts: evaluated via
- * CDP Runtime.evaluate(returnByValue), runs in the real browser DOM, and reads the
- * Experience section + headline into { entries, headline } for parseProfileRole to consume.
+ * Page-context IIFE, evaluated via CDP Runtime.evaluate(returnByValue). Reads the CURRENT
+ * role from the profile TOP CARD, which is LinkedIn's own "primary current role" display —
+ * so we avoid the fragile Experience-section parsing AND the multiple-"current"-entries
+ * problem entirely.
  *
- * TODO(live-verify): Experience-section selectors must be confirmed against a live
- * LinkedIn profile. LinkedIn's profile DOM (section ids, "Experience" heading text,
- * per-entry role/company/date structure, and how multiple positions under one company are
- * grouped) changes often and cannot be verified from this environment. The selectors below
- * are a best-effort guess mirroring the general structure LinkedIn has used historically
- * (an `#experience` anchor section containing a list of entries, each with a bold role
- * title, a company name line, and a date range ending in "Present" for current roles) —
- * they are NOT confirmed to match the current live markup.
+ * LinkedIn's profile is now SDUI (server-driven UI): class names are obfuscated hashes that
+ * change frequently, so we anchor on the STABLE bits instead of classes:
+ *   - name    → <title> ("Name | LinkedIn")
+ *   - company → the topcard company block, anchored on the <svg id="company-accent-*"> icon
+ *   - title   → the first meaningful <p> in the topcard <section> (the headline), skipping
+ *               the name, connection-degree "· 1st/2nd" markers, connection counts, and
+ *               "Contact info".
+ * Verified against a live profile (Paz Romano) on 2026-07-22. If LinkedIn restructures the
+ * topcard, re-capture the DOM and re-verify these anchors.
  */
 const SCRAPE_PROFILE_FN_SOURCE = `(() => {
-  const headlineEl = document.querySelector('.text-body-medium.break-words')
-    || document.querySelector('[data-generated-suggestion-target]')
-    || document.querySelector('.pv-text-details__left-panel .text-body-medium');
-  const headline = headlineEl ? headlineEl.textContent.trim() : null;
+  const clean = (s) => (s || '').replace(/\\s+/g, ' ').trim();
+  const titleName = clean((document.title || '').split('|')[0]);
 
-  const expSection = document.getElementById('experience')?.closest('section')
-    || document.querySelector('section[id="experience"]')
-    || Array.from(document.querySelectorAll('section')).find(
-      (s) => /experience/i.test(s.querySelector('h2')?.textContent || '')
-    );
-
-  const entries = [];
-  if (expSection) {
-    const items = expSection.querySelectorAll('li.artdeco-list__item, ul > li');
-    for (const item of items) {
-      const text = (item.innerText || '').split('\\n').map((s) => s.trim()).filter(Boolean);
-      if (text.length === 0) continue;
-      const title = text[0] || null;
-      const company = (text[1] || '').split(' · ')[0] || null;
-      const dateLine = text.find((l) => /\\d{4}/.test(l) || /present|current|כיום|נוכחי/i.test(l)) || '';
-      const current = /present|current|כיום|נוכחי/i.test(dateLine);
-      const startMatch = dateLine.match(/([A-Za-z]{3,9}\\.?\\s+\\d{4}|\\d{4})/);
-      const startDate = startMatch ? startMatch[1] : null;
-      entries.push({ title, company, current, startDate });
+  // Current company — anchored on the topcard company icon (id starts with "company-accent").
+  let company = null;
+  const compIcon = document.querySelector('svg[id^="company-accent"]');
+  if (compIcon) {
+    const fig = compIcon.closest('figure');
+    const container = fig && fig.parentElement;
+    if (container) {
+      const t = clean(container.innerText || '');
+      if (t) company = t.split('\\n')[0];
     }
   }
+
+  // Topcard = the <section> whose <h2> text matches the profile name.
+  let topcard = null;
+  const sections = Array.from(document.querySelectorAll('section'));
+  for (const s of sections) {
+    const h2 = s.querySelector('h2');
+    if (h2 && clean(h2.textContent) === titleName && titleName) { topcard = s; break; }
+  }
+
+  let headline = null;
+  if (topcard) {
+    const ps = Array.from(topcard.querySelectorAll('p'))
+      .map((p) => clean(p.textContent))
+      .filter(Boolean)
+      .filter((t) =>
+        t !== titleName &&
+        !t.startsWith('\\u00b7') &&              // "· 1st" / "· 2nd" degree markers
+        !/^[0-9,]+\\+?$/.test(t) &&              // "500+" connection count
+        !/connections?$/i.test(t) &&
+        !/contact info/i.test(t));
+    if (ps.length) headline = ps[0];
+    if (!company && ps.length > 1) company = ps[1];
+  }
+
+  // Represent the topcard current role as a single current entry for parseProfileRole.
+  const entries = (headline || company)
+    ? [{ title: headline, company: company, current: true, startDate: '9999-99' }]
+    : [];
 
   return { entries, headline };
 })()`;
 
 /**
- * Navigate to `linkedinUrl`, read the Experience section + headline via
+ * Navigate to `linkedinUrl`, read the current role from the topcard via
  * SCRAPE_PROFILE_FN_SOURCE, and return the parsed current role.
  *
  * Mirrors background.ts's `scrapeSearch`: open a background tab in the dedicated
- * automation window, wait for load, attach CDP, evaluate the page-context extractor,
- * then detach/close. Kept in this lib file (rather than background.ts) per this task's
- * scope; it reuses the same cdp.ts primitives (`openTabInAutomationWindow`, `attach`,
- * `send`, `detach`) as every other CDP-driven flow in the extension.
+ * automation window, wait for load, force-render, attach CDP, evaluate the page-context
+ * extractor, then detach/close. Reuses the same cdp.ts primitives as every other
+ * CDP-driven flow in the extension.
  */
 export async function scrapeProfile(
   linkedinUrl: string,
@@ -103,9 +120,8 @@ export async function scrapeProfile(
   try {
     await waitForTabLoad(tabId);
 
-    // Force the background tab to render, same as forceBackgroundRender() in background.ts —
-    // the Experience section is lazy/visibility-gated, so a minimized non-focused tab may
-    // never paint it without this.
+    // Force the background tab to render (the topcard is visibility-gated; a minimized
+    // non-focused tab may not paint it) — same as forceBackgroundRender() in background.ts.
     await send(tabId, "Emulation.setDeviceMetricsOverride", {
       width: 1280, height: 900, deviceScaleFactor: 1, mobile: false,
     }).catch(() => {});
@@ -117,7 +133,7 @@ export async function scrapeProfile(
     await send(tabId, "Page.enable", {}).catch(() => {});
     await send(tabId, "Page.setWebLifecycleState", { state: "active" }).catch(() => {});
 
-    // Give the page a moment to lazy-render the Experience section before reading it.
+    // Give the SDUI page a moment to hydrate the topcard before reading it.
     await sleep(1500);
 
     const result = await send<{ result: { value: { entries: RawEntry[]; headline: string | null } } }>(
