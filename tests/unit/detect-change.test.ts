@@ -71,6 +71,30 @@ describe("recordJobChangeIfAny", () => {
     expect(mockContactUpdate).toHaveBeenCalledOnce();
   });
 
+  it("suppresses a promotion — advances snapshot, no card (headline-derived title is noisy)", async () => {
+    mockJudge.mockResolvedValue({ changeType: "promotion", draftMessage: "מזל טוב!" });
+    const res = await recordJobChangeIfAny({
+      contactId: "c1", ownerId: "o1",
+      snapshotTitle: "PM", snapshotCompany: "Acme",
+      freshTitle: "Senior PM", freshCompany: "Acme",
+    });
+    expect(res).toEqual({ result: "title_suppressed", changeType: null });
+    expect(mockChangeCreate).not.toHaveBeenCalled();
+    expect(mockTransaction).not.toHaveBeenCalled();
+    expect(mockContactUpdate).toHaveBeenCalledOnce();
+  });
+
+  it("suppresses a title_change — advances snapshot, no card", async () => {
+    mockJudge.mockResolvedValue({ changeType: "title_change", draftMessage: "מזל טוב!" });
+    const res = await recordJobChangeIfAny({
+      contactId: "c1", ownerId: "o1",
+      snapshotTitle: "PM", snapshotCompany: "Acme",
+      freshTitle: "PM | Building the future", freshCompany: "Acme",
+    });
+    expect(res).toEqual({ result: "title_suppressed", changeType: null });
+    expect(mockChangeCreate).not.toHaveBeenCalled();
+  });
+
   it("records a change and draft when judge detects a real move", async () => {
     mockJudge.mockResolvedValue({ changeType: "company_move", draftMessage: "מזל טוב!" });
     const res = await recordJobChangeIfAny({

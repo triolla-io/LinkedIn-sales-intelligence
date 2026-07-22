@@ -13,7 +13,7 @@ export interface JobChangeInput {
 }
 
 export interface JobChangeResult {
-  result: "no_change" | "variant_only" | "change_detected";
+  result: "no_change" | "variant_only" | "title_suppressed" | "change_detected";
   changeType: "company_move" | "promotion" | "title_change" | null;
 }
 
@@ -84,9 +84,16 @@ export async function recordJobChangeIfAny(input: JobChangeInput): Promise<JobCh
     },
   });
 
-  if (judged.changeType === "none") {
+  // Only company moves raise an alert card. Company changes come from LinkedIn's structured
+  // company field (reliable); promotions/title changes derive from the free-text headline,
+  // which is noisy — a headline edit reads as a title change. Any non-company change silently
+  // advances the snapshot so it never re-flags.
+  if (judged.changeType !== "company_move") {
     await advanceSnapshot;
-    return { result: "variant_only", changeType: null };
+    return {
+      result: judged.changeType === "none" ? "variant_only" : "title_suppressed",
+      changeType: null,
+    };
   }
 
   let list;
