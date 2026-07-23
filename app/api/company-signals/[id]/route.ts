@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
+import { scheduleJitteredSend } from "@/lib/extension/schedule-send";
 
 type Body = { action: "approve"; message: string } | { action: "dismiss" };
 
@@ -36,6 +37,12 @@ export const PATCH = withTenant(async (req: NextRequest, ctx) => {
   });
   if (claimed.count === 0) return NextResponse.json({ error: "not_pending" }, { status: 409 });
 
+  // Humanized spacing: never fire back-to-back with other queued/recent SENDs (STA-18).
+  const { scheduledFor, delaySeconds } = await scheduleJitteredSend(ctx.effectiveUserId);
+  console.info(
+    `[company-signals] send jitter delay=${delaySeconds.toFixed(2)}s draft=${draft.id} recipient=${draft.contact.linkedinUrl} scheduledFor=${scheduledFor.toISOString()}`
+  );
+
   await prisma.extensionTask.create({
     data: {
       userId: ctx.effectiveUserId,
@@ -46,7 +53,7 @@ export const PATCH = withTenant(async (req: NextRequest, ctx) => {
         recipientName: draft.contact.fullName ?? "",
       } as Prisma.InputJsonValue,
       companySignalDraftId: draft.id,
-      scheduledFor: new Date(),
+      scheduledFor,
     },
   });
 

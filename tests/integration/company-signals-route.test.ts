@@ -4,6 +4,7 @@ const mockDraftFindFirst = vi.fn();
 const mockDraftUpdate = vi.fn();
 const mockDraftUpdateMany = vi.fn();
 const mockTaskCreate = vi.fn();
+const mockTaskFindFirst = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -12,7 +13,10 @@ vi.mock("@/lib/prisma", () => ({
       update: (...a: unknown[]) => mockDraftUpdate(...a),
       updateMany: (...a: unknown[]) => mockDraftUpdateMany(...a),
     },
-    extensionTask: { create: (...a: unknown[]) => mockTaskCreate(...a) },
+    extensionTask: {
+      create: (...a: unknown[]) => mockTaskCreate(...a),
+      findFirst: (...a: unknown[]) => mockTaskFindFirst(...a),
+    },
   },
   Prisma: { InputJsonValue: {} },
 }));
@@ -40,6 +44,7 @@ beforeEach(() => {
     contact: { fullName: "Dana", linkedinUrl: "https://linkedin.com/in/dana" },
   });
   mockDraftUpdateMany.mockResolvedValue({ count: 1 });
+  mockTaskFindFirst.mockResolvedValue(null);
 });
 
 describe("PATCH /api/company-signals/[id]", () => {
@@ -49,6 +54,27 @@ describe("PATCH /api/company-signals/[id]", () => {
     expect(mockTaskCreate).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ kind: "SEND", companySignalDraftId: "d1", userId: "u1" }),
     }));
+  });
+
+  it("approve schedules the SEND with a jittered future delay (45–180s)", async () => {
+    const before = Date.now();
+    const res = await PATCH(reqWith("d1", { action: "approve", message: "x" }) as never);
+    expect((res as Response).status).toBe(200);
+    const scheduledFor = mockTaskCreate.mock.calls[0][0].data.scheduledFor as Date;
+    const delayS = (scheduledFor.getTime() - before) / 1000;
+    expect(delayS).toBeGreaterThanOrEqual(45);
+    expect(delayS).toBeLessThanOrEqual(180 + 5); // small allowance for test runtime
+  });
+
+  it("approve stacks after an already-queued SEND task", async () => {
+    const queuedAt = new Date(Date.now() + 300_000); // a SEND already queued 5 min out
+    mockTaskFindFirst.mockImplementation((args: { where: { status?: unknown } }) =>
+      Promise.resolve(args.where.status && typeof args.where.status === "object" ? { scheduledFor: queuedAt } : null)
+    );
+    const res = await PATCH(reqWith("d1", { action: "approve", message: "x" }) as never);
+    expect((res as Response).status).toBe(200);
+    const scheduledFor = mockTaskCreate.mock.calls[0][0].data.scheduledFor as Date;
+    expect(scheduledFor.getTime()).toBeGreaterThanOrEqual(queuedAt.getTime() + 45_000);
   });
 
   it("returns 409 when not pending (guarded transition)", async () => {
