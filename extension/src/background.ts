@@ -318,7 +318,16 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     }
     throw caughtError;
   } finally {
-    if (attached) await detach(tabId).catch(() => {});
+    if (attached) {
+      // Navigate to about:blank BEFORE detaching so LinkedIn's compose page — and the
+      // beforeunload handler it arms once a draft is typed — is discarded while the CDP
+      // dialog auto-accept (see cdp.ts) is still active to accept the "leave" prompt.
+      // Landing on about:blank leaves no handler, so the chrome.tabs.remove below (which
+      // respects beforeunload) can't surface the native "Leave site?" dialog to the user.
+      await send(tabId, "Page.navigate", { url: "about:blank" }).catch(() => {});
+      await sleep(300);
+      await detach(tabId).catch(() => {});
+    }
     await chrome.tabs.remove(tabId).catch(() => {});
     await clearActiveTab();
   }

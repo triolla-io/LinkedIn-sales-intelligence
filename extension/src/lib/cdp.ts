@@ -9,6 +9,26 @@ async function windowExists(id: number): Promise<boolean> {
   try { await chrome.windows.get(id); return true; } catch { return false; }
 }
 
+// Auto-dismiss native JS dialogs (alert / confirm / beforeunload) on ANY attached tab.
+// LinkedIn arms a `beforeunload` handler whenever the compose box holds an unsent draft,
+// so navigating or closing that tab would otherwise surface the native "Leave site?"
+// prompt — which forces the minimized automation window to the foreground and blocks
+// until the user clicks. Accepting a beforeunload dialog means "leave the page", which is
+// exactly what we want when tearing an automation tab down. Registered once at module
+// load; re-registers on every service-worker restart because the module re-runs.
+// Guarded so importing this module in a non-extension context (unit tests) is a no-op.
+if (typeof chrome !== "undefined" && chrome.debugger?.onEvent) {
+  chrome.debugger.onEvent.addListener((source, method) => {
+    if (method !== "Page.javascriptDialogOpening" || source.tabId === undefined) return;
+    chrome.debugger.sendCommand(
+      { tabId: source.tabId },
+      "Page.handleJavaScriptDialog",
+      { accept: true },
+      () => { void chrome.runtime.lastError; }, // tab may have detached — ignore
+    );
+  });
+}
+
 /** Get (or lazily create) the dedicated, non-focused automation window. Returns its windowId. */
 export async function getAutomationWindow(): Promise<number> {
   const stored = await chrome.storage.local.get(AUTOMATION_WINDOW_KEY);
@@ -60,6 +80,9 @@ export async function attach(tabId: number): Promise<void> {
       else resolve();
     });
   });
+  // Enable the Page domain so Page.javascriptDialogOpening events fire and the global
+  // listener above can auto-dismiss LinkedIn's "Leave site?" beforeunload prompt.
+  await send(tabId, "Page.enable").catch(() => {});
 }
 
 export async function detach(tabId: number): Promise<void> {
