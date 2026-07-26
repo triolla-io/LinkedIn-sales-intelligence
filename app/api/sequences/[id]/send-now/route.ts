@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { renderTemplate } from "@/lib/campaigns/render-template";
+import { scheduleJitteredSend } from "@/lib/extension/schedule-send";
 
-// Send all pending executions immediately, bypassing scheduled time.
+// Send all pending executions "now" — bypasses the per-step scheduled time, but
+// still applies humanized inter-message spacing (STA-18) so a batch of approvals
+// doesn't dispatch as one detectable burst. Each task stacks on the prior one.
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return withTenant(async (_req: NextRequest, ctx) => {
@@ -34,13 +37,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         sender: { firstName: null, lastName: null, company: null, title: null },
       });
 
+      const { scheduledFor } = await scheduleJitteredSend(ctx.effectiveUserId);
       await prisma.extensionTask.create({
         data: {
           userId: ctx.effectiveUserId,
           kind: "SEND",
           payload: { linkedinUrl: contact.linkedinUrl, text: rendered.body, recipientName: contact.fullName ?? "" },
           sequenceExecutionId: ex.id,
-          scheduledFor: new Date(),
+          scheduledFor,
         },
       });
       await prisma.sequenceStepExecution.update({ where: { id: ex.id }, data: { status: "SENDING" } });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
+import { scheduleJitteredSend } from "@/lib/extension/schedule-send";
 
 type Body = { action: "approve"; message: string } | { action: "dismiss" };
 
@@ -43,6 +44,12 @@ export const PATCH = withTenant(async (req: NextRequest, ctx) => {
     return NextResponse.json({ error: "not_pending" }, { status: 409 });
   }
 
+  // Humanized spacing: never fire back-to-back with other queued/recent SENDs (STA-18).
+  const { scheduledFor, delaySeconds } = await scheduleJitteredSend(ctx.effectiveUserId);
+  console.info(
+    `[job-changes] send jitter delay=${delaySeconds.toFixed(2)}s change=${change.id} recipient=${change.contact.linkedinUrl} scheduledFor=${scheduledFor.toISOString()}`
+  );
+
   await prisma.extensionTask.create({
     data: {
       userId: ctx.effectiveUserId,
@@ -53,7 +60,7 @@ export const PATCH = withTenant(async (req: NextRequest, ctx) => {
         recipientName: change.contact.fullName ?? "",
       } as Prisma.InputJsonValue,
       jobChangeId: change.id,
-      scheduledFor: new Date(),
+      scheduledFor,
     },
   });
 
