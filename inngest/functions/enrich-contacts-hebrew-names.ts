@@ -52,6 +52,8 @@ export const enrichContactsHebrewNames = inngest.createFunction(
 
     // In-memory cache populated as we go (shared across batches within this run)
     const nameCache: Record<string, string> = {};
+    // Names the model could not transliterate this run — skip re-sending them.
+    const negativeCache = new Set<string>();
 
     let fromLookup = 0;
     let fromOpenRouter = 0;
@@ -90,9 +92,19 @@ export const enrichContactsHebrewNames = inngest.createFunction(
             continue;
           }
 
-          // 3. Global DB cache (NameTranslation table — shared across all tenants)
+          // 2b. In-memory negative cache — name proved unresolvable earlier this run.
+          // Leave hebrewFirstName null and skip the Haiku call.
+          if (negativeCache.has(key)) continue;
+
+          // 3. Global DB cache (NameTranslation table — shared across all tenants).
+          // Empty string is the "attempted, no transliteration" sentinel: skip the
+          // Haiku call and leave hebrewFirstName null (cheap to re-scan, never re-billed).
           const dbCached = await prisma.nameTranslation.findUnique({ where: { firstName: key } });
           if (dbCached) {
+            if (dbCached.hebrewFirstName === "") {
+              negativeCache.add(key);
+              continue;
+            }
             await prisma.contact.update({ where: { id: c.id }, data: { hebrewFirstName: dbCached.hebrewFirstName } });
             nameCache[key] = dbCached.hebrewFirstName;
             batchFromLookup++;
@@ -110,24 +122,41 @@ export const enrichContactsHebrewNames = inngest.createFunction(
           const chunk = needsTranslation.slice(j, j + OR_BATCH);
           const results = await translateNames(chunk);
 
+          const translated = new Map<string, string>(); // id -> hebrew (successes only)
           for (const r of results) {
-            if (!r.hebrewFirstName) continue;
-            const input = chunk.find((n) => n.id === r.id);
-            if (!input) continue;
-            const key = input.firstName.toLowerCase();
+            if (r.hebrewFirstName) translated.set(r.id, r.hebrewFirstName);
+          }
 
+          // Pass 1: persist successes. update overwrites any prior sentinel for this name.
+          for (const input of chunk) {
+            const hebrew = translated.get(input.id);
+            if (!hebrew) continue;
+            const key = input.firstName.toLowerCase();
             await prisma.contact.update({
-              where: { id: r.id },
-              data: { hebrewFirstName: r.hebrewFirstName },
+              where: { id: input.id },
+              data: { hebrewFirstName: hebrew },
             });
             // Persist to global cache so future runs skip the API call
             await prisma.nameTranslation.upsert({
               where: { firstName: key },
-              update: {},
-              create: { firstName: key, hebrewFirstName: r.hebrewFirstName },
+              update: { hebrewFirstName: hebrew },
+              create: { firstName: key, hebrewFirstName: hebrew },
             });
-            nameCache[key] = r.hebrewFirstName;
+            nameCache[key] = hebrew;
             batchFromOR++;
+          }
+
+          // Pass 2: negative-cache names the model could not transliterate, so tonight's
+          // null is not re-sent to Haiku every night. create-only never clobbers a success.
+          for (const input of chunk) {
+            const key = input.firstName.toLowerCase();
+            if (translated.has(input.id) || nameCache[key]) continue;
+            await prisma.nameTranslation.upsert({
+              where: { firstName: key },
+              update: {},
+              create: { firstName: key, hebrewFirstName: "" },
+            });
+            negativeCache.add(key);
           }
         }
 

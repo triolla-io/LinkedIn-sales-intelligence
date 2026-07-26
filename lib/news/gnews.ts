@@ -1,10 +1,12 @@
 import type { NewsResult } from "@/lib/news/types";
+import { reserveNewsCall } from "@/lib/news/budget";
 
 /** GNews API — https://gnews.io. Free tier 100 req/day.
- *  Missing key or any error → [] (never throws). */
+ *  Missing key, budget exhausted, or any error → [] (never throws). */
 export async function fetchGnews(query: string, opts: { max?: number } = {}): Promise<NewsResult[]> {
   const key = (process.env.GNEWS_API_KEY ?? "").trim();
   if (!key) return [];
+  if (!(await reserveNewsCall("gnews"))) return []; // stay inside the free 100/day quota
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);

@@ -6,6 +6,11 @@ import { lookupContact } from "@/lib/hubspot/client";
 import { inngest } from "@/inngest/client";
 import type { PropagatableValues } from "@/lib/enrichment/propagate";
 
+// A cached row with no email/phone is a prior Apollo no-match. Respect it for this
+// many days before retrying, so repeated bulk-enrich clicks don't re-charge ~1 credit
+// each for the same unmatchable person. Mirrors the 30-day company-enrichment window.
+const NEGATIVE_CACHE_DAYS = 30;
+
 /** Normalise a LinkedIn profile URL to its canonical /in/<slug> form.
  *  Returns empty string if the URL has no real profile slug. */
 export function normalizeLinkedinUrl(url: string): string {
@@ -170,6 +175,41 @@ export async function enrichContactCore(opts: {
       enrichmentRanAt: ranAt.toISOString(),
       creditsRemaining: budget.creditsRemaining,
     };
+  }
+
+  // ── 3b. Negative cache — a row exists but carries no contact info. Apollo already
+  // attempted this person and found no email/phone. Respect it for NEGATIVE_CACHE_DAYS
+  // so re-enriching the same list doesn't re-charge a credit per unmatchable contact.
+  // After the window, fall through and retry (contact info may have appeared since).
+  if (cached && !cached.email && !cached.phone) {
+    const ageMs = ranAt.getTime() - cached.updatedAt.getTime();
+    if (ageMs < NEGATIVE_CACHE_DAYS * 24 * 60 * 60 * 1000) {
+      const patch: Record<string, unknown> = {
+        enrichedAt: ranAt,
+        enrichmentSource: "cache",
+        enrichmentRanAt: ranAt,
+        enrichmentError: null,
+      };
+      if (cached.companySize) patch.companySize = cached.companySize;
+      if (!protectedFields.has("currentCompany") && cached.currentCompany && !contact.currentCompany)
+        patch.currentCompany = cached.currentCompany;
+      if (!protectedFields.has("industry") && cached.industry && !contact.industry)
+        patch.industry = cached.industry;
+      await prisma.contact.update({ where: { id: contact.id }, data: patch });
+      return {
+        status: "ok",
+        source: "cache",
+        email: null,
+        phone: null,
+        companySize: cached.companySize ?? null,
+        currentCompany: cached.currentCompany ?? null,
+        industry: cached.industry ?? null,
+        enrichmentLog: null,
+        enrichedByContactId: cached.enrichedByContactId ?? null,
+        enrichmentRanAt: ranAt.toISOString(),
+        creditsRemaining: budget.creditsRemaining,
+      };
+    }
   }
 
   // ── 4. Cache miss — call Apollo (paid) ──────────────────────────────────

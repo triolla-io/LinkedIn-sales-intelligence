@@ -1,9 +1,9 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
-import { enrichCompanyViaOpenRouter, isOpenRouterConfigured } from "@/lib/enrichment/openrouter-search";
+import { enrichCompaniesViaOpenRouter, isOpenRouterConfigured } from "@/lib/enrichment/openrouter-search";
 
 const BATCH = 40;       // companies per Inngest step
-const CONCURRENCY = 8;  // parallel OpenRouter calls
+const OR_BATCH = 20;    // companies per OpenRouter call (was 1 call per company)
 
 export const enrichCompaniesWeb = inngest.createFunction(
   {
@@ -55,59 +55,64 @@ export const enrichCompaniesWeb = inngest.createFunction(
         let batchEnriched = 0;
         let batchSkipped = 0;
 
-        for (let j = 0; j < batch.length; j += CONCURRENCY) {
-          const chunk = batch.slice(j, j + CONCURRENCY);
-          await Promise.all(
-            chunk.map(async (company: { id: string; name: string; universalName: string }) => {
-              // DB-first: re-check in case another batch already enriched it
-              const fresh = await prisma.company.findUnique({
-                where: { id: company.id },
-                select: { staffCount: true, industry: true, vertical: true },
-              });
-              if (fresh?.staffCount != null && fresh?.industry != null && fresh?.vertical != null) {
-                batchSkipped++;
-                return;
-              }
+        // DB-first: re-check freshness and collect only companies still missing data
+        // (another batch/run may have filled them in the meantime).
+        const toEnrich: { id: string; name: string }[] = [];
+        for (const company of batch as { id: string; name: string; universalName: string }[]) {
+          const fresh = await prisma.company.findUnique({
+            where: { id: company.id },
+            select: { staffCount: true, industry: true, vertical: true },
+          });
+          if (fresh?.staffCount != null && fresh?.industry != null && fresh?.vertical != null) {
+            batchSkipped++;
+            continue;
+          }
+          toEnrich.push({ id: company.id, name: company.name || company.universalName });
+        }
 
-              try {
-                const result = await enrichCompanyViaOpenRouter(company.name || company.universalName);
-                if (
-                  result.confidence !== "none" &&
-                  (result.staffCount != null || result.industry || result.vertical || result.description)
-                ) {
-                  const result_data = await prisma.company.update({
-                    where: { id: company.id },
-                    data: {
-                      staffCount: result.staffCount ?? undefined,
-                      industry: result.industry ?? undefined,
-                      vertical: result.vertical ?? undefined,
-                      website: result.website ?? undefined,
-                      description: result.description ?? undefined,
-                      lastEnrichedAt: new Date(),
-                    },
-                  });
-                  if (result_data.staffCount) {
-                    await prisma.contact.updateMany({
-                      where: { companyId: company.id, companySize: null },
-                      data: { companySize: result_data.staffCount },
-                    });
-                  }
-                  batchEnriched++;
-                } else {
-                  // Mark as attempted so it's skipped for 30 days
-                  await prisma.company.update({
-                    where: { id: company.id },
-                    data: { lastEnrichedAt: new Date() },
-                  });
-                }
-              } catch (e: any) {
-                if (e?.message?.includes("rate limit") || e?.message?.includes("429")) throw e;
-                console.error(`[enrich-companies-web] "${company.name}" failed:`, (e as Error)?.message);
+        // One OpenRouter call per OR_BATCH companies (was one call per company).
+        for (let j = 0; j < toEnrich.length; j += OR_BATCH) {
+          const chunk = toEnrich.slice(j, j + OR_BATCH);
+          // Throws on 429/5xx → the Inngest step retries instead of marking attempted.
+          const results = await enrichCompaniesViaOpenRouter(chunk);
+
+          for (const company of chunk) {
+            const result = results.get(company.id);
+            if (
+              result &&
+              result.confidence !== "none" &&
+              (result.staffCount != null || result.industry || result.vertical || result.description)
+            ) {
+              const updated = await prisma.company.update({
+                where: { id: company.id },
+                data: {
+                  staffCount: result.staffCount ?? undefined,
+                  industry: result.industry ?? undefined,
+                  vertical: result.vertical ?? undefined,
+                  website: result.website ?? undefined,
+                  description: result.description ?? undefined,
+                  lastEnrichedAt: new Date(),
+                },
+              });
+              if (updated.staffCount) {
+                await prisma.contact.updateMany({
+                  where: { companyId: company.id, companySize: null },
+                  data: { companySize: updated.staffCount },
+                });
               }
-            }),
-          );
+              batchEnriched++;
+            } else {
+              // Attempted (unknown company, or model omitted it) — mark so it's
+              // skipped for 30 days rather than re-queried on every run.
+              await prisma.company.update({
+                where: { id: company.id },
+                data: { lastEnrichedAt: new Date() },
+              });
+            }
+          }
           await new Promise((r) => setTimeout(r, 50));
         }
+
         return { enriched: batchEnriched, skipped: batchSkipped };
       });
 

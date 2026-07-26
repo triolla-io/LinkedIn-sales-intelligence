@@ -1,10 +1,12 @@
 import type { NewsResult } from "@/lib/news/types";
+import { reserveNewsCall } from "@/lib/news/budget";
 
 /** Serper.dev news search — https://serper.dev. Free credits then ~$0.001/query.
- *  Missing key or any error → [] (never throws). */
+ *  Missing key, budget exhausted, or any error → [] (never throws). */
 export async function fetchSerper(query: string): Promise<NewsResult[]> {
   const key = (process.env.SERPER_API_KEY ?? "").trim();
   if (!key) return [];
+  if (!(await reserveNewsCall("serper"))) return []; // cap monthly pay-per-query spend
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);

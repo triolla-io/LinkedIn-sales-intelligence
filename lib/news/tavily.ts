@@ -1,13 +1,15 @@
 import type { NewsResult } from "@/lib/news/types";
+import { reserveNewsCall } from "@/lib/news/budget";
 
 /** Tavily Search API — https://docs.tavily.com. Free tier ~1,000 searches/mo.
- *  Missing key or any error → [] (never throws). */
+ *  Missing key, budget exhausted, or any error → [] (never throws). */
 export async function fetchTavily(
   query: string,
   opts: { days?: number; maxResults?: number } = {}
 ): Promise<NewsResult[]> {
   const key = (process.env.TAVILY_API_KEY ?? "").trim();
   if (!key) return [];
+  if (!(await reserveNewsCall("tavily"))) return []; // stay inside the free monthly quota
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
