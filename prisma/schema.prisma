@@ -638,6 +638,8 @@ model SequenceStep {
   sendHour    Int             @default(9)
   sendMinute  Int             @default(0)
   sendHourEnd Int?
+  // Minute offset within the (optional) end hour — half-hour window ends like 21:30.
+  sendMinuteEnd Int           @default(0)
   channel     CampaignChannel
   templateId  String
   subject     String?
@@ -762,6 +764,9 @@ model ProspectingRun {
   weeklyCap       Int                        @default(100)
   sendHoursStart  Int                        @default(9)
   sendHoursEnd    Int                        @default(18)
+  // Half-hour granularity: minute offset (0 or 30) within the start/end hour, e.g. end 21:30.
+  sendMinutesStart Int                       @default(0)
+  sendMinutesEnd  Int                        @default(0)
   sendDays        Int[]
   discoveryDone   Boolean                    @default(false)
   connectInFlight Boolean                    @default(false)
@@ -923,6 +928,9 @@ model CompanySignalDraft {
   contactId    String
   contact      Contact                  @relation(fields: [contactId], references: [id], onDelete: Cascade)
   draftMessage String                   @db.Text
+  emailSubject    String?
+  emailBody       String? @db.Text
+  whatsappMessage String? @db.Text
   status       CompanySignalDraftStatus @default(PENDING_REVIEW)
   channel      String                   @default("LINKEDIN")
   sentAt       DateTime?

@@ -30,6 +30,9 @@ export type CompanySignalDraftMinAggregateOutputType = {
   ownerId: string | null
   contactId: string | null
   draftMessage: string | null
+  emailSubject: string | null
+  emailBody: string | null
+  whatsappMessage: string | null
   status: $Enums.CompanySignalDraftStatus | null
   channel: string | null
   sentAt: Date | null
@@ -43,6 +46,9 @@ export type CompanySignalDraftMaxAggregateOutputType = {
   ownerId: string | null
   contactId: string | null
   draftMessage: string | null
+  emailSubject: string | null
+  emailBody: string | null
+  whatsappMessage: string | null
   status: $Enums.CompanySignalDraftStatus | null
   channel: string | null
   sentAt: Date | null
@@ -56,6 +62,9 @@ export type CompanySignalDraftCountAggregateOutputType = {
   ownerId: number
   contactId: number
   draftMessage: number
+  emailSubject: number
+  emailBody: number
+  whatsappMessage: number
   status: number
   channel: number
   sentAt: number
@@ -71,6 +80,9 @@ export type CompanySignalDraftMinAggregateInputType = {
   ownerId?: true
   contactId?: true
   draftMessage?: true
+  emailSubject?: true
+  emailBody?: true
+  whatsappMessage?: true
   status?: true
   channel?: true
   sentAt?: true
@@ -84,6 +96,9 @@ export type CompanySignalDraftMaxAggregateInputType = {
   ownerId?: true
   contactId?: true
   draftMessage?: true
+  emailSubject?: true
+  emailBody?: true
+  whatsappMessage?: true
   status?: true
   channel?: true
   sentAt?: true
@@ -97,6 +112,9 @@ export type CompanySignalDraftCountAggregateInputType = {
   ownerId?: true
   contactId?: true
   draftMessage?: true
+  emailSubject?: true
+  emailBody?: true
+  whatsappMessage?: true
   status?: true
   channel?: true
   sentAt?: true
@@ -183,6 +201,9 @@ export type CompanySignalDraftGroupByOutputType = {
   ownerId: string
   contactId: string
   draftMessage: string
+  emailSubject: string | null
+  emailBody: string | null
+  whatsappMessage: string | null
   status: $Enums.CompanySignalDraftStatus
   channel: string
   sentAt: Date | null
@@ -217,6 +238,9 @@ export type CompanySignalDraftWhereInput = {
   ownerId?: Prisma.StringFilter<"CompanySignalDraft"> | string
   contactId?: Prisma.StringFilter<"CompanySignalDraft"> | string
   draftMessage?: Prisma.StringFilter<"CompanySignalDraft"> | string
+  emailSubject?: Prisma.StringNullableFilter<"CompanySignalDraft"> | string | null
+  emailBody?: Prisma.StringNullableFilter<"CompanySignalDraft"> | string | null
+  whatsappMessage?: Prisma.StringNullableFilter<"CompanySignalDraft"> | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFilter<"CompanySignalDraft"> | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFilter<"CompanySignalDraft"> | string
   sentAt?: Prisma.DateTimeNullableFilter<"CompanySignalDraft"> | Date | string | null
@@ -233,6 +257,9 @@ export type CompanySignalDraftOrderByWithRelationInput = {
   ownerId?: Prisma.SortOrder
   contactId?: Prisma.SortOrder
   draftMessage?: Prisma.SortOrder
+  emailSubject?: Prisma.SortOrderInput | Prisma.SortOrder
+  emailBody?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatsappMessage?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -253,6 +280,9 @@ export type CompanySignalDraftWhereUniqueInput = Prisma.AtLeast<{
   ownerId?: Prisma.StringFilter<"CompanySignalDraft"> | string
   contactId?: Prisma.StringFilter<"CompanySignalDraft"> | string
   draftMessage?: Prisma.StringFilter<"CompanySignalDraft"> | string
+  emailSubject?: Prisma.StringNullableFilter<"CompanySignalDraft"> | string | null
+  emailBody?: Prisma.StringNullableFilter<"CompanySignalDraft"> | string | null
+  whatsappMessage?: Prisma.StringNullableFilter<"CompanySignalDraft"> | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFilter<"CompanySignalDraft"> | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFilter<"CompanySignalDraft"> | string
   sentAt?: Prisma.DateTimeNullableFilter<"CompanySignalDraft"> | Date | string | null
@@ -269,6 +299,9 @@ export type CompanySignalDraftOrderByWithAggregationInput = {
   ownerId?: Prisma.SortOrder
   contactId?: Prisma.SortOrder
   draftMessage?: Prisma.SortOrder
+  emailSubject?: Prisma.SortOrderInput | Prisma.SortOrder
+  emailBody?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatsappMessage?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -288,6 +321,9 @@ export type CompanySignalDraftScalarWhereWithAggregatesInput = {
   ownerId?: Prisma.StringWithAggregatesFilter<"CompanySignalDraft"> | string
   contactId?: Prisma.StringWithAggregatesFilter<"CompanySignalDraft"> | string
   draftMessage?: Prisma.StringWithAggregatesFilter<"CompanySignalDraft"> | string
+  emailSubject?: Prisma.StringNullableWithAggregatesFilter<"CompanySignalDraft"> | string | null
+  emailBody?: Prisma.StringNullableWithAggregatesFilter<"CompanySignalDraft"> | string | null
+  whatsappMessage?: Prisma.StringNullableWithAggregatesFilter<"CompanySignalDraft"> | string | null
   status?: Prisma.EnumCompanySignalDraftStatusWithAggregatesFilter<"CompanySignalDraft"> | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringWithAggregatesFilter<"CompanySignalDraft"> | string
   sentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"CompanySignalDraft"> | Date | string | null
@@ -298,6 +334,9 @@ export type CompanySignalDraftScalarWhereWithAggregatesInput = {
 export type CompanySignalDraftCreateInput = {
   id?: string
   draftMessage: string
+  emailSubject?: string | null
+  emailBody?: string | null
+  whatsappMessage?: string | null
   status?: $Enums.CompanySignalDraftStatus
   channel?: string
   sentAt?: Date | string | null
@@ -314,6 +353,9 @@ export type CompanySignalDraftUncheckedCreateInput = {
   ownerId: string
   contactId: string
   draftMessage: string
+  emailSubject?: string | null
+  emailBody?: string | null
+  whatsappMessage?: string | null
   status?: $Enums.CompanySignalDraftStatus
   channel?: string
   sentAt?: Date | string | null
@@ -324,6 +366,9 @@ export type CompanySignalDraftUncheckedCreateInput = {
 export type CompanySignalDraftUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   draftMessage?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFieldUpdateOperationsInput | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -340,6 +385,9 @@ export type CompanySignalDraftUncheckedUpdateInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   contactId?: Prisma.StringFieldUpdateOperationsInput | string
   draftMessage?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFieldUpdateOperationsInput | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -353,6 +401,9 @@ export type CompanySignalDraftCreateManyInput = {
   ownerId: string
   contactId: string
   draftMessage: string
+  emailSubject?: string | null
+  emailBody?: string | null
+  whatsappMessage?: string | null
   status?: $Enums.CompanySignalDraftStatus
   channel?: string
   sentAt?: Date | string | null
@@ -363,6 +414,9 @@ export type CompanySignalDraftCreateManyInput = {
 export type CompanySignalDraftUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   draftMessage?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFieldUpdateOperationsInput | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -376,6 +430,9 @@ export type CompanySignalDraftUncheckedUpdateManyInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   contactId?: Prisma.StringFieldUpdateOperationsInput | string
   draftMessage?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFieldUpdateOperationsInput | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -404,6 +461,9 @@ export type CompanySignalDraftCountOrderByAggregateInput = {
   ownerId?: Prisma.SortOrder
   contactId?: Prisma.SortOrder
   draftMessage?: Prisma.SortOrder
+  emailSubject?: Prisma.SortOrder
+  emailBody?: Prisma.SortOrder
+  whatsappMessage?: Prisma.SortOrder
   status?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
@@ -417,6 +477,9 @@ export type CompanySignalDraftMaxOrderByAggregateInput = {
   ownerId?: Prisma.SortOrder
   contactId?: Prisma.SortOrder
   draftMessage?: Prisma.SortOrder
+  emailSubject?: Prisma.SortOrder
+  emailBody?: Prisma.SortOrder
+  whatsappMessage?: Prisma.SortOrder
   status?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
@@ -430,6 +493,9 @@ export type CompanySignalDraftMinOrderByAggregateInput = {
   ownerId?: Prisma.SortOrder
   contactId?: Prisma.SortOrder
   draftMessage?: Prisma.SortOrder
+  emailSubject?: Prisma.SortOrder
+  emailBody?: Prisma.SortOrder
+  whatsappMessage?: Prisma.SortOrder
   status?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
@@ -570,6 +636,9 @@ export type EnumCompanySignalDraftStatusFieldUpdateOperationsInput = {
 export type CompanySignalDraftCreateWithoutOwnerInput = {
   id?: string
   draftMessage: string
+  emailSubject?: string | null
+  emailBody?: string | null
+  whatsappMessage?: string | null
   status?: $Enums.CompanySignalDraftStatus
   channel?: string
   sentAt?: Date | string | null
@@ -584,6 +653,9 @@ export type CompanySignalDraftUncheckedCreateWithoutOwnerInput = {
   signalId: string
   contactId: string
   draftMessage: string
+  emailSubject?: string | null
+  emailBody?: string | null
+  whatsappMessage?: string | null
   status?: $Enums.CompanySignalDraftStatus
   channel?: string
   sentAt?: Date | string | null
@@ -626,6 +698,9 @@ export type CompanySignalDraftScalarWhereInput = {
   ownerId?: Prisma.StringFilter<"CompanySignalDraft"> | string
   contactId?: Prisma.StringFilter<"CompanySignalDraft"> | string
   draftMessage?: Prisma.StringFilter<"CompanySignalDraft"> | string
+  emailSubject?: Prisma.StringNullableFilter<"CompanySignalDraft"> | string | null
+  emailBody?: Prisma.StringNullableFilter<"CompanySignalDraft"> | string | null
+  whatsappMessage?: Prisma.StringNullableFilter<"CompanySignalDraft"> | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFilter<"CompanySignalDraft"> | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFilter<"CompanySignalDraft"> | string
   sentAt?: Prisma.DateTimeNullableFilter<"CompanySignalDraft"> | Date | string | null
@@ -636,6 +711,9 @@ export type CompanySignalDraftScalarWhereInput = {
 export type CompanySignalDraftCreateWithoutContactInput = {
   id?: string
   draftMessage: string
+  emailSubject?: string | null
+  emailBody?: string | null
+  whatsappMessage?: string | null
   status?: $Enums.CompanySignalDraftStatus
   channel?: string
   sentAt?: Date | string | null
@@ -650,6 +728,9 @@ export type CompanySignalDraftUncheckedCreateWithoutContactInput = {
   signalId: string
   ownerId: string
   draftMessage: string
+  emailSubject?: string | null
+  emailBody?: string | null
+  whatsappMessage?: string | null
   status?: $Enums.CompanySignalDraftStatus
   channel?: string
   sentAt?: Date | string | null
@@ -686,6 +767,9 @@ export type CompanySignalDraftUpdateManyWithWhereWithoutContactInput = {
 export type CompanySignalDraftCreateWithoutSignalInput = {
   id?: string
   draftMessage: string
+  emailSubject?: string | null
+  emailBody?: string | null
+  whatsappMessage?: string | null
   status?: $Enums.CompanySignalDraftStatus
   channel?: string
   sentAt?: Date | string | null
@@ -700,6 +784,9 @@ export type CompanySignalDraftUncheckedCreateWithoutSignalInput = {
   ownerId: string
   contactId: string
   draftMessage: string
+  emailSubject?: string | null
+  emailBody?: string | null
+  whatsappMessage?: string | null
   status?: $Enums.CompanySignalDraftStatus
   channel?: string
   sentAt?: Date | string | null
@@ -738,6 +825,9 @@ export type CompanySignalDraftCreateManyOwnerInput = {
   signalId: string
   contactId: string
   draftMessage: string
+  emailSubject?: string | null
+  emailBody?: string | null
+  whatsappMessage?: string | null
   status?: $Enums.CompanySignalDraftStatus
   channel?: string
   sentAt?: Date | string | null
@@ -748,6 +838,9 @@ export type CompanySignalDraftCreateManyOwnerInput = {
 export type CompanySignalDraftUpdateWithoutOwnerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   draftMessage?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFieldUpdateOperationsInput | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -762,6 +855,9 @@ export type CompanySignalDraftUncheckedUpdateWithoutOwnerInput = {
   signalId?: Prisma.StringFieldUpdateOperationsInput | string
   contactId?: Prisma.StringFieldUpdateOperationsInput | string
   draftMessage?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFieldUpdateOperationsInput | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -774,6 +870,9 @@ export type CompanySignalDraftUncheckedUpdateManyWithoutOwnerInput = {
   signalId?: Prisma.StringFieldUpdateOperationsInput | string
   contactId?: Prisma.StringFieldUpdateOperationsInput | string
   draftMessage?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFieldUpdateOperationsInput | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -786,6 +885,9 @@ export type CompanySignalDraftCreateManyContactInput = {
   signalId: string
   ownerId: string
   draftMessage: string
+  emailSubject?: string | null
+  emailBody?: string | null
+  whatsappMessage?: string | null
   status?: $Enums.CompanySignalDraftStatus
   channel?: string
   sentAt?: Date | string | null
@@ -796,6 +898,9 @@ export type CompanySignalDraftCreateManyContactInput = {
 export type CompanySignalDraftUpdateWithoutContactInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   draftMessage?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFieldUpdateOperationsInput | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -810,6 +915,9 @@ export type CompanySignalDraftUncheckedUpdateWithoutContactInput = {
   signalId?: Prisma.StringFieldUpdateOperationsInput | string
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   draftMessage?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFieldUpdateOperationsInput | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -822,6 +930,9 @@ export type CompanySignalDraftUncheckedUpdateManyWithoutContactInput = {
   signalId?: Prisma.StringFieldUpdateOperationsInput | string
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   draftMessage?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFieldUpdateOperationsInput | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -834,6 +945,9 @@ export type CompanySignalDraftCreateManySignalInput = {
   ownerId: string
   contactId: string
   draftMessage: string
+  emailSubject?: string | null
+  emailBody?: string | null
+  whatsappMessage?: string | null
   status?: $Enums.CompanySignalDraftStatus
   channel?: string
   sentAt?: Date | string | null
@@ -844,6 +958,9 @@ export type CompanySignalDraftCreateManySignalInput = {
 export type CompanySignalDraftUpdateWithoutSignalInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   draftMessage?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFieldUpdateOperationsInput | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -858,6 +975,9 @@ export type CompanySignalDraftUncheckedUpdateWithoutSignalInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   contactId?: Prisma.StringFieldUpdateOperationsInput | string
   draftMessage?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFieldUpdateOperationsInput | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -870,6 +990,9 @@ export type CompanySignalDraftUncheckedUpdateManyWithoutSignalInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   contactId?: Prisma.StringFieldUpdateOperationsInput | string
   draftMessage?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailBody?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCompanySignalDraftStatusFieldUpdateOperationsInput | $Enums.CompanySignalDraftStatus
   channel?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -885,6 +1008,9 @@ export type CompanySignalDraftSelect<ExtArgs extends runtime.Types.Extensions.In
   ownerId?: boolean
   contactId?: boolean
   draftMessage?: boolean
+  emailSubject?: boolean
+  emailBody?: boolean
+  whatsappMessage?: boolean
   status?: boolean
   channel?: boolean
   sentAt?: boolean
@@ -901,6 +1027,9 @@ export type CompanySignalDraftSelectCreateManyAndReturn<ExtArgs extends runtime.
   ownerId?: boolean
   contactId?: boolean
   draftMessage?: boolean
+  emailSubject?: boolean
+  emailBody?: boolean
+  whatsappMessage?: boolean
   status?: boolean
   channel?: boolean
   sentAt?: boolean
@@ -917,6 +1046,9 @@ export type CompanySignalDraftSelectUpdateManyAndReturn<ExtArgs extends runtime.
   ownerId?: boolean
   contactId?: boolean
   draftMessage?: boolean
+  emailSubject?: boolean
+  emailBody?: boolean
+  whatsappMessage?: boolean
   status?: boolean
   channel?: boolean
   sentAt?: boolean
@@ -933,6 +1065,9 @@ export type CompanySignalDraftSelectScalar = {
   ownerId?: boolean
   contactId?: boolean
   draftMessage?: boolean
+  emailSubject?: boolean
+  emailBody?: boolean
+  whatsappMessage?: boolean
   status?: boolean
   channel?: boolean
   sentAt?: boolean
@@ -940,7 +1075,7 @@ export type CompanySignalDraftSelectScalar = {
   updatedAt?: boolean
 }
 
-export type CompanySignalDraftOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "signalId" | "ownerId" | "contactId" | "draftMessage" | "status" | "channel" | "sentAt" | "createdAt" | "updatedAt", ExtArgs["result"]["companySignalDraft"]>
+export type CompanySignalDraftOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "signalId" | "ownerId" | "contactId" | "draftMessage" | "emailSubject" | "emailBody" | "whatsappMessage" | "status" | "channel" | "sentAt" | "createdAt" | "updatedAt", ExtArgs["result"]["companySignalDraft"]>
 export type CompanySignalDraftInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   signal?: boolean | Prisma.CompanySignalDefaultArgs<ExtArgs>
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -970,6 +1105,9 @@ export type $CompanySignalDraftPayload<ExtArgs extends runtime.Types.Extensions.
     ownerId: string
     contactId: string
     draftMessage: string
+    emailSubject: string | null
+    emailBody: string | null
+    whatsappMessage: string | null
     status: $Enums.CompanySignalDraftStatus
     channel: string
     sentAt: Date | null
@@ -1406,6 +1544,9 @@ export interface CompanySignalDraftFieldRefs {
   readonly ownerId: Prisma.FieldRef<"CompanySignalDraft", 'String'>
   readonly contactId: Prisma.FieldRef<"CompanySignalDraft", 'String'>
   readonly draftMessage: Prisma.FieldRef<"CompanySignalDraft", 'String'>
+  readonly emailSubject: Prisma.FieldRef<"CompanySignalDraft", 'String'>
+  readonly emailBody: Prisma.FieldRef<"CompanySignalDraft", 'String'>
+  readonly whatsappMessage: Prisma.FieldRef<"CompanySignalDraft", 'String'>
   readonly status: Prisma.FieldRef<"CompanySignalDraft", 'CompanySignalDraftStatus'>
   readonly channel: Prisma.FieldRef<"CompanySignalDraft", 'String'>
   readonly sentAt: Prisma.FieldRef<"CompanySignalDraft", 'DateTime'>
