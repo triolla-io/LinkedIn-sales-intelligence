@@ -1,3 +1,5 @@
+import { sampleJitterSeconds } from "@/lib/extension/send-jitter";
+
 type Input = {
   timezone: string;          // IANA, e.g. "Asia/Jerusalem"
   workingHoursStart: number; // 0-23
@@ -13,16 +15,30 @@ type Input = {
   sentLastHourCount: number;
   dailyCap: number;
   hourlyCap: number;
+  /**
+   * Opt-in gentle pacing (connection requests): today's drawn send target.
+   * When set — gaps become dynamic (remaining window ÷ remaining quota,
+   * Gaussian ±35%, 15-min floor) and day starts are softened by 10–45 min.
+   * Absent = legacy behavior (sequence SENDs must stay unchanged).
+   */
+  dailyTarget?: number;
+  /** Injectable randomness for tests. Defaults to Math.random. */
+  rng?: () => number;
 };
 
 const MIN_GAP_MIN = 3;
 const MAX_GAP_MIN = 10;
+const DYNAMIC_MIN_GAP_MIN = 15;
+const SOFT_START_MIN_OFFSET_MIN = 10;
+const SOFT_START_MAX_OFFSET_MIN = 45;
 
 export function computeNextScheduledFor(input: Input): Date {
   const now = new Date();
+  const rng = input.rng ?? Math.random;
 
-  if (input.sentTodayCount >= input.dailyCap) {
-    return nextWorkdayStart(now, input);
+  const dailyLimit = Math.min(input.dailyTarget ?? input.dailyCap, input.dailyCap);
+  if (input.sentTodayCount >= dailyLimit) {
+    return nextWorkdayStart(now, input, rng);
   }
   if (input.sentLastHourCount >= input.hourlyCap) {
     return roundUpToNextHour(now);
@@ -30,15 +46,49 @@ export function computeNextScheduledFor(input: Input): Date {
 
   // First ever send — schedule immediately so the extension picks it up in the next poll cycle.
   if (input.lastSentAt === null) {
-    return clampToWorkingHours(now, input);
+    return clampToWorkingHours(now, input, rng);
   }
 
-  const candidate = addRandomMinutes(now, MIN_GAP_MIN, MAX_GAP_MIN);
-  return clampToWorkingHours(candidate, input);
+  const candidate =
+    input.dailyTarget !== undefined
+      ? new Date(now.getTime() + dynamicGapMinutes(now, input, rng) * 60_000)
+      : addRandomMinutes(now, MIN_GAP_MIN, MAX_GAP_MIN, rng);
+  return clampToWorkingHours(candidate, input, rng);
 }
 
-function addRandomMinutes(from: Date, min: number, max: number): Date {
-  const ms = (min + Math.random() * (max - min)) * 60_000;
+/**
+ * Dynamic gap: remaining window ÷ remaining quota, Gaussian-jittered ±35%,
+ * floored at 15 min — spreads the day's sends across the whole window with
+ * an irregular rhythm instead of a morning burst.
+ */
+function dynamicGapMinutes(now: Date, input: Input, rng: () => number): number {
+  const local = toZonedParts(now, input.timezone);
+  const endMin = input.workingHoursEnd * 60 + (input.workingMinutesEnd ?? 0);
+  const remainingWindow = Math.max(0, endMin - local.minuteOfDay);
+  const remainingQuota = Math.max(1, (input.dailyTarget ?? input.dailyCap) - input.sentTodayCount);
+  const target = remainingWindow / remainingQuota;
+  const min = Math.max(DYNAMIC_MIN_GAP_MIN, target * 0.65);
+  const max = Math.max(min, target * 1.35);
+  // sampleJitterSeconds is unit-agnostic (mean/sd/clamp) — feeding minutes returns minutes.
+  return sampleJitterSeconds({ minSeconds: min, maxSeconds: max, source: "default" }, rng);
+}
+
+/**
+ * Soft day start (gentle mode only): never open fire at the window boundary
+ * exactly — a 9:00:00.000 first send every day is a robotic signature.
+ * Offset is clamped to half the window for very short windows.
+ */
+function softStartOffsetMin(input: Input, rng: () => number): number {
+  if (input.dailyTarget === undefined) return 0;
+  const startMin = input.workingHoursStart * 60 + (input.workingMinutesStart ?? 0);
+  const endMin = input.workingHoursEnd * 60 + (input.workingMinutesEnd ?? 0);
+  const maxOffset = Math.min(SOFT_START_MAX_OFFSET_MIN, Math.max(0, (endMin - startMin) / 2));
+  const minOffset = Math.min(SOFT_START_MIN_OFFSET_MIN, maxOffset);
+  return minOffset + rng() * (maxOffset - minOffset);
+}
+
+function addRandomMinutes(from: Date, min: number, max: number, rng: () => number): Date {
+  const ms = (min + rng() * (max - min)) * 60_000;
   return new Date(from.getTime() + ms);
 }
 
@@ -54,13 +104,13 @@ function isWorkingDay(weekday: number, input: Input): boolean {
   return days.includes(weekday);
 }
 
-function clampToWorkingHours(d: Date, input: Input): Date {
+function clampToWorkingHours(d: Date, input: Input, rng: () => number): Date {
   const local = toZonedParts(d, input.timezone);
   const startMin = input.workingHoursStart * 60 + (input.workingMinutesStart ?? 0);
   const endMin = input.workingHoursEnd * 60 + (input.workingMinutesEnd ?? 0);
   const inHours = local.minuteOfDay >= startMin && local.minuteOfDay < endMin;
   if (inHours && (!input.weekdaysOnly || isWorkingDay(local.weekday, input))) return d;
-  return nextWorkdayStart(d, input);
+  return nextWorkdayStart(d, input, rng);
 }
 
 /** True when `d` falls on an allowed weekday and inside [start, end) hours, in `timezone`. */
@@ -85,7 +135,7 @@ export function isWithinWindow(
   );
 }
 
-function nextWorkdayStart(from: Date, input: Input): Date {
+function nextWorkdayStart(from: Date, input: Input, rng: () => number): Date {
   const cursor = new Date(from);
   const startHour = input.workingHoursStart;
   const startMinute = input.workingMinutesStart ?? 0;
@@ -93,13 +143,15 @@ function nextWorkdayStart(from: Date, input: Input): Date {
   const today = toZonedParts(cursor, input.timezone);
   const todayIsWorkday = !input.weekdaysOnly || isWorkingDay(today.weekday, input);
   if (todayIsWorkday && today.minuteOfDay < startHour * 60 + startMinute) {
-    return setHourInZone(cursor, input.timezone, startHour, startMinute);
+    const start = setHourInZone(cursor, input.timezone, startHour, startMinute);
+    return new Date(start.getTime() + softStartOffsetMin(input, rng) * 60_000);
   }
   cursor.setUTCDate(cursor.getUTCDate() + 1);
   while (true) {
     const parts = toZonedParts(cursor, input.timezone);
     if (!input.weekdaysOnly || isWorkingDay(parts.weekday, input)) {
-      return setHourInZone(cursor, input.timezone, startHour, startMinute);
+      const start = setHourInZone(cursor, input.timezone, startHour, startMinute);
+      return new Date(start.getTime() + softStartOffsetMin(input, rng) * 60_000);
     }
     cursor.setUTCDate(cursor.getUTCDate() + 1);
   }

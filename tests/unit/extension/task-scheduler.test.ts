@@ -237,3 +237,114 @@ describe("isWithinWindow", () => {
     expect(isWithinWindow(tueMorning, { ...base, workingHoursStart: 11 })).toBe(false);
   });
 });
+
+describe("computeNextScheduledFor — dynamic pacing (dailyTarget opt-in)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  const baseWindow = {
+    timezone: "UTC",
+    workingHoursStart: 9,
+    workingHoursEnd: 18,
+    weekdaysOnly: true,
+  } as const;
+
+  it("gap ≈ remaining window ÷ remaining quota, jittered within ±35%", () => {
+    vi.setSystemTime(new Date("2026-06-01T09:00:00Z")); // Monday 09:00, window 9-18 → 540 min left
+    const out = computeNextScheduledFor({
+      ...baseWindow,
+      lastSentAt: new Date("2026-06-01T08:50:00Z"),
+      sentTodayCount: 1,
+      sentLastHourCount: 1,
+      dailyCap: 12,
+      hourlyCap: 3,
+      dailyTarget: 10, // 9 remaining → target gap 60 min
+      rng: () => 0.5,
+    });
+    const gapMin = (out.getTime() - Date.now()) / 60_000;
+    expect(gapMin).toBeGreaterThanOrEqual(39); // 0.65 × 60
+    expect(gapMin).toBeLessThanOrEqual(81); // 1.35 × 60
+  });
+
+  it("15-minute floor when the window is tight", () => {
+    vi.setSystemTime(new Date("2026-06-01T17:30:00Z")); // 30 min left, 10 remaining → raw target 3 min
+    const out = computeNextScheduledFor({
+      ...baseWindow,
+      lastSentAt: new Date("2026-06-01T17:20:00Z"),
+      sentTodayCount: 2,
+      sentLastHourCount: 1,
+      dailyCap: 12,
+      hourlyCap: 3,
+      dailyTarget: 12,
+      rng: () => 0.5,
+    });
+    const gapMin = (out.getTime() - Date.now()) / 60_000;
+    expect(gapMin).toBeGreaterThanOrEqual(15);
+    // 17:30 + ≥15min = ≥17:45 — still inside the window today, or clamped to next workday start
+  });
+
+  it("reaching dailyTarget (below dailyCap) defers to the next workday", () => {
+    vi.setSystemTime(new Date("2026-06-01T12:00:00Z"));
+    const out = computeNextScheduledFor({
+      ...baseWindow,
+      lastSentAt: new Date("2026-06-01T11:00:00Z"),
+      sentTodayCount: 9,
+      sentLastHourCount: 0,
+      dailyCap: 12,
+      hourlyCap: 3,
+      dailyTarget: 9, // today's draw already met
+      rng: () => 0,
+    });
+    // Tuesday 09:00 + soft offset (rng 0 → exactly +10 min)
+    expect(out.toISOString()).toBe("2026-06-02T09:10:00.000Z");
+  });
+
+  it("soft day start: next-workday starts get a 10–45 min offset, never the boundary", () => {
+    vi.setSystemTime(new Date("2026-06-01T19:00:00Z")); // after window close
+    const at = (r: number) =>
+      computeNextScheduledFor({
+        ...baseWindow,
+        lastSentAt: new Date("2026-06-01T17:00:00Z"),
+        sentTodayCount: 3,
+        sentLastHourCount: 0,
+        dailyCap: 12,
+        hourlyCap: 3,
+        dailyTarget: 10,
+        rng: () => r,
+      });
+    expect(at(0).toISOString()).toBe("2026-06-02T09:10:00.000Z"); // min offset 10
+    expect(at(0.999999).getTime()).toBeLessThanOrEqual(new Date("2026-06-02T09:45:00.000Z").getTime()); // max offset 45
+    expect(at(0.5).getTime()).toBeGreaterThan(new Date("2026-06-02T09:00:00.000Z").getTime()); // never the boundary
+  });
+
+  it("legacy mode untouched: without dailyTarget the gap stays 3–10 min", () => {
+    vi.setSystemTime(new Date("2026-06-01T10:00:00Z"));
+    const out = computeNextScheduledFor({
+      ...baseWindow,
+      lastSentAt: new Date("2026-06-01T09:55:00Z"),
+      sentTodayCount: 3,
+      sentLastHourCount: 2,
+      dailyCap: 30,
+      hourlyCap: 8,
+      rng: () => 0.5,
+    });
+    const gapMin = (out.getTime() - Date.now()) / 60_000;
+    expect(gapMin).toBeGreaterThanOrEqual(3);
+    expect(gapMin).toBeLessThanOrEqual(10);
+  });
+
+  it("legacy mode untouched: next-workday start has NO soft offset", () => {
+    vi.setSystemTime(new Date("2026-06-01T19:00:00Z"));
+    const out = computeNextScheduledFor({
+      ...baseWindow,
+      lastSentAt: new Date("2026-06-01T17:00:00Z"),
+      sentTodayCount: 3,
+      sentLastHourCount: 0,
+      dailyCap: 30,
+      hourlyCap: 8,
+      rng: () => 0.5,
+    });
+    expect(out.toISOString()).toBe("2026-06-02T09:00:00.000Z");
+  });
+});
