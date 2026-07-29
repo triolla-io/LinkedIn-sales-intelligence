@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { buildSearchUrl, parseSearchTitles } from "@/lib/prospecting/search-url";
 import { logProspectingEvent } from "@/lib/prospecting/events";
+import { computeNextScheduledFor, isWithinWindow } from "@/lib/extension/task-scheduler";
 
 /** Company runs search 2nd + 3rd degree connections. */
 export const COMPANY_NETWORK = ["S", "O"];
@@ -8,6 +9,59 @@ export const COMPANY_NETWORK = ["S", "O"];
 /** Randomized 2–5 minute pause between companies (humanized cadence). */
 export function interCompanyDelayMs(): number {
   return 120_000 + Math.floor(Math.random() * 180_000);
+}
+
+/**
+ * Circuit breaker: after this many consecutive FAILED companies, discovery pauses
+ * instead of burning the rest of the queue (a fail wave = LinkedIn refusing our
+ * searches — rate limit / logged out — not bad companies).
+ */
+export const DISCOVERY_FAIL_CAP = 5;
+export const DISCOVERY_BACKOFF_MS = 6 * 60 * 60 * 1000;
+
+/**
+ * Discovery (resolve + people-search) runs on the customer's own LinkedIn, so
+ * it is scheduled only during human browsing hours — NOT the run's send window,
+ * which can be as narrow as one evening hour and is meant for connection sends.
+ * The run's sendDays are respected; outside the hours a task waits for the next
+ * window start. ~12h/day at the 2–5 min cadence also caps daily search volume.
+ */
+export const DISCOVERY_HOURS_START = 9;
+export const DISCOVERY_HOURS_END = 21;
+
+async function discoveryScheduledFor(
+  run: { ownerId: string; sendDays?: number[] },
+  delayMs: number,
+): Promise<Date> {
+  const owner = await prisma.user.findUnique({
+    where: { id: run.ownerId },
+    select: { timezone: true },
+  });
+  const tz = owner?.timezone ?? "Asia/Jerusalem";
+  const workingWeekdays =
+    run.sendDays && run.sendDays.length > 0
+      ? run.sendDays
+      : tz === "Asia/Jerusalem"
+        ? [0, 1, 2, 3, 4]
+        : [1, 2, 3, 4, 5];
+  const window = {
+    workingHoursStart: DISCOVERY_HOURS_START,
+    workingHoursEnd: DISCOVERY_HOURS_END,
+    workingWeekdays,
+  };
+  const base = new Date(Date.now() + delayMs);
+  if (isWithinWindow(base, { timezone: tz, ...window })) return base;
+  // Next window start (huge caps: this clamp is about hours, not quotas).
+  return computeNextScheduledFor({
+    timezone: tz,
+    ...window,
+    weekdaysOnly: true,
+    lastSentAt: null,
+    sentTodayCount: 0,
+    sentLastHourCount: 0,
+    dailyCap: Number.MAX_SAFE_INTEGER,
+    hourlyCap: Number.MAX_SAFE_INTEGER,
+  });
 }
 
 /** One company search page for a SINGLE title (LinkedIn URL search can't OR a title list — see search-url.ts). */
@@ -40,7 +94,7 @@ type SearchTargetRow = TargetRow & {
 export async function enqueueResolveTask(
   run: RunRow,
   target: TargetRow,
-  scheduledFor: Date = new Date(),
+  scheduledFor?: Date,
 ): Promise<void> {
   await prisma.prospectingCompanyTarget.update({
     where: { id: target.id },
@@ -56,7 +110,7 @@ export async function enqueueResolveTask(
         name: target.name,
       },
       prospectingRunId: run.id,
-      scheduledFor,
+      scheduledFor: scheduledFor ?? (await discoveryScheduledFor(run, 0)),
     },
   });
 }
@@ -104,7 +158,7 @@ export async function enqueueCompanySearchTask(
         targetId: target.id,
       },
       prospectingRunId: run.id,
-      scheduledFor: new Date(),
+      scheduledFor: await discoveryScheduledFor(run, 0),
     },
   });
 }
@@ -150,13 +204,19 @@ export async function startNextPendingTarget(
         name: next.name,
       },
       prospectingRunId: runId,
-      scheduledFor: new Date(Date.now() + delayMs),
+      scheduledFor: await discoveryScheduledFor(run, delayMs),
     },
   });
   return true;
 }
 
-/** Permanently fail a company and move on to the next one. */
+/**
+ * Permanently fail a company and move on to the next one — after the SAME
+ * humanized 2–5 min pause a success gets (a zero-delay failure path once burned
+ * an entire 748-company queue in 95 minutes during a LinkedIn rate-limit wave).
+ * When DISCOVERY_FAIL_CAP companies fail consecutively, the breaker pauses the
+ * whole run for DISCOVERY_BACKOFF_MS instead of queueing the next company.
+ */
 export async function failCompanyTarget(
   runId: string,
   target: { id: string; name: string },
@@ -172,7 +232,37 @@ export async function failCompanyTarget(
     message: `${target.name} — ${errorCode}`,
     detail: { companyTargetId: target.id, errorCode },
   });
-  await startNextPendingTarget(runId);
+
+  // Breaker check: are the last N settled companies ALL failures?
+  const recent = await prisma.prospectingCompanyTarget.findMany({
+    where: { runId, status: { in: ["DONE", "FAILED"] } },
+    orderBy: { updatedAt: "desc" },
+    take: DISCOVERY_FAIL_CAP,
+    select: { status: true },
+  });
+  const wave =
+    recent.length === DISCOVERY_FAIL_CAP &&
+    recent.every((t) => t.status === "FAILED");
+  if (wave) {
+    const backoffUntil = new Date(Date.now() + DISCOVERY_BACKOFF_MS);
+    await prisma.prospectingRun.updateMany({
+      where: { id: runId },
+      data: { pausedUntil: backoffUntil },
+    });
+    await logProspectingEvent({
+      runId,
+      type: "FAILED",
+      message: `${DISCOVERY_FAIL_CAP} חברות נכשלו ברצף — נראה שלינקדאין מגבילה חיפושים כרגע. הריצה הושהתה ותתחדש אוטומטית ${formatBackoffHe(backoffUntil)}`,
+      detail: { breaker: true, pausedUntil: backoffUntil.toISOString() },
+    });
+    return;
+  }
+
+  await startNextPendingTarget(runId, interCompanyDelayMs());
+}
+
+function formatBackoffHe(until: Date): string {
+  return `בשעה ${until.toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" })}`;
 }
 
 /**

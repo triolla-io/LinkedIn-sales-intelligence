@@ -3,8 +3,8 @@
 import { use, useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { ArrowRight, Loader2, Clock, Pencil } from "lucide-react";
-import { ERROR_CODE_LABELS, TASK_KIND_LABELS } from "@/lib/prospecting/format";
+import { ArrowRight, Loader2, Clock, Pencil, Users, Globe, Gauge } from "lucide-react";
+import { ERROR_CODE_LABELS, ERROR_CODE_HINTS, humanizeErrorDetail, TASK_KIND_LABELS } from "@/lib/prospecting/format";
 import { SendWindowPicker, type SendWindow } from "@/components/prospecting/send-window-picker";
 import { formatSendWindowHe } from "@/lib/prospecting/send-window";
 import {
@@ -22,6 +22,7 @@ type ConnectionRequest = {
   status: string;
   skipReason: string | null;
   errorCode: string | null;
+  errorMessage: string | null;
   sentAt: string | null;
   createdAt: string;
 };
@@ -30,9 +31,15 @@ type RunDetail = {
   name: string;
   status: string;
   targetType?: "KEYWORDS" | "COMPANY";
+  keywords: string;
+  geoUrn: string;
+  dailyCap: number;
+  weeklyCap: number;
   totalSent: number;
   totalDiscovered: number;
   sendDays: number[];
+  sendMinutesStart: number;
+  sendMinutesEnd: number;
   sendHoursStart: number;
   sendHoursEnd: number;
 };
@@ -124,19 +131,84 @@ const formatIso = (iso: string) =>
 /** Renders raw event/error messages in user language: translates error codes, links profile URLs, localizes ISO timestamps. */
 function HumanMessage({ message }: { message: string | null }) {
   if (!message) return null;
-  const errMatch = message.match(/^([a-z_]+)\s*\(url=(https?:\/\/\S+?)\/?\)\s*$/);
-  if (errMatch) {
-    const [, code, url] = errMatch;
+  const url = message.match(/url=(https?:\/\/\S+?)\/?\)\s*$/)?.[1];
+  const code = message.match(/^([a-z_]+)\s*\(url=/)?.[1];
+  const translated = code ? (ERROR_CODE_LABELS[code] ?? code) : humanizeErrorDetail(message);
+  if (translated) {
     return (
       <>
-        {ERROR_CODE_LABELS[code] ?? code}{" "}
-        <a href={url} target="_blank" rel="noreferrer" className="text-[#1585ff] hover:underline">
-          לפרופיל
-        </a>
+        {translated}
+        {url && (
+          <>
+            {" "}
+            <a href={url} target="_blank" rel="noreferrer" className="text-[#1585ff] hover:underline">
+              לפרופיל
+            </a>
+          </>
+        )}
       </>
     );
   }
   return <>{message.replace(ISO_RE, formatIso)}</>;
+}
+
+/** geoUrn (as stored on the run) → Hebrew country label. Empty urn = worldwide. */
+const GEO_LABELS_HE: Record<string, string> = {
+  "": "🌍 כל העולם",
+  "101620260": "🇮🇱 ישראל",
+  "103644278": "🇺🇸 ארה״ב",
+  "101165590": "🇬🇧 בריטניה",
+  "101282230": "🇩🇪 גרמניה",
+  "105015875": "🇫🇷 צרפת",
+  "101174742": "🇨🇦 קנדה",
+  "101452733": "🇦🇺 אוסטרליה",
+  "102890719": "🇳🇱 הולנד",
+  "102713980": "🇮🇳 הודו",
+  "102454443": "🇸🇬 סינגפור",
+};
+
+/** "קהל יעד" card: who we send to — titles, region, degree, and the send quota. */
+function TargetProfileCard({ run, companyCount }: { run: RunDetail; companyCount: number }) {
+  const titles = run.keywords.split(",").map((t) => t.trim()).filter(Boolean);
+  const isCompanyRun = run.targetType === "COMPANY";
+  return (
+    <div className="bg-white border border-[#e5e3df] rounded-xl p-4 space-y-3">
+      <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">קהל יעד — למי שולחים</h2>
+      <div className="space-y-2.5 text-sm text-[#6b6866]">
+        <div className="flex items-start gap-2">
+          <Users className="size-3.5 text-[#9b9895] mt-0.5 shrink-0" />
+          <div className="flex flex-wrap gap-1">
+            {titles.length > 0 ? (
+              titles.map((t) => (
+                <span key={t} className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#f3f2ef] text-xs text-[#111110]">
+                  {t}
+                </span>
+              ))
+            ) : (
+              <span className="text-[#c8c5c2]">—</span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Globe className="size-3.5 text-[#9b9895] shrink-0" />
+          <span>
+            {GEO_LABELS_HE[run.geoUrn] ?? "🌍 כל העולם"}
+            {" · "}
+            {isCompanyRun
+              ? `${companyCount} חברות ברשימה (דרגה 2 + 3)`
+              : "חיבורים מדרגה 2 בלבד"}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Gauge className="size-3.5 text-[#9b9895] shrink-0" />
+          <span>
+            עד <b className="text-[#111110]">{run.dailyCap}</b> בקשות ביום · עד{" "}
+            <b className="text-[#111110]">{run.weeklyCap}</b> בשבוע
+          </span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /** "חלון שליחה" card: compact summary + pencil → inline picker with save/cancel. */
@@ -174,7 +246,13 @@ function SendWindowCard({ runId, run, onSaved }: { runId: string; run: RunDetail
             type="button"
             aria-label="עריכת חלון שליחה"
             onClick={() =>
-              setDraft({ sendDays: run.sendDays, sendHoursStart: run.sendHoursStart, sendHoursEnd: run.sendHoursEnd })
+              setDraft({
+                sendDays: run.sendDays,
+                sendHoursStart: run.sendHoursStart,
+                sendHoursEnd: run.sendHoursEnd,
+                sendMinutesStart: run.sendMinutesStart ?? 0,
+                sendMinutesEnd: run.sendMinutesEnd ?? 0,
+              })
             }
             className="text-[#9b9895] hover:text-[#1585ff] transition-colors"
           >
@@ -185,7 +263,7 @@ function SendWindowCard({ runId, run, onSaved }: { runId: string; run: RunDetail
       {!draft ? (
         <div className="flex items-center gap-2 text-sm text-[#6b6866]">
           <Clock className="size-3.5 text-[#9b9895]" />
-          {formatSendWindowHe(run.sendDays, run.sendHoursStart, run.sendHoursEnd)}
+          {formatSendWindowHe(run.sendDays, run.sendHoursStart, run.sendHoursEnd, run.sendMinutesStart ?? 0, run.sendMinutesEnd ?? 0)}
         </div>
       ) : (
         <div className="space-y-3">
@@ -243,6 +321,8 @@ export default function ProspectingRunDetailPage({
   const filteredRequests = statusFilter
     ? requests.filter((r) => r.status === statusFilter)
     : requests;
+  // Events arrive newest-first, so the first SENT event is the most recent send.
+  const lastSentEvent = events?.find((e) => e.type === "SENT") ?? null;
 
   return (
     <div dir="rtl" className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
@@ -268,29 +348,25 @@ export default function ProspectingRunDetailPage({
 
       {/* Content */}
       <div className="px-5 pt-5 pb-8 space-y-4">
+        {/* Send update — status + last send, always first */}
         {summary && (
           <div className={`rounded-xl border px-4 py-3 text-sm ${SUMMARY_CLS[summary.state] ?? SUMMARY_CLS.idle}`}>
-            {summary.message}
+            <p className="font-medium">{summary.message}</p>
+            {lastSentEvent && (
+              <p className="text-xs mt-1 opacity-80">
+                שליחה אחרונה: {lastSentEvent.message ?? ""} ·{" "}
+                {new Date(lastSentEvent.createdAt).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" })}
+              </p>
+            )}
           </div>
         )}
-        {statusCounts && (
-          <div className="flex flex-wrap gap-2">
-            {STATUS_CHIPS.map((chip) => (
-              <button
-                key={chip.status}
-                type="button"
-                onClick={() => setStatusFilter(statusFilter === chip.status ? null : chip.status)}
-                className={`text-xs px-2.5 py-1 rounded-full transition-shadow cursor-pointer ${chip.cls} ${
-                  statusFilter === chip.status
-                    ? "ring-2 ring-[#1585ff] ring-offset-1"
-                    : "hover:ring-1 hover:ring-[#c8c5c2]"
-                }`}
-              >
-                {chip.label} {statusCounts[chip.key]}
-              </button>
-            ))}
-          </div>
-        )}
+
+        {/* Send settings — target audience + send window */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <TargetProfileCard run={run} companyCount={data.companyTargets?.length ?? 0} />
+          <SendWindowCard runId={id} run={run} onSaved={() => mutate()} />
+        </div>
+
         {events?.some((e) => e.message === "extension_outdated") && (
           <div
             dir="rtl"
@@ -307,7 +383,6 @@ export default function ProspectingRunDetailPage({
             onChanged={() => mutate()}
           />
         )}
-        <SendWindowCard runId={id} run={run} onSaved={() => mutate()} />
         {/* Task status panel */}
         {taskStats && (
           <div className="bg-white border border-[#e5e3df] rounded-xl p-4 space-y-3">
@@ -353,19 +428,25 @@ export default function ProspectingRunDetailPage({
                   {taskStats.recentFailures.map((f) => {
                     const profileUrl = f.errorMessage?.match(/url=(https?:\/\/\S+?)\/?\)?\s*$/)?.[1];
                     const known = f.errorCode ? ERROR_CODE_LABELS[f.errorCode] : undefined;
+                    const detail = humanizeErrorDetail(f.errorMessage);
+                    const hint = f.errorCode ? ERROR_CODE_HINTS[f.errorCode] : undefined;
                     return (
-                      <div key={`${f.kind}-${f.at}`} className="flex items-center gap-2 text-xs">
-                        <span className="text-[#9b9895]">{TASK_KIND_LABELS[f.kind] ?? f.kind}</span>
-                        <span className="text-[#dc2626] bg-[#fff3f3] px-1.5 py-0.5 rounded">{known ?? f.errorCode}</span>
-                        {profileUrl && (
-                          <a href={profileUrl} target="_blank" rel="noreferrer" className="text-[#1585ff] hover:underline">
-                            לפרופיל
-                          </a>
-                        )}
-                        {!known && f.errorMessage && (
-                          <span className="text-[#6b6866] truncate max-w-xs">{f.errorMessage}</span>
-                        )}
-                        <span className="text-[#9b9895] ms-auto">{new Date(f.at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem" })}</span>
+                      <div key={`${f.kind}-${f.at}`} className="text-xs space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#9b9895]">{TASK_KIND_LABELS[f.kind] ?? f.kind}</span>
+                          <span className="text-[#dc2626] bg-[#fff3f3] px-1.5 py-0.5 rounded">{known ?? f.errorCode}</span>
+                          {detail && <span className="text-[#6b6866]">{detail}</span>}
+                          {profileUrl && (
+                            <a href={profileUrl} target="_blank" rel="noreferrer" className="text-[#1585ff] hover:underline">
+                              לפרופיל
+                            </a>
+                          )}
+                          {!known && !detail && f.errorMessage && (
+                            <span className="text-[#6b6866] truncate max-w-xs" title={f.errorMessage}>{f.errorMessage}</span>
+                          )}
+                          <span className="text-[#9b9895] ms-auto">{new Date(f.at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem" })}</span>
+                        </div>
+                        {hint && <p className="text-[#9b9895] pr-1">{hint}</p>}
                       </div>
                     );
                   })}
@@ -376,23 +457,37 @@ export default function ProspectingRunDetailPage({
         )}
 
         <div className="bg-white border border-[#e5e3df] rounded-xl overflow-hidden">
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-[#e5e3df] bg-[#fafaf9]">
+          <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-[#e5e3df] bg-[#fafaf9]">
             <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">
               אנשים בריצה ({filteredRequests.length})
             </h2>
+            {/* The chips filter THIS table — they live in its header so the effect is visible. */}
+            {statusCounts && (
+              <div className="flex flex-wrap gap-1.5 ms-2">
+                {STATUS_CHIPS.map((chip) => (
+                  <button
+                    key={chip.status}
+                    type="button"
+                    onClick={() => setStatusFilter(statusFilter === chip.status ? null : chip.status)}
+                    className={`text-xs px-2.5 py-1 rounded-full transition-shadow cursor-pointer ${chip.cls} ${
+                      statusFilter === chip.status
+                        ? "ring-2 ring-[#1585ff] ring-offset-1"
+                        : "hover:ring-1 hover:ring-[#c8c5c2]"
+                    }`}
+                  >
+                    {chip.label} {statusCounts[chip.key]}
+                  </button>
+                ))}
+              </div>
+            )}
             {statusFilter && (
-              <>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${REQ_STATUS[statusFilter]?.cls ?? "bg-[#f3f2ef] text-[#6b6866]"}`}>
-                  {STATUS_CHIPS.find((c) => c.status === statusFilter)?.label ?? statusFilter}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setStatusFilter(null)}
-                  className="text-xs text-[#1585ff] hover:underline cursor-pointer"
-                >
-                  הצג הכל
-                </button>
-              </>
+              <button
+                type="button"
+                onClick={() => setStatusFilter(null)}
+                className="text-xs text-[#1585ff] hover:underline cursor-pointer"
+              >
+                הצג הכל
+              </button>
             )}
           </div>
 
@@ -438,7 +533,19 @@ export default function ProspectingRunDetailPage({
                         {REQ_STATUS[req.status]?.label ?? req.status}
                       </span>
                       {req.status === "SKIPPED" && req.skipReason && <span className="text-[10px] text-[#9b9895] block mt-0.5">{ERROR_CODE_LABELS[req.skipReason] ?? req.skipReason}</span>}
-                      {req.status === "FAILED" && req.errorCode && <span className="text-[10px] text-[#dc2626] block mt-0.5">{req.errorCode}</span>}
+                      {req.status === "FAILED" && req.errorCode && (
+                        <span
+                          className="text-[10px] text-[#dc2626] block mt-0.5 max-w-55"
+                          title={[humanizeErrorDetail(req.errorMessage), ERROR_CODE_HINTS[req.errorCode], req.errorMessage]
+                            .filter(Boolean)
+                            .join("\n")}
+                        >
+                          {ERROR_CODE_LABELS[req.errorCode] ?? req.errorCode}
+                          {ERROR_CODE_HINTS[req.errorCode] && (
+                            <span className="text-[#9b9895] block">{ERROR_CODE_HINTS[req.errorCode]}</span>
+                          )}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-[#6b6866]">
                       {req.currentTitle ?? <span className="text-[#c8c5c2]">—</span>}

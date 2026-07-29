@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const runFindUnique = vi.hoisted(() => vi.fn());
 const runUpdateMany = vi.hoisted(() => vi.fn());
 const targetFindFirst = vi.hoisted(() => vi.fn());
 const targetFindUnique = vi.hoisted(() => vi.fn());
+const targetFindMany = vi.hoisted(() => vi.fn());
 const targetUpdate = vi.hoisted(() => vi.fn());
 const targetUpdateMany = vi.hoisted(() => vi.fn());
 const targetCount = vi.hoisted(() => vi.fn());
@@ -11,6 +12,7 @@ const requestCount = vi.hoisted(() => vi.fn());
 const taskCreate = vi.hoisted(() => vi.fn());
 const taskFindFirst = vi.hoisted(() => vi.fn());
 const eventCreate = vi.hoisted(() => vi.fn());
+const userFindUnique = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -18,6 +20,7 @@ vi.mock("@/lib/prisma", () => ({
     prospectingCompanyTarget: {
       findFirst: targetFindFirst,
       findUnique: targetFindUnique,
+      findMany: targetFindMany,
       update: targetUpdate,
       updateMany: targetUpdateMany,
       count: targetCount,
@@ -25,8 +28,14 @@ vi.mock("@/lib/prisma", () => ({
     connectionRequest: { count: requestCount },
     extensionTask: { create: taskCreate, findFirst: taskFindFirst },
     prospectingEvent: { create: eventCreate },
+    user: { findUnique: userFindUnique },
   },
 }));
+
+// Discovery is clamped to 09:00-21:00 on the run's sendDays — freeze the clock
+// inside that window (Tuesday 12:00 Jerusalem) so scheduling is deterministic.
+const INSIDE_DISCOVERY_HOURS = new Date("2026-07-28T09:00:00Z");
+const OPEN_WINDOW = { sendDays: [0, 1, 2, 3, 4, 5, 6] };
 
 import {
   interCompanyDelayMs,
@@ -59,7 +68,11 @@ describe("buildCompanySearchUrl", () => {
 });
 
 describe("startNextPendingTarget", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: INSIDE_DISCOVERY_HOURS });
+  });
+  afterEach(() => vi.useRealTimers());
 
   it("claims the oldest PENDING target and enqueues RESOLVE_COMPANY with the delay", async () => {
     runFindUnique.mockResolvedValue({
@@ -68,7 +81,9 @@ describe("startNextPendingTarget", () => {
       status: "RUNNING",
       targetType: "COMPANY",
       discoveryDone: false,
+      ...OPEN_WINDOW,
     });
+    userFindUnique.mockResolvedValue({ timezone: "Asia/Jerusalem" });
     targetFindFirst.mockResolvedValue({
       id: "t1",
       name: "Acme",
@@ -204,8 +219,13 @@ describe("maybeCompleteCompanyRun", () => {
 });
 
 describe("enqueueCompanySearchTask (per-title)", () => {
-  beforeEach(() => vi.clearAllMocks());
-  const RUN = { id: "run1", ownerId: "u1", keywords: "CEO, CTO", geoUrn: "" };
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: INSIDE_DISCOVERY_HOURS });
+    userFindUnique.mockResolvedValue({ timezone: "Asia/Jerusalem" });
+  });
+  afterEach(() => vi.useRealTimers());
+  const RUN = { id: "run1", ownerId: "u1", keywords: "CEO, CTO", geoUrn: "", ...OPEN_WINDOW };
   const target = (over: Record<string, unknown>) => ({
     id: "t1",
     name: "Acme",
@@ -262,24 +282,73 @@ describe("enqueueCompanySearchTask (per-title)", () => {
 });
 
 describe("failCompanyTarget", () => {
-  it("marks the target FAILED, logs an event, and advances", async () => {
+  beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers({ now: INSIDE_DISCOVERY_HOURS });
     targetUpdate.mockResolvedValue({});
     runFindUnique.mockResolvedValue({
       id: "run1",
       ownerId: "u1",
       status: "RUNNING",
+      ...OPEN_WINDOW,
     });
-    targetFindFirst.mockResolvedValue(null);
+    userFindUnique.mockResolvedValue({ timezone: "Asia/Jerusalem" });
     runUpdateMany.mockResolvedValue({ count: 1 });
     targetCount.mockResolvedValue(0);
     requestCount.mockResolvedValue(1); // still people to send — no completion
     taskFindFirst.mockResolvedValue(null);
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("marks the target FAILED, logs an event, and advances", async () => {
+    targetFindMany.mockResolvedValue([{ status: "FAILED" }, { status: "DONE" }]); // no wave
+    targetFindFirst.mockResolvedValue(null);
     await failCompanyTarget("run1", { id: "t1", name: "Acme" }, "not_found");
     expect(targetUpdate).toHaveBeenCalledWith({
       where: { id: "t1" },
       data: { status: "FAILED", error: "not_found" },
     });
     expect(eventCreate).toHaveBeenCalled();
+  });
+
+  it("advances with the humanized 2-5 min delay — never immediately (the 26.7 burn)", async () => {
+    targetFindMany.mockResolvedValue([{ status: "FAILED" }, { status: "DONE" }]);
+    targetFindFirst.mockResolvedValue({ id: "t2", name: "Next Co", linkedinUrl: null, status: "PENDING" });
+    targetUpdateMany.mockResolvedValue({ count: 1 });
+    const before = Date.now();
+    await failCompanyTarget("run1", { id: "t1", name: "Acme" }, "no_id");
+    const created = taskCreate.mock.calls[0][0].data;
+    expect(created.kind).toBe("RESOLVE_COMPANY");
+    expect(created.scheduledFor.getTime()).toBeGreaterThanOrEqual(before + 120_000);
+    expect(created.scheduledFor.getTime()).toBeLessThan(before + 305_000);
+  });
+
+  it("trips the breaker after 5 consecutive failures: pauses the run instead of queueing the next company", async () => {
+    targetFindMany.mockResolvedValue(Array.from({ length: 5 }, () => ({ status: "FAILED" })));
+    const before = Date.now();
+    await failCompanyTarget("run1", { id: "t1", name: "Acme" }, "no_id");
+    // Run paused for the backoff window.
+    const pauseCall = runUpdateMany.mock.calls.find((c) => c[0]?.data?.pausedUntil);
+    expect(pauseCall).toBeTruthy();
+    expect(pauseCall![0].data.pausedUntil.getTime()).toBeGreaterThanOrEqual(before + 6 * 60 * 60 * 1000 - 1000);
+    // No next company queued while paused.
+    expect(taskCreate).not.toHaveBeenCalled();
+    // A breaker event was logged for the run page.
+    const breakerEvent = eventCreate.mock.calls.find((c) => c[0]?.data?.detail?.breaker);
+    expect(breakerEvent).toBeTruthy();
+  });
+
+  it("does not trip the breaker when a success sits inside the last 5", async () => {
+    targetFindMany.mockResolvedValue([
+      { status: "FAILED" },
+      { status: "FAILED" },
+      { status: "DONE" },
+      { status: "FAILED" },
+      { status: "FAILED" },
+    ]);
+    targetFindFirst.mockResolvedValue(null);
+    await failCompanyTarget("run1", { id: "t1", name: "Acme" }, "no_id");
+    const pauseCall = runUpdateMany.mock.calls.find((c) => c[0]?.data?.pausedUntil);
+    expect(pauseCall).toBeFalsy();
   });
 });

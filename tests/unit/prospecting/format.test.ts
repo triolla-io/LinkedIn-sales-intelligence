@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatHebrewTime, ERROR_CODE_LABELS } from "@/lib/prospecting/format";
+import { formatHebrewTime, ERROR_CODE_LABELS, ERROR_CODE_HINTS, humanizeErrorDetail } from "@/lib/prospecting/format";
 
 // 2026-07-02T09:00:00Z == 12:00 in Asia/Jerusalem (IDT, UTC+3)
 const now = new Date("2026-07-02T09:00:00Z");
@@ -30,5 +30,31 @@ describe("ERROR_CODE_LABELS", () => {
     expect(ERROR_CODE_LABELS.no_connect).toBeTruthy();
     expect(ERROR_CODE_LABELS.connect_button_not_found).toBeTruthy();
     expect(ERROR_CODE_LABELS.follow_only).toBeTruthy();
+  });
+});
+
+describe("ERROR_CODE_HINTS", () => {
+  it("gives actionable hints for the codes seen in production failures", () => {
+    expect(ERROR_CODE_HINTS.no_connect).toBeTruthy();
+    expect(ERROR_CODE_HINTS.already_or_blocked).toBeTruthy();
+    expect(ERROR_CODE_HINTS.checkpoint).toBeTruthy();
+  });
+});
+
+describe("humanizeErrorDetail", () => {
+  it("translates the send_dialog_not_found raw message", () => {
+    expect(
+      humanizeErrorDetail("send_dialog_not_found; buttons=[Skip to search | Home | More] (url=https://www.linkedin.com/in/x/)")
+    ).toBe("נלחץ 'התחבר' אבל חלון ההזמנה לא נפתח");
+  });
+  it("translates a Chrome debugger detach", () => {
+    expect(humanizeErrorDetail("Debugger is not attached to the tab with id: 648335092. (url=...)")).toMatch(/נותק/);
+  });
+  it("returns null for connect_button_not_found (the label already says it)", () => {
+    expect(humanizeErrorDetail("connect_button_not_found (url=https://www.linkedin.com/in/x/)")).toBeNull();
+  });
+  it("returns null for null and for unrecognized messages", () => {
+    expect(humanizeErrorDetail(null)).toBeNull();
+    expect(humanizeErrorDetail("some totally new failure")).toBeNull();
   });
 });

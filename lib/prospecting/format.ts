@@ -54,6 +54,41 @@ export const ERROR_CODE_LABELS: Record<string, string> = {
   company_removed: "החברה הוסרה מהרוטינה",
 };
 
+/**
+ * Actionable Hebrew hint per error code — what the failure means in practice
+ * and what (if anything) the user can do about it. Shown alongside the label.
+ */
+export const ERROR_CODE_HINTS: Record<string, string> = {
+  no_connect: "לרוב הפרופיל מציג רק 'עקוב', או שכפתור ההתחברות מוסתר בתפריט 'עוד'. אפשר לשלוח הזמנה ידנית מהפרופיל.",
+  connect_button_not_found: "לרוב הפרופיל מציג רק 'עקוב', או שכפתור ההתחברות מוסתר בתפריט 'עוד'. אפשר לשלוח הזמנה ידנית מהפרופיל.",
+  already_or_blocked: "בדרך כלל כבר קיימת הזמנה ממתינה (למשל שנשלחה ידנית מחוץ למערכת) או שאתם כבר מחוברים. כדאי לבדוק בפרופיל.",
+  already_connected: "החיבור כבר קיים בלינקדאין — אין צורך בפעולה.",
+  already_pending: "ההזמנה כבר ממתינה לאישור בלינקדאין — אין צורך בפעולה.",
+  invitation_already_pending: "ההזמנה כבר ממתינה לאישור בלינקדאין — אין צורך בפעולה.",
+  checkpoint: "פתחו את לינקדאין בדפדפן, השלימו את האימות, והשליחה תתחדש אוטומטית.",
+  tab_load: "בעיה זמנית ברשת או בדפדפן בזמן טעינת הפרופיל.",
+  tab_load_timeout: "בעיה זמנית ברשת או בדפדפן בזמן טעינת הפרופיל.",
+  tab_closed: "הטאב של לינקדאין נסגר (ידנית או ע\"י הדפדפן) לפני שהפעולה הסתיימה.",
+  tab_create_failed: "הדפדפן לא אפשר לפתוח טאב חדש — ודאו שכרום פתוח ושהתוסף פעיל.",
+  not_messageable: "לינקדאין לא מאפשרת לשלוח הודעה לאיש קשר זה (ייתכן שנדרש InMail).",
+  unsupported_kind: "עדכנו את התוסף לגרסה האחרונה כדי שהפעולה תיתמך.",
+};
+
+/**
+ * Translate known raw extension error-message patterns into a Hebrew detail
+ * sentence. Returns null when the label alone already tells the whole story
+ * (or the message is unrecognized — callers may fall back to the raw text).
+ */
+export function humanizeErrorDetail(errorMessage: string | null): string | null {
+  if (!errorMessage) return null;
+  if (errorMessage.startsWith("send_dialog_not_found"))
+    return "נלחץ 'התחבר' אבל חלון ההזמנה לא נפתח";
+  if (errorMessage.startsWith("Debugger is not attached"))
+    return "החיבור של התוסף לטאב נותק באמצע הפעולה";
+  if (errorMessage.startsWith("connect_button_not_found")) return null; // the label already says it
+  return null;
+}
+
 export const TASK_KIND_LABELS: Record<string, string> = {
   CONNECT: "הצעת חברות",
   SEARCH: "חיפוש",

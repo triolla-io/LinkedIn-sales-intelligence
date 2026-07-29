@@ -62,6 +62,23 @@ const TARGET_STATUS: Record<
 
 const TERMINAL: CompanyTargetRow["status"][] = ["DONE", "FAILED", "REMOVED"];
 
+/** Filter groups shown as clickable chips in the card header. */
+type StatusGroup = "DONE" | "FAILED" | "ACTIVE" | "REMOVED";
+
+function statusGroup(status: CompanyTargetRow["status"]): StatusGroup {
+  if (status === "DONE") return "DONE";
+  if (status === "FAILED") return "FAILED";
+  if (status === "REMOVED") return "REMOVED";
+  return "ACTIVE"; // PENDING / RESOLVING / READY / SEARCHING
+}
+
+const GROUP_CHIPS: { key: StatusGroup; label: string; cls: string }[] = [
+  { key: "DONE", label: "הושלמו", cls: "bg-[#e6faf0] text-[#059669]" },
+  { key: "FAILED", label: "נכשלו", cls: "bg-[#fff3f3] text-[#dc2626]" },
+  { key: "ACTIVE", label: "בתהליך", cls: "bg-[#e6f4ff] text-[#1585ff]" },
+  { key: "REMOVED", label: "הוסרו", cls: "bg-[#f3f2ef] text-[#9b9895]" },
+];
+
 function matchUrl(t: CompanyTargetRow): string | null {
   if (t.linkedinSlug)
     return `https://www.linkedin.com/company/${t.linkedinSlug}`;
@@ -82,10 +99,21 @@ export function CompanyTargetsCard({
   const [busy, setBusy] = useState(false);
   const [addText, setAddText] = useState("");
   const [addFile, setAddFile] = useState<File | null>(null);
+  const [groupFilter, setGroupFilter] = useState<StatusGroup | null>(null);
 
-  const done = targets.filter((t) => TERMINAL.includes(t.status)).length;
+  const processed = targets.filter((t) => TERMINAL.includes(t.status)).length;
   const pct =
-    targets.length > 0 ? Math.round((done / targets.length) * 100) : 0;
+    targets.length > 0 ? Math.round((processed / targets.length) * 100) : 0;
+  const groupCounts = targets.reduce(
+    (acc, t) => {
+      acc[statusGroup(t.status)]++;
+      return acc;
+    },
+    { DONE: 0, FAILED: 0, ACTIVE: 0, REMOVED: 0 } as Record<StatusGroup, number>,
+  );
+  const visibleTargets = groupFilter
+    ? targets.filter((t) => statusGroup(t.status) === groupFilter)
+    : targets;
 
   async function confirmRemove() {
     if (!removing) return;
@@ -178,14 +206,44 @@ export function CompanyTargetsCard({
       className="bg-white border border-[#e5e3df] rounded-xl overflow-hidden"
       dir="rtl"
     >
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-[#f3f2ef]">
+      <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-[#f3f2ef]">
         <Building2 className="w-4 h-4 text-[#6b6866] shrink-0" />
         <h2 className="text-sm font-medium text-[#111110]">חברות</h2>
         <span className="text-xs text-[#9b9895] tabular-nums">
-          {done}/{targets.length} הושלמו
+          עובדו {processed}/{targets.length}
         </span>
+        {/* Truthful breakdown — each chip filters the table below. */}
+        <div className="flex flex-wrap gap-1.5">
+          {GROUP_CHIPS.filter((c) => groupCounts[c.key] > 0).map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              onClick={() =>
+                setGroupFilter(groupFilter === c.key ? null : c.key)
+              }
+              className={cn(
+                "text-xs px-2.5 py-1 rounded-full transition-shadow cursor-pointer tabular-nums",
+                c.cls,
+                groupFilter === c.key
+                  ? "ring-2 ring-[#1585ff] ring-offset-1"
+                  : "hover:ring-1 hover:ring-[#c8c5c2]",
+              )}
+            >
+              {c.label} {groupCounts[c.key]}
+            </button>
+          ))}
+          {groupFilter && (
+            <button
+              type="button"
+              onClick={() => setGroupFilter(null)}
+              className="text-xs text-[#1585ff] hover:underline cursor-pointer px-1"
+            >
+              הצג הכל
+            </button>
+          )}
+        </div>
         <div
-          className="flex-1 h-1.5 bg-[#f3f2ef] rounded-full overflow-hidden"
+          className="flex-1 min-w-24 h-1.5 bg-[#f3f2ef] rounded-full overflow-hidden"
           role="progressbar"
           aria-valuenow={pct}
           aria-valuemin={0}
@@ -219,7 +277,7 @@ export function CompanyTargetsCard({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f3f2ef]">
-            {targets.map((t, i) => {
+            {visibleTargets.map((t, i) => {
               const st = TARGET_STATUS[t.status];
               const url = matchUrl(t);
               const removed = t.status === "REMOVED";
@@ -305,13 +363,15 @@ export function CompanyTargetsCard({
                 </tr>
               );
             })}
-            {targets.length === 0 && (
+            {visibleTargets.length === 0 && (
               <tr>
                 <td
                   colSpan={6}
                   className="px-4 py-6 text-center text-sm text-[#9b9895]"
                 >
-                  אין חברות עדיין — הוסף חברות כדי להתחיל
+                  {targets.length === 0
+                    ? "אין חברות עדיין — הוסף חברות כדי להתחיל"
+                    : `אין חברות בסטטוס "${GROUP_CHIPS.find((c) => c.key === groupFilter)?.label ?? ""}"`}
                 </td>
               </tr>
             )}

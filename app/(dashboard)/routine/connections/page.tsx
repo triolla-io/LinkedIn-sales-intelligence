@@ -9,7 +9,13 @@ import { IndustrySelect } from "@/components/dashboard/industry-select";
 import { SendWindowPicker, type SendWindow } from "@/components/prospecting/send-window-picker";
 import { CompaniesInput } from "@/components/prospecting/companies-input";
 import { parseCompanyLines } from "@/lib/prospecting/company-lines";
-import { DEFAULT_SEND_DAYS, DEFAULT_SEND_HOURS_START, DEFAULT_SEND_HOURS_END } from "@/lib/prospecting/send-window";
+import {
+  DEFAULT_SEND_DAYS,
+  DEFAULT_SEND_HOURS_START,
+  DEFAULT_SEND_HOURS_END,
+  DEFAULT_SEND_MINUTES_START,
+  DEFAULT_SEND_MINUTES_END,
+} from "@/lib/prospecting/send-window";
 import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/cn";
@@ -47,6 +53,8 @@ const DEFAULT_WINDOW: SendWindow = {
   sendDays: DEFAULT_SEND_DAYS,
   sendHoursStart: DEFAULT_SEND_HOURS_START,
   sendHoursEnd: DEFAULT_SEND_HOURS_END,
+  sendMinutesStart: DEFAULT_SEND_MINUTES_START,
+  sendMinutesEnd: DEFAULT_SEND_MINUTES_END,
 };
 
 const C_LEVEL_PRESET = 'CEO, CTO, CFO, COO, CMO, Founder, Owner, מנכ"ל, סמנכ"ל';
