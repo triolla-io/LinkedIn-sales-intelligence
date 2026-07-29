@@ -11,6 +11,7 @@ import {
   type ParsedCompany,
 } from "@/lib/prospecting/company-sheet";
 import { insertCompanyTargets } from "@/lib/prospecting/company-targets";
+import { startOfDayInZone } from "@/lib/extension/task-scheduler";
 
 const CreateSchema = z
   .object({
@@ -50,6 +51,8 @@ export async function POST(req: NextRequest) {
       sendDays,
       sendHoursStart,
       sendHoursEnd,
+      sendMinutesStart,
+      sendMinutesEnd,
       companies,
     } = parsed.data;
     const targetType = parsed.data.targetType ?? "KEYWORDS";
@@ -76,6 +79,8 @@ export async function POST(req: NextRequest) {
         ...(sendDays !== undefined ? { sendDays: normalizeSendDays(sendDays) } : {}),
         ...(sendHoursStart !== undefined ? { sendHoursStart } : {}),
         ...(sendHoursEnd !== undefined ? { sendHoursEnd } : {}),
+        ...(sendMinutesStart !== undefined ? { sendMinutesStart } : {}),
+        ...(sendMinutesEnd !== undefined ? { sendMinutesEnd } : {}),
       },
     });
     if (targetType === "COMPANY") {
@@ -99,14 +104,19 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   return withTenant(async (_r: NextRequest, ctx) => {
-    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const owner = await prisma.user.findUnique({
+      where: { id: ctx.effectiveUserId },
+      select: { timezone: true },
+    });
+    // "Today" = the local calendar day (owner timezone), matching the "נשלחו היום" label.
+    const dayStart = startOfDayInZone(new Date(), owner?.timezone ?? "Asia/Jerusalem");
     const [runs, sentToday] = await Promise.all([
       prisma.prospectingRun.findMany({
         where: { ownerId: ctx.effectiveUserId },
         orderBy: { createdAt: "desc" },
       }),
       prisma.connectionRequest.count({
-        where: { ownerId: ctx.effectiveUserId, status: "SENT", sentAt: { gte: dayAgo } },
+        where: { ownerId: ctx.effectiveUserId, status: "SENT", sentAt: { gte: dayStart } },
       }),
     ]);
     return NextResponse.json({ runs, sentToday });

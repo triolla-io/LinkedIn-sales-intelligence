@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { computeNextScheduledFor, isWithinWindow } from "@/lib/extension/task-scheduler";
+import { computeNextScheduledFor, isWithinWindow, startOfDayInZone } from "@/lib/extension/task-scheduler";
 import { resolveSendWindow } from "@/lib/prospecting/send-window";
 import { checkConnectQuota } from "@/lib/prospecting/quota";
 import { logProspectingEvent } from "@/lib/prospecting/events";
@@ -10,12 +10,14 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /** After this many consecutive failed SEARCH pages, stop discovery and proceed with what we have. */
 export const SEARCH_FAIL_CAP = 5;
 
-async function getConnectStats(ownerId: string) {
-  const dayAgo = new Date(Date.now() - DAY_MS);
+async function getConnectStats(ownerId: string, tz: string) {
+  // "Today" is the local calendar day in the owner's timezone — not a rolling 24h
+  // window — so the daily cap and the UI's "נשלחו היום" agree.
+  const dayStart = startOfDayInZone(new Date(), tz);
   const weekAgo = new Date(Date.now() - 7 * DAY_MS);
   const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
   const [sentToday, sentThisWeek, sentLastHour, last] = await Promise.all([
-    prisma.connectionRequest.count({ where: { ownerId, status: "SENT", sentAt: { gte: dayAgo } } }),
+    prisma.connectionRequest.count({ where: { ownerId, status: "SENT", sentAt: { gte: dayStart } } }),
     prisma.connectionRequest.count({ where: { ownerId, status: "SENT", sentAt: { gte: weekAgo } } }),
     prisma.connectionRequest.count({ where: { ownerId, status: "SENT", sentAt: { gte: hourAgo } } }),
     prisma.connectionRequest.findFirst({
@@ -61,14 +63,15 @@ export async function queueNextConnect(runId: string): Promise<string | null> {
 
     // Connections module master switch: owner turned it off → effective pause.
     // Release the slot and queue nothing; run statuses are never mutated by the toggle.
-    const ownerFlags = await prisma.user.findUnique({
+    const owner = await prisma.user.findUnique({
       where: { id: run.ownerId },
-      select: { routineConnectionsEnabled: true },
+      select: { routineConnectionsEnabled: true, timezone: true },
     });
-    if (ownerFlags && !ownerFlags.routineConnectionsEnabled) {
+    if (owner && !owner.routineConnectionsEnabled) {
       await releaseConnectSlot(runId);
       return null;
     }
+    const tz = owner?.timezone ?? "Asia/Jerusalem";
 
     // Atomically claim the oldest DISCOVERED candidate. Clean "Connect"-card candidates
     // (sendPriority 0) drain first; Follow/Message-card ones (priority 1) are tried last.
@@ -91,10 +94,7 @@ export async function queueNextConnect(runId: string): Promise<string | null> {
     }
     await logProspectingEvent({ runId, type: "QUEUED", connectionRequestId: next.id, message: next.fullName ?? next.linkedinUrl });
 
-    const owner = await prisma.user.findUnique({ where: { id: run.ownerId }, select: { timezone: true } });
-    const tz = owner?.timezone ?? "Asia/Jerusalem";
-
-    const { sentToday, sentThisWeek, sentLastHour, lastSentAt } = await getConnectStats(run.ownerId);
+    const { sentToday, sentThisWeek, sentLastHour, lastSentAt } = await getConnectStats(run.ownerId, tz);
     const quota = checkConnectQuota({
       sentToday,
       sentThisWeek,
@@ -184,7 +184,7 @@ export async function rescheduleRunPendingConnect(runId: string): Promise<void> 
   const tz = owner?.timezone ?? "Asia/Jerusalem";
   const window = resolveSendWindow(run, tz);
 
-  const { sentToday, sentThisWeek, sentLastHour, lastSentAt } = await getConnectStats(run.ownerId);
+  const { sentToday, sentThisWeek, sentLastHour, lastSentAt } = await getConnectStats(run.ownerId, tz);
   // A quota-deferred task must not be pulled forward by a window edit —
   // computeNextScheduledFor knows nothing about the weekly cap.
   const quota = checkConnectQuota({ sentToday, sentThisWeek, dailyCap: run.dailyCap, weeklyCap: run.weeklyCap });

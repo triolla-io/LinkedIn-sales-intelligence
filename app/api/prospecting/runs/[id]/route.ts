@@ -5,6 +5,7 @@ import { withTenant } from "@/lib/tenancy/with-tenant";
 import { computeRunStatusSummary } from "@/lib/prospecting/run-status";
 import { sendWindowFields, sendWindowRefine, normalizeSendDays, DEFAULT_SEND_DAYS } from "@/lib/prospecting/send-window";
 import { rescheduleRunPendingConnect } from "@/lib/prospecting/connect-scheduler";
+import { startOfDayInZone } from "@/lib/extension/task-scheduler";
 
 const REQUEST_STATUSES = ["DISCOVERED", "QUEUED", "SENT", "FAILED", "SKIPPED", "ACCEPTED"] as const;
 type RequestStatus = (typeof REQUEST_STATUSES)[number];
@@ -21,7 +22,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       : undefined;
 
     const now = new Date();
-    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const owner = await prisma.user.findUnique({
+      where: { id: run.ownerId },
+      select: { timezone: true },
+    });
+    // "Today" = the local calendar day (owner timezone) — same definition the scheduler quota uses.
+    const dayStart = startOfDayInZone(now, owner?.timezone ?? "Asia/Jerusalem");
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     const [requests, statusGroups, tasks, events, nextTask, sentToday, sentThisWeek] = await Promise.all([
@@ -51,7 +57,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         orderBy: { scheduledFor: "asc" },
         select: { scheduledFor: true },
       }),
-      prisma.connectionRequest.count({ where: { ownerId: ctx.effectiveUserId, status: "SENT", sentAt: { gte: dayAgo } } }),
+      prisma.connectionRequest.count({ where: { ownerId: ctx.effectiveUserId, status: "SENT", sentAt: { gte: dayStart } } }),
       prisma.connectionRequest.count({ where: { ownerId: ctx.effectiveUserId, status: "SENT", sentAt: { gte: weekAgo } } }),
     ]);
 
@@ -122,13 +128,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!parsed.success) {
       return NextResponse.json({ error: "invalid_input", issues: parsed.error.issues }, { status: 400 });
     }
-    const { sendDays, sendHoursStart, sendHoursEnd } = parsed.data;
+    const { sendDays, sendHoursStart, sendHoursEnd, sendMinutesStart, sendMinutesEnd } = parsed.data;
     const updated = await prisma.prospectingRun.updateMany({
       where: { id, ownerId: ctx.effectiveUserId },
       data: {
         ...(sendDays !== undefined ? { sendDays: normalizeSendDays(sendDays) } : {}),
         ...(sendHoursStart !== undefined ? { sendHoursStart } : {}),
         ...(sendHoursEnd !== undefined ? { sendHoursEnd } : {}),
+        ...(sendMinutesStart !== undefined ? { sendMinutesStart } : {}),
+        ...(sendMinutesEnd !== undefined ? { sendMinutesEnd } : {}),
       },
     });
     if (updated.count === 0) return NextResponse.json({ error: "not_found" }, { status: 404 });
