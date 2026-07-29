@@ -1,3 +1,5 @@
+import { resolveRoleFamily, familyHeadlineMatches } from "@/lib/roles/families";
+
 export type ScrapedCard = {
   urn: string;
   profileUrl: string;
@@ -27,32 +29,21 @@ export function cleanScrapedName(name: string): string {
 }
 
 /**
- * Exec-title synonyms. Each searched title maps to the patterns that, when found in a
- * candidate's headline, confirm the person actually holds (a variant of) that title.
- * Prevents LinkedIn's full-text `keywords=` search from flooding the run with employees
- * who merely mention an exec term (a PA "to the CEO", etc.).
- */
-const TITLE_SYNONYMS: Record<string, RegExp[]> = {
-  CEO: [/\bCEO\b/i, /chief\s+executive/i, /מנכ["״"׳']?ל/],
-  CTO: [/\bCTO\b/i, /chief\s+technolog/i, /chief\s+technical/i],
-  CFO: [/\bCFO\b/i, /chief\s+financial/i],
-  COO: [/\bCOO\b/i, /chief\s+operating/i],
-  CMO: [/\bCMO\b/i, /chief\s+marketing/i],
-  FOUNDER: [/\bco-?founder\b/i, /\bfounder\b/i, /מייסד/],
-  OWNER: [/\bowner\b/i, /בעלים/],
-};
-
-/**
- * True when `headline` shows the person actually holds `searchTitle`. Known exec titles use
- * the synonym map; anything else falls back to a case-insensitive substring match of the
- * (unquoted) search title. A null/empty headline never matches.
+ * True when `headline` shows the person holds (a variant of) `searchTitle`. Known role
+ * titles match against their whole family — every abbreviation, long form, VP/Head-of
+ * variant, and Hebrew form (see lib/roles/families.ts) — so a "CFO" search also confirms
+ * "VP Finance" or 'סמנכ"ל כספים'. Prevents LinkedIn's full-text `keywords=` search from
+ * flooding the run with employees who merely mention an exec term (a PA "to the CEO", etc.),
+ * while still catching everyone who actually leads that function. Unknown custom titles fall
+ * back to a case-insensitive substring match of the (unquoted) search title. A null/empty
+ * headline never matches.
  */
 export function titleMatchesHeadline(searchTitle: string, headline: string | null): boolean {
   if (!headline) return false;
   const title = searchTitle.replace(/^"|"$/g, "").trim();
   if (!title) return false;
-  const patterns = TITLE_SYNONYMS[title.toUpperCase()];
-  if (patterns) return patterns.some((re) => re.test(headline));
+  const family = resolveRoleFamily(title);
+  if (family) return familyHeadlineMatches(family, headline);
   return headline.toLowerCase().includes(title.toLowerCase());
 }
 

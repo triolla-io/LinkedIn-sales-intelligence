@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeSendPriority, decideCandidate, type ScrapedCard } from "@/lib/prospecting/filter";
+import { computeSendPriority, decideCandidate, titleMatchesHeadline, type ScrapedCard } from "@/lib/prospecting/filter";
 
 const base: ScrapedCard = {
   urn: "ACoAA1",
@@ -69,5 +69,32 @@ describe("computeSendPriority", () => {
     expect(computeSendPriority({ ...base, cardAction: "follow" })).toBe(1);
     expect(computeSendPriority({ ...base, cardAction: "following" })).toBe(1);
     expect(computeSendPriority({ ...base, cardAction: "message" })).toBe(1);
+  });
+});
+
+describe("titleMatchesHeadline", () => {
+  it("accepts the exact searched acronym", () => {
+    expect(titleMatchesHeadline("CFO", "CFO at Acme")).toBe(true);
+  });
+  it("accepts a VP/Head-of variant of the searched function (family breadth)", () => {
+    expect(titleMatchesHeadline("CFO", "VP Finance, Acme")).toBe(true);
+    expect(titleMatchesHeadline("CFO", "Head of Finance")).toBe(true);
+  });
+  it("accepts a Hebrew variant when searching the English title", () => {
+    expect(titleMatchesHeadline("CFO", 'סמנכ"ל כספים')).toBe(true);
+  });
+  it("resolves a phrase-wrapped search term back to its family", () => {
+    expect(titleMatchesHeadline('"VP Finance"', "Chief Financial Officer")).toBe(true);
+  });
+  it("does not match a short acronym inside an unrelated word", () => {
+    expect(titleMatchesHeadline("COO", "Founder of a cool startup")).toBe(false);
+  });
+  it("falls back to substring match for an unknown custom title", () => {
+    expect(titleMatchesHeadline("Growth Hacker", "Senior Growth Hacker")).toBe(true);
+    expect(titleMatchesHeadline("Growth Hacker", "Data Analyst")).toBe(false);
+  });
+  it("never matches a null/empty headline", () => {
+    expect(titleMatchesHeadline("CFO", null)).toBe(false);
+    expect(titleMatchesHeadline("CFO", "")).toBe(false);
   });
 });
