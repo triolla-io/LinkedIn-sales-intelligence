@@ -15,6 +15,9 @@ export const GET = withTenant(async (_req, ctx) => {
     select: {
       id: true,
       draftMessage: true,
+      emailSubject: true,
+      emailBody: true,
+      whatsappMessage: true,
       createdAt: true,
       contact: { select: { fullName: true, currentTitle: true, linkedinUrl: true } },
       signal: {

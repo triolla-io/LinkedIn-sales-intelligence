@@ -1,15 +1,19 @@
 "use client";
 
 import { useReducer, useState } from "react";
-import { Button, Chip, TextArea, Switch } from "@heroui/react";
+import { Button, Chip, TextArea, Switch, Tabs } from "@heroui/react";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
-import { Sparkles, Loader2, ExternalLink, Building2 } from "lucide-react";
+import { Sparkles, Loader2, ExternalLink, Building2, CalendarDays, Copy, Check } from "lucide-react";
+import { resolveEventDate, formatEventDate } from "@/lib/company-signals/event-date";
 
 type Source = { name: string; url: string; publishedAt: string | null };
 type Draft = {
   id: string;
   draftMessage: string;
+  emailSubject: string | null;
+  emailBody: string | null;
+  whatsappMessage: string | null;
   createdAt: string;
   contact: { fullName: string; currentTitle: string | null; linkedinUrl: string };
   signal: {
@@ -143,6 +147,7 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
   }
 
   const pct = Math.round(draft.signal.confidence * 100);
+  const newsDate = formatEventDate(resolveEventDate(draft.signal.eventDate, draft.signal.sources));
 
   return (
     <li className="bg-white rounded-lg border border-[#e5e3df] p-4 flex flex-col gap-3">
@@ -153,6 +158,11 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
           {TYPE_LABEL[draft.signal.signalType] ?? draft.signal.signalType}
         </Chip>
         <span className="text-xs text-gray-500">ביטחון {pct}%</span>
+        {newsDate && (
+          <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+            <CalendarDays className="w-3 h-3" /> {newsDate}
+          </span>
+        )}
         <span className="text-sm text-gray-700">· {draft.signal.title}</span>
       </div>
 
@@ -173,40 +183,118 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
         אל: {draft.contact.fullName}{draft.contact.currentTitle ? ` · ${draft.contact.currentTitle}` : ""}
       </div>
 
-      <div className="flex flex-col gap-2">
-        {actionError && <p className="text-xs text-red-600">{actionError}</p>}
-        <TextArea
-          aria-label="טיוטת הודעה"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          className="w-full"
-          dir="rtl"
-        />
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="primary"
-            isDisabled={!text.trim() || busy !== null}
-            onPress={() => act("approve")}
-          >
-            <span className="inline-flex items-center gap-1">
-              {busy === "approve" && <Loader2 className="w-3 h-3 animate-spin" />}
-              אישור ושליחה
-            </span>
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            isDisabled={busy !== null}
-            onPress={() => act("dismiss")}
-          >
-            <span className="inline-flex items-center gap-1">
-              {busy === "dismiss" && <Loader2 className="w-3 h-3 animate-spin" />}
-              דחה
-            </span>
-          </Button>
-        </div>
-      </div>
+      <Tabs defaultSelectedKey="linkedin" className="w-full">
+        <Tabs.ListContainer>
+          <Tabs.List aria-label="ערוץ הודעה">
+            <Tabs.Tab id="linkedin">
+              לינקדאין
+              <Tabs.Indicator />
+            </Tabs.Tab>
+            {draft.emailBody && (
+              <Tabs.Tab id="email">
+                אימייל
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            )}
+            {draft.whatsappMessage && (
+              <Tabs.Tab id="whatsapp">
+                וואטסאפ
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            )}
+          </Tabs.List>
+        </Tabs.ListContainer>
+
+        <Tabs.Panel id="linkedin" className="pt-3">
+          <div className="flex flex-col gap-2">
+            {actionError && <p className="text-xs text-red-600">{actionError}</p>}
+            <TextArea
+              aria-label="טיוטת הודעה"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              className="w-full"
+              dir="rtl"
+            />
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="primary"
+                isDisabled={!text.trim() || busy !== null}
+                onPress={() => act("approve")}
+              >
+                <span className="inline-flex items-center gap-1">
+                  {busy === "approve" && <Loader2 className="w-3 h-3 animate-spin" />}
+                  אישור ושליחה
+                </span>
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                isDisabled={busy !== null}
+                onPress={() => act("dismiss")}
+              >
+                <span className="inline-flex items-center gap-1">
+                  {busy === "dismiss" && <Loader2 className="w-3 h-3 animate-spin" />}
+                  דחה
+                </span>
+              </Button>
+            </div>
+          </div>
+        </Tabs.Panel>
+
+        {draft.emailBody && (
+          <Tabs.Panel id="email" className="pt-3">
+            <CopyBlock
+              label="נושא + גוף האימייל"
+              text={`${draft.emailSubject ?? ""}\n\n${draft.emailBody}`.trim()}
+            >
+              {draft.emailSubject && (
+                <p className="text-sm font-semibold text-gray-800">{draft.emailSubject}</p>
+              )}
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{draft.emailBody}</p>
+            </CopyBlock>
+          </Tabs.Panel>
+        )}
+
+        {draft.whatsappMessage && (
+          <Tabs.Panel id="whatsapp" className="pt-3">
+            <CopyBlock label="הודעת וואטסאפ" text={draft.whatsappMessage}>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{draft.whatsappMessage}</p>
+            </CopyBlock>
+          </Tabs.Panel>
+        )}
+      </Tabs>
     </li>
+  );
+}
+
+function CopyBlock({ label, text, children }: { label: string; text: string; children: React.ReactNode }) {
+  const [state, setState] = useState<"idle" | "copied" | "error">("idle");
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setState("copied");
+      setTimeout(() => setState(() => "idle"), 2000);
+    } catch {
+      setState("error");
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="bg-[#f6f5f3] rounded-md border border-[#e5e3df] p-3 flex flex-col gap-1">
+        {children}
+      </div>
+      <div className="flex items-center gap-2">
+        <Button size="sm" variant="ghost" onPress={copy} aria-label={`העתקת ${label}`}>
+          <span className="inline-flex items-center gap-1">
+            {state === "copied" ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+            {state === "copied" ? "הועתק" : "העתק"}
+          </span>
+        </Button>
+        {state === "error" && <span className="text-xs text-red-600">ההעתקה נכשלה — סמן והעתק ידנית</span>}
+      </div>
+    </div>
   );
 }
