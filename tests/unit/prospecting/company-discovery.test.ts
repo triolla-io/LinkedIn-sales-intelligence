@@ -11,6 +11,7 @@ const targetCount = vi.hoisted(() => vi.fn());
 const requestCount = vi.hoisted(() => vi.fn());
 const taskCreate = vi.hoisted(() => vi.fn());
 const taskFindFirst = vi.hoisted(() => vi.fn());
+const taskCount = vi.hoisted(() => vi.fn());
 const eventCreate = vi.hoisted(() => vi.fn());
 const userFindUnique = vi.hoisted(() => vi.fn());
 
@@ -26,7 +27,7 @@ vi.mock("@/lib/prisma", () => ({
       count: targetCount,
     },
     connectionRequest: { count: requestCount },
-    extensionTask: { create: taskCreate, findFirst: taskFindFirst },
+    extensionTask: { create: taskCreate, findFirst: taskFindFirst, count: taskCount },
     prospectingEvent: { create: eventCreate },
     user: { findUnique: userFindUnique },
   },
@@ -71,8 +72,28 @@ describe("startNextPendingTarget", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers({ now: INSIDE_DISCOVERY_HOURS });
+    taskCount.mockResolvedValue(0);
   });
   afterEach(() => vi.useRealTimers());
+
+  it("daily discovery cap reached → schedules tomorrow at window start, not today", async () => {
+    runFindUnique.mockResolvedValue({
+      id: "run1",
+      ownerId: "user1",
+      status: "RUNNING",
+      targetType: "COMPANY",
+      discoveryDone: false,
+      ...OPEN_WINDOW,
+    });
+    userFindUnique.mockResolvedValue({ timezone: "Asia/Jerusalem" });
+    targetFindFirst.mockResolvedValue({ id: "t1", name: "Acme", linkedinUrl: null, status: "PENDING" });
+    targetUpdateMany.mockResolvedValue({ count: 1 });
+    taskCount.mockResolvedValue(100); // DISCOVERY_DAILY_CAP used up
+    await startNextPendingTarget("run1");
+    const created = taskCreate.mock.calls[0][0].data;
+    // Tuesday noon Jerusalem + capped → Wednesday 09:00 Jerusalem (06:00 UTC)
+    expect(created.scheduledFor.toISOString()).toBe("2026-07-29T06:00:00.000Z");
+  });
 
   it("claims the oldest PENDING target and enqueues RESOLVE_COMPANY with the delay", async () => {
     runFindUnique.mockResolvedValue({
@@ -223,6 +244,7 @@ describe("enqueueCompanySearchTask (per-title)", () => {
     vi.clearAllMocks();
     vi.useFakeTimers({ now: INSIDE_DISCOVERY_HOURS });
     userFindUnique.mockResolvedValue({ timezone: "Asia/Jerusalem" });
+    taskCount.mockResolvedValue(0);
   });
   afterEach(() => vi.useRealTimers());
   const RUN = { id: "run1", ownerId: "u1", keywords: "CEO, CTO", geoUrn: "", ...OPEN_WINDOW };
@@ -237,6 +259,9 @@ describe("enqueueCompanySearchTask (per-title)", () => {
   });
 
   it("searches the single title at searchTitleIndex", async () => {
+    // parseSearchTitles("CEO, CTO") now expands each title via its role family:
+    // ["CEO", "Founder", "CTO", "\"VP Engineering\"", "\"VP R&D\""]. Index 1 is
+    // the CEO family's second search term, "Founder" — not "CEO" and not "CTO".
     targetUpdate.mockResolvedValue({});
     await enqueueCompanySearchTask(RUN, target({ searchTitleIndex: 1 }), 1);
     expect(targetUpdate).toHaveBeenCalledWith({
@@ -244,11 +269,12 @@ describe("enqueueCompanySearchTask (per-title)", () => {
       data: { status: "SEARCHING" },
     });
     const url = new URL(taskCreate.mock.calls[0][0].data.payload.searchUrl);
-    expect(url.searchParams.get("keywords")).toBe("CTO"); // index 1, not "CEO"
+    expect(url.searchParams.get("keywords")).toBe("Founder"); // index 1, not "CEO"
     expect(url.searchParams.get("currentCompany")).toBe('["1441"]');
   });
 
   it("finishes the company (DONE + advance) once the title cursor runs past the list", async () => {
+    // Expanded list has 5 entries (see above); index 5 is one past the last.
     targetUpdateMany.mockResolvedValue({ count: 1 });
     runFindUnique.mockResolvedValue({
       id: "run1",
@@ -262,7 +288,7 @@ describe("enqueueCompanySearchTask (per-title)", () => {
     targetCount.mockResolvedValue(0);
     requestCount.mockResolvedValue(0);
     taskFindFirst.mockResolvedValue(null);
-    await enqueueCompanySearchTask(RUN, target({ searchTitleIndex: 2 }), 1);
+    await enqueueCompanySearchTask(RUN, target({ searchTitleIndex: 5 }), 1);
     expect(targetUpdateMany).toHaveBeenCalledWith({
       where: { id: "t1", status: { in: ["READY", "SEARCHING"] } },
       data: { status: "DONE" },
@@ -285,6 +311,7 @@ describe("failCompanyTarget", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers({ now: INSIDE_DISCOVERY_HOURS });
+    taskCount.mockResolvedValue(0);
     targetUpdate.mockResolvedValue({});
     runFindUnique.mockResolvedValue({
       id: "run1",
