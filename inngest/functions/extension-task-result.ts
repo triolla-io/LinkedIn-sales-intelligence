@@ -4,7 +4,7 @@ import { Prisma } from "@/lib/generated/prisma/client";
 import { recordJobChangeIfAny } from "@/lib/job-check/detect-change";
 import { maybeCompleteEnrollment } from "@/lib/sequences/gating";
 import { persistCandidates } from "@/lib/prospecting/candidates";
-import { queueNextConnect, releaseConnectSlot, SEARCH_FAIL_CAP } from "@/lib/prospecting/connect-scheduler";
+import { queueNextConnect, releaseConnectSlot, stampWarmupStart, SEARCH_FAIL_CAP } from "@/lib/prospecting/connect-scheduler";
 import type { ScrapedCard } from "@/lib/prospecting/filter";
 import { buildSearchUrl, parseSearchTitles } from "@/lib/prospecting/search-url";
 import { logProspectingEvent } from "@/lib/prospecting/events";
@@ -629,6 +629,7 @@ async function handleConnectSuccess(task: TaskRow) {
     where: { id: task.connectionRequestId, status: { not: "SENT" } },
     data: { status: "SENT", sentAt: new Date() },
   });
+  await stampWarmupStart(task.userId);
   if (updated.count === 1) {
     await prisma.prospectingRun.update({
       where: { id: task.prospectingRunId },
@@ -697,6 +698,7 @@ async function handleConnectFailure(task: TaskRow) {
         where: { id: task.connectionRequestId, status: { not: "SENT" } },
         data: { status: "SENT", sentAt: new Date() },
       });
+      await stampWarmupStart(task.userId);
       if (updated.count === 1 && task.prospectingRunId) {
         await prisma.prospectingRun.update({
           where: { id: task.prospectingRunId },

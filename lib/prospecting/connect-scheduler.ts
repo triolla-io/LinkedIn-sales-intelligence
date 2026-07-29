@@ -4,6 +4,7 @@ import { resolveSendWindow } from "@/lib/prospecting/send-window";
 import { checkConnectQuota } from "@/lib/prospecting/quota";
 import { logProspectingEvent } from "@/lib/prospecting/events";
 import { formatHebrewTime } from "@/lib/prospecting/format";
+import { effectiveCaps, dailyTargetFor, CONNECT_HOURLY_CAP } from "@/lib/prospecting/gentle-policy";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -32,6 +33,19 @@ async function getConnectStats(ownerId: string, tz: string) {
 /** Release the per-run CONNECT slot. Call after a CONNECT task completes (success or failure). */
 export async function releaseConnectSlot(runId: string): Promise<void> {
   await prisma.prospectingRun.updateMany({ where: { id: runId }, data: { connectInFlight: false } });
+}
+
+/**
+ * Anchor the warm-up clock at the account's FIRST successful connection send.
+ * Idempotent — only fills a null anchor. Existing senders were backfilled by
+ * migration, and an admin reset (scripts/reset-connect-warmup.ts) sets a fresh
+ * timestamp — so this never overwrites either.
+ */
+export async function stampWarmupStart(userId: string): Promise<void> {
+  await prisma.user.updateMany({
+    where: { id: userId, connectWarmupStartedAt: null },
+    data: { connectWarmupStartedAt: new Date() },
+  });
 }
 
 /**
@@ -65,7 +79,7 @@ export async function queueNextConnect(runId: string): Promise<string | null> {
     // Release the slot and queue nothing; run statuses are never mutated by the toggle.
     const owner = await prisma.user.findUnique({
       where: { id: run.ownerId },
-      select: { routineConnectionsEnabled: true, timezone: true },
+      select: { routineConnectionsEnabled: true, timezone: true, connectWarmupStartedAt: true },
     });
     if (owner && !owner.routineConnectionsEnabled) {
       await releaseConnectSlot(runId);
@@ -95,28 +109,43 @@ export async function queueNextConnect(runId: string): Promise<string | null> {
     await logProspectingEvent({ runId, type: "QUEUED", connectionRequestId: next.id, message: next.fullName ?? next.linkedinUrl });
 
     const { sentToday, sentThisWeek, sentLastHour, lastSentAt } = await getConnectStats(run.ownerId, tz);
+    // Gentle policy: min(run caps, warm-up ladder, platform hard caps), then today's drawn target.
+    const caps = effectiveCaps({
+      runDailyCap: run.dailyCap,
+      runWeeklyCap: run.weeklyCap,
+      warmupStartedAt: owner?.connectWarmupStartedAt ?? null,
+      now: new Date(),
+    });
+    const dailyTarget = dailyTargetFor({
+      userId: run.ownerId,
+      timezone: tz,
+      now: new Date(),
+      effectiveDailyCap: caps.dailyCap,
+    });
     const quota = checkConnectQuota({
       sentToday,
       sentThisWeek,
-      dailyCap: run.dailyCap,
-      weeklyCap: run.weeklyCap,
+      dailyCap: dailyTarget,
+      weeklyCap: caps.weeklyCap,
     });
 
     let scheduledFor: Date;
     if (quota.canSendNow) {
-      const hourlyCap = Math.max(1, Math.floor(run.dailyCap / 4));
       const window = resolveSendWindow(run, tz);
       scheduledFor = computeNextScheduledFor({
         timezone: tz,
         workingHoursStart: window.workingHoursStart,
         workingHoursEnd: window.workingHoursEnd,
+        workingMinutesStart: window.workingMinutesStart,
+        workingMinutesEnd: window.workingMinutesEnd,
         weekdaysOnly: true,
         workingWeekdays: window.workingWeekdays,
         lastSentAt,
         sentTodayCount: sentToday,
         sentLastHourCount: sentLastHour,
-        dailyCap: run.dailyCap,
-        hourlyCap,
+        dailyCap: caps.dailyCap,
+        dailyTarget,
+        hourlyCap: CONNECT_HOURLY_CAP,
       });
     } else if (quota.deferReason === "daily") {
       scheduledFor = new Date(Date.now() + DAY_MS);
@@ -180,14 +209,29 @@ export async function rescheduleRunPendingConnect(runId: string): Promise<void> 
   });
   if (!pending) return;
 
-  const owner = await prisma.user.findUnique({ where: { id: run.ownerId }, select: { timezone: true } });
+  const owner = await prisma.user.findUnique({
+    where: { id: run.ownerId },
+    select: { timezone: true, connectWarmupStartedAt: true },
+  });
   const tz = owner?.timezone ?? "Asia/Jerusalem";
   const window = resolveSendWindow(run, tz);
 
   const { sentToday, sentThisWeek, sentLastHour, lastSentAt } = await getConnectStats(run.ownerId, tz);
+  const caps = effectiveCaps({
+    runDailyCap: run.dailyCap,
+    runWeeklyCap: run.weeklyCap,
+    warmupStartedAt: owner?.connectWarmupStartedAt ?? null,
+    now: new Date(),
+  });
+  const dailyTarget = dailyTargetFor({
+    userId: run.ownerId,
+    timezone: tz,
+    now: new Date(),
+    effectiveDailyCap: caps.dailyCap,
+  });
   // A quota-deferred task must not be pulled forward by a window edit —
   // computeNextScheduledFor knows nothing about the weekly cap.
-  const quota = checkConnectQuota({ sentToday, sentThisWeek, dailyCap: run.dailyCap, weeklyCap: run.weeklyCap });
+  const quota = checkConnectQuota({ sentToday, sentThisWeek, dailyCap: dailyTarget, weeklyCap: caps.weeklyCap });
   if (!quota.canSendNow) return;
 
   if (isWithinWindow(pending.scheduledFor, { timezone: tz, ...window })) return;
@@ -195,13 +239,16 @@ export async function rescheduleRunPendingConnect(runId: string): Promise<void> 
     timezone: tz,
     workingHoursStart: window.workingHoursStart,
     workingHoursEnd: window.workingHoursEnd,
+    workingMinutesStart: window.workingMinutesStart,
+    workingMinutesEnd: window.workingMinutesEnd,
     weekdaysOnly: true,
     workingWeekdays: window.workingWeekdays,
     lastSentAt,
     sentTodayCount: sentToday,
     sentLastHourCount: sentLastHour,
-    dailyCap: run.dailyCap,
-    hourlyCap: Math.max(1, Math.floor(run.dailyCap / 4)),
+    dailyCap: caps.dailyCap,
+    dailyTarget,
+    hourlyCap: CONNECT_HOURLY_CAP,
   });
   await prisma.extensionTask.updateMany({
     where: { id: pending.id, status: "PENDING" },
