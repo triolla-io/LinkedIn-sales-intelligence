@@ -83,31 +83,49 @@ describe("buildSearchUrl", () => {
 });
 
 describe("parseSearchTitles", () => {
-  it("splits the C-level list into individual Latin titles, dropping the non-ASCII Hebrew ones", () => {
-    expect(
-      parseSearchTitles('CEO, CTO, CFO, COO, CMO, Founder, Owner, מנכ"ל, סמנכ"ל'),
-    ).toEqual(["CEO", "CTO", "CFO", "COO", "CMO", "Founder", "Owner"]);
+  it("expands each C-level title into its family's search terms, deduped in order", () => {
+    expect(parseSearchTitles("CEO, CFO")).toEqual([
+      "CEO",
+      "Founder",
+      "CFO",
+      '"VP Finance"',
+      '"Head of Finance"',
+    ]);
   });
 
-  it("returns a single bare title", () => {
-    expect(parseSearchTitles("CEO")).toEqual(["CEO"]);
+  it("dedupes overlapping expansions (Founder folds into the CEO family)", () => {
+    expect(parseSearchTitles("CEO, Founder")).toEqual(["CEO", "Founder"]);
   });
 
-  it("phrase-wraps multi-word titles so they match as a phrase", () => {
-    expect(parseSearchTitles("VP R&D, CTO")).toEqual(['"VP R&D"', "CTO"]);
+  it("maps Hebrew input to English search terms instead of dropping it", () => {
+    expect(parseSearchTitles('מנכ"ל')).toEqual(["CEO", "Founder"]);
+  });
+
+  it("phrase-wraps multi-word expanded terms so they match as a phrase", () => {
+    expect(parseSearchTitles("CTO")).toEqual([
+      "CTO",
+      '"VP Engineering"',
+      '"VP R&D"',
+    ]);
+  });
+
+  it("passes an unknown ASCII title through unchanged (phrase-wrapped if multi-word)", () => {
+    expect(parseSearchTitles("Growth Hacker, Owner")).toEqual([
+      '"Growth Hacker"',
+      "Owner",
+    ]);
   });
 
   it("trims, drops blanks, and returns [] for no real titles", () => {
-    expect(parseSearchTitles("  ceo , , cto ")).toEqual(["ceo", "cto"]);
     expect(parseSearchTitles("  , ,")).toEqual([]);
     expect(parseSearchTitles("")).toEqual([]);
   });
 
-  it("returns [] when every title is non-ASCII", () => {
-    expect(parseSearchTitles('מנכ"ל, סמנכ"ל')).toEqual([]);
+  it("drops an unknown non-ASCII title that maps to no family", () => {
+    expect(parseSearchTitles('סמנכ"ל')).toEqual([]);
   });
 
-  it("each title feeds buildSearchUrl as a single-title keyword alongside the company facet", () => {
+  it("each expanded term feeds buildSearchUrl as a single-title keyword", () => {
     const [first] = parseSearchTitles('CEO, CTO, מנכ"ל');
     const url = new URL(
       buildSearchUrl(
