@@ -2,15 +2,40 @@
 
 import { DAY_LETTERS_HE, formatSendWindowHe } from "@/lib/prospecting/send-window";
 
-export type SendWindow = { sendDays: number[]; sendHoursStart: number; sendHoursEnd: number };
+export type SendWindow = {
+  sendDays: number[];
+  sendHoursStart: number;
+  sendHoursEnd: number;
+  sendMinutesStart: number;
+  sendMinutesEnd: number;
+};
 
-const fmtHour = (h: number) => `${String(h).padStart(2, "0")}:00`;
+const STEP_MIN = 30;
+const fmtMod = (mod: number) => `${String(Math.floor(mod / 60)).padStart(2, "0")}:${String(mod % 60).padStart(2, "0")}`;
+
+/** The window as minute-of-day bounds — the selects operate in this space. */
+function toMod(w: SendWindow): { start: number; end: number } {
+  return {
+    start: w.sendHoursStart * 60 + w.sendMinutesStart,
+    end: w.sendHoursEnd * 60 + w.sendMinutesEnd,
+  };
+}
+
+function withBounds(w: SendWindow, start: number, end: number): SendWindow {
+  return {
+    ...w,
+    sendHoursStart: Math.floor(start / 60),
+    sendMinutesStart: start % 60,
+    sendHoursEnd: Math.floor(end / 60),
+    sendMinutesEnd: end % 60,
+  };
+}
 
 /**
  * Google-Calendar-style recurrence picker: 7 circular day chips (Sun-Sat, RTL)
- * + whole-hour range selects + a live Hebrew summary. Invalid states are
- * unreachable: the last active day can't be untoggled and end-hour options
- * always start after the chosen start hour.
+ * + half-hour-step time-range selects + a live Hebrew summary. Invalid states
+ * are unreachable: the last active day can't be untoggled and end-time options
+ * always start after the chosen start time.
  */
 export function SendWindowPicker({
   value,
@@ -21,13 +46,25 @@ export function SendWindowPicker({
   onChange: (next: SendWindow) => void;
   compact?: boolean;
 }) {
-  const { sendDays, sendHoursStart, sendHoursEnd } = value;
+  const { sendDays } = value;
+  const { start, end } = toMod(value);
+  // 00:00 … 23:30 in half-hour steps; end options run from start+30 min up to 24:00.
+  const startOptions = Array.from({ length: (24 * 60) / STEP_MIN }, (_, i) => i * STEP_MIN);
+  const endOptions = startOptions.filter((mod) => mod > start).concat(24 * 60);
 
   function toggleDay(day: number) {
     const active = sendDays.includes(day);
     if (active && sendDays.length === 1) return; // keep at least one day
     const next = active ? sendDays.filter((d) => d !== day) : [...sendDays, day].sort((a, b) => a - b);
     onChange({ ...value, sendDays: next });
+  }
+
+  function onStartChange(nextStart: number) {
+    onChange(withBounds(value, nextStart, Math.max(end, nextStart + STEP_MIN)));
+  }
+
+  function onEndChange(nextEnd: number) {
+    onChange(withBounds(value, start, nextEnd));
   }
 
   if (compact) {
@@ -60,26 +97,23 @@ export function SendWindowPicker({
           <span className="text-xs text-[#9b9895] mx-0.5">·</span>
           <select
             aria-label="שעת התחלה"
-            value={sendHoursStart}
-            onChange={(e) => {
-              const start = Number(e.target.value);
-              onChange({ ...value, sendHoursStart: start, sendHoursEnd: Math.max(sendHoursEnd, start + 1) });
-            }}
+            value={start}
+            onChange={(e) => onStartChange(Number(e.target.value))}
             className="bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-1.5 py-1 text-xs text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
           >
-            {Array.from({ length: 24 }, (_, h) => (
-              <option key={h} value={h}>{fmtHour(h)}</option>
+            {startOptions.map((mod) => (
+              <option key={mod} value={mod}>{fmtMod(mod)}</option>
             ))}
           </select>
           <span className="text-xs text-[#9b9895]">—</span>
           <select
             aria-label="שעת סיום"
-            value={sendHoursEnd}
-            onChange={(e) => onChange({ ...value, sendHoursEnd: Number(e.target.value) })}
+            value={end}
+            onChange={(e) => onEndChange(Number(e.target.value))}
             className="bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-1.5 py-1 text-xs text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
           >
-            {Array.from({ length: 24 - sendHoursStart }, (_, i) => sendHoursStart + 1 + i).map((h) => (
-              <option key={h} value={h}>{fmtHour(h)}</option>
+            {endOptions.map((mod) => (
+              <option key={mod} value={mod}>{fmtMod(mod)}</option>
             ))}
           </select>
         </div>
@@ -119,35 +153,34 @@ export function SendWindowPicker({
         <span className="text-xs font-medium text-[#6b6866]">בין השעות</span>
         <select
           aria-label="שעת התחלה"
-          value={sendHoursStart}
-          onChange={(e) => {
-            const start = Number(e.target.value);
-            onChange({ ...value, sendHoursStart: start, sendHoursEnd: Math.max(sendHoursEnd, start + 1) });
-          }}
+          value={start}
+          onChange={(e) => onStartChange(Number(e.target.value))}
           className="bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-2 py-1.5 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
         >
-          {Array.from({ length: 24 }, (_, h) => (
-            <option key={h} value={h}>
-              {fmtHour(h)}
+          {startOptions.map((mod) => (
+            <option key={mod} value={mod}>
+              {fmtMod(mod)}
             </option>
           ))}
         </select>
         <span className="text-xs text-[#9b9895]">—</span>
         <select
           aria-label="שעת סיום"
-          value={sendHoursEnd}
-          onChange={(e) => onChange({ ...value, sendHoursEnd: Number(e.target.value) })}
+          value={end}
+          onChange={(e) => onEndChange(Number(e.target.value))}
           className="bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-2 py-1.5 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
         >
-          {Array.from({ length: 24 - sendHoursStart }, (_, i) => sendHoursStart + 1 + i).map((h) => (
-            <option key={h} value={h}>
-              {fmtHour(h)}
+          {endOptions.map((mod) => (
+            <option key={mod} value={mod}>
+              {fmtMod(mod)}
             </option>
           ))}
         </select>
       </div>
 
-      <p className="text-xs text-[#9b9895]">{formatSendWindowHe(sendDays, sendHoursStart, sendHoursEnd)}</p>
+      <p className="text-xs text-[#9b9895]">
+        {formatSendWindowHe(sendDays, value.sendHoursStart, value.sendHoursEnd, value.sendMinutesStart, value.sendMinutesEnd)}
+      </p>
     </div>
   );
 }

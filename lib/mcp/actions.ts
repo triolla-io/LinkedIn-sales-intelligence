@@ -55,7 +55,7 @@ export async function enrollInSequence(ctx: McpCtx, { sequenceId, contactIds }: 
     include: {
       steps: {
         orderBy: { stepNumber: "asc" },
-        select: { id: true, dayOffset: true, sendHour: true, sendMinute: true, sendHourEnd: true },
+        select: { id: true, dayOffset: true, sendHour: true, sendMinute: true, sendHourEnd: true, sendMinuteEnd: true },
       },
     },
   });

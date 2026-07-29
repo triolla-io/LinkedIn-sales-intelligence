@@ -28,6 +28,7 @@ export type ParsedStep = {
   sendHour: number;
   sendMinute: number;
   sendHourEnd: number | null;
+  sendMinuteEnd: number;
 };
 
 export function parseSteps(input: unknown): ParsedStep[] | null {
@@ -46,11 +47,16 @@ export function parseSteps(input: unknown): ParsedStep[] | null {
     const rawHour = raw.sendHour ?? 9;
     const rawMinute = raw.sendMinute ?? 0;
     const rawHourEnd = raw.sendHourEnd ?? null;
+    const rawMinuteEnd = raw.sendMinuteEnd ?? 0;
     if (!Number.isInteger(rawHour) || (rawHour as number) < 0 || (rawHour as number) > 23) return null;
     if (!Number.isInteger(rawMinute) || (rawMinute as number) < 0 || (rawMinute as number) > 59) return null;
+    if (!Number.isInteger(rawMinuteEnd) || (rawMinuteEnd as number) < 0 || (rawMinuteEnd as number) > 59) return null;
     if (rawHourEnd !== null) {
       if (!Number.isInteger(rawHourEnd) || (rawHourEnd as number) < 0 || (rawHourEnd as number) > 23) return null;
-      if ((rawHourEnd as number) <= (rawHour as number)) return null;
+      // Compare full minute-of-day bounds so half-hour ends like 21:30 validate correctly.
+      const startMod = (rawHour as number) * 60 + (rawMinute as number);
+      const endMod = (rawHourEnd as number) * 60 + (rawMinuteEnd as number);
+      if (endMod <= startMod) return null;
     }
     seenNumbers.add(raw.stepNumber);
     prevOffset = raw.dayOffset;
@@ -63,6 +69,7 @@ export function parseSteps(input: unknown): ParsedStep[] | null {
       sendHour: rawHour as number,
       sendMinute: rawMinute as number,
       sendHourEnd: rawHourEnd as number | null,
+      sendMinuteEnd: rawMinuteEnd as number,
     });
   }
   return steps;
@@ -70,7 +77,7 @@ export function parseSteps(input: unknown): ParsedStep[] | null {
 
 function computeSpacedScheduledAt(
   enrolledAt: Date,
-  step: { dayOffset: number; sendHour: number; sendMinute: number; sendHourEnd: number | null },
+  step: { dayOffset: number; sendHour: number; sendMinute: number; sendHourEnd: number | null; sendMinuteEnd?: number },
   indexInWindow: number,
   gapMin: number = SAFE_GAP_MIN
 ): Date {
@@ -78,7 +85,7 @@ function computeSpacedScheduledAt(
   const windowEnd =
     step.sendHourEnd === null
       ? null
-      : computeScheduledAt(enrolledAt, step.dayOffset, step.sendHourEnd, 0).getTime();
+      : computeScheduledAt(enrolledAt, step.dayOffset, step.sendHourEnd, step.sendMinuteEnd ?? 0).getTime();
   return new Date(spacedSlotMs(windowStart, windowEnd, indexInWindow, gapMin));
 }
 
@@ -93,6 +100,7 @@ export function buildEnrollmentExecutions(
     sendHour: number;
     sendMinute: number;
     sendHourEnd: number | null;
+    sendMinuteEnd?: number;
   }>
 ): EnrollmentExecutionRow[] {
   return assignWindowIndices(orderedSteps).map((step) => ({

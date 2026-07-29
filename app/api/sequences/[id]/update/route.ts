@@ -60,6 +60,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           sendHour: s.sendHour,
           sendMinute: s.sendMinute,
           sendHourEnd: s.sendHourEnd ?? null,
+          sendMinuteEnd: s.sendMinuteEnd,
         })),
       });
     }

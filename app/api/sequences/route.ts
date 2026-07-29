@@ -75,6 +75,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
           sendHour: s.sendHour,
           sendMinute: s.sendMinute,
           sendHourEnd: s.sendHourEnd ?? null,
+          sendMinuteEnd: s.sendMinuteEnd,
         })),
       },
     },

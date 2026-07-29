@@ -6,7 +6,13 @@ afterEach(() => {
   cleanup();
 });
 
-const base: SendWindow = { sendDays: [0, 1, 2, 3, 4], sendHoursStart: 9, sendHoursEnd: 18 };
+const base: SendWindow = {
+  sendDays: [0, 1, 2, 3, 4],
+  sendHoursStart: 9,
+  sendHoursEnd: 18,
+  sendMinutesStart: 0,
+  sendMinutesEnd: 0,
+};
 
 describe("SendWindowPicker", () => {
   it("renders 7 day chips with the active ones pressed", () => {
@@ -38,19 +44,33 @@ describe("SendWindowPicker", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it("offers only end hours after the start hour", () => {
+  it("offers only end times after the start time, in half-hour steps up to 24:00", () => {
     render(<SendWindowPicker value={{ ...base, sendHoursStart: 16 }} onChange={() => {}} />);
     const endSelect = screen.getByLabelText("שעת סיום") as HTMLSelectElement;
-    const values = Array.from(endSelect.options).map((o) => Number(o.value));
-    expect(Math.min(...values)).toBe(17);
-    expect(Math.max(...values)).toBe(24);
+    const values = Array.from(endSelect.options).map((o) => Number(o.value)); // minute-of-day
+    expect(Math.min(...values)).toBe(16 * 60 + 30);
+    expect(Math.max(...values)).toBe(24 * 60);
   });
 
-  it("bumps the end hour when the start moves past it", () => {
+  it("offers half-hour options like 21:30", () => {
+    render(<SendWindowPicker value={base} onChange={() => {}} />);
+    const endSelect = screen.getByLabelText("שעת סיום") as HTMLSelectElement;
+    const labels = Array.from(endSelect.options).map((o) => o.text);
+    expect(labels).toContain("21:30");
+  });
+
+  it("selecting a half-hour end emits hour + minute fields", () => {
+    const onChange = vi.fn();
+    render(<SendWindowPicker value={base} onChange={onChange} />);
+    fireEvent.change(screen.getByLabelText("שעת סיום"), { target: { value: String(21 * 60 + 30) } });
+    expect(onChange).toHaveBeenCalledWith({ ...base, sendHoursEnd: 21, sendMinutesEnd: 30 });
+  });
+
+  it("bumps the end time when the start moves past it", () => {
     const onChange = vi.fn();
     render(<SendWindowPicker value={{ ...base, sendHoursStart: 9, sendHoursEnd: 10 }} onChange={onChange} />);
-    fireEvent.change(screen.getByLabelText("שעת התחלה"), { target: { value: "12" } });
-    expect(onChange).toHaveBeenCalledWith({ ...base, sendHoursStart: 12, sendHoursEnd: 13 });
+    fireEvent.change(screen.getByLabelText("שעת התחלה"), { target: { value: String(12 * 60) } });
+    expect(onChange).toHaveBeenCalledWith({ ...base, sendHoursStart: 12, sendHoursEnd: 12, sendMinutesEnd: 30 });
   });
 
   it("shows the live summary sentence", () => {

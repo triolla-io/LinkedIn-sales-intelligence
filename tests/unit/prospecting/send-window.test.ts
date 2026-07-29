@@ -40,6 +40,23 @@ describe("sendWindow zod fields", () => {
   it("accepts boundary hours 0 and 24", () => {
     expect(Schema.safeParse({ sendHoursStart: 0, sendHoursEnd: 24 }).success).toBe(true);
   });
+  it("accepts a half-hour end (21:30)", () => {
+    expect(Schema.safeParse({ sendHoursStart: 9, sendHoursEnd: 21, sendMinutesStart: 0, sendMinutesEnd: 30 }).success).toBe(true);
+  });
+  it("rejects minutes other than 0/30", () => {
+    expect(Schema.safeParse({ sendHoursStart: 9, sendHoursEnd: 21, sendMinutesEnd: 15 }).success).toBe(false);
+  });
+  it("rejects minutes without their hour bounds", () => {
+    expect(Schema.safeParse({ sendMinutesEnd: 30 }).success).toBe(false);
+  });
+  it("rejects end <= start once minutes are applied (10:30 → 10:00 within same hour pair)", () => {
+    expect(Schema.safeParse({ sendHoursStart: 10, sendHoursEnd: 11, sendMinutesStart: 30, sendMinutesEnd: 0 }).success).toBe(true);
+    expect(Schema.safeParse({ sendHoursStart: 10, sendHoursEnd: 10, sendMinutesStart: 0, sendMinutesEnd: 30 }).success).toBe(true);
+    expect(Schema.safeParse({ sendHoursStart: 10, sendHoursEnd: 10, sendMinutesStart: 30, sendMinutesEnd: 30 }).success).toBe(false);
+  });
+  it("rejects past-midnight end (24:30)", () => {
+    expect(Schema.safeParse({ sendHoursStart: 9, sendHoursEnd: 24, sendMinutesEnd: 30 }).success).toBe(false);
+  });
 });
 
 describe("resolveSendWindow", () => {
@@ -48,7 +65,17 @@ describe("resolveSendWindow", () => {
       workingWeekdays: [5, 6],
       workingHoursStart: 10,
       workingHoursEnd: 14,
+      workingMinutesStart: 0,
+      workingMinutesEnd: 0,
     });
+  });
+  it("passes half-hour offsets through", () => {
+    const w = resolveSendWindow(
+      { sendDays: [0], sendHoursStart: 9, sendHoursEnd: 21, sendMinutesStart: 30, sendMinutesEnd: 30 },
+      "Asia/Jerusalem"
+    );
+    expect(w.workingMinutesStart).toBe(30);
+    expect(w.workingMinutesEnd).toBe(30);
   });
   it("falls back to Sun-Thu for empty sendDays in Israel (legacy rows)", () => {
     expect(resolveSendWindow({ sendDays: [], sendHoursStart: 9, sendHoursEnd: 18 }, "Asia/Jerusalem").workingWeekdays).toEqual([0, 1, 2, 3, 4]);
@@ -85,5 +112,8 @@ describe("formatSendWindowHe", () => {
   });
   it("phrases all-week without the days prefix", () => {
     expect(formatSendWindowHe([0, 1, 2, 3, 4, 5, 6], 8, 22)).toBe("יישלח כל השבוע, בין 08:00 ל־22:00 (שעון ישראל)");
+  });
+  it("renders a half-hour end (21:30)", () => {
+    expect(formatSendWindowHe([0, 1, 2, 3, 4], 9, 21, 0, 30)).toBe("יישלח בימים א׳–ה׳, בין 09:00 ל־21:30 (שעון ישראל)");
   });
 });

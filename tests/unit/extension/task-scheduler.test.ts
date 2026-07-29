@@ -137,6 +137,60 @@ describe("computeNextScheduledFor", () => {
     expect(out.toISOString()).toBe("2026-06-02T06:00:00.000Z");
   });
 
+  it("half-hour window end: 21:15 local is still inside a 9:00–21:30 window → schedules now-ish", () => {
+    vi.setSystemTime(new Date("2026-07-27T18:15:00Z")); // Monday 21:15 Jerusalem (UTC+3)
+    const out = computeNextScheduledFor({
+      timezone: "Asia/Jerusalem",
+      workingHoursStart: 9,
+      workingHoursEnd: 21,
+      workingMinutesEnd: 30,
+      weekdaysOnly: true,
+      workingWeekdays: [0, 1, 2, 3, 4],
+      lastSentAt: null,
+      sentTodayCount: 0,
+      sentLastHourCount: 0,
+      dailyCap: 15,
+      hourlyCap: 3,
+    });
+    expect(out.getTime()).toBe(Date.now());
+  });
+
+  it("half-hour window end: 21:45 local is past a 21:30 close → pushes to next day 09:00", () => {
+    vi.setSystemTime(new Date("2026-07-27T18:45:00Z")); // Monday 21:45 Jerusalem
+    const out = computeNextScheduledFor({
+      timezone: "Asia/Jerusalem",
+      workingHoursStart: 9,
+      workingHoursEnd: 21,
+      workingMinutesEnd: 30,
+      weekdaysOnly: true,
+      workingWeekdays: [0, 1, 2, 3, 4],
+      lastSentAt: null,
+      sentTodayCount: 0,
+      sentLastHourCount: 0,
+      dailyCap: 15,
+      hourlyCap: 3,
+    });
+    expect(out.toISOString()).toBe("2026-07-28T06:00:00.000Z"); // Tuesday 09:00 Jerusalem
+  });
+
+  it("half-hour window start: before a 9:30 open → schedules today at 09:30 sharp", () => {
+    vi.setSystemTime(new Date("2026-07-27T05:00:00Z")); // Monday 08:00 Jerusalem
+    const out = computeNextScheduledFor({
+      timezone: "Asia/Jerusalem",
+      workingHoursStart: 9,
+      workingMinutesStart: 30,
+      workingHoursEnd: 18,
+      weekdaysOnly: true,
+      workingWeekdays: [0, 1, 2, 3, 4],
+      lastSentAt: null,
+      sentTodayCount: 0,
+      sentLastHourCount: 0,
+      dailyCap: 15,
+      hourlyCap: 3,
+    });
+    expect(out.toISOString()).toBe("2026-07-27T06:30:00.000Z"); // 09:30 Jerusalem
+  });
+
   it("at hourly cap → pushes to next hour", () => {
     vi.setSystemTime(new Date("2026-06-01T10:00:00Z"));
     const out = computeNextScheduledFor({
@@ -172,5 +226,14 @@ describe("isWithinWindow", () => {
   });
   it("false at/after closing hour (end is exclusive)", () => {
     expect(isWithinWindow(tueMorning, { ...base, workingHoursEnd: 10 })).toBe(false);
+  });
+  it("half-hour end: 10:30 local is inside end 10:00+30min? no — exclusive; 10:30 end excludes 10:30 itself", () => {
+    // tueMorning is 10:30 Jerusalem — a window ending 10:30 excludes it, one ending 11:00 includes it.
+    expect(isWithinWindow(tueMorning, { ...base, workingHoursEnd: 10, workingMinutesEnd: 30 })).toBe(false);
+    expect(isWithinWindow(tueMorning, { ...base, workingHoursEnd: 11 })).toBe(true);
+  });
+  it("half-hour start: window opening 10:30 includes 10:30 sharp", () => {
+    expect(isWithinWindow(tueMorning, { ...base, workingHoursStart: 10, workingMinutesStart: 30 })).toBe(true);
+    expect(isWithinWindow(tueMorning, { ...base, workingHoursStart: 11 })).toBe(false);
   });
 });

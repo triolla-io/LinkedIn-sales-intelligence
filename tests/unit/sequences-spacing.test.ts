@@ -61,4 +61,29 @@ describe("assignWindowIndices", () => {
     ];
     expect(assignWindowIndices(steps).map((s) => s.indexInWindow)).toEqual([0, 1]);
   });
+
+  it("half-hour starts split the group: 10:00 and 10:30 are distinct windows", () => {
+    const steps = [
+      { id: "a", dayOffset: 0, sendHour: 10, sendMinute: 0, sendHourEnd: 11, sendMinuteEnd: 0 },
+      { id: "b", dayOffset: 0, sendHour: 10, sendMinute: 30, sendHourEnd: 11, sendMinuteEnd: 0 },
+      { id: "c", dayOffset: 0, sendHour: 10, sendMinute: 30, sendHourEnd: 11, sendMinuteEnd: 0 },
+    ];
+    expect(assignWindowIndices(steps).map((s) => s.indexInWindow)).toEqual([0, 0, 1]);
+  });
+
+  it("half-hour ends split the group: ends 11:00 vs 11:30 are distinct windows", () => {
+    const steps = [
+      { id: "a", dayOffset: 0, sendHour: 10, sendMinute: 0, sendHourEnd: 11, sendMinuteEnd: 0 },
+      { id: "b", dayOffset: 0, sendHour: 10, sendMinute: 0, sendHourEnd: 11, sendMinuteEnd: 30 },
+    ];
+    expect(assignWindowIndices(steps).map((s) => s.indexInWindow)).toEqual([0, 0]);
+  });
+
+  it("omitted minutes default to :00 and group with explicit zeros", () => {
+    const steps = [
+      { id: "a", dayOffset: 0, sendHour: 10, sendHourEnd: 11 },
+      { id: "b", dayOffset: 0, sendHour: 10, sendMinute: 0, sendHourEnd: 11, sendMinuteEnd: 0 },
+    ];
+    expect(assignWindowIndices(steps).map((s) => s.indexInWindow)).toEqual([0, 1]);
+  });
 });

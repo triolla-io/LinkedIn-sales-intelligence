@@ -42,7 +42,9 @@ export default async function EditCampaignPage({
     templateId: s.templateId,
     dayOffset: s.dayOffset,
     sendHour: s.sendHour,
+    sendMinute: s.sendMinute,
     sendHourEnd: s.sendHourEnd ?? null,
+    sendMinuteEnd: s.sendMinuteEnd,
     subject: s.subject ?? "",
   }));
 

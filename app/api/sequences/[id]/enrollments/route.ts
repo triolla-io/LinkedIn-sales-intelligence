@@ -18,7 +18,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       include: {
         steps: {
           orderBy: { stepNumber: "asc" },
-          select: { id: true, dayOffset: true, sendHour: true, sendMinute: true, sendHourEnd: true },
+          select: { id: true, dayOffset: true, sendHour: true, sendMinute: true, sendHourEnd: true, sendMinuteEnd: true },
         },
       },
     });

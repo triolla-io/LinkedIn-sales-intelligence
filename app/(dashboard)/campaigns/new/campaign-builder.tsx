@@ -25,7 +25,9 @@ type StepDraft = {
   templateId: string;
   dayOffset: number;
   sendHour: number;
+  sendMinute: number;
   sendHourEnd: number | null;
+  sendMinuteEnd: number;
   subject: string;
 };
 
@@ -45,7 +47,10 @@ const CHANNEL_LABELS: Record<Channel, string> = {
   LINKEDIN: "LinkedIn",
 };
 
-const fmtHour = (h: number) => `${String(h).padStart(2, "0")}:00`;
+// Send-window times are picked in half-hour steps, encoded as minute-of-day in the selects.
+const STEP_MIN = 30;
+const fmtMod = (mod: number) => `${String(Math.floor(mod / 60)).padStart(2, "0")}:${String(mod % 60).padStart(2, "0")}`;
+const START_OPTIONS = Array.from({ length: (24 * 60) / STEP_MIN }, (_, i) => i * STEP_MIN);
 
 let nextLocalId = 1;
 function newStep(stepNumber: number, dayOffset = 0): StepDraft {
@@ -56,7 +61,9 @@ function newStep(stepNumber: number, dayOffset = 0): StepDraft {
     templateId: "",
     dayOffset,
     sendHour: 9,
+    sendMinute: 0,
     sendHourEnd: 18,
+    sendMinuteEnd: 0,
     subject: "",
   };
 }
@@ -112,7 +119,10 @@ export default function CampaignBuilder({
       if (!step.templateId) return `בחר תבנית לשלב ${step.stepNumber}`;
       if (step.channel === "EMAIL" && !step.subject.trim())
         return `נא להזין נושא לשלב ${step.stepNumber} (Email)`;
-      if (step.sendHourEnd !== null && step.sendHourEnd <= step.sendHour)
+      if (
+        step.sendHourEnd !== null &&
+        step.sendHourEnd * 60 + step.sendMinuteEnd <= step.sendHour * 60 + step.sendMinute
+      )
         return `שעת סיום חייבת להיות אחרי שעת התחלה בשלב ${step.stepNumber}`;
     }
     let prevOffset = -1;
@@ -134,8 +144,9 @@ export default function CampaignBuilder({
         templateId: s.templateId,
         dayOffset: s.dayOffset,
         sendHour: s.sendHour,
-        sendMinute: 0,
+        sendMinute: s.sendMinute,
         sendHourEnd: s.sendHourEnd,
+        sendMinuteEnd: s.sendMinuteEnd,
         subject: s.subject || null,
       })),
     };
@@ -261,7 +272,13 @@ export default function CampaignBuilder({
 
           {steps.map((step, idx) => {
             const channelTemplates = templatesForChannel(step.channel);
-            const endValue = step.sendHourEnd ?? step.sendHour + 1;
+            const startMod = step.sendHour * 60 + step.sendMinute;
+            const endMod =
+              step.sendHourEnd !== null ? step.sendHourEnd * 60 + step.sendMinuteEnd : startMod + 60;
+            // sendHourEnd is capped at 23 server-side, so the latest pickable end is 23:30.
+            const MAX_END = 23 * 60 + 30;
+            const startOptions = START_OPTIONS.filter((mod) => mod + STEP_MIN <= MAX_END);
+            const endOptions = START_OPTIONS.filter((mod) => mod > startMod && mod <= MAX_END);
             return (
               <div key={step.localId} className={`${ui.card} p-4 space-y-3`}>
                 <div className="flex items-center justify-between">
@@ -395,40 +412,45 @@ export default function CampaignBuilder({
                     <div className="flex items-center gap-2">
                       <select
                         aria-label="שעת התחלה"
-                        value={step.sendHour}
+                        value={startMod}
                         disabled={isActive}
                         onChange={(e) => {
-                          const start = Number(e.target.value);
+                          const nextStart = Number(e.target.value);
+                          const nextEnd = Math.max(endMod, nextStart + STEP_MIN);
                           updateStep(step.localId, {
-                            sendHour: start,
-                            sendHourEnd: Math.max(endValue, start + 1),
+                            sendHour: Math.floor(nextStart / 60),
+                            sendMinute: nextStart % 60,
+                            sendHourEnd: Math.floor(nextEnd / 60),
+                            sendMinuteEnd: nextEnd % 60,
                           });
                         }}
                         className={ui.input}
                       >
-                        {Array.from({ length: 24 }, (_, h) => (
-                          <option key={h} value={h}>
-                            {fmtHour(h)}
+                        {startOptions.map((mod) => (
+                          <option key={mod} value={mod}>
+                            {fmtMod(mod)}
                           </option>
                         ))}
                       </select>
                       <span className="text-xs text-[#9b9895]">—</span>
                       <select
                         aria-label="שעת סיום"
-                        value={endValue}
+                        value={endMod}
                         disabled={isActive}
-                        onChange={(e) =>
-                          updateStep(step.localId, { sendHourEnd: Number(e.target.value) })
-                        }
+                        onChange={(e) => {
+                          const nextEnd = Number(e.target.value);
+                          updateStep(step.localId, {
+                            sendHourEnd: Math.floor(nextEnd / 60),
+                            sendMinuteEnd: nextEnd % 60,
+                          });
+                        }}
                         className={ui.input}
                       >
-                        {Array.from({ length: 24 - step.sendHour }, (_, i) => step.sendHour + 1 + i).map(
-                          (h) => (
-                            <option key={h} value={h}>
-                              {fmtHour(h)}
-                            </option>
-                          ),
-                        )}
+                        {endOptions.map((mod) => (
+                          <option key={mod} value={mod}>
+                            {fmtMod(mod)}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
