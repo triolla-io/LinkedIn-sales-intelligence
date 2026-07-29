@@ -7,6 +7,7 @@
 import { prisma } from "@/lib/prisma";
 import { clevelTitleWhere } from "@/lib/company-signals/clevel";
 import { draftCongrats } from "@/lib/company-signals/draft";
+import { resolveEventDate, type SourceDate } from "@/lib/company-signals/event-date";
 
 const LIST_NAME = "חדשות חברות";
 
@@ -15,6 +16,7 @@ export async function createDraftsForSignal(signalId: string): Promise<{ created
     where: { id: signalId },
     select: {
       id: true, signalType: true, title: true, summary: true,
+      eventDate: true, sources: true,
       company: { select: { id: true, name: true } },
     },
   });
@@ -31,6 +33,12 @@ export async function createDraftsForSignal(signalId: string): Promise<{ created
     select: { id: true, ownerId: true, fullName: true, hebrewFirstName: true, currentTitle: true },
   });
 
+  const eventDate = resolveEventDate(
+    signal.eventDate ? signal.eventDate.toISOString() : null,
+    (signal.sources as SourceDate[] | null) ?? []
+  );
+  const today = new Date().toISOString().slice(0, 10);
+
   let created = 0;
   for (const c of contacts) {
     const exists = await prisma.companySignalDraft.findUnique({
@@ -39,7 +47,7 @@ export async function createDraftsForSignal(signalId: string): Promise<{ created
     });
     if (exists) continue;
 
-    const message = await draftCongrats({
+    const variants = await draftCongrats({
       contactFullName: c.fullName,
       hebrewFirstName: c.hebrewFirstName,
       contactTitle: c.currentTitle,
@@ -47,6 +55,8 @@ export async function createDraftsForSignal(signalId: string): Promise<{ created
       signalType: signal.signalType,
       signalTitle: signal.title,
       signalSummary: signal.summary,
+      eventDate,
+      today,
     });
 
     let list;
@@ -68,7 +78,14 @@ export async function createDraftsForSignal(signalId: string): Promise<{ created
     // (draftCongrats + the ContactList upsert stay OUTSIDE — no network/DDL inside a tx.)
     await prisma.$transaction([
       prisma.companySignalDraft.create({
-        data: { signalId: signal.id, contactId: c.id, ownerId: c.ownerId, draftMessage: message, status: "PENDING_REVIEW" },
+        data: {
+          signalId: signal.id, contactId: c.id, ownerId: c.ownerId,
+          draftMessage: variants.linkedin,
+          emailSubject: variants.emailSubject,
+          emailBody: variants.emailBody,
+          whatsappMessage: variants.whatsapp,
+          status: "PENDING_REVIEW",
+        },
       }),
       prisma.contactListMember.upsert({
         where: { listId_contactId: { listId: list.id, contactId: c.id } },

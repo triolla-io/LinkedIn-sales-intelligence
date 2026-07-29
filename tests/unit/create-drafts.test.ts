@@ -37,6 +37,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockSignalFindUniqueOrThrow.mockResolvedValue({
     id: "sig1", signalType: "FUNDING", title: "Raised $10M", summary: "Series A",
+    eventDate: new Date("2026-07-15T00:00:00Z"),
+    sources: [{ name: "Globes", url: "https://globes.co.il/x", publishedAt: "2026-07-14" }],
     company: { id: "co1", name: "Acme" },
   });
   mockContactFindUnique_default();
@@ -45,7 +47,12 @@ beforeEach(() => {
   // Sentinel return values so we can assert both ops are handed to $transaction together.
   mockDraftCreate.mockReturnValue({ __op: "draftCreate" });
   mockMemberUpsert.mockReturnValue({ __op: "memberUpsert" });
-  mockDraft.mockResolvedValue("דנה, מזל טוב על הגיוס!");
+  mockDraft.mockResolvedValue({
+    linkedin: "היי דנה, נתקלתי בידיעה על הגיוס. סחטיין.",
+    whatsapp: "היי דנה, ראיתי את הידיעה על הגיוס. סחטיין.",
+    emailSubject: "סחטיין על הגיוס",
+    emailBody: "היי דנה,\nנתקלתי בידיעה על הגיוס. סחטיין.",
+  });
 });
 function mockContactFindUnique_default() {
   mockContactFindMany.mockResolvedValue([
@@ -74,5 +81,36 @@ describe("createDraftsForSignal", () => {
     const res = await createDraftsForSignal("sig1");
     expect(mockDraftCreate).not.toHaveBeenCalled();
     expect(res.created).toBe(0);
+  });
+
+  it("passes eventDate and today to draftCongrats", async () => {
+    await createDraftsForSignal("sig1");
+    expect(mockDraft).toHaveBeenCalledWith(expect.objectContaining({
+      eventDate: "2026-07-15",
+      today: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+    }));
+  });
+
+  it("falls back to earliest source publishedAt when eventDate is null", async () => {
+    mockSignalFindUniqueOrThrow.mockResolvedValue({
+      id: "sig1", signalType: "FUNDING", title: "Raised $10M", summary: "Series A",
+      eventDate: null,
+      sources: [{ name: "Globes", url: "https://globes.co.il/x", publishedAt: "2026-07-14" }],
+      company: { id: "co1", name: "Acme" },
+    });
+    await createDraftsForSignal("sig1");
+    expect(mockDraft).toHaveBeenCalledWith(expect.objectContaining({ eventDate: "2026-07-14" }));
+  });
+
+  it("persists the email and whatsapp variants on the draft row", async () => {
+    await createDraftsForSignal("sig1");
+    expect(mockDraftCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        draftMessage: "היי דנה, נתקלתי בידיעה על הגיוס. סחטיין.",
+        emailSubject: "סחטיין על הגיוס",
+        emailBody: "היי דנה,\nנתקלתי בידיעה על הגיוס. סחטיין.",
+        whatsappMessage: "היי דנה, ראיתי את הידיעה על הגיוס. סחטיין.",
+      }),
+    });
   });
 });
