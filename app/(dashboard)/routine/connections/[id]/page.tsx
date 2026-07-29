@@ -55,6 +55,13 @@ type ProspectingEventRow = { type: string; message: string | null; at?: string; 
 type StatusCounts = { discovered: number; queued: number; sent: number; failed: number; skipped: number };
 type Summary = { state: string; message: string; nextAt: string | null };
 
+type Pacing = {
+  effectiveDailyCap: number;
+  effectiveWeeklyCap: number;
+  dailyTarget: number;
+  warmupWeek: number | null;
+};
+
 type RunDetailResponse = {
   run: RunDetail;
   requests: ConnectionRequest[];
@@ -63,6 +70,7 @@ type RunDetailResponse = {
   taskStats: TaskStats;
   summary: Summary;
   companyTargets?: CompanyTargetRow[];
+  pacing?: Pacing;
 };
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
@@ -168,7 +176,7 @@ const GEO_LABELS_HE: Record<string, string> = {
 };
 
 /** "קהל יעד" card: who we send to — titles, region, degree, and the send quota. */
-function TargetProfileCard({ run, companyCount }: { run: RunDetail; companyCount: number }) {
+function TargetProfileCard({ run, companyCount, pacing }: { run: RunDetail; companyCount: number; pacing?: Pacing }) {
   const titles = run.keywords.split(",").map((t) => t.trim()).filter(Boolean);
   const isCompanyRun = run.targetType === "COMPANY";
   return (
@@ -202,8 +210,13 @@ function TargetProfileCard({ run, companyCount }: { run: RunDetail; companyCount
         <div className="flex items-center gap-2">
           <Gauge className="size-3.5 text-[#9b9895] shrink-0" />
           <span>
-            עד <b className="text-[#111110]">{run.dailyCap}</b> בקשות ביום · עד{" "}
-            <b className="text-[#111110]">{run.weeklyCap}</b> בשבוע
+            עד <b className="text-[#111110]">{pacing?.effectiveDailyCap ?? run.dailyCap}</b> בקשות ביום · עד{" "}
+            <b className="text-[#111110]">{pacing?.effectiveWeeklyCap ?? run.weeklyCap}</b> בשבוע
+            {pacing?.warmupWeek != null && (
+              <span className="text-[#9b9895]">
+                {" · "}החשבון בחימום — שבוע {pacing.warmupWeek} מתוך 4, היעד להיום: {pacing.dailyTarget} בקשות
+              </span>
+            )}
           </span>
         </div>
       </div>
@@ -363,7 +376,7 @@ export default function ProspectingRunDetailPage({
 
         {/* Send settings — target audience + send window */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <TargetProfileCard run={run} companyCount={data.companyTargets?.length ?? 0} />
+          <TargetProfileCard run={run} companyCount={data.companyTargets?.length ?? 0} pacing={data.pacing} />
           <SendWindowCard runId={id} run={run} onSaved={() => mutate()} />
         </div>
 

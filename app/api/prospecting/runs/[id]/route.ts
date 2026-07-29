@@ -6,6 +6,7 @@ import { computeRunStatusSummary } from "@/lib/prospecting/run-status";
 import { sendWindowFields, sendWindowRefine, normalizeSendDays, DEFAULT_SEND_DAYS } from "@/lib/prospecting/send-window";
 import { rescheduleRunPendingConnect } from "@/lib/prospecting/connect-scheduler";
 import { startOfDayInZone } from "@/lib/extension/task-scheduler";
+import { effectiveCaps, dailyTargetFor } from "@/lib/prospecting/gentle-policy";
 
 const REQUEST_STATUSES = ["DISCOVERED", "QUEUED", "SENT", "FAILED", "SKIPPED", "ACCEPTED"] as const;
 type RequestStatus = (typeof REQUEST_STATUSES)[number];
@@ -24,10 +25,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const now = new Date();
     const owner = await prisma.user.findUnique({
       where: { id: run.ownerId },
-      select: { timezone: true },
+      select: { timezone: true, connectWarmupStartedAt: true },
     });
     // "Today" = the local calendar day (owner timezone) — same definition the scheduler quota uses.
-    const dayStart = startOfDayInZone(now, owner?.timezone ?? "Asia/Jerusalem");
+    const tz = owner?.timezone ?? "Asia/Jerusalem";
+    const dayStart = startOfDayInZone(now, tz);
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     const [requests, statusGroups, tasks, events, nextTask, sentToday, sentThisWeek] = await Promise.all([
@@ -91,12 +93,25 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       lastActivity: tasks[0]?.claimedAt ?? tasks[0]?.createdAt ?? null,
     };
 
+    const caps = effectiveCaps({
+      runDailyCap: run.dailyCap,
+      runWeeklyCap: run.weeklyCap,
+      warmupStartedAt: owner?.connectWarmupStartedAt ?? null,
+      now,
+    });
+    const dailyTarget = dailyTargetFor({
+      userId: ctx.effectiveUserId,
+      timezone: tz,
+      now,
+      effectiveDailyCap: caps.dailyCap,
+    });
+
     const summary = computeRunStatusSummary({
       status: run.status,
       pausedUntil: run.pausedUntil,
       nextScheduledFor: nextTask?.scheduledFor ?? null,
       nextDiscoveryAt: run.nextDiscoveryAt,
-      sentToday, dailyCap: run.dailyCap, sentThisWeek, weeklyCap: run.weeklyCap, now,
+      sentToday, dailyCap: dailyTarget, sentThisWeek, weeklyCap: caps.weeklyCap, now,
     });
 
     const companyTargets =
@@ -111,6 +126,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       run: { ...run, sendDays: run.sendDays.length > 0 ? run.sendDays : DEFAULT_SEND_DAYS },
       requests, statusCounts, events, taskStats, summary,
       companyTargets,
+      pacing: {
+        effectiveDailyCap: caps.dailyCap,
+        effectiveWeeklyCap: caps.weeklyCap,
+        dailyTarget,
+        warmupWeek: caps.warming ? caps.week : null,
+      },
     });
   })(req);
 }
