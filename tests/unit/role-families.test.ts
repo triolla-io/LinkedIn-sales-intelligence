@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { expandRoleQuery, normalizeRoleQuery, ROLE_FAMILIES } from "@/lib/roles/families";
+import {
+  expandRoleQuery,
+  normalizeRoleQuery,
+  ROLE_FAMILIES,
+  resolveRoleFamily,
+  expandTitleToSearchTerms,
+  familyHeadlineMatches,
+} from "@/lib/roles/families";
 import { ROLE_PILLS } from "@/lib/contacts/filter-options";
 
 describe("normalizeRoleQuery", () => {
@@ -78,5 +85,84 @@ describe("ROLE_FAMILIES integrity", () => {
       allNormalized.length,
       `Duplicate normalized triggers found: ${[...new Set(duplicates)].join(", ")}`
     ).toBe(unique.size);
+  });
+});
+
+describe("resolveRoleFamily", () => {
+  it("resolves an acronym to its family", () => {
+    expect(resolveRoleFamily("CFO")?.key).toBe("FINANCE_LEADERSHIP");
+  });
+  it("resolves a VP/Head-of search term to the same family", () => {
+    expect(resolveRoleFamily("VP Finance")?.key).toBe("FINANCE_LEADERSHIP");
+    expect(resolveRoleFamily("Head of Finance")?.key).toBe("FINANCE_LEADERSHIP");
+  });
+  it("resolves a Hebrew title (any quote style) to its family", () => {
+    expect(resolveRoleFamily('מנכ"ל')?.key).toBe("CEO_FOUNDER");
+    expect(resolveRoleFamily("מנכ״ל")?.key).toBe("CEO_FOUNDER");
+  });
+  it("returns null for an unknown title", () => {
+    expect(resolveRoleFamily("Growth Hacker")).toBeNull();
+    expect(resolveRoleFamily("")).toBeNull();
+  });
+});
+
+describe("expandTitleToSearchTerms", () => {
+  it("expands a C-level title to its family's curated search terms", () => {
+    expect(expandTitleToSearchTerms("CFO")).toEqual([
+      "CFO",
+      "VP Finance",
+      "Head of Finance",
+    ]);
+  });
+  it("expands Hebrew input to English search terms instead of dropping it", () => {
+    expect(expandTitleToSearchTerms('מנכ"ל')).toEqual(["CEO", "Founder"]);
+  });
+  it("returns null for an unknown title", () => {
+    expect(expandTitleToSearchTerms("Growth Hacker")).toBeNull();
+  });
+});
+
+describe("familyHeadlineMatches", () => {
+  const finance = ROLE_FAMILIES.find((f) => f.key === "FINANCE_LEADERSHIP")!;
+  const ops = ROLE_FAMILIES.find((f) => f.key === "OPERATIONS_LEADERSHIP")!;
+
+  it("accepts the exact acronym in a headline", () => {
+    expect(familyHeadlineMatches(finance, "CFO at Acme")).toBe(true);
+  });
+  it("accepts a VP/Head-of variant of the same function", () => {
+    expect(familyHeadlineMatches(finance, "VP Finance, Acme")).toBe(true);
+    expect(familyHeadlineMatches(finance, "Head of Finance")).toBe(true);
+  });
+  it("accepts a Hebrew variant of the same function", () => {
+    expect(familyHeadlineMatches(finance, 'סמנכ"ל כספים בחברת אקמי')).toBe(true);
+    expect(familyHeadlineMatches(finance, "סמנכ״ל כספים")).toBe(true);
+  });
+  it("does NOT match a short acronym inside an unrelated word", () => {
+    // OPS family has the "coo" pattern; it must not fire on "cool".
+    expect(familyHeadlineMatches(ops, "Founder of a cool startup")).toBe(false);
+  });
+  it("rejects an unrelated headline", () => {
+    expect(familyHeadlineMatches(finance, "Software Engineer")).toBe(false);
+    expect(familyHeadlineMatches(finance, "")).toBe(false);
+  });
+});
+
+describe("ROLE_FAMILIES searchTerms invariant", () => {
+  it("every searchTerm resolves back to its own family", () => {
+    for (const family of ROLE_FAMILIES) {
+      expect(family.searchTerms.length, `${family.key} has searchTerms`).toBeGreaterThan(0);
+      for (const term of family.searchTerms) {
+        expect(resolveRoleFamily(term)?.key, `${family.key}: "${term}"`).toBe(family.key);
+      }
+    }
+  });
+  it("every searchTerm is pure ASCII (LinkedIn URL search is Latin-only)", () => {
+    for (const family of ROLE_FAMILIES) {
+      for (const term of family.searchTerms) {
+        for (const ch of term) {
+          expect(ch.charCodeAt(0), `${family.key}: "${term}"`).toBeLessThanOrEqual(127);
+        }
+      }
+    }
   });
 });

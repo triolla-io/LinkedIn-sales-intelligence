@@ -15,6 +15,9 @@ export type RoleFamily = {
   /** Title substrings searched in the DB. Write Hebrew with ASCII `"`;
    *  gershayim/no-quote variants are generated automatically. */
   patterns: string[];
+  /** Curated ASCII LinkedIn people-search queries for this family.
+   *  Each MUST normalize to one of this family's triggers. */
+  searchTerms: string[];
 };
 
 export const ROLE_FAMILIES: RoleFamily[] = [
@@ -41,6 +44,7 @@ export const ROLE_FAMILIES: RoleFamily[] = [
       "מנהל מוצר", "מנהלת מוצר", "דירקטור מוצר", "דירקטור ניהול מוצר",
       "דירקטור בכיר לניהול מוצר", "ראש קבוצת מוצר", "מוביל מוצר", "מובילת מוצר",
     ],
+    searchTerms: ["CPO", "VP Product", "Head of Product"],
   },
   {
     key: "CEO_FOUNDER",
@@ -49,6 +53,7 @@ export const ROLE_FAMILIES: RoleFamily[] = [
       "chief executive officer", "ceo", "founder", "owner",
       'מנכ"ל', 'מנכ"לית', "מייסד", "בעלים",
     ],
+    searchTerms: ["CEO", "Founder"],
   },
   {
     key: "OPERATIONS_LEADERSHIP",
@@ -59,6 +64,7 @@ export const ROLE_FAMILIES: RoleFamily[] = [
       "head of operations", "operations director", "director of operations",
       'סמנכ"ל תפעול', 'סמנכ"לית תפעול', "מנהל תפעול", "מנהלת תפעול", "ראש תחום תפעול",
     ],
+    searchTerms: ["COO", "VP Operations", "Head of Operations"],
   },
   {
     key: "FINANCE_LEADERSHIP",
@@ -69,6 +75,7 @@ export const ROLE_FAMILIES: RoleFamily[] = [
       "head of finance", "finance director", "director of finance",
       'סמנכ"ל כספים', 'סמנכ"לית כספים', "מנהל כספים", "מנהלת כספים",
     ],
+    searchTerms: ["CFO", "VP Finance", "Head of Finance"],
   },
   {
     key: "TECHNOLOGY_LEADERSHIP",
@@ -85,6 +92,7 @@ export const ROLE_FAMILIES: RoleFamily[] = [
       'סמנכ"ל טכנולוגיות', 'סמנכ"ל פיתוח', 'סמנכ"ל מו"פ',
       "מנהל פיתוח", "מנהלת פיתוח", "ראש תחום פיתוח", 'מנהל מו"פ',
     ],
+    searchTerms: ["CTO", "VP Engineering", "VP R&D"],
   },
   {
     key: "MARKETING_LEADERSHIP",
@@ -95,6 +103,7 @@ export const ROLE_FAMILIES: RoleFamily[] = [
       "head of marketing", "marketing director", "director of marketing",
       'סמנכ"ל שיווק', 'סמנכ"לית שיווק', "מנהל שיווק", "מנהלת שיווק", "ראש תחום שיווק",
     ],
+    searchTerms: ["CMO", "VP Marketing", "Head of Marketing"],
   },
   {
     key: "HR_LEADERSHIP",
@@ -106,6 +115,7 @@ export const ROLE_FAMILIES: RoleFamily[] = [
       "human resources director", "director of human resources",
       'סמנכ"ל משאבי אנוש', 'סמנכ"לית משאבי אנוש', "מנהל משאבי אנוש", "מנהלת משאבי אנוש",
     ],
+    searchTerms: ["CHRO", "VP HR", "Head of HR"],
   },
   {
     key: "SALES_LEADERSHIP",
@@ -118,6 +128,7 @@ export const ROLE_FAMILIES: RoleFamily[] = [
       'סמנכ"ל מכירות', 'סמנכ"לית מכירות', "מנהל מכירות", "מנהלת מכירות",
       "ראש תחום מכירות", "מנהל פיתוח עסקי", 'סמנכ"ל פיתוח עסקי',
     ],
+    searchTerms: ["CRO", "VP Sales", "Head of Sales"],
   },
   {
     key: "DESIGN_LEADERSHIP",
@@ -129,6 +140,7 @@ export const ROLE_FAMILIES: RoleFamily[] = [
       "head of ux", "ux director", "creative director",
       'סמנכ"ל עיצוב', "מנהל עיצוב", "מנהלת עיצוב", "ראש תחום עיצוב",
     ],
+    searchTerms: ["Head of Design", "VP Design"],
   },
 ];
 
@@ -164,4 +176,45 @@ export function expandRoleQuery(q: string): string[] | null {
   const family = TRIGGER_MAP.get(normalizeRoleQuery(q));
   if (!family) return null;
   return [...new Set(family.patterns.flatMap(quoteVariants))];
+}
+
+/** Pure-ASCII check (Latin, LinkedIn-searchable). */
+function isAscii(s: string): boolean {
+  for (const ch of s) if (ch.charCodeAt(0) > 127) return false;
+  return true;
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Resolve a searched/typed title to its role family (or null). */
+export function resolveRoleFamily(title: string): RoleFamily | null {
+  return TRIGGER_MAP.get(normalizeRoleQuery(title)) ?? null;
+}
+
+/** The family's curated LinkedIn search terms for a title, or null if unknown. */
+export function expandTitleToSearchTerms(title: string): string[] | null {
+  return resolveRoleFamily(title)?.searchTerms ?? null;
+}
+
+/**
+ * True when `headline` shows the person holds any leadership variant in `family`.
+ * ASCII patterns match with word boundaries (so "coo" never matches inside "cool");
+ * Hebrew patterns match as substrings across all quote variants.
+ */
+export function familyHeadlineMatches(family: RoleFamily, headline: string): boolean {
+  if (!headline) return false;
+  const lower = headline.toLowerCase();
+  for (const pattern of family.patterns) {
+    if (isAscii(pattern)) {
+      const re = new RegExp(`\\b${escapeRegExp(pattern.toLowerCase())}\\b`);
+      if (re.test(lower)) return true;
+    } else {
+      for (const variant of quoteVariants(pattern)) {
+        if (headline.includes(variant)) return true;
+      }
+    }
+  }
+  return false;
 }
