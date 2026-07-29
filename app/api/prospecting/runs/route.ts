@@ -12,6 +12,7 @@ import {
 } from "@/lib/prospecting/company-sheet";
 import { insertCompanyTargets } from "@/lib/prospecting/company-targets";
 import { startOfDayInZone } from "@/lib/extension/task-scheduler";
+import { clampRunCaps } from "@/lib/prospecting/gentle-policy";
 
 const CreateSchema = z
   .object({
@@ -46,8 +47,6 @@ export async function POST(req: NextRequest) {
       keywords,
       geoCode,
       industryIds,
-      dailyCap,
-      weeklyCap,
       sendDays,
       sendHoursStart,
       sendHoursEnd,
@@ -56,6 +55,11 @@ export async function POST(req: NextRequest) {
       companies,
     } = parsed.data;
     const targetType = parsed.data.targetType ?? "KEYWORDS";
+    // Platform hard caps: whatever the client asked for is clamped, never rejected.
+    const { dailyCap, weeklyCap } = clampRunCaps({
+      dailyCap: parsed.data.dailyCap,
+      weeklyCap: parsed.data.weeklyCap,
+    });
     // COMPANY runs default to worldwide ("" = omit geo facet); "WORLD" is the explicit sentinel.
     const geoUrn =
       targetType === "COMPANY"
