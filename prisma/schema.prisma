@@ -134,6 +134,8 @@ model User {
   timezone                  String    @default("Asia/Jerusalem")
   emailSignature            String?   @db.Text
   routineConnectionsEnabled Boolean   @default(true)
+  /// Warm-up anchor for gentle connect pacing: first successful connection send (or admin reset).
+  connectWarmupStartedAt    DateTime?
   createdAt                 DateTime  @default(now())
 
   org                 Organization         @relation(fields: [orgId], references: [id])
@@ -760,8 +762,8 @@ model ProspectingRun {
   searchUrl       String
   targetType      ProspectingTargetType      @default(KEYWORDS)
   status          ProspectingRunStatus       @default(DRAFT)
-  dailyCap        Int                        @default(15)
-  weeklyCap       Int                        @default(100)
+  dailyCap        Int                        @default(12)
+  weeklyCap       Int                        @default(60)
   sendHoursStart  Int                        @default(9)
   sendHoursEnd    Int                        @default(18)
   // Half-hour granularity: minute offset (0 or 30) within the start/end hour, e.g. end 21:30.

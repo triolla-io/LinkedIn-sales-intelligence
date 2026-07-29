@@ -171,6 +171,7 @@ export const UserScalarFieldEnum = {
   timezone: 'timezone',
   emailSignature: 'emailSignature',
   routineConnectionsEnabled: 'routineConnectionsEnabled',
+  connectWarmupStartedAt: 'connectWarmupStartedAt',
   createdAt: 'createdAt'
 } as const
 

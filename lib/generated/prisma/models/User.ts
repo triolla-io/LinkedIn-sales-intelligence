@@ -36,6 +36,7 @@ export type UserMinAggregateOutputType = {
   timezone: string | null
   emailSignature: string | null
   routineConnectionsEnabled: boolean | null
+  connectWarmupStartedAt: Date | null
   createdAt: Date | null
 }
 
@@ -51,6 +52,7 @@ export type UserMaxAggregateOutputType = {
   timezone: string | null
   emailSignature: string | null
   routineConnectionsEnabled: boolean | null
+  connectWarmupStartedAt: Date | null
   createdAt: Date | null
 }
 
@@ -66,6 +68,7 @@ export type UserCountAggregateOutputType = {
   timezone: number
   emailSignature: number
   routineConnectionsEnabled: number
+  connectWarmupStartedAt: number
   createdAt: number
   _all: number
 }
@@ -83,6 +86,7 @@ export type UserMinAggregateInputType = {
   timezone?: true
   emailSignature?: true
   routineConnectionsEnabled?: true
+  connectWarmupStartedAt?: true
   createdAt?: true
 }
 
@@ -98,6 +102,7 @@ export type UserMaxAggregateInputType = {
   timezone?: true
   emailSignature?: true
   routineConnectionsEnabled?: true
+  connectWarmupStartedAt?: true
   createdAt?: true
 }
 
@@ -113,6 +118,7 @@ export type UserCountAggregateInputType = {
   timezone?: true
   emailSignature?: true
   routineConnectionsEnabled?: true
+  connectWarmupStartedAt?: true
   createdAt?: true
   _all?: true
 }
@@ -201,6 +207,7 @@ export type UserGroupByOutputType = {
   timezone: string
   emailSignature: string | null
   routineConnectionsEnabled: boolean
+  connectWarmupStartedAt: Date | null
   createdAt: Date
   _count: UserCountAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
@@ -237,6 +244,7 @@ export type UserWhereInput = {
   timezone?: Prisma.StringFilter<"User"> | string
   emailSignature?: Prisma.StringNullableFilter<"User"> | string | null
   routineConnectionsEnabled?: Prisma.BoolFilter<"User"> | boolean
+  connectWarmupStartedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   org?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   accounts?: Prisma.AccountListRelationFilter
@@ -275,6 +283,7 @@ export type UserOrderByWithRelationInput = {
   timezone?: Prisma.SortOrder
   emailSignature?: Prisma.SortOrderInput | Prisma.SortOrder
   routineConnectionsEnabled?: Prisma.SortOrder
+  connectWarmupStartedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   org?: Prisma.OrganizationOrderByWithRelationInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
@@ -316,6 +325,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   timezone?: Prisma.StringFilter<"User"> | string
   emailSignature?: Prisma.StringNullableFilter<"User"> | string | null
   routineConnectionsEnabled?: Prisma.BoolFilter<"User"> | boolean
+  connectWarmupStartedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   org?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   accounts?: Prisma.AccountListRelationFilter
@@ -354,6 +364,7 @@ export type UserOrderByWithAggregationInput = {
   timezone?: Prisma.SortOrder
   emailSignature?: Prisma.SortOrderInput | Prisma.SortOrder
   routineConnectionsEnabled?: Prisma.SortOrder
+  connectWarmupStartedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
@@ -375,6 +386,7 @@ export type UserScalarWhereWithAggregatesInput = {
   timezone?: Prisma.StringWithAggregatesFilter<"User"> | string
   emailSignature?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   routineConnectionsEnabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  connectWarmupStartedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
 
@@ -389,6 +401,7 @@ export type UserCreateInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -427,6 +440,7 @@ export type UserUncheckedCreateInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -463,6 +477,7 @@ export type UserUpdateInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -501,6 +516,7 @@ export type UserUncheckedUpdateInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -538,6 +554,7 @@ export type UserCreateManyInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -552,6 +569,7 @@ export type UserUpdateManyMutationInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -567,6 +585,7 @@ export type UserUncheckedUpdateManyInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -597,6 +616,7 @@ export type UserCountOrderByAggregateInput = {
   timezone?: Prisma.SortOrder
   emailSignature?: Prisma.SortOrder
   routineConnectionsEnabled?: Prisma.SortOrder
+  connectWarmupStartedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -612,6 +632,7 @@ export type UserMaxOrderByAggregateInput = {
   timezone?: Prisma.SortOrder
   emailSignature?: Prisma.SortOrder
   routineConnectionsEnabled?: Prisma.SortOrder
+  connectWarmupStartedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -627,6 +648,7 @@ export type UserMinOrderByAggregateInput = {
   timezone?: Prisma.SortOrder
   emailSignature?: Prisma.SortOrder
   routineConnectionsEnabled?: Prisma.SortOrder
+  connectWarmupStartedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -1006,6 +1028,7 @@ export type UserCreateWithoutAccountsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
@@ -1043,6 +1066,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -1094,6 +1118,7 @@ export type UserUpdateWithoutAccountsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
@@ -1131,6 +1156,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -1166,6 +1192,7 @@ export type UserCreateWithoutSessionsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1203,6 +1230,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -1254,6 +1282,7 @@ export type UserUpdateWithoutSessionsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1291,6 +1320,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -1326,6 +1356,7 @@ export type UserCreateWithoutOrgInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
@@ -1362,6 +1393,7 @@ export type UserUncheckedCreateWithoutOrgInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1428,6 +1460,7 @@ export type UserScalarWhereInput = {
   timezone?: Prisma.StringFilter<"User"> | string
   emailSignature?: Prisma.StringNullableFilter<"User"> | string | null
   routineConnectionsEnabled?: Prisma.BoolFilter<"User"> | boolean
+  connectWarmupStartedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
 }
 
@@ -1442,6 +1475,7 @@ export type UserCreateWithoutContactsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1479,6 +1513,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1530,6 +1565,7 @@ export type UserUpdateWithoutContactsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1567,6 +1603,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1602,6 +1639,7 @@ export type UserCreateWithoutTemplatesInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1639,6 +1677,7 @@ export type UserUncheckedCreateWithoutTemplatesInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1690,6 +1729,7 @@ export type UserUpdateWithoutTemplatesInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1727,6 +1767,7 @@ export type UserUncheckedUpdateWithoutTemplatesInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1762,6 +1803,7 @@ export type UserCreateWithoutSentMessagesInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1799,6 +1841,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1839,6 +1882,7 @@ export type UserCreateWithoutActedMessagesInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -1876,6 +1920,7 @@ export type UserUncheckedCreateWithoutActedMessagesInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1927,6 +1972,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -1964,6 +2010,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2010,6 +2057,7 @@ export type UserUpdateWithoutActedMessagesInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2047,6 +2095,7 @@ export type UserUncheckedUpdateWithoutActedMessagesInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2082,6 +2131,7 @@ export type UserCreateWithoutSavedViewsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2119,6 +2169,7 @@ export type UserUncheckedCreateWithoutSavedViewsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2170,6 +2221,7 @@ export type UserUpdateWithoutSavedViewsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2207,6 +2259,7 @@ export type UserUncheckedUpdateWithoutSavedViewsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2242,6 +2295,7 @@ export type UserCreateWithoutAuditActedInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2279,6 +2333,7 @@ export type UserUncheckedCreateWithoutAuditActedInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2319,6 +2374,7 @@ export type UserCreateWithoutAuditTargetedInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2356,6 +2412,7 @@ export type UserUncheckedCreateWithoutAuditTargetedInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2407,6 +2464,7 @@ export type UserUpdateWithoutAuditActedInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2444,6 +2502,7 @@ export type UserUncheckedUpdateWithoutAuditActedInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2490,6 +2549,7 @@ export type UserUpdateWithoutAuditTargetedInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2527,6 +2587,7 @@ export type UserUncheckedUpdateWithoutAuditTargetedInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2562,6 +2623,7 @@ export type UserCreateWithoutMcpTokensInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2599,6 +2661,7 @@ export type UserUncheckedCreateWithoutMcpTokensInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2650,6 +2713,7 @@ export type UserUpdateWithoutMcpTokensInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2687,6 +2751,7 @@ export type UserUncheckedUpdateWithoutMcpTokensInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2722,6 +2787,7 @@ export type UserCreateWithoutLinkedinSessionInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2759,6 +2825,7 @@ export type UserUncheckedCreateWithoutLinkedinSessionInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2810,6 +2877,7 @@ export type UserUpdateWithoutLinkedinSessionInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -2847,6 +2915,7 @@ export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -2882,6 +2951,7 @@ export type UserCreateWithoutCampaignsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -2919,6 +2989,7 @@ export type UserUncheckedCreateWithoutCampaignsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -2970,6 +3041,7 @@ export type UserUpdateWithoutCampaignsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3007,6 +3079,7 @@ export type UserUncheckedUpdateWithoutCampaignsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3042,6 +3115,7 @@ export type UserCreateWithoutImportsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -3079,6 +3153,7 @@ export type UserUncheckedCreateWithoutImportsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -3130,6 +3205,7 @@ export type UserUpdateWithoutImportsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3167,6 +3243,7 @@ export type UserUncheckedUpdateWithoutImportsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3202,6 +3279,7 @@ export type UserCreateWithoutImportJobsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -3239,6 +3317,7 @@ export type UserUncheckedCreateWithoutImportJobsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -3290,6 +3369,7 @@ export type UserUpdateWithoutImportJobsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3327,6 +3407,7 @@ export type UserUncheckedUpdateWithoutImportJobsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3362,6 +3443,7 @@ export type UserCreateWithoutContactListsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -3399,6 +3481,7 @@ export type UserUncheckedCreateWithoutContactListsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -3450,6 +3533,7 @@ export type UserUpdateWithoutContactListsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3487,6 +3571,7 @@ export type UserUncheckedUpdateWithoutContactListsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3522,6 +3607,7 @@ export type UserCreateWithoutSequencesInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -3559,6 +3645,7 @@ export type UserUncheckedCreateWithoutSequencesInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -3610,6 +3697,7 @@ export type UserUpdateWithoutSequencesInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3647,6 +3735,7 @@ export type UserUncheckedUpdateWithoutSequencesInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3682,6 +3771,7 @@ export type UserCreateWithoutExtensionTasksInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -3719,6 +3809,7 @@ export type UserUncheckedCreateWithoutExtensionTasksInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -3770,6 +3861,7 @@ export type UserUpdateWithoutExtensionTasksInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3807,6 +3899,7 @@ export type UserUncheckedUpdateWithoutExtensionTasksInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -3842,6 +3935,7 @@ export type UserCreateWithoutExtensionSessionInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -3879,6 +3973,7 @@ export type UserUncheckedCreateWithoutExtensionSessionInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -3930,6 +4025,7 @@ export type UserUpdateWithoutExtensionSessionInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -3967,6 +4063,7 @@ export type UserUncheckedUpdateWithoutExtensionSessionInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -4002,6 +4099,7 @@ export type UserCreateWithoutExtensionAlertsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -4039,6 +4137,7 @@ export type UserUncheckedCreateWithoutExtensionAlertsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -4090,6 +4189,7 @@ export type UserUpdateWithoutExtensionAlertsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -4127,6 +4227,7 @@ export type UserUncheckedUpdateWithoutExtensionAlertsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -4162,6 +4263,7 @@ export type UserCreateWithoutProspectingRunsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -4199,6 +4301,7 @@ export type UserUncheckedCreateWithoutProspectingRunsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -4250,6 +4353,7 @@ export type UserUpdateWithoutProspectingRunsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -4287,6 +4391,7 @@ export type UserUncheckedUpdateWithoutProspectingRunsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -4322,6 +4427,7 @@ export type UserCreateWithoutConnectionRequestsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -4359,6 +4465,7 @@ export type UserUncheckedCreateWithoutConnectionRequestsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -4410,6 +4517,7 @@ export type UserUpdateWithoutConnectionRequestsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -4447,6 +4555,7 @@ export type UserUncheckedUpdateWithoutConnectionRequestsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -4482,6 +4591,7 @@ export type UserCreateWithoutCompanySignalDraftsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
@@ -4519,6 +4629,7 @@ export type UserUncheckedCreateWithoutCompanySignalDraftsInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -4570,6 +4681,7 @@ export type UserUpdateWithoutCompanySignalDraftsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
@@ -4607,6 +4719,7 @@ export type UserUncheckedUpdateWithoutCompanySignalDraftsInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -4642,6 +4755,7 @@ export type UserCreateManyOrgInput = {
   timezone?: string
   emailSignature?: string | null
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -4656,6 +4770,7 @@ export type UserUpdateWithoutOrgInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
@@ -4692,6 +4807,7 @@ export type UserUncheckedUpdateWithoutOrgInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -4728,6 +4844,7 @@ export type UserUncheckedUpdateManyWithoutOrgInput = {
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -4945,6 +5062,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   timezone?: boolean
   emailSignature?: boolean
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: boolean
   createdAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -4984,6 +5102,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   timezone?: boolean
   emailSignature?: boolean
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: boolean
   createdAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -5000,6 +5119,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   timezone?: boolean
   emailSignature?: boolean
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: boolean
   createdAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -5016,10 +5136,11 @@ export type UserSelectScalar = {
   timezone?: boolean
   emailSignature?: boolean
   routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: boolean
   createdAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "email" | "emailVerified" | "name" | "image" | "title" | "role" | "timezone" | "emailSignature" | "routineConnectionsEnabled" | "createdAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "email" | "emailVerified" | "name" | "image" | "title" | "role" | "timezone" | "emailSignature" | "routineConnectionsEnabled" | "connectWarmupStartedAt" | "createdAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -5092,6 +5213,10 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     timezone: string
     emailSignature: string | null
     routineConnectionsEnabled: boolean
+    /**
+     * Warm-up anchor for gentle connect pacing: first successful connection send (or admin reset).
+     */
+    connectWarmupStartedAt: Date | null
     createdAt: Date
   }, ExtArgs["result"]["user"]>
   composites: {}
@@ -5550,6 +5675,7 @@ export interface UserFieldRefs {
   readonly timezone: Prisma.FieldRef<"User", 'String'>
   readonly emailSignature: Prisma.FieldRef<"User", 'String'>
   readonly routineConnectionsEnabled: Prisma.FieldRef<"User", 'Boolean'>
+  readonly connectWarmupStartedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
 }
     
