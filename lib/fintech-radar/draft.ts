@@ -1,5 +1,5 @@
 /**
- * Drafts a short personal Hebrew outreach that opens with a relevant fintech news item.
+ * Drafts a very short, casual Hebrew outreach that opens with a relevant fintech news item.
  * Mirrors lib/company-signals/draft.ts. Missing OPENROUTER_API_KEY THROWS (never guess).
  * Env: OPENROUTER_API_KEY (required), COMPANY_SIGNALS_MODEL (default anthropic/claude-haiku-4.5).
  */
@@ -12,13 +12,16 @@ export type DraftInput = {
   articleUrl: string;
 };
 
-const SYSTEM = `You write short, warm, PERSONAL Hebrew LinkedIn/email openers that share a relevant fintech news item with a senior professional, to start a conversation.
+const SYSTEM = `You write VERY short, casual Hebrew messages that share a relevant fintech news item with a senior professional, to start a conversation.
 
 Rules:
-- 2-3 sentences, natural spoken Hebrew, warm and human — never generic boilerplate. At most one emoji.
+- Sound like a real person forwarding something interesting to someone they know: everyday spoken Hebrew, light and matter-of-fact. Register example: "היי דנה, נתקלתי בידיעה על הרגולציה החדשה בתשלומים. חשבתי שיעניין אותך."
+- 1-2 short sentences total. Shorter is always better — no explanations of why it's interesting beyond a few words.
+- ZERO emojis, icons, or decorative symbols.
+- Nothing formal, marketing-y, or AI-sounding: no ברצוני/אשמח לשתף, no hype words, no flattery, no filler.
 - Address the person by their Hebrew first name if provided, otherwise their first name.
-- Reference the specific news item concretely and say why it might interest them.
-- End with a light, open question that invites a reply. Do NOT hard-pitch or ask for a meeting.
+- Name the news item concretely but in a few words — never recap the article.
+- A short open question at the end is optional, only if it feels natural. Do NOT pitch or ask for a meeting.
 
 Return strict JSON only — no prose, no markdown fences:
 {"draftMessage": string}`;

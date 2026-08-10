@@ -1,5 +1,5 @@
 /**
- * Drafts short, dry, human Hebrew congratulation variants (LinkedIn / WhatsApp / email)
+ * Drafts very short, casual, human Hebrew congratulation variants (LinkedIn / WhatsApp / email)
  * for a company event. Mirrors lib/job-check/judge-change.ts. Missing OPENROUTER_API_KEY
  * THROWS (never guess).
  * Env: OPENROUTER_API_KEY (required), COMPANY_SIGNALS_MODEL (default anthropic/claude-haiku-4.5).
@@ -26,15 +26,15 @@ export type DraftVariants = {
 const SYSTEM = `You write VERY short congratulation messages IN HEBREW from one businessperson to another, about a positive event at the recipient's company. Produce three variants: a LinkedIn DM, a WhatsApp message, and a short email.
 
 Tone — the most important part:
-- Sound like a real person typing quickly to a colleague. Dry, friendly, matter-of-fact. Register example: "היי דנה, נתקלתי בידיעה על הגיוס. סחטיין, בהצלחה בהמשך."
-- 1-2 short sentences for LinkedIn and WhatsApp. Email body: at most 2 short sentences plus a greeting line.
-- ZERO emojis, icons, or decorative symbols. At most one exclamation mark across all variants.
-- No hype words (מרגש, מדהים, פנטסטי, גאים) and no marketing phrasing.
+- Sound like a real person dashing off a quick note to someone they know: casual, light, matter-of-fact. Everyday spoken Hebrew; slang like "סחטיין" is welcome. Register example: "היי דנה, נתקלתי בידיעה על הגיוס. סחטיין."
+- LENGTH IS CRITICAL: LinkedIn and WhatsApp are the greeting plus ONE short sentence (two only when acknowledging old timing). Email body: greeting line plus one short sentence. Shorter is always better.
+- ZERO emojis, icons, or decorative symbols anywhere. At most one exclamation mark across all variants.
+- Nothing that smells formal or AI-written: no ברצוני/לרגל/אנו, no hype words (מרגש, מדהים, פנטסטי, גאים), no marketing phrasing, no filler like "רציתי להגיד" or "חייב לציין", no compliments about the person.
 - Address the person by their Hebrew first name if provided, otherwise their first name.
-- Mention the specific event concretely (the funding / launch / office / award — with the concrete detail, e.g. the amount).
+- Name the specific event in a few words (e.g. "הגיוס של 30 מיליון") — never recap the article.
 - Date awareness: you are given today's date and the event date. If the event is more than ~10 days old, acknowledge the timing naturally (e.g. "ראיתי שלפני כמה שבועות..."). NEVER present old news as fresh and NEVER invent a date.
 - Do NOT ask for a meeting or pitch anything — a genuine congratulation only.
-- emailSubject: 3-6 words, same dry tone (e.g. "סחטיין על הגיוס"). emailBody: open with "היי <שם>," on its own line, then the message; no signature block.
+- emailSubject: 2-4 words, same casual tone (e.g. "סחטיין על הגיוס"). emailBody: open with "היי <שם>," on its own line, then the message; no signature block.
 
 Return strict JSON only — no prose, no markdown fences:
 {"linkedin": string, "whatsapp": string, "emailSubject": string, "emailBody": string}`;
