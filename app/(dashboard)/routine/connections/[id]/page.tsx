@@ -100,6 +100,7 @@ const STATUS_CHIPS: { key: keyof StatusCounts; status: string; label: string; cl
 ];
 
 const SUMMARY_CLS: Record<string, string> = {
+  extension_offline: "bg-[#fff3f3] text-[#dc2626] border-[#f5c2c2]",
   frozen: "bg-[#fff3f3] text-[#dc2626] border-[#f5c2c2]",
   weekly_cap: "bg-[#fff8e6] text-[#b45309] border-[#f5e0a8]",
   daily_cap: "bg-[#fff8e6] text-[#b45309] border-[#f5e0a8]",

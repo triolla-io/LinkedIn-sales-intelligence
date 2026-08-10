@@ -37,4 +37,38 @@ describe("computeRunStatusSummary", () => {
     const disc = new Date("2026-07-01T10:00:00Z");
     expect(computeRunStatusSummary({ ...base, nextScheduledFor: send, nextDiscoveryAt: disc }).state).toBe("waiting");
   });
+
+  describe("extension_offline", () => {
+    it("reports extension_offline when the extension is quiet for over 15 minutes", () => {
+      const r = computeRunStatusSummary({
+        ...base,
+        extensionLastSeenAt: new Date(base.now.getTime() - 16 * 60 * 1000),
+      });
+      expect(r.state).toBe("extension_offline");
+    });
+    it("reports extension_offline (never connected) for a null lastSeenAt", () => {
+      const r = computeRunStatusSummary({ ...base, extensionLastSeenAt: null });
+      expect(r.state).toBe("extension_offline");
+      expect(r.message).toContain("מעולם לא התחבר");
+    });
+    it("stays normal when the extension polled recently", () => {
+      const r = computeRunStatusSummary({
+        ...base,
+        extensionLastSeenAt: new Date(base.now.getTime() - 2 * 60 * 1000),
+      });
+      expect(r.state).toBe("idle");
+    });
+    it("beats a scheduled send — an offline extension will never send it", () => {
+      const r = computeRunStatusSummary({
+        ...base,
+        nextScheduledFor: new Date("2026-06-30T14:30:00Z"),
+        extensionLastSeenAt: null,
+      });
+      expect(r.state).toBe("extension_offline");
+    });
+    it("does not fire for PAUSED runs or when the caller didn't check", () => {
+      expect(computeRunStatusSummary({ ...base, status: "PAUSED", extensionLastSeenAt: null }).state).toBe("paused");
+      expect(computeRunStatusSummary(base).state).toBe("idle"); // extensionLastSeenAt undefined
+    });
+  });
 });

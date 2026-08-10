@@ -25,7 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const now = new Date();
     const owner = await prisma.user.findUnique({
       where: { id: run.ownerId },
-      select: { timezone: true, connectWarmupStartedAt: true },
+      select: { timezone: true, connectWarmupStartedAt: true, extensionSession: { select: { lastSeenAt: true } } },
     });
     // "Today" = the local calendar day (owner timezone) — same definition the scheduler quota uses.
     const tz = owner?.timezone ?? "Asia/Jerusalem";
@@ -112,6 +112,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       nextScheduledFor: nextTask?.scheduledFor ?? null,
       nextDiscoveryAt: run.nextDiscoveryAt,
       sentToday, dailyCap: dailyTarget, sentThisWeek, weeklyCap: caps.weeklyCap, now,
+      extensionLastSeenAt: owner?.extensionSession?.lastSeenAt ?? null,
     });
 
     const companyTargets =
