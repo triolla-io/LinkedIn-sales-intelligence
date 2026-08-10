@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { buildSearchUrl, parseSearchTitles } from "@/lib/prospecting/search-url";
 import { logProspectingEvent } from "@/lib/prospecting/events";
-import { computeNextScheduledFor, isWithinWindow } from "@/lib/extension/task-scheduler";
+import { computeNextScheduledFor, isWithinWindow, startOfDayInZone } from "@/lib/extension/task-scheduler";
 
 /** Company runs search 2nd + 3rd degree connections. */
 export const COMPANY_NETWORK = ["S", "O"];
@@ -29,6 +29,13 @@ export const DISCOVERY_BACKOFF_MS = 6 * 60 * 60 * 1000;
 export const DISCOVERY_HOURS_START = 9;
 export const DISCOVERY_HOURS_END = 21;
 
+/**
+ * LinkedIn's commercial-use search limit is volume-sensitive, not just
+ * rate-sensitive — cap the account's total discovery searches per local day.
+ * At the 2–5 min cadence this cap is only reachable on heavy company runs.
+ */
+export const DISCOVERY_DAILY_CAP = 100;
+
 async function discoveryScheduledFor(
   run: { ownerId: string; sendDays?: number[] },
   delayMs: number,
@@ -49,17 +56,28 @@ async function discoveryScheduledFor(
     workingHoursEnd: DISCOVERY_HOURS_END,
     workingWeekdays,
   };
+
+  // Daily volume cap — counted per USER (one LinkedIn account), across runs.
+  const usedToday = await prisma.extensionTask.count({
+    where: {
+      userId: run.ownerId,
+      kind: { in: ["RESOLVE_COMPANY", "SEARCH"] },
+      status: { not: "CANCELLED" },
+      createdAt: { gte: startOfDayInZone(new Date(), tz) },
+    },
+  });
+
   const base = new Date(Date.now() + delayMs);
-  if (isWithinWindow(base, { timezone: tz, ...window })) return base;
-  // Next window start (huge caps: this clamp is about hours, not quotas).
+  if (usedToday < DISCOVERY_DAILY_CAP && isWithinWindow(base, { timezone: tz, ...window })) return base;
+  // Over the cap or outside the hours → next window start (tomorrow when capped).
   return computeNextScheduledFor({
     timezone: tz,
     ...window,
     weekdaysOnly: true,
     lastSentAt: null,
-    sentTodayCount: 0,
+    sentTodayCount: usedToday,
     sentLastHourCount: 0,
-    dailyCap: Number.MAX_SAFE_INTEGER,
+    dailyCap: DISCOVERY_DAILY_CAP,
     hourlyCap: Number.MAX_SAFE_INTEGER,
   });
 }
