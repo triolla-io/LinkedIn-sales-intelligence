@@ -432,6 +432,7 @@ enum ExtensionTaskKind {
   CONNECT
   RESOLVE_COMPANY
   SCRAPE_PROFILE
+  PREPARE_MESSAGE
 }
 
 enum ExtensionTaskStatus {
@@ -708,6 +709,7 @@ model ExtensionTask {
   connectionRequestId  String?
   jobChangeId          String?
   companySignalDraftId String?
+  articleMatchId       String?
   scheduledFor         DateTime            @default(now())
   claimedAt            DateTime?
   completedAt          DateTime?
@@ -963,12 +965,15 @@ enum CompanySignalStatus {
 enum CompanySignalDraftStatus {
   PENDING_REVIEW
   APPROVED
+  PREPARED
   SENT
   DISMISSED
 }
 
 enum ArticleMatchStatus {
   SUGGESTED
+  PREPARING
+  PREPARED
   DISMISSED
   SENT
 }

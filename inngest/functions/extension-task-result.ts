@@ -34,6 +34,12 @@ export async function extensionTaskResultHandler({ event }: any) {
     } else if (task.status === "FAILED") {
       await handleSendFailure(task);
     }
+  } else if (task.kind === "PREPARE_MESSAGE") {
+    if (task.status === "DONE") {
+      await handlePrepareSuccess(task);
+    } else if (task.status === "FAILED") {
+      await handlePrepareFailure(task);
+    }
   } else if (task.kind === "CHECK_REPLY" && task.status === "DONE") {
     await handleReplyCheck(task);
   } else if (task.kind === "SEARCH" && task.status === "DONE") {
@@ -224,6 +230,52 @@ async function handleSendFailure(task: TaskRow) {
       select: { enrollmentId: true },
     });
     if (failedExec) await maybeCompleteEnrollment(failedExec.enrollmentId);
+  }
+}
+
+// PREPARE_MESSAGE: the extension typed the draft into LinkedIn compose and handed the
+// open tab to the user — nothing was sent. The SentMessage row is recorded only when
+// the user confirms "שלחתי" in the review UI, so success here just advances the status.
+async function handlePrepareSuccess(task: TaskRow) {
+  if (task.companySignalDraftId) {
+    await prisma.companySignalDraft.updateMany({
+      where: { id: task.companySignalDraftId, status: "APPROVED" },
+      data: { status: "PREPARED" },
+    });
+    return;
+  }
+  if (task.articleMatchId) {
+    await prisma.articleMatch.updateMany({
+      where: { id: task.articleMatchId, status: "PREPARING" },
+      data: { status: "PREPARED" },
+    });
+  }
+}
+
+async function handlePrepareFailure(task: TaskRow) {
+  if (task.errorCode === "checkpoint") {
+    await freezeUserTasks(task.userId, 24);
+    await prisma.extensionAlert.create({
+      data: {
+        userId: task.userId,
+        kind: "CHECKPOINT",
+        message: "LinkedIn flagged your account — review at linkedin.com/checkpoint. Sends paused for 24h.",
+      },
+    });
+  }
+  // Return the item to the review queue so the user can simply retry.
+  if (task.companySignalDraftId) {
+    await prisma.companySignalDraft.updateMany({
+      where: { id: task.companySignalDraftId, status: "APPROVED" },
+      data: { status: "PENDING_REVIEW" },
+    });
+    return;
+  }
+  if (task.articleMatchId) {
+    await prisma.articleMatch.updateMany({
+      where: { id: task.articleMatchId, status: "PREPARING" },
+      data: { status: "SUGGESTED" },
+    });
   }
 }
 

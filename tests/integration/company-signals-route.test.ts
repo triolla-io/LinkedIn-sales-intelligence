@@ -4,7 +4,7 @@ const mockDraftFindFirst = vi.fn();
 const mockDraftUpdate = vi.fn();
 const mockDraftUpdateMany = vi.fn();
 const mockTaskCreate = vi.fn();
-const mockTaskFindFirst = vi.fn();
+const mockSentMessageCreate = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -15,7 +15,9 @@ vi.mock("@/lib/prisma", () => ({
     },
     extensionTask: {
       create: (...a: unknown[]) => mockTaskCreate(...a),
-      findFirst: (...a: unknown[]) => mockTaskFindFirst(...a),
+    },
+    sentMessage: {
+      create: (...a: unknown[]) => mockSentMessageCreate(...a),
     },
   },
   Prisma: { InputJsonValue: {} },
@@ -40,48 +42,77 @@ function reqWith(id: string, body: unknown) {
 beforeEach(() => {
   vi.clearAllMocks();
   mockDraftFindFirst.mockResolvedValue({
-    id: "d1", status: "PENDING_REVIEW",
-    contact: { fullName: "Dana", linkedinUrl: "https://linkedin.com/in/dana" },
+    id: "d1", status: "PENDING_REVIEW", channel: "LINKEDIN",
+    draftMessage: "מזל טוב!", emailBody: null, emailSubject: null,
+    contact: { id: "c1", fullName: "Dana", linkedinUrl: "https://linkedin.com/in/dana", email: "dana@acme.co" },
   });
   mockDraftUpdateMany.mockResolvedValue({ count: 1 });
-  mockTaskFindFirst.mockResolvedValue(null);
 });
 
-describe("PATCH /api/company-signals/[id]", () => {
-  it("approve creates a SEND ExtensionTask with companySignalDraftId", async () => {
-    const res = await PATCH(reqWith("d1", { action: "approve", message: "מזל טוב!" }) as never);
+describe("PATCH /api/company-signals/[id] (prepare-not-send)", () => {
+  it("prepare queues a PREPARE_MESSAGE task with companySignalDraftId and NO jitter", async () => {
+    const res = await PATCH(reqWith("d1", { action: "prepare", message: "מזל טוב!" }) as never);
     expect((res as Response).status).toBe(200);
     expect(mockTaskCreate).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ kind: "SEND", companySignalDraftId: "d1", userId: "u1" }),
+      data: expect.objectContaining({ kind: "PREPARE_MESSAGE", companySignalDraftId: "d1", userId: "u1" }),
+    }));
+    // No scheduledFor → runs immediately (the user is waiting for the tab).
+    expect(mockTaskCreate.mock.calls[0][0].data.scheduledFor).toBeUndefined();
+    // The transition claims PENDING_REVIEW → APPROVED with the edited message.
+    expect(mockDraftUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ status: "PENDING_REVIEW" }),
+      data: expect.objectContaining({ status: "APPROVED", channel: "LINKEDIN" }),
     }));
   });
 
-  it("approve schedules the SEND with a jittered future delay (45–180s)", async () => {
-    const before = Date.now();
-    const res = await PATCH(reqWith("d1", { action: "approve", message: "x" }) as never);
-    expect((res as Response).status).toBe(200);
-    const scheduledFor = mockTaskCreate.mock.calls[0][0].data.scheduledFor as Date;
-    const delayS = (scheduledFor.getTime() - before) / 1000;
-    expect(delayS).toBeGreaterThanOrEqual(45);
-    expect(delayS).toBeLessThanOrEqual(180 + 5); // small allowance for test runtime
-  });
-
-  it("approve stacks after an already-queued SEND task", async () => {
-    const queuedAt = new Date(Date.now() + 300_000); // a SEND already queued 5 min out
-    mockTaskFindFirst.mockImplementation((args: { where: { status?: unknown } }) =>
-      Promise.resolve(args.where.status && typeof args.where.status === "object" ? { scheduledFor: queuedAt } : null)
-    );
-    const res = await PATCH(reqWith("d1", { action: "approve", message: "x" }) as never);
-    expect((res as Response).status).toBe(200);
-    const scheduledFor = mockTaskCreate.mock.calls[0][0].data.scheduledFor as Date;
-    expect(scheduledFor.getTime()).toBeGreaterThanOrEqual(queuedAt.getTime() + 45_000);
+  it("prepare never creates a SEND task or a SentMessage", async () => {
+    await PATCH(reqWith("d1", { action: "prepare", message: "x" }) as never);
+    const kinds = mockTaskCreate.mock.calls.map((c) => c[0].data.kind);
+    expect(kinds).not.toContain("SEND");
+    expect(mockSentMessageCreate).not.toHaveBeenCalled();
   });
 
   it("returns 409 when not pending (guarded transition)", async () => {
     mockDraftUpdateMany.mockResolvedValue({ count: 0 });
-    const res = await PATCH(reqWith("d1", { action: "approve", message: "x" }) as never);
+    const res = await PATCH(reqWith("d1", { action: "prepare", message: "x" }) as never);
     expect((res as Response).status).toBe(409);
     expect(mockTaskCreate).not.toHaveBeenCalled();
+  });
+
+  it("prepared (email) records PREPARED without any task or send", async () => {
+    const res = await PATCH(
+      reqWith("d1", { action: "prepared", channel: "email", subject: "סחטיין", message: "היי דנה" }) as never
+    );
+    expect((res as Response).status).toBe(200);
+    expect(mockDraftUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ status: "PREPARED", channel: "EMAIL", emailSubject: "סחטיין" }),
+    }));
+    expect(mockTaskCreate).not.toHaveBeenCalled();
+    expect(mockSentMessageCreate).not.toHaveBeenCalled();
+  });
+
+  it("sent confirms PREPARED → SENT and only then records a SentMessage", async () => {
+    mockDraftFindFirst.mockResolvedValue({
+      id: "d1", status: "PREPARED", channel: "LINKEDIN",
+      draftMessage: "מזל טוב!", emailBody: null, emailSubject: null,
+      contact: { id: "c1", fullName: "Dana", linkedinUrl: "https://linkedin.com/in/dana", email: null },
+    });
+    const res = await PATCH(reqWith("d1", { action: "sent" }) as never);
+    expect((res as Response).status).toBe(200);
+    expect(mockDraftUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ status: "PREPARED" }),
+      data: expect.objectContaining({ status: "SENT" }),
+    }));
+    expect(mockSentMessageCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ contactId: "c1", body: "מזל טוב!", status: "SENT" }),
+    }));
+  });
+
+  it("sent returns 409 when the draft was never prepared", async () => {
+    mockDraftUpdateMany.mockResolvedValue({ count: 0 });
+    const res = await PATCH(reqWith("d1", { action: "sent" }) as never);
+    expect((res as Response).status).toBe(409);
+    expect(mockSentMessageCreate).not.toHaveBeenCalled();
   });
 
   it("dismiss sets DISMISSED without a task", async () => {

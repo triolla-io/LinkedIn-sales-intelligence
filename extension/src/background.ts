@@ -27,7 +27,7 @@ export type ScrapedCard = {
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.4.3";
+const VERSION = "0.5.0";
 
 // In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
@@ -110,7 +110,7 @@ async function runOneCycle(): Promise<boolean> {
   return true;
 }
 
-async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "SEARCH" | "CONNECT" | "RESOLVE_COMPANY" | "SCRAPE_PROFILE"; payload: unknown }): Promise<unknown> {
+async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "SEARCH" | "CONNECT" | "RESOLVE_COMPANY" | "SCRAPE_PROFILE" | "PREPARE_MESSAGE"; payload: unknown }): Promise<unknown> {
   const payload = task.payload as {
     linkedinUrl?: string;
     conversationUrl?: string;
@@ -126,6 +126,11 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "S
   if (task.kind === "SEND") {
     if (!payload.linkedinUrl || !payload.text) throw withCode(new Error("missing_payload"), "bad_payload");
     return await sendLinkedInMessage(payload.linkedinUrl, payload.text, payload.recipientName ?? "");
+  }
+
+  if (task.kind === "PREPARE_MESSAGE") {
+    if (!payload.linkedinUrl || !payload.text) throw withCode(new Error("missing_payload"), "bad_payload");
+    return await prepareLinkedInMessage(payload.linkedinUrl, payload.text);
   }
 
   if (task.kind === "CHECK_REPLY") {
@@ -219,78 +224,7 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     await attach(tabId);
     attached = true;
 
-    // A never-foregrounded tab can lay out at 0×0, which would zero every
-    // getBoundingClientRect() and break visibility checks (getComposeUrl, Send button).
-    // Force a real layout viewport so the page renders as if visible, without showing it.
-    await send(tabId, "Emulation.setDeviceMetricsOverride", {
-      width: 1280, height: 900, deviceScaleFactor: 1, mobile: false,
-    }).catch(() => {});
-
-    // Navigate to the profile through the already-attached debugger session.
-    await send(tabId, "Page.navigate", { url: profileUrl });
-    await waitForTabLoad(tabId);
-    await sleep(2500);
-
-    const preTab = await chrome.tabs.get(tabId);
-    if (preTab.url && preTab.url.includes("/checkpoint")) {
-      throw withCode(new Error("checkpoint"), "checkpoint");
-    }
-
-    // Close any compose overlays left from previous attempts (returns void).
-    await closeAllComposeOverlays(tabId);
-    await sleep(500);
-
-    // Dismiss any promotional popup (e.g. LinkedIn's "upgrade to Premium" interstitial)
-    // that may have loaded after the initial Escape sweep. These popups appear randomly
-    // and occlude the Message button so the CDP click lands on the overlay instead.
-    // clickModalClose looks for a visible Dismiss/Close/× button and clicks it.
-    const dismissed = await clickModalClose(tabId);
-    if (dismissed) {
-      console.log("[agent] dismissed popup before Message click");
-      await sleep(500);
-    }
-
-    // Phase 1: extract the compose URL from the Message button's href, then navigate
-    // directly to /messaging/compose/. This is more reliable than clicking the button
-    // and waiting for an overlay — the full messaging page always renders a proper
-    // contenteditable that enables React-driven Send, whereas the overlay's Send button
-    // can stay disabled if execCommand doesn't fire the right synthetic events.
-    const composeUrl = await getComposeUrl(tabId);
-    if (!composeUrl) throw withCode(new Error("message_button_not_found"), "not_messageable");
-    console.log("[agent] composeUrl:", composeUrl);
-
-    await chrome.tabs.update(tabId, { url: composeUrl });
-    await waitForTabLoad(tabId);
-
-    // The Message-button navigation reuses the already-"complete" profile tab, so
-    // waitForTabLoad's fast path can return before the compose page has even begun
-    // loading. A fixed sleep then races the SPA render: if it loses, typeIntoCompose
-    // runs against the profile (no compose box) and fails with compose_insert_failed
-    // — the captured url= in those failures was the profile, not /messaging/compose/.
-    // Poll until LinkedIn's compose box actually exists before typing.
-    let navDiag = await composeDiag(tabId);
-    const composeDeadline = Date.now() + 15_000;
-    while (
-      Date.now() < composeDeadline &&
-      (navDiag.msgForm as number) === 0 &&
-      (navDiag.anyEditable as number) === 0
-    ) {
-      await sleep(500);
-      navDiag = await composeDiag(tabId);
-    }
-    console.log("[agent] post-nav diag:", navDiag);
-
-    // Phase 2: type the message with CDP Input.insertText (triggers React onChange).
-    // The full messaging page has a stable contenteditable — no retries needed.
-    const typed = await typeIntoCompose(tabId, text);
-    console.log("[agent] typeIntoCompose:", typed);
-    if (!typed) {
-      throw withCode(
-        new Error(`compose_insert_failed diag=${JSON.stringify(navDiag)}`),
-        "compose_insert_failed",
-      );
-    }
-    await sleep(600);
+    await navigateAndTypeMessage(tabId, profileUrl, text);
 
     // Phase 3: click Send button (enabled after proper typing).
     const sent = await clickSendButton(tabId);
@@ -330,6 +264,164 @@ async function sendLinkedInMessage(profileUrl: string, text: string, recipientNa
     }
     await chrome.tabs.remove(tabId).catch(() => {});
     await clearActiveTab();
+  }
+}
+
+// Shared core of SEND / PREPARE_MESSAGE: drive an already-attached tab to the contact's
+// /messaging/compose/ page and type the message. Throws coded errors; never clicks Send.
+async function navigateAndTypeMessage(tabId: number, profileUrl: string, text: string): Promise<void> {
+  // A never-foregrounded tab can lay out at 0×0, which would zero every
+  // getBoundingClientRect() and break visibility checks (getComposeUrl, Send button).
+  // Force a real layout viewport so the page renders as if visible, without showing it.
+  await send(tabId, "Emulation.setDeviceMetricsOverride", {
+    width: 1280, height: 900, deviceScaleFactor: 1, mobile: false,
+  }).catch(() => {});
+
+  // Navigate to the profile through the already-attached debugger session.
+  await send(tabId, "Page.navigate", { url: profileUrl });
+  await waitForTabLoad(tabId);
+  await sleep(2500);
+
+  const preTab = await chrome.tabs.get(tabId);
+  if (preTab.url && preTab.url.includes("/checkpoint")) {
+    throw withCode(new Error("checkpoint"), "checkpoint");
+  }
+
+  // Close any compose overlays left from previous attempts (returns void).
+  await closeAllComposeOverlays(tabId);
+  await sleep(500);
+
+  // Dismiss any promotional popup (e.g. LinkedIn's "upgrade to Premium" interstitial)
+  // that may have loaded after the initial Escape sweep. These popups appear randomly
+  // and occlude the Message button so the CDP click lands on the overlay instead.
+  // clickModalClose looks for a visible Dismiss/Close/× button and clicks it.
+  const dismissed = await clickModalClose(tabId);
+  if (dismissed) {
+    console.log("[agent] dismissed popup before Message click");
+    await sleep(500);
+  }
+
+  // Phase 1: extract the compose URL from the Message button's href, then navigate
+  // directly to /messaging/compose/. This is more reliable than clicking the button
+  // and waiting for an overlay — the full messaging page always renders a proper
+  // contenteditable that enables React-driven Send, whereas the overlay's Send button
+  // can stay disabled if execCommand doesn't fire the right synthetic events.
+  const composeUrl = await getComposeUrl(tabId);
+  if (!composeUrl) throw withCode(new Error("message_button_not_found"), "not_messageable");
+  console.log("[agent] composeUrl:", composeUrl);
+
+  await chrome.tabs.update(tabId, { url: composeUrl });
+  await waitForTabLoad(tabId);
+
+  // The Message-button navigation reuses the already-"complete" profile tab, so
+  // waitForTabLoad's fast path can return before the compose page has even begun
+  // loading. A fixed sleep then races the SPA render: if it loses, typeIntoCompose
+  // runs against the profile (no compose box) and fails with compose_insert_failed
+  // — the captured url= in those failures was the profile, not /messaging/compose/.
+  // Poll until LinkedIn's compose box actually exists before typing.
+  let navDiag = await composeDiag(tabId);
+  const composeDeadline = Date.now() + 15_000;
+  while (
+    Date.now() < composeDeadline &&
+    (navDiag.msgForm as number) === 0 &&
+    (navDiag.anyEditable as number) === 0
+  ) {
+    await sleep(500);
+    navDiag = await composeDiag(tabId);
+  }
+  console.log("[agent] post-nav diag:", navDiag);
+
+  // Phase 2: type the message with CDP Input.insertText (triggers React onChange).
+  // The full messaging page has a stable contenteditable — no retries needed.
+  const typed = await typeIntoCompose(tabId, text);
+  console.log("[agent] typeIntoCompose:", typed);
+  if (!typed) {
+    throw withCode(
+      new Error(`compose_insert_failed diag=${JSON.stringify(navDiag)}`),
+      "compose_insert_failed",
+    );
+  }
+  await sleep(600);
+}
+
+// PREPARE_MESSAGE: identical compose flow to SEND, but it STOPS before clicking Send.
+// The typed draft is handed to the user in a focused tab — they review, hit Send
+// themselves, and then confirm in the dashboard (prepare-not-send review flow).
+async function prepareLinkedInMessage(profileUrl: string, text: string): Promise<{ preparedAt: string; conversationUrl: string }> {
+  const tabId = await openTabInAutomationWindow("about:blank", false);
+  await trackActiveTab(tabId);
+
+  let attached = false;
+  let prepared = false;
+
+  try {
+    // Attach on the blank page (no foreign frames yet), then drive navigation via CDP.
+    await waitForTabLoad(tabId);
+    await attach(tabId);
+    attached = true;
+
+    await navigateAndTypeMessage(tabId, profileUrl, text);
+
+    // Hand the tab to the user: clear the synthetic viewport, detach the debugger
+    // (removes the "controlled by automated software" banner), and move the tab OUT
+    // of the automation window — the next automation task re-minimizes that window,
+    // which would bury the open draft.
+    await send(tabId, "Emulation.clearDeviceMetricsOverride").catch(() => {});
+    await detach(tabId).catch(() => {});
+    await moveTabToUserWindow(tabId);
+    prepared = true;
+
+    return { preparedAt: new Date().toISOString(), conversationUrl: profileUrl };
+  } catch (err) {
+    const caughtError = err as Error;
+    const failedTab = await chrome.tabs.get(tabId).catch(() => null);
+    if (failedTab?.url) caughtError.message = `${caughtError.message} (url=${failedTab.url})`;
+    (caughtError as Error & { diag?: unknown }).diag = await gatherEnvHints(tabId).catch(() => ({ diagError: true }));
+    if (attached) {
+      try {
+        const [screenshot, buttons] = await Promise.all([
+          takeScreenshot(tabId),
+          scanButtons(tabId),
+        ]);
+        (caughtError as Error & { screenshot?: string; buttons?: unknown }).screenshot = screenshot;
+        (caughtError as Error & { buttons?: unknown }).buttons = buttons;
+      } catch { /* ignore */ }
+    }
+    throw caughtError;
+  } finally {
+    if (!prepared) {
+      // Failure teardown — same about:blank-before-detach dance as SEND so the
+      // beforeunload prompt armed by a partially-typed draft is auto-accepted.
+      if (attached) {
+        await send(tabId, "Page.navigate", { url: "about:blank" }).catch(() => {});
+        await sleep(300);
+        await detach(tabId).catch(() => {});
+      }
+      await chrome.tabs.remove(tabId).catch(() => {});
+    }
+    // Success or failure, the tab is no longer ours to close on SW restart:
+    // a prepared tab belongs to the user now.
+    await clearActiveTab();
+  }
+}
+
+// Move a prepared tab out of the (minimized, shared) automation window into the user's
+// own browser window and focus it. Falls back to popping the tab into a fresh normal
+// window when no other window exists.
+async function moveTabToUserWindow(tabId: number): Promise<void> {
+  const tab = await chrome.tabs.get(tabId);
+  const wins = await chrome.windows.getAll({ windowTypes: ["normal"] }).catch(() => [] as chrome.windows.Window[]);
+  const candidates = wins.filter((w) => w.id !== undefined && w.id !== tab.windowId);
+  const target = candidates.find((w) => w.state !== "minimized") ?? candidates[0];
+  if (target?.id !== undefined) {
+    await chrome.tabs.move(tabId, { windowId: target.id, index: -1 });
+    await chrome.tabs.update(tabId, { active: true });
+    await chrome.windows.update(target.id, {
+      focused: true,
+      ...(target.state === "minimized" ? { state: "normal" as const } : {}),
+    });
+  } else {
+    await chrome.windows.create({ tabId, focused: true });
   }
 }
 

@@ -11,7 +11,16 @@ import { cn } from "@/lib/cn";
 import { availableChannels, channelHref, type Channel, type ContactChannels } from "@/lib/fintech-radar/channels";
 
 type Contact = ContactChannels & { fullName: string; currentTitle: string | null };
-type Match = { id: string; score: number; reason: string; draftMessage: string | null; contact: Contact };
+type MatchStatus = "SUGGESTED" | "PREPARING" | "PREPARED";
+type Match = {
+  id: string;
+  status: MatchStatus;
+  sentChannel: string | null;
+  score: number;
+  reason: string;
+  draftMessage: string | null;
+  contact: Contact;
+};
 type Article = {
   id: string;
   title: string;
@@ -168,6 +177,7 @@ function ArticleCard({ article, onChanged }: { article: Article; onChanged: () =
               >
                 {m.contact.fullName}
                 {m.contact.currentTitle ? ` · ${m.contact.currentTitle}` : ""}
+                {m.status === "PREPARING" ? " · בהכנה…" : m.status === "PREPARED" ? " · מוכן לשליחה" : ""}
               </button>
             ))}
           </div>
@@ -185,7 +195,12 @@ function MatchPanel({ match, onChanged }: { match: Match; onChanged: () => void 
   const [busy, setBusy] = useState<string | null>(null);
 
   async function patch(
-    body: { action: "sent"; channel: Channel } | { action: "save"; message: string } | { action: "dismiss" }
+    body:
+      | { action: "prepare"; message: string }
+      | { action: "prepared"; channel: "email" | "whatsapp"; message: string }
+      | { action: "sent" }
+      | { action: "save"; message: string }
+      | { action: "dismiss" }
   ) {
     const res = await fetch(`/api/fintech-radar/${match.id}`, {
       method: "PATCH",
@@ -198,18 +213,38 @@ function MatchPanel({ match, onChanged }: { match: Match; onChanged: () => void 
     }
   }
 
-  async function handleSend(channel: Channel) {
+  // Prepare-not-send: nothing is marked SENT on open. LinkedIn queues an extension task
+  // that types the draft and hands the open tab over; email/WhatsApp open a pre-filled
+  // compose (Gmail / wa.me). The user clicks Send themselves and confirms with "שלחתי".
+  async function handlePrepare(channel: Channel) {
     setBusy(channel);
     try {
       try {
         await navigator.clipboard.writeText(text);
       } catch {
-        // clipboard access can be denied by the browser; the compose target
-        // still opens below, so this is not a hard failure.
+        // clipboard access can be denied by the browser; not a hard failure.
       }
-      window.open(channelHref(channel, match.contact, text), "_blank", "noopener,noreferrer");
-      await patch({ action: "sent", channel });
-      toast.success("סומן כנשלח", `${CHANNEL_LABEL[channel]} · ${match.contact.fullName}`);
+      if (channel === "linkedin") {
+        await patch({ action: "prepare", message: text });
+        toast.success("ההודעה בהכנה", "טאב לינקדאין עם ההודעה מוקלדת ייפתח עוד רגע");
+      } else {
+        window.open(channelHref(channel, match.contact, text), "_blank", "noopener,noreferrer");
+        await patch({ action: "prepared", channel, message: text });
+        toast.success("הטיוטה נפתחה", "לחץ שליחה שם וחזור לאשר כאן");
+      }
+      onChanged();
+    } catch {
+      toast.error("שגיאה בהכנת ההודעה", "נסה שוב");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleSentConfirm() {
+    setBusy("sent");
+    try {
+      await patch({ action: "sent" });
+      toast.success("סומן כנשלח", match.contact.fullName);
       onChanged();
     } catch {
       toast.error("שגיאה בסימון השליחה", "נסה שוב");
@@ -244,48 +279,107 @@ function MatchPanel({ match, onChanged }: { match: Match; onChanged: () => void 
   }
 
   const channels = availableChannels(match.contact);
+  const isLinkedinPrepare = match.sentChannel !== "email" && match.sentChannel !== "whatsapp";
 
   return (
     <div className="rounded-lg border border-[#e7e4dd] bg-[#faf9f7] p-3 flex flex-col gap-2">
+      <div className="text-sm text-[#1a1917]">
+        אל:{" "}
+        {match.contact.linkedinUrl ? (
+          <a
+            href={match.contact.linkedinUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-[#1585ff] hover:underline"
+          >
+            {match.contact.fullName}
+          </a>
+        ) : (
+          <span className="font-medium">{match.contact.fullName}</span>
+        )}
+        {match.contact.currentTitle ? ` · ${match.contact.currentTitle}` : ""}
+      </div>
       <p className="text-xs text-[#9b9895]">{match.reason}</p>
-      <TextArea
-        aria-label="טיוטת הודעה"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        className="w-full"
-        dir="rtl"
-      />
-      <div className="flex flex-wrap items-center gap-2">
-        {channels.map((channel) => {
-          const Icon = CHANNEL_ICON[channel];
-          return (
-            <Button
-              key={channel}
-              size="sm"
-              variant="primary"
-              isDisabled={!(text ?? "").trim() || busy !== null}
-              onPress={() => handleSend(channel)}
-            >
+
+      {match.status !== "SUGGESTED" ? (
+        <>
+          <div className="rounded-md border border-[#e7e4dd] bg-white p-3">
+            <p className="text-sm text-[#1a1917] whitespace-pre-wrap">{match.draftMessage}</p>
+          </div>
+          {match.status === "PREPARING" ? (
+            <div className="flex items-center gap-2 text-sm text-[#b45309]">
+              <Loader2 className="size-4 animate-spin" />
+              ההודעה בהכנה — טאב לינקדאין עם ההודעה מוקלדת ייפתח אצלך עוד רגע (ודא שהתוסף פעיל)
+            </div>
+          ) : (
+            <div className="text-sm text-[#059669]">
+              {isLinkedinPrepare
+                ? "ההודעה מוקלדת ומחכה בטאב הלינקדאין שנפתח — לחץ שם שליחה וחזור לאשר כאן"
+                : "הטיוטה נפתחה — לחץ שליחה שם וחזור לאשר כאן"}
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {match.status === "PREPARED" && (
+              <Button size="sm" variant="primary" isDisabled={busy !== null} onPress={handleSentConfirm}>
+                <span className="inline-flex items-center gap-1.5">
+                  {busy === "sent" && <Loader2 className="size-3.5 animate-spin" />}
+                  שלחתי ✓
+                </span>
+              </Button>
+            )}
+            <Button size="sm" variant="ghost" isDisabled={busy !== null} onPress={handleDismiss}>
               <span className="inline-flex items-center gap-1.5">
-                {busy === channel ? <Loader2 className="size-3.5 animate-spin" /> : <Icon className="size-3.5" />}
-                {CHANNEL_LABEL[channel]}
+                {busy === "dismiss" && <Loader2 className="size-3.5 animate-spin" />}
+                הסר
               </span>
             </Button>
-          );
-        })}
-        <Button size="sm" variant="secondary" isDisabled={!(text ?? "").trim() || busy !== null} onPress={handleSave}>
-          <span className="inline-flex items-center gap-1.5">
-            {busy === "save" && <Loader2 className="size-3.5 animate-spin" />}
-            שמור טיוטה
+          </div>
+        </>
+      ) : (
+        <>
+          <TextArea
+            aria-label="טיוטת הודעה"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            className="w-full"
+            dir="rtl"
+          />
+          <div className="flex flex-wrap items-center gap-2">
+            {channels.map((channel) => {
+              const Icon = CHANNEL_ICON[channel];
+              return (
+                <Button
+                  key={channel}
+                  size="sm"
+                  variant="primary"
+                  isDisabled={!(text ?? "").trim() || busy !== null}
+                  onPress={() => handlePrepare(channel)}
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    {busy === channel ? <Loader2 className="size-3.5 animate-spin" /> : <Icon className="size-3.5" />}
+                    {CHANNEL_LABEL[channel]}
+                  </span>
+                </Button>
+              );
+            })}
+            <Button size="sm" variant="secondary" isDisabled={!(text ?? "").trim() || busy !== null} onPress={handleSave}>
+              <span className="inline-flex items-center gap-1.5">
+                {busy === "save" && <Loader2 className="size-3.5 animate-spin" />}
+                שמור טיוטה
+              </span>
+            </Button>
+            <Button size="sm" variant="ghost" isDisabled={busy !== null} onPress={handleDismiss}>
+              <span className="inline-flex items-center gap-1.5">
+                {busy === "dismiss" && <Loader2 className="size-3.5 animate-spin" />}
+                הסר
+              </span>
+            </Button>
+          </div>
+          <span className="text-xs text-[#9b9895]">
+            שום דבר לא נשלח אוטומטית — ההודעה תוכן בערוץ שבחרת ותשלח אותה בעצמך
           </span>
-        </Button>
-        <Button size="sm" variant="ghost" isDisabled={busy !== null} onPress={handleDismiss}>
-          <span className="inline-flex items-center gap-1.5">
-            {busy === "dismiss" && <Loader2 className="size-3.5 animate-spin" />}
-            הסר
-          </span>
-        </Button>
-      </div>
+        </>
+      )}
     </div>
   );
 }

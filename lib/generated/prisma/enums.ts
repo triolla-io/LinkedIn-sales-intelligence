@@ -166,7 +166,8 @@ export const ExtensionTaskKind = {
   SEARCH: 'SEARCH',
   CONNECT: 'CONNECT',
   RESOLVE_COMPANY: 'RESOLVE_COMPANY',
-  SCRAPE_PROFILE: 'SCRAPE_PROFILE'
+  SCRAPE_PROFILE: 'SCRAPE_PROFILE',
+  PREPARE_MESSAGE: 'PREPARE_MESSAGE'
 } as const
 
 export type ExtensionTaskKind = (typeof ExtensionTaskKind)[keyof typeof ExtensionTaskKind]
@@ -279,6 +280,7 @@ export type CompanySignalStatus = (typeof CompanySignalStatus)[keyof typeof Comp
 export const CompanySignalDraftStatus = {
   PENDING_REVIEW: 'PENDING_REVIEW',
   APPROVED: 'APPROVED',
+  PREPARED: 'PREPARED',
   SENT: 'SENT',
   DISMISSED: 'DISMISSED'
 } as const
@@ -288,6 +290,8 @@ export type CompanySignalDraftStatus = (typeof CompanySignalDraftStatus)[keyof t
 
 export const ArticleMatchStatus = {
   SUGGESTED: 'SUGGESTED',
+  PREPARING: 'PREPARING',
+  PREPARED: 'PREPARED',
   DISMISSED: 'DISMISSED',
   SENT: 'SENT'
 } as const

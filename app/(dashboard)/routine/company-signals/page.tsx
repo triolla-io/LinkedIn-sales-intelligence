@@ -6,10 +6,13 @@ import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
 import { Sparkles, Loader2, ExternalLink, Building2, CalendarDays, Copy, Check } from "lucide-react";
 import { resolveEventDate, formatEventDate } from "@/lib/company-signals/event-date";
+import { gmailComposeHref } from "@/lib/channels/gmail-compose";
 
 type Source = { name: string; url: string; publishedAt: string | null };
 type Draft = {
   id: string;
+  status: "PENDING_REVIEW" | "APPROVED" | "PREPARED";
+  channel: string;
   draftMessage: string;
   emailSubject: string | null;
   emailBody: string | null;
@@ -126,28 +129,23 @@ export default function CompanySignalsPage() {
 }
 
 const ACTION_ERROR_LABEL: Record<string, string> = {
-  gmail_not_connected: "חשבון ה-Gmail לא מחובר למערכת — יש להתחבר מחדש עם הרשאת שליחה",
-  email_send_failed: "שליחת המייל נכשלה, נסה שוב",
   no_email: "אין כתובת אימייל לאיש הקשר",
+  no_linkedin_url: "אין כתובת לינקדאין לאיש הקשר",
+  not_pending: "הטיוטה כבר בטיפול — רענן את העמוד",
+  not_prepared: "הטיוטה עדיין לא הוכנה — רענן את העמוד",
 };
 
 function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
   const [text, setText] = useState(draft.draftMessage);
   const [emailSubject, setEmailSubject] = useState(draft.emailSubject ?? "");
   const [emailBody, setEmailBody] = useState(draft.emailBody ?? "");
-  const [busy, setBusy] = useState<"approve" | "dismiss" | null>(null);
+  const [busy, setBusy] = useState<"prepare" | "prepared" | "sent" | "dismiss" | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  async function act(action: "approve" | "dismiss", channel: "linkedin" | "email" = "linkedin") {
-    setBusy(action);
+  async function act(payload: Record<string, string>, busyKey: "prepare" | "prepared" | "sent" | "dismiss") {
+    setBusy(busyKey);
     setActionError(null);
     try {
-      const payload =
-        action !== "approve"
-          ? { action }
-          : channel === "email"
-            ? { action, channel, message: emailBody, subject: emailSubject }
-            : { action, message: text };
       const res = await fetch(`/api/company-signals/${draft.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -155,7 +153,7 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setActionError(ACTION_ERROR_LABEL[data.error as string] ?? data.error ?? "שגיאה בשליחה, נסה שוב");
+        setActionError(ACTION_ERROR_LABEL[data.error as string] ?? data.error ?? "שגיאה, נסה שוב");
         return;
       }
       onDone();
@@ -164,6 +162,14 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
     } finally {
       setBusy(null);
     }
+  }
+
+  // Email prepare: open a pre-filled Gmail compose window (nothing is sent until the
+  // user clicks Send there), then record the draft as PREPARED.
+  function prepareEmail() {
+    if (!draft.contact.email) return;
+    window.open(gmailComposeHref(draft.contact.email, emailBody, emailSubject), "_blank", "noopener,noreferrer");
+    void act({ action: "prepared", channel: "email", subject: emailSubject, message: emailBody }, "prepared");
   }
 
   const pct = Math.round(draft.signal.confidence * 100);
@@ -200,9 +206,21 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
       )}
 
       <div className="text-sm text-gray-700">
-        אל: {draft.contact.fullName}{draft.contact.currentTitle ? ` · ${draft.contact.currentTitle}` : ""}
+        אל:{" "}
+        <a
+          href={draft.contact.linkedinUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-[#1585ff] hover:underline"
+        >
+          {draft.contact.fullName}
+        </a>
+        {draft.contact.currentTitle ? ` · ${draft.contact.currentTitle}` : ""}
       </div>
 
+      {draft.status !== "PENDING_REVIEW" ? (
+        <PrepareStatePanel draft={draft} busy={busy} actionError={actionError} onSent={() => act({ action: "sent" }, "sent")} onDismiss={() => act({ action: "dismiss" }, "dismiss")} />
+      ) : (
       <Tabs defaultSelectedKey="linkedin" className="w-full">
         <Tabs.ListContainer>
           <Tabs.List aria-label="ערוץ הודעה">
@@ -236,29 +254,32 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
               className="w-full"
               dir="rtl"
             />
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 size="sm"
                 variant="primary"
                 isDisabled={!text.trim() || busy !== null}
-                onPress={() => act("approve")}
+                onPress={() => act({ action: "prepare", message: text }, "prepare")}
               >
                 <span className="inline-flex items-center gap-1">
-                  {busy === "approve" && <Loader2 className="w-3 h-3 animate-spin" />}
-                  אישור ושליחה
+                  {busy === "prepare" && <Loader2 className="w-3 h-3 animate-spin" />}
+                  הכן בלינקדאין
                 </span>
               </Button>
               <Button
                 size="sm"
                 variant="ghost"
                 isDisabled={busy !== null}
-                onPress={() => act("dismiss")}
+                onPress={() => act({ action: "dismiss" }, "dismiss")}
               >
                 <span className="inline-flex items-center gap-1">
                   {busy === "dismiss" && <Loader2 className="w-3 h-3 animate-spin" />}
                   דחה
                 </span>
               </Button>
+              <span className="text-xs text-gray-500">
+                ההודעה תוקלד בלינקדאין וייפתח לך טאב מוכן — השליחה עצמה בידיים שלך
+              </span>
             </div>
           </div>
         </Tabs.Panel>
@@ -286,15 +307,15 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
                   size="sm"
                   variant="primary"
                   isDisabled={!emailBody.trim() || !emailSubject.trim() || busy !== null}
-                  onPress={() => act("approve", "email")}
+                  onPress={prepareEmail}
                 >
                   <span className="inline-flex items-center gap-1">
-                    {busy === "approve" && <Loader2 className="w-3 h-3 animate-spin" />}
-                    אישור ושליחה במייל
+                    {busy === "prepared" && <Loader2 className="w-3 h-3 animate-spin" />}
+                    פתח טיוטה ב-Gmail
                   </span>
                 </Button>
                 <span className="text-xs text-gray-500">
-                  יישלח מחשבון ה-Gmail המחובר אל {draft.contact.email}
+                  ייפתח חלון כתיבה ב-Gmail אל {draft.contact.email} — השליחה בידיים שלך
                 </span>
               </div>
             </div>
@@ -309,7 +330,61 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
           </Tabs.Panel>
         )}
       </Tabs>
+      )}
     </li>
+  );
+}
+
+/** APPROVED = a prepare task is queued/running; PREPARED = the draft is typed and open,
+ * waiting for the user to click Send and confirm here. Nothing auto-sends. */
+function PrepareStatePanel({
+  draft, busy, actionError, onSent, onDismiss,
+}: {
+  draft: Draft;
+  busy: string | null;
+  actionError: string | null;
+  onSent: () => void;
+  onDismiss: () => void;
+}) {
+  const isEmail = draft.channel === "EMAIL";
+  const message = isEmail ? (draft.emailBody ?? "") : draft.draftMessage;
+
+  return (
+    <div className="flex flex-col gap-2">
+      {actionError && <p className="text-xs text-red-600">{actionError}</p>}
+      <div className="bg-[#f6f5f3] rounded-md border border-[#e5e3df] p-3">
+        <p className="text-sm text-gray-700 whitespace-pre-wrap">{message}</p>
+      </div>
+      {draft.status === "APPROVED" ? (
+        <div className="flex items-center gap-2 text-sm text-[#b45309]">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          ההודעה בהכנה — טאב לינקדאין עם ההודעה מוקלדת ייפתח אצלך עוד רגע (ודא שהתוסף פעיל)
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 text-sm text-[#059669]">
+          <Check className="w-4 h-4" />
+          {isEmail
+            ? "הטיוטה נפתחה בחלון Gmail — בדוק, לחץ שליחה שם, וחזור לאשר כאן"
+            : "ההודעה מוקלדת ומחכה בטאב הלינקדאין שנפתח — לחץ שם שליחה וחזור לאשר כאן"}
+        </div>
+      )}
+      <div className="flex gap-2">
+        {draft.status === "PREPARED" && (
+          <Button size="sm" variant="primary" isDisabled={busy !== null} onPress={onSent}>
+            <span className="inline-flex items-center gap-1">
+              {busy === "sent" && <Loader2 className="w-3 h-3 animate-spin" />}
+              שלחתי ✓
+            </span>
+          </Button>
+        )}
+        <Button size="sm" variant="ghost" isDisabled={busy !== null} onPress={onDismiss}>
+          <span className="inline-flex items-center gap-1">
+            {busy === "dismiss" && <Loader2 className="w-3 h-3 animate-spin" />}
+            דחה
+          </span>
+        </Button>
+      </div>
+    </div>
   );
 }
 

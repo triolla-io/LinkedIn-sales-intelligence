@@ -530,6 +530,7 @@ export const ExtensionTaskScalarFieldEnum = {
   connectionRequestId: 'connectionRequestId',
   jobChangeId: 'jobChangeId',
   companySignalDraftId: 'companySignalDraftId',
+  articleMatchId: 'articleMatchId',
   scheduledFor: 'scheduledFor',
   claimedAt: 'claimedAt',
   completedAt: 'completedAt',

@@ -6,7 +6,9 @@ export const GET = withTenant(async (_req, ctx) => {
   const drafts = await prisma.companySignalDraft.findMany({
     where: {
       ownerId: ctx.effectiveUserId,
-      status: "PENDING_REVIEW",
+      // APPROVED = a prepare task is queued/running; PREPARED = draft is typed in an
+      // open tab / Gmail compose, waiting for the user's "שלחתי" confirmation.
+      status: { in: ["PENDING_REVIEW", "APPROVED", "PREPARED"] },
       // Only surface signals for small companies; null staffCount is excluded (fail closed)
       signal: { company: { staffCount: { lte: 500 } } },
     },
@@ -14,6 +16,8 @@ export const GET = withTenant(async (_req, ctx) => {
     take: 200,
     select: {
       id: true,
+      status: true,
+      channel: true,
       draftMessage: true,
       emailSubject: true,
       emailBody: true,
