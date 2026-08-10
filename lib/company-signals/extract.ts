@@ -6,12 +6,15 @@
  */
 import type { NewsResult } from "@/lib/news/types";
 
+// HIRING_GROWTH intentionally excluded (user decision 2026-08-10): hiring — one candidate
+// or a batch of job postings — is not a congratulation-worthy event and not a growth metric.
+// The Prisma enum keeps the value for legacy rows; the parser drops it if the LLM emits it.
 export type SignalTypeStr =
-  | "FUNDING" | "HIRING_GROWTH" | "OFFICE_MOVE" | "PRODUCT_LAUNCH"
+  | "FUNDING" | "OFFICE_MOVE" | "PRODUCT_LAUNCH"
   | "AWARD" | "MILESTONE" | "EXEC_HIRE";
 
 const SIGNAL_TYPES: SignalTypeStr[] = [
-  "FUNDING", "HIRING_GROWTH", "OFFICE_MOVE", "PRODUCT_LAUNCH", "AWARD", "MILESTONE", "EXEC_HIRE",
+  "FUNDING", "OFFICE_MOVE", "PRODUCT_LAUNCH", "AWARD", "MILESTONE", "EXEC_HIRE",
 ];
 
 export type ExtractedSignal = {
@@ -63,13 +66,16 @@ export function makeDedupeKey(signalType: string, title: string): string {
 const SYSTEM = `You extract POSITIVE, congratulation-worthy company events from news search results.
 
 Only include events worth sending a "mazal tov / congratulations" message about:
-- FUNDING (raised a round), HIRING_GROWTH (significant hiring / headcount growth),
+- FUNDING (raised a round),
   OFFICE_MOVE (moved to a bigger/new office), PRODUCT_LAUNCH (launched a product/tool/feature),
   AWARD (won an award/recognition), MILESTONE (IPO, big customer, major anniversary),
-  EXEC_HIRE (appointed a senior executive).
+  EXEC_HIRE (a NAMED person appointed to a C-suite/GM role, announced in the press).
 
 STRICT RULES:
 - IGNORE negative or neutral news (layoffs, lawsuits, losses, outages, controversy). Never emit them.
+- HIRING IS NOT AN EVENT: job postings, "company X is hiring", recruiting one candidate or several
+  open positions — never emit these, under any signalType. Hiring activity is not "growth" and not
+  an expansion. The only hiring-adjacent event allowed is EXEC_HIRE as defined above.
 - Every event MUST carry at least one source with a real URL taken from the provided results. If you cannot attach a source URL, DROP the event.
 - Do not invent events, numbers, or URLs. Only use what the results support.
 - Prefer recent events (last ~30 days).

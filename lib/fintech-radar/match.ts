@@ -1,5 +1,5 @@
 import { Prisma } from "@/lib/generated/prisma/client";
-import { clevelTitleWhere } from "@/lib/company-signals/clevel";
+import { seniorTitleWhere } from "@/lib/company-signals/clevel";
 
 export const CANDIDATE_CAP = 25;
 
@@ -59,9 +59,10 @@ export function buildCandidateWhere(
   const base: Prisma.ContactWhereInput = {
     ownerId,
     removedAt: null,
-    ...clevelTitleWhere(),
+    // Radar keeps the wider senior pool (VP / head-of) — its topic map targets those roles.
+    ...seniorTitleWhere(),
   };
-  // When we have overlap signals, require at least one; otherwise fall back to plain C-level.
+  // When we have overlap signals, require at least one; otherwise fall back to plain seniority.
   return overlap.length > 0 ? { AND: [base, { OR: overlap }] } : base;
 }
 
