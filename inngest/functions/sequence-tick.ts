@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { buildEnrollmentExecutions } from "@/lib/sequences/helpers";
 
 export const sequenceTick = inngest.createFunction(
-  { id: "sequence-tick", triggers: [{ cron: "*/5 * * * *" }] },
+  { id: "sequence-tick", triggers: [{ cron: "*/15 * * * *" }] },
   async () => {
     const now = new Date();
 

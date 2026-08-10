@@ -13,7 +13,7 @@ import {
 const REDISCOVERY_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 export const prospectingTick = inngest.createFunction(
-  { id: "prospecting-tick", triggers: [{ cron: "*/5 * * * *" }] },
+  { id: "prospecting-tick", triggers: [{ cron: "*/15 * * * *" }] },
   async () => {
     const runs = await prisma.prospectingRun.findMany({
       where: { status: "RUNNING" },

@@ -38,7 +38,7 @@ Use HeroUI (`@heroui/react`) for all React components.
 | `sequence.tick` | cron / admin trigger | `inngest/functions/sequence-tick.ts` |
 | `sequence.send-execution` | per step due | `inngest/functions/sequence-send-execution.ts` |
 | `prospecting.start` | prospecting start API | `inngest/functions/prospecting-start.ts` |
-| `prospecting.tick` | cron */5 * * * * | `inngest/functions/prospecting-tick.ts` |
+| `prospecting.tick` | cron */15 * * * * | `inngest/functions/prospecting-tick.ts` |
 | `import.process` | CSV upload API | `inngest/functions/import-process.ts` |
 | *(cron 0 2 \* \* \*)* | nightly job-change batch trigger — dispatches `SCRAPE_PROFILE` extension tasks (customer's LinkedIn via the extension, no Apollo/Bright Data spend) | `inngest/functions/job-check-tick.ts` |
 | `job-check.enabled` | "Job Changes" module toggled ON (kick-on-enable dispatch) | `inngest/functions/job-check-dispatch.ts` |

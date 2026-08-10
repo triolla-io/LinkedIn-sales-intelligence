@@ -39,6 +39,6 @@ async function extensionHeartbeatWatchHandler(_: any) {
 }
 
 export const extensionHeartbeatWatch = inngest.createFunction(
-  { id: "extension-heartbeat-watch", triggers: [{ cron: "*/5 * * * *" }] },
+  { id: "extension-heartbeat-watch", triggers: [{ cron: "*/15 * * * *" }] },
   extensionHeartbeatWatchHandler
 );
