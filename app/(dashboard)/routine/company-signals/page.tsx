@@ -15,7 +15,13 @@ type Draft = {
   emailBody: string | null;
   whatsappMessage: string | null;
   createdAt: string;
-  contact: { fullName: string; currentTitle: string | null; linkedinUrl: string };
+  contact: {
+    fullName: string;
+    currentTitle: string | null;
+    linkedinUrl: string;
+    email: string | null;
+    phone: string | null;
+  };
   signal: {
     signalType: string;
     title: string;
@@ -190,13 +196,14 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
               לינקדאין
               <Tabs.Indicator />
             </Tabs.Tab>
-            {draft.emailBody && (
+            {/* A channel tab is offered only when we can actually reach the contact there. */}
+            {draft.emailBody && draft.contact.email && (
               <Tabs.Tab id="email">
                 אימייל
                 <Tabs.Indicator />
               </Tabs.Tab>
             )}
-            {draft.whatsappMessage && (
+            {draft.whatsappMessage && draft.contact.phone && (
               <Tabs.Tab id="whatsapp">
                 וואטסאפ
                 <Tabs.Indicator />

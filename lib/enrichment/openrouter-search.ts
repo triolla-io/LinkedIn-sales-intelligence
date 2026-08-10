@@ -157,7 +157,9 @@ export async function enrichCompaniesViaOpenRouter(companies: CompanyInput[]): P
   const model = process.env.OPENROUTER_MODEL ?? "deepseek/deepseek-chat";
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30_000);
+  // 120s: a 20-company batch answer runs to ~3k tokens and deepseek routing can be
+  // slow — 30s aborted whole enrichment runs (AbortError, 2026-08-10).
+  const timeout = setTimeout(() => controller.abort(), 120_000);
   try {
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       signal: controller.signal,

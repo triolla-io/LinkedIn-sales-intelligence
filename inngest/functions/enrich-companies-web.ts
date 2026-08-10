@@ -10,7 +10,7 @@ export const enrichCompaniesWeb = inngest.createFunction(
     id: "enrich-companies-web",
     name: "Enrich companies via OpenRouter (DB-first cache)",
     concurrency: { limit: 1 },
-    retries: 1,
+    retries: 3,
     triggers: [{ event: "companies.enrich-web" as const }],
   },
   async ({ event, step }: any) => {

@@ -106,6 +106,17 @@ export const enrichContactsHebrewNames = inngest.createFunction(
         for (const c of contacts) {
           if (c.hebrewFirstName) continue;
 
+          // 0. The person's own Hebrew spelling wins when the fullName embeds it
+          // (e.g. "Irit Filipowicz עירית פיליפוביץ" — her spelling is עירית, not אירית).
+          // LinkedIn bilingual names put the Hebrew given name first, so take the
+          // first Hebrew token. Not cached: this is a per-person choice, not a rule.
+          const hebrewToken = c.fullName.match(/[֐-׿][֐-׿'׳״"-]+/)?.[0];
+          if (hebrewToken) {
+            await prisma.contact.update({ where: { id: c.id }, data: { hebrewFirstName: hebrewToken } });
+            batchFromLookup++;
+            continue;
+          }
+
           const firstName = c.fullName.trim().split(/\s+/)[0];
           const key = firstName.toLowerCase();
 
