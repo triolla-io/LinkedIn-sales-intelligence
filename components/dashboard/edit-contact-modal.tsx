@@ -38,14 +38,14 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
   const firstInputRef = useRef<HTMLInputElement>(null);
   const portalTarget = usePortalTarget();
 
-  const initialValues = useRef<Record<EditableField, string> | null>(null);
-  if (initialValues.current === null) {
-    initialValues.current = Object.fromEntries(
-      FIELDS.map(({ key }) => [key, (contact[key] as string | null | undefined) ?? ""])
-    ) as Record<EditableField, string>;
-  }
+  const [initialValues] = useState<Record<EditableField, string>>(
+    () =>
+      Object.fromEntries(
+        FIELDS.map(({ key }) => [key, (contact[key] as string | null | undefined) ?? ""])
+      ) as Record<EditableField, string>
+  );
 
-  const isDirty = FIELDS.some(({ key }) => form[key] !== initialValues.current![key]);
+  const isDirty = FIELDS.some(({ key }) => form[key] !== initialValues[key]);
   const manualSet = new Set(contact.manualFields ?? []);
 
   const onEscape = useEffectEvent(() => onClose());
