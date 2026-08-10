@@ -125,23 +125,37 @@ export default function CompanySignalsPage() {
   );
 }
 
+const ACTION_ERROR_LABEL: Record<string, string> = {
+  gmail_not_connected: "חשבון ה-Gmail לא מחובר למערכת — יש להתחבר מחדש עם הרשאת שליחה",
+  email_send_failed: "שליחת המייל נכשלה, נסה שוב",
+  no_email: "אין כתובת אימייל לאיש הקשר",
+};
+
 function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
   const [text, setText] = useState(draft.draftMessage);
+  const [emailSubject, setEmailSubject] = useState(draft.emailSubject ?? "");
+  const [emailBody, setEmailBody] = useState(draft.emailBody ?? "");
   const [busy, setBusy] = useState<"approve" | "dismiss" | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  async function act(action: "approve" | "dismiss") {
+  async function act(action: "approve" | "dismiss", channel: "linkedin" | "email" = "linkedin") {
     setBusy(action);
     setActionError(null);
     try {
+      const payload =
+        action !== "approve"
+          ? { action }
+          : channel === "email"
+            ? { action, channel, message: emailBody, subject: emailSubject }
+            : { action, message: text };
       const res = await fetch(`/api/company-signals/${draft.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(action === "approve" ? { action, message: text } : { action }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setActionError(data.error ?? "שגיאה בשליחה, נסה שוב");
+        setActionError(ACTION_ERROR_LABEL[data.error as string] ?? data.error ?? "שגיאה בשליחה, נסה שוב");
         return;
       }
       onDone();
@@ -249,17 +263,41 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
           </div>
         </Tabs.Panel>
 
-        {draft.emailBody && (
+        {draft.emailBody && draft.contact.email && (
           <Tabs.Panel id="email" className="pt-3">
-            <CopyBlock
-              label="נושא + גוף האימייל"
-              text={`${draft.emailSubject ?? ""}\n\n${draft.emailBody}`.trim()}
-            >
-              {draft.emailSubject && (
-                <p className="text-sm font-semibold text-gray-800">{draft.emailSubject}</p>
-              )}
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{draft.emailBody}</p>
-            </CopyBlock>
+            <div className="flex flex-col gap-2">
+              {actionError && <p className="text-xs text-red-600">{actionError}</p>}
+              <TextArea
+                aria-label="נושא האימייל"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                className="w-full"
+                dir="rtl"
+              />
+              <TextArea
+                aria-label="גוף האימייל"
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
+                className="w-full"
+                dir="rtl"
+              />
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  size="sm"
+                  variant="primary"
+                  isDisabled={!emailBody.trim() || !emailSubject.trim() || busy !== null}
+                  onPress={() => act("approve", "email")}
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {busy === "approve" && <Loader2 className="w-3 h-3 animate-spin" />}
+                    אישור ושליחה במייל
+                  </span>
+                </Button>
+                <span className="text-xs text-gray-500">
+                  יישלח מחשבון ה-Gmail המחובר אל {draft.contact.email}
+                </span>
+              </div>
+            </div>
           </Tabs.Panel>
         )}
 
