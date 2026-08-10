@@ -19,11 +19,13 @@ describe("renderTemplate", () => {
     const ctx2 = { ...ctx, recipient: { ...ctx.recipient, firstName: null } };
     expect(renderTemplate("Hi {{firstName|there}}", ctx2).body).toBe("Hi there");
   });
-  it("returns missing variable list when no fallback and no value", () => {
+  it("renders best-effort (empty substitution) when no fallback and no value — never blocks a send", () => {
+    // Policy: missing template variables must NEVER cause a skip; the message
+    // always sends with the variable rendered as "" (see commit 14e4b69).
     const ctx2 = { ...ctx, recipient: { ...ctx.recipient, firstName: null } };
     const res = renderTemplate("Hi {{firstName}}", ctx2);
-    expect(res.body).toBe("");
-    expect(res.missing).toEqual(["firstName"]);
+    expect(res.body).toBe("Hi ");
+    expect(res.missing).toEqual([]);
   });
   it("treats missing sender variables as empty (no skip)", () => {
     const ctx2 = { ...ctx, sender: { ...ctx.sender, title: null } };

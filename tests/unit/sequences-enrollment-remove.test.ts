@@ -5,6 +5,7 @@ const mockAuth = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/auth", () => ({ auth: mockAuth }));
 
 const mockEnrollmentFindFirst = vi.hoisted(() => vi.fn());
+const mockEnrollmentUpdate = vi.hoisted(() => vi.fn());
 const mockExecutionUpdateMany = vi.hoisted(() => vi.fn());
 const mockUserFindUnique = vi.hoisted(() => vi.fn());
 
@@ -12,6 +13,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     sequenceEnrollment: {
       findFirst: mockEnrollmentFindFirst,
+      update: mockEnrollmentUpdate,
     },
     sequenceStepExecution: {
       updateMany: mockExecutionUpdateMany,
@@ -48,6 +50,7 @@ beforeEach(() => {
 describe("POST /api/sequences/[id]/enrollments/[enrollmentId]/remove", () => {
   it("sets PENDING executions to SKIPPED", async () => {
     mockEnrollmentFindFirst.mockResolvedValue(mockEnrollment);
+    mockEnrollmentUpdate.mockResolvedValue({ ...mockEnrollment, status: "UNSUBSCRIBED" });
     mockExecutionUpdateMany.mockResolvedValue({ count: 2 });
 
     const res = await POST(makeReq(), {
@@ -60,6 +63,12 @@ describe("POST /api/sequences/[id]/enrollments/[enrollmentId]/remove", () => {
     expect(mockExecutionUpdateMany).toHaveBeenCalledWith({
       where: { enrollmentId: "enr1", status: "PENDING" },
       data: { status: "SKIPPED" },
+    });
+    // Removal also marks the enrollment UNSUBSCRIBED so the tick stops
+    // dispatching and never re-enrolls the contact (commit 3b4a093).
+    expect(mockEnrollmentUpdate).toHaveBeenCalledWith({
+      where: { id: "enr1" },
+      data: { status: "UNSUBSCRIBED" },
     });
   });
 

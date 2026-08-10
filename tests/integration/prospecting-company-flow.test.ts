@@ -10,6 +10,7 @@ vi.mock("@/inngest/client", () => ({
 import { prisma } from "@/lib/prisma";
 import { extensionTaskResultHandler } from "@/inngest/functions/extension-task-result";
 import { maybeCompleteCompanyRun } from "@/lib/prospecting/company-discovery";
+import { parseSearchTitles } from "@/lib/prospecting/search-url";
 
 async function setup() {
   const org = await prisma.organization.findFirstOrThrow();
@@ -95,31 +96,52 @@ describe("company run: resolve → search → next company → completion", () =
     expect(url.searchParams.get("network")).toBe('["S","O"]');
     expect(url.searchParams.get("geoUrn")).toBeNull();
 
-    // 2) SEARCH DONE (last page) with one candidate
-    await prisma.extensionTask.update({
-      where: { id: searchTask.id },
-      data: {
-        status: "DONE",
-        completedAt: new Date(),
-        result: {
-          candidates: [
-            {
-              urn: `urn:li:member:jane-${run.id}`,
-              profileUrl: `https://www.linkedin.com/in/jane-${run.id}`,
-              name: "Jane Doe",
-              headline: "CEO at Acme",
-              title: "CEO",
-              company: "Acme",
-              location: "TLV",
-              degree: "2nd",
-              cardAction: "connect",
-            },
-          ],
-          hasNextPage: false,
+    // 2) Company runs search ONE title per SEARCH task, walking the run's
+    //    keyword list expanded via role families (parseSearchTitles). The
+    //    company goes DONE only after the LAST title's last page, so complete
+    //    every title — the first page yields one candidate, the rest none.
+    const titles = parseSearchTitles(run.keywords);
+    expect(titles.length).toBeGreaterThan(0);
+    let currentSearch = searchTask;
+    for (let i = 0; i < titles.length; i++) {
+      await prisma.extensionTask.update({
+        where: { id: currentSearch.id },
+        data: {
+          status: "DONE",
+          completedAt: new Date(),
+          result: {
+            candidates:
+              i === 0
+                ? [
+                    {
+                      urn: `urn:li:member:jane-${run.id}`,
+                      profileUrl: `https://www.linkedin.com/in/jane-${run.id}`,
+                      name: "Jane Doe",
+                      headline: "CEO at Acme",
+                      title: "CEO",
+                      company: "Acme",
+                      location: "TLV",
+                      degree: "2nd",
+                      cardAction: "connect",
+                    },
+                  ]
+                : [],
+            hasNextPage: false,
+          },
         },
-      },
-    });
-    await fireResult(searchTask.id);
+      });
+      await fireResult(currentSearch.id);
+      if (i < titles.length - 1) {
+        // Not the last title yet — the handler advances the title cursor and
+        // queues the next single-title SEARCH page for the same company.
+        currentSearch = await prisma.extensionTask.findFirstOrThrow({
+          where: { prospectingRunId: run.id, kind: "SEARCH", status: "PENDING" },
+        });
+        expect((currentSearch.payload as { targetId: string }).targetId).toBe(
+          t1.id,
+        );
+      }
+    }
 
     expect(
       (

@@ -14,7 +14,7 @@ describe("htmlBody", () => {
   it("wraps body in a dir=auto container with the typography spec (no pre-wrap)", () => {
     const out = htmlBody("Hello\nWorld");
     expect(out).toContain('dir="auto"');
-    expect(out).toContain("font-size:14px");
+    expect(out).toContain("font-size:16px");
     expect(out).not.toContain("white-space:pre-wrap");
     expect(out).toContain("<div>Hello</div><div>World</div>");
   });

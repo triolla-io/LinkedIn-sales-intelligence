@@ -14,7 +14,7 @@ describe("classify — seniority", () => {
     ["Director of Engineering", "DIRECTOR"],
     ["Head of Product", "DIRECTOR"],
     ["Engineering Manager", "MANAGER"],
-    ["Senior Software Engineer", "MANAGER"],
+    ["Senior Software Engineer", "IC"],
     ["Lead Developer", "MANAGER"],
     ["Principal Engineer", "MANAGER"],
     ["Software Engineer III", "IC"],

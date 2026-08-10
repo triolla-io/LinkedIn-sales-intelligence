@@ -10,8 +10,9 @@ describe("normalizePhone", () => {
     expect(normalizePhone("+1 650-555-1234")).toBe("+16505551234");
   });
 
-  it("returns null for number without + prefix", () => {
-    expect(normalizePhone("16505551234")).toBeNull();
+  it("treats numbers without + as Israeli local (prepends +972, strips leading 0)", () => {
+    // Intentional (commit 37fc23b): un-prefixed numbers default to Israel.
+    expect(normalizePhone("0501234567")).toBe("+972501234567");
   });
 
   it("handles Israeli mobile numbers", () => {
