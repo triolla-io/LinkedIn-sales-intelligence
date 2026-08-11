@@ -53,6 +53,7 @@ export type ConnectionRequestMinAggregateOutputType = {
   cardAction: string | null
   sendPriority: number | null
   sentAt: Date | null
+  acceptedAt: Date | null
   attemptCount: number | null
   errorCode: string | null
   errorMessage: string | null
@@ -76,6 +77,7 @@ export type ConnectionRequestMaxAggregateOutputType = {
   cardAction: string | null
   sendPriority: number | null
   sentAt: Date | null
+  acceptedAt: Date | null
   attemptCount: number | null
   errorCode: string | null
   errorMessage: string | null
@@ -99,6 +101,7 @@ export type ConnectionRequestCountAggregateOutputType = {
   cardAction: number
   sendPriority: number
   sentAt: number
+  acceptedAt: number
   attemptCount: number
   errorCode: number
   errorMessage: number
@@ -134,6 +137,7 @@ export type ConnectionRequestMinAggregateInputType = {
   cardAction?: true
   sendPriority?: true
   sentAt?: true
+  acceptedAt?: true
   attemptCount?: true
   errorCode?: true
   errorMessage?: true
@@ -157,6 +161,7 @@ export type ConnectionRequestMaxAggregateInputType = {
   cardAction?: true
   sendPriority?: true
   sentAt?: true
+  acceptedAt?: true
   attemptCount?: true
   errorCode?: true
   errorMessage?: true
@@ -180,6 +185,7 @@ export type ConnectionRequestCountAggregateInputType = {
   cardAction?: true
   sendPriority?: true
   sentAt?: true
+  acceptedAt?: true
   attemptCount?: true
   errorCode?: true
   errorMessage?: true
@@ -290,6 +296,7 @@ export type ConnectionRequestGroupByOutputType = {
   cardAction: string | null
   sendPriority: number
   sentAt: Date | null
+  acceptedAt: Date | null
   attemptCount: number
   errorCode: string | null
   errorMessage: string | null
@@ -336,6 +343,7 @@ export type ConnectionRequestWhereInput = {
   cardAction?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   sendPriority?: Prisma.IntFilter<"ConnectionRequest"> | number
   sentAt?: Prisma.DateTimeNullableFilter<"ConnectionRequest"> | Date | string | null
+  acceptedAt?: Prisma.DateTimeNullableFilter<"ConnectionRequest"> | Date | string | null
   attemptCount?: Prisma.IntFilter<"ConnectionRequest"> | number
   errorCode?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   errorMessage?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
@@ -362,6 +370,7 @@ export type ConnectionRequestOrderByWithRelationInput = {
   cardAction?: Prisma.SortOrderInput | Prisma.SortOrder
   sendPriority?: Prisma.SortOrder
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   errorCode?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -392,6 +401,7 @@ export type ConnectionRequestWhereUniqueInput = Prisma.AtLeast<{
   cardAction?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   sendPriority?: Prisma.IntFilter<"ConnectionRequest"> | number
   sentAt?: Prisma.DateTimeNullableFilter<"ConnectionRequest"> | Date | string | null
+  acceptedAt?: Prisma.DateTimeNullableFilter<"ConnectionRequest"> | Date | string | null
   attemptCount?: Prisma.IntFilter<"ConnectionRequest"> | number
   errorCode?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   errorMessage?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
@@ -418,6 +428,7 @@ export type ConnectionRequestOrderByWithAggregationInput = {
   cardAction?: Prisma.SortOrderInput | Prisma.SortOrder
   sendPriority?: Prisma.SortOrder
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   errorCode?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -449,6 +460,7 @@ export type ConnectionRequestScalarWhereWithAggregatesInput = {
   cardAction?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
   sendPriority?: Prisma.IntWithAggregatesFilter<"ConnectionRequest"> | number
   sentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ConnectionRequest"> | Date | string | null
+  acceptedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ConnectionRequest"> | Date | string | null
   attemptCount?: Prisma.IntWithAggregatesFilter<"ConnectionRequest"> | number
   errorCode?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
   errorMessage?: Prisma.StringNullableWithAggregatesFilter<"ConnectionRequest"> | string | null
@@ -469,6 +481,7 @@ export type ConnectionRequestCreateInput = {
   cardAction?: string | null
   sendPriority?: number
   sentAt?: Date | string | null
+  acceptedAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
   errorMessage?: string | null
@@ -495,6 +508,7 @@ export type ConnectionRequestUncheckedCreateInput = {
   cardAction?: string | null
   sendPriority?: number
   sentAt?: Date | string | null
+  acceptedAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
   errorMessage?: string | null
@@ -515,6 +529,7 @@ export type ConnectionRequestUpdateInput = {
   cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -541,6 +556,7 @@ export type ConnectionRequestUncheckedUpdateInput = {
   cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -564,6 +580,7 @@ export type ConnectionRequestCreateManyInput = {
   cardAction?: string | null
   sendPriority?: number
   sentAt?: Date | string | null
+  acceptedAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
   errorMessage?: string | null
@@ -584,6 +601,7 @@ export type ConnectionRequestUpdateManyMutationInput = {
   cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -607,6 +625,7 @@ export type ConnectionRequestUncheckedUpdateManyInput = {
   cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -645,6 +664,7 @@ export type ConnectionRequestCountOrderByAggregateInput = {
   cardAction?: Prisma.SortOrder
   sendPriority?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   errorCode?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
@@ -673,6 +693,7 @@ export type ConnectionRequestMaxOrderByAggregateInput = {
   cardAction?: Prisma.SortOrder
   sendPriority?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   errorCode?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
@@ -696,6 +717,7 @@ export type ConnectionRequestMinOrderByAggregateInput = {
   cardAction?: Prisma.SortOrder
   sendPriority?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrder
   attemptCount?: Prisma.SortOrder
   errorCode?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
@@ -851,6 +873,7 @@ export type ConnectionRequestCreateWithoutOwnerInput = {
   cardAction?: string | null
   sendPriority?: number
   sentAt?: Date | string | null
+  acceptedAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
   errorMessage?: string | null
@@ -875,6 +898,7 @@ export type ConnectionRequestUncheckedCreateWithoutOwnerInput = {
   cardAction?: string | null
   sendPriority?: number
   sentAt?: Date | string | null
+  acceptedAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
   errorMessage?: string | null
@@ -927,6 +951,7 @@ export type ConnectionRequestScalarWhereInput = {
   cardAction?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   sendPriority?: Prisma.IntFilter<"ConnectionRequest"> | number
   sentAt?: Prisma.DateTimeNullableFilter<"ConnectionRequest"> | Date | string | null
+  acceptedAt?: Prisma.DateTimeNullableFilter<"ConnectionRequest"> | Date | string | null
   attemptCount?: Prisma.IntFilter<"ConnectionRequest"> | number
   errorCode?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
   errorMessage?: Prisma.StringNullableFilter<"ConnectionRequest"> | string | null
@@ -947,6 +972,7 @@ export type ConnectionRequestCreateWithoutRunInput = {
   cardAction?: string | null
   sendPriority?: number
   sentAt?: Date | string | null
+  acceptedAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
   errorMessage?: string | null
@@ -971,6 +997,7 @@ export type ConnectionRequestUncheckedCreateWithoutRunInput = {
   cardAction?: string | null
   sendPriority?: number
   sentAt?: Date | string | null
+  acceptedAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
   errorMessage?: string | null
@@ -1017,6 +1044,7 @@ export type ConnectionRequestCreateWithoutCompanyTargetInput = {
   cardAction?: string | null
   sendPriority?: number
   sentAt?: Date | string | null
+  acceptedAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
   errorMessage?: string | null
@@ -1041,6 +1069,7 @@ export type ConnectionRequestUncheckedCreateWithoutCompanyTargetInput = {
   cardAction?: string | null
   sendPriority?: number
   sentAt?: Date | string | null
+  acceptedAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
   errorMessage?: string | null
@@ -1089,6 +1118,7 @@ export type ConnectionRequestCreateManyOwnerInput = {
   cardAction?: string | null
   sendPriority?: number
   sentAt?: Date | string | null
+  acceptedAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
   errorMessage?: string | null
@@ -1109,6 +1139,7 @@ export type ConnectionRequestUpdateWithoutOwnerInput = {
   cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1133,6 +1164,7 @@ export type ConnectionRequestUncheckedUpdateWithoutOwnerInput = {
   cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1155,6 +1187,7 @@ export type ConnectionRequestUncheckedUpdateManyWithoutOwnerInput = {
   cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1177,6 +1210,7 @@ export type ConnectionRequestCreateManyRunInput = {
   cardAction?: string | null
   sendPriority?: number
   sentAt?: Date | string | null
+  acceptedAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
   errorMessage?: string | null
@@ -1197,6 +1231,7 @@ export type ConnectionRequestUpdateWithoutRunInput = {
   cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1221,6 +1256,7 @@ export type ConnectionRequestUncheckedUpdateWithoutRunInput = {
   cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1243,6 +1279,7 @@ export type ConnectionRequestUncheckedUpdateManyWithoutRunInput = {
   cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1265,6 +1302,7 @@ export type ConnectionRequestCreateManyCompanyTargetInput = {
   cardAction?: string | null
   sendPriority?: number
   sentAt?: Date | string | null
+  acceptedAt?: Date | string | null
   attemptCount?: number
   errorCode?: string | null
   errorMessage?: string | null
@@ -1285,6 +1323,7 @@ export type ConnectionRequestUpdateWithoutCompanyTargetInput = {
   cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1309,6 +1348,7 @@ export type ConnectionRequestUncheckedUpdateWithoutCompanyTargetInput = {
   cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1331,6 +1371,7 @@ export type ConnectionRequestUncheckedUpdateManyWithoutCompanyTargetInput = {
   cardAction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sendPriority?: Prisma.IntFieldUpdateOperationsInput | number
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   errorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1356,6 +1397,7 @@ export type ConnectionRequestSelect<ExtArgs extends runtime.Types.Extensions.Int
   cardAction?: boolean
   sendPriority?: boolean
   sentAt?: boolean
+  acceptedAt?: boolean
   attemptCount?: boolean
   errorCode?: boolean
   errorMessage?: boolean
@@ -1382,6 +1424,7 @@ export type ConnectionRequestSelectCreateManyAndReturn<ExtArgs extends runtime.T
   cardAction?: boolean
   sendPriority?: boolean
   sentAt?: boolean
+  acceptedAt?: boolean
   attemptCount?: boolean
   errorCode?: boolean
   errorMessage?: boolean
@@ -1408,6 +1451,7 @@ export type ConnectionRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   cardAction?: boolean
   sendPriority?: boolean
   sentAt?: boolean
+  acceptedAt?: boolean
   attemptCount?: boolean
   errorCode?: boolean
   errorMessage?: boolean
@@ -1434,13 +1478,14 @@ export type ConnectionRequestSelectScalar = {
   cardAction?: boolean
   sendPriority?: boolean
   sentAt?: boolean
+  acceptedAt?: boolean
   attemptCount?: boolean
   errorCode?: boolean
   errorMessage?: boolean
   createdAt?: boolean
 }
 
-export type ConnectionRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "runId" | "companyTargetId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "headline" | "currentTitle" | "currentCompany" | "location" | "status" | "skipReason" | "cardAction" | "sendPriority" | "sentAt" | "attemptCount" | "errorCode" | "errorMessage" | "createdAt", ExtArgs["result"]["connectionRequest"]>
+export type ConnectionRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "runId" | "companyTargetId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "headline" | "currentTitle" | "currentCompany" | "location" | "status" | "skipReason" | "cardAction" | "sendPriority" | "sentAt" | "acceptedAt" | "attemptCount" | "errorCode" | "errorMessage" | "createdAt", ExtArgs["result"]["connectionRequest"]>
 export type ConnectionRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   run?: boolean | Prisma.ProspectingRunDefaultArgs<ExtArgs>
@@ -1481,6 +1526,7 @@ export type $ConnectionRequestPayload<ExtArgs extends runtime.Types.Extensions.I
     cardAction: string | null
     sendPriority: number
     sentAt: Date | null
+    acceptedAt: Date | null
     attemptCount: number
     errorCode: string | null
     errorMessage: string | null
@@ -1927,6 +1973,7 @@ export interface ConnectionRequestFieldRefs {
   readonly cardAction: Prisma.FieldRef<"ConnectionRequest", 'String'>
   readonly sendPriority: Prisma.FieldRef<"ConnectionRequest", 'Int'>
   readonly sentAt: Prisma.FieldRef<"ConnectionRequest", 'DateTime'>
+  readonly acceptedAt: Prisma.FieldRef<"ConnectionRequest", 'DateTime'>
   readonly attemptCount: Prisma.FieldRef<"ConnectionRequest", 'Int'>
   readonly errorCode: Prisma.FieldRef<"ConnectionRequest", 'String'>
   readonly errorMessage: Prisma.FieldRef<"ConnectionRequest", 'String'>

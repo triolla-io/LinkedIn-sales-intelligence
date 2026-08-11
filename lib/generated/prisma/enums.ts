@@ -167,7 +167,8 @@ export const ExtensionTaskKind = {
   CONNECT: 'CONNECT',
   RESOLVE_COMPANY: 'RESOLVE_COMPANY',
   SCRAPE_PROFILE: 'SCRAPE_PROFILE',
-  PREPARE_MESSAGE: 'PREPARE_MESSAGE'
+  PREPARE_MESSAGE: 'PREPARE_MESSAGE',
+  SCRAPE_CONNECTIONS: 'SCRAPE_CONNECTIONS'
 } as const
 
 export type ExtensionTaskKind = (typeof ExtensionTaskKind)[keyof typeof ExtensionTaskKind]
@@ -226,6 +227,7 @@ export const ProspectingEventType = {
   FAILED: 'FAILED',
   ALREADY_PENDING: 'ALREADY_PENDING',
   ALREADY_CONNECTED: 'ALREADY_CONNECTED',
+  ACCEPTED: 'ACCEPTED',
   CHECKPOINT: 'CHECKPOINT',
   COMPLETED: 'COMPLETED'
 } as const
