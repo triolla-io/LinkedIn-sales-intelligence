@@ -1,3 +1,5 @@
+import { OpenRouterBlockedError, openrouterChat } from "@/lib/openrouter/client";
+
 export type NameInput = { id: string; firstName: string };
 export type NameOutput = { id: string; hebrewFirstName: string | null };
 
@@ -32,18 +34,9 @@ export async function translateNames(inputs: NameInput[]): Promise<NameOutput[]>
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15_000);
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        signal: controller.signal,
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://sales.triolla.io",
-          "X-Title": "Triolla Sales Intelligence",
-        },
-        body: JSON.stringify({
+      const res = await openrouterChat(
+        "hebrew-names",
+        {
           model,
           messages: [
             { role: "system", content: SYSTEM },
@@ -51,23 +44,21 @@ export async function translateNames(inputs: NameInput[]): Promise<NameOutput[]>
           ],
           temperature: 0,
           max_tokens: 1024,
-        }),
-      });
-      clearTimeout(timeout);
+        },
+        { timeoutMs: 15_000 }
+      );
 
       if (!res.ok) {
-        const detail = await res.text().catch(() => "");
         const is503 = res.status === 503 || res.status === 429;
         if (is503 && attempt < 2) {
           await new Promise((r) => setTimeout(r, (attempt + 1) * 5_000));
           continue;
         }
-        console.error(`OpenRouter name translation failed: ${res.status} ${detail}`);
+        console.error(`OpenRouter name translation failed: ${res.status} ${res.detail}`);
         return [];
       }
 
-      const json = await res.json();
-      const text = (json.choices?.[0]?.message?.content ?? "").trim();
+      const text = (res.data.choices?.[0]?.message?.content ?? "").trim();
       const parsed = tryParse(text);
       if (!parsed) {
         console.error("OpenRouter name translation: unexpected response format");
@@ -76,6 +67,11 @@ export async function translateNames(inputs: NameInput[]): Promise<NameOutput[]>
       return parsed;
     } catch (err) {
       const msg = (err as Error).message;
+      if (err instanceof OpenRouterBlockedError) {
+        // Kill-switch / budget block: retrying won't help and names are best-effort.
+        console.error("OpenRouter name translation blocked:", msg);
+        return [];
+      }
       if (attempt < 2) {
         await new Promise((r) => setTimeout(r, (attempt + 1) * 5_000));
         continue;

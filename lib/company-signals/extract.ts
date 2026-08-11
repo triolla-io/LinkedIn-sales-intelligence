@@ -5,6 +5,7 @@
  * Env: OPENROUTER_API_KEY (required), COMPANY_SIGNALS_MODEL (default anthropic/claude-haiku-4.5).
  */
 import type { NewsResult } from "@/lib/news/types";
+import { openrouterChat } from "@/lib/openrouter/client";
 
 // HIRING_GROWTH intentionally excluded (user decision 2026-08-10): hiring — one candidate
 // or a batch of job postings — is not a congratulation-worthy event and not a growth metric.
@@ -140,34 +141,21 @@ export async function extractCompanySignals(
     throw new Error("OPENROUTER_API_KEY is not configured — refusing to extract company signals");
   }
   const model = process.env.COMPANY_SIGNALS_MODEL ?? "anthropic/claude-haiku-4.5";
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20_000);
-  try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      signal: controller.signal,
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://sales.triolla.io",
-        "X-Title": "Triolla Sales Intelligence",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: userPrompt(companyName, news) },
-        ],
-        temperature: 0.2,
-        max_tokens: 900,
-        response_format: { type: "json_object" },
-      }),
-    });
-    if (!res.ok) throw new Error(`company-signals extract failed: HTTP ${res.status}`);
-    const data = await res.json();
-    const text: string = data.choices?.[0]?.message?.content ?? "";
-    return parseSignalsResponse(text);
-  } finally {
-    clearTimeout(timeout);
-  }
+  const res = await openrouterChat(
+    "signals-extract",
+    {
+      model,
+      messages: [
+        { role: "system", content: SYSTEM },
+        { role: "user", content: userPrompt(companyName, news) },
+      ],
+      temperature: 0.2,
+      max_tokens: 900,
+      response_format: { type: "json_object" },
+    },
+    { timeoutMs: 20_000 }
+  );
+  if (!res.ok) throw new Error(`company-signals extract failed: HTTP ${res.status}`);
+  const text: string = res.data.choices?.[0]?.message?.content ?? "";
+  return parseSignalsResponse(text);
 }

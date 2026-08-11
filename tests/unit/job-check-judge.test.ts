@@ -24,6 +24,7 @@ function stubOpenRouter(content: string, status = 200) {
       ok: status >= 200 && status < 300,
       status,
       json: async () => ({ choices: [{ message: { content } }] }),
+      text: async () => "",
     }))
   );
 }

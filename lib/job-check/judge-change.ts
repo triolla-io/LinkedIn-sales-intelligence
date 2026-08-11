@@ -10,6 +10,7 @@
  *   JOB_CHECK_MODEL    — optional, default anthropic/claude-haiku-4.5
  *                        (Hebrew drafting quality matters here).
  */
+import { openrouterChat } from "@/lib/openrouter/client";
 
 export type JudgeChangeInput = {
   fullName: string;
@@ -80,36 +81,23 @@ export async function judgeJobChange(input: JudgeChangeInput): Promise<JudgeChan
   }
   const model = process.env.JOB_CHECK_MODEL ?? "anthropic/claude-haiku-4.5";
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20_000);
-  try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      signal: controller.signal,
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://sales.triolla.io",
-        "X-Title": "Triolla Sales Intelligence",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: userPrompt(input) },
-        ],
-        temperature: 0.3,
-        max_tokens: 400,
-        response_format: { type: "json_object" },
-      }),
-    });
-    if (!res.ok) throw new Error(`job-check judge failed: HTTP ${res.status}`);
-    const data = await res.json();
-    const text: string = data.choices?.[0]?.message?.content ?? "";
-    const parsed = parseJudgeJson(text);
-    if (!parsed) throw new Error("job-check judge returned unparseable output");
-    return parsed;
-  } finally {
-    clearTimeout(timeout);
-  }
+  const res = await openrouterChat(
+    "job-check-judge",
+    {
+      model,
+      messages: [
+        { role: "system", content: SYSTEM },
+        { role: "user", content: userPrompt(input) },
+      ],
+      temperature: 0.3,
+      max_tokens: 400,
+      response_format: { type: "json_object" },
+    },
+    { timeoutMs: 20_000 }
+  );
+  if (!res.ok) throw new Error(`job-check judge failed: HTTP ${res.status}`);
+  const text: string = res.data.choices?.[0]?.message?.content ?? "";
+  const parsed = parseJudgeJson(text);
+  if (!parsed) throw new Error("job-check judge returned unparseable output");
+  return parsed;
 }

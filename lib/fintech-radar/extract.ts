@@ -4,6 +4,7 @@
  * Env: OPENROUTER_API_KEY (required), COMPANY_SIGNALS_MODEL (default anthropic/claude-haiku-4.5).
  */
 import type { NewsResult } from "@/lib/news/types";
+import { openrouterChat } from "@/lib/openrouter/client";
 
 export type ExtractedArticle = {
   title: string;
@@ -83,36 +84,23 @@ export async function extractArticles(news: NewsResult[]): Promise<ExtractedArti
   const apiKey = (process.env.OPENROUTER_API_KEY ?? "").trim();
   if (!apiKey) throw new Error("OPENROUTER_API_KEY is not configured — refusing to extract fintech articles");
   const model = process.env.COMPANY_SIGNALS_MODEL ?? "anthropic/claude-haiku-4.5";
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30_000);
-  try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      signal: controller.signal,
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://sales.triolla.io",
-        "X-Title": "Triolla Sales Intelligence",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: userPrompt(news) },
-        ],
-        temperature: 0.2,
-        max_tokens: 6000,
-        response_format: { type: "json_object" },
-      }),
-    });
-    if (!res.ok) throw new Error(`fintech-radar extract failed: HTTP ${res.status}`);
-    const data = await res.json();
-    const text: string = data.choices?.[0]?.message?.content ?? "";
-    return parseArticlesResponse(text);
-  } finally {
-    clearTimeout(timeout);
-  }
+  const res = await openrouterChat(
+    "radar-extract",
+    {
+      model,
+      messages: [
+        { role: "system", content: SYSTEM },
+        { role: "user", content: userPrompt(news) },
+      ],
+      temperature: 0.2,
+      max_tokens: 6000,
+      response_format: { type: "json_object" },
+    },
+    { timeoutMs: 30_000 }
+  );
+  if (!res.ok) throw new Error(`fintech-radar extract failed: HTTP ${res.status}`);
+  const text: string = res.data.choices?.[0]?.message?.content ?? "";
+  return parseArticlesResponse(text);
 }
 
 /** Split an array into fixed-size chunks (last chunk may be smaller). */

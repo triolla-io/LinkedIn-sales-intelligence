@@ -9,6 +9,7 @@
  *   OPENROUTER_API_KEY=sk-or-...
  *   OPENROUTER_MODEL=deepseek/deepseek-chat   (optional, this is the default)
  */
+import { openrouterChat } from "@/lib/openrouter/client";
 
 export type WebEnrichResult = {
   staffCount: number | null;
@@ -79,18 +80,9 @@ export async function enrichCompanyViaOpenRouter(name: string): Promise<WebEnric
   const model = process.env.OPENROUTER_MODEL ?? "deepseek/deepseek-chat";
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000);
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      signal: controller.signal,
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://sales.triolla.io",
-        "X-Title": "Triolla Sales Intelligence",
-      },
-      body: JSON.stringify({
+    const res = await openrouterChat(
+      "company-enrich",
+      {
         model,
         messages: [
           { role: "system", content: SYSTEM },
@@ -99,17 +91,16 @@ export async function enrichCompanyViaOpenRouter(name: string): Promise<WebEnric
         temperature: 0,
         max_tokens: 320,
         response_format: { type: "json_object" },
-      }),
-    });
+      },
+      { timeoutMs: 10_000 }
+    );
 
-    clearTimeout(timeout);
     if (!res.ok) {
       console.error(`OpenRouter enrich failed for "${name}": ${res.status}`);
       return empty;
     }
 
-    const data = await res.json();
-    const text: string = data.choices?.[0]?.message?.content ?? "";
+    const text: string = res.data.choices?.[0]?.message?.content ?? "";
     return tryParseJson(text) ?? empty;
   } catch (err) {
     console.error(`OpenRouter enrich error for "${name}":`, (err as Error).message);
@@ -156,49 +147,36 @@ export async function enrichCompaniesViaOpenRouter(companies: CompanyInput[]): P
 
   const model = process.env.OPENROUTER_MODEL ?? "deepseek/deepseek-chat";
 
-  const controller = new AbortController();
   // 120s: a 20-company batch answer runs to ~3k tokens and deepseek routing can be
   // slow — 30s aborted whole enrichment runs (AbortError, 2026-08-10).
-  const timeout = setTimeout(() => controller.abort(), 120_000);
-  try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      signal: controller.signal,
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://sales.triolla.io",
-        "X-Title": "Triolla Sales Intelligence",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: BATCH_SYSTEM },
-          { role: "user", content: JSON.stringify(companies.map((c) => ({ id: c.id, name: c.name }))) },
-        ],
-        temperature: 0,
-        max_tokens: Math.min(500 + companies.length * 120, 8000),
-        response_format: { type: "json_object" },
-      }),
-    });
+  const res = await openrouterChat(
+    "company-enrich-batch",
+    {
+      model,
+      messages: [
+        { role: "system", content: BATCH_SYSTEM },
+        { role: "user", content: JSON.stringify(companies.map((c) => ({ id: c.id, name: c.name }))) },
+      ],
+      temperature: 0,
+      max_tokens: Math.min(500 + companies.length * 120, 8000),
+      response_format: { type: "json_object" },
+    },
+    { timeoutMs: 120_000 }
+  );
 
-    if (!res.ok) {
-      // Retryable: let the caller's step retry rather than mark companies attempted.
-      if (res.status === 429 || res.status === 503 || res.status >= 500) {
-        throw new Error(`OpenRouter batch enrich HTTP ${res.status}`);
-      }
-      console.error(`OpenRouter batch enrich failed: ${res.status}`);
-      return out;
+  if (!res.ok) {
+    // Retryable: let the caller's step retry rather than mark companies attempted.
+    if (res.status === 429 || res.status === 503 || res.status >= 500) {
+      throw new Error(`OpenRouter batch enrich HTTP ${res.status}`);
     }
-
-    const data = await res.json();
-    const text: string = data.choices?.[0]?.message?.content ?? "";
-    for (const row of parseBatchJson(text)) {
-      const id = typeof row.id === "string" ? row.id : String(row.id ?? "");
-      if (id) out.set(id, sanitizeResult(row));
-    }
+    console.error(`OpenRouter batch enrich failed: ${res.status}`);
     return out;
-  } finally {
-    clearTimeout(timeout);
   }
+
+  const text: string = res.data.choices?.[0]?.message?.content ?? "";
+  for (const row of parseBatchJson(text)) {
+    const id = typeof row.id === "string" ? row.id : String(row.id ?? "");
+    if (id) out.set(id, sanitizeResult(row));
+  }
+  return out;
 }

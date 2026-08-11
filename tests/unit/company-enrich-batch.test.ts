@@ -59,7 +59,7 @@ describe("enrichCompaniesViaOpenRouter", () => {
   });
 
   it("throws on 429 so the caller can retry the step", async () => {
-    mockFetch.mockReturnValueOnce(Promise.resolve({ ok: false, status: 429 }));
+    mockFetch.mockReturnValueOnce(Promise.resolve({ ok: false, status: 429, text: async () => "" }));
     await expect(
       enrichCompaniesViaOpenRouter([{ id: "a", name: "Acme" }]),
     ).rejects.toThrow(/429/);

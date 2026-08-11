@@ -4,6 +4,8 @@
  * THROWS (never guess).
  * Env: OPENROUTER_API_KEY (required), COMPANY_SIGNALS_MODEL (default anthropic/claude-haiku-4.5).
  */
+import { openrouterChat } from "@/lib/openrouter/client";
+
 export type DraftInput = {
   contactFullName: string;
   hebrewFirstName: string | null;
@@ -78,36 +80,23 @@ export async function draftCongrats(input: DraftInput): Promise<DraftVariants> {
     throw new Error("OPENROUTER_API_KEY is not configured — refusing to draft congratulations");
   }
   const model = process.env.COMPANY_SIGNALS_MODEL ?? "anthropic/claude-haiku-4.5";
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20_000);
-  try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      signal: controller.signal,
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://sales.triolla.io",
-        "X-Title": "Triolla Sales Intelligence",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: userPrompt(input) },
-        ],
-        temperature: 0.4,
-        max_tokens: 700,
-        response_format: { type: "json_object" },
-      }),
-    });
-    if (!res.ok) throw new Error(`company-signals draft failed: HTTP ${res.status}`);
-    const data = await res.json();
-    const text: string = data.choices?.[0]?.message?.content ?? "";
-    const variants = parseDraftVariants(text);
-    if (!variants) throw new Error("company-signals draft returned unparseable output");
-    return variants;
-  } finally {
-    clearTimeout(timeout);
-  }
+  const res = await openrouterChat(
+    "signals-draft",
+    {
+      model,
+      messages: [
+        { role: "system", content: SYSTEM },
+        { role: "user", content: userPrompt(input) },
+      ],
+      temperature: 0.4,
+      max_tokens: 700,
+      response_format: { type: "json_object" },
+    },
+    { timeoutMs: 20_000 }
+  );
+  if (!res.ok) throw new Error(`company-signals draft failed: HTTP ${res.status}`);
+  const text: string = res.data.choices?.[0]?.message?.content ?? "";
+  const variants = parseDraftVariants(text);
+  if (!variants) throw new Error("company-signals draft returned unparseable output");
+  return variants;
 }

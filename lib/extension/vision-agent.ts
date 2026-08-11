@@ -8,6 +8,7 @@
  * (network, non-JSON, schema mismatch, OpenRouter error) are returned as a
  * `fail` Action so the caller can record them gracefully.
  */
+import { OpenRouterBlockedError, openrouterChat, type OpenRouterChatResult } from "@/lib/openrouter/client";
 
 export type Action =
   | { action: "click"; x: number; y: number; reasoning: string }
@@ -51,7 +52,6 @@ Rules:
 7. If the goal cannot be achieved (e.g. profile shows "You're not connected"), return fail with reason.
 8. Never invent state. Base every decision on what you can see in the current screenshot.`;
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "google/gemini-2.0-flash-001";
 
 function isValidAction(value: unknown): value is Action {
@@ -125,38 +125,20 @@ export async function callVisionAgent(input: CallVisionAgentInput): Promise<Acti
     temperature: 0,
   };
 
-  let res: Response;
+  let res: OpenRouterChatResult;
   try {
-    res = await fetch(OPENROUTER_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+    res = await openrouterChat("vision-agent", body, { timeoutMs: 60_000 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return { action: "fail", reason: `network: ${msg}` };
+    const kind = err instanceof OpenRouterBlockedError ? "blocked" : "network";
+    return { action: "fail", reason: `${kind}: ${msg}` };
   }
 
   if (!res.ok) {
-    let detail = "";
-    try {
-      detail = (await res.text()).slice(0, 200);
-    } catch {
-      // ignore
-    }
-    return { action: "fail", reason: `openrouter_${res.status}: ${detail}` };
+    return { action: "fail", reason: `openrouter_${res.status}: ${res.detail.slice(0, 200)}` };
   }
 
-  let payload: unknown;
-  try {
-    payload = await res.json();
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return { action: "fail", reason: `parse_error: response_not_json: ${msg}` };
-  }
+  const payload: unknown = res.data;
 
   const raw =
     (payload as { choices?: Array<{ message?: { content?: string } }> })

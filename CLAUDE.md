@@ -16,6 +16,7 @@ Use HeroUI (`@heroui/react`) for all React components.
 ## Module conventions
 
 - New service clients go in `lib/<service>/client.ts`
+- Every OpenRouter LLM call MUST go through `openrouterChat()` in `lib/openrouter/client.ts` (kill-switch + daily budget + cost logging) — never fetch openrouter.ai directly
 - New Inngest functions go in `inngest/functions/<name>.ts` and must be registered in `app/api/inngest/route.ts`
 - Inngest event names are string literals typed inline — search existing functions for the pattern
 - Scripts that touch the DB go in `scripts/` and use `tsx scripts/<name>.ts` to run
@@ -46,7 +47,7 @@ Use HeroUI (`@heroui/react`) for all React components.
 | `company.signals.enabled` | "Company signals" module toggled ON (kick-on-enable dispatch) | `inngest/functions/company-signals-dispatch.ts` |
 | `company.signals.detect` | weekly tick / kick-on-enable | `inngest/functions/company-signals-detect.ts` |
 | `company.signals.draft` | after a verified signal is detected | `inngest/functions/company-signals-draft.ts` |
-| *(cron 0 4 \* \* 0)* | weekly company-signals trigger | `inngest/functions/company-signals-tick.ts` |
+| *(cron 0 4 \* \* \*)* | daily company-signals trigger (28 companies/day, 7-day cooldown) | `inngest/functions/company-signals-tick.ts` |
 | *(cron 0 5 \* \* 0)* | weekly fintech-news radar — fetch ~last-7-days topic news, chunk-tag, match to C-level contacts, draft engagement | `inngest/functions/fintech-radar-tick.ts` |
 | `fintech.radar.enabled` | "Fintech Radar" module toggled ON (kick-on-enable: fetch + match for that org) | `inngest/functions/fintech-radar-dispatch.ts` |
 | `fintech.radar.match` | per (org × new article) | `inngest/functions/fintech-radar-match.ts` |

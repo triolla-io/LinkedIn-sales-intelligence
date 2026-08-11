@@ -1,5 +1,6 @@
 import { Prisma } from "@/lib/generated/prisma/client";
 import { seniorTitleWhere } from "@/lib/company-signals/clevel";
+import { openrouterChat } from "@/lib/openrouter/client";
 
 export const CANDIDATE_CAP = 25;
 
@@ -118,31 +119,18 @@ export async function confirmMatches(
     `Contacts:`,
     ...candidates.map((c) => `- id=${c.contactId} | ${c.fullName} | ${c.currentTitle ?? "?"} @ ${c.currentCompany ?? "?"} | industry: ${c.industry ?? "?"} | ${c.headline ?? ""}`),
   ].join("\n");
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 25_000);
-  try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      signal: controller.signal,
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://sales.triolla.io",
-        "X-Title": "Triolla Sales Intelligence",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [ { role: "system", content: CONFIRM_SYSTEM }, { role: "user", content: user } ],
-        temperature: 0.2,
-        max_tokens: 1500,
-        response_format: { type: "json_object" },
-      }),
-    });
-    if (!res.ok) throw new Error(`fintech-radar confirm failed: HTTP ${res.status}`);
-    const data = await res.json();
-    const text: string = data.choices?.[0]?.message?.content ?? "";
-    return parseConfirmResponse(text, new Set(candidates.map((c) => c.contactId)));
-  } finally {
-    clearTimeout(timeout);
-  }
+  const res = await openrouterChat(
+    "radar-match",
+    {
+      model,
+      messages: [ { role: "system", content: CONFIRM_SYSTEM }, { role: "user", content: user } ],
+      temperature: 0.2,
+      max_tokens: 1500,
+      response_format: { type: "json_object" },
+    },
+    { timeoutMs: 25_000 }
+  );
+  if (!res.ok) throw new Error(`fintech-radar confirm failed: HTTP ${res.status}`);
+  const text: string = res.data.choices?.[0]?.message?.content ?? "";
+  return parseConfirmResponse(text, new Set(candidates.map((c) => c.contactId)));
 }
