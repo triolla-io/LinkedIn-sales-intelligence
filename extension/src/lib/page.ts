@@ -17,11 +17,14 @@ const AUTOMATION_WINDOW_KEY = "automationWindowId";
  * The window is deliberately NOT minimized: without CDP there is no
  * Emulation.setDeviceMetricsOverride to fake a layout viewport, and a minimized window
  * lays its tab out at 0×0 — every DOM read comes back empty. A normal, non-focused window
- * renders for real. Width stays above LinkedIn's ~1024px desktop breakpoint so the
- * selectors keep matching the desktop DOM; it opens unfocused, so it sits behind whatever
- * the user is working in.
+ * renders for real, and opens unfocused so it sits behind whatever the user is working in.
+ *
+ * 1440×900 matches what the old CDP path forced via setDeviceMetricsOverride (1280×900)
+ * with room for browser chrome, and stays clear of LinkedIn's narrow-desktop layouts,
+ * where top-card actions (Message / Connect) collapse into the "More" menu. A window
+ * sized to the old *viewport* number would actually give a ~1265px viewport.
  */
-const WINDOW_BOUNDS = { left: 0, top: 0, width: 1100, height: 800 } as const;
+const WINDOW_BOUNDS = { left: 0, top: 0, width: 1440, height: 900 } as const;
 
 async function windowExists(id: number): Promise<boolean> {
   try {

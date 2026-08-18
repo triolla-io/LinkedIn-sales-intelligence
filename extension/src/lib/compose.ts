@@ -93,13 +93,22 @@ function focusAtEnd(el: HTMLElement): void {
   selection.addRange(range);
 }
 
-/** Extract the /messaging/compose/ URL from the profile's Message button href. */
+/**
+ * Extract the /messaging/compose/ URL from the profile's Message button href.
+ *
+ * A visible button wins, but a zero-rect one is still used: we navigate by href and never
+ * click it, and on narrow layouts LinkedIn tucks the Message action inside the collapsed
+ * "More" menu — where the anchor exists with no box. Requiring a visible rect here is a
+ * leftover from the coordinate-click era and would fail those profiles as not_messageable.
+ */
 export function getComposeUrl(): string | null {
-  const el = document.querySelector<HTMLAnchorElement>('a[href*="/messaging/compose/"]');
-  if (!el) return null;
-  const r = el.getBoundingClientRect();
-  if (r.width === 0 && r.height === 0) return null;
-  return el.href || null;
+  const anchors = queryDeep('a[href*="/messaging/compose/"]') as HTMLAnchorElement[];
+  if (anchors.length === 0) return null;
+  const visible = anchors.find((a) => {
+    const r = a.getBoundingClientRect();
+    return r.width > 0 || r.height > 0;
+  });
+  return (visible ?? anchors[0]).href || null;
 }
 
 /**

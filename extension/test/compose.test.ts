@@ -101,8 +101,15 @@ describe("getComposeUrl", () => {
     document.body.innerHTML =
       '<a href="https://www.linkedin.com/messaging/compose/?recipient=dana">Message</a>';
     const anchor = document.querySelector("a") as HTMLAnchorElement;
-    // jsdom reports a zero rect for everything; give this one a real box.
     anchor.getBoundingClientRect = () => ({ width: 120, height: 32 }) as DOMRect;
+    expect(getComposeUrl()).toContain("/messaging/compose/");
+  });
+
+  it("still returns the href when the anchor has no box (collapsed 'More' menu)", () => {
+    // Every rect is zero in jsdom — the same shape as a LinkedIn action tucked into a
+    // closed dropdown. This used to fail the whole send as not_messageable.
+    document.body.innerHTML =
+      '<a href="https://www.linkedin.com/messaging/compose/?recipient=dana">Message</a>';
     expect(getComposeUrl()).toContain("/messaging/compose/");
   });
 
