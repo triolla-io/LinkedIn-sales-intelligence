@@ -22,7 +22,7 @@ import { scrapeProfile } from "./lib/scrape-profile";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.6.3";
+const VERSION = "0.6.4";
 
 // Hard ceiling for a single task. Real tasks finish in seconds; the slowest legitimate
 // path (compose poll 15s + navigation waits 30s + sleeps) stays well under a minute.
@@ -279,14 +279,16 @@ async function decorateFailure(err: Error, tabId: number, withVisuals: boolean):
   if (failedTab?.url) err.message = `${err.message} (url=${failedTab.url})`;
   (err as Error & { diag?: unknown }).diag = await gatherEnvHints(tabId).catch(() => ({ diagError: true }));
   if (withVisuals) {
-    try {
-      const [screenshot, buttons] = await Promise.all([
-        takeScreenshot(tabId),
-        pageCall(tabId, { kind: "SCAN_BUTTONS" }, { retries: 2 }),
-      ]);
-      (err as Error & { screenshot?: string }).screenshot = screenshot;
-      (err as Error & { buttons?: unknown }).buttons = buttons;
-    } catch { /* ignore */ }
+    // Independent captures: a screenshot failure used to take the button scan down with it
+    // (both were awaited in one Promise.all), which is why a real failure came back with
+    // neither. captureVisibleTab is the fragile one — it needs the tab to be the visible
+    // tab of its window.
+    const [shot, scan] = await Promise.allSettled([
+      takeScreenshot(tabId),
+      pageCall(tabId, { kind: "SCAN_BUTTONS" }, { retries: 2 }),
+    ]);
+    if (shot.status === "fulfilled") (err as Error & { screenshot?: string }).screenshot = shot.value;
+    if (scan.status === "fulfilled") (err as Error & { buttons?: unknown }).buttons = scan.value;
   }
   return err;
 }
@@ -304,7 +306,7 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
   await trackActiveTab(tabId);
 
   try {
-    await navigateToComposeAndType(tabId, text);
+    await navigateToComposeAndType(tabId, profileUrl, text);
 
     // Phase 3: click Send (enabled by the typing above) and confirm LinkedIn took it.
     const { clicked, emptied } = await pageCall(tabId, { kind: "CLICK_SEND" });
@@ -337,7 +339,7 @@ async function prepareLinkedInMessage(profileUrl: string, text: string): Promise
   let prepared = false;
 
   try {
-    await navigateToComposeAndType(tabId, text);
+    await navigateToComposeAndType(tabId, profileUrl, text);
 
     // Hand the tab to the user: move it OUT of the automation window, which later tasks
     // reuse (and whose tabs they close).
@@ -354,9 +356,49 @@ async function prepareLinkedInMessage(profileUrl: string, text: string): Promise
   }
 }
 
+/**
+ * Read the contact's compose URL, touching the page as little as possible.
+ *
+ * Order matters. We used to sweep Escape and click a "dismiss" button BEFORE looking for
+ * the Message button; a real failure came back with the tab sitting on
+ * /search/results/all/?origin=GLOBAL_SEARCH_HEADER (an empty global search) while the tab
+ * title still read the contact's name — i.e. our own housekeeping click moved the tab off
+ * the profile. So: look first, clean up only if the button is missing, and if the tab has
+ * drifted off the profile entirely, go back and look once more.
+ */
+async function readComposeUrl(tabId: number, profileUrl: string): Promise<string | null> {
+  let composeUrl = await pageCall(tabId, { kind: "COMPOSE_URL" });
+  trace("compose.url", composeUrl);
+  if (composeUrl) return composeUrl;
+
+  // Something is covering the page (LinkedIn's "upgrade to Premium" interstitial and
+  // friends occlude the top card). Clear it, then look again.
+  await pageCall(tabId, { kind: "CLOSE_OVERLAYS" });
+  const dismissed = await pageCall(tabId, { kind: "CLICK_MODAL_CLOSE" });
+  trace("modal.dismissed", dismissed);
+  await sleep(500);
+  composeUrl = await pageCall(tabId, { kind: "COMPOSE_URL" });
+  trace("compose.url.retry", composeUrl);
+  if (composeUrl) return composeUrl;
+
+  // Still nothing — check we are even on the profile any more before reporting the contact
+  // as unmessageable.
+  const current = (await chrome.tabs.get(tabId)).url ?? "";
+  const profilePath = profileUrl.split("?")[0].replace(/\/$/, "");
+  if (!current.startsWith(profilePath)) {
+    trace("profile.drifted", current.slice(0, 120));
+    await navigateTab(tabId, profileUrl);
+    await waitForTabLoad(tabId);
+    await sleep(2500);
+    composeUrl = await pageCall(tabId, { kind: "COMPOSE_URL" });
+    trace("compose.url.afterRenav", composeUrl);
+  }
+  return composeUrl;
+}
+
 // Shared core of SEND / PREPARE_MESSAGE: the tab is already on the contact's profile;
 // drive it to /messaging/compose/ and type the message. Throws coded errors; never sends.
-async function navigateToComposeAndType(tabId: number, text: string): Promise<void> {
+async function navigateToComposeAndType(tabId: number, profileUrl: string, text: string): Promise<void> {
   await waitForTabLoad(tabId);
   trace("profile.loaded", { url: (await chrome.tabs.get(tabId)).url?.slice(0, 120) });
   await sleep(2500);

@@ -17,6 +17,28 @@ const navIcon = (over: Partial<ScannedButton> = {}): ScannedButton => ({
 });
 
 describe("pickCloseButton", () => {
+  it("never returns a dismiss-looking button that is NOT inside a modal", () => {
+    // Page chrome that happens to look dismissable. Clicking one of these is what moved a
+    // send's tab to LinkedIn's global search page and lost the message.
+    const chromeDismiss: ScannedButton = navIcon({
+      aria: "Close",
+      cls: "search-global-typeahead__dismiss",
+      text: "×",
+      inModal: false,
+    });
+    expect(pickCloseButton([chromeDismiss])).toBeNull();
+  });
+
+  it("returns an in-modal dismiss button", () => {
+    const modalDismiss: ScannedButton = navIcon({
+      aria: "Dismiss",
+      cls: "artdeco-modal__dismiss",
+      text: "",
+      inModal: true,
+    });
+    expect(pickCloseButton([modalDismiss])).toBe(modalDismiss);
+  });
+
   it("returns null when the only small top-right buttons are global-nav icons (no modal)", () => {
     const buttons = [navIcon({ aria: "Learning" }), navIcon({ aria: "For Business", x: 1250 })];
     expect(pickCloseButton(buttons)).toBeNull();
