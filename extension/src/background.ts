@@ -22,7 +22,7 @@ import { scrapeProfile } from "./lib/scrape-profile";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.6.5";
+const VERSION = "0.6.6";
 
 // Hard ceiling for a single task. Real tasks finish in seconds; the slowest legitimate
 // path (compose poll 15s + navigation waits 30s + sleeps) stays well under a minute.

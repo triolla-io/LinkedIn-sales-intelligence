@@ -116,21 +116,24 @@ interface PageCallOptions {
 }
 
 /**
- * Inject the declared content script into a tab by hand.
+ * Inject the content script into a tab by hand.
  *
  * The manifest already declares it for linkedin.com, but declarative injection can simply
- * not happen — a tab that loaded while the extension was reloading is the case we hit in
- * prod: the profile rendered fine and every page call came back "Receiving end does not
- * exist" until the task timed out. Re-injecting is idempotent enough (the script only
- * registers a message listener) and turns that dead end into a recovery.
+ * not happen — that is the case we hit in prod: the profile rendered fine and every page
+ * call came back "Receiving end does not exist" until the task failed.
  *
- * The file list is read from the manifest so it survives the content-hashed filenames the
- * bundler produces.
+ * We inject `content-standalone.js` (see vite.content.config.ts), a single self-contained
+ * IIFE with no dynamic import — the declared entry is a loader that `import()`s the real
+ * module at runtime, which is exactly the part that can fail silently. The script guards
+ * itself against double registration, so injecting when it IS already there is harmless.
  */
+const STANDALONE_CONTENT_SCRIPT = "content-standalone.js";
+
 async function injectContentScript(tabId: number): Promise<void> {
-  const files = chrome.runtime.getManifest().content_scripts?.[0]?.js ?? [];
-  if (files.length === 0) return;
-  await chrome.scripting.executeScript({ target: { tabId }, files });
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    files: [STANDALONE_CONTENT_SCRIPT],
+  });
 }
 
 /**
