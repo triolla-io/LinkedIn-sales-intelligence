@@ -17,6 +17,19 @@ import { OR_FEATURE, TRIAGE_CHUNK_SIZE, type TriageVerdict } from "@/lib/tech-ra
 
 export type PoolItem = { title: string; url: string; snippet: string; publishedAt: string | null };
 
+/**
+ * Output budget per item being judged. A flat 1800 was not enough for a 25-item chunk:
+ * the first live run came back finish_reason="length", cut off mid-verdict, and the
+ * whole chunk parsed to zero. One verdict costs ~70 output tokens, so 140 leaves real
+ * headroom — and output tokens are the cheap half of the bill.
+ */
+const TOKENS_PER_ITEM = 140;
+const TOKENS_OVERHEAD = 300;
+
+export function triageMaxTokens(itemCount: number): number {
+  return TOKENS_OVERHEAD + itemCount * TOKENS_PER_ITEM;
+}
+
 const SYSTEM = `You screen news items and decide which ones describe a NEW TECHNOLOGY that a company could actually adopt.
 
 Answer isLaunch=true ONLY for: a new product, a new feature or capability of an existing product, a platform or API release, a new technology or standard becoming available, or a major version launch.
@@ -103,7 +116,7 @@ export async function triageChunk(items: PoolItem[]): Promise<TriageVerdict[]> {
         { role: "user", content: userPrompt(items) },
       ],
       temperature: 0.1,
-      max_tokens: 1800,
+      max_tokens: triageMaxTokens(items.length),
       response_format: { type: "json_object" },
     },
     { timeoutMs: 30_000 }

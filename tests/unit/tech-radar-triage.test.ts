@@ -101,6 +101,26 @@ describe("triageChunk", () => {
     chat.mockResolvedValue({ ok: false, status: 500, data: {} });
     await expect(triageChunk([item(1)])).rejects.toThrow(/HTTP 500/);
   });
+
+  /**
+   * A flat max_tokens of 1800 was not enough for a full 25-item chunk: the live run came
+   * back finish_reason="length", cut off mid-verdict, and the whole chunk parsed to zero.
+   * The output budget has to scale with the number of items being judged.
+   */
+  it("scales the output budget with the chunk size", async () => {
+    chat.mockResolvedValue(verdictsFor([item(1)]));
+    await triageChunk([item(1)]);
+    const small = (chat.mock.calls[0][1] as { max_tokens: number }).max_tokens;
+
+    chat.mockReset();
+    chat.mockResolvedValue(verdictsFor([]));
+    await triageChunk(Array.from({ length: TRIAGE_CHUNK_SIZE }, (_, i) => item(i)));
+    const large = (chat.mock.calls[0][1] as { max_tokens: number }).max_tokens;
+
+    expect(large).toBeGreaterThan(small);
+    // Comfortably above the ~70 output tokens each verdict actually costs.
+    expect(large).toBeGreaterThan(TRIAGE_CHUNK_SIZE * 100);
+  });
 });
 
 describe("triageAll", () => {

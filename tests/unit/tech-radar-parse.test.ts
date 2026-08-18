@@ -44,6 +44,28 @@ describe("parseJsonLoose", () => {
     expect(parseJsonLoose<{ items: { text: string }[] }>(truncated)?.items).toHaveLength(1);
   });
 
+  /**
+   * The combination that actually broke the Tech Radar triage in production bring-up:
+   * the model opens a ```json fence AND the response is cut off by max_tokens, so there
+   * is no closing fence. stripFences required a matched pair, left the opening fence in
+   * place, and JSON.parse then failed on the leading backticks even though the structure
+   * had been repaired — turning 25 triaged articles into zero.
+   */
+  it("recovers a fenced response that was truncated before its closing fence", () => {
+    const truncated =
+      '```json\n{\n  "verdicts": [\n' +
+      '    {"url":"https://a.com/1","isLaunch":true,"categories":["payments"]},\n' +
+      '    {"url":"https://a.com/2","isLaunch":false,"categories":["analysis"]},\n' +
+      '    {"url":"https://a.com/3","isLaunch":true,"categories":["';
+    const out = parseJsonLoose<{ verdicts: { url: string }[] }>(truncated);
+    expect(out?.verdicts.map((v) => v.url)).toEqual(["https://a.com/1", "https://a.com/2"]);
+  });
+
+  it("handles a truncated fence opened with bare backticks", () => {
+    const truncated = '```\n{"items":[{"a":1},{"a":2},{"a":';
+    expect(parseJsonLoose<{ items: unknown[] }>(truncated)?.items).toHaveLength(2);
+  });
+
   it("returns null for prose with no JSON at all", () => {
     expect(parseJsonLoose("I'm sorry, I can't help with that.")).toBeNull();
   });

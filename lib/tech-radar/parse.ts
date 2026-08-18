@@ -10,10 +10,19 @@
  * No prisma import — this file is safe for client bundles.
  */
 
-/** Strip markdown fences and any prose surrounding the JSON body. */
+/**
+ * Strip markdown fences and any prose surrounding the JSON body.
+ *
+ * Handles the UNCLOSED case too: when a response is cut off by max_tokens the opening
+ * ```json fence has no partner, and leaving it in place makes JSON.parse fail on the
+ * backticks even after the structure itself has been repaired.
+ */
 export function stripFences(text: string): string {
-  const fence = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-  return (fence ? fence[1] : text).trim();
+  const closed = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  if (closed) return closed[1].trim();
+  const unclosed = text.match(/```(?:json)?\s*([\s\S]*)$/);
+  if (unclosed) return unclosed[1].trim();
+  return text.trim();
 }
 
 /** Parse an LLM JSON response. Returns null rather than throwing. */

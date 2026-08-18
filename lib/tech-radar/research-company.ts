@@ -14,6 +14,29 @@ import { pickInnerLinks, researchProfile } from "@/lib/tech-radar/profile";
 /** Inner pages read beyond the homepage. */
 const INNER_PAGE_LIMIT = 5;
 
+/**
+ * The homepage markup, purely to choose which inner pages to read. Never throws and
+ * never fails the research: inner pages are an enrichment, and the homepage text has
+ * already been captured by the time this runs.
+ */
+async function fetchRawHtml(url: string): Promise<string | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      redirect: "follow",
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; TriollaTechRadar/1.0)" },
+    });
+    if (!res.ok) return null;
+    return await res.text();
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 function normalizeWebsite(website: string | null): string | null {
   const w = (website ?? "").trim();
   if (!w) return null;
@@ -38,10 +61,14 @@ export async function researchTrackedCompany(trackedCompanyId: string): Promise<
       const home = await readPage(website);
       if (home) {
         pages.push(home);
-        // Inner links are chosen from the homepage markup, so re-read it raw only
-        // when the extractor gave us clean text without the anchors we need.
-        const inner = pickInnerLinks(home.text, website, INNER_PAGE_LIMIT);
-        pages.push(...(await readPages(inner, { limit: INNER_PAGE_LIMIT })));
+        // readPage returns clean EXTRACTED TEXT with no anchors, so inner links have to
+        // come from the raw markup — reading them out of the extracted text finds
+        // nothing at all (the first live run read exactly one page for this reason).
+        const html = await fetchRawHtml(website);
+        if (html) {
+          const inner = pickInnerLinks(html, website, INNER_PAGE_LIMIT);
+          pages.push(...(await readPages(inner, { limit: INNER_PAGE_LIMIT })));
+        }
       }
     }
 

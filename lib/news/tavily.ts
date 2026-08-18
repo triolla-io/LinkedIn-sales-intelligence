@@ -27,7 +27,13 @@ export async function fetchTavily(
       }),
     });
     clearTimeout(timeout);
-    if (!res.ok) return [];
+    if (!res.ok) {
+      // A swallowed non-2xx is indistinguishable from "no news". Tavily returns 432
+      // when the account plan limit is spent; that looked like an empty week during
+      // the Tech Radar bring-up. Log the status; still never throw.
+      console.warn(`[tavily] HTTP ${res.status} for query: ${query}`);
+      return [];
+    }
     const data = await res.json();
     const rows: unknown[] = Array.isArray(data?.results) ? data.results : [];
     return rows.map((r) => {

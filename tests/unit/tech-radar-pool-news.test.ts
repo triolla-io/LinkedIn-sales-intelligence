@@ -96,4 +96,36 @@ describe("fetchPoolNews", () => {
     const out = await fetchPoolNews([], async () => []);
     expect(out).toEqual({ items: [], queriesRun: 0, quotaLikely: false });
   });
+
+  // GNews rate-limits a burst: firing 10 pooled queries back to back returned
+  // HTTP 429 "too many requests in a short period" during the Tech Radar bring-up.
+  it("paces the queries instead of firing them back to back", async () => {
+    const startedAt: number[] = [];
+    const fetcher = vi.fn(async () => {
+      startedAt.push(Date.now());
+      return [] as never[];
+    });
+    const sleeps: number[] = [];
+    await fetchPoolNews(
+      [
+        { query: "q1", companyIds: ["c1"] },
+        { query: "q2", companyIds: ["c1"] },
+        { query: "q3", companyIds: ["c1"] },
+      ],
+      fetcher,
+      { sleep: async (ms: number) => { sleeps.push(ms); } }
+    );
+    // Two gaps for three queries — paced between, never before the first.
+    expect(sleeps).toHaveLength(2);
+    expect(sleeps.every((ms) => ms > 0)).toBe(true);
+    expect(startedAt).toHaveLength(3);
+  });
+
+  it("does not pace a single-query pool", async () => {
+    const sleeps: number[] = [];
+    await fetchPoolNews([{ query: "q1", companyIds: ["c1"] }], async () => [], {
+      sleep: async (ms: number) => { sleeps.push(ms); },
+    });
+    expect(sleeps).toEqual([]);
+  });
 });

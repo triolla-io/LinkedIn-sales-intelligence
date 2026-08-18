@@ -20,6 +20,16 @@ import { normalizeUrl } from "@/lib/fintech-radar/fetch-topic-news";
 /** Recency window for "new technology" — the user's decision: the last month. */
 export const SCAN_WINDOW_DAYS = 30;
 
+/**
+ * Gap between pooled queries. GNews rate-limits a burst — firing 10 queries back to
+ * back returned HTTP 429 "too many requests in a short period" during bring-up, and the
+ * provider swallows that into an empty result. A pool is at most a few dozen queries
+ * once a week, so pacing costs nothing that matters.
+ */
+export const QUERY_GAP_MS = 1500;
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 export type PoolQuery = { query: string; companyIds: string[] };
 
 export type PoolResult = {
@@ -52,14 +62,18 @@ async function fetchOne(query: string): Promise<NewsResult[]> {
  */
 export async function fetchPoolNews(
   pool: PoolQuery[],
-  fetcher: (query: string) => Promise<NewsResult[]> = fetchOne
+  fetcher: (query: string) => Promise<NewsResult[]> = fetchOne,
+  opts: { sleep?: (ms: number) => Promise<void> } = {}
 ): Promise<PoolResult> {
+  const sleep = opts.sleep ?? wait;
   const byUrl = new Map<string, NewsResult & { companyIds: string[] }>();
   let emptyQueries = 0;
   let queriesRun = 0;
 
   for (const entry of pool) {
     if (!entry.query.trim()) continue;
+    // Pace BETWEEN queries, never before the first one.
+    if (queriesRun > 0) await sleep(QUERY_GAP_MS);
     queriesRun += 1;
     const results = await fetcher(entry.query);
     if (results.length === 0) emptyQueries += 1;
