@@ -135,6 +135,22 @@ describe("researchProfile", () => {
     expect(out.sources.map((s) => s.url)).toEqual(["https://bank.co.il/products", "https://news.com/1"]);
   });
 
+  /**
+   * A diversified company must not have every query aimed at one line. In the live
+   * Delek Group run the energy queries were written so narrowly that Google News
+   * returned nothing for any of them, and the oil-and-gas line produced no
+   * opportunities at all.
+   */
+  it("instructs the model to spread queries across every business line", async () => {
+    chat.mockResolvedValue(ok(goodProfile));
+    await researchProfile({ companyName: "x", website: null, pages, news });
+    const body = chat.mock.calls[0][1] as { messages: { content: string }[] };
+    const system = body.messages[0].content;
+    expect(system).toMatch(/every business line|each business line/i);
+    // And to keep them findable rather than hyper-specific.
+    expect(system).toMatch(/two to four words|broad enough/i);
+  });
+
   it("is tagged for cost attribution and sends the page text", async () => {
     chat.mockResolvedValue(ok(goodProfile));
     await researchProfile({ companyName: "x", website: null, pages, news });

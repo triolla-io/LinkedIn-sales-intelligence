@@ -97,8 +97,15 @@ The profile's purpose is to drive web searches for NEW technologies, products an
 - focusAreas: 4-8 concrete capability areas where new technology would matter to THIS company, each with a one-line reason grounded in their business. Not generic industry themes.
 - searchQueries: 6-10 ENGLISH web-search queries that would surface newly launched technologies, products, features and platforms relevant to those focus areas. Rules for queries:
   * They search for NEW TECHNOLOGY, not for the company. Never include the company's own name.
-  * Be specific to the capability ("real-time payment fraud scoring launch", "core banking API modernization platform release"), not generic ("fintech news").
-  * Aim at launches and releases: include words like launch, launches, releases, introduces, unveils, "now available", "new platform".
+  * COVER EVERY BUSINESS LINE. Give each business line at least one query. A diversified
+    company must not have all of its queries aimed at one line, or the rest of the
+    business goes unserved.
+  * Keep the core of each query to TWO TO FOUR WORDS naming the capability
+    ("reservoir simulation software", "payment fraud scoring", "core banking API").
+    Stacking five or six qualifiers onto a query makes it match nothing at all —
+    outside software especially, over-specific queries return zero results.
+  * Prefer the plain capability name over marketing phrasing, and do not pile on years,
+    "next-generation", "end-to-end" or similar filler.
 
 Return strict JSON only — no prose, no fences:
 {

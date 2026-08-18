@@ -6,6 +6,7 @@ const opportunityFindMany = vi.fn();
 const opportunityFindUnique = vi.fn();
 const opportunityCreate = vi.fn();
 const itemFindUnique = vi.fn();
+const itemFindMany = vi.fn();
 const itemCreate = vi.fn();
 const itemUpdate = vi.fn();
 
@@ -22,6 +23,7 @@ vi.mock("@/lib/prisma", () => ({
     },
     techItem: {
       findUnique: (...a: unknown[]) => itemFindUnique(...a),
+      findMany: (...a: unknown[]) => itemFindMany(...a),
       create: (...a: unknown[]) => itemCreate(...a),
       update: (...a: unknown[]) => itemUpdate(...a),
     },
@@ -72,13 +74,15 @@ function poolItem(url: string) {
 beforeEach(() => {
   for (const m of [
     companyFindMany, companyUpdateMany, opportunityFindMany, opportunityFindUnique,
-    opportunityCreate, itemFindUnique, itemCreate, itemUpdate,
+    opportunityCreate, itemFindUnique, itemFindMany, itemCreate, itemUpdate,
     fetchPoolNews, triageAll, synthesizeItem, judgeFit, readPage,
   ]) m.mockReset();
   opportunityFindMany.mockResolvedValue([]);
   opportunityFindUnique.mockResolvedValue(null);
   opportunityCreate.mockResolvedValue({ id: "o1" });
   itemFindUnique.mockResolvedValue(null);
+  // No sibling items, so every synthesised draft creates a fresh row.
+  itemFindMany.mockResolvedValue([]);
   itemCreate.mockResolvedValue({ id: "i1" });
   readPage.mockResolvedValue({ url: "https://news.com/1", title: "t", text: "body" });
 });
@@ -232,6 +236,42 @@ describe("scanOrg", () => {
   });
 
   // Reusing an item another company already paid to write up is the point of the split.
+  /**
+   * The final Delek run found 19 launches and the per-run synthesis budget covers 8, so
+   * 11 were dropped — in iteration order, which meant the budget was spent on whatever
+   * happened to come back first rather than on what the company actually cares about.
+   */
+  it("spends the synthesis budget on the launches closest to the company profile", async () => {
+    oneCompany();
+    const urls = Array.from({ length: 12 }, (_, i) => `https://news.com/${i}`);
+    fetchPoolNews.mockResolvedValue({
+      items: urls.map((u) => poolItem(u)),
+      queriesRun: 1,
+      quotaLikely: false,
+    });
+    // Only the LAST item matches the profile's "fraud detection" focus area.
+    triageAll.mockResolvedValue(
+      urls.map((u, i) => ({
+        url: u,
+        isLaunch: true,
+        categories: i === urls.length - 1 ? ["fraud detection"] : ["unrelated widgets"],
+        vendor: "V",
+        technology: `Tech${i}`,
+      }))
+    );
+    synthesizeItem.mockImplementation(async () => ({
+      vendor: "V", technology: "T", title: "t", summary: "s",
+      categories: ["fraud detection"], sources: [], publishedAt: null, thin: false,
+    }));
+    judgeFit.mockResolvedValue({ fits: false, fitRationale: "", score: 0, businessLine: null });
+
+    await scanOrg("org1");
+
+    // The relevant one must be synthesised despite arriving last.
+    const synthesised = synthesizeItem.mock.calls.map((c) => (c[0] as { triage: { url: string } }).triage.url);
+    expect(synthesised).toContain(urls[urls.length - 1]);
+  });
+
   it("does not re-judge an item the company already has", async () => {
     oneCompany();
     fetchPoolNews.mockResolvedValue({ items: [poolItem("https://news.com/1")], queriesRun: 1, quotaLikely: false });

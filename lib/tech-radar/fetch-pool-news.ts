@@ -31,6 +31,44 @@ export const QUERY_GAP_MS = 1500;
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+/** Terms that make a query narrower without making it more meaningful. */
+const QUALIFIERS = new Set([
+  "launch", "launches", "launched", "launching", "release", "releases", "released",
+  "new", "latest", "introduces", "introducing", "unveils", "announced", "announces",
+  "announcement", "available", "features", "feature", "update", "updates", "version",
+  "platform", "software", "tool", "tools", "solution", "solutions", "system", "systems",
+  "service", "services", "technology", "technologies", "for", "in", "the", "and", "of",
+]);
+/** Queries at or below this length are already broad; broadening would gut them. */
+const BROAD_ENOUGH = 3;
+const BROADENED_TERMS = 3;
+
+/**
+ * A shorter, more general form of an over-specific query, or null when there is nothing
+ * useful to broaden.
+ *
+ * Outside software the profile writes queries that match nothing at all: the live Delek
+ * Group run lost its entire oil-and-gas line because "reservoir simulation modeling
+ * platform new features 2024" and its two siblings each returned zero results. The
+ * business-line floor cannot allocate what was never found, so recall has to be fixed
+ * here rather than in the cap.
+ *
+ * Boolean queries are left alone — they are written deliberately.
+ */
+export function broadenQuery(query: string): string | null {
+  if (/\b(OR|AND|NOT)\b|[()"]/.test(query)) return null;
+
+  const words = query.split(/\s+/).filter(Boolean);
+  if (words.length <= BROAD_ENOUGH) return null;
+
+  const kept = words.filter((w) => !QUALIFIERS.has(w.toLowerCase()) && !/^\d{4}$/.test(w));
+  const source = kept.length > 0 ? kept : words;
+  const broadened = source.slice(0, BROADENED_TERMS).join(" ");
+
+  // No point spending a second call on the query we just ran.
+  return broadened && broadened.toLowerCase() !== query.toLowerCase() ? broadened : null;
+}
+
 export type PoolQuery = { query: string; companyIds: string[] };
 
 export type PoolResult = {
@@ -80,7 +118,17 @@ export async function fetchPoolNews(
     // Pace BETWEEN queries, never before the first one.
     if (queriesRun > 0) await sleep(QUERY_GAP_MS);
     queriesRun += 1;
-    const results = await fetcher(entry.query);
+    let results = await fetcher(entry.query);
+
+    // Nothing at all usually means the query was too specific rather than that the
+    // subject has no news — retry once, broader, before writing the topic off.
+    if (results.length === 0) {
+      const broader = broadenQuery(entry.query);
+      if (broader) {
+        await sleep(QUERY_GAP_MS);
+        results = await fetcher(broader);
+      }
+    }
     if (results.length === 0) emptyQueries += 1;
 
     for (const r of results) {

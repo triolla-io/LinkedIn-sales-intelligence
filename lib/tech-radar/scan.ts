@@ -14,9 +14,10 @@ import { buildQueryPool } from "@/lib/tech-radar/queries";
 import { fetchPoolNews } from "@/lib/tech-radar/fetch-pool-news";
 import { triageAll, type PoolItem } from "@/lib/tech-radar/triage";
 import { synthesizeItem } from "@/lib/tech-radar/item";
-import { prefilterItems, judgeFit, type FitItem } from "@/lib/tech-radar/fit";
+import { prefilterItems, judgeFit, profileTerms, type FitItem } from "@/lib/tech-radar/fit";
 import { allocateWeeklyCap } from "@/lib/tech-radar/cap";
 import { upsertTechItem, createOpportunities, existingItemIds } from "@/lib/tech-radar/persist";
+import type { TriageVerdict } from "@/lib/tech-radar/types";
 import {
   MAX_PAGE_READS_PER_RUN,
   MAX_SYNTHESIS_PER_RUN,
@@ -41,6 +42,39 @@ type ActiveCompany = {
   name: string;
   profile: TechRadarProfile;
 };
+
+/**
+ * Order launches by how well their triage tags match the profiles of the companies that
+ * asked for them. Cheap, deterministic and pre-synthesis, so the expensive stage is
+ * spent on the most relevant items. Ties keep a stable order by url so an Inngest replay
+ * makes the same choices.
+ */
+export function rankLaunchesByRelevance(
+  launches: TriageVerdict[],
+  companies: { id: string; profile: TechRadarProfile }[],
+  byUrl: Map<string, { companyIds: string[] }>
+): TriageVerdict[] {
+  const termsByCompany = new Map(companies.map((c) => [c.id, profileTerms(c.profile)]));
+
+  const score = (verdict: TriageVerdict): number => {
+    const subscribers = byUrl.get(verdict.url)?.companyIds ?? [];
+    const tags = verdict.categories.flatMap((c) => c.toLowerCase().split(/\s+/)).filter((t) => t.length > 3);
+    let best = 0;
+    for (const companyId of subscribers) {
+      const terms = termsByCompany.get(companyId);
+      if (!terms) continue;
+      let overlap = 0;
+      for (const tag of tags) if (terms.has(tag)) overlap += 1;
+      best = Math.max(best, overlap);
+    }
+    return best;
+  };
+
+  return [...launches]
+    .map((v) => ({ v, s: score(v) }))
+    .sort((a, b) => (b.s !== a.s ? b.s - a.s : a.v.url < b.v.url ? -1 : 1))
+    .map((x) => x.v);
+}
 
 /** Companies due a scan: ACTIVE, usable profile, and past their own interval. */
 export async function loadScannableCompanies(orgId: string, now = new Date()): Promise<ActiveCompany[]> {
@@ -106,7 +140,13 @@ export async function scanOrg(orgId: string): Promise<ScanReport> {
   let pageReads = 0;
   let syntheses = 0;
 
-  for (const verdict of launches) {
+  // The budget is smaller than the number of launches a good week produces, so spend it
+  // on what the subscribing companies actually care about rather than on whatever came
+  // back first: the final Delek run found 19 launches, could write up 8, and dropped 11
+  // in arrival order.
+  const ranked = rankLaunchesByRelevance(launches, companies, byUrl);
+
+  for (const verdict of ranked) {
     if (syntheses >= MAX_SYNTHESIS_PER_RUN * Math.max(1, companies.length)) {
       console.warn(`[tech-radar] synthesis ceiling reached for org ${orgId}; ${launches.length - syntheses} launches skipped`);
       break;

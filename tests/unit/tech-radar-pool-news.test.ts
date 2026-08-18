@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { fetchPoolNews, SCAN_WINDOW_DAYS } from "@/lib/tech-radar/fetch-pool-news";
+import { fetchPoolNews, broadenQuery, SCAN_WINDOW_DAYS } from "@/lib/tech-radar/fetch-pool-news";
 import type { NewsResult } from "@/lib/news/types";
 
 function result(url: string, title = "t"): NewsResult {
@@ -9,6 +9,41 @@ function result(url: string, title = "t"): NewsResult {
 describe("SCAN_WINDOW_DAYS", () => {
   it("is the last month, per the product decision", () => {
     expect(SCAN_WINDOW_DAYS).toBe(30);
+  });
+});
+
+/**
+ * The live Delek Group run lost its entire energy line this way: three queries —
+ * "reservoir simulation modeling platform new features 2024", "subsurface data
+ * management software oil gas exploration releases", "IoT predictive maintenance
+ * offshore oil gas infrastructure launches" — each came back with Google News saying
+ * it had no results at all. Outside software, the profile's queries are too narrow to
+ * match anything, and the business-line floor cannot allocate what was never found.
+ */
+describe("broadenQuery", () => {
+  it("drops the trailing qualifiers from an over-specific query", () => {
+    expect(broadenQuery("reservoir simulation modeling platform new features 2024")).toBe(
+      "reservoir simulation modeling"
+    );
+  });
+
+  it("keeps the leading, most distinctive terms", () => {
+    expect(broadenQuery("subsurface data management software oil gas exploration releases")).toBe(
+      "subsurface data management"
+    );
+  });
+
+  it("returns null when the query is already short enough to be broad", () => {
+    expect(broadenQuery("fraud detection")).toBeNull();
+    expect(broadenQuery("open banking api")).toBeNull();
+  });
+
+  it("does not broaden a boolean query — those are written deliberately", () => {
+    expect(broadenQuery('fintech (funding OR raises OR "Series A")')).toBeNull();
+  });
+
+  it("returns null when broadening would not actually change anything", () => {
+    expect(broadenQuery("alpha beta gamma")).toBeNull();
   });
 });
 
@@ -119,6 +154,58 @@ describe("fetchPoolNews", () => {
     expect(sleeps).toHaveLength(2);
     expect(sleeps.every((ms) => ms > 0)).toBe(true);
     expect(startedAt).toHaveLength(3);
+  });
+
+  it("retries a zero-result query with a broadened form", async () => {
+    const seen: string[] = [];
+    const fetcher = vi.fn(async (q: string) => {
+      seen.push(q);
+      return q === "reservoir simulation modeling"
+        ? [result("https://a.com/reservoir")]
+        : ([] as never[]);
+    });
+    const out = await fetchPoolNews(
+      [{ query: "reservoir simulation modeling platform new features 2024", companyIds: ["c1"] }],
+      fetcher,
+      { sleep: async () => {} }
+    );
+    expect(seen).toEqual([
+      "reservoir simulation modeling platform new features 2024",
+      "reservoir simulation modeling",
+    ]);
+    expect(out.items).toHaveLength(1);
+    expect(out.items[0].companyIds).toEqual(["c1"]);
+    expect(out.quotaLikely).toBe(false);
+  });
+
+  it("does not retry a query that already returned something", async () => {
+    const fetcher = vi.fn(async () => [result("https://a.com/1")]);
+    await fetchPoolNews(
+      [{ query: "reservoir simulation modeling platform new features 2024", companyIds: ["c1"] }],
+      fetcher,
+      { sleep: async () => {} }
+    );
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not retry a query that cannot be broadened", async () => {
+    const fetcher = vi.fn(async () => [] as never[]);
+    await fetchPoolNews([{ query: "fraud detection", companyIds: ["c1"] }], fetcher, {
+      sleep: async () => {},
+    });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("still flags quota when even the broadened retries come back empty", async () => {
+    const out = await fetchPoolNews(
+      [
+        { query: "reservoir simulation modeling platform new features 2024", companyIds: ["c1"] },
+        { query: "subsurface data management software oil gas exploration releases", companyIds: ["c1"] },
+      ],
+      async () => [],
+      { sleep: async () => {} }
+    );
+    expect(out.quotaLikely).toBe(true);
   });
 
   it("does not pace a single-query pool", async () => {

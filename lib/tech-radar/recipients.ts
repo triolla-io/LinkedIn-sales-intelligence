@@ -21,14 +21,16 @@ import {
   type RecipientCandidate,
 } from "@/lib/tech-radar/types";
 
+/** Accepts one owner or many, so the caller can cover a whole org in a single query. */
 export function buildRecipientWhere(
-  ownerId: string,
+  ownerId: string | string[],
   company: { companyId: string | null; name: string; aliases?: string[] }
 ): Prisma.ContactWhereInput {
+  const owner: Prisma.ContactWhereInput["ownerId"] = Array.isArray(ownerId) ? { in: ownerId } : ownerId;
   // Prefer the resolved company link — it is exact, so no name matching is needed.
   if (company.companyId) {
     return {
-      ownerId,
+      ownerId: owner,
       removedAt: null,
       companyId: company.companyId,
       ...seniorTitleWhere(),
@@ -50,7 +52,7 @@ export function buildRecipientWhere(
   }
 
   return {
-    ownerId,
+    ownerId: owner,
     removedAt: null,
     OR: names.map((name) => ({ currentCompany: { contains: name, mode: "insensitive" as const } })),
     // seniorTitleWhere() also emits an OR, so it has to be nested rather than spread —

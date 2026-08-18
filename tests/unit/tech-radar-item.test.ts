@@ -4,7 +4,9 @@ import type { TriageVerdict } from "@/lib/tech-radar/types";
 const chat = vi.fn();
 vi.mock("@/lib/openrouter/client", () => ({ openrouterChat: (...a: unknown[]) => chat(...a) }));
 
-const { makeItemDedupeKey, parseItemResponse, synthesizeItem } = await import("@/lib/tech-radar/item");
+const { makeItemDedupeKey, isSameTechnology, parseItemResponse, synthesizeItem } = await import(
+  "@/lib/tech-radar/item"
+);
 
 const triage: TriageVerdict = {
   url: "https://news.com/a",
@@ -81,8 +83,53 @@ describe("makeItemDedupeKey", () => {
     expect(makeItemDedupeKey(null, "Access Control")).toContain("access");
   });
 
+  /**
+   * Two outlets covering the same announcement named the same two bodies in opposite
+   * order, and the live Delek run stored the launch twice — the CEO then received two
+   * near-identical messages about it.
+   */
+  it("ignores the order of a multi-party vendor", () => {
+    expect(makeItemDedupeKey("GHG Protocol and ISO", "Unified Carbon Accounting Standard")).toBe(
+      makeItemDedupeKey("ISO and GHG Protocol", "Unified Carbon Accounting Standard")
+    );
+  });
+
   it("is case and punctuation insensitive", () => {
     expect(makeItemDedupeKey("ACME!!", "  fraud-shield  ")).toBe(makeItemDedupeKey("acme", "fraud shield"));
+  });
+});
+
+/**
+ * Same event, same parties, one word apart: "unified corporate greenhouse gas accounting
+ * standard" vs "unified corporate carbon accounting standard". An exact key cannot catch
+ * that, so near-identical names are compared by token overlap.
+ */
+describe("isSameTechnology", () => {
+  it("treats two phrasings of the same standard as one", () => {
+    expect(
+      isSameTechnology(
+        "Unified Corporate Greenhouse Gas Accounting Standard",
+        "Unified Corporate Carbon Accounting Standard"
+      )
+    ).toBe(true);
+  });
+
+  it("keeps genuinely different technologies apart", () => {
+    expect(isSameTechnology("Radar Assistant", "Billing Credits")).toBe(false);
+    expect(isSameTechnology("Fraud Shield", "Fraud Detection Platform")).toBe(false);
+  });
+
+  it("matches identical names regardless of case and punctuation", () => {
+    expect(isSameTechnology("Fraud-Shield", "fraud shield")).toBe(true);
+  });
+
+  it("does not collapse two short unrelated names", () => {
+    expect(isSameTechnology("Qore", "Vulcan")).toBe(false);
+  });
+
+  it("handles empty input without throwing", () => {
+    expect(isSameTechnology("", "")).toBe(false);
+    expect(isSameTechnology("Shield", "")).toBe(false);
   });
 });
 

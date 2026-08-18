@@ -45,19 +45,33 @@ export async function createDraftsForOpportunity(
 
   const company = opportunity.trackedCompany;
   const owners = await prisma.user.findMany({ where: { orgId: company.orgId }, select: { id: true } });
+  const ownerIds = owners.map((o) => o.id);
+
+  // ONE query for the whole org, grouped in memory. Asking per owner meant a database
+  // round-trip for every user in the org on every opportunity — 2,591 of them in the
+  // live run — when only a handful have anyone at the company at all.
+  const allContacts = await prisma.contact.findMany({
+    where: buildRecipientWhere(ownerIds, {
+      companyId: company.companyId,
+      name: company.name,
+      aliases: company.aliases,
+    }),
+    select: {
+      id: true, ownerId: true, fullName: true, hebrewFirstName: true, currentTitle: true, headline: true,
+    },
+  });
+
+  const contactsByOwner = new Map<string, typeof allContacts>();
+  for (const contact of allContacts) {
+    const list = contactsByOwner.get(contact.ownerId);
+    if (list) list.push(contact);
+    else contactsByOwner.set(contact.ownerId, [contact]);
+  }
 
   let created = 0;
-  for (const owner of owners) {
-    const contacts = await prisma.contact.findMany({
-      where: buildRecipientWhere(owner.id, {
-        companyId: company.companyId,
-        name: company.name,
-        aliases: company.aliases,
-      }),
-      take: CANDIDATE_CAP,
-      select: { id: true, fullName: true, hebrewFirstName: true, currentTitle: true, headline: true },
-    });
-    if (contacts.length === 0) continue;
+  // Only owners who actually have somebody there cost anything from here on.
+  for (const [ownerId, ownerContacts] of contactsByOwner) {
+    const contacts = ownerContacts.slice(0, CANDIDATE_CAP);
 
     const candidates: RecipientCandidate[] = contacts.map((c) => ({
       contactId: c.id,
@@ -105,7 +119,7 @@ export async function createDraftsForOpportunity(
       await prisma.techOpportunityDraft.create({
         data: {
           opportunityId: opportunity.id,
-          ownerId: owner.id,
+          ownerId,
           contactId: contact.id,
           draftMessage: message,
           status: "PENDING_REVIEW",

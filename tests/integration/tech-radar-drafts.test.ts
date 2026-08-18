@@ -61,7 +61,10 @@ beforeEach(() => {
 describe("createDraftsForOpportunity", () => {
   it("creates one draft per ranked recipient and marks the opportunity DRAFTED", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
-    contactFindMany.mockResolvedValue([contact("a"), contact("b")]);
+    contactFindMany.mockResolvedValue([
+      { ...contact("a"), ownerId: "owner1" },
+      { ...contact("b"), ownerId: "owner1" },
+    ]);
     rankRecipients.mockResolvedValue([
       { contactId: "a", score: 0.9, reason: "r" },
       { contactId: "b", score: 0.7, reason: "r" },
@@ -74,23 +77,49 @@ describe("createDraftsForOpportunity", () => {
   // The cap is per (opportunity x owner) because the owner is who sends.
   it("gives each owner in the org their own recipients", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }, { id: "owner2" }]);
-    contactFindMany.mockResolvedValue([contact("a")]);
-    rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
+    contactFindMany.mockResolvedValue([
+      { ...contact("a"), ownerId: "owner1" },
+      { ...contact("b"), ownerId: "owner2" },
+    ]);
+    rankRecipients.mockImplementation(async (_i: unknown, cands: { contactId: string }[]) => [
+      { contactId: cands[0].contactId, score: 0.9, reason: "r" },
+    ]);
     const out = await createDraftsForOpportunity("o1");
     expect(out.owners).toBe(2);
     expect(out.created).toBe(2);
-    expect(draftCreate.mock.calls.map((c) => c[0].data.ownerId)).toEqual(["owner1", "owner2"]);
+    expect(draftCreate.mock.calls.map((c) => c[0].data.ownerId).sort()).toEqual(["owner1", "owner2"]);
   });
 
-  it("scopes the contact query to the owner and the company", async () => {
+  it("scopes the contact query to the org's owners and the company", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
-    contactFindMany.mockResolvedValue([contact("a")]);
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
     await createDraftsForOpportunity("o1");
     const where = contactFindMany.mock.calls[0][0].where;
-    expect(where.ownerId).toBe("owner1");
+    expect(where.ownerId).toEqual({ in: ["owner1"] });
     expect(where.companyId).toBe("co1");
     expect(where.removedAt).toBeNull();
+  });
+
+  /**
+   * The live run logged "1 drafts across 2591 owners": the loop asked the database for
+   * contacts once per user in the org, for every opportunity. Almost all of those
+   * owners have nobody at the company, so the work is pure waste and it grows with
+   * headcount. One query now covers the whole org and is grouped in memory.
+   */
+  it("asks the database for contacts once, not once per owner", async () => {
+    userFindMany.mockResolvedValue(
+      Array.from({ length: 500 }, (_, i) => ({ id: `owner${i}` }))
+    );
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner7" }]);
+    rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
+
+    const out = await createDraftsForOpportunity("o1");
+    expect(contactFindMany).toHaveBeenCalledTimes(1);
+    // Only the one owner who actually has somebody there is ranked.
+    expect(rankRecipients).toHaveBeenCalledTimes(1);
+    expect(out.created).toBe(1);
+    expect(draftCreate.mock.calls[0][0].data.ownerId).toBe("owner7");
   });
 
   // "No one to contact" is a legitimate, informative outcome.
@@ -105,7 +134,7 @@ describe("createDraftsForOpportunity", () => {
 
   it("creates nothing when ranking rejects everyone", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
-    contactFindMany.mockResolvedValue([contact("a")]);
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([]);
     const out = await createDraftsForOpportunity("o1");
     expect(out.created).toBe(0);
@@ -115,7 +144,7 @@ describe("createDraftsForOpportunity", () => {
   // Idempotence: an Inngest retry must not double-draft.
   it("skips a contact that already has a draft for this opportunity", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
-    contactFindMany.mockResolvedValue([contact("a")]);
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
     draftFindUnique.mockResolvedValue({ id: "existing" });
     const out = await createDraftsForOpportunity("o1");
@@ -125,7 +154,7 @@ describe("createDraftsForOpportunity", () => {
 
   it("drops a ranked id that is not in the candidate set", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
-    contactFindMany.mockResolvedValue([contact("a")]);
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "ghost", score: 1, reason: "r" }]);
     expect((await createDraftsForOpportunity("o1")).created).toBe(0);
   });
@@ -133,7 +162,7 @@ describe("createDraftsForOpportunity", () => {
   // The whole point: the message is built from the rationale, not the generic blurb.
   it("passes the fitRationale into the draft, not the item summary", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
-    contactFindMany.mockResolvedValue([contact("a")]);
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
     await createDraftsForOpportunity("o1");
     const arg = draftTechMessage.mock.calls[0][0];
@@ -144,7 +173,7 @@ describe("createDraftsForOpportunity", () => {
   it("passes the company relationship through so the tone is right", async () => {
     opportunityFindUniqueOrThrow.mockResolvedValue(opportunity("CUSTOMER"));
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
-    contactFindMany.mockResolvedValue([contact("a")]);
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
     await createDraftsForOpportunity("o1");
     expect(draftTechMessage.mock.calls[0][0].relationship).toBe("CUSTOMER");
@@ -158,7 +187,7 @@ describe("createDraftsForOpportunity", () => {
    */
   it("skips a contact who already has enough open drafts", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
-    contactFindMany.mockResolvedValue([contact("a")]);
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
     draftCount.mockResolvedValue(2);
     const out = await createDraftsForOpportunity("o1");
@@ -168,7 +197,7 @@ describe("createDraftsForOpportunity", () => {
 
   it("counts only that contact's recent, still-open drafts", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
-    contactFindMany.mockResolvedValue([contact("a")]);
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
     await createDraftsForOpportunity("o1");
     const where = draftCount.mock.calls[0][0].where;
@@ -181,7 +210,7 @@ describe("createDraftsForOpportunity", () => {
 
   it("still drafts for a contact under the limit", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
-    contactFindMany.mockResolvedValue([contact("a")]);
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
     draftCount.mockResolvedValue(1);
     expect((await createDraftsForOpportunity("o1")).created).toBe(1);
@@ -189,7 +218,7 @@ describe("createDraftsForOpportunity", () => {
 
   it("creates drafts in PENDING_REVIEW — the system prepares, the human sends", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
-    contactFindMany.mockResolvedValue([contact("a")]);
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
     await createDraftsForOpportunity("o1");
     expect(draftCreate.mock.calls[0][0].data.status).toBe("PENDING_REVIEW");

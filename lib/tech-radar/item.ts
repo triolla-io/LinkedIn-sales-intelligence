@@ -48,12 +48,59 @@ function normalizeKeyPart(s: string): string {
   return out.replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Vendor tokens sorted, so a jointly-announced launch keys the same however the two
+ * parties are ordered: two outlets wrote "GHG Protocol and ISO" and "ISO and GHG
+ * Protocol", and the live run stored that announcement twice.
+ */
+function normalizeVendorKey(vendor: string): string {
+  const normalized = normalizeKeyPart(vendor).replace(/\b(and|&)\b/g, " ").replace(/\s+/g, " ").trim();
+  return normalized.split(" ").filter(Boolean).sort().join(" ");
+}
+
+/** Meaningful tokens of a technology name, for comparing two phrasings of one thing. */
+function technologyTokens(technology: string): Set<string> {
+  return new Set(
+    normalizeKeyPart(technology)
+      .split(" ")
+      .filter((t) => t.length > 2)
+  );
+}
+
+/** Overlap above which two names are treated as the same technology. */
+const SAME_TECHNOLOGY_OVERLAP = 0.6;
+/** Below this many tokens, overlap is noise — "Qore" and "Vulcan" must stay apart. */
+const MIN_TOKENS_FOR_OVERLAP = 3;
+
+/**
+ * True when two technology names describe the same thing. Exact after normalising, or
+ * a high token overlap — "Unified Corporate Greenhouse Gas Accounting Standard" and
+ * "Unified Corporate Carbon Accounting Standard" are one announcement, one word apart.
+ */
+export function isSameTechnology(a: string, b: string): boolean {
+  const left = normalizeKeyPart(a ?? "");
+  const right = normalizeKeyPart(b ?? "");
+  if (!left || !right) return false;
+  if (left === right) return true;
+
+  const la = technologyTokens(a);
+  const lb = technologyTokens(b);
+  // Short names carry too little signal for overlap to mean anything.
+  if (la.size < MIN_TOKENS_FOR_OVERLAP || lb.size < MIN_TOKENS_FOR_OVERLAP) return false;
+
+  let shared = 0;
+  for (const t of la) if (lb.has(t)) shared += 1;
+  return shared / Math.max(la.size, lb.size) >= SAME_TECHNOLOGY_OVERLAP;
+}
+
 export function makeItemDedupeKey(vendor: string | null, technology: string): string {
-  const v = normalizeKeyPart(vendor ?? "");
+  const v = normalizeVendorKey(vendor ?? "");
   let t = normalizeKeyPart(technology ?? "");
   // Coverage often names the vendor inside the technology ("Plaid announces Layer"),
-  // while the vendor's own page just says "Layer". Same launch — same key.
-  if (v && t !== v && t.startsWith(`${v} `)) t = t.slice(v.length + 1).trim();
+  // while the vendor's own page just says "Layer". Same launch — same key. Compared
+  // against the UNSORTED vendor, since that is how the name appears in the sentence.
+  const spoken = normalizeKeyPart(vendor ?? "");
+  if (spoken && t !== spoken && t.startsWith(`${spoken} `)) t = t.slice(spoken.length + 1).trim();
   return v ? `${v}::${t}` : `::${t}`;
 }
 
