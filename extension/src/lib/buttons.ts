@@ -35,8 +35,15 @@ export function scanButtons(): ScannedButton[] {
  * MUST be the case on a clean profile page with only nav icons.
  */
 export function pickCloseButton(buttons: ScannedButton[]): ScannedButton | null {
+  // EVERY candidate must sit inside a real modal/dialog/toast. Nothing outside one is a
+  // dismiss affordance — it is page chrome, and clicking page chrome is what navigates the
+  // tab away from the profile. That cost us a send: the failure was captured on
+  // /search/results/all/?origin=GLOBAL_SEARCH_HEADER (an empty global search) while the
+  // tab title still read the contact's name.
+  const inModal = buttons.filter((b) => b.inModal);
+
   // 1. Explicit dismiss affordance (reliable aria-label / class / glyph).
-  for (const btn of buttons) {
+  for (const btn of inModal) {
     const isClose =
       /^(dismiss|close|cancel)$/i.test(btn.aria) ||
       /artdeco-modal__dismiss/i.test(btn.cls) ||
@@ -45,10 +52,8 @@ export function pickCloseButton(buttons: ScannedButton[]): ScannedButton | null 
     if (isClose) return btn;
   }
 
-  // 2. Fallback: a small unlabeled icon button, but ONLY when it sits inside a real
-  //    modal/dialog. Never guess at page chrome — that is how we used to click the
-  //    global-nav "Learning" / "For Business" links and navigate the tab away.
-  return buttons.find((b) => b.inModal && b.w < 50 && b.h < 50) ?? null;
+  // 2. Fallback: a small unlabeled icon button inside that modal.
+  return inModal.find((b) => b.w < 50 && b.h < 50) ?? null;
 }
 
 /** Page-context: find and click a modal dismiss/close button. Returns false when none. */
