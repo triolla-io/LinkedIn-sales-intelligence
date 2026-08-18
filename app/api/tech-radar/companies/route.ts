@@ -16,7 +16,7 @@ export const GET = withTenant(async (_req, ctx) => {
     where: { orgId },
     orderBy: [{ status: "asc" }, { name: "asc" }],
     select: {
-      id: true, name: true, website: true, linkedinUrl: true, relationship: true,
+      id: true, name: true, aliases: true, website: true, linkedinUrl: true, relationship: true,
       status: true, profileError: true, researchedAt: true, lastScanAt: true,
       scanIntervalDays: true, profile: true,
       _count: { select: { opportunities: true } },
@@ -46,10 +46,26 @@ export const GET = withTenant(async (_req, ctx) => {
 
 type PostBody = {
   name?: string;
+  aliases?: string[];
   website?: string | null;
   linkedinUrl?: string | null;
   relationship?: "CUSTOMER" | "PROSPECT";
 };
+
+/** Trim, drop blanks, and de-duplicate case-insensitively. */
+function cleanAliases(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const entry of raw) {
+    if (typeof entry !== "string") continue;
+    const name = entry.trim();
+    if (!name || seen.has(name.toLowerCase())) continue;
+    seen.add(name.toLowerCase());
+    out.push(name);
+  }
+  return out.slice(0, 10);
+}
 
 export const POST = withTenant(async (req: NextRequest, ctx) => {
   const body = (await req.json()) as PostBody;
@@ -70,6 +86,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
     data: {
       orgId,
       name,
+      aliases: cleanAliases(body.aliases),
       website: (body.website ?? "").trim() || null,
       linkedinUrl: (body.linkedinUrl ?? "").trim() || null,
       relationship: body.relationship ?? "PROSPECT",

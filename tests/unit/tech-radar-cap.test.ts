@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { allocateWeeklyCap } from "@/lib/tech-radar/cap";
 import type { CappedCandidate } from "@/lib/tech-radar/types";
 
-function cand(company: string, item: string, score: number): CappedCandidate {
-  return { trackedCompanyId: company, itemId: item, fitRationale: "r", score };
+function cand(company: string, item: string, score: number, lineKey?: string): CappedCandidate {
+  return { trackedCompanyId: company, itemId: item, fitRationale: "r", score, lineKey };
 }
 
 describe("allocateWeeklyCap", () => {
@@ -68,6 +68,53 @@ describe("allocateWeeklyCap", () => {
     expect(allocateWeeklyCap([])).toEqual([]);
     expect(allocateWeeklyCap([cand("a", "1", 1)], { weekly: 0 })).toEqual([]);
     expect(allocateWeeklyCap([cand("a", "1", 1)], { perCompany: 0 })).toEqual([]);
+  });
+
+  /**
+   * From the live Delek Group run: a holding company with oil & gas, financial services
+   * and real estate received five opportunities, ALL of them financial services. The
+   * energy side scored lower and was wiped out entirely, even though it had its own
+   * focus area and its own search query.
+   */
+  it("gives every business line a slot before doubling up on one", () => {
+    const input = [
+      cand("delek", "fin1", 0.9, "financial services"),
+      cand("delek", "fin2", 0.88, "financial services"),
+      cand("delek", "fin3", 0.86, "financial services"),
+      cand("delek", "energy1", 0.6, "oil and gas"),
+      cand("delek", "estate1", 0.5, "real estate"),
+    ];
+    const out = allocateWeeklyCap(input, { perCompany: 3, weekly: 15 });
+    expect(out).toHaveLength(3);
+    expect(new Set(out.map((c) => c.lineKey))).toEqual(
+      new Set(["financial services", "oil and gas", "real estate"])
+    );
+  });
+
+  it("fills the remaining per-company slots by score once each line is represented", () => {
+    const input = [
+      cand("delek", "fin1", 0.9, "financial services"),
+      cand("delek", "fin2", 0.88, "financial services"),
+      cand("delek", "energy1", 0.6, "oil and gas"),
+    ];
+    const out = allocateWeeklyCap(input, { perCompany: 3, weekly: 15 });
+    expect(out.map((c) => c.itemId).sort()).toEqual(["energy1", "fin1", "fin2"]);
+  });
+
+  it("keeps the highest scorer within each line", () => {
+    const input = [
+      cand("delek", "fin_low", 0.4, "financial services"),
+      cand("delek", "fin_high", 0.95, "financial services"),
+      cand("delek", "energy1", 0.6, "oil and gas"),
+    ];
+    const out = allocateWeeklyCap(input, { perCompany: 2, weekly: 15 });
+    expect(out.map((c) => c.itemId).sort()).toEqual(["energy1", "fin_high"]);
+  });
+
+  it("behaves exactly as before when no line is attributed", () => {
+    const input = [1, 2, 3, 4, 5].map((n) => cand("a", `i${n}`, n / 10));
+    const out = allocateWeeklyCap(input, { perCompany: 3 });
+    expect(out.map((c) => c.itemId)).toEqual(["i5", "i4", "i3"]);
   });
 
   it("orders the result by score descending", () => {

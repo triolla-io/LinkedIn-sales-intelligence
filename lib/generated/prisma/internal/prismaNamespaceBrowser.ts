@@ -788,6 +788,7 @@ export const TrackedCompanyScalarFieldEnum = {
   id: 'id',
   orgId: 'orgId',
   name: 'name',
+  aliases: 'aliases',
   linkedinUrl: 'linkedinUrl',
   website: 'website',
   relationship: 'relationship',

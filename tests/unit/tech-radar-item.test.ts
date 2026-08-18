@@ -64,6 +64,23 @@ describe("makeItemDedupeKey", () => {
     expect(makeItemDedupeKey("Acme", "Platform")).toContain("platform");
   });
 
+  /**
+   * From the live Delek Group run: Heron Data's launch was written up twice, as
+   * "Automated Background Checks" and "Automated Background Check System", and both
+   * were stored — the feed showed the same launch twice.
+   */
+  it("collapses singular and plural forms of the same technology", () => {
+    expect(makeItemDedupeKey("Heron Data", "Automated Background Checks")).toBe(
+      makeItemDedupeKey("Heron Data", "Automated Background Check System")
+    );
+  });
+
+  it("does not mangle words that merely end in s", () => {
+    // "analysis" and "access" must not lose their trailing s.
+    expect(makeItemDedupeKey(null, "Risk Analysis")).not.toBe(makeItemDedupeKey(null, "Risk Analysi"));
+    expect(makeItemDedupeKey(null, "Access Control")).toContain("access");
+  });
+
   it("is case and punctuation insensitive", () => {
     expect(makeItemDedupeKey("ACME!!", "  fraud-shield  ")).toBe(makeItemDedupeKey("acme", "fraud shield"));
   });

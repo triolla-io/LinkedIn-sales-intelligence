@@ -1091,6 +1091,10 @@ model TrackedCompany {
   id               String               @id @default(cuid())
   orgId            String
   name             String
+  /// Extra names to match contacts on. A holding company's people write their employer
+  /// many ways ("Delek Group", "Delek", "Delek US Holdings"), and matching only the
+  /// canonical name silently misses most of them.
+  aliases          String[]             @default([])
   linkedinUrl      String?
   website          String?
   relationship     CompanyRelationship  @default(PROSPECT)

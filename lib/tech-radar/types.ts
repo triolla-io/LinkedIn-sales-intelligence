@@ -73,6 +73,9 @@ export type FitVerdict = {
   /** Specific to this company's lines of business — feeds the message. */
   fitRationale: string;
   score: number;
+  /** Which of the company's business lines this connects to, so one line cannot
+   *  take every slot in the weekly cap. Null when the model does not attribute one. */
+  businessLine: string | null;
 };
 
 /** Stage 5 input: one candidate opportunity awaiting the weekly cap. */
@@ -81,6 +84,8 @@ export type CappedCandidate = {
   itemId: string;
   fitRationale: string;
   score: number;
+  /** Business line this belongs to; drives diversity inside the per-company cap. */
+  lineKey?: string | null;
 };
 
 // ─── Recipients and drafting ─────────────────────────────────────────────────

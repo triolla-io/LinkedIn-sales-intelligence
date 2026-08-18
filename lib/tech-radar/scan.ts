@@ -175,6 +175,7 @@ export async function scanOrg(orgId: string): Promise<ScanReport> {
           itemId: item.itemId,
           fitRationale: verdict.fitRationale,
           score: verdict.score,
+          lineKey: verdict.businessLine,
         });
       } catch (err) {
         console.error(

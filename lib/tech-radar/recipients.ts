@@ -23,19 +23,39 @@ import {
 
 export function buildRecipientWhere(
   ownerId: string,
-  company: { companyId: string | null; name: string }
+  company: { companyId: string | null; name: string; aliases?: string[] }
 ): Prisma.ContactWhereInput {
-  // Prefer the resolved company link; fall back to a name match for companies we
-  // never resolved to a global Company row.
-  const atCompany: Prisma.ContactWhereInput = company.companyId
-    ? { companyId: company.companyId }
-    : { currentCompany: { contains: company.name, mode: "insensitive" } };
+  // Prefer the resolved company link — it is exact, so no name matching is needed.
+  if (company.companyId) {
+    return {
+      ownerId,
+      removedAt: null,
+      companyId: company.companyId,
+      ...seniorTitleWhere(),
+    };
+  }
+
+  // Otherwise match the canonical name OR any alias. A holding company's people write
+  // their employer many ways: the live Delek Group run matched 1 contact of 7 because
+  // the Head of Digital and the CIDO write "Delek" and "Delek US Holdings".
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const raw of [company.name, ...(company.aliases ?? [])]) {
+    const name = (raw ?? "").trim();
+    if (!name) continue;
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    names.push(name);
+  }
 
   return {
     ownerId,
     removedAt: null,
-    ...atCompany,
-    ...seniorTitleWhere(),
+    OR: names.map((name) => ({ currentCompany: { contains: name, mode: "insensitive" as const } })),
+    // seniorTitleWhere() also emits an OR, so it has to be nested rather than spread —
+    // two sibling ORs would overwrite each other and silently drop the seniority filter.
+    AND: [seniorTitleWhere()],
   };
 }
 

@@ -105,8 +105,23 @@ describe("prefilterItems", () => {
 
 describe("parseFitResponse", () => {
   it("parses a fenced response", () => {
-    const out = parseFitResponse('```json\n{"fits":true,"fitRationale":"מתחבר לביט","score":0.8}\n```');
-    expect(out).toEqual({ fits: true, fitRationale: "מתחבר לביט", score: 0.8 });
+    const out = parseFitResponse(
+      '```json\n{"fits":true,"fitRationale":"מתחבר לביט","score":0.8,"businessLine":"Retail payments"}\n```'
+    );
+    expect(out).toEqual({
+      fits: true,
+      fitRationale: "מתחבר לביט",
+      score: 0.8,
+      businessLine: "Retail payments",
+    });
+  });
+
+  // The line attribution is what stops one business line taking every slot.
+  it("nulls a missing or blank business line rather than failing", () => {
+    expect(parseFitResponse('{"fits":true,"fitRationale":"x","score":0.5}')?.businessLine).toBeNull();
+    expect(
+      parseFitResponse('{"fits":true,"fitRationale":"x","score":0.5,"businessLine":"  "}')?.businessLine
+    ).toBeNull();
   });
   it("clamps an out-of-range score", () => {
     expect(parseFitResponse('{"fits":true,"fitRationale":"x","score":9}')?.score).toBe(1);
@@ -128,11 +143,14 @@ describe("judgeFit", () => {
   }
 
   it("returns the parsed verdict", async () => {
-    chat.mockResolvedValue(ok('{"fits":true,"fitRationale":"מתחבר לביט","score":0.7}'));
+    chat.mockResolvedValue(
+      ok('{"fits":true,"fitRationale":"מתחבר לביט","score":0.7,"businessLine":"Retail payments"}')
+    );
     await expect(judgeFit(profile(), "בנק הפועלים", item())).resolves.toEqual({
       fits: true,
       fitRationale: "מתחבר לביט",
       score: 0.7,
+      businessLine: "Retail payments",
     });
   });
 

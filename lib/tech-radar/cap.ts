@@ -24,6 +24,42 @@ function byScoreThenId(a: CappedCandidate, b: CappedCandidate): number {
   return 0;
 }
 
+/**
+ * Take the best of each business line first, then fill the remaining slots by score.
+ *
+ * A diversified holding company otherwise gets a single line in every slot: the live
+ * Delek Group run returned five opportunities and all five were financial services,
+ * wiping out oil & gas and real estate even though both had their own focus areas.
+ *
+ * `candidates` must already be sorted best-first. Candidates with no attributed line
+ * share one bucket, so behaviour is unchanged when nothing is attributed.
+ */
+export function pickAcrossLines(candidates: CappedCandidate[], limit: number): CappedCandidate[] {
+  if (limit <= 0) return [];
+
+  const bestOfLine: CappedCandidate[] = [];
+  const rest: CappedCandidate[] = [];
+  const linesSeen = new Set<string>();
+
+  for (const c of candidates) {
+    const line = (c.lineKey ?? "").trim().toLowerCase();
+    // Unattributed candidates never claim a diversity slot.
+    if (line && !linesSeen.has(line)) {
+      linesSeen.add(line);
+      bestOfLine.push(c);
+    } else {
+      rest.push(c);
+    }
+  }
+
+  const taken = bestOfLine.slice(0, limit);
+  for (const c of rest) {
+    if (taken.length >= limit) break;
+    taken.push(c);
+  }
+  return taken.sort(byScoreThenId);
+}
+
 export function allocateWeeklyCap(
   candidates: CappedCandidate[],
   opts: { perCompany?: number; weekly?: number } = {}
@@ -44,7 +80,7 @@ export function allocateWeeklyCap(
   const perCompanyKept = new Map<string, CappedCandidate[]>();
   for (const id of companyIds) {
     const sorted = [...(byCompany.get(id) ?? [])].sort(byScoreThenId);
-    perCompanyKept.set(id, sorted.slice(0, perCompany));
+    perCompanyKept.set(id, pickAcrossLines(sorted, perCompany));
   }
 
   const survivors = companyIds.flatMap((id) => perCompanyKept.get(id) ?? []);

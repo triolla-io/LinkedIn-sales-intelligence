@@ -28,6 +28,7 @@ type Profile = {
 type Company = {
   id: string;
   name: string;
+  aliases: string[];
   website: string | null;
   linkedinUrl: string | null;
   relationship: Relationship;
@@ -193,6 +194,7 @@ function CompaniesSection({
   const [name, setName] = useState("");
   const [website, setWebsite] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [aliases, setAliases] = useState("");
   const [relationship, setRelationship] = useState<Relationship>("PROSPECT");
   const [busy, setBusy] = useState(false);
 
@@ -204,7 +206,13 @@ function CompaniesSection({
       const res = await fetch("/api/tech-radar/companies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: trimmed, website, linkedinUrl, relationship }),
+        body: JSON.stringify({
+          name: trimmed,
+          website,
+          linkedinUrl,
+          relationship,
+          aliases: aliases.split(",").map((a) => a.trim()).filter(Boolean),
+        }),
       });
       if (res.status === 409) {
         toast.error("החברה כבר במעקב", trimmed);
@@ -215,6 +223,7 @@ function CompaniesSection({
       setName("");
       setWebsite("");
       setLinkedinUrl("");
+      setAliases("");
       onChanged();
     } catch {
       toast.error("הוספת החברה נכשלה", "נסה שוב");
@@ -259,6 +268,21 @@ function CompaniesSection({
               placeholder="linkedin.com/company/..."
             />
           </div>
+        </div>
+
+        {/* Employees of a group write their employer many ways; without these, most of
+            the contacts at a holding company are never matched. */}
+        <div className="mt-3">
+          <label className={ui.label} htmlFor="tr-aliases">
+            שמות נוספים לזיהוי אנשי קשר (מופרדים בפסיק)
+          </label>
+          <input
+            id="tr-aliases"
+            className={ui.input}
+            value={aliases}
+            onChange={(e) => setAliases(e.target.value)}
+            placeholder="Delek, Delek US Holdings, קבוצת דלק"
+          />
         </div>
 
         <div className="flex items-center justify-between gap-3 mt-3 flex-wrap">
@@ -380,6 +404,12 @@ function CompanyRow({ company, onChanged }: { company: Company; onChanged: () =>
         </span>
 
         <span className="text-xs text-[#9b9895]">{company._count.opportunities} הזדמנויות</span>
+
+        {company.aliases.length > 0 && (
+          <span className={ui.chip} title="שמות נוספים לזיהוי אנשי קשר">
+            + {company.aliases.join(", ")}
+          </span>
+        )}
 
         {company.scanIntervalDays !== 7 && (
           <span className={ui.chip}>סריקה כל {company.scanIntervalDays} ימים</span>

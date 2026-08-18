@@ -76,6 +76,7 @@ export type TrackedCompanyCountAggregateOutputType = {
   id: number
   orgId: number
   name: number
+  aliases: number
   linkedinUrl: number
   website: number
   relationship: number
@@ -138,6 +139,7 @@ export type TrackedCompanyCountAggregateInputType = {
   id?: true
   orgId?: true
   name?: true
+  aliases?: true
   linkedinUrl?: true
   website?: true
   relationship?: true
@@ -243,6 +245,7 @@ export type TrackedCompanyGroupByOutputType = {
   id: string
   orgId: string
   name: string
+  aliases: string[]
   linkedinUrl: string | null
   website: string | null
   relationship: $Enums.CompanyRelationship
@@ -284,6 +287,7 @@ export type TrackedCompanyWhereInput = {
   id?: Prisma.StringFilter<"TrackedCompany"> | string
   orgId?: Prisma.StringFilter<"TrackedCompany"> | string
   name?: Prisma.StringFilter<"TrackedCompany"> | string
+  aliases?: Prisma.StringNullableListFilter<"TrackedCompany">
   linkedinUrl?: Prisma.StringNullableFilter<"TrackedCompany"> | string | null
   website?: Prisma.StringNullableFilter<"TrackedCompany"> | string | null
   relationship?: Prisma.EnumCompanyRelationshipFilter<"TrackedCompany"> | $Enums.CompanyRelationship
@@ -305,6 +309,7 @@ export type TrackedCompanyOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   orgId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  aliases?: Prisma.SortOrder
   linkedinUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   website?: Prisma.SortOrderInput | Prisma.SortOrder
   relationship?: Prisma.SortOrder
@@ -330,6 +335,7 @@ export type TrackedCompanyWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.TrackedCompanyWhereInput | Prisma.TrackedCompanyWhereInput[]
   orgId?: Prisma.StringFilter<"TrackedCompany"> | string
   name?: Prisma.StringFilter<"TrackedCompany"> | string
+  aliases?: Prisma.StringNullableListFilter<"TrackedCompany">
   linkedinUrl?: Prisma.StringNullableFilter<"TrackedCompany"> | string | null
   website?: Prisma.StringNullableFilter<"TrackedCompany"> | string | null
   relationship?: Prisma.EnumCompanyRelationshipFilter<"TrackedCompany"> | $Enums.CompanyRelationship
@@ -351,6 +357,7 @@ export type TrackedCompanyOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   orgId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  aliases?: Prisma.SortOrder
   linkedinUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   website?: Prisma.SortOrderInput | Prisma.SortOrder
   relationship?: Prisma.SortOrder
@@ -377,6 +384,7 @@ export type TrackedCompanyScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"TrackedCompany"> | string
   orgId?: Prisma.StringWithAggregatesFilter<"TrackedCompany"> | string
   name?: Prisma.StringWithAggregatesFilter<"TrackedCompany"> | string
+  aliases?: Prisma.StringNullableListFilter<"TrackedCompany">
   linkedinUrl?: Prisma.StringNullableWithAggregatesFilter<"TrackedCompany"> | string | null
   website?: Prisma.StringNullableWithAggregatesFilter<"TrackedCompany"> | string | null
   relationship?: Prisma.EnumCompanyRelationshipWithAggregatesFilter<"TrackedCompany"> | $Enums.CompanyRelationship
@@ -394,6 +402,7 @@ export type TrackedCompanyScalarWhereWithAggregatesInput = {
 export type TrackedCompanyCreateInput = {
   id?: string
   name: string
+  aliases?: Prisma.TrackedCompanyCreatealiasesInput | string[]
   linkedinUrl?: string | null
   website?: string | null
   relationship?: $Enums.CompanyRelationship
@@ -414,6 +423,7 @@ export type TrackedCompanyUncheckedCreateInput = {
   id?: string
   orgId: string
   name: string
+  aliases?: Prisma.TrackedCompanyCreatealiasesInput | string[]
   linkedinUrl?: string | null
   website?: string | null
   relationship?: $Enums.CompanyRelationship
@@ -432,6 +442,7 @@ export type TrackedCompanyUncheckedCreateInput = {
 export type TrackedCompanyUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  aliases?: Prisma.TrackedCompanyUpdatealiasesInput | string[]
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relationship?: Prisma.EnumCompanyRelationshipFieldUpdateOperationsInput | $Enums.CompanyRelationship
@@ -452,6 +463,7 @@ export type TrackedCompanyUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orgId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  aliases?: Prisma.TrackedCompanyUpdatealiasesInput | string[]
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relationship?: Prisma.EnumCompanyRelationshipFieldUpdateOperationsInput | $Enums.CompanyRelationship
@@ -471,6 +483,7 @@ export type TrackedCompanyCreateManyInput = {
   id?: string
   orgId: string
   name: string
+  aliases?: Prisma.TrackedCompanyCreatealiasesInput | string[]
   linkedinUrl?: string | null
   website?: string | null
   relationship?: $Enums.CompanyRelationship
@@ -488,6 +501,7 @@ export type TrackedCompanyCreateManyInput = {
 export type TrackedCompanyUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  aliases?: Prisma.TrackedCompanyUpdatealiasesInput | string[]
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relationship?: Prisma.EnumCompanyRelationshipFieldUpdateOperationsInput | $Enums.CompanyRelationship
@@ -505,6 +519,7 @@ export type TrackedCompanyUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orgId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  aliases?: Prisma.TrackedCompanyUpdatealiasesInput | string[]
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relationship?: Prisma.EnumCompanyRelationshipFieldUpdateOperationsInput | $Enums.CompanyRelationship
@@ -538,6 +553,7 @@ export type TrackedCompanyCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   orgId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  aliases?: Prisma.SortOrder
   linkedinUrl?: Prisma.SortOrder
   website?: Prisma.SortOrder
   relationship?: Prisma.SortOrder
@@ -683,6 +699,15 @@ export type TrackedCompanyUncheckedUpdateManyWithoutCompanyNestedInput = {
   deleteMany?: Prisma.TrackedCompanyScalarWhereInput | Prisma.TrackedCompanyScalarWhereInput[]
 }
 
+export type TrackedCompanyCreatealiasesInput = {
+  set: string[]
+}
+
+export type TrackedCompanyUpdatealiasesInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
 export type EnumCompanyRelationshipFieldUpdateOperationsInput = {
   set?: $Enums.CompanyRelationship
 }
@@ -708,6 +733,7 @@ export type TrackedCompanyUpdateOneRequiredWithoutOpportunitiesNestedInput = {
 export type TrackedCompanyCreateWithoutOrgInput = {
   id?: string
   name: string
+  aliases?: Prisma.TrackedCompanyCreatealiasesInput | string[]
   linkedinUrl?: string | null
   website?: string | null
   relationship?: $Enums.CompanyRelationship
@@ -726,6 +752,7 @@ export type TrackedCompanyCreateWithoutOrgInput = {
 export type TrackedCompanyUncheckedCreateWithoutOrgInput = {
   id?: string
   name: string
+  aliases?: Prisma.TrackedCompanyCreatealiasesInput | string[]
   linkedinUrl?: string | null
   website?: string | null
   relationship?: $Enums.CompanyRelationship
@@ -774,6 +801,7 @@ export type TrackedCompanyScalarWhereInput = {
   id?: Prisma.StringFilter<"TrackedCompany"> | string
   orgId?: Prisma.StringFilter<"TrackedCompany"> | string
   name?: Prisma.StringFilter<"TrackedCompany"> | string
+  aliases?: Prisma.StringNullableListFilter<"TrackedCompany">
   linkedinUrl?: Prisma.StringNullableFilter<"TrackedCompany"> | string | null
   website?: Prisma.StringNullableFilter<"TrackedCompany"> | string | null
   relationship?: Prisma.EnumCompanyRelationshipFilter<"TrackedCompany"> | $Enums.CompanyRelationship
@@ -791,6 +819,7 @@ export type TrackedCompanyScalarWhereInput = {
 export type TrackedCompanyCreateWithoutCompanyInput = {
   id?: string
   name: string
+  aliases?: Prisma.TrackedCompanyCreatealiasesInput | string[]
   linkedinUrl?: string | null
   website?: string | null
   relationship?: $Enums.CompanyRelationship
@@ -810,6 +839,7 @@ export type TrackedCompanyUncheckedCreateWithoutCompanyInput = {
   id?: string
   orgId: string
   name: string
+  aliases?: Prisma.TrackedCompanyCreatealiasesInput | string[]
   linkedinUrl?: string | null
   website?: string | null
   relationship?: $Enums.CompanyRelationship
@@ -853,6 +883,7 @@ export type TrackedCompanyUpdateManyWithWhereWithoutCompanyInput = {
 export type TrackedCompanyCreateWithoutOpportunitiesInput = {
   id?: string
   name: string
+  aliases?: Prisma.TrackedCompanyCreatealiasesInput | string[]
   linkedinUrl?: string | null
   website?: string | null
   relationship?: $Enums.CompanyRelationship
@@ -872,6 +903,7 @@ export type TrackedCompanyUncheckedCreateWithoutOpportunitiesInput = {
   id?: string
   orgId: string
   name: string
+  aliases?: Prisma.TrackedCompanyCreatealiasesInput | string[]
   linkedinUrl?: string | null
   website?: string | null
   relationship?: $Enums.CompanyRelationship
@@ -905,6 +937,7 @@ export type TrackedCompanyUpdateToOneWithWhereWithoutOpportunitiesInput = {
 export type TrackedCompanyUpdateWithoutOpportunitiesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  aliases?: Prisma.TrackedCompanyUpdatealiasesInput | string[]
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relationship?: Prisma.EnumCompanyRelationshipFieldUpdateOperationsInput | $Enums.CompanyRelationship
@@ -924,6 +957,7 @@ export type TrackedCompanyUncheckedUpdateWithoutOpportunitiesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orgId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  aliases?: Prisma.TrackedCompanyUpdatealiasesInput | string[]
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relationship?: Prisma.EnumCompanyRelationshipFieldUpdateOperationsInput | $Enums.CompanyRelationship
@@ -941,6 +975,7 @@ export type TrackedCompanyUncheckedUpdateWithoutOpportunitiesInput = {
 export type TrackedCompanyCreateManyOrgInput = {
   id?: string
   name: string
+  aliases?: Prisma.TrackedCompanyCreatealiasesInput | string[]
   linkedinUrl?: string | null
   website?: string | null
   relationship?: $Enums.CompanyRelationship
@@ -958,6 +993,7 @@ export type TrackedCompanyCreateManyOrgInput = {
 export type TrackedCompanyUpdateWithoutOrgInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  aliases?: Prisma.TrackedCompanyUpdatealiasesInput | string[]
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relationship?: Prisma.EnumCompanyRelationshipFieldUpdateOperationsInput | $Enums.CompanyRelationship
@@ -976,6 +1012,7 @@ export type TrackedCompanyUpdateWithoutOrgInput = {
 export type TrackedCompanyUncheckedUpdateWithoutOrgInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  aliases?: Prisma.TrackedCompanyUpdatealiasesInput | string[]
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relationship?: Prisma.EnumCompanyRelationshipFieldUpdateOperationsInput | $Enums.CompanyRelationship
@@ -994,6 +1031,7 @@ export type TrackedCompanyUncheckedUpdateWithoutOrgInput = {
 export type TrackedCompanyUncheckedUpdateManyWithoutOrgInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  aliases?: Prisma.TrackedCompanyUpdatealiasesInput | string[]
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relationship?: Prisma.EnumCompanyRelationshipFieldUpdateOperationsInput | $Enums.CompanyRelationship
@@ -1012,6 +1050,7 @@ export type TrackedCompanyCreateManyCompanyInput = {
   id?: string
   orgId: string
   name: string
+  aliases?: Prisma.TrackedCompanyCreatealiasesInput | string[]
   linkedinUrl?: string | null
   website?: string | null
   relationship?: $Enums.CompanyRelationship
@@ -1028,6 +1067,7 @@ export type TrackedCompanyCreateManyCompanyInput = {
 export type TrackedCompanyUpdateWithoutCompanyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  aliases?: Prisma.TrackedCompanyUpdatealiasesInput | string[]
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relationship?: Prisma.EnumCompanyRelationshipFieldUpdateOperationsInput | $Enums.CompanyRelationship
@@ -1047,6 +1087,7 @@ export type TrackedCompanyUncheckedUpdateWithoutCompanyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orgId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  aliases?: Prisma.TrackedCompanyUpdatealiasesInput | string[]
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relationship?: Prisma.EnumCompanyRelationshipFieldUpdateOperationsInput | $Enums.CompanyRelationship
@@ -1065,6 +1106,7 @@ export type TrackedCompanyUncheckedUpdateManyWithoutCompanyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orgId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  aliases?: Prisma.TrackedCompanyUpdatealiasesInput | string[]
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relationship?: Prisma.EnumCompanyRelationshipFieldUpdateOperationsInput | $Enums.CompanyRelationship
@@ -1113,6 +1155,7 @@ export type TrackedCompanySelect<ExtArgs extends runtime.Types.Extensions.Intern
   id?: boolean
   orgId?: boolean
   name?: boolean
+  aliases?: boolean
   linkedinUrl?: boolean
   website?: boolean
   relationship?: boolean
@@ -1135,6 +1178,7 @@ export type TrackedCompanySelectCreateManyAndReturn<ExtArgs extends runtime.Type
   id?: boolean
   orgId?: boolean
   name?: boolean
+  aliases?: boolean
   linkedinUrl?: boolean
   website?: boolean
   relationship?: boolean
@@ -1155,6 +1199,7 @@ export type TrackedCompanySelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   id?: boolean
   orgId?: boolean
   name?: boolean
+  aliases?: boolean
   linkedinUrl?: boolean
   website?: boolean
   relationship?: boolean
@@ -1175,6 +1220,7 @@ export type TrackedCompanySelectScalar = {
   id?: boolean
   orgId?: boolean
   name?: boolean
+  aliases?: boolean
   linkedinUrl?: boolean
   website?: boolean
   relationship?: boolean
@@ -1189,7 +1235,7 @@ export type TrackedCompanySelectScalar = {
   updatedAt?: boolean
 }
 
-export type TrackedCompanyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "name" | "linkedinUrl" | "website" | "relationship" | "companyId" | "profile" | "profileError" | "researchedAt" | "lastScanAt" | "scanIntervalDays" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["trackedCompany"]>
+export type TrackedCompanyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "name" | "aliases" | "linkedinUrl" | "website" | "relationship" | "companyId" | "profile" | "profileError" | "researchedAt" | "lastScanAt" | "scanIntervalDays" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["trackedCompany"]>
 export type TrackedCompanyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   company?: boolean | Prisma.TrackedCompany$companyArgs<ExtArgs>
@@ -1216,6 +1262,12 @@ export type $TrackedCompanyPayload<ExtArgs extends runtime.Types.Extensions.Inte
     id: string
     orgId: string
     name: string
+    /**
+     * Extra names to match contacts on. A holding company's people write their employer
+     * many ways ("Delek Group", "Delek", "Delek US Holdings"), and matching only the
+     * canonical name silently misses most of them.
+     */
+    aliases: string[]
     linkedinUrl: string | null
     website: string | null
     relationship: $Enums.CompanyRelationship
@@ -1666,6 +1718,7 @@ export interface TrackedCompanyFieldRefs {
   readonly id: Prisma.FieldRef<"TrackedCompany", 'String'>
   readonly orgId: Prisma.FieldRef<"TrackedCompany", 'String'>
   readonly name: Prisma.FieldRef<"TrackedCompany", 'String'>
+  readonly aliases: Prisma.FieldRef<"TrackedCompany", 'String[]'>
   readonly linkedinUrl: Prisma.FieldRef<"TrackedCompany", 'String'>
   readonly website: Prisma.FieldRef<"TrackedCompany", 'String'>
   readonly relationship: Prisma.FieldRef<"TrackedCompany", 'CompanyRelationship'>

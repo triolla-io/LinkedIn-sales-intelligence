@@ -38,6 +38,13 @@ function normalizeKeyPart(s: string): string {
   // but a technology actually named "platform" keeps its single token.
   const stripped = out.replace(TRAILING_GENERIC, "").trim();
   if (stripped) out = stripped;
+  // Singularise, so "Automated Background Checks" and "Automated Background Check
+  // System" land on the same key — the live run stored that launch twice. Words ending
+  // in "ss" ("access") or "is" ("analysis") are left alone.
+  out = out
+    .split(" ")
+    .map((w) => (w.length > 3 && w.endsWith("s") && !/(ss|is|us)$/.test(w) ? w.slice(0, -1) : w))
+    .join(" ");
   return out.replace(/\s+/g, " ").trim();
 }
 

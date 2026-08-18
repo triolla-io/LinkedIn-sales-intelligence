@@ -122,8 +122,12 @@ The rationale is the single most important field: it becomes the body of a short
 - GOOD: names the company's own product or business line and the specific tie — e.g. "מתחבר לביט ולתשלומים בין-אישיים שאתם מפעילים, כי זה מקצר את זמן הסליקה".
 - ONE short sentence, in HEBREW, no emojis.
 
+Also name which of the company's OWN business lines this connects to, copied from the
+profile's business lines verbatim. A diversified holding company must not have one line
+take every slot, so this attribution matters.
+
 Return strict JSON only — no prose, no fences:
-{"fits": boolean, "fitRationale": "one short sentence in Hebrew", "score": 0.0-1.0}`;
+{"fits": boolean, "fitRationale": "one short sentence in Hebrew", "score": 0.0-1.0, "businessLine": "<one of the company's business lines>"}`;
 
 function userPrompt(profile: TechRadarProfile, companyName: string, item: FitItem): string {
   return [
@@ -149,7 +153,13 @@ export function parseFitResponse(text: string): FitVerdict | null {
   const fits = parsed.fits === true;
   // A "fits" verdict with no rationale is unusable — the rationale IS the output.
   if (fits && !rationale) return null;
-  return { fits, fitRationale: rationale, score: clampScore(parsed.score) };
+  const businessLine = String(parsed.businessLine ?? "").trim();
+  return {
+    fits,
+    fitRationale: rationale,
+    score: clampScore(parsed.score),
+    businessLine: businessLine || null,
+  };
 }
 
 export async function judgeFit(

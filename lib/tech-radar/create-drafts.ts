@@ -17,6 +17,17 @@ import type { RecipientCandidate } from "@/lib/tech-radar/types";
 /** Candidate pool size per owner before ranking. */
 const CANDIDATE_CAP = 25;
 
+/**
+ * How many still-open drafts one person may be holding before we stop adding more.
+ *
+ * The 3-per-opportunity cap says nothing about how many OPPORTUNITIES one person can
+ * receive, and the live Delek Group run put five separate messages in front of the CEO
+ * in a single scan. Dismissed and already-sent drafts do not count — this bounds the
+ * queue in front of a person, not their lifetime total.
+ */
+const MAX_OPEN_DRAFTS_PER_CONTACT = 2;
+const OPEN_DRAFT_WINDOW_DAYS = 7;
+
 export async function createDraftsForOpportunity(
   opportunityId: string
 ): Promise<{ created: number; owners: number }> {
@@ -26,7 +37,9 @@ export async function createDraftsForOpportunity(
       id: true,
       fitRationale: true,
       item: { select: { technology: true, title: true, summary: true, vendor: true } },
-      trackedCompany: { select: { id: true, orgId: true, name: true, companyId: true, relationship: true } },
+      trackedCompany: {
+        select: { id: true, orgId: true, name: true, aliases: true, companyId: true, relationship: true },
+      },
     },
   });
 
@@ -36,7 +49,11 @@ export async function createDraftsForOpportunity(
   let created = 0;
   for (const owner of owners) {
     const contacts = await prisma.contact.findMany({
-      where: buildRecipientWhere(owner.id, { companyId: company.companyId, name: company.name }),
+      where: buildRecipientWhere(owner.id, {
+        companyId: company.companyId,
+        name: company.name,
+        aliases: company.aliases,
+      }),
       take: CANDIDATE_CAP,
       select: { id: true, fullName: true, hebrewFirstName: true, currentTitle: true, headline: true },
     });
@@ -62,6 +79,16 @@ export async function createDraftsForOpportunity(
         select: { id: true },
       });
       if (existing) continue;
+
+      // Don't pile messages on one person across separate opportunities.
+      const openDrafts = await prisma.techOpportunityDraft.count({
+        where: {
+          contactId: contact.id,
+          status: { in: ["PENDING_REVIEW", "PREPARING", "PREPARED"] },
+          createdAt: { gte: new Date(Date.now() - OPEN_DRAFT_WINDOW_DAYS * 24 * 60 * 60 * 1000) },
+        },
+      });
+      if (openDrafts >= MAX_OPEN_DRAFTS_PER_CONTACT) continue;
 
       const message = await draftTechMessage({
         contactFullName: contact.fullName,

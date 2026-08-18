@@ -1,6 +1,6 @@
 import { Redis } from "@upstash/redis";
 
-export type NewsProvider = "tavily" | "gnews" | "serper";
+export type NewsProvider = "tavily" | "gnews" | "serper" | "serpapi";
 
 /**
  * Per-provider free-tier windows and the caps we hold ourselves to (below each real
@@ -22,6 +22,9 @@ function capsFor(provider: NewsProvider): { daily?: number; monthly?: number } {
       return { monthly: num(process.env.TAVILY_MONTHLY_CAP, 950) };
     case "serper":
       return { monthly: num(process.env.SERPER_MONTHLY_CAP, 1500) };
+    case "serpapi":
+      // SerpApi bills per search against a plan quota; hold ourselves below it.
+      return { monthly: num(process.env.SERPAPI_MONTHLY_CAP, 1500) };
   }
 }
 

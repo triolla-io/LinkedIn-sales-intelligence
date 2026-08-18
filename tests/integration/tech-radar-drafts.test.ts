@@ -6,6 +6,7 @@ const userFindMany = vi.fn();
 const contactFindMany = vi.fn();
 const draftFindUnique = vi.fn();
 const draftCreate = vi.fn();
+const draftCount = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -18,6 +19,7 @@ vi.mock("@/lib/prisma", () => ({
     techOpportunityDraft: {
       findUnique: (...a: unknown[]) => draftFindUnique(...a),
       create: (...a: unknown[]) => draftCreate(...a),
+      count: (...a: unknown[]) => draftCount(...a),
     },
   },
 }));
@@ -47,8 +49,9 @@ function contact(id: string) {
 beforeEach(() => {
   for (const m of [
     opportunityFindUniqueOrThrow, opportunityUpdate, userFindMany,
-    contactFindMany, draftFindUnique, draftCreate, rankRecipients, draftTechMessage,
+    contactFindMany, draftFindUnique, draftCreate, draftCount, rankRecipients, draftTechMessage,
   ]) m.mockReset();
+  draftCount.mockResolvedValue(0);
   opportunityFindUniqueOrThrow.mockResolvedValue(opportunity());
   draftFindUnique.mockResolvedValue(null);
   draftCreate.mockResolvedValue({ id: "d1" });
@@ -146,6 +149,42 @@ describe("createDraftsForOpportunity", () => {
     await createDraftsForOpportunity("o1");
     expect(draftTechMessage.mock.calls[0][0].relationship).toBe("CUSTOMER");
     expect(draftTechMessage.mock.calls[0][0].hebrewFirstName).toBe("דנה");
+  });
+
+  /**
+   * From the live Delek Group run: the CEO received FIVE messages from a single scan,
+   * because the 3-per-opportunity cap says nothing about how many opportunities one
+   * person may receive. A contact already holding open drafts is skipped.
+   */
+  it("skips a contact who already has enough open drafts", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue([contact("a")]);
+    rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
+    draftCount.mockResolvedValue(2);
+    const out = await createDraftsForOpportunity("o1");
+    expect(out.created).toBe(0);
+    expect(draftTechMessage).not.toHaveBeenCalled();
+  });
+
+  it("counts only that contact's recent, still-open drafts", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue([contact("a")]);
+    rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
+    await createDraftsForOpportunity("o1");
+    const where = draftCount.mock.calls[0][0].where;
+    expect(where.contactId).toBe("a");
+    expect(where.status.in).toEqual(expect.arrayContaining(["PENDING_REVIEW"]));
+    expect(where.createdAt.gte).toBeInstanceOf(Date);
+    // A dismissed draft must not count against the person.
+    expect(where.status.in).not.toContain("DISMISSED");
+  });
+
+  it("still drafts for a contact under the limit", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue([contact("a")]);
+    rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
+    draftCount.mockResolvedValue(1);
+    expect((await createDraftsForOpportunity("o1")).created).toBe(1);
   });
 
   it("creates drafts in PENDING_REVIEW — the system prepares, the human sends", async () => {

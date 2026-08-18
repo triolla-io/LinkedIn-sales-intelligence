@@ -28,8 +28,47 @@ describe("buildRecipientWhere", () => {
 
   it("falls back to a case-insensitive name match when unresolved", () => {
     const where = buildRecipientWhere("owner1", { companyId: null, name: "בנק הפועלים" });
-    expect(where.currentCompany).toEqual({ contains: "בנק הפועלים", mode: "insensitive" });
+    expect(where.OR).toContainEqual({ currentCompany: { contains: "בנק הפועלים", mode: "insensitive" } });
     expect(where.companyId).toBeUndefined();
+  });
+
+  /**
+   * The live Delek Group run matched 1 contact of 7: the Head of Digital and the CIDO
+   * — the two most relevant people for a technology conversation — write their employer
+   * as "Delek" and "Delek US Holdings", so the canonical name alone missed them.
+   */
+  it("matches any of the company's aliases as well as its name", () => {
+    const where = buildRecipientWhere("owner1", {
+      companyId: null,
+      name: "Delek Group",
+      aliases: ["Delek", "Delek US Holdings"],
+    });
+    const clauses = where.OR as { currentCompany: { contains: string } }[];
+    expect(clauses.map((c) => c.currentCompany.contains)).toEqual([
+      "Delek Group",
+      "Delek",
+      "Delek US Holdings",
+    ]);
+  });
+
+  it("ignores blank and duplicate aliases", () => {
+    const where = buildRecipientWhere("owner1", {
+      companyId: null,
+      name: "Delek Group",
+      aliases: ["  ", "Delek", "delek", "Delek Group"],
+    });
+    const clauses = where.OR as { currentCompany: { contains: string } }[];
+    expect(clauses).toHaveLength(2);
+  });
+
+  // The resolved company link is exact, so aliases are not needed alongside it.
+  it("prefers the company link and ignores aliases when it is present", () => {
+    const where = buildRecipientWhere("owner1", {
+      companyId: "co1",
+      name: "Delek Group",
+      aliases: ["Delek"],
+    });
+    expect(where.companyId).toBe("co1");
   });
 
   it("always scopes to the owner and excludes removed contacts", () => {

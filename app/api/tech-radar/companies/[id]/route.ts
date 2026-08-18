@@ -5,6 +5,7 @@ import { inngest } from "@/inngest/client";
 
 type Body =
   | { action: "research" }
+  | { action: "aliases"; aliases: string[] }
   | { action: "relationship"; relationship: "CUSTOMER" | "PROSPECT" }
   | { action: "interval"; scanIntervalDays: number };
 
@@ -38,6 +39,23 @@ export const PATCH = withTenant(async (req: NextRequest, ctx) => {
       where: { id: company.id },
       data: { relationship: body.relationship },
     });
+    return NextResponse.json({ ok: true });
+  }
+
+  if (body.action === "aliases") {
+    if (!Array.isArray(body.aliases)) {
+      return NextResponse.json({ error: "invalid_aliases" }, { status: 400 });
+    }
+    const seen = new Set<string>();
+    const aliases: string[] = [];
+    for (const entry of body.aliases) {
+      if (typeof entry !== "string") continue;
+      const name = entry.trim();
+      if (!name || seen.has(name.toLowerCase())) continue;
+      seen.add(name.toLowerCase());
+      aliases.push(name);
+    }
+    await prisma.trackedCompany.update({ where: { id: company.id }, data: { aliases: aliases.slice(0, 10) } });
     return NextResponse.json({ ok: true });
   }
 

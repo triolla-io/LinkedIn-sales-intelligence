@@ -15,6 +15,7 @@ import type { NewsResult } from "@/lib/news/types";
 import { fetchTavily } from "@/lib/news/tavily";
 import { fetchGnews } from "@/lib/news/gnews";
 import { fetchSerper } from "@/lib/news/serper";
+import { fetchSerpapi } from "@/lib/news/serpapi";
 import { normalizeUrl } from "@/lib/fintech-radar/fetch-topic-news";
 
 /** Recency window for "new technology" — the user's decision: the last month. */
@@ -47,12 +48,16 @@ export type PoolResult = {
  * return [] on error or exhausted budget), so neither does this.
  */
 async function fetchOne(query: string): Promise<NewsResult[]> {
-  const [a, b, c] = await Promise.all([
+  // SerpApi leads: it is the only provider that takes these long, profile-derived
+  // queries as written. Tavily needs plan quota, GNews has to have the query cut
+  // down to a few words, and both are kept as breadth rather than the backbone.
+  const [a, b, c, d] = await Promise.all([
+    fetchSerpapi(query, { days: SCAN_WINDOW_DAYS, max: 10 }),
     fetchTavily(query, { days: SCAN_WINDOW_DAYS, maxResults: 10 }),
     fetchGnews(query, { max: 10 }),
     fetchSerper(query),
   ]);
-  return [...a, ...b, ...c];
+  return [...a, ...b, ...c, ...d];
 }
 
 /**
