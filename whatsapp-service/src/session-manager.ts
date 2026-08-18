@@ -8,7 +8,7 @@ import makeWASocket, {
 import { Boom } from "@hapi/boom";
 import * as fs from "fs";
 import * as path from "path";
-import { backoffDelayMs, shouldReconnect } from "./reconnect-policy.js";
+import { closeKind, retryDelayMs, shouldReconnect } from "./reconnect-policy.js";
 
 const SESSIONS_DIR =
   process.env.WHATSAPP_SESSIONS_DIR ?? path.join(process.cwd(), "whatsapp-sessions");
@@ -223,13 +223,18 @@ async function createSession(userId: string): Promise<void> {
       );
 
       entry.status = "DISCONNECTED";
-      entry.listeners.forEach((l) =>
-        l("disconnected", decision.reconnect ? "reconnecting" : "logged_out")
-      );
+      // Distinguish "the user scanned, we're finishing the link" from "the QR
+      // expired unscanned" so the UI can stop claiming a scan that never
+      // happened.
+      let closedBecause: "pairing" | "reconnecting" | "logged_out" = "logged_out";
+      if (decision.reconnect) {
+        closedBecause = closeKind(code) === "pairing" ? "pairing" : "reconnecting";
+      }
+      entry.listeners.forEach((l) => l("disconnected", closedBecause));
       sessions.delete(userId);
 
       if (decision.reconnect) {
-        const delay = backoffDelayMs(attempt);
+        const delay = retryDelayMs(attempt, establishedSessions.has(userId));
         reconnectAttempts.set(userId, attempt + 1);
         const timer = setTimeout(() => {
           reconnectTimers.delete(userId);

@@ -31,8 +31,12 @@ docs
 .understand-anything
 scratchpad
 
-# Separate service with its own Dockerfile
-whatsapp-service
+# Separate service with its own Dockerfile (Dockerfile.whatsapp). It builds
+# from the repo root, so its sources must stay in the context — exclude only the
+# rebuilt/stateful parts. Its src is a few KB, harmless in the app image.
+whatsapp-service/node_modules
+whatsapp-service/dist
+whatsapp-service/whatsapp-sessions
 
 # Docker meta (not needed inside the image)
 Dockerfile*

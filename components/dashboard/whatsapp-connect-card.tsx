@@ -3,7 +3,16 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import useSWR from "swr";
 
-type WaStatus = "CONNECTED" | "QR_PENDING" | "DISCONNECTED" | "LOADING" | "LINKING" | "SERVICE_UNAVAILABLE";
+type WaStatus =
+  | "CONNECTED"
+  | "QR_PENDING"
+  | "DISCONNECTED"
+  | "LOADING"
+  // The QR was actually scanned and WhatsApp is confirming the link.
+  | "LINKING"
+  // The QR expired unscanned and a fresh one is on its way. NOT a scan.
+  | "REFRESHING"
+  | "SERVICE_UNAVAILABLE";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -54,9 +63,15 @@ export function WhatsAppConnectCard() {
     es.addEventListener("disconnected", (e) => {
       const data = parseEventData(e.data);
       if (data === null) return;
-      if (data === "reconnecting") {
+      if (data === "pairing") {
+        // Scanned for real — WhatsApp closes the socket to finish the link.
         setQr(null);
         setStatus("LINKING");
+      } else if (data === "reconnecting") {
+        // Code expired without being scanned; keep the user waiting for a new
+        // one instead of telling them they scanned it.
+        setQr(null);
+        setStatus("REFRESHING");
       } else {
         es.close();
         esRef.current = null;
@@ -166,7 +181,7 @@ export function WhatsAppConnectCard() {
           </svg>
           <div>
             <p className="text-sm font-medium text-[#111110]">מקשרת התקן…</p>
-            <p className="text-xs text-[#9b9895] mt-0.5">קוד QR סורוק{" - "}ממתינה לאישור WhatsApp</p>
+            <p className="text-xs text-[#9b9895] mt-0.5">הקוד נסרק{" - "}ממתינה לאישור WhatsApp</p>
           </div>
         </div>
       </div>
@@ -197,7 +212,9 @@ export function WhatsAppConnectCard() {
           />
         ) : (
           <div className="size-[220px] rounded-lg border border-[#e5e3df] bg-[#f8f7f5] flex items-center justify-center">
-            <p className="text-xs text-[#9b9895]">ממתינה ל-QR…</p>
+            <p className="text-xs text-[#9b9895]">
+              {status === "REFRESHING" ? "הקוד פג — מרעננת קוד חדש…" : "ממתינה ל-QR…"}
+            </p>
           </div>
         )}
       </div>

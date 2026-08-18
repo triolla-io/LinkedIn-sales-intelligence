@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   backoffDelayMs,
+  retryDelayMs,
   shouldReconnect,
   RECONNECT_BASE_MS,
   RECONNECT_MAX_MS,
@@ -42,6 +43,24 @@ describe("backoffDelayMs", () => {
 
   it("keeps the sustained attempt rate under 1 per minute once capped", () => {
     expect(RECONNECT_MAX_MS).toBeGreaterThanOrEqual(60_000);
+  });
+});
+
+describe("retryDelayMs", () => {
+  it("retries pairing at a constant short delay so the QR refreshes promptly", () => {
+    for (const a of [0, 1, 2, 3, 4]) {
+      expect(retryDelayMs(a, false)).toBe(RECONNECT_BASE_MS);
+    }
+  });
+
+  it("backs off an established session that is retrying unattended", () => {
+    expect(retryDelayMs(0, true)).toBe(RECONNECT_BASE_MS);
+    expect(retryDelayMs(3, true)).toBe(RECONNECT_BASE_MS * 8);
+    expect(retryDelayMs(99, true)).toBe(RECONNECT_MAX_MS);
+  });
+
+  it("never makes an interactive user wait longer than a few seconds", () => {
+    expect(retryDelayMs(MAX_PAIRING_ATTEMPTS, false)).toBeLessThanOrEqual(5_000);
   });
 });
 
