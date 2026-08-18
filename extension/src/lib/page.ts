@@ -116,10 +116,29 @@ interface PageCallOptions {
 }
 
 /**
+ * Inject the declared content script into a tab by hand.
+ *
+ * The manifest already declares it for linkedin.com, but declarative injection can simply
+ * not happen — a tab that loaded while the extension was reloading is the case we hit in
+ * prod: the profile rendered fine and every page call came back "Receiving end does not
+ * exist" until the task timed out. Re-injecting is idempotent enough (the script only
+ * registers a message listener) and turns that dead end into a recovery.
+ *
+ * The file list is read from the manifest so it survives the content-hashed filenames the
+ * bundler produces.
+ */
+async function injectContentScript(tabId: number): Promise<void> {
+  const files = chrome.runtime.getManifest().content_scripts?.[0]?.js ?? [];
+  if (files.length === 0) return;
+  await chrome.scripting.executeScript({ target: { tabId }, files });
+}
+
+/**
  * Send one typed request to the content script and return its result.
  *
  * Retries while the receiving end is missing: content scripts inject at document_idle, so
- * a call issued right after a navigation can land before the script exists. Anything else
+ * a call issued right after a navigation can land before the script exists. If it is still
+ * missing after a grace period, inject it by hand once and keep trying. Anything else
  * (an error thrown inside the page routine) is surfaced immediately.
  */
 export async function pageCall<K extends PageRequest["kind"]>(
@@ -128,8 +147,17 @@ export async function pageCall<K extends PageRequest["kind"]>(
   { retries = 40, retryDelayMs = 250 }: PageCallOptions = {},
 ): Promise<PageResults[K]> {
   let lastError = "content_script_unreachable";
+  let injected = false;
   for (let attempt = 0; attempt <= retries; attempt++) {
     if (attempt > 0) await sleep(retryDelayMs);
+    // ~2s of ordinary document_idle grace, then stop waiting for an injection that may
+    // never come and force it.
+    if (!injected && attempt >= 8) {
+      injected = true;
+      await injectContentScript(tabId).catch((e) => {
+        lastError = `inject_failed: ${String((e as Error)?.message ?? e)}`;
+      });
+    }
     let response: PageResponse<K> | undefined;
     try {
       response = (await chrome.tabs.sendMessage(tabId, request)) as PageResponse<K>;
