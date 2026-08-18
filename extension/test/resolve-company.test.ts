@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
-  EXTRACT_COMPANY_FN_SOURCE,
-  TOP_COMPANY_RESULT_FN_SOURCE,
+  extractCompany,
+  topCompanyResults,
   companySlugFromUrl,
   companySearchUrl,
 } from "../src/lib/resolve-company";
@@ -27,13 +27,10 @@ describe("companySearchUrl", () => {
   });
 });
 
-describe("EXTRACT_COMPANY_FN_SOURCE (evaluated in jsdom)", () => {
+describe("extractCompany (in jsdom)", () => {
   it("extracts the numeric id from urn:li:fsd_company", () => {
     document.body.innerHTML = `<div data-x="urn:li:fsd_company:1441,xxx"></div><h1>Acme Corp</h1>`;
-    const out = eval(EXTRACT_COMPANY_FN_SOURCE) as {
-      companyId: string | null;
-      resolvedName: string | null;
-    };
+    const out = extractCompany();
     expect(out.companyId).toBe("1441");
     expect(out.resolvedName).toBe("Acme Corp");
   });
@@ -41,12 +38,12 @@ describe("EXTRACT_COMPANY_FN_SOURCE (evaluated in jsdom)", () => {
   it("falls back to voyagerCompanyId and companyId JSON patterns", () => {
     document.body.innerHTML = `<script type="application/json">{"voyagerCompanyId":9021}</script>`;
     expect(
-      (eval(EXTRACT_COMPANY_FN_SOURCE) as { companyId: string | null })
+      extractCompany()
         .companyId,
     ).toBe("9021");
     document.body.innerHTML = `<code>{"companyId":77}</code>`;
     expect(
-      (eval(EXTRACT_COMPANY_FN_SOURCE) as { companyId: string | null })
+      extractCompany()
         .companyId,
     ).toBe("77");
   });
@@ -54,13 +51,13 @@ describe("EXTRACT_COMPANY_FN_SOURCE (evaluated in jsdom)", () => {
   it("returns null companyId when no pattern matches", () => {
     document.body.innerHTML = `<p>nothing here</p>`;
     expect(
-      (eval(EXTRACT_COMPANY_FN_SOURCE) as { companyId: string | null })
+      extractCompany()
         .companyId,
     ).toBeNull();
   });
 });
 
-describe("TOP_COMPANY_RESULT_FN_SOURCE (evaluated in jsdom)", () => {
+describe("topCompanyResults (in jsdom)", () => {
   it("returns up to 5 distinct /company/ results in order", () => {
     document.body.innerHTML = `
       <ul>
@@ -76,10 +73,7 @@ describe("TOP_COMPANY_RESULT_FN_SOURCE (evaluated in jsdom)", () => {
           <a href="https://www.linkedin.com/company/acme-corp/">Acme Corp dup</a>
         </li>
       </ul>`;
-    const out = eval(TOP_COMPANY_RESULT_FN_SOURCE) as Array<{
-      companyUrl: string;
-      name: string | null;
-    }>;
+    const out = topCompanyResults();
     expect(out.map((c) => c.companyUrl)).toEqual([
       "https://www.linkedin.com/company/acme-corp/",
       "https://www.linkedin.com/company/beta-inc/",
@@ -89,7 +83,7 @@ describe("TOP_COMPANY_RESULT_FN_SOURCE (evaluated in jsdom)", () => {
 
   it("returns an empty array when there are no company links", () => {
     document.body.innerHTML = `<a href="https://www.linkedin.com/in/person">person</a>`;
-    expect(eval(TOP_COMPANY_RESULT_FN_SOURCE)).toEqual([]);
+    expect(topCompanyResults()).toEqual([]);
   });
 
   it("caps the result list at 5 candidates", () => {
@@ -102,7 +96,7 @@ describe("TOP_COMPANY_RESULT_FN_SOURCE (evaluated in jsdom)", () => {
         )
         .join("") +
       "</ul>";
-    const out = eval(TOP_COMPANY_RESULT_FN_SOURCE) as Array<{ companyUrl: string }>;
+    const out = topCompanyResults();
     expect(out).toHaveLength(5);
     expect(out[4].companyUrl).toBe("https://www.linkedin.com/company/c5/");
   });

@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getServedExtensionVersion } from "@/lib/extension/built-version";
 import { ExtensionClient } from "./extension-client";
 
 export default async function ExtensionSettingsPage() {
@@ -11,6 +12,7 @@ export default async function ExtensionSettingsPage() {
   });
   return (
     <ExtensionClient
+      servedVersion={getServedExtensionVersion()}
       initialSession={
         data
           ? {

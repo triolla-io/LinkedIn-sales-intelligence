@@ -1,50 +1,55 @@
 /**
- * RESOLVE_COMPANY page-context IIFEs. Kept as strings so they can be evaluated via
- * CDP Runtime.evaluate (returnByValue) — same mechanism as SCRAPE_FN_SOURCE — and
- * unit-tested by eval() in jsdom.
+ * RESOLVE_COMPANY page-context routines. These run inside the content script (see
+ * messages.ts for why nothing goes through chrome.debugger any more) and are plain
+ * functions, so unit tests call them directly against jsdom.
  */
 
 /** Runs on a company page. Extracts the numeric company id + canonical name. */
-export const EXTRACT_COMPANY_FN_SOURCE = `(() => {
+export function extractCompany(): {
+  companyId: string | null;
+  resolvedName: string | null;
+  url: string;
+} {
   const html = document.documentElement.innerHTML;
   const patterns = [
-    /urn:li:fsd_company:(\\d+)/,
-    /"voyagerCompanyId"\\s*:\\s*(\\d+)/,
-    /voyagerCompanyId=(\\d+)/,
-    /"companyId"\\s*:\\s*(\\d+)/,
+    /urn:li:fsd_company:(\d+)/,
+    /"voyagerCompanyId"\s*:\s*(\d+)/,
+    /voyagerCompanyId=(\d+)/,
+    /"companyId"\s*:\s*(\d+)/,
   ];
-  let companyId = null;
+  let companyId: string | null = null;
   for (const p of patterns) {
     const m = html.match(p);
-    if (m) { companyId = m[1]; break; }
+    if (m) {
+      companyId = m[1];
+      break;
+    }
   }
-  const h1 = document.querySelector('h1');
+  const h1 = document.querySelector("h1");
   const og = document.querySelector('meta[property="og:title"]');
   const resolvedName =
-    (h1 && h1.textContent && h1.textContent.trim()) ||
-    (og && og.getAttribute('content')) ||
-    null;
-  return { companyId, resolvedName, url: location.href.split('?')[0] };
-})()`;
+    (h1 && h1.textContent && h1.textContent.trim()) || og?.getAttribute("content") || null;
+  return { companyId, resolvedName, url: location.href.split("?")[0] };
+}
 
 /** Runs on the companies search results page. Returns up to 5 distinct /company/ results in order. */
-export const TOP_COMPANY_RESULT_FN_SOURCE = `(() => {
-  const links = Array.from(document.querySelectorAll('a[href*="/company/"]'));
-  const seen = new Set();
-  const out = [];
+export function topCompanyResults(): Array<{ companyUrl: string; name: string | null }> {
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('a[href*="/company/"]'));
+  const seen = new Set<string>();
+  const out: Array<{ companyUrl: string; name: string | null }> = [];
   for (const a of links) {
-    const url = a.href.split('?')[0];
-    if (!/linkedin\\.com\\/company\\/[^/?#]+\\/?$/.test(url)) continue;
+    const url = a.href.split("?")[0];
+    if (!/linkedin\.com\/company\/[^/?#]+\/?$/.test(url)) continue;
     if (seen.has(url)) continue;
     seen.add(url);
-    const card = a.closest('li') || a.parentElement;
-    const text = (card ? card.textContent : a.textContent) || '';
-    const name = text.split('\\n').map((s) => s.trim()).filter(Boolean)[0] || null;
+    const card = a.closest("li") ?? a.parentElement;
+    const text = (card ? card.textContent : a.textContent) ?? "";
+    const name = text.split("\n").map((s) => s.trim()).filter(Boolean)[0] || null;
     out.push({ companyUrl: url, name });
     if (out.length >= 5) break;
   }
   return out;
-})()`;
+}
 
 export function companySlugFromUrl(url: string): string | null {
   const m = url.split("?")[0].match(/linkedin\.com\/company\/([^/?#]+)/i);
