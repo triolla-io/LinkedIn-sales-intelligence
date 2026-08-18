@@ -1,4 +1,16 @@
-const KEYS = { token: "tk", paused: "pd", apiBase: "ab" } as const;
+const KEYS = { token: "tk", paused: "pd", apiBase: "ab", lastFailure: "lf" } as const;
+
+/**
+ * The last task failure, kept locally so it is readable without the service-worker
+ * console (which dies with the worker) and without a dashboard deploy — a failed SEND has
+ * nowhere in the UI that shows its reason.
+ */
+export type LastFailure = {
+  at: string;
+  kind: string;
+  errorCode: string;
+  errorMessage: string;
+};
 
 export async function getToken(): Promise<string | null> {
   const v = await chrome.storage.local.get(KEYS.token);
@@ -23,4 +35,12 @@ export async function isPaused(): Promise<boolean> {
 }
 export async function setPaused(p: boolean) {
   await chrome.storage.local.set({ [KEYS.paused]: p });
+}
+
+export async function getLastFailure(): Promise<LastFailure | null> {
+  const v = await chrome.storage.local.get(KEYS.lastFailure);
+  return (v[KEYS.lastFailure] as LastFailure) ?? null;
+}
+export async function setLastFailure(f: LastFailure) {
+  await chrome.storage.local.set({ [KEYS.lastFailure]: f });
 }

@@ -1,4 +1,4 @@
-import { getToken, isPaused } from "./lib/storage";
+import { getToken, isPaused, setLastFailure } from "./lib/storage";
 import { pollTask, reportResult, heartbeat } from "./lib/api";
 import {
   closeAutomationTab,
@@ -22,7 +22,7 @@ import { scrapeProfile } from "./lib/scrape-profile";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.6.2";
+const VERSION = "0.6.3";
 
 // Hard ceiling for a single task. Real tasks finish in seconds; the slowest legitimate
 // path (compose poll 15s + navigation waits 30s + sleeps) stays well under a minute.
@@ -167,10 +167,19 @@ async function runOneCycle(): Promise<boolean> {
     const screenshot = (err as Error & { screenshot?: string }).screenshot;
     const buttons = (err as Error & { buttons?: unknown }).buttons;
     const diag = (err as Error & { diag?: unknown }).diag;
+    const errorMessage = `${(err as Error).message} | trail: ${formatTrail()}`;
+    // Keep it locally too: the popup shows it with a copy button, which is the only way to
+    // read a failed send's reason without the service-worker console.
+    await setLastFailure({
+      at: new Date().toISOString(),
+      kind: task.kind,
+      errorCode,
+      errorMessage,
+    }).catch(() => {});
     await reportResult(task.id, {
       ok: false,
       errorCode,
-      errorMessage: `${(err as Error).message} | trail: ${formatTrail()}`,
+      errorMessage,
       result: { debugScreenshot: screenshot, buttons, diag, trail },
     });
   } finally {

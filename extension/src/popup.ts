@@ -1,4 +1,4 @@
-import { clearToken, getApiBase, getToken, setApiBase, setToken, isPaused, setPaused } from "./lib/storage";
+import { clearToken, getApiBase, getLastFailure, getToken, setApiBase, setToken, isPaused, setPaused } from "./lib/storage";
 import { validateToken } from "./lib/api";
 
 async function render() {
@@ -7,6 +7,8 @@ async function render() {
   const storedBase = await getApiBase();
   const apiBaseInput = document.getElementById("api-base") as HTMLInputElement;
   if (apiBaseInput && !apiBaseInput.value) apiBaseInput.value = storedBase;
+
+  await renderLastFailure();
 
   const card = document.getElementById("status-card")!;
   const label = document.getElementById("status-label")!;
@@ -49,6 +51,32 @@ async function render() {
     pauseBtn.textContent = "השהה";
   }
 }
+
+/** Show the last failure (with a copy button) so it can be pasted somewhere useful. */
+async function renderLastFailure(): Promise<void> {
+  const failure = await getLastFailure();
+  const cardEl = document.getElementById("failure-card")!;
+  if (!failure) {
+    cardEl.style.display = "none";
+    return;
+  }
+  const when = new Date(failure.at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+  document.getElementById("failure-title")!.textContent =
+    `כשל אחרון · ${failure.kind} · ${when} · ${failure.errorCode}`;
+  document.getElementById("failure-body")!.textContent = failure.errorMessage;
+  cardEl.style.display = "";
+}
+
+document.getElementById("copy-failure-btn")!.addEventListener("click", async () => {
+  const failure = await getLastFailure();
+  if (!failure) return;
+  const btn = document.getElementById("copy-failure-btn")!;
+  await navigator.clipboard.writeText(
+    `[${failure.kind} ${failure.errorCode} @ ${failure.at}] ${failure.errorMessage}`,
+  );
+  btn.textContent = "הועתק";
+  setTimeout(() => { btn.textContent = "העתק"; }, 1500);
+});
 
 document.getElementById("connect-btn")!.addEventListener("click", async () => {
   const tokenInput = document.getElementById("token") as HTMLInputElement;

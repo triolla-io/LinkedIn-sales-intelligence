@@ -184,6 +184,15 @@
     }
     .btn-action:hover { color: var(--text); border-color: #3a3d4a; }
     .btn-action.danger:hover { color: var(--red); border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); }
+    .failure-card { margin-top: 12px; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.06); }
+    .failure-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .failure-title { font-size: 12px; font-weight: 600; color: var(--red); }
+    .btn-copy { font-size: 11px; padding: 3px 8px; border-radius: 6px; cursor: pointer;
+      color: var(--text); background: transparent; border: 1px solid #3a3d4a; }
+    .failure-body { margin: 6px 0 0; font-size: 11px; line-height: 1.5; direction: ltr;
+      text-align: left; word-break: break-word; max-height: 140px; overflow-y: auto;
+      color: var(--text); opacity: 0.85; font-family: ui-monospace, monospace; }
   </style>
 </head>
 <body>
@@ -211,6 +220,17 @@
     <input class="token-input" id="api-base" type="text" placeholder="https://sales.triolla.io" autocomplete="off" />
     <button class="btn-connect" id="connect-btn">התחברות</button>
     <p class="help-text">מקבלים token ב: הגדרות → Extension</p>
+  </div>
+
+  <!-- Last task failure, kept in chrome.storage by the background worker. This is the only
+       place a failed SEND's reason is readable: the service-worker console dies with the
+       worker, and the dashboard has no UI for it. -->
+  <div class="failure-card" id="failure-card" style="display:none">
+    <div class="failure-head">
+      <span class="failure-title" id="failure-title">כשל אחרון</span>
+      <button class="btn-copy" id="copy-failure-btn">העתק</button>
+    </div>
+    <p class="failure-body" id="failure-body"></p>
   </div>
 
   <div class="actions" id="actions" style="display:none">
