@@ -35,6 +35,9 @@ export const ERROR_CODE_LABELS: Record<string, string> = {
   tab_load_timeout: "טעינת הדף נכשלה (זמן קצוב)",
   tab_closed: "הטאב נסגר לפני סיום הפעולה",
   tab_create_failed: "פתיחת טאב חדש נכשלה",
+  compose_insert_failed: "הקלדת ההודעה בתיבת השליחה נכשלה",
+  send_not_confirmed: "נלחץ 'שלח' אבל ההודעה לא נשלחה בפועל",
+  page_unreachable: "התוסף לא הצליח לתקשר עם דף הלינקדאין",
   scrape_failed: "קריאת נתוני הפרופיל נכשלה",
   scrape_returned_null: "קריאת נתוני הפרופיל נכשלה",
   bad_payload: "שגיאה פנימית בנתוני המשימה",
@@ -71,6 +74,8 @@ export const ERROR_CODE_HINTS: Record<string, string> = {
   tab_closed: "הטאב של לינקדאין נסגר (ידנית או ע\"י הדפדפן) לפני שהפעולה הסתיימה.",
   tab_create_failed: "הדפדפן לא אפשר לפתוח טאב חדש — ודאו שכרום פתוח ושהתוסף פעיל.",
   not_messageable: "לינקדאין לא מאפשרת לשלוח הודעה לאיש קשר זה (ייתכן שנדרש InMail).",
+  send_not_confirmed: "תיבת ההודעה לא התרוקנה אחרי הלחיצה — ההודעה לא נשלחה, המשימה תנסה שוב. אין כאן שליחה כפולה.",
+  page_unreachable: "לרוב תוסף אחר (HubSpot / Datanyze) או ניווט של לינקדאין החליפו את הדף באמצע הפעולה.",
   unsupported_kind: "עדכנו את התוסף לגרסה האחרונה כדי שהפעולה תיתמך.",
 };
 
@@ -83,8 +88,11 @@ export function humanizeErrorDetail(errorMessage: string | null): string | null 
   if (!errorMessage) return null;
   if (errorMessage.startsWith("send_dialog_not_found"))
     return "נלחץ 'התחבר' אבל חלון ההזמנה לא נפתח";
+  // Historical rows only — the extension stopped using chrome.debugger in 0.6.0.
   if (errorMessage.startsWith("Debugger is not attached"))
     return "החיבור של התוסף לטאב נותק באמצע הפעולה";
+  if (errorMessage.startsWith("compose_box_not_cleared_after_send"))
+    return "תיבת ההודעה נשארה מלאה אחרי הלחיצה — לא בוצעה שליחה";
   if (errorMessage.startsWith("connect_button_not_found")) return null; // the label already says it
   return null;
 }

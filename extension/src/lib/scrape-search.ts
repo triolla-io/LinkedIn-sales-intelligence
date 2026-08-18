@@ -1,7 +1,7 @@
 /**
  * People-search result scraping. The parsing is a pure, unit-tested function
- * (`parseCardFields`); `SCRAPE_FN_SOURCE` embeds it via `.toString()` and adds only the
- * DOM traversal (which relies on `innerText` and therefore runs in the real browser).
+ * (`parseCardFields`); `scrapeSearchPage` adds only the DOM traversal (which relies on
+ * `innerText` and therefore runs in the real browser, inside the content script).
  *
  * Locale-agnostic: strips bidi/RTL control marks, splits the name on the "•" degree
  * separator, and recognizes Hebrew degree words + action labels. English input yields the
@@ -108,45 +108,76 @@ export function parseCardFields(
   return { name, headline, title, company, location, degree, cardAction };
 }
 
-export const SCRAPE_FN_SOURCE = `(() => {
-  const parseCardFields = ${parseCardFields.toString()};
-  const section = document.querySelector('main')
-    || document.querySelector('section[aria-label="Primary content"]');
+export type ScrapedCard = {
+  urn: string;
+  profileUrl: string;
+  name: string;
+  /** Raw card headline — the server's role-family filter matches on this, so it must ship. */
+  headline: string | null;
+  title: string | null;
+  company: string | null;
+  location: string | null;
+  degree: string | null;
+  cardAction: string | null; // "connect" | "follow" | "following" | "pending" | "message"
+};
+
+export type ScrapeResult = {
+  candidates: ScrapedCard[];
+  hasNextPage: boolean;
+  debug?: Record<string, unknown>;
+};
+
+/** Page-context: read the current people-search results page. */
+export function scrapeSearchPage(): ScrapeResult {
+  const bodyText = document.body?.innerText ?? "";
+  const baseDebug = {
+    title: document.title,
+    href: location.href,
+    vis: document.visibilityState,
+    focus: document.hasFocus(),
+    inLinksDoc: document.querySelectorAll('a[href*="/in/"]').length,
+    bodyLen: bodyText.length,
+    noResults: /no results found|לא נמצאו תוצאות/i.test(bodyText),
+    snippet: bodyText.slice(0, 240),
+  };
+
+  const section =
+    document.querySelector("main") ??
+    document.querySelector('section[aria-label="Primary content"]');
   if (!section) {
-    const b = (document.body && document.body.innerText) || '';
-    return { candidates: [], hasNextPage: false, debug: {
-      title: document.title, href: location.href, vis: document.visibilityState,
-      focus: document.hasFocus(), hasSection: false,
-      inLinksDoc: document.querySelectorAll('a[href*="/in/"]').length,
-      bodyLen: b.length, noResults: /no results found|לא נמצאו תוצאות/i.test(b),
-      snippet: b.slice(0, 240),
-    } };
+    return { candidates: [], hasNextPage: false, debug: { ...baseDebug, hasSection: false } };
   }
-  const allLinks = Array.from(section.querySelectorAll('a[href*="/in/"]'));
-  const seen = new Set();
-  const out = [];
+
+  const allLinks = Array.from(
+    section.querySelectorAll<HTMLAnchorElement>('a[href*="/in/"]'),
+  );
+  const seen = new Set<string>();
+  const out: ScrapedCard[] = [];
   for (const link of allLinks) {
-    const profileUrl = link.href.split('?')[0];
-    if (seen.has(profileUrl) || !profileUrl.match(/linkedin\\.com\\/in\\/[^\\/]+\\/?$/)) continue;
+    const profileUrl = link.href.split("?")[0];
+    if (seen.has(profileUrl) || !/linkedin\.com\/in\/[^/]+\/?$/.test(profileUrl)) continue;
     seen.add(profileUrl);
-    const slug = profileUrl.replace(/\\/$/, '').split('/in/')[1] || '';
-    const urn = 'urn:li:member:' + slug;
-    const card = link.closest('li') || link.parentElement?.parentElement?.parentElement || link.parentElement;
-    const nameRaw = (link.innerText || '').split('\\n')[0];
-    const rawLines = (card ? card.innerText : '').split('\\n');
+    const slug = profileUrl.replace(/\/$/, "").split("/in/")[1] || "";
+    const urn = `urn:li:member:${slug}`;
+    const card =
+      link.closest("li") ??
+      link.parentElement?.parentElement?.parentElement ??
+      link.parentElement;
+    const nameRaw = (link.innerText || "").split("\n")[0];
+    const rawLines = ((card as HTMLElement | null)?.innerText ?? "").split("\n");
     const fields = parseCardFields(nameRaw, rawLines);
     if (!fields) continue;
     out.push({ urn, profileUrl, ...fields });
   }
-  const nextBtns = Array.from(document.querySelectorAll('button')).filter(b => b.innerText.trim() === 'Next' || b.innerText.trim() === 'הבא');
-  const next = nextBtns[0];
+
+  const next = Array.from(document.querySelectorAll("button")).find(
+    (b) => b.innerText.trim() === "Next" || b.innerText.trim() === "הבא",
+  );
   const hasNextPage = !!next && !next.disabled;
-  const _b = (document.body && document.body.innerText) || '';
-  return { candidates: out, hasNextPage, debug: {
-    title: document.title, href: location.href, vis: document.visibilityState,
-    focus: document.hasFocus(), hasSection: true, inLinksSection: allLinks.length,
-    inLinksDoc: document.querySelectorAll('a[href*="/in/"]').length,
-    bodyLen: _b.length, noResults: /no results found|לא נמצאו תוצאות/i.test(_b),
-    snippet: _b.slice(0, 240),
-  } };
-})()`;
+
+  return {
+    candidates: out,
+    hasNextPage,
+    debug: { ...baseDebug, hasSection: true, inLinksSection: allLinks.length },
+  };
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pickCloseButton, type ScannedButton } from "../src/lib/cdp";
+import { pickCloseButton, type ScannedButton } from "../src/lib/buttons";
 
 // A small icon button in the top-right of the screen that is NOT inside any modal —
 // e.g. a LinkedIn global-nav item like "Learning" / "For Business". The old geometric
