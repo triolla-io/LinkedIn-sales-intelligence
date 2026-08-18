@@ -269,6 +269,7 @@ export type UserWhereInput = {
   connectionRequests?: Prisma.ConnectionRequestListRelationFilter
   mcpTokens?: Prisma.McpAccessTokenListRelationFilter
   companySignalDrafts?: Prisma.CompanySignalDraftListRelationFilter
+  enrichmentSpends?: Prisma.UserEnrichmentSpendListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -308,6 +309,7 @@ export type UserOrderByWithRelationInput = {
   connectionRequests?: Prisma.ConnectionRequestOrderByRelationAggregateInput
   mcpTokens?: Prisma.McpAccessTokenOrderByRelationAggregateInput
   companySignalDrafts?: Prisma.CompanySignalDraftOrderByRelationAggregateInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -350,6 +352,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   connectionRequests?: Prisma.ConnectionRequestListRelationFilter
   mcpTokens?: Prisma.McpAccessTokenListRelationFilter
   companySignalDrafts?: Prisma.CompanySignalDraftListRelationFilter
+  enrichmentSpends?: Prisma.UserEnrichmentSpendListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -426,6 +429,7 @@ export type UserCreateInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -464,6 +468,7 @@ export type UserUncheckedCreateInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -502,6 +507,7 @@ export type UserUpdateInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -540,6 +546,7 @@ export type UserUncheckedUpdateInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -849,6 +856,20 @@ export type UserUpdateOneRequiredWithoutMcpTokensNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutMcpTokensInput, Prisma.UserUpdateWithoutMcpTokensInput>, Prisma.UserUncheckedUpdateWithoutMcpTokensInput>
 }
 
+export type UserCreateNestedOneWithoutEnrichmentSpendsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEnrichmentSpendsInput, Prisma.UserUncheckedCreateWithoutEnrichmentSpendsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEnrichmentSpendsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutEnrichmentSpendsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEnrichmentSpendsInput, Prisma.UserUncheckedCreateWithoutEnrichmentSpendsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEnrichmentSpendsInput
+  upsert?: Prisma.UserUpsertWithoutEnrichmentSpendsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEnrichmentSpendsInput, Prisma.UserUpdateWithoutEnrichmentSpendsInput>, Prisma.UserUncheckedUpdateWithoutEnrichmentSpendsInput>
+}
+
 export type UserCreateNestedOneWithoutLinkedinSessionInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutLinkedinSessionInput, Prisma.UserUncheckedCreateWithoutLinkedinSessionInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutLinkedinSessionInput
@@ -1052,6 +1073,7 @@ export type UserCreateWithoutAccountsInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -1089,6 +1111,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -1142,6 +1165,7 @@ export type UserUpdateWithoutAccountsInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -1179,6 +1203,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -1216,6 +1241,7 @@ export type UserCreateWithoutSessionsInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -1253,6 +1279,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -1306,6 +1333,7 @@ export type UserUpdateWithoutSessionsInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -1343,6 +1371,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOrgInput = {
@@ -1380,6 +1409,7 @@ export type UserCreateWithoutOrgInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOrgInput = {
@@ -1417,6 +1447,7 @@ export type UserUncheckedCreateWithoutOrgInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOrgInput = {
@@ -1499,6 +1530,7 @@ export type UserCreateWithoutContactsInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContactsInput = {
@@ -1536,6 +1568,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContactsInput = {
@@ -1589,6 +1622,7 @@ export type UserUpdateWithoutContactsInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactsInput = {
@@ -1626,6 +1660,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTemplatesInput = {
@@ -1663,6 +1698,7 @@ export type UserCreateWithoutTemplatesInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTemplatesInput = {
@@ -1700,6 +1736,7 @@ export type UserUncheckedCreateWithoutTemplatesInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTemplatesInput = {
@@ -1753,6 +1790,7 @@ export type UserUpdateWithoutTemplatesInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTemplatesInput = {
@@ -1790,6 +1828,7 @@ export type UserUncheckedUpdateWithoutTemplatesInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSentMessagesInput = {
@@ -1827,6 +1866,7 @@ export type UserCreateWithoutSentMessagesInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSentMessagesInput = {
@@ -1864,6 +1904,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSentMessagesInput = {
@@ -1906,6 +1947,7 @@ export type UserCreateWithoutActedMessagesInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutActedMessagesInput = {
@@ -1943,6 +1985,7 @@ export type UserUncheckedCreateWithoutActedMessagesInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutActedMessagesInput = {
@@ -1996,6 +2039,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentMessagesInput = {
@@ -2033,6 +2077,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutActedMessagesInput = {
@@ -2081,6 +2126,7 @@ export type UserUpdateWithoutActedMessagesInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActedMessagesInput = {
@@ -2118,6 +2164,7 @@ export type UserUncheckedUpdateWithoutActedMessagesInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSavedViewsInput = {
@@ -2155,6 +2202,7 @@ export type UserCreateWithoutSavedViewsInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSavedViewsInput = {
@@ -2192,6 +2240,7 @@ export type UserUncheckedCreateWithoutSavedViewsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSavedViewsInput = {
@@ -2245,6 +2294,7 @@ export type UserUpdateWithoutSavedViewsInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSavedViewsInput = {
@@ -2282,6 +2332,7 @@ export type UserUncheckedUpdateWithoutSavedViewsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAuditActedInput = {
@@ -2319,6 +2370,7 @@ export type UserCreateWithoutAuditActedInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAuditActedInput = {
@@ -2356,6 +2408,7 @@ export type UserUncheckedCreateWithoutAuditActedInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuditActedInput = {
@@ -2398,6 +2451,7 @@ export type UserCreateWithoutAuditTargetedInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAuditTargetedInput = {
@@ -2435,6 +2489,7 @@ export type UserUncheckedCreateWithoutAuditTargetedInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuditTargetedInput = {
@@ -2488,6 +2543,7 @@ export type UserUpdateWithoutAuditActedInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditActedInput = {
@@ -2525,6 +2581,7 @@ export type UserUncheckedUpdateWithoutAuditActedInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutAuditTargetedInput = {
@@ -2573,6 +2630,7 @@ export type UserUpdateWithoutAuditTargetedInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditTargetedInput = {
@@ -2610,6 +2668,7 @@ export type UserUncheckedUpdateWithoutAuditTargetedInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMcpTokensInput = {
@@ -2647,6 +2706,7 @@ export type UserCreateWithoutMcpTokensInput = {
   prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMcpTokensInput = {
@@ -2684,6 +2744,7 @@ export type UserUncheckedCreateWithoutMcpTokensInput = {
   prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMcpTokensInput = {
@@ -2737,6 +2798,7 @@ export type UserUpdateWithoutMcpTokensInput = {
   prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMcpTokensInput = {
@@ -2773,6 +2835,175 @@ export type UserUncheckedUpdateWithoutMcpTokensInput = {
   extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
   prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
+  companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutEnrichmentSpendsInput = {
+  id?: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  emailSignature?: string | null
+  routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
+  createdAt?: Date | string
+  org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
+  importJobs?: Prisma.ImportJobCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
+  mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
+  companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+}
+
+export type UserUncheckedCreateWithoutEnrichmentSpendsInput = {
+  id?: string
+  orgId: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  emailSignature?: string | null
+  routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
+  createdAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewUncheckedCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
+  importJobs?: Prisma.ImportJobUncheckedCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
+  mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
+  companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+export type UserCreateOrConnectWithoutEnrichmentSpendsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutEnrichmentSpendsInput, Prisma.UserUncheckedCreateWithoutEnrichmentSpendsInput>
+}
+
+export type UserUpsertWithoutEnrichmentSpendsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutEnrichmentSpendsInput, Prisma.UserUncheckedUpdateWithoutEnrichmentSpendsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutEnrichmentSpendsInput, Prisma.UserUncheckedCreateWithoutEnrichmentSpendsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutEnrichmentSpendsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutEnrichmentSpendsInput, Prisma.UserUncheckedUpdateWithoutEnrichmentSpendsInput>
+}
+
+export type UserUpdateWithoutEnrichmentSpendsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
+  importJobs?: Prisma.ImportJobUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
+  mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
+  companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutEnrichmentSpendsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUncheckedUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
+  importJobs?: Prisma.ImportJobUncheckedUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
+  mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
@@ -2811,6 +3042,7 @@ export type UserCreateWithoutLinkedinSessionInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutLinkedinSessionInput = {
@@ -2848,6 +3080,7 @@ export type UserUncheckedCreateWithoutLinkedinSessionInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutLinkedinSessionInput = {
@@ -2901,6 +3134,7 @@ export type UserUpdateWithoutLinkedinSessionInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
@@ -2938,6 +3172,7 @@ export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCampaignsInput = {
@@ -2975,6 +3210,7 @@ export type UserCreateWithoutCampaignsInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCampaignsInput = {
@@ -3012,6 +3248,7 @@ export type UserUncheckedCreateWithoutCampaignsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCampaignsInput = {
@@ -3065,6 +3302,7 @@ export type UserUpdateWithoutCampaignsInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCampaignsInput = {
@@ -3102,6 +3340,7 @@ export type UserUncheckedUpdateWithoutCampaignsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutImportsInput = {
@@ -3139,6 +3378,7 @@ export type UserCreateWithoutImportsInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutImportsInput = {
@@ -3176,6 +3416,7 @@ export type UserUncheckedCreateWithoutImportsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutImportsInput = {
@@ -3229,6 +3470,7 @@ export type UserUpdateWithoutImportsInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutImportsInput = {
@@ -3266,6 +3508,7 @@ export type UserUncheckedUpdateWithoutImportsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutImportJobsInput = {
@@ -3303,6 +3546,7 @@ export type UserCreateWithoutImportJobsInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutImportJobsInput = {
@@ -3340,6 +3584,7 @@ export type UserUncheckedCreateWithoutImportJobsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutImportJobsInput = {
@@ -3393,6 +3638,7 @@ export type UserUpdateWithoutImportJobsInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutImportJobsInput = {
@@ -3430,6 +3676,7 @@ export type UserUncheckedUpdateWithoutImportJobsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutContactListsInput = {
@@ -3467,6 +3714,7 @@ export type UserCreateWithoutContactListsInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContactListsInput = {
@@ -3504,6 +3752,7 @@ export type UserUncheckedCreateWithoutContactListsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContactListsInput = {
@@ -3557,6 +3806,7 @@ export type UserUpdateWithoutContactListsInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactListsInput = {
@@ -3594,6 +3844,7 @@ export type UserUncheckedUpdateWithoutContactListsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSequencesInput = {
@@ -3631,6 +3882,7 @@ export type UserCreateWithoutSequencesInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSequencesInput = {
@@ -3668,6 +3920,7 @@ export type UserUncheckedCreateWithoutSequencesInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSequencesInput = {
@@ -3721,6 +3974,7 @@ export type UserUpdateWithoutSequencesInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSequencesInput = {
@@ -3758,6 +4012,7 @@ export type UserUncheckedUpdateWithoutSequencesInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutExtensionTasksInput = {
@@ -3795,6 +4050,7 @@ export type UserCreateWithoutExtensionTasksInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutExtensionTasksInput = {
@@ -3832,6 +4088,7 @@ export type UserUncheckedCreateWithoutExtensionTasksInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutExtensionTasksInput = {
@@ -3885,6 +4142,7 @@ export type UserUpdateWithoutExtensionTasksInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutExtensionTasksInput = {
@@ -3922,6 +4180,7 @@ export type UserUncheckedUpdateWithoutExtensionTasksInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutExtensionSessionInput = {
@@ -3959,6 +4218,7 @@ export type UserCreateWithoutExtensionSessionInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutExtensionSessionInput = {
@@ -3996,6 +4256,7 @@ export type UserUncheckedCreateWithoutExtensionSessionInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutExtensionSessionInput = {
@@ -4049,6 +4310,7 @@ export type UserUpdateWithoutExtensionSessionInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutExtensionSessionInput = {
@@ -4086,6 +4348,7 @@ export type UserUncheckedUpdateWithoutExtensionSessionInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutExtensionAlertsInput = {
@@ -4123,6 +4386,7 @@ export type UserCreateWithoutExtensionAlertsInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutExtensionAlertsInput = {
@@ -4160,6 +4424,7 @@ export type UserUncheckedCreateWithoutExtensionAlertsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutExtensionAlertsInput = {
@@ -4213,6 +4478,7 @@ export type UserUpdateWithoutExtensionAlertsInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutExtensionAlertsInput = {
@@ -4250,6 +4516,7 @@ export type UserUncheckedUpdateWithoutExtensionAlertsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutProspectingRunsInput = {
@@ -4287,6 +4554,7 @@ export type UserCreateWithoutProspectingRunsInput = {
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutProspectingRunsInput = {
@@ -4324,6 +4592,7 @@ export type UserUncheckedCreateWithoutProspectingRunsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutProspectingRunsInput = {
@@ -4377,6 +4646,7 @@ export type UserUpdateWithoutProspectingRunsInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProspectingRunsInput = {
@@ -4414,6 +4684,7 @@ export type UserUncheckedUpdateWithoutProspectingRunsInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutConnectionRequestsInput = {
@@ -4451,6 +4722,7 @@ export type UserCreateWithoutConnectionRequestsInput = {
   prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutConnectionRequestsInput = {
@@ -4488,6 +4760,7 @@ export type UserUncheckedCreateWithoutConnectionRequestsInput = {
   prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutConnectionRequestsInput = {
@@ -4541,6 +4814,7 @@ export type UserUpdateWithoutConnectionRequestsInput = {
   prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutConnectionRequestsInput = {
@@ -4578,6 +4852,7 @@ export type UserUncheckedUpdateWithoutConnectionRequestsInput = {
   prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCompanySignalDraftsInput = {
@@ -4615,6 +4890,7 @@ export type UserCreateWithoutCompanySignalDraftsInput = {
   prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
   connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCompanySignalDraftsInput = {
@@ -4652,6 +4928,7 @@ export type UserUncheckedCreateWithoutCompanySignalDraftsInput = {
   prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
   connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCompanySignalDraftsInput = {
@@ -4705,6 +4982,7 @@ export type UserUpdateWithoutCompanySignalDraftsInput = {
   prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCompanySignalDraftsInput = {
@@ -4742,6 +5020,7 @@ export type UserUncheckedUpdateWithoutCompanySignalDraftsInput = {
   prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyOrgInput = {
@@ -4794,6 +5073,7 @@ export type UserUpdateWithoutOrgInput = {
   connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrgInput = {
@@ -4831,6 +5111,7 @@ export type UserUncheckedUpdateWithoutOrgInput = {
   connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutOrgInput = {
@@ -4874,6 +5155,7 @@ export type UserCountOutputType = {
   connectionRequests: number
   mcpTokens: number
   companySignalDrafts: number
+  enrichmentSpends: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4897,6 +5179,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   connectionRequests?: boolean | UserCountOutputTypeCountConnectionRequestsArgs
   mcpTokens?: boolean | UserCountOutputTypeCountMcpTokensArgs
   companySignalDrafts?: boolean | UserCountOutputTypeCountCompanySignalDraftsArgs
+  enrichmentSpends?: boolean | UserCountOutputTypeCountEnrichmentSpendsArgs
 }
 
 /**
@@ -5049,6 +5332,13 @@ export type UserCountOutputTypeCountCompanySignalDraftsArgs<ExtArgs extends runt
   where?: Prisma.CompanySignalDraftWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountEnrichmentSpendsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserEnrichmentSpendWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -5087,6 +5377,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   connectionRequests?: boolean | Prisma.User$connectionRequestsArgs<ExtArgs>
   mcpTokens?: boolean | Prisma.User$mcpTokensArgs<ExtArgs>
   companySignalDrafts?: boolean | Prisma.User$companySignalDraftsArgs<ExtArgs>
+  enrichmentSpends?: boolean | Prisma.User$enrichmentSpendsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -5165,6 +5456,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   connectionRequests?: boolean | Prisma.User$connectionRequestsArgs<ExtArgs>
   mcpTokens?: boolean | Prisma.User$mcpTokensArgs<ExtArgs>
   companySignalDrafts?: boolean | Prisma.User$companySignalDraftsArgs<ExtArgs>
+  enrichmentSpends?: boolean | Prisma.User$enrichmentSpendsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5200,6 +5492,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     connectionRequests: Prisma.$ConnectionRequestPayload<ExtArgs>[]
     mcpTokens: Prisma.$McpAccessTokenPayload<ExtArgs>[]
     companySignalDrafts: Prisma.$CompanySignalDraftPayload<ExtArgs>[]
+    enrichmentSpends: Prisma.$UserEnrichmentSpendPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -5635,6 +5928,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   connectionRequests<T extends Prisma.User$connectionRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$connectionRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConnectionRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   mcpTokens<T extends Prisma.User$mcpTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$mcpTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$McpAccessTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   companySignalDrafts<T extends Prisma.User$companySignalDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$companySignalDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CompanySignalDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  enrichmentSpends<T extends Prisma.User$enrichmentSpendsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$enrichmentSpendsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserEnrichmentSpendPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6593,6 +6887,30 @@ export type User$companySignalDraftsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.CompanySignalDraftScalarFieldEnum | Prisma.CompanySignalDraftScalarFieldEnum[]
+}
+
+/**
+ * User.enrichmentSpends
+ */
+export type User$enrichmentSpendsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserEnrichmentSpend
+   */
+  select?: Prisma.UserEnrichmentSpendSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserEnrichmentSpend
+   */
+  omit?: Prisma.UserEnrichmentSpendOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserEnrichmentSpendInclude<ExtArgs> | null
+  where?: Prisma.UserEnrichmentSpendWhereInput
+  orderBy?: Prisma.UserEnrichmentSpendOrderByWithRelationInput | Prisma.UserEnrichmentSpendOrderByWithRelationInput[]
+  cursor?: Prisma.UserEnrichmentSpendWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserEnrichmentSpendScalarFieldEnum | Prisma.UserEnrichmentSpendScalarFieldEnum[]
 }
 
 /**

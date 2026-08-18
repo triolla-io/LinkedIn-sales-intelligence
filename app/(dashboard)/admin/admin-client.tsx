@@ -237,7 +237,9 @@ export default function AdminClient() {
     try {
       const res = await fetch("/api/admin/users");
       if (!res.ok) throw new Error("Failed to load");
-      dispatch({ users: await res.json() });
+      // The route returns { org, users } — this view only needs the user rows.
+      const body = await res.json();
+      dispatch({ users: body.users });
     } catch {
       dispatch({ error: "Could not load team data." });
     } finally {

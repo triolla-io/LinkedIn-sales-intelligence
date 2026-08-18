@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { matchPerson } from "@/lib/apollo/client";
-import { checkBudget, incrementBudget, enrichmentCreditCost } from "@/lib/apollo/budget";
+import { checkEnrichmentBudget, incrementBudget, enrichmentCreditCost } from "@/lib/apollo/budget";
 import { lookupContact } from "@/lib/hubspot/client";
 import { inngest } from "@/inngest/client";
 import type { PropagatableValues } from "@/lib/enrichment/propagate";
@@ -36,7 +36,7 @@ export interface EnrichableContact {
 }
 
 export type EnrichmentResult =
-  | { status: "budget_exhausted" }
+  | { status: "budget_exhausted"; blockedBy: "org" | "user" }
   | { status: "apollo_error"; error: string }
   | {
       status: "ok";
@@ -81,17 +81,25 @@ async function emitPropagation(
 export async function enrichContactCore(opts: {
   contact: EnrichableContact;
   orgId: string;
+  /** The contact's owner — credits are charged to them, not to an acting admin. */
+  ownerId: string;
   monthlyApolloBudget: number;
+  perUserMonthlyApolloCredits: number;
 }): Promise<EnrichmentResult> {
-  const { contact, orgId, monthlyApolloBudget } = opts;
+  const { contact, orgId, ownerId, monthlyApolloBudget, perUserMonthlyApolloCredits } = opts;
   const protectedFields = new Set((contact.manualFields as string[]) ?? []);
   const ranAt = new Date();
   const normalizedUrl = contact.linkedinUrl ? normalizeLinkedinUrl(contact.linkedinUrl) : "";
 
   // ── 1. Budget check ─────────────────────────────────────────────────────
-  const budget = await checkBudget(orgId, monthlyApolloBudget);
-  if (!budget.allowed) {
-    return { status: "budget_exhausted" };
+  const budget = await checkEnrichmentBudget({
+    orgId,
+    userId: ownerId,
+    orgLimit: monthlyApolloBudget,
+    userLimit: perUserMonthlyApolloCredits,
+  });
+  if (budget.blockedBy) {
+    return { status: "budget_exhausted", blockedBy: budget.blockedBy };
   }
 
   // ── 2. HubSpot lookup — free, no budget cost ────────────────────────────
@@ -279,8 +287,13 @@ export async function enrichContactCore(opts: {
 
   // Charge the ACTUAL credits Apollo billed (email + waterfall mobile), not a
   // flat 1 — otherwise the monthly budget silently allows ~9x its real value.
-  await incrementBudget(orgId, enrichmentCreditCost({ email, phone }));
-  const newBudget = await checkBudget(orgId, monthlyApolloBudget);
+  await incrementBudget({ orgId, userId: ownerId, credits: enrichmentCreditCost({ email, phone }) });
+  const newBudget = await checkEnrichmentBudget({
+    orgId,
+    userId: ownerId,
+    orgLimit: monthlyApolloBudget,
+    userLimit: perUserMonthlyApolloCredits,
+  });
 
   await emitPropagation(orgId, normalizedUrl, contact.id, {
     email,

@@ -102,6 +102,13 @@ export type McpAccessToken = Prisma.McpAccessTokenModel
  */
 export type EnrichmentSpend = Prisma.EnrichmentSpendModel
 /**
+ * Model UserEnrichmentSpend
+ * Per-user Apollo credit spend for a month. Incremented in the SAME transaction
+ * as EnrichmentSpend (the org pool counter) so the two can never drift.
+ * Credits are charged to the contact's OWNER, not the acting admin.
+ */
+export type UserEnrichmentSpend = Prisma.UserEnrichmentSpendModel
+/**
  * Model PersonEnrichment
  * 
  */

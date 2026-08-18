@@ -107,14 +107,17 @@ model VerificationToken {
 // ─── Application models ──────────────────────────────────────────────────────
 
 model Organization {
-  id                    String   @id @default(cuid())
-  name                  String
-  syncCadenceDays       Int      @default(3)
-  monthlyApolloBudget   Int      @default(500)
-  jobCheckEnabled       Boolean  @default(false)
-  companySignalsEnabled Boolean  @default(false)
-  fintechRadarEnabled   Boolean  @default(false)
-  createdAt             DateTime @default(now())
+  id                          String   @id @default(cuid())
+  name                        String
+  syncCadenceDays             Int      @default(3)
+  monthlyApolloBudget         Int      @default(500)
+  /// Per-user monthly Apollo credit quota. Enforced IN ADDITION to
+  /// monthlyApolloBudget (the shared org pool), so one user cannot drain it.
+  perUserMonthlyApolloCredits Int      @default(1000)
+  jobCheckEnabled             Boolean  @default(false)
+  companySignalsEnabled       Boolean  @default(false)
+  fintechRadarEnabled         Boolean  @default(false)
+  createdAt                   DateTime @default(now())
 
   users             User[]
   enrichmentSpends  EnrichmentSpend[]
@@ -138,29 +141,30 @@ model User {
   connectWarmupStartedAt    DateTime?
   createdAt                 DateTime  @default(now())
 
-  org                 Organization         @relation(fields: [orgId], references: [id])
+  org                 Organization          @relation(fields: [orgId], references: [id])
   accounts            Account[]
   sessions            Session[]
   contacts            Contact[]
-  sentMessages        SentMessage[]        @relation("SentBySender")
-  actedMessages       SentMessage[]        @relation("ActedByActor")
+  sentMessages        SentMessage[]         @relation("SentBySender")
+  actedMessages       SentMessage[]         @relation("ActedByActor")
   savedViews          SavedView[]
   templates           MessageTemplate[]
-  auditActed          AuditEvent[]         @relation("AuditActor")
-  auditTargeted       AuditEvent[]         @relation("AuditTarget")
+  auditActed          AuditEvent[]          @relation("AuditActor")
+  auditTargeted       AuditEvent[]          @relation("AuditTarget")
   campaigns           Campaign[]
   imports             Import[]
   importJobs          ImportJob[]
   contactLists        ContactList[]
   linkedinSession     LinkedinSession?
   sequences           Sequence[]
-  extensionTasks      ExtensionTask[]      @relation("UserExtensionTasks")
-  extensionSession    ExtensionSession?    @relation("UserExtensionSession")
-  extensionAlerts     ExtensionAlert[]     @relation("UserExtensionAlerts")
-  prospectingRuns     ProspectingRun[]     @relation("UserProspectingRuns")
-  connectionRequests  ConnectionRequest[]  @relation("UserConnectionRequests")
+  extensionTasks      ExtensionTask[]       @relation("UserExtensionTasks")
+  extensionSession    ExtensionSession?     @relation("UserExtensionSession")
+  extensionAlerts     ExtensionAlert[]      @relation("UserExtensionAlerts")
+  prospectingRuns     ProspectingRun[]      @relation("UserProspectingRuns")
+  connectionRequests  ConnectionRequest[]   @relation("UserConnectionRequests")
   mcpTokens           McpAccessToken[]
-  companySignalDrafts CompanySignalDraft[] @relation("UserCompanySignalDrafts")
+  companySignalDrafts CompanySignalDraft[]  @relation("UserCompanySignalDrafts")
+  enrichmentSpends    UserEnrichmentSpend[] @relation("UserEnrichmentSpends")
 }
 
 model Contact {
@@ -313,6 +317,22 @@ model EnrichmentSpend {
   org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@unique([orgId, month])
+}
+
+/// Per-user Apollo credit spend for a month. Incremented in the SAME transaction
+/// as EnrichmentSpend (the org pool counter) so the two can never drift.
+/// Credits are charged to the contact's OWNER, not the acting admin.
+model UserEnrichmentSpend {
+  id      String @id @default(cuid())
+  userId  String
+  orgId   String
+  month   String // "YYYY-MM"
+  credits Int    @default(0)
+
+  user User @relation("UserEnrichmentSpends", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
+  @@index([orgId, month])
 }
 
 model PersonEnrichment {
@@ -636,20 +656,20 @@ model Sequence {
 }
 
 model SequenceStep {
-  id          String          @id @default(cuid())
-  sequenceId  String
-  stepNumber  Int
-  dayOffset   Int
-  sendHour    Int             @default(9)
-  sendMinute  Int             @default(0)
-  sendHourEnd Int?
+  id            String          @id @default(cuid())
+  sequenceId    String
+  stepNumber    Int
+  dayOffset     Int
+  sendHour      Int             @default(9)
+  sendMinute    Int             @default(0)
+  sendHourEnd   Int?
   // Minute offset within the (optional) end hour — half-hour window ends like 21:30.
-  sendMinuteEnd Int           @default(0)
-  channel     CampaignChannel
-  templateId  String
-  subject     String?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  sendMinuteEnd Int             @default(0)
+  channel       CampaignChannel
+  templateId    String
+  subject       String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
   sequence   Sequence                @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
   template   MessageTemplate         @relation(fields: [templateId], references: [id])
@@ -756,38 +776,38 @@ model NameTranslation {
 }
 
 model ProspectingRun {
-  id              String                     @id @default(cuid())
-  ownerId         String
-  owner           User                       @relation("UserProspectingRuns", fields: [ownerId], references: [id], onDelete: Cascade)
-  name            String
-  keywords        String
-  geoUrn          String                     @default("101620260")
-  industryIds     String[]                   @default([])
-  searchUrl       String
-  targetType      ProspectingTargetType      @default(KEYWORDS)
-  status          ProspectingRunStatus       @default(DRAFT)
-  dailyCap        Int                        @default(12)
-  weeklyCap       Int                        @default(60)
-  sendHoursStart  Int                        @default(9)
-  sendHoursEnd    Int                        @default(18)
+  id               String                     @id @default(cuid())
+  ownerId          String
+  owner            User                       @relation("UserProspectingRuns", fields: [ownerId], references: [id], onDelete: Cascade)
+  name             String
+  keywords         String
+  geoUrn           String                     @default("101620260")
+  industryIds      String[]                   @default([])
+  searchUrl        String
+  targetType       ProspectingTargetType      @default(KEYWORDS)
+  status           ProspectingRunStatus       @default(DRAFT)
+  dailyCap         Int                        @default(12)
+  weeklyCap        Int                        @default(60)
+  sendHoursStart   Int                        @default(9)
+  sendHoursEnd     Int                        @default(18)
   // Half-hour granularity: minute offset (0 or 30) within the start/end hour, e.g. end 21:30.
-  sendMinutesStart Int                       @default(0)
-  sendMinutesEnd  Int                        @default(0)
-  sendDays        Int[]
-  discoveryDone   Boolean                    @default(false)
-  connectInFlight Boolean                    @default(false)
-  searchFailCount Int                        @default(0)
-  pausedUntil     DateTime?
-  nextDiscoveryAt DateTime?
-  nextSearchPage  Int                        @default(1)
-  totalDiscovered Int                        @default(0)
-  totalSent       Int                        @default(0)
-  createdAt       DateTime                   @default(now())
-  startedAt       DateTime?
-  completedAt     DateTime?
-  requests        ConnectionRequest[]
-  events          ProspectingEvent[]
-  companyTargets  ProspectingCompanyTarget[]
+  sendMinutesStart Int                        @default(0)
+  sendMinutesEnd   Int                        @default(0)
+  sendDays         Int[]
+  discoveryDone    Boolean                    @default(false)
+  connectInFlight  Boolean                    @default(false)
+  searchFailCount  Int                        @default(0)
+  pausedUntil      DateTime?
+  nextDiscoveryAt  DateTime?
+  nextSearchPage   Int                        @default(1)
+  totalDiscovered  Int                        @default(0)
+  totalSent        Int                        @default(0)
+  createdAt        DateTime                   @default(now())
+  startedAt        DateTime?
+  completedAt      DateTime?
+  requests         ConnectionRequest[]
+  events           ProspectingEvent[]
+  companyTargets   ProspectingCompanyTarget[]
 
   @@index([ownerId, status])
 }
@@ -927,22 +947,22 @@ model CompanySignal {
 }
 
 model CompanySignalDraft {
-  id           String                   @id @default(cuid())
-  signalId     String
-  signal       CompanySignal            @relation(fields: [signalId], references: [id], onDelete: Cascade)
-  ownerId      String
-  owner        User                     @relation("UserCompanySignalDrafts", fields: [ownerId], references: [id], onDelete: Cascade)
-  contactId    String
-  contact      Contact                  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  draftMessage String                   @db.Text
+  id              String                   @id @default(cuid())
+  signalId        String
+  signal          CompanySignal            @relation(fields: [signalId], references: [id], onDelete: Cascade)
+  ownerId         String
+  owner           User                     @relation("UserCompanySignalDrafts", fields: [ownerId], references: [id], onDelete: Cascade)
+  contactId       String
+  contact         Contact                  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  draftMessage    String                   @db.Text
   emailSubject    String?
-  emailBody       String? @db.Text
-  whatsappMessage String? @db.Text
-  status       CompanySignalDraftStatus @default(PENDING_REVIEW)
-  channel      String                   @default("LINKEDIN")
-  sentAt       DateTime?
-  createdAt    DateTime                 @default(now())
-  updatedAt    DateTime                 @updatedAt
+  emailBody       String?                  @db.Text
+  whatsappMessage String?                  @db.Text
+  status          CompanySignalDraftStatus @default(PENDING_REVIEW)
+  channel         String                   @default("LINKEDIN")
+  sentAt          DateTime?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
 
   @@unique([signalId, contactId])
   @@index([ownerId, status])
@@ -982,16 +1002,16 @@ enum ArticleMatchStatus {
 }
 
 model FintechArticle {
-  id                 String   @id @default(cuid())
-  url                String   @unique
+  id                 String    @id @default(cuid())
+  url                String    @unique
   title              String
-  summary            String   @db.Text
-  topics             String[] @default([])
-  mentionedCompanies String[] @default([])
-  relevantRoles      String[] @default([])
+  summary            String    @db.Text
+  topics             String[]  @default([])
+  mentionedCompanies String[]  @default([])
+  relevantRoles      String[]  @default([])
   source             String
   publishedAt        DateTime?
-  createdAt          DateTime @default(now())
+  createdAt          DateTime  @default(now())
 
   matches ArticleMatch[]
 

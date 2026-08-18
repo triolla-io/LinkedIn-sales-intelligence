@@ -16,6 +16,12 @@ interface AdminUser {
   contactCount: number;
   lastSyncedAt: string | null;
   creditsConsumed: number;
+  creditsLimit: number;
+}
+
+interface AdminUsersResponse {
+  org: { creditsUsed: number; creditsLimit: number; perUserLimit: number; month: string };
+  users: AdminUser[];
 }
 
 const ROLE_STYLES: Record<string, string> = {
@@ -37,9 +43,49 @@ const fetcher = async (url: string) => {
 
 const TH = "text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider";
 
+/** Shared monthly Apollo pool for the whole org — the outer ceiling every
+ *  per-user quota sits inside. */
+function OrgPoolBar({
+  org,
+}: {
+  org: { creditsUsed: number; creditsLimit: number; perUserLimit: number; month: string };
+}) {
+  const pct = org.creditsLimit > 0 ? Math.min(100, (org.creditsUsed / org.creditsLimit) * 100) : 100;
+  const spent = org.creditsUsed >= org.creditsLimit;
+  return (
+    <div className={cn(ui.card, "p-4 mb-4")}>
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="text-sm font-medium text-[#1a1917]">
+          בריכת הקרדיטים החודשית של הארגון
+        </p>
+        <p className="text-sm tabular-nums">
+          <span className={spent ? "text-[#c2410c] font-medium" : "text-[#1a1917]"}>
+            {org.creditsUsed.toLocaleString()}
+          </span>
+          <span className="text-[#9b9895]"> / {org.creditsLimit.toLocaleString()}</span>
+        </p>
+      </div>
+      <div className="mt-2 h-1.5 rounded-full bg-[#ece9e3] overflow-hidden">
+        <div
+          className={cn("h-full rounded-full", spent ? "bg-[#c2410c]" : "bg-[#1585ff]")}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="mt-2 text-xs text-[#9b9895]">
+        מכסה אישית לכל משתמש: {org.perUserLimit.toLocaleString()} קרדיטים · אימייל = 1, טלפון = 8
+      </p>
+    </div>
+  );
+}
+
 export default function AdminUsersPage() {
   const router = useRouter();
-  const { data: users, error: swrError, mutate, isValidating } = useSWR<AdminUser[]>("/api/admin/users", fetcher);
+  const { data, error: swrError, mutate, isValidating } = useSWR<AdminUsersResponse>(
+    "/api/admin/users",
+    fetcher,
+  );
+  const users = data?.users;
+  const org = data?.org;
   const [impersonating, setImpersonating] = useState<string | null>(null);
 
   const error = swrError?.message || null;
@@ -109,6 +155,8 @@ export default function AdminUsersPage() {
             </div>
           </div>
         ) : (
+          <>
+            {org ? <OrgPoolBar org={org} /> : null}
           <div className={cn(ui.card, "overflow-hidden")}>
             <table className="w-full text-sm">
               <thead>
@@ -152,7 +200,20 @@ export default function AdminUsersPage() {
                           ? new Date(user.lastSyncedAt).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" })
                           : "לעולם לא"}
                       </td>
-                      <td className="px-4 py-3 tabular-nums text-[#6b6866]">{user.creditsConsumed}</td>
+                      <td className="px-4 py-3 tabular-nums">
+                        <span
+                          className={cn(
+                            user.creditsConsumed >= user.creditsLimit
+                              ? "text-[#c2410c] font-medium"
+                              : user.creditsConsumed >= user.creditsLimit * 0.8
+                                ? "text-[#a16207]"
+                                : "text-[#6b6866]",
+                          )}
+                        >
+                          {user.creditsConsumed.toLocaleString()}
+                        </span>
+                        <span className="text-[#9b9895]"> / {user.creditsLimit.toLocaleString()}</span>
+                      </td>
                       <td className="px-4 py-3 text-left">
                         <button
                           type="button"
@@ -174,7 +235,8 @@ export default function AdminUsersPage() {
                 )}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </div>
     </div>

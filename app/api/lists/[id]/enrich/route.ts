@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 import { inngest } from "@/inngest/client";
+import { checkEnrichmentBudget } from "@/lib/apollo/budget";
 
 export const GET = withTenant(async (req: NextRequest, ctx) => {
   const listId = req.nextUrl.pathname.split("/").at(-2)!;
@@ -27,16 +28,20 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   });
   if (!list) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const month = new Date().toISOString().slice(0, 7);
-  const spend = await prisma.enrichmentSpend.findUnique({
-    where: { orgId_month: { orgId: ctx.org.id, month } },
+  // Both ceilings: the shared org pool AND this user's own monthly quota.
+  const budget = await checkEnrichmentBudget({
+    orgId: ctx.org.id,
+    userId: ctx.effectiveUserId,
+    orgLimit: ctx.org.monthlyApolloBudget,
+    userLimit: ctx.org.perUserMonthlyApolloCredits,
   });
-  const creditsUsed = spend?.credits ?? 0;
-  const creditsRemaining = ctx.org.monthlyApolloBudget - creditsUsed;
-
-  if (creditsRemaining <= 0) {
-    return NextResponse.json({ error: "BUDGET_EXHAUSTED", creditsRemaining: 0 }, { status: 402 });
+  if (budget.blockedBy) {
+    return NextResponse.json(
+      { error: "BUDGET_EXHAUSTED", blockedBy: budget.blockedBy, creditsRemaining: 0 },
+      { status: 402 }
+    );
   }
+  const creditsRemaining = budget.creditsRemaining;
 
   const unenriched = await prisma.contact.findMany({
     where: {
@@ -97,7 +102,7 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       await inngest.send(
         toEnrich.map((id) => ({
           name: "enrich.contact" as const,
-          data: { contactId: id, actorId: ctx.user.id },
+          data: { contactId: id, ownerId: ctx.effectiveUserId, actorId: ctx.user.id },
         }))
       );
     } catch {

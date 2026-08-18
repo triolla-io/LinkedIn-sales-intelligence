@@ -23,7 +23,7 @@ vi.mock("@/lib/apollo/client", () => ({ matchPerson: (...a: unknown[]) => mockMa
 const mockCheckBudget = vi.fn();
 const mockIncrementBudget = vi.fn();
 vi.mock("@/lib/apollo/budget", () => ({
-  checkBudget: (...a: unknown[]) => mockCheckBudget(...a),
+  checkEnrichmentBudget: (...a: unknown[]) => mockCheckBudget(...a),
   incrementBudget: (...a: unknown[]) => mockIncrementBudget(...a),
   // Pure cost helper — use the real formula so the test reflects real billing.
   enrichmentCreditCost: (r: { email?: string | null; phone?: string | null }) =>
@@ -47,15 +47,22 @@ const contact = {
   manualFields: [],
 };
 
+const budgetOpts = {
+  orgId: "org1",
+  ownerId: "u1",
+  monthlyApolloBudget: 2000,
+  perUserMonthlyApolloCredits: 1000,
+};
+
 async function run() {
   const { enrichContactCore } = await import("@/lib/enrichment/enrich-contact-core");
-  return enrichContactCore({ contact, orgId: "org1", monthlyApolloBudget: 100 });
+  return enrichContactCore({ contact, ...budgetOpts });
 }
 
 describe("enrichContactCore", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCheckBudget.mockResolvedValue({ allowed: true, creditsRemaining: 50 });
+    mockCheckBudget.mockResolvedValue({ allowed: true, blockedBy: null, creditsRemaining: 50 });
     mockLookupContact.mockResolvedValue(null);
     mockPersonFindUnique.mockResolvedValue(null);
     mockTransaction.mockResolvedValue([]);
@@ -83,14 +90,46 @@ describe("enrichContactCore", () => {
     expect(mockIncrementBudget).toHaveBeenCalledTimes(1);
   });
 
-  it("returns budget_exhausted without touching HubSpot or Apollo", async () => {
-    mockCheckBudget.mockResolvedValue({ allowed: false, creditsRemaining: 0 });
+  it("returns budget_exhausted without touching HubSpot or Apollo when the org pool is gone", async () => {
+    mockCheckBudget.mockResolvedValue({ allowed: false, blockedBy: "org", creditsRemaining: 0 });
 
     const result = await run();
 
-    expect(result).toEqual({ status: "budget_exhausted" });
+    expect(result).toEqual({ status: "budget_exhausted", blockedBy: "org" });
     expect(mockLookupContact).not.toHaveBeenCalled();
     expect(mockMatchPerson).not.toHaveBeenCalled();
+  });
+
+  it("returns budget_exhausted when the OWNER is out of quota even if the org pool has room", async () => {
+    mockCheckBudget.mockResolvedValue({ allowed: false, blockedBy: "user", creditsRemaining: 0 });
+
+    const result = await run();
+
+    expect(result).toEqual({ status: "budget_exhausted", blockedBy: "user" });
+    expect(mockMatchPerson).not.toHaveBeenCalled();
+  });
+
+  it("charges the contact owner, not the acting admin, and bills the real 9-credit cost", async () => {
+    mockMatchPerson.mockResolvedValue({ email: "dana@acme.com", phone: "+972500000000", raw: {} });
+
+    await run();
+
+    expect(mockIncrementBudget).toHaveBeenCalledWith({
+      orgId: "org1",
+      userId: "u1",
+      credits: 9, // email (1) + revealed mobile (8)
+    });
+  });
+
+  it("checks the per-user quota alongside the org pool before spending", async () => {
+    await run();
+
+    expect(mockCheckBudget).toHaveBeenCalledWith({
+      orgId: "org1",
+      userId: "u1",
+      orgLimit: 2000,
+      userLimit: 1000,
+    });
   });
 
   it("persists enrichmentError and reports apollo_error when Apollo throws", async () => {
@@ -120,7 +159,7 @@ describe("enrichContactCore", () => {
     const protectedContact = { ...contact, manualFields: ["phone"] };
     mockLookupContact.mockResolvedValue({ email: "a@b.com", phone: "+972521234567" });
 
-    const result = await enrichContactCore({ contact: protectedContact, orgId: "org1", monthlyApolloBudget: 100 });
+    const result = await enrichContactCore({ contact: protectedContact, ...budgetOpts });
 
     expect(result).toMatchObject({ status: "ok", source: "hubspot" });
     expect(mockContactUpdate).toHaveBeenCalledTimes(1);

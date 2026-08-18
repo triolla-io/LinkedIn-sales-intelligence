@@ -63,6 +63,7 @@ export const ModelName = {
   AuditEvent: 'AuditEvent',
   McpAccessToken: 'McpAccessToken',
   EnrichmentSpend: 'EnrichmentSpend',
+  UserEnrichmentSpend: 'UserEnrichmentSpend',
   PersonEnrichment: 'PersonEnrichment',
   LinkedinSession: 'LinkedinSession',
   Company: 'Company',
@@ -150,6 +151,7 @@ export const OrganizationScalarFieldEnum = {
   name: 'name',
   syncCadenceDays: 'syncCadenceDays',
   monthlyApolloBudget: 'monthlyApolloBudget',
+  perUserMonthlyApolloCredits: 'perUserMonthlyApolloCredits',
   jobCheckEnabled: 'jobCheckEnabled',
   companySignalsEnabled: 'companySignalsEnabled',
   fintechRadarEnabled: 'fintechRadarEnabled',
@@ -293,6 +295,17 @@ export const EnrichmentSpendScalarFieldEnum = {
 } as const
 
 export type EnrichmentSpendScalarFieldEnum = (typeof EnrichmentSpendScalarFieldEnum)[keyof typeof EnrichmentSpendScalarFieldEnum]
+
+
+export const UserEnrichmentSpendScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  orgId: 'orgId',
+  month: 'month',
+  credits: 'credits'
+} as const
+
+export type UserEnrichmentSpendScalarFieldEnum = (typeof UserEnrichmentSpendScalarFieldEnum)[keyof typeof UserEnrichmentSpendScalarFieldEnum]
 
 
 export const PersonEnrichmentScalarFieldEnum = {

@@ -25,23 +25,37 @@ function assertCap(ids: string[]) {
 export async function enrichContacts(ctx: McpCtx, { contactIds }: { contactIds: string[] }) {
   assertCap(contactIds);
   // McpCtx (unlike withTenant's ctx.org) doesn't carry the org row, so resolve
-  // monthlyApolloBudget via the User -> Organization relation instead of a raw
+  // both credit ceilings via the User -> Organization relation instead of a raw
   // prisma.organization query.
   const owner = await prisma.user.findUnique({
     where: { id: ctx.userId },
-    select: { org: { select: { monthlyApolloBudget: true } } },
+    select: {
+      org: { select: { monthlyApolloBudget: true, perUserMonthlyApolloCredits: true } },
+    },
   });
   const monthlyApolloBudget = owner?.org?.monthlyApolloBudget ?? 0;
+  const perUserMonthlyApolloCredits = owner?.org?.perUserMonthlyApolloCredits ?? 0;
   const sel = await selectEnrichableContacts({
     effectiveUserId: ctx.userId,
     orgId: ctx.orgId,
     monthlyApolloBudget,
+    perUserMonthlyApolloCredits,
     contactIds,
   });
-  if ("budgetExhausted" in sel) throw new McpError("conflict", "Monthly enrichment budget exhausted");
+  if ("budgetExhausted" in sel) {
+    throw new McpError(
+      "conflict",
+      sel.blockedBy === "user"
+        ? "Your personal monthly enrichment quota is exhausted"
+        : "The organization's monthly enrichment budget is exhausted"
+    );
+  }
   if (sel.validIds.length > 0) {
     await inngest.send(
-      sel.validIds.map((id) => ({ name: "enrich.contact" as const, data: { contactId: id, actorId: ctx.userId } }))
+      sel.validIds.map((id) => ({
+        name: "enrich.contact" as const,
+        data: { contactId: id, ownerId: ctx.userId, actorId: ctx.userId },
+      }))
     );
   }
   await audit(ctx, "enrich_contacts", { queued: sel.validIds.length, skipped: sel.skipped });

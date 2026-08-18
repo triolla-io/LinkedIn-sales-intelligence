@@ -15,15 +15,24 @@ export async function POST(req: NextRequest) {
       effectiveUserId: ctx.effectiveUserId,
       orgId: ctx.org.id,
       monthlyApolloBudget: ctx.org.monthlyApolloBudget,
+      perUserMonthlyApolloCredits: ctx.org.perUserMonthlyApolloCredits,
       contactIds,
     });
 
     if ("budgetExhausted" in sel) {
-      return NextResponse.json({ error: "BUDGET_EXHAUSTED", creditsRemaining: 0 }, { status: 402 });
+      return NextResponse.json(
+        { error: "BUDGET_EXHAUSTED", blockedBy: sel.blockedBy, creditsRemaining: 0 },
+        { status: 402 }
+      );
     }
 
     await inngest.send(
-      sel.validIds.map((id) => ({ name: "enrich.contact" as const, data: { contactId: id, actorId: ctx.user.id } }))
+      sel.validIds.map((id) => ({
+        name: "enrich.contact" as const,
+        // ownerId keys the Inngest concurrency limit so a bulk fan-out can't
+        // race past the per-user cap.
+        data: { contactId: id, ownerId: ctx.effectiveUserId, actorId: ctx.user.id },
+      }))
     );
 
     return NextResponse.json({

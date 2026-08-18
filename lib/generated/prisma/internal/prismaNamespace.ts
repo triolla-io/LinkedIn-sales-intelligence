@@ -396,6 +396,7 @@ export const ModelName = {
   AuditEvent: 'AuditEvent',
   McpAccessToken: 'McpAccessToken',
   EnrichmentSpend: 'EnrichmentSpend',
+  UserEnrichmentSpend: 'UserEnrichmentSpend',
   PersonEnrichment: 'PersonEnrichment',
   LinkedinSession: 'LinkedinSession',
   Company: 'Company',
@@ -438,7 +439,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "mcpAccessToken" | "enrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange" | "companySignal" | "companySignalDraft" | "fintechArticle" | "articleMatch"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "mcpAccessToken" | "enrichmentSpend" | "userEnrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange" | "companySignal" | "companySignalDraft" | "fintechArticle" | "articleMatch"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1327,6 +1328,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.EnrichmentSpendCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.EnrichmentSpendCountAggregateOutputType> | number
+        }
+      }
+    }
+    UserEnrichmentSpend: {
+      payload: Prisma.$UserEnrichmentSpendPayload<ExtArgs>
+      fields: Prisma.UserEnrichmentSpendFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserEnrichmentSpendFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserEnrichmentSpendPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserEnrichmentSpendFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserEnrichmentSpendPayload>
+        }
+        findFirst: {
+          args: Prisma.UserEnrichmentSpendFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserEnrichmentSpendPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserEnrichmentSpendFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserEnrichmentSpendPayload>
+        }
+        findMany: {
+          args: Prisma.UserEnrichmentSpendFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserEnrichmentSpendPayload>[]
+        }
+        create: {
+          args: Prisma.UserEnrichmentSpendCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserEnrichmentSpendPayload>
+        }
+        createMany: {
+          args: Prisma.UserEnrichmentSpendCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserEnrichmentSpendCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserEnrichmentSpendPayload>[]
+        }
+        delete: {
+          args: Prisma.UserEnrichmentSpendDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserEnrichmentSpendPayload>
+        }
+        update: {
+          args: Prisma.UserEnrichmentSpendUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserEnrichmentSpendPayload>
+        }
+        deleteMany: {
+          args: Prisma.UserEnrichmentSpendDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserEnrichmentSpendUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserEnrichmentSpendUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserEnrichmentSpendPayload>[]
+        }
+        upsert: {
+          args: Prisma.UserEnrichmentSpendUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserEnrichmentSpendPayload>
+        }
+        aggregate: {
+          args: Prisma.UserEnrichmentSpendAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserEnrichmentSpend>
+        }
+        groupBy: {
+          args: Prisma.UserEnrichmentSpendGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserEnrichmentSpendGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserEnrichmentSpendCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserEnrichmentSpendCountAggregateOutputType> | number
         }
       }
     }
@@ -3409,6 +3484,7 @@ export const OrganizationScalarFieldEnum = {
   name: 'name',
   syncCadenceDays: 'syncCadenceDays',
   monthlyApolloBudget: 'monthlyApolloBudget',
+  perUserMonthlyApolloCredits: 'perUserMonthlyApolloCredits',
   jobCheckEnabled: 'jobCheckEnabled',
   companySignalsEnabled: 'companySignalsEnabled',
   fintechRadarEnabled: 'fintechRadarEnabled',
@@ -3552,6 +3628,17 @@ export const EnrichmentSpendScalarFieldEnum = {
 } as const
 
 export type EnrichmentSpendScalarFieldEnum = (typeof EnrichmentSpendScalarFieldEnum)[keyof typeof EnrichmentSpendScalarFieldEnum]
+
+
+export const UserEnrichmentSpendScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  orgId: 'orgId',
+  month: 'month',
+  credits: 'credits'
+} as const
+
+export type UserEnrichmentSpendScalarFieldEnum = (typeof UserEnrichmentSpendScalarFieldEnum)[keyof typeof UserEnrichmentSpendScalarFieldEnum]
 
 
 export const PersonEnrichmentScalarFieldEnum = {
@@ -4626,6 +4713,7 @@ export type GlobalOmitConfig = {
   auditEvent?: Prisma.AuditEventOmit
   mcpAccessToken?: Prisma.McpAccessTokenOmit
   enrichmentSpend?: Prisma.EnrichmentSpendOmit
+  userEnrichmentSpend?: Prisma.UserEnrichmentSpendOmit
   personEnrichment?: Prisma.PersonEnrichmentOmit
   linkedinSession?: Prisma.LinkedinSessionOmit
   company?: Prisma.CompanyOmit

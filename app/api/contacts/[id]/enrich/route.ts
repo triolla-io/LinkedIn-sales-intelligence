@@ -18,11 +18,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const result = await enrichContactCore({
       contact,
       orgId: ctx.org.id,
+      ownerId: ctx.effectiveUserId,
       monthlyApolloBudget: ctx.org.monthlyApolloBudget,
+      perUserMonthlyApolloCredits: ctx.org.perUserMonthlyApolloCredits,
     });
 
     if (result.status === "budget_exhausted") {
-      return NextResponse.json({ error: "BUDGET_EXHAUSTED", creditsRemaining: 0 }, { status: 402 });
+      // blockedBy tells the UI whether this user is out of their own quota or
+      // the whole org pool is gone — very different fixes.
+      return NextResponse.json(
+        { error: "BUDGET_EXHAUSTED", blockedBy: result.blockedBy, creditsRemaining: 0 },
+        { status: 402 }
+      );
     }
     if (result.status === "apollo_error") {
       return NextResponse.json({ error: "APOLLO_ERROR", detail: result.error }, { status: 502 });
