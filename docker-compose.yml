@@ -28,6 +28,8 @@ services:
     environment:
       - WHATSAPP_SERVICE_PORT=3002
       - WHATSAPP_SESSIONS_DIR=/data/whatsapp-sessions
+      # Shared secret; must match the app's WHATSAPP_SERVICE_TOKEN.
+      - WHATSAPP_SERVICE_TOKEN=${WHATSAPP_SERVICE_TOKEN:-}
 
   app:
     build:
@@ -46,6 +48,7 @@ services:
     environment:
       - NODE_ENV=production
       - WHATSAPP_SERVICE_URL=http://whatsapp-service:3002
+      - WHATSAPP_SERVICE_TOKEN=${WHATSAPP_SERVICE_TOKEN:-}
       - DATABASE_URL=postgresql://linkedinsi:linkedinsi@postgres:5432/linkedinsi
       # Remaining vars loaded from .env (or override via Coolify environment config):
       # NEXTAUTH_SECRET, NEXTAUTH_URL, GOOGLE_CLIENT_ID,

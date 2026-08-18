@@ -7,11 +7,29 @@ import {
   sendMessage,
   restoreAllSessions,
 } from "./session-manager.js";
+import { isAuthorized, isPublicPath } from "./auth.js";
 
 const app = express();
 app.use(express.json());
 
 const PORT = parseInt(process.env.WHATSAPP_SERVICE_PORT ?? "3002", 10);
+const AUTH_TOKEN = process.env.WHATSAPP_SERVICE_TOKEN;
+
+if (!AUTH_TOKEN) {
+  console.warn(
+    "[whatsapp] WHATSAPP_SERVICE_TOKEN is not set — every route is UNAUTHENTICATED. " +
+      "This service is published on a public domain; set the same secret here and on the app."
+  );
+}
+
+// Shared-secret gate. Fail-open when unconfigured so that deploying this does
+// not lock the app out before the secret is set on both resources.
+app.use((req, res, next) => {
+  if (isPublicPath(req.path)) return next();
+  if (isAuthorized(AUTH_TOKEN, req.get("x-whatsapp-token") ?? undefined)) return next();
+  console.warn(`[whatsapp] rejected unauthenticated request path=${req.path}`);
+  return res.status(401).json({ error: "unauthorized" });
+});
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true });

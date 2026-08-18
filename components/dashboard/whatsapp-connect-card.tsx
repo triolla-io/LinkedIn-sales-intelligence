@@ -7,6 +7,19 @@ type WaStatus = "CONNECTED" | "QR_PENDING" | "DISCONNECTED" | "LOADING" | "LINKI
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
+/** SSE payloads arrive as text; a malformed frame must not throw inside an
+ *  event listener and leave the card wedged. Returns null when unusable. */
+function parseEventData(raw: string): string | null {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return null;
+    const { data } = parsed as { data?: unknown };
+    return typeof data === "string" ? data : null;
+  } catch {
+    return null;
+  }
+}
+
 export function WhatsAppConnectCard() {
   const [status, setStatus] = useState<WaStatus>("LOADING");
   const [phone, setPhone] = useState<string | null>(null);
@@ -22,13 +35,15 @@ export function WhatsAppConnectCard() {
     esRef.current = es;
 
     es.addEventListener("qr", (e) => {
-      const { data } = JSON.parse(e.data) as { data: string };
+      const data = parseEventData(e.data);
+      if (data === null) return;
       setStatus("QR_PENDING");
       setQr(data);
     });
 
     es.addEventListener("connected", (e) => {
-      const { data } = JSON.parse(e.data) as { data: string };
+      const data = parseEventData(e.data);
+      if (data === null) return;
       setStatus("CONNECTED");
       setPhone(data);
       setQr(null);
@@ -37,7 +52,8 @@ export function WhatsAppConnectCard() {
     });
 
     es.addEventListener("disconnected", (e) => {
-      const { data } = JSON.parse(e.data) as { data: string };
+      const data = parseEventData(e.data);
+      if (data === null) return;
       if (data === "reconnecting") {
         setQr(null);
         setStatus("LINKING");

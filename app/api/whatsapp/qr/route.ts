@@ -1,13 +1,16 @@
 import { NextRequest } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
-import { waClient } from "@/lib/whatsapp/client";
+import { waClient, waServiceHeaders } from "@/lib/whatsapp/client";
 
 export const GET = withTenant(async (_req: NextRequest, ctx) => {
   let upstream: Response;
   try {
     const connectAbort = new AbortController();
     const connectTimeout = setTimeout(() => connectAbort.abort(), 10000);
-    upstream = await fetch(waClient.qrStreamUrl(ctx.effectiveUserId), { signal: connectAbort.signal });
+    upstream = await fetch(waClient.qrStreamUrl(ctx.effectiveUserId), {
+      signal: connectAbort.signal,
+      headers: waServiceHeaders(),
+    });
     clearTimeout(connectTimeout);
   } catch {
     const body = `event: error\ndata: ${JSON.stringify({ error: "whatsapp_service_unavailable" })}\n\n`;
