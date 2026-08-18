@@ -21,7 +21,19 @@ import { extractCompany, topCompanyResults } from "./lib/resolve-company";
 import { readProfileTopcard } from "./lib/profile-dom";
 import { scrapeSearchPage } from "./lib/scrape-search";
 
-chrome.runtime.onMessage.addListener(
+// Idempotence guard: this file ships twice — declared in the manifest (via the bundler's
+// loader) and as a standalone bundle the background worker can inject when that loader
+// never came up. Whichever arrives first owns the listener; the second is a no-op, so a
+// page never answers the same message twice.
+const GUARD = "__triollaContentScriptReady";
+const scope = globalThis as unknown as Record<string, boolean>;
+if (!scope[GUARD]) {
+  scope[GUARD] = true;
+  registerListener();
+}
+
+function registerListener(): void {
+  chrome.runtime.onMessage.addListener(
   (msg: PageRequest, _sender, sendResponse: (r: PageResponse) => void) => {
     handle(msg).then(
       (result) => sendResponse({ ok: true, result } as PageResponse),
@@ -34,7 +46,8 @@ chrome.runtime.onMessage.addListener(
     );
     return true; // keep the message channel open for the async response
   },
-);
+  );
+}
 
 async function handle(msg: PageRequest): Promise<unknown> {
   switch (msg.kind) {
