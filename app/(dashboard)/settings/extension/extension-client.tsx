@@ -1,8 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Copy, Check, Download } from "lucide-react";
+import { Copy, Check, Download, AlertTriangle } from "lucide-react";
 import { ExtensionStatusBadge } from "@/components/extension-status-badge";
+import { isExtensionOutdated } from "@/lib/extension/version";
+
+const FOLDER_NAME = "triolla-linkedin-sender";
 
 type SessionInfo = {
   id: string;
@@ -15,8 +18,11 @@ type SessionInfo = {
 
 export function ExtensionClient({
   initialSession,
+  servedVersion,
 }: {
   initialSession: SessionInfo;
+  /** Version of the build this deployment serves; null when it can't be read. */
+  servedVersion: string | null;
 }) {
   const [session, setSession] = useState(initialSession);
   const [rawToken, setRawToken] = useState<string | null>(null);
@@ -66,6 +72,11 @@ export function ExtensionClient({
   const connected = session && !session.revokedAt;
   const tokenToShow =
     rawToken ?? (connected ? `${session!.tokenPrefix}…` : null);
+  // The heartbeat reports the installed version on every poll; compare it to the build
+  // this deployment serves so a customer stuck on an old unpacked copy sees it here
+  // instead of silently losing sends (a stale 0.4.3 wedged a whole send queue).
+  const outdated =
+    !!connected && isExtensionOutdated(session!.version, servedVersion);
 
   return (
     <div className="p-6 max-w-2xl space-y-8">
@@ -79,6 +90,41 @@ export function ExtensionClient({
         />
       </div>
 
+      {(connected || servedVersion) && (
+        <p className="-mt-6 text-xs text-[#6b6866]">
+          {connected && session!.version
+            ? `גרסה מותקנת: ${session!.version}`
+            : "גרסה מותקנת: לא ידועה"}
+          {servedVersion ? ` · גרסה זמינה: ${servedVersion}` : null}
+        </p>
+      )}
+
+      {outdated && (
+        <output
+          className="flex gap-3 rounded-lg border border-[#f0c000] bg-[#fffbeb] p-4 text-sm"
+        >
+          <AlertTriangle className="size-5 shrink-0 text-[#b45309]" />
+          <div className="space-y-1.5">
+            <p className="font-medium text-[#111110]">
+              התוסף שלך מיושן: גרסה {session!.version} מותקנת, {servedVersion} זמינה
+            </p>
+            <p className="text-[#6b6866]">
+              גרסאות ישנות מפספסות תיקונים ויכולות לעצור שליחות בשקט. הורידי מחדש,
+              והחליפי את <strong>תוכן התיקייה הקיימת</strong> שכרום טעון ממנה, כך הנתיב
+              נשמר ו-Reload יקלוט את הגרסה החדשה.
+            </p>
+            <Link
+              href="/api/extension/download"
+              download={`${FOLDER_NAME}.zip`}
+              className="inline-flex items-center gap-2 text-[#1585ff] font-medium hover:underline"
+            >
+              <Download className="size-4" />
+              הורד את הגרסה החדשה
+            </Link>
+          </div>
+        </output>
+      )}
+
       {/* Steps */}
       <ol className="space-y-6 text-sm">
         {/* Step 1 */}
@@ -87,10 +133,16 @@ export function ExtensionClient({
             1
           </span>
           <div className="space-y-2">
-            <p className="font-medium text-[#111110]">הורידי את ה-extension</p>
+            <p className="font-medium text-[#111110]">הורידי ופרקי את ה-extension</p>
+            <p className="text-[#6b6866]">
+              אחרי ההורדה, פרקי את ה-zip (דאבל-קליק). תיווצר תיקייה אחת בשם{" "}
+              <code className="bg-[#f3f2ef] px-1 rounded">{FOLDER_NAME}</code> עם
+              הקובץ <code className="bg-[#f3f2ef] px-1 rounded">manifest.json</code>{" "}
+              בתוכה. זו התיקייה שתבחרי בשלב הבא.
+            </p>
             <Link
               href="/api/extension/download"
-              download="triolla-linkedin-sender.zip"
+              download={`${FOLDER_NAME}.zip`}
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors"
             >
               <Download className="size-4" />
@@ -119,10 +171,20 @@ export function ExtensionClient({
                 עליונה
               </li>
               <li>
-                לחצי <strong>Load unpacked</strong> (טען מרוחס) ובחרי את תיקיית
-                ה-extension
+                לחצי <strong>Load unpacked</strong> (טען מרוחס) ובחרי את התיקייה{" "}
+                <code className="bg-[#f3f2ef] px-1 rounded">{FOLDER_NAME}</code> שפרקת
+              </li>
+              <li>
+                אמתי שהגרסה שמופיעה בכרטיס התוסף היא{" "}
+                <strong>{servedVersion ?? "העדכנית"}</strong>
               </li>
             </ol>
+            <p className="text-[#6b6866]">
+              <strong>בעדכון גרסה:</strong> החליפי את התוכן של אותה תיקייה ולחצי Reload
+              (🔄). אם תפרקי לתיקייה חדשה, כרום ימשיך לטעון את הישנה, ואז או שתבחרי
+              Load unpacked על החדשה <em>ותסירי את הרשומה הישנה</em>, או שתעבירי את
+              הקבצים לנתיב הקיים.
+            </p>
           </div>
         </li>
 
