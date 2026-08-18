@@ -24,6 +24,14 @@ export interface ScannedButton {
 const MODAL_CONTAINER_SEL =
   '[role="dialog"],[aria-modal="true"],.artdeco-modal,.artdeco-toast-item,.artdeco-hovercard';
 
+/**
+ * Never-click zone. A dismiss control is never a link and never lives in the site header,
+ * so anything matching this is disqualified no matter how "closeable" it looks. Clicking
+ * one of these is how a send ended up on LinkedIn's global search page with the profile
+ * left behind.
+ */
+const NEVER_CLICK_SEL = "a[href],.global-nav,header,nav,[role=\"banner\"],[role=\"navigation\"]";
+
 /** Page-context: describe every visible button in the upper part of the viewport. */
 export function scanButtons(): ScannedButton[] {
   return collectButtons().map((b) => b.meta);
@@ -73,6 +81,7 @@ function collectButtons(): Array<{ el: HTMLElement; meta: ScannedButton }> {
     const el = node as HTMLElement;
     const r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0 || r.top >= 800) continue;
+    if (el.closest(NEVER_CLICK_SEL)) continue;
     out.push({
       el,
       meta: {

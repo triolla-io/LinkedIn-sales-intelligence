@@ -22,7 +22,7 @@ import { scrapeProfile } from "./lib/scrape-profile";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.6.6";
+const VERSION = "0.6.7";
 
 // Hard ceiling for a single task. Real tasks finish in seconds; the slowest legitimate
 // path (compose poll 15s + navigation waits 30s + sleeps) stays well under a minute.
@@ -405,26 +405,12 @@ async function navigateToComposeAndType(tabId: number, profileUrl: string, text:
 
   await throwIfCheckpoint(tabId);
 
-  // Close any compose overlays left from previous attempts. This is also the first page
-  // call of the flow, so a content script that never loaded shows up here.
-  await pageCall(tabId, { kind: "CLOSE_OVERLAYS" });
-  trace("page.reachable");
-  await sleep(500);
-
-  // Dismiss any promotional popup (e.g. LinkedIn's "upgrade to Premium" interstitial)
-  // that may have loaded after the initial Escape sweep. These popups appear randomly
-  // and occlude the Message button.
-  const dismissed = await pageCall(tabId, { kind: "CLICK_MODAL_CLOSE" });
-  trace("modal.dismissed", dismissed);
-  if (dismissed) await sleep(500);
-
   // Phase 1: extract the compose URL from the Message button's href, then navigate
   // directly to /messaging/compose/. This is more reliable than clicking the button
   // and waiting for an overlay — the full messaging page always renders a proper
   // contenteditable that enables React-driven Send, whereas the overlay's Send button
-  // can stay disabled.
-  const composeUrl = await pageCall(tabId, { kind: "COMPOSE_URL" });
-  trace("compose.url", composeUrl);
+  // can stay disabled. readComposeUrl touches the page as little as possible; see there.
+  const composeUrl = await readComposeUrl(tabId, profileUrl);
   if (!composeUrl) throw withCode(new Error("message_button_not_found"), "not_messageable");
 
   await navigateTab(tabId, composeUrl);
