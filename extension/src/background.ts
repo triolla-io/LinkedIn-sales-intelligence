@@ -22,7 +22,7 @@ import { scrapeProfile } from "./lib/scrape-profile";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.6.0";
+const VERSION = "0.6.1";
 
 // Hard ceiling for a single task. Real tasks finish in seconds; the slowest legitimate
 // path (compose poll 15s + navigation waits 30s + sleeps) stays well under a minute.
@@ -35,6 +35,45 @@ const TASK_TIMEOUT_MS = 3 * 60_000;
 
 // In-memory semaphore (fast, race-free in single-threaded JS).
 let taskRunning = false;
+
+/**
+ * Breadcrumb trail for the task currently running.
+ *
+ * Prod is the only place these flows meet real LinkedIn, and the service-worker console
+ * is gone the moment the worker sleeps — so every step records itself here and the trail
+ * ships with the failure report. A failed task then says WHERE it broke in the dashboard,
+ * with no console archaeology. Safe as module state: the semaphore above guarantees one
+ * task at a time.
+ */
+let trail: Array<{ step: string; ms: number; data?: unknown }> = [];
+let trailStart = 0;
+
+function trace(step: string, data?: unknown): void {
+  trail.push({ step, ms: Date.now() - trailStart, ...(data === undefined ? {} : { data }) });
+  console.log(`[agent] ${step}`, data ?? "");
+}
+
+/**
+ * One-line trail summary appended to `errorMessage`.
+ *
+ * The structured trail also goes into `result`, but the dashboard already renders
+ * errorMessage — so putting the summary there makes a failure diagnosable on a deployment
+ * that has not shipped any new UI.
+ */
+function formatTrail(): string {
+  const parts = trail.map(({ step, ms, data }) => {
+    const t = `${(ms / 1000).toFixed(1)}s`;
+    if (data === undefined) return `${step}@${t}`;
+    let shown: string;
+    try {
+      shown = typeof data === "object" ? JSON.stringify(data) : String(data);
+    } catch {
+      shown = "?";
+    }
+    return `${step}=${shown.slice(0, 120)}@${t}`;
+  });
+  return parts.join(" · ").slice(0, 700);
+}
 
 // Track the tab opened by the current task in local storage so orphaned tabs
 // can be closed if the service worker is restarted mid-task.
@@ -113,6 +152,9 @@ async function runOneCycle(): Promise<boolean> {
   if (!task) return false;
 
   taskRunning = true;
+  trail = [];
+  trailStart = Date.now();
+  trace("task.start", { kind: task.kind });
   try {
     const result = await withTimeout(executeTask(task), TASK_TIMEOUT_MS, "task_timeout");
     await reportResult(task.id, { ok: true, result });
@@ -128,8 +170,8 @@ async function runOneCycle(): Promise<boolean> {
     await reportResult(task.id, {
       ok: false,
       errorCode,
-      errorMessage: (err as Error).message,
-      ...(screenshot || buttons || diag ? { result: { debugScreenshot: screenshot, buttons, diag } } : {}),
+      errorMessage: `${(err as Error).message} | trail: ${formatTrail()}`,
+      result: { debugScreenshot: screenshot, buttons, diag, trail },
     });
   } finally {
     taskRunning = false;
@@ -257,7 +299,7 @@ async function sendLinkedInMessage(profileUrl: string, text: string): Promise<{ 
 
     // Phase 3: click Send (enabled by the typing above) and confirm LinkedIn took it.
     const { clicked, emptied } = await pageCall(tabId, { kind: "CLICK_SEND" });
-    console.log("[agent] clickSend:", { clicked, emptied });
+    trace("send.clicked", { clicked, emptied });
     if (!clicked) throw withCode(new Error("send_button_not_found"), "send_button_not_found");
     // The compose box always empties on a successful send. If it still holds the draft, the
     // click did not go through — reporting success here is what would create a phantom
@@ -307,22 +349,23 @@ async function prepareLinkedInMessage(profileUrl: string, text: string): Promise
 // drive it to /messaging/compose/ and type the message. Throws coded errors; never sends.
 async function navigateToComposeAndType(tabId: number, text: string): Promise<void> {
   await waitForTabLoad(tabId);
+  trace("profile.loaded", { url: (await chrome.tabs.get(tabId)).url?.slice(0, 120) });
   await sleep(2500);
 
   await throwIfCheckpoint(tabId);
 
-  // Close any compose overlays left from previous attempts.
+  // Close any compose overlays left from previous attempts. This is also the first page
+  // call of the flow, so a content script that never loaded shows up here.
   await pageCall(tabId, { kind: "CLOSE_OVERLAYS" });
+  trace("page.reachable");
   await sleep(500);
 
   // Dismiss any promotional popup (e.g. LinkedIn's "upgrade to Premium" interstitial)
   // that may have loaded after the initial Escape sweep. These popups appear randomly
   // and occlude the Message button.
   const dismissed = await pageCall(tabId, { kind: "CLICK_MODAL_CLOSE" });
-  if (dismissed) {
-    console.log("[agent] dismissed popup before reading the Message button");
-    await sleep(500);
-  }
+  trace("modal.dismissed", dismissed);
+  if (dismissed) await sleep(500);
 
   // Phase 1: extract the compose URL from the Message button's href, then navigate
   // directly to /messaging/compose/. This is more reliable than clicking the button
@@ -330,8 +373,8 @@ async function navigateToComposeAndType(tabId: number, text: string): Promise<vo
   // contenteditable that enables React-driven Send, whereas the overlay's Send button
   // can stay disabled.
   const composeUrl = await pageCall(tabId, { kind: "COMPOSE_URL" });
+  trace("compose.url", composeUrl);
   if (!composeUrl) throw withCode(new Error("message_button_not_found"), "not_messageable");
-  console.log("[agent] composeUrl:", composeUrl);
 
   await navigateTab(tabId, composeUrl);
   await waitForTabLoad(tabId);
@@ -348,13 +391,13 @@ async function navigateToComposeAndType(tabId: number, text: string): Promise<vo
     await sleep(500);
     navDiag = await pageCall(tabId, { kind: "COMPOSE_DIAG" });
   }
-  console.log("[agent] post-nav diag:", navDiag);
+  trace("compose.diag", navDiag);
 
   // Phase 2: type the message. execCommand("insertText") drives the browser's own editing
   // pipeline, so React's onChange fires and the Send button enables; the page reads the box
   // back, so `ok` means the text is really in there.
   const typed = await pageCall(tabId, { kind: "TYPE_INTO_COMPOSE", text });
-  console.log("[agent] typeIntoCompose:", typed);
+  trace("compose.typed", typed);
   if (!typed.ok) {
     throw withCode(
       new Error(`compose_insert_failed diag=${JSON.stringify(navDiag)}`),
@@ -491,21 +534,24 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
 
     // Every click is an in-page element.click() (see lib/connect-dom.ts) — never a
     // coordinate click, which is what used to miss and produce no_connect.
+    trace("profile.loaded", { url: (await chrome.tabs.get(tabId)).url?.slice(0, 120) });
     let connected = await pageCall(tabId, { kind: "CLICK_CONNECT", slug });
-    console.log("[connect] clickConnect:", connected);
+    trace("connect.clicked", connected);
 
     if (!connected) {
       // Connect may be tucked inside the "More" menu — open it, then retry.
       const openedMore = await pageCall(tabId, { kind: "CLICK_MORE" });
+      trace("connect.openedMore", openedMore);
       if (openedMore) {
         await sleep(800);
         connected = await pageCall(tabId, { kind: "CLICK_CONNECT", slug });
-        console.log("[connect] clickConnect after More:", connected);
+        trace("connect.clickedAfterMore", connected);
       }
     }
 
     if (!connected) {
       const state = await pageCall(tabId, { kind: "PROFILE_STATE" });
+      trace("profile.state", state);
       if (state === "pending") throw withCode(new Error("invitation_already_pending"), "already_pending");
       if (state === "connected") throw withCode(new Error("already_connected"), "already_connected");
 
@@ -528,11 +574,11 @@ async function sendConnectRequest(profileUrl: string): Promise<{ sentAt: string 
       sent = await pageCall(tabId, { kind: "CLICK_INVITE_SEND" });
       if (sent) break;
     }
-    console.log("[connect] clickInviteSend:", sent);
+    trace("invite.sent", sent);
 
     if (!sent) {
       const afterButtons = await pageCall(tabId, { kind: "SCAN_BUTTONS" }).catch(() => []);
-      console.log("[connect] afterButtons:", afterButtons.map(b => `"${b.text}" aria="${b.aria}"`));
+      trace("invite.buttons", afterButtons.map(b => (b.text || b.aria || "").trim()).slice(0, 12));
       // Surface the buttons that WERE on screen in the error message itself, so the
       // dashboard's "recent failures" reveals exactly what LinkedIn rendered.
       const labels = afterButtons

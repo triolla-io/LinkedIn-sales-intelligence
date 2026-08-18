@@ -17,6 +17,12 @@ async function render() {
   const pauseBtn = document.getElementById("pause-btn")!;
 
   card.className = "status-card";
+  // Which server the extension is actually talking to. Without this the popup looks
+  // identical whether it is pointed at prod or a dev server, and a reconnect silently
+  // falls back to prod when the field is left empty.
+  const baseHost = (() => {
+    try { return new URL(storedBase).host; } catch { return storedBase; }
+  })();
 
   if (!token) {
     card.classList.add("disconnected");
@@ -28,7 +34,7 @@ async function render() {
   } else if (paused) {
     card.classList.add("paused");
     label.textContent = "מושהה";
-    desc.textContent = "שליחת הודעות מושהית. לחצי על \"המשך\" כדי לחדש.";
+    desc.textContent = `שליחת הודעות מושהית. לחצי על "המשך" כדי לחדש. · ${baseHost}`;
     headerSub.textContent = "פועל ב-background";
     connectForm.style.display = "none";
     actions.style.display = "";
@@ -36,7 +42,7 @@ async function render() {
   } else {
     card.classList.add("connected");
     label.textContent = "פעיל";
-    desc.textContent = "הודעות LinkedIn ישלחו אוטומטית כשיש משימות ממתינות.";
+    desc.textContent = `הודעות LinkedIn ישלחו אוטומטית כשיש משימות ממתינות. · ${baseHost}`;
     headerSub.textContent = "פועל ב-background";
     connectForm.style.display = "none";
     actions.style.display = "";
