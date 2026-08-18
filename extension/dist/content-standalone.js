@@ -1,6 +1,7 @@
 (function() {
   "use strict";
   const MODAL_CONTAINER_SEL = '[role="dialog"],[aria-modal="true"],.artdeco-modal,.artdeco-toast-item,.artdeco-hovercard';
+  const NEVER_CLICK_SEL = 'a[href],.global-nav,header,nav,[role="banner"],[role="navigation"]';
   function scanButtons() {
     return collectButtons().map((b) => b.meta);
   }
@@ -28,6 +29,7 @@
       const el = node;
       const r = el.getBoundingClientRect();
       if (r.width <= 0 || r.height <= 0 || r.top >= 800) continue;
+      if (el.closest(NEVER_CLICK_SEL)) continue;
       out.push({
         el,
         meta: {

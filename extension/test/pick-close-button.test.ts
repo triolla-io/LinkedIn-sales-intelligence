@@ -29,6 +29,12 @@ describe("pickCloseButton", () => {
     expect(pickCloseButton([chromeDismiss])).toBeNull();
   });
 
+  it("keeps ignoring page chrome even when it looks like a modal dismiss", () => {
+    // Defence in depth: scanButtons drops anything inside a link or the site header before
+    // this runs, and pickCloseButton still requires inModal.
+    expect(pickCloseButton([navIcon({ aria: "Dismiss", inModal: false })])).toBeNull();
+  });
+
   it("returns an in-modal dismiss button", () => {
     const modalDismiss: ScannedButton = navIcon({
       aria: "Dismiss",
