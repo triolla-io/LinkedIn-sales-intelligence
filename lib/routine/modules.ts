@@ -1,22 +1,30 @@
 import { prisma } from "@/lib/prisma";
 import { inngest } from "@/inngest/client";
 
-export type RoutineModuleKey = "connections" | "jobChecks" | "companySignals" | "fintechRadar";
+export type RoutineModuleKey = "connections" | "jobChecks" | "companySignals" | "fintechRadar" | "techRadar";
 
 export type RoutineModuleState = {
   connectionsEnabled: boolean;
   jobChecksEnabled: boolean;
   companySignalsEnabled: boolean;
   fintechRadarEnabled: boolean;
+  techRadarEnabled: boolean;
 };
 
-/** connections is per-user; job checks, company signals, and fintech radar are per-org. */
+/** connections is per-user; every other module is per-org. */
 export async function getRoutineModuleState(userId: string): Promise<RoutineModuleState> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       routineConnectionsEnabled: true,
-      org: { select: { jobCheckEnabled: true, companySignalsEnabled: true, fintechRadarEnabled: true } },
+      org: {
+        select: {
+          jobCheckEnabled: true,
+          companySignalsEnabled: true,
+          fintechRadarEnabled: true,
+          techRadarEnabled: true,
+        },
+      },
     },
   });
   return {
@@ -24,6 +32,7 @@ export async function getRoutineModuleState(userId: string): Promise<RoutineModu
     jobChecksEnabled: user?.org.jobCheckEnabled ?? false,
     companySignalsEnabled: user?.org.companySignalsEnabled ?? false,
     fintechRadarEnabled: user?.org.fintechRadarEnabled ?? false,
+    techRadarEnabled: user?.org.techRadarEnabled ?? false,
   };
 }
 
@@ -54,9 +63,18 @@ export async function setRoutineModule(
     }
     return;
   }
-  await prisma.organization.update({ where: { id: user.orgId }, data: { fintechRadarEnabled: enabled } });
-  // Kick-on-enable: fetch news + dispatch matching for this org immediately instead of waiting for the weekly cron.
+  if (module === "fintechRadar") {
+    await prisma.organization.update({ where: { id: user.orgId }, data: { fintechRadarEnabled: enabled } });
+    // Kick-on-enable: fetch news + dispatch matching for this org immediately instead of waiting for the weekly cron.
+    if (enabled) {
+      await inngest.send({ name: "fintech.radar.enabled" as const, data: { orgId: user.orgId } });
+    }
+    return;
+  }
+  await prisma.organization.update({ where: { id: user.orgId }, data: { techRadarEnabled: enabled } });
+  // Kick-on-enable: research any company still waiting, then scan immediately, instead of
+  // waiting for the weekly cron.
   if (enabled) {
-    await inngest.send({ name: "fintech.radar.enabled" as const, data: { orgId: user.orgId } });
+    await inngest.send({ name: "tech-radar.enabled" as const, data: { orgId: user.orgId } });
   }
 }

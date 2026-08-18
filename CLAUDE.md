@@ -52,6 +52,12 @@ Use HeroUI (`@heroui/react`) for all React components.
 | `fintech.radar.enabled` | "Fintech Radar" module toggled ON (kick-on-enable: fetch + match for that org) | `inngest/functions/fintech-radar-dispatch.ts` |
 | `fintech.radar.match` | per (org × new article) | `inngest/functions/fintech-radar-match.ts` |
 | `fintech.radar.draft` | per new match | `inngest/functions/fintech-radar-draft.ts` |
+| `tech-radar.company.research` | company added to the tracked list / "research again" / quarterly refresh | `inngest/functions/tech-radar-research.ts` |
+| *(cron 0 6 \* \* 0)* | weekly Tech Radar scan — one canonical query pool per org, shared triage + write-ups, per-company fit | `inngest/functions/tech-radar-tick.ts` |
+| *(cron 0 7 \* \* 0)* | quarterly tracked-company profile refresh (stale > 90 days) | `inngest/functions/tech-radar-tick.ts` |
+| `tech-radar.scan` | weekly tick / kick-on-enable | `inngest/functions/tech-radar-scan.ts` |
+| `tech-radar.draft` | per new opportunity | `inngest/functions/tech-radar-draft.ts` |
+| `tech-radar.enabled` | "Tech Radar" module toggled ON (kick-on-enable) | `inngest/functions/tech-radar-dispatch.ts` |
 
 ## Next.js version
 

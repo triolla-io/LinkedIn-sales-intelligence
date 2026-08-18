@@ -274,6 +274,7 @@ export type CompanyWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Company"> | Date | string
   contacts?: Prisma.ContactListRelationFilter
   companySignals?: Prisma.CompanySignalListRelationFilter
+  trackedCompanies?: Prisma.TrackedCompanyListRelationFilter
 }
 
 export type CompanyOrderByWithRelationInput = {
@@ -291,6 +292,7 @@ export type CompanyOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   contacts?: Prisma.ContactOrderByRelationAggregateInput
   companySignals?: Prisma.CompanySignalOrderByRelationAggregateInput
+  trackedCompanies?: Prisma.TrackedCompanyOrderByRelationAggregateInput
 }
 
 export type CompanyWhereUniqueInput = Prisma.AtLeast<{
@@ -311,6 +313,7 @@ export type CompanyWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Company"> | Date | string
   contacts?: Prisma.ContactListRelationFilter
   companySignals?: Prisma.CompanySignalListRelationFilter
+  trackedCompanies?: Prisma.TrackedCompanyListRelationFilter
 }, "id" | "universalName">
 
 export type CompanyOrderByWithAggregationInput = {
@@ -366,6 +369,7 @@ export type CompanyCreateInput = {
   updatedAt?: Date | string
   contacts?: Prisma.ContactCreateNestedManyWithoutCompanyInput
   companySignals?: Prisma.CompanySignalCreateNestedManyWithoutCompanyInput
+  trackedCompanies?: Prisma.TrackedCompanyCreateNestedManyWithoutCompanyInput
 }
 
 export type CompanyUncheckedCreateInput = {
@@ -383,6 +387,7 @@ export type CompanyUncheckedCreateInput = {
   updatedAt?: Date | string
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutCompanyInput
   companySignals?: Prisma.CompanySignalUncheckedCreateNestedManyWithoutCompanyInput
+  trackedCompanies?: Prisma.TrackedCompanyUncheckedCreateNestedManyWithoutCompanyInput
 }
 
 export type CompanyUpdateInput = {
@@ -400,6 +405,7 @@ export type CompanyUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contacts?: Prisma.ContactUpdateManyWithoutCompanyNestedInput
   companySignals?: Prisma.CompanySignalUpdateManyWithoutCompanyNestedInput
+  trackedCompanies?: Prisma.TrackedCompanyUpdateManyWithoutCompanyNestedInput
 }
 
 export type CompanyUncheckedUpdateInput = {
@@ -417,6 +423,7 @@ export type CompanyUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutCompanyNestedInput
   companySignals?: Prisma.CompanySignalUncheckedUpdateManyWithoutCompanyNestedInput
+  trackedCompanies?: Prisma.TrackedCompanyUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
 export type CompanyCreateManyInput = {
@@ -557,6 +564,22 @@ export type CompanyUpdateOneRequiredWithoutCompanySignalsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CompanyUpdateToOneWithWhereWithoutCompanySignalsInput, Prisma.CompanyUpdateWithoutCompanySignalsInput>, Prisma.CompanyUncheckedUpdateWithoutCompanySignalsInput>
 }
 
+export type CompanyCreateNestedOneWithoutTrackedCompaniesInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutTrackedCompaniesInput, Prisma.CompanyUncheckedCreateWithoutTrackedCompaniesInput>
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutTrackedCompaniesInput
+  connect?: Prisma.CompanyWhereUniqueInput
+}
+
+export type CompanyUpdateOneWithoutTrackedCompaniesNestedInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutTrackedCompaniesInput, Prisma.CompanyUncheckedCreateWithoutTrackedCompaniesInput>
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutTrackedCompaniesInput
+  upsert?: Prisma.CompanyUpsertWithoutTrackedCompaniesInput
+  disconnect?: Prisma.CompanyWhereInput | boolean
+  delete?: Prisma.CompanyWhereInput | boolean
+  connect?: Prisma.CompanyWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CompanyUpdateToOneWithWhereWithoutTrackedCompaniesInput, Prisma.CompanyUpdateWithoutTrackedCompaniesInput>, Prisma.CompanyUncheckedUpdateWithoutTrackedCompaniesInput>
+}
+
 export type CompanyCreateWithoutContactsInput = {
   id?: string
   universalName: string
@@ -571,6 +594,7 @@ export type CompanyCreateWithoutContactsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   companySignals?: Prisma.CompanySignalCreateNestedManyWithoutCompanyInput
+  trackedCompanies?: Prisma.TrackedCompanyCreateNestedManyWithoutCompanyInput
 }
 
 export type CompanyUncheckedCreateWithoutContactsInput = {
@@ -587,6 +611,7 @@ export type CompanyUncheckedCreateWithoutContactsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   companySignals?: Prisma.CompanySignalUncheckedCreateNestedManyWithoutCompanyInput
+  trackedCompanies?: Prisma.TrackedCompanyUncheckedCreateNestedManyWithoutCompanyInput
 }
 
 export type CompanyCreateOrConnectWithoutContactsInput = {
@@ -619,6 +644,7 @@ export type CompanyUpdateWithoutContactsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companySignals?: Prisma.CompanySignalUpdateManyWithoutCompanyNestedInput
+  trackedCompanies?: Prisma.TrackedCompanyUpdateManyWithoutCompanyNestedInput
 }
 
 export type CompanyUncheckedUpdateWithoutContactsInput = {
@@ -635,6 +661,7 @@ export type CompanyUncheckedUpdateWithoutContactsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companySignals?: Prisma.CompanySignalUncheckedUpdateManyWithoutCompanyNestedInput
+  trackedCompanies?: Prisma.TrackedCompanyUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
 export type CompanyCreateWithoutCompanySignalsInput = {
@@ -651,6 +678,7 @@ export type CompanyCreateWithoutCompanySignalsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   contacts?: Prisma.ContactCreateNestedManyWithoutCompanyInput
+  trackedCompanies?: Prisma.TrackedCompanyCreateNestedManyWithoutCompanyInput
 }
 
 export type CompanyUncheckedCreateWithoutCompanySignalsInput = {
@@ -667,6 +695,7 @@ export type CompanyUncheckedCreateWithoutCompanySignalsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutCompanyInput
+  trackedCompanies?: Prisma.TrackedCompanyUncheckedCreateNestedManyWithoutCompanyInput
 }
 
 export type CompanyCreateOrConnectWithoutCompanySignalsInput = {
@@ -699,6 +728,7 @@ export type CompanyUpdateWithoutCompanySignalsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contacts?: Prisma.ContactUpdateManyWithoutCompanyNestedInput
+  trackedCompanies?: Prisma.TrackedCompanyUpdateManyWithoutCompanyNestedInput
 }
 
 export type CompanyUncheckedUpdateWithoutCompanySignalsInput = {
@@ -715,6 +745,91 @@ export type CompanyUncheckedUpdateWithoutCompanySignalsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutCompanyNestedInput
+  trackedCompanies?: Prisma.TrackedCompanyUncheckedUpdateManyWithoutCompanyNestedInput
+}
+
+export type CompanyCreateWithoutTrackedCompaniesInput = {
+  id?: string
+  universalName: string
+  name: string
+  industry?: string | null
+  vertical?: string | null
+  staffCount?: number | null
+  website?: string | null
+  description?: string | null
+  lastEnrichedAt?: Date | string | null
+  lastSignalCheckAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  contacts?: Prisma.ContactCreateNestedManyWithoutCompanyInput
+  companySignals?: Prisma.CompanySignalCreateNestedManyWithoutCompanyInput
+}
+
+export type CompanyUncheckedCreateWithoutTrackedCompaniesInput = {
+  id?: string
+  universalName: string
+  name: string
+  industry?: string | null
+  vertical?: string | null
+  staffCount?: number | null
+  website?: string | null
+  description?: string | null
+  lastEnrichedAt?: Date | string | null
+  lastSignalCheckAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutCompanyInput
+  companySignals?: Prisma.CompanySignalUncheckedCreateNestedManyWithoutCompanyInput
+}
+
+export type CompanyCreateOrConnectWithoutTrackedCompaniesInput = {
+  where: Prisma.CompanyWhereUniqueInput
+  create: Prisma.XOR<Prisma.CompanyCreateWithoutTrackedCompaniesInput, Prisma.CompanyUncheckedCreateWithoutTrackedCompaniesInput>
+}
+
+export type CompanyUpsertWithoutTrackedCompaniesInput = {
+  update: Prisma.XOR<Prisma.CompanyUpdateWithoutTrackedCompaniesInput, Prisma.CompanyUncheckedUpdateWithoutTrackedCompaniesInput>
+  create: Prisma.XOR<Prisma.CompanyCreateWithoutTrackedCompaniesInput, Prisma.CompanyUncheckedCreateWithoutTrackedCompaniesInput>
+  where?: Prisma.CompanyWhereInput
+}
+
+export type CompanyUpdateToOneWithWhereWithoutTrackedCompaniesInput = {
+  where?: Prisma.CompanyWhereInput
+  data: Prisma.XOR<Prisma.CompanyUpdateWithoutTrackedCompaniesInput, Prisma.CompanyUncheckedUpdateWithoutTrackedCompaniesInput>
+}
+
+export type CompanyUpdateWithoutTrackedCompaniesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  universalName?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vertical?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastEnrichedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastSignalCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contacts?: Prisma.ContactUpdateManyWithoutCompanyNestedInput
+  companySignals?: Prisma.CompanySignalUpdateManyWithoutCompanyNestedInput
+}
+
+export type CompanyUncheckedUpdateWithoutTrackedCompaniesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  universalName?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vertical?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastEnrichedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastSignalCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutCompanyNestedInput
+  companySignals?: Prisma.CompanySignalUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
 
@@ -725,11 +840,13 @@ export type CompanyUncheckedUpdateWithoutCompanySignalsInput = {
 export type CompanyCountOutputType = {
   contacts: number
   companySignals: number
+  trackedCompanies: number
 }
 
 export type CompanyCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contacts?: boolean | CompanyCountOutputTypeCountContactsArgs
   companySignals?: boolean | CompanyCountOutputTypeCountCompanySignalsArgs
+  trackedCompanies?: boolean | CompanyCountOutputTypeCountTrackedCompaniesArgs
 }
 
 /**
@@ -756,6 +873,13 @@ export type CompanyCountOutputTypeCountCompanySignalsArgs<ExtArgs extends runtim
   where?: Prisma.CompanySignalWhereInput
 }
 
+/**
+ * CompanyCountOutputType without action
+ */
+export type CompanyCountOutputTypeCountTrackedCompaniesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TrackedCompanyWhereInput
+}
+
 
 export type CompanySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -772,6 +896,7 @@ export type CompanySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   updatedAt?: boolean
   contacts?: boolean | Prisma.Company$contactsArgs<ExtArgs>
   companySignals?: boolean | Prisma.Company$companySignalsArgs<ExtArgs>
+  trackedCompanies?: boolean | Prisma.Company$trackedCompaniesArgs<ExtArgs>
   _count?: boolean | Prisma.CompanyCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["company"]>
 
@@ -824,6 +949,7 @@ export type CompanyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type CompanyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contacts?: boolean | Prisma.Company$contactsArgs<ExtArgs>
   companySignals?: boolean | Prisma.Company$companySignalsArgs<ExtArgs>
+  trackedCompanies?: boolean | Prisma.Company$trackedCompaniesArgs<ExtArgs>
   _count?: boolean | Prisma.CompanyCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CompanyIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -834,6 +960,7 @@ export type $CompanyPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     contacts: Prisma.$ContactPayload<ExtArgs>[]
     companySignals: Prisma.$CompanySignalPayload<ExtArgs>[]
+    trackedCompanies: Prisma.$TrackedCompanyPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1244,6 +1371,7 @@ export interface Prisma__CompanyClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   contacts<T extends Prisma.Company$contactsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$contactsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   companySignals<T extends Prisma.Company$companySignalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$companySignalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CompanySignalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  trackedCompanies<T extends Prisma.Company$trackedCompaniesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$trackedCompaniesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TrackedCompanyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1723,6 +1851,30 @@ export type Company$companySignalsArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.CompanySignalScalarFieldEnum | Prisma.CompanySignalScalarFieldEnum[]
+}
+
+/**
+ * Company.trackedCompanies
+ */
+export type Company$trackedCompaniesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TrackedCompany
+   */
+  select?: Prisma.TrackedCompanySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TrackedCompany
+   */
+  omit?: Prisma.TrackedCompanyOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TrackedCompanyInclude<ExtArgs> | null
+  where?: Prisma.TrackedCompanyWhereInput
+  orderBy?: Prisma.TrackedCompanyOrderByWithRelationInput | Prisma.TrackedCompanyOrderByWithRelationInput[]
+  cursor?: Prisma.TrackedCompanyWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TrackedCompanyScalarFieldEnum | Prisma.TrackedCompanyScalarFieldEnum[]
 }
 
 /**

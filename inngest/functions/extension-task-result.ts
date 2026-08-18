@@ -249,6 +249,13 @@ async function handlePrepareSuccess(task: TaskRow) {
       where: { id: task.articleMatchId, status: "PREPARING" },
       data: { status: "PREPARED" },
     });
+    return;
+  }
+  if (task.techDraftId) {
+    await prisma.techOpportunityDraft.updateMany({
+      where: { id: task.techDraftId, status: "PREPARING" },
+      data: { status: "PREPARED" },
+    });
   }
 }
 
@@ -275,6 +282,14 @@ async function handlePrepareFailure(task: TaskRow) {
     await prisma.articleMatch.updateMany({
       where: { id: task.articleMatchId, status: "PREPARING" },
       data: { status: "SUGGESTED" },
+    });
+    return;
+  }
+  // Return the draft to the review queue so the user can simply retry.
+  if (task.techDraftId) {
+    await prisma.techOpportunityDraft.updateMany({
+      where: { id: task.techDraftId, status: "PREPARING" },
+      data: { status: "PENDING_REVIEW" },
     });
   }
 }

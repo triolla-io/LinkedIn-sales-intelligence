@@ -423,7 +423,11 @@ export const ModelName = {
   CompanySignal: 'CompanySignal',
   CompanySignalDraft: 'CompanySignalDraft',
   FintechArticle: 'FintechArticle',
-  ArticleMatch: 'ArticleMatch'
+  ArticleMatch: 'ArticleMatch',
+  TrackedCompany: 'TrackedCompany',
+  TechItem: 'TechItem',
+  TechOpportunity: 'TechOpportunity',
+  TechOpportunityDraft: 'TechOpportunityDraft'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -439,7 +443,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "mcpAccessToken" | "enrichmentSpend" | "userEnrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange" | "companySignal" | "companySignalDraft" | "fintechArticle" | "articleMatch"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "mcpAccessToken" | "enrichmentSpend" | "userEnrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange" | "companySignal" | "companySignalDraft" | "fintechArticle" | "articleMatch" | "trackedCompany" | "techItem" | "techOpportunity" | "techOpportunityDraft"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3403,6 +3407,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TrackedCompany: {
+      payload: Prisma.$TrackedCompanyPayload<ExtArgs>
+      fields: Prisma.TrackedCompanyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TrackedCompanyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrackedCompanyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TrackedCompanyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrackedCompanyPayload>
+        }
+        findFirst: {
+          args: Prisma.TrackedCompanyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrackedCompanyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TrackedCompanyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrackedCompanyPayload>
+        }
+        findMany: {
+          args: Prisma.TrackedCompanyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrackedCompanyPayload>[]
+        }
+        create: {
+          args: Prisma.TrackedCompanyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrackedCompanyPayload>
+        }
+        createMany: {
+          args: Prisma.TrackedCompanyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TrackedCompanyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrackedCompanyPayload>[]
+        }
+        delete: {
+          args: Prisma.TrackedCompanyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrackedCompanyPayload>
+        }
+        update: {
+          args: Prisma.TrackedCompanyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrackedCompanyPayload>
+        }
+        deleteMany: {
+          args: Prisma.TrackedCompanyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TrackedCompanyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TrackedCompanyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrackedCompanyPayload>[]
+        }
+        upsert: {
+          args: Prisma.TrackedCompanyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrackedCompanyPayload>
+        }
+        aggregate: {
+          args: Prisma.TrackedCompanyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTrackedCompany>
+        }
+        groupBy: {
+          args: Prisma.TrackedCompanyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrackedCompanyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TrackedCompanyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrackedCompanyCountAggregateOutputType> | number
+        }
+      }
+    }
+    TechItem: {
+      payload: Prisma.$TechItemPayload<ExtArgs>
+      fields: Prisma.TechItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TechItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TechItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechItemPayload>
+        }
+        findFirst: {
+          args: Prisma.TechItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TechItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechItemPayload>
+        }
+        findMany: {
+          args: Prisma.TechItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechItemPayload>[]
+        }
+        create: {
+          args: Prisma.TechItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechItemPayload>
+        }
+        createMany: {
+          args: Prisma.TechItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TechItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechItemPayload>[]
+        }
+        delete: {
+          args: Prisma.TechItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechItemPayload>
+        }
+        update: {
+          args: Prisma.TechItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.TechItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TechItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TechItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.TechItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechItemPayload>
+        }
+        aggregate: {
+          args: Prisma.TechItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTechItem>
+        }
+        groupBy: {
+          args: Prisma.TechItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TechItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TechItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TechItemCountAggregateOutputType> | number
+        }
+      }
+    }
+    TechOpportunity: {
+      payload: Prisma.$TechOpportunityPayload<ExtArgs>
+      fields: Prisma.TechOpportunityFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TechOpportunityFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TechOpportunityFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityPayload>
+        }
+        findFirst: {
+          args: Prisma.TechOpportunityFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TechOpportunityFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityPayload>
+        }
+        findMany: {
+          args: Prisma.TechOpportunityFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityPayload>[]
+        }
+        create: {
+          args: Prisma.TechOpportunityCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityPayload>
+        }
+        createMany: {
+          args: Prisma.TechOpportunityCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TechOpportunityCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityPayload>[]
+        }
+        delete: {
+          args: Prisma.TechOpportunityDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityPayload>
+        }
+        update: {
+          args: Prisma.TechOpportunityUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityPayload>
+        }
+        deleteMany: {
+          args: Prisma.TechOpportunityDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TechOpportunityUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TechOpportunityUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityPayload>[]
+        }
+        upsert: {
+          args: Prisma.TechOpportunityUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityPayload>
+        }
+        aggregate: {
+          args: Prisma.TechOpportunityAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTechOpportunity>
+        }
+        groupBy: {
+          args: Prisma.TechOpportunityGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TechOpportunityGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TechOpportunityCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TechOpportunityCountAggregateOutputType> | number
+        }
+      }
+    }
+    TechOpportunityDraft: {
+      payload: Prisma.$TechOpportunityDraftPayload<ExtArgs>
+      fields: Prisma.TechOpportunityDraftFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TechOpportunityDraftFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityDraftPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TechOpportunityDraftFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityDraftPayload>
+        }
+        findFirst: {
+          args: Prisma.TechOpportunityDraftFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityDraftPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TechOpportunityDraftFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityDraftPayload>
+        }
+        findMany: {
+          args: Prisma.TechOpportunityDraftFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityDraftPayload>[]
+        }
+        create: {
+          args: Prisma.TechOpportunityDraftCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityDraftPayload>
+        }
+        createMany: {
+          args: Prisma.TechOpportunityDraftCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TechOpportunityDraftCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityDraftPayload>[]
+        }
+        delete: {
+          args: Prisma.TechOpportunityDraftDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityDraftPayload>
+        }
+        update: {
+          args: Prisma.TechOpportunityDraftUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityDraftPayload>
+        }
+        deleteMany: {
+          args: Prisma.TechOpportunityDraftDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TechOpportunityDraftUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TechOpportunityDraftUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityDraftPayload>[]
+        }
+        upsert: {
+          args: Prisma.TechOpportunityDraftUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TechOpportunityDraftPayload>
+        }
+        aggregate: {
+          args: Prisma.TechOpportunityDraftAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTechOpportunityDraft>
+        }
+        groupBy: {
+          args: Prisma.TechOpportunityDraftGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TechOpportunityDraftGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TechOpportunityDraftCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TechOpportunityDraftCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3488,6 +3788,7 @@ export const OrganizationScalarFieldEnum = {
   jobCheckEnabled: 'jobCheckEnabled',
   companySignalsEnabled: 'companySignalsEnabled',
   fintechRadarEnabled: 'fintechRadarEnabled',
+  techRadarEnabled: 'techRadarEnabled',
   createdAt: 'createdAt'
 } as const
 
@@ -3877,6 +4178,7 @@ export const ExtensionTaskScalarFieldEnum = {
   jobChangeId: 'jobChangeId',
   companySignalDraftId: 'companySignalDraftId',
   articleMatchId: 'articleMatchId',
+  techDraftId: 'techDraftId',
   scheduledFor: 'scheduledFor',
   claimedAt: 'claimedAt',
   completedAt: 'completedAt',
@@ -4109,6 +4411,76 @@ export const ArticleMatchScalarFieldEnum = {
 } as const
 
 export type ArticleMatchScalarFieldEnum = (typeof ArticleMatchScalarFieldEnum)[keyof typeof ArticleMatchScalarFieldEnum]
+
+
+export const TrackedCompanyScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  name: 'name',
+  linkedinUrl: 'linkedinUrl',
+  website: 'website',
+  relationship: 'relationship',
+  companyId: 'companyId',
+  profile: 'profile',
+  profileError: 'profileError',
+  researchedAt: 'researchedAt',
+  lastScanAt: 'lastScanAt',
+  scanIntervalDays: 'scanIntervalDays',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TrackedCompanyScalarFieldEnum = (typeof TrackedCompanyScalarFieldEnum)[keyof typeof TrackedCompanyScalarFieldEnum]
+
+
+export const TechItemScalarFieldEnum = {
+  id: 'id',
+  vendor: 'vendor',
+  technology: 'technology',
+  title: 'title',
+  summary: 'summary',
+  categories: 'categories',
+  sources: 'sources',
+  publishedAt: 'publishedAt',
+  thin: 'thin',
+  dedupeKey: 'dedupeKey',
+  createdAt: 'createdAt'
+} as const
+
+export type TechItemScalarFieldEnum = (typeof TechItemScalarFieldEnum)[keyof typeof TechItemScalarFieldEnum]
+
+
+export const TechOpportunityScalarFieldEnum = {
+  id: 'id',
+  itemId: 'itemId',
+  trackedCompanyId: 'trackedCompanyId',
+  fitRationale: 'fitRationale',
+  score: 'score',
+  status: 'status',
+  createdAt: 'createdAt'
+} as const
+
+export type TechOpportunityScalarFieldEnum = (typeof TechOpportunityScalarFieldEnum)[keyof typeof TechOpportunityScalarFieldEnum]
+
+
+export const TechOpportunityDraftScalarFieldEnum = {
+  id: 'id',
+  opportunityId: 'opportunityId',
+  ownerId: 'ownerId',
+  contactId: 'contactId',
+  draftMessage: 'draftMessage',
+  emailSubject: 'emailSubject',
+  emailBody: 'emailBody',
+  whatsappMessage: 'whatsappMessage',
+  channel: 'channel',
+  status: 'status',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TechOpportunityDraftScalarFieldEnum = (typeof TechOpportunityDraftScalarFieldEnum)[keyof typeof TechOpportunityDraftScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -4591,6 +4963,62 @@ export type EnumArticleMatchStatusFieldRefInput<$PrismaModel> = FieldRefInputTyp
 export type ListEnumArticleMatchStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ArticleMatchStatus[]'>
     
 
+
+/**
+ * Reference to a field of type 'CompanyRelationship'
+ */
+export type EnumCompanyRelationshipFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanyRelationship'>
+    
+
+
+/**
+ * Reference to a field of type 'CompanyRelationship[]'
+ */
+export type ListEnumCompanyRelationshipFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanyRelationship[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TrackedCompanyStatus'
+ */
+export type EnumTrackedCompanyStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TrackedCompanyStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'TrackedCompanyStatus[]'
+ */
+export type ListEnumTrackedCompanyStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TrackedCompanyStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TechOpportunityStatus'
+ */
+export type EnumTechOpportunityStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TechOpportunityStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'TechOpportunityStatus[]'
+ */
+export type ListEnumTechOpportunityStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TechOpportunityStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TechDraftStatus'
+ */
+export type EnumTechDraftStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TechDraftStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'TechDraftStatus[]'
+ */
+export type ListEnumTechDraftStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TechDraftStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -4741,6 +5169,10 @@ export type GlobalOmitConfig = {
   companySignalDraft?: Prisma.CompanySignalDraftOmit
   fintechArticle?: Prisma.FintechArticleOmit
   articleMatch?: Prisma.ArticleMatchOmit
+  trackedCompany?: Prisma.TrackedCompanyOmit
+  techItem?: Prisma.TechItemOmit
+  techOpportunity?: Prisma.TechOpportunityOmit
+  techOpportunityDraft?: Prisma.TechOpportunityDraftOmit
 }
 
 /* Types for Logging */

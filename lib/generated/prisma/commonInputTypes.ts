@@ -756,6 +756,74 @@ export type EnumArticleMatchStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumArticleMatchStatusFilter<$PrismaModel>
 }
 
+export type EnumCompanyRelationshipFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanyRelationship | Prisma.EnumCompanyRelationshipFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanyRelationship[] | Prisma.ListEnumCompanyRelationshipFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanyRelationship[] | Prisma.ListEnumCompanyRelationshipFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanyRelationshipFilter<$PrismaModel> | $Enums.CompanyRelationship
+}
+
+export type EnumTrackedCompanyStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.TrackedCompanyStatus | Prisma.EnumTrackedCompanyStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TrackedCompanyStatus[] | Prisma.ListEnumTrackedCompanyStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TrackedCompanyStatus[] | Prisma.ListEnumTrackedCompanyStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTrackedCompanyStatusFilter<$PrismaModel> | $Enums.TrackedCompanyStatus
+}
+
+export type EnumCompanyRelationshipWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanyRelationship | Prisma.EnumCompanyRelationshipFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanyRelationship[] | Prisma.ListEnumCompanyRelationshipFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanyRelationship[] | Prisma.ListEnumCompanyRelationshipFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanyRelationshipWithAggregatesFilter<$PrismaModel> | $Enums.CompanyRelationship
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCompanyRelationshipFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCompanyRelationshipFilter<$PrismaModel>
+}
+
+export type EnumTrackedCompanyStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TrackedCompanyStatus | Prisma.EnumTrackedCompanyStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TrackedCompanyStatus[] | Prisma.ListEnumTrackedCompanyStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TrackedCompanyStatus[] | Prisma.ListEnumTrackedCompanyStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTrackedCompanyStatusWithAggregatesFilter<$PrismaModel> | $Enums.TrackedCompanyStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTrackedCompanyStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTrackedCompanyStatusFilter<$PrismaModel>
+}
+
+export type EnumTechOpportunityStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.TechOpportunityStatus | Prisma.EnumTechOpportunityStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TechOpportunityStatus[] | Prisma.ListEnumTechOpportunityStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TechOpportunityStatus[] | Prisma.ListEnumTechOpportunityStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTechOpportunityStatusFilter<$PrismaModel> | $Enums.TechOpportunityStatus
+}
+
+export type EnumTechOpportunityStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TechOpportunityStatus | Prisma.EnumTechOpportunityStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TechOpportunityStatus[] | Prisma.ListEnumTechOpportunityStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TechOpportunityStatus[] | Prisma.ListEnumTechOpportunityStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTechOpportunityStatusWithAggregatesFilter<$PrismaModel> | $Enums.TechOpportunityStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTechOpportunityStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTechOpportunityStatusFilter<$PrismaModel>
+}
+
+export type EnumTechDraftStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.TechDraftStatus | Prisma.EnumTechDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TechDraftStatus[] | Prisma.ListEnumTechDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TechDraftStatus[] | Prisma.ListEnumTechDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTechDraftStatusFilter<$PrismaModel> | $Enums.TechDraftStatus
+}
+
+export type EnumTechDraftStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TechDraftStatus | Prisma.EnumTechDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TechDraftStatus[] | Prisma.ListEnumTechDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TechDraftStatus[] | Prisma.ListEnumTechDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTechDraftStatusWithAggregatesFilter<$PrismaModel> | $Enums.TechDraftStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTechDraftStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTechDraftStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1444,6 +1512,74 @@ export type NestedEnumArticleMatchStatusWithAggregatesFilter<$PrismaModel = neve
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumArticleMatchStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumArticleMatchStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumCompanyRelationshipFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanyRelationship | Prisma.EnumCompanyRelationshipFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanyRelationship[] | Prisma.ListEnumCompanyRelationshipFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanyRelationship[] | Prisma.ListEnumCompanyRelationshipFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanyRelationshipFilter<$PrismaModel> | $Enums.CompanyRelationship
+}
+
+export type NestedEnumTrackedCompanyStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.TrackedCompanyStatus | Prisma.EnumTrackedCompanyStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TrackedCompanyStatus[] | Prisma.ListEnumTrackedCompanyStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TrackedCompanyStatus[] | Prisma.ListEnumTrackedCompanyStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTrackedCompanyStatusFilter<$PrismaModel> | $Enums.TrackedCompanyStatus
+}
+
+export type NestedEnumCompanyRelationshipWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CompanyRelationship | Prisma.EnumCompanyRelationshipFieldRefInput<$PrismaModel>
+  in?: $Enums.CompanyRelationship[] | Prisma.ListEnumCompanyRelationshipFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CompanyRelationship[] | Prisma.ListEnumCompanyRelationshipFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCompanyRelationshipWithAggregatesFilter<$PrismaModel> | $Enums.CompanyRelationship
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCompanyRelationshipFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCompanyRelationshipFilter<$PrismaModel>
+}
+
+export type NestedEnumTrackedCompanyStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TrackedCompanyStatus | Prisma.EnumTrackedCompanyStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TrackedCompanyStatus[] | Prisma.ListEnumTrackedCompanyStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TrackedCompanyStatus[] | Prisma.ListEnumTrackedCompanyStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTrackedCompanyStatusWithAggregatesFilter<$PrismaModel> | $Enums.TrackedCompanyStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTrackedCompanyStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTrackedCompanyStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumTechOpportunityStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.TechOpportunityStatus | Prisma.EnumTechOpportunityStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TechOpportunityStatus[] | Prisma.ListEnumTechOpportunityStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TechOpportunityStatus[] | Prisma.ListEnumTechOpportunityStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTechOpportunityStatusFilter<$PrismaModel> | $Enums.TechOpportunityStatus
+}
+
+export type NestedEnumTechOpportunityStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TechOpportunityStatus | Prisma.EnumTechOpportunityStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TechOpportunityStatus[] | Prisma.ListEnumTechOpportunityStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TechOpportunityStatus[] | Prisma.ListEnumTechOpportunityStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTechOpportunityStatusWithAggregatesFilter<$PrismaModel> | $Enums.TechOpportunityStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTechOpportunityStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTechOpportunityStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumTechDraftStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.TechDraftStatus | Prisma.EnumTechDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TechDraftStatus[] | Prisma.ListEnumTechDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TechDraftStatus[] | Prisma.ListEnumTechDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTechDraftStatusFilter<$PrismaModel> | $Enums.TechDraftStatus
+}
+
+export type NestedEnumTechDraftStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TechDraftStatus | Prisma.EnumTechDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TechDraftStatus[] | Prisma.ListEnumTechDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TechDraftStatus[] | Prisma.ListEnumTechDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTechDraftStatusWithAggregatesFilter<$PrismaModel> | $Enums.TechDraftStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTechDraftStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTechDraftStatusFilter<$PrismaModel>
 }
 
 

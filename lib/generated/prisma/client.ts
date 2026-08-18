@@ -243,3 +243,30 @@ export type FintechArticle = Prisma.FintechArticleModel
  * 
  */
 export type ArticleMatch = Prisma.ArticleMatchModel
+/**
+ * Model TrackedCompany
+ * A company the org has chosen to track. Deliberately NOT an extension of the
+ * global `Company` model: `Company` is cross-org and derived automatically from
+ * contacts, while this is org-scoped, hand-curated, and carries org-private
+ * information (relationship, research profile). `companyId` links to the global
+ * row when resolvable so contacts can be found via `Contact.companyId`.
+ */
+export type TrackedCompany = Prisma.TrackedCompanyModel
+/**
+ * Model TechItem
+ * One newly-launched technology, written up once and shared across companies.
+ * `dedupeKey` is derived from normalized vendor + technology (NOT url) so one
+ * launch covered by three outlets collapses to a single row.
+ */
+export type TechItem = Prisma.TechItemModel
+/**
+ * Model TechOpportunity
+ * The per-company judgement on a TechItem. `fitRationale` — not the item
+ * summary — is what feeds the outreach message.
+ */
+export type TechOpportunity = Prisma.TechOpportunityModel
+/**
+ * Model TechOpportunityDraft
+ * One prepared message to one contact. The system prepares; the human sends.
+ */
+export type TechOpportunityDraft = Prisma.TechOpportunityDraftModel

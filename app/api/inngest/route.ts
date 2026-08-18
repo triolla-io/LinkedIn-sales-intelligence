@@ -24,6 +24,11 @@ import { fintechRadarTick } from "@/inngest/functions/fintech-radar-tick";
 import { fintechRadarDispatchOnEnable } from "@/inngest/functions/fintech-radar-dispatch";
 import { fintechRadarMatch } from "@/inngest/functions/fintech-radar-match";
 import { fintechRadarDraft } from "@/inngest/functions/fintech-radar-draft";
+import { techRadarTick, techRadarRefreshTick } from "@/inngest/functions/tech-radar-tick";
+import { techRadarDispatchOnEnable } from "@/inngest/functions/tech-radar-dispatch";
+import { techRadarResearch } from "@/inngest/functions/tech-radar-research";
+import { techRadarScan } from "@/inngest/functions/tech-radar-scan";
+import { techRadarDraft } from "@/inngest/functions/tech-radar-draft";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -53,5 +58,11 @@ export const { GET, POST, PUT } = serve({
     fintechRadarDispatchOnEnable,
     fintechRadarMatch,
     fintechRadarDraft,
+    techRadarTick,
+    techRadarRefreshTick,
+    techRadarDispatchOnEnable,
+    techRadarResearch,
+    techRadarScan,
+    techRadarDraft,
   ],
 });

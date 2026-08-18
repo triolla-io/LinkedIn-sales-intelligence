@@ -46,6 +46,7 @@ export type ExtensionTaskMinAggregateOutputType = {
   jobChangeId: string | null
   companySignalDraftId: string | null
   articleMatchId: string | null
+  techDraftId: string | null
   scheduledFor: Date | null
   claimedAt: Date | null
   completedAt: Date | null
@@ -67,6 +68,7 @@ export type ExtensionTaskMaxAggregateOutputType = {
   jobChangeId: string | null
   companySignalDraftId: string | null
   articleMatchId: string | null
+  techDraftId: string | null
   scheduledFor: Date | null
   claimedAt: Date | null
   completedAt: Date | null
@@ -89,6 +91,7 @@ export type ExtensionTaskCountAggregateOutputType = {
   jobChangeId: number
   companySignalDraftId: number
   articleMatchId: number
+  techDraftId: number
   scheduledFor: number
   claimedAt: number
   completedAt: number
@@ -121,6 +124,7 @@ export type ExtensionTaskMinAggregateInputType = {
   jobChangeId?: true
   companySignalDraftId?: true
   articleMatchId?: true
+  techDraftId?: true
   scheduledFor?: true
   claimedAt?: true
   completedAt?: true
@@ -142,6 +146,7 @@ export type ExtensionTaskMaxAggregateInputType = {
   jobChangeId?: true
   companySignalDraftId?: true
   articleMatchId?: true
+  techDraftId?: true
   scheduledFor?: true
   claimedAt?: true
   completedAt?: true
@@ -164,6 +169,7 @@ export type ExtensionTaskCountAggregateInputType = {
   jobChangeId?: true
   companySignalDraftId?: true
   articleMatchId?: true
+  techDraftId?: true
   scheduledFor?: true
   claimedAt?: true
   completedAt?: true
@@ -274,6 +280,7 @@ export type ExtensionTaskGroupByOutputType = {
   jobChangeId: string | null
   companySignalDraftId: string | null
   articleMatchId: string | null
+  techDraftId: string | null
   scheduledFor: Date
   claimedAt: Date | null
   completedAt: Date | null
@@ -320,6 +327,7 @@ export type ExtensionTaskWhereInput = {
   jobChangeId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   companySignalDraftId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   articleMatchId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
+  techDraftId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   scheduledFor?: Prisma.DateTimeFilter<"ExtensionTask"> | Date | string
   claimedAt?: Prisma.DateTimeNullableFilter<"ExtensionTask"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"ExtensionTask"> | Date | string | null
@@ -344,6 +352,7 @@ export type ExtensionTaskOrderByWithRelationInput = {
   jobChangeId?: Prisma.SortOrderInput | Prisma.SortOrder
   companySignalDraftId?: Prisma.SortOrderInput | Prisma.SortOrder
   articleMatchId?: Prisma.SortOrderInput | Prisma.SortOrder
+  techDraftId?: Prisma.SortOrderInput | Prisma.SortOrder
   scheduledFor?: Prisma.SortOrder
   claimedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -371,6 +380,7 @@ export type ExtensionTaskWhereUniqueInput = Prisma.AtLeast<{
   jobChangeId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   companySignalDraftId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   articleMatchId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
+  techDraftId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   scheduledFor?: Prisma.DateTimeFilter<"ExtensionTask"> | Date | string
   claimedAt?: Prisma.DateTimeNullableFilter<"ExtensionTask"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"ExtensionTask"> | Date | string | null
@@ -395,6 +405,7 @@ export type ExtensionTaskOrderByWithAggregationInput = {
   jobChangeId?: Prisma.SortOrderInput | Prisma.SortOrder
   companySignalDraftId?: Prisma.SortOrderInput | Prisma.SortOrder
   articleMatchId?: Prisma.SortOrderInput | Prisma.SortOrder
+  techDraftId?: Prisma.SortOrderInput | Prisma.SortOrder
   scheduledFor?: Prisma.SortOrder
   claimedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -426,6 +437,7 @@ export type ExtensionTaskScalarWhereWithAggregatesInput = {
   jobChangeId?: Prisma.StringNullableWithAggregatesFilter<"ExtensionTask"> | string | null
   companySignalDraftId?: Prisma.StringNullableWithAggregatesFilter<"ExtensionTask"> | string | null
   articleMatchId?: Prisma.StringNullableWithAggregatesFilter<"ExtensionTask"> | string | null
+  techDraftId?: Prisma.StringNullableWithAggregatesFilter<"ExtensionTask"> | string | null
   scheduledFor?: Prisma.DateTimeWithAggregatesFilter<"ExtensionTask"> | Date | string
   claimedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ExtensionTask"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ExtensionTask"> | Date | string | null
@@ -448,6 +460,7 @@ export type ExtensionTaskCreateInput = {
   jobChangeId?: string | null
   companySignalDraftId?: string | null
   articleMatchId?: string | null
+  techDraftId?: string | null
   scheduledFor?: Date | string
   claimedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -472,6 +485,7 @@ export type ExtensionTaskUncheckedCreateInput = {
   jobChangeId?: string | null
   companySignalDraftId?: string | null
   articleMatchId?: string | null
+  techDraftId?: string | null
   scheduledFor?: Date | string
   claimedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -494,6 +508,7 @@ export type ExtensionTaskUpdateInput = {
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   articleMatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  techDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -518,6 +533,7 @@ export type ExtensionTaskUncheckedUpdateInput = {
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   articleMatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  techDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -541,6 +557,7 @@ export type ExtensionTaskCreateManyInput = {
   jobChangeId?: string | null
   companySignalDraftId?: string | null
   articleMatchId?: string | null
+  techDraftId?: string | null
   scheduledFor?: Date | string
   claimedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -563,6 +580,7 @@ export type ExtensionTaskUpdateManyMutationInput = {
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   articleMatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  techDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -586,6 +604,7 @@ export type ExtensionTaskUncheckedUpdateManyInput = {
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   articleMatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  techDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -619,6 +638,7 @@ export type ExtensionTaskCountOrderByAggregateInput = {
   jobChangeId?: Prisma.SortOrder
   companySignalDraftId?: Prisma.SortOrder
   articleMatchId?: Prisma.SortOrder
+  techDraftId?: Prisma.SortOrder
   scheduledFor?: Prisma.SortOrder
   claimedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
@@ -645,6 +665,7 @@ export type ExtensionTaskMaxOrderByAggregateInput = {
   jobChangeId?: Prisma.SortOrder
   companySignalDraftId?: Prisma.SortOrder
   articleMatchId?: Prisma.SortOrder
+  techDraftId?: Prisma.SortOrder
   scheduledFor?: Prisma.SortOrder
   claimedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
@@ -666,6 +687,7 @@ export type ExtensionTaskMinOrderByAggregateInput = {
   jobChangeId?: Prisma.SortOrder
   companySignalDraftId?: Prisma.SortOrder
   articleMatchId?: Prisma.SortOrder
+  techDraftId?: Prisma.SortOrder
   scheduledFor?: Prisma.SortOrder
   claimedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
@@ -741,6 +763,7 @@ export type ExtensionTaskCreateWithoutUserInput = {
   jobChangeId?: string | null
   companySignalDraftId?: string | null
   articleMatchId?: string | null
+  techDraftId?: string | null
   scheduledFor?: Date | string
   claimedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -763,6 +786,7 @@ export type ExtensionTaskUncheckedCreateWithoutUserInput = {
   jobChangeId?: string | null
   companySignalDraftId?: string | null
   articleMatchId?: string | null
+  techDraftId?: string | null
   scheduledFor?: Date | string
   claimedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -815,6 +839,7 @@ export type ExtensionTaskScalarWhereInput = {
   jobChangeId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   companySignalDraftId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   articleMatchId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
+  techDraftId?: Prisma.StringNullableFilter<"ExtensionTask"> | string | null
   scheduledFor?: Prisma.DateTimeFilter<"ExtensionTask"> | Date | string
   claimedAt?: Prisma.DateTimeNullableFilter<"ExtensionTask"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"ExtensionTask"> | Date | string | null
@@ -837,6 +862,7 @@ export type ExtensionTaskCreateManyUserInput = {
   jobChangeId?: string | null
   companySignalDraftId?: string | null
   articleMatchId?: string | null
+  techDraftId?: string | null
   scheduledFor?: Date | string
   claimedAt?: Date | string | null
   completedAt?: Date | string | null
@@ -859,6 +885,7 @@ export type ExtensionTaskUpdateWithoutUserInput = {
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   articleMatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  techDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -881,6 +908,7 @@ export type ExtensionTaskUncheckedUpdateWithoutUserInput = {
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   articleMatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  techDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -903,6 +931,7 @@ export type ExtensionTaskUncheckedUpdateManyWithoutUserInput = {
   jobChangeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   companySignalDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   articleMatchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  techDraftId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -928,6 +957,7 @@ export type ExtensionTaskSelect<ExtArgs extends runtime.Types.Extensions.Interna
   jobChangeId?: boolean
   companySignalDraftId?: boolean
   articleMatchId?: boolean
+  techDraftId?: boolean
   scheduledFor?: boolean
   claimedAt?: boolean
   completedAt?: boolean
@@ -952,6 +982,7 @@ export type ExtensionTaskSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   jobChangeId?: boolean
   companySignalDraftId?: boolean
   articleMatchId?: boolean
+  techDraftId?: boolean
   scheduledFor?: boolean
   claimedAt?: boolean
   completedAt?: boolean
@@ -976,6 +1007,7 @@ export type ExtensionTaskSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   jobChangeId?: boolean
   companySignalDraftId?: boolean
   articleMatchId?: boolean
+  techDraftId?: boolean
   scheduledFor?: boolean
   claimedAt?: boolean
   completedAt?: boolean
@@ -1000,6 +1032,7 @@ export type ExtensionTaskSelectScalar = {
   jobChangeId?: boolean
   companySignalDraftId?: boolean
   articleMatchId?: boolean
+  techDraftId?: boolean
   scheduledFor?: boolean
   claimedAt?: boolean
   completedAt?: boolean
@@ -1010,7 +1043,7 @@ export type ExtensionTaskSelectScalar = {
   createdAt?: boolean
 }
 
-export type ExtensionTaskOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "kind" | "status" | "payload" | "recipientId" | "sequenceExecutionId" | "prospectingRunId" | "connectionRequestId" | "jobChangeId" | "companySignalDraftId" | "articleMatchId" | "scheduledFor" | "claimedAt" | "completedAt" | "attemptCount" | "errorCode" | "errorMessage" | "result" | "createdAt", ExtArgs["result"]["extensionTask"]>
+export type ExtensionTaskOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "kind" | "status" | "payload" | "recipientId" | "sequenceExecutionId" | "prospectingRunId" | "connectionRequestId" | "jobChangeId" | "companySignalDraftId" | "articleMatchId" | "techDraftId" | "scheduledFor" | "claimedAt" | "completedAt" | "attemptCount" | "errorCode" | "errorMessage" | "result" | "createdAt", ExtArgs["result"]["extensionTask"]>
 export type ExtensionTaskInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -1039,6 +1072,7 @@ export type $ExtensionTaskPayload<ExtArgs extends runtime.Types.Extensions.Inter
     jobChangeId: string | null
     companySignalDraftId: string | null
     articleMatchId: string | null
+    techDraftId: string | null
     scheduledFor: Date
     claimedAt: Date | null
     completedAt: Date | null
@@ -1483,6 +1517,7 @@ export interface ExtensionTaskFieldRefs {
   readonly jobChangeId: Prisma.FieldRef<"ExtensionTask", 'String'>
   readonly companySignalDraftId: Prisma.FieldRef<"ExtensionTask", 'String'>
   readonly articleMatchId: Prisma.FieldRef<"ExtensionTask", 'String'>
+  readonly techDraftId: Prisma.FieldRef<"ExtensionTask", 'String'>
   readonly scheduledFor: Prisma.FieldRef<"ExtensionTask", 'DateTime'>
   readonly claimedAt: Prisma.FieldRef<"ExtensionTask", 'DateTime'>
   readonly completedAt: Prisma.FieldRef<"ExtensionTask", 'DateTime'>

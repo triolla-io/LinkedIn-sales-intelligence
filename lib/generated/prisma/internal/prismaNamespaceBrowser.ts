@@ -90,7 +90,11 @@ export const ModelName = {
   CompanySignal: 'CompanySignal',
   CompanySignalDraft: 'CompanySignalDraft',
   FintechArticle: 'FintechArticle',
-  ArticleMatch: 'ArticleMatch'
+  ArticleMatch: 'ArticleMatch',
+  TrackedCompany: 'TrackedCompany',
+  TechItem: 'TechItem',
+  TechOpportunity: 'TechOpportunity',
+  TechOpportunityDraft: 'TechOpportunityDraft'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -155,6 +159,7 @@ export const OrganizationScalarFieldEnum = {
   jobCheckEnabled: 'jobCheckEnabled',
   companySignalsEnabled: 'companySignalsEnabled',
   fintechRadarEnabled: 'fintechRadarEnabled',
+  techRadarEnabled: 'techRadarEnabled',
   createdAt: 'createdAt'
 } as const
 
@@ -544,6 +549,7 @@ export const ExtensionTaskScalarFieldEnum = {
   jobChangeId: 'jobChangeId',
   companySignalDraftId: 'companySignalDraftId',
   articleMatchId: 'articleMatchId',
+  techDraftId: 'techDraftId',
   scheduledFor: 'scheduledFor',
   claimedAt: 'claimedAt',
   completedAt: 'completedAt',
@@ -776,6 +782,76 @@ export const ArticleMatchScalarFieldEnum = {
 } as const
 
 export type ArticleMatchScalarFieldEnum = (typeof ArticleMatchScalarFieldEnum)[keyof typeof ArticleMatchScalarFieldEnum]
+
+
+export const TrackedCompanyScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  name: 'name',
+  linkedinUrl: 'linkedinUrl',
+  website: 'website',
+  relationship: 'relationship',
+  companyId: 'companyId',
+  profile: 'profile',
+  profileError: 'profileError',
+  researchedAt: 'researchedAt',
+  lastScanAt: 'lastScanAt',
+  scanIntervalDays: 'scanIntervalDays',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TrackedCompanyScalarFieldEnum = (typeof TrackedCompanyScalarFieldEnum)[keyof typeof TrackedCompanyScalarFieldEnum]
+
+
+export const TechItemScalarFieldEnum = {
+  id: 'id',
+  vendor: 'vendor',
+  technology: 'technology',
+  title: 'title',
+  summary: 'summary',
+  categories: 'categories',
+  sources: 'sources',
+  publishedAt: 'publishedAt',
+  thin: 'thin',
+  dedupeKey: 'dedupeKey',
+  createdAt: 'createdAt'
+} as const
+
+export type TechItemScalarFieldEnum = (typeof TechItemScalarFieldEnum)[keyof typeof TechItemScalarFieldEnum]
+
+
+export const TechOpportunityScalarFieldEnum = {
+  id: 'id',
+  itemId: 'itemId',
+  trackedCompanyId: 'trackedCompanyId',
+  fitRationale: 'fitRationale',
+  score: 'score',
+  status: 'status',
+  createdAt: 'createdAt'
+} as const
+
+export type TechOpportunityScalarFieldEnum = (typeof TechOpportunityScalarFieldEnum)[keyof typeof TechOpportunityScalarFieldEnum]
+
+
+export const TechOpportunityDraftScalarFieldEnum = {
+  id: 'id',
+  opportunityId: 'opportunityId',
+  ownerId: 'ownerId',
+  contactId: 'contactId',
+  draftMessage: 'draftMessage',
+  emailSubject: 'emailSubject',
+  emailBody: 'emailBody',
+  whatsappMessage: 'whatsappMessage',
+  channel: 'channel',
+  status: 'status',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TechOpportunityDraftScalarFieldEnum = (typeof TechOpportunityDraftScalarFieldEnum)[keyof typeof TechOpportunityDraftScalarFieldEnum]
 
 
 export const SortOrder = {

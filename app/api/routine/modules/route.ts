@@ -14,7 +14,8 @@ export const PATCH = withTenant(async (req, ctx) => {
     (module !== "connections" &&
       module !== "jobChecks" &&
       module !== "companySignals" &&
-      module !== "fintechRadar") ||
+      module !== "fintechRadar" &&
+      module !== "techRadar") ||
     typeof enabled !== "boolean"
   ) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });

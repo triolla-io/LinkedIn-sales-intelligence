@@ -7,14 +7,16 @@ export type RoutineModules = {
   jobChecksEnabled: boolean;
   companySignalsEnabled: boolean;
   fintechRadarEnabled: boolean;
+  techRadarEnabled: boolean;
 };
-export type RoutineModuleKey = "connections" | "jobChecks" | "companySignals" | "fintechRadar";
+export type RoutineModuleKey = "connections" | "jobChecks" | "companySignals" | "fintechRadar" | "techRadar";
 
 const MODULE_STATE_KEY: Record<RoutineModuleKey, keyof RoutineModules> = {
   connections: "connectionsEnabled",
   jobChecks: "jobChecksEnabled",
   companySignals: "companySignalsEnabled",
   fintechRadar: "fintechRadarEnabled",
+  techRadar: "techRadarEnabled",
 };
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());

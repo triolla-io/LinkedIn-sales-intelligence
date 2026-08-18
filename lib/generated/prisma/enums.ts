@@ -299,3 +299,40 @@ export const ArticleMatchStatus = {
 } as const
 
 export type ArticleMatchStatus = (typeof ArticleMatchStatus)[keyof typeof ArticleMatchStatus]
+
+
+export const CompanyRelationship = {
+  CUSTOMER: 'CUSTOMER',
+  PROSPECT: 'PROSPECT'
+} as const
+
+export type CompanyRelationship = (typeof CompanyRelationship)[keyof typeof CompanyRelationship]
+
+
+export const TrackedCompanyStatus = {
+  PENDING_RESEARCH: 'PENDING_RESEARCH',
+  ACTIVE: 'ACTIVE',
+  RESEARCH_FAILED: 'RESEARCH_FAILED'
+} as const
+
+export type TrackedCompanyStatus = (typeof TrackedCompanyStatus)[keyof typeof TrackedCompanyStatus]
+
+
+export const TechOpportunityStatus = {
+  DISCOVERED: 'DISCOVERED',
+  DRAFTED: 'DRAFTED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type TechOpportunityStatus = (typeof TechOpportunityStatus)[keyof typeof TechOpportunityStatus]
+
+
+export const TechDraftStatus = {
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  PREPARING: 'PREPARING',
+  PREPARED: 'PREPARED',
+  SENT: 'SENT',
+  DISMISSED: 'DISMISSED'
+} as const
+
+export type TechDraftStatus = (typeof TechDraftStatus)[keyof typeof TechDraftStatus]

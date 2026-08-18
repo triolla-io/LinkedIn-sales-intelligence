@@ -117,12 +117,14 @@ model Organization {
   jobCheckEnabled             Boolean  @default(false)
   companySignalsEnabled       Boolean  @default(false)
   fintechRadarEnabled         Boolean  @default(false)
+  techRadarEnabled            Boolean  @default(false)
   createdAt                   DateTime @default(now())
 
   users             User[]
   enrichmentSpends  EnrichmentSpend[]
   invites           Invite[]
   personEnrichments PersonEnrichment[]
+  trackedCompanies  TrackedCompany[]
 }
 
 model User {
@@ -141,30 +143,31 @@ model User {
   connectWarmupStartedAt    DateTime?
   createdAt                 DateTime  @default(now())
 
-  org                 Organization          @relation(fields: [orgId], references: [id])
+  org                 Organization           @relation(fields: [orgId], references: [id])
   accounts            Account[]
   sessions            Session[]
   contacts            Contact[]
-  sentMessages        SentMessage[]         @relation("SentBySender")
-  actedMessages       SentMessage[]         @relation("ActedByActor")
+  sentMessages        SentMessage[]          @relation("SentBySender")
+  actedMessages       SentMessage[]          @relation("ActedByActor")
   savedViews          SavedView[]
   templates           MessageTemplate[]
-  auditActed          AuditEvent[]          @relation("AuditActor")
-  auditTargeted       AuditEvent[]          @relation("AuditTarget")
+  auditActed          AuditEvent[]           @relation("AuditActor")
+  auditTargeted       AuditEvent[]           @relation("AuditTarget")
   campaigns           Campaign[]
   imports             Import[]
   importJobs          ImportJob[]
   contactLists        ContactList[]
   linkedinSession     LinkedinSession?
   sequences           Sequence[]
-  extensionTasks      ExtensionTask[]       @relation("UserExtensionTasks")
-  extensionSession    ExtensionSession?     @relation("UserExtensionSession")
-  extensionAlerts     ExtensionAlert[]      @relation("UserExtensionAlerts")
-  prospectingRuns     ProspectingRun[]      @relation("UserProspectingRuns")
-  connectionRequests  ConnectionRequest[]   @relation("UserConnectionRequests")
+  extensionTasks      ExtensionTask[]        @relation("UserExtensionTasks")
+  extensionSession    ExtensionSession?      @relation("UserExtensionSession")
+  extensionAlerts     ExtensionAlert[]       @relation("UserExtensionAlerts")
+  prospectingRuns     ProspectingRun[]       @relation("UserProspectingRuns")
+  connectionRequests  ConnectionRequest[]    @relation("UserConnectionRequests")
   mcpTokens           McpAccessToken[]
-  companySignalDrafts CompanySignalDraft[]  @relation("UserCompanySignalDrafts")
-  enrichmentSpends    UserEnrichmentSpend[] @relation("UserEnrichmentSpends")
+  companySignalDrafts CompanySignalDraft[]   @relation("UserCompanySignalDrafts")
+  enrichmentSpends    UserEnrichmentSpend[]  @relation("UserEnrichmentSpends")
+  techDrafts          TechOpportunityDraft[] @relation("UserTechOpportunityDrafts")
 }
 
 model Contact {
@@ -211,13 +214,14 @@ model Contact {
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id])
 
-  owner               User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner               User                   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   messages            SentMessage[]
   campaignRecipients  CampaignRecipient[]
   lists               ContactListMember[]
   companySignalDrafts CompanySignalDraft[]
   sequenceEnrollments SequenceEnrollment[]
   articleMatches      ArticleMatch[]
+  techDrafts          TechOpportunityDraft[]
 
   @@unique([ownerId, linkedinUrn])
   @@index([ownerId, seniority])
@@ -382,8 +386,9 @@ model Company {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  contacts       Contact[]
-  companySignals CompanySignal[]
+  contacts         Contact[]
+  companySignals   CompanySignal[]
+  trackedCompanies TrackedCompany[]
 
   @@index([industry])
   @@index([staffCount])
@@ -732,6 +737,7 @@ model ExtensionTask {
   jobChangeId          String?
   companySignalDraftId String?
   articleMatchId       String?
+  techDraftId          String?
   scheduledFor         DateTime            @default(now())
   claimedAt            DateTime?
   completedAt          DateTime?
@@ -1036,4 +1042,143 @@ model ArticleMatch {
   @@unique([articleId, contactId])
   @@index([ownerId, status])
   @@index([ownerId, createdAt])
+}
+
+// ─── Tech Radar ──────────────────────────────────────────────────────────────
+//
+// Company-driven technology-opportunity radar. Inverts the Fintech Radar
+// direction: a curated per-org company list is researched into a profile, the
+// profile's derived queries drive the scan, and fit is judged per company.
+//
+// The entity is split so company-agnostic work happens ONCE: `TechItem` is the
+// shared write-up of a technology (what it is), `TechOpportunity` is the
+// per-company judgement (why it fits you). Same proven shape as
+// FintechArticle + ArticleMatch.
+
+enum CompanyRelationship {
+  CUSTOMER
+  PROSPECT
+}
+
+enum TrackedCompanyStatus {
+  PENDING_RESEARCH
+  ACTIVE
+  RESEARCH_FAILED
+}
+
+enum TechOpportunityStatus {
+  DISCOVERED
+  DRAFTED
+  ARCHIVED
+}
+
+enum TechDraftStatus {
+  PENDING_REVIEW
+  /// Claimed: a PREPARE_MESSAGE extension task is queued/typing. Guarded transition
+  /// out of PENDING_REVIEW so a double-click cannot queue two prepare tasks.
+  PREPARING
+  PREPARED
+  SENT
+  DISMISSED
+}
+
+/// A company the org has chosen to track. Deliberately NOT an extension of the
+/// global `Company` model: `Company` is cross-org and derived automatically from
+/// contacts, while this is org-scoped, hand-curated, and carries org-private
+/// information (relationship, research profile). `companyId` links to the global
+/// row when resolvable so contacts can be found via `Contact.companyId`.
+model TrackedCompany {
+  id               String               @id @default(cuid())
+  orgId            String
+  name             String
+  linkedinUrl      String?
+  website          String?
+  relationship     CompanyRelationship  @default(PROSPECT)
+  companyId        String?
+  /// Research output. Shape: TechRadarProfile in lib/tech-radar/types.ts
+  profile          Json?
+  /// Why research failed, when status is RESEARCH_FAILED.
+  profileError     String?
+  researchedAt     DateTime?
+  lastScanAt       DateTime?
+  /// Tiered-cadence lever: raise for PROSPECTs to halve scan cost at scale.
+  scanIntervalDays Int                  @default(7)
+  status           TrackedCompanyStatus @default(PENDING_RESEARCH)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  org           Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  company       Company?          @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  opportunities TechOpportunity[]
+
+  @@unique([orgId, name])
+  @@index([status])
+  @@index([orgId, status])
+}
+
+/// One newly-launched technology, written up once and shared across companies.
+/// `dedupeKey` is derived from normalized vendor + technology (NOT url) so one
+/// launch covered by three outlets collapses to a single row.
+model TechItem {
+  id          String    @id @default(cuid())
+  vendor      String?
+  technology  String
+  title       String
+  summary     String    @db.Text
+  categories  String[]  @default([])
+  /// [{ url, title, publishedAt }]
+  sources     Json
+  publishedAt DateTime?
+  /// True when synthesized from a search snippet because no page could be read.
+  thin        Boolean   @default(false)
+  dedupeKey   String    @unique
+  createdAt   DateTime  @default(now())
+
+  opportunities TechOpportunity[]
+
+  @@index([createdAt])
+}
+
+/// The per-company judgement on a TechItem. `fitRationale` — not the item
+/// summary — is what feeds the outreach message.
+model TechOpportunity {
+  id               String                @id @default(cuid())
+  itemId           String
+  trackedCompanyId String
+  fitRationale     String                @db.Text
+  score            Float                 @default(0)
+  status           TechOpportunityStatus @default(DISCOVERED)
+  createdAt        DateTime              @default(now())
+
+  item           TechItem               @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  trackedCompany TrackedCompany         @relation(fields: [trackedCompanyId], references: [id], onDelete: Cascade)
+  drafts         TechOpportunityDraft[]
+
+  @@unique([trackedCompanyId, itemId])
+  @@index([trackedCompanyId, status])
+  @@index([status])
+}
+
+/// One prepared message to one contact. The system prepares; the human sends.
+model TechOpportunityDraft {
+  id              String          @id @default(cuid())
+  opportunityId   String
+  ownerId         String
+  contactId       String
+  draftMessage    String          @db.Text
+  emailSubject    String?
+  emailBody       String?         @db.Text
+  whatsappMessage String?         @db.Text
+  channel         String          @default("LINKEDIN")
+  status          TechDraftStatus @default(PENDING_REVIEW)
+  sentAt          DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  opportunity TechOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  owner       User            @relation("UserTechOpportunityDrafts", fields: [ownerId], references: [id], onDelete: Cascade)
+  contact     Contact         @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([opportunityId, contactId])
+  @@index([ownerId, status])
 }
