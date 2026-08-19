@@ -36,6 +36,8 @@ type Draft = {
 type Opportunity = {
   id: string;
   fitRationale: string;
+  businessLine: string | null;
+  contactSuggestion: string | null;
   score: number;
   status: string;
   createdAt: string;
@@ -541,6 +543,11 @@ function OpportunityRow({ opportunity, onChanged }: { opportunity: Opportunity; 
       </div>
 
       <div className="flex items-center gap-1.5 flex-wrap">
+        {opportunity.businessLine && (
+          <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#1585ff]/10 text-[#1585ff] font-medium">
+            {opportunity.businessLine}
+          </span>
+        )}
         {item.categories.map((c) => <span key={c} className={ui.chip} dir="ltr">{c}</span>)}
         {item.thin && (
           <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
@@ -558,9 +565,16 @@ function OpportunityRow({ opportunity, onChanged }: { opportunity: Opportunity; 
       </div>
 
       {opportunity.drafts.length === 0 ? (
-        <div className="flex items-center gap-1.5 text-xs text-[#b45309] bg-[#fffbeb] border border-[#fde68a] rounded-lg px-3 py-2">
-          <UserX className="size-3.5 shrink-0" />
-          אין למי לפנות — אין לך איש קשר בכיר בחברה הזאת
+        /* A gap is more useful as the next action than as a dead end, so it carries a
+           recommendation of which role to go after. */
+        <div className="text-xs text-[#b45309] bg-[#fffbeb] border border-[#fde68a] rounded-lg px-3 py-2 flex flex-col gap-1">
+          <span className="flex items-center gap-1.5 font-medium">
+            <UserX className="size-3.5 shrink-0" />
+            אין למי לפנות — אין לך איש קשר בכיר בחברה הזאת
+          </span>
+          {opportunity.contactSuggestion && (
+            <span className="text-[#8a5a1a]">{opportunity.contactSuggestion}</span>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-2">

@@ -33,7 +33,8 @@ export const GET = withTenant(async (_req, ctx) => {
         where: { status: { in: ["DISCOVERED", "DRAFTED"] } },
         orderBy: [{ score: "desc" }, { createdAt: "desc" }],
         select: {
-          id: true, fitRationale: true, score: true, status: true, createdAt: true,
+          id: true, fitRationale: true, businessLine: true, contactSuggestion: true,
+          score: true, status: true, createdAt: true,
           item: {
             select: {
               id: true, vendor: true, technology: true, title: true, summary: true,

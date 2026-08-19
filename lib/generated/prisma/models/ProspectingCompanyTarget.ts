@@ -30,6 +30,7 @@ export type ProspectingCompanyTargetAvgAggregateOutputType = {
   searchPage: number | null
   searchTitleIndex: number | null
   discoveredCount: number | null
+  scannedCount: number | null
   sentCount: number | null
 }
 
@@ -37,6 +38,7 @@ export type ProspectingCompanyTargetSumAggregateOutputType = {
   searchPage: number | null
   searchTitleIndex: number | null
   discoveredCount: number | null
+  scannedCount: number | null
   sentCount: number | null
 }
 
@@ -56,6 +58,7 @@ export type ProspectingCompanyTargetMinAggregateOutputType = {
   searchPage: number | null
   searchTitleIndex: number | null
   discoveredCount: number | null
+  scannedCount: number | null
   sentCount: number | null
   error: string | null
   createdAt: Date | null
@@ -78,6 +81,7 @@ export type ProspectingCompanyTargetMaxAggregateOutputType = {
   searchPage: number | null
   searchTitleIndex: number | null
   discoveredCount: number | null
+  scannedCount: number | null
   sentCount: number | null
   error: string | null
   createdAt: Date | null
@@ -100,6 +104,7 @@ export type ProspectingCompanyTargetCountAggregateOutputType = {
   searchPage: number
   searchTitleIndex: number
   discoveredCount: number
+  scannedCount: number
   sentCount: number
   error: number
   createdAt: number
@@ -112,6 +117,7 @@ export type ProspectingCompanyTargetAvgAggregateInputType = {
   searchPage?: true
   searchTitleIndex?: true
   discoveredCount?: true
+  scannedCount?: true
   sentCount?: true
 }
 
@@ -119,6 +125,7 @@ export type ProspectingCompanyTargetSumAggregateInputType = {
   searchPage?: true
   searchTitleIndex?: true
   discoveredCount?: true
+  scannedCount?: true
   sentCount?: true
 }
 
@@ -138,6 +145,7 @@ export type ProspectingCompanyTargetMinAggregateInputType = {
   searchPage?: true
   searchTitleIndex?: true
   discoveredCount?: true
+  scannedCount?: true
   sentCount?: true
   error?: true
   createdAt?: true
@@ -160,6 +168,7 @@ export type ProspectingCompanyTargetMaxAggregateInputType = {
   searchPage?: true
   searchTitleIndex?: true
   discoveredCount?: true
+  scannedCount?: true
   sentCount?: true
   error?: true
   createdAt?: true
@@ -182,6 +191,7 @@ export type ProspectingCompanyTargetCountAggregateInputType = {
   searchPage?: true
   searchTitleIndex?: true
   discoveredCount?: true
+  scannedCount?: true
   sentCount?: true
   error?: true
   createdAt?: true
@@ -291,6 +301,7 @@ export type ProspectingCompanyTargetGroupByOutputType = {
   searchPage: number
   searchTitleIndex: number
   discoveredCount: number
+  scannedCount: number
   sentCount: number
   error: string | null
   createdAt: Date
@@ -336,6 +347,7 @@ export type ProspectingCompanyTargetWhereInput = {
   searchPage?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   searchTitleIndex?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   discoveredCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
+  scannedCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   sentCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   error?: Prisma.StringNullableFilter<"ProspectingCompanyTarget"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProspectingCompanyTarget"> | Date | string
@@ -360,6 +372,7 @@ export type ProspectingCompanyTargetOrderByWithRelationInput = {
   searchPage?: Prisma.SortOrder
   searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
+  scannedCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
   error?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -388,6 +401,7 @@ export type ProspectingCompanyTargetWhereUniqueInput = Prisma.AtLeast<{
   searchPage?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   searchTitleIndex?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   discoveredCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
+  scannedCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   sentCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   error?: Prisma.StringNullableFilter<"ProspectingCompanyTarget"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProspectingCompanyTarget"> | Date | string
@@ -412,6 +426,7 @@ export type ProspectingCompanyTargetOrderByWithAggregationInput = {
   searchPage?: Prisma.SortOrder
   searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
+  scannedCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
   error?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -442,6 +457,7 @@ export type ProspectingCompanyTargetScalarWhereWithAggregatesInput = {
   searchPage?: Prisma.IntWithAggregatesFilter<"ProspectingCompanyTarget"> | number
   searchTitleIndex?: Prisma.IntWithAggregatesFilter<"ProspectingCompanyTarget"> | number
   discoveredCount?: Prisma.IntWithAggregatesFilter<"ProspectingCompanyTarget"> | number
+  scannedCount?: Prisma.IntWithAggregatesFilter<"ProspectingCompanyTarget"> | number
   sentCount?: Prisma.IntWithAggregatesFilter<"ProspectingCompanyTarget"> | number
   error?: Prisma.StringNullableWithAggregatesFilter<"ProspectingCompanyTarget"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ProspectingCompanyTarget"> | Date | string
@@ -463,6 +479,7 @@ export type ProspectingCompanyTargetCreateInput = {
   searchPage?: number
   searchTitleIndex?: number
   discoveredCount?: number
+  scannedCount?: number
   sentCount?: number
   error?: string | null
   createdAt?: Date | string
@@ -487,6 +504,7 @@ export type ProspectingCompanyTargetUncheckedCreateInput = {
   searchPage?: number
   searchTitleIndex?: number
   discoveredCount?: number
+  scannedCount?: number
   sentCount?: number
   error?: string | null
   createdAt?: Date | string
@@ -509,6 +527,7 @@ export type ProspectingCompanyTargetUpdateInput = {
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
   searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
+  scannedCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -533,6 +552,7 @@ export type ProspectingCompanyTargetUncheckedUpdateInput = {
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
   searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
+  scannedCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -556,6 +576,7 @@ export type ProspectingCompanyTargetCreateManyInput = {
   searchPage?: number
   searchTitleIndex?: number
   discoveredCount?: number
+  scannedCount?: number
   sentCount?: number
   error?: string | null
   createdAt?: Date | string
@@ -577,6 +598,7 @@ export type ProspectingCompanyTargetUpdateManyMutationInput = {
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
   searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
+  scannedCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -599,6 +621,7 @@ export type ProspectingCompanyTargetUncheckedUpdateManyInput = {
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
   searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
+  scannedCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -636,6 +659,7 @@ export type ProspectingCompanyTargetCountOrderByAggregateInput = {
   searchPage?: Prisma.SortOrder
   searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
+  scannedCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
   error?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -646,6 +670,7 @@ export type ProspectingCompanyTargetAvgOrderByAggregateInput = {
   searchPage?: Prisma.SortOrder
   searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
+  scannedCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
 }
 
@@ -665,6 +690,7 @@ export type ProspectingCompanyTargetMaxOrderByAggregateInput = {
   searchPage?: Prisma.SortOrder
   searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
+  scannedCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
   error?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -687,6 +713,7 @@ export type ProspectingCompanyTargetMinOrderByAggregateInput = {
   searchPage?: Prisma.SortOrder
   searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
+  scannedCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
   error?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -697,6 +724,7 @@ export type ProspectingCompanyTargetSumOrderByAggregateInput = {
   searchPage?: Prisma.SortOrder
   searchTitleIndex?: Prisma.SortOrder
   discoveredCount?: Prisma.SortOrder
+  scannedCount?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
 }
 
@@ -782,6 +810,7 @@ export type ProspectingCompanyTargetCreateWithoutRunInput = {
   searchPage?: number
   searchTitleIndex?: number
   discoveredCount?: number
+  scannedCount?: number
   sentCount?: number
   error?: string | null
   createdAt?: Date | string
@@ -804,6 +833,7 @@ export type ProspectingCompanyTargetUncheckedCreateWithoutRunInput = {
   searchPage?: number
   searchTitleIndex?: number
   discoveredCount?: number
+  scannedCount?: number
   sentCount?: number
   error?: string | null
   createdAt?: Date | string
@@ -856,6 +886,7 @@ export type ProspectingCompanyTargetScalarWhereInput = {
   searchPage?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   searchTitleIndex?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   discoveredCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
+  scannedCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   sentCount?: Prisma.IntFilter<"ProspectingCompanyTarget"> | number
   error?: Prisma.StringNullableFilter<"ProspectingCompanyTarget"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProspectingCompanyTarget"> | Date | string
@@ -877,6 +908,7 @@ export type ProspectingCompanyTargetCreateWithoutRequestsInput = {
   searchPage?: number
   searchTitleIndex?: number
   discoveredCount?: number
+  scannedCount?: number
   sentCount?: number
   error?: string | null
   createdAt?: Date | string
@@ -900,6 +932,7 @@ export type ProspectingCompanyTargetUncheckedCreateWithoutRequestsInput = {
   searchPage?: number
   searchTitleIndex?: number
   discoveredCount?: number
+  scannedCount?: number
   sentCount?: number
   error?: string | null
   createdAt?: Date | string
@@ -937,6 +970,7 @@ export type ProspectingCompanyTargetUpdateWithoutRequestsInput = {
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
   searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
+  scannedCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -960,6 +994,7 @@ export type ProspectingCompanyTargetUncheckedUpdateWithoutRequestsInput = {
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
   searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
+  scannedCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -981,6 +1016,7 @@ export type ProspectingCompanyTargetCreateManyRunInput = {
   searchPage?: number
   searchTitleIndex?: number
   discoveredCount?: number
+  scannedCount?: number
   sentCount?: number
   error?: string | null
   createdAt?: Date | string
@@ -1002,6 +1038,7 @@ export type ProspectingCompanyTargetUpdateWithoutRunInput = {
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
   searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
+  scannedCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1024,6 +1061,7 @@ export type ProspectingCompanyTargetUncheckedUpdateWithoutRunInput = {
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
   searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
+  scannedCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1046,6 +1084,7 @@ export type ProspectingCompanyTargetUncheckedUpdateManyWithoutRunInput = {
   searchPage?: Prisma.IntFieldUpdateOperationsInput | number
   searchTitleIndex?: Prisma.IntFieldUpdateOperationsInput | number
   discoveredCount?: Prisma.IntFieldUpdateOperationsInput | number
+  scannedCount?: Prisma.IntFieldUpdateOperationsInput | number
   sentCount?: Prisma.IntFieldUpdateOperationsInput | number
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1099,6 +1138,7 @@ export type ProspectingCompanyTargetSelect<ExtArgs extends runtime.Types.Extensi
   searchPage?: boolean
   searchTitleIndex?: boolean
   discoveredCount?: boolean
+  scannedCount?: boolean
   sentCount?: boolean
   error?: boolean
   createdAt?: boolean
@@ -1124,6 +1164,7 @@ export type ProspectingCompanyTargetSelectCreateManyAndReturn<ExtArgs extends ru
   searchPage?: boolean
   searchTitleIndex?: boolean
   discoveredCount?: boolean
+  scannedCount?: boolean
   sentCount?: boolean
   error?: boolean
   createdAt?: boolean
@@ -1147,6 +1188,7 @@ export type ProspectingCompanyTargetSelectUpdateManyAndReturn<ExtArgs extends ru
   searchPage?: boolean
   searchTitleIndex?: boolean
   discoveredCount?: boolean
+  scannedCount?: boolean
   sentCount?: boolean
   error?: boolean
   createdAt?: boolean
@@ -1170,13 +1212,14 @@ export type ProspectingCompanyTargetSelectScalar = {
   searchPage?: boolean
   searchTitleIndex?: boolean
   discoveredCount?: boolean
+  scannedCount?: boolean
   sentCount?: boolean
   error?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ProspectingCompanyTargetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "runId" | "name" | "nameHebrew" | "linkedinUrl" | "linkedinSlug" | "linkedinCompanyId" | "resolvedName" | "website" | "vertical" | "dedupKey" | "status" | "searchPage" | "searchTitleIndex" | "discoveredCount" | "sentCount" | "error" | "createdAt" | "updatedAt", ExtArgs["result"]["prospectingCompanyTarget"]>
+export type ProspectingCompanyTargetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "runId" | "name" | "nameHebrew" | "linkedinUrl" | "linkedinSlug" | "linkedinCompanyId" | "resolvedName" | "website" | "vertical" | "dedupKey" | "status" | "searchPage" | "searchTitleIndex" | "discoveredCount" | "scannedCount" | "sentCount" | "error" | "createdAt" | "updatedAt", ExtArgs["result"]["prospectingCompanyTarget"]>
 export type ProspectingCompanyTargetInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   run?: boolean | Prisma.ProspectingRunDefaultArgs<ExtArgs>
   requests?: boolean | Prisma.ProspectingCompanyTarget$requestsArgs<ExtArgs>
@@ -1211,6 +1254,7 @@ export type $ProspectingCompanyTargetPayload<ExtArgs extends runtime.Types.Exten
     searchPage: number
     searchTitleIndex: number
     discoveredCount: number
+    scannedCount: number
     sentCount: number
     error: string | null
     createdAt: Date
@@ -1655,6 +1699,7 @@ export interface ProspectingCompanyTargetFieldRefs {
   readonly searchPage: Prisma.FieldRef<"ProspectingCompanyTarget", 'Int'>
   readonly searchTitleIndex: Prisma.FieldRef<"ProspectingCompanyTarget", 'Int'>
   readonly discoveredCount: Prisma.FieldRef<"ProspectingCompanyTarget", 'Int'>
+  readonly scannedCount: Prisma.FieldRef<"ProspectingCompanyTarget", 'Int'>
   readonly sentCount: Prisma.FieldRef<"ProspectingCompanyTarget", 'Int'>
   readonly error: Prisma.FieldRef<"ProspectingCompanyTarget", 'String'>
   readonly createdAt: Prisma.FieldRef<"ProspectingCompanyTarget", 'DateTime'>

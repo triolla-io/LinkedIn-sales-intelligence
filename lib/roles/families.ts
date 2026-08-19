@@ -38,7 +38,8 @@ export const ROLE_FAMILIES: RoleFamily[] = [
       "svp product", "svp of product", "evp product", "evp of product",
       "head of product", "director of product", "product director",
       "product management director", "product tribe lead",
-      "group product manager", "product fellow", "distinguished product manager",
+      "group product manager", "product group manager",
+      "product fellow", "distinguished product manager",
       "product lead", "product manager", "product owner",
       'סמנכ"ל מוצר', 'סמנכ"לית מוצר', "ראש תחום מוצר", "ראש מוצר",
       "מנהל מוצר", "מנהלת מוצר", "דירקטור מוצר", "דירקטור ניהול מוצר",
@@ -203,13 +204,46 @@ export function expandTitleToSearchTerms(title: string): string[] | null {
  * ASCII patterns match with word boundaries (so "coo" never matches inside "cool");
  * Hebrew patterns match as substrings across all quote variants.
  */
+/**
+ * Seniority words that may sit one qualifier away from the function they lead — "VP of Product
+ * Management", "Head of Global Product", "Chief Global Product Officer". Only patterns that START
+ * with one of these earn gap tolerance: the level word anchors seniority, so precision holds
+ * (adjacent functions like "VP Marketing | Product Support" still fail — see TOKEN_GAP).
+ */
+const LEVEL_FIRST_TOKENS = new Set([
+  "vp", "svp", "evp", "avp", "vice", "president",
+  "head", "chief", "director", "deputy",
+]);
+
+/**
+ * One optional intervening qualifier between two pattern tokens. Only words and an optional comma
+ * may fill the gap, so it can never cross a "|", "/", "(" or "-" separator — which is what keeps
+ * "VP Marketing | Product Support" out of the product family.
+ */
+const TOKEN_GAP = ",?\\s+(?:[a-z&.]+,?\\s+)?";
+
+const patternRegexCache = new Map<string, RegExp>();
+
+/** Word-bounded regex for an ASCII pattern; level-anchored patterns tolerate one gap word. */
+function asciiPatternRegex(pattern: string): RegExp {
+  const cached = patternRegexCache.get(pattern);
+  if (cached) return cached;
+  const tokens = pattern.split(/\s+/).filter(Boolean);
+  const body =
+    tokens.length > 1 && LEVEL_FIRST_TOKENS.has(tokens[0])
+      ? tokens.map(escapeRegExp).join(TOKEN_GAP)
+      : escapeRegExp(pattern);
+  const re = new RegExp(`\\b${body}\\b`);
+  patternRegexCache.set(pattern, re);
+  return re;
+}
+
 export function familyHeadlineMatches(family: RoleFamily, headline: string): boolean {
   if (!headline) return false;
   const lower = headline.toLowerCase();
   for (const pattern of family.patterns) {
     if (isAscii(pattern)) {
-      const re = new RegExp(`\\b${escapeRegExp(pattern.toLowerCase())}\\b`);
-      if (re.test(lower)) return true;
+      if (asciiPatternRegex(pattern.toLowerCase()).test(lower)) return true;
     } else {
       for (const variant of quoteVariants(pattern)) {
         if (headline.includes(variant)) return true;

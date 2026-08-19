@@ -4,9 +4,8 @@ import type { TriageVerdict } from "@/lib/tech-radar/types";
 const chat = vi.fn();
 vi.mock("@/lib/openrouter/client", () => ({ openrouterChat: (...a: unknown[]) => chat(...a) }));
 
-const { makeItemDedupeKey, isSameTechnology, parseItemResponse, synthesizeItem } = await import(
-  "@/lib/tech-radar/item"
-);
+const { makeItemDedupeKey, isSameTechnology, isSameLaunch, parseItemResponse, synthesizeItem } =
+  await import("@/lib/tech-radar/item");
 
 const triage: TriageVerdict = {
   url: "https://news.com/a",
@@ -155,6 +154,70 @@ describe("parseItemResponse", () => {
 
   it("returns null on prose", () => {
     expect(parseItemResponse("Sorry, I can't")).toBeNull();
+  });
+});
+
+/**
+ * Two outlets covered TGS's seismic AI launch as "TGS Seismic Foundation Model" and
+ * "AI Model for Subsurface Interpretation". The names share only the word "model", so
+ * name overlap cannot catch it — but both write-ups produced the SAME four categories
+ * ("subsurface interpretation", "seismic analysis", "ai", "machine learning"), which is
+ * not a coincidence at that specificity.
+ */
+describe("isSameLaunch", () => {
+  const tgsA = {
+    technology: "TGS Seismic Foundation Model",
+    categories: ["seismic analysis", "ai", "subsurface interpretation", "machine learning"],
+  };
+  const tgsB = {
+    technology: "AI Model for Subsurface Interpretation",
+    categories: ["subsurface interpretation", "seismic analysis", "ai", "machine learning"],
+  };
+
+  it("merges two differently-named write-ups that classify identically", () => {
+    expect(isSameLaunch(tgsA, tgsB)).toBe(true);
+  });
+
+  it("still merges on name overlap when categories differ", () => {
+    expect(
+      isSameLaunch(
+        { technology: "Unified Corporate Carbon Accounting Standard", categories: ["carbon accounting"] },
+        { technology: "Unified Corporate Greenhouse Gas Accounting Standard", categories: ["ghg reporting"] }
+      )
+    ).toBe(true);
+  });
+
+  // Two real launches from one vendor often share a couple of broad tags; that is not
+  // evidence they are the same thing.
+  it("does not merge on a couple of broad shared tags", () => {
+    expect(
+      isSameLaunch(
+        { technology: "Radar Assistant", categories: ["payments", "api"] },
+        { technology: "Billing Credits", categories: ["payments", "api"] }
+      )
+    ).toBe(false);
+  });
+
+  it("does not merge when the categories only partly overlap", () => {
+    expect(
+      isSameLaunch(
+        { technology: "Alpha Engine", categories: ["fraud detection", "payments", "machine learning"] },
+        { technology: "Beta Console", categories: ["fraud detection", "reporting", "compliance"] }
+      )
+    ).toBe(false);
+  });
+
+  it("ignores category order and case", () => {
+    expect(
+      isSameLaunch(
+        { technology: "One Thing", categories: ["Alpha Area", "beta area", "gamma area"] },
+        { technology: "Other Thing", categories: ["gamma area", "ALPHA AREA", "Beta Area"] }
+      )
+    ).toBe(true);
+  });
+
+  it("handles empty categories without throwing", () => {
+    expect(isSameLaunch({ technology: "A", categories: [] }, { technology: "B", categories: [] })).toBe(false);
   });
 });
 

@@ -98,3 +98,41 @@ describe("titleMatchesHeadline", () => {
     expect(titleMatchesHeadline("CFO", "")).toBe(false);
   });
 });
+
+/**
+ * Regression — adi@triolla.io's Playtika company run (run cmsyi60w901r03gqp1voxfdkm, 2026-08-18 10:12).
+ * The three title searches for `product` (CPO / "VP Product" / "Head of Product") scraped 8 + 8 + 9
+ * cards, and the title filter dropped ALL 25, so the run reported COMPLETED with zero people and no
+ * explanation. Nine of the 25 carried a headline; exactly one was a real product leader — "Product
+ * Group Manager" — lost to a word-order gap ("group product manager" was in the pattern list,
+ * "product group manager" was not). These are the verbatim prod headlines.
+ */
+describe("titleMatchesHeadline — Playtika run (2026-08-18)", () => {
+  const KEEP = [
+    "Product Group Manager at Playtika", // the one real miss
+    "Group Product Manager at Playtika",
+    "VP of Product Management",
+    "VP Global Product",
+    "Head of Global Product",
+    "Chief Global Product Officer",
+  ];
+  const DROP = [
+    "Chief Human Resources Officer (CHRO) at Playtika",
+    "Director of HR Operations & HR PMO",
+    "VIP Account Manager At Playtika",
+    "VP Monetization | Slotomania",
+    "General Manager, WSOP at Playtika",
+    "GM | Playtika",
+    "EGM Growth & Intl. studios | Gaming Executive | Board Member",
+    // Relaxing word order must NOT reach adjacent functions:
+    "Product Marketing Manager",
+    "VP Marketing | Product Support",
+  ];
+
+  it.each(KEEP)("keeps a product leader: %s", (headline) => {
+    expect(titleMatchesHeadline('"VP Product"', headline)).toBe(true);
+  });
+  it.each(DROP)("drops a non-product headline: %s", (headline) => {
+    expect(titleMatchesHeadline('"VP Product"', headline)).toBe(false);
+  });
+});

@@ -840,6 +840,7 @@ model ProspectingCompanyTarget {
   searchPage        Int                 @default(1) // per-company, per-title pagination cursor
   searchTitleIndex  Int                 @default(0) // which title in the run's list is being searched now
   discoveredCount   Int                 @default(0)
+  scannedCount      Int                 @default(0) // people LinkedIn returned for this company, matching or not
   sentCount         Int                 @default(0) // denormalized for the companies table UI
   error             String?
   createdAt         DateTime            @default(now())
@@ -1140,13 +1141,20 @@ model TechItem {
 /// The per-company judgement on a TechItem. `fitRationale` — not the item
 /// summary — is what feeds the outreach message.
 model TechOpportunity {
-  id               String                @id @default(cuid())
-  itemId           String
-  trackedCompanyId String
-  fitRationale     String                @db.Text
-  score            Float                 @default(0)
-  status           TechOpportunityStatus @default(DISCOVERED)
-  createdAt        DateTime              @default(now())
+  id                String                @id @default(cuid())
+  itemId            String
+  trackedCompanyId  String
+  fitRationale      String                @db.Text
+  /// Which of the company's business lines this belongs to. Persisted (not just used in
+  /// the cap) so drafting can spread across lines instead of letting the highest scores
+  /// spend the whole per-contact budget on one line.
+  businessLine      String?
+  /// When the org has nobody senior at this company: which role they should acquire.
+  /// "No one to contact" is more useful as a recommendation than as a dead end.
+  contactSuggestion String?               @db.Text
+  score             Float                 @default(0)
+  status            TechOpportunityStatus @default(DISCOVERED)
+  createdAt         DateTime              @default(now())
 
   item           TechItem               @relation(fields: [itemId], references: [id], onDelete: Cascade)
   trackedCompany TrackedCompany         @relation(fields: [trackedCompanyId], references: [id], onDelete: Cascade)

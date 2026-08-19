@@ -13,7 +13,8 @@ import { prisma } from "@/lib/prisma";
 import { isSeniorTitle } from "@/lib/company-signals/clevel";
 import { buildRecipientWhere, rankRecipients } from "@/lib/tech-radar/recipients";
 import { draftTechMessage } from "@/lib/tech-radar/draft";
-import type { RecipientCandidate } from "@/lib/tech-radar/types";
+import { suggestContactRole } from "@/lib/tech-radar/suggest-contact";
+import { isUsableProfile, type RecipientCandidate, type TechRadarProfile } from "@/lib/tech-radar/types";
 
 /** Candidate pool size per owner before ranking. */
 const CANDIDATE_CAP = 25;
@@ -39,7 +40,7 @@ export async function createDraftsForOpportunity(
       fitRationale: true,
       item: { select: { technology: true, title: true, summary: true, vendor: true } },
       trackedCompany: {
-        select: { id: true, orgId: true, name: true, aliases: true, companyId: true },
+        select: { id: true, orgId: true, name: true, aliases: true, companyId: true, profile: true },
       },
     },
   });
@@ -65,6 +66,28 @@ export async function createDraftsForOpportunity(
   // The SQL filter is coarse by necessity — `contains` cannot express a word boundary,
   // so "coo" matches every "Coordinator". Decide seniority precisely here.
   const senior = allContacts.filter((c) => isSeniorTitle(c.currentTitle));
+
+  // Nobody senior anywhere in the org at this company. Record which role they should go
+  // after, so the gap reads as the next action rather than a dead end.
+  if (senior.length === 0) {
+    const profile = company.profile;
+    if (isUsableProfile(profile)) {
+      const suggestion = await suggestContactRole({
+        companyName: company.name,
+        profile: profile as TechRadarProfile,
+        technology: opportunity.item.technology,
+        vendor: opportunity.item.vendor,
+        fitRationale: opportunity.fitRationale,
+      });
+      if (suggestion) {
+        await prisma.techOpportunity.update({
+          where: { id: opportunity.id },
+          data: { contactSuggestion: suggestion },
+        });
+      }
+    }
+    return { created: 0, owners: owners.length };
+  }
 
   const contactsByOwner = new Map<string, typeof allContacts>();
   for (const contact of senior) {

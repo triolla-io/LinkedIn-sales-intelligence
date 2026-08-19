@@ -218,6 +218,20 @@ describe("maybeCompleteCompanyRun", () => {
     );
   });
 
+  // adi's Playtika run completed with this exact message while having found nobody — the phrasing
+  // read as success ("כל האנשים טופלו") when the truth was that nothing matched.
+  it("says so plainly when the run found nobody", async () => {
+    runFindUnique.mockResolvedValue({ ...RUN, totalDiscovered: 0 });
+    targetCount.mockResolvedValue(0);
+    requestCount.mockResolvedValue(0);
+    taskFindFirst.mockResolvedValue(null);
+    runUpdateMany.mockResolvedValue({ count: 1 });
+    await maybeCompleteCompanyRun("run1");
+    const message = String(eventCreate.mock.calls.at(-1)?.[0]?.data?.message ?? "");
+    expect(message).not.toContain("כל האנשים טופלו");
+    expect(message).toMatch(/לא נמצא/);
+  });
+
   it.each([
     ["non-terminal targets", 1, 0, null],
     ["unsent people", 0, 2, null],

@@ -530,13 +530,30 @@ async function handleCompanySearchResult(
   // We search ONE title at a time; keep only people whose headline actually matches it.
   const titles = parseSearchTitles(run.keywords);
   const currentTitle = titles[target.searchTitleIndex];
-  await persistCandidates(
+  const { inserted, filtered } = await persistCandidates(
     task.userId,
     run.id,
     result.candidates ?? [],
     target.id,
     currentTitle,
   );
+
+  // LinkedIn's keyword search is full-text, so a company page routinely returns people who merely
+  // mention the term. Dropping them is right; dropping them SILENTLY is what made adi's Playtika run
+  // (2026-08-18) look like a clean, empty success — 25 people scanned, 25 filtered, nothing recorded.
+  if (filtered > 0 && inserted === 0) {
+    await logProspectingEvent({
+      runId: run.id,
+      type: "SKIPPED",
+      message: `${target.name} · ${currentTitle ?? "—"} — נסרקו ${filtered} אנשים, אף אחד לא בתפקיד הזה`,
+      detail: {
+        companyTargetId: target.id,
+        title: currentTitle ?? null,
+        scanned: filtered + inserted,
+        matched: inserted,
+      },
+    });
+  }
 
   if (run.status !== "RUNNING") return;
   if (run.searchFailCount > 0) {
@@ -628,12 +645,47 @@ async function handleCompanySearchResult(
         where: { id: target.id, status: "SEARCHING" },
         data: { status: "DONE" },
       });
-      if (done.count === 1)
+      if (done.count === 1) {
+        await logCompanyYield(run.id, target.id, target.name, titles);
         await startNextPendingTarget(run.id, interCompanyDelayMs());
+      }
     }
   }
 
   await queueNextConnect(run.id);
+}
+
+/**
+ * One line per finished company, read off the persisted counters (not the last page's): "scanned N,
+ * found M". A company that scanned people and matched none is the interesting case — it means the
+ * searched titles are wrong for this company, which the customer can act on, so it says that.
+ */
+async function logCompanyYield(
+  runId: string,
+  targetId: string,
+  name: string,
+  titles: string[],
+): Promise<void> {
+  const totals = await prisma.prospectingCompanyTarget.findUnique({
+    where: { id: targetId },
+    select: { scannedCount: true, discoveredCount: true },
+  });
+  if (!totals || totals.scannedCount === 0) return; // nothing was returned at all — no counters to explain
+  const message =
+    totals.discoveredCount === 0
+      ? `${name} — נסרקו ${totals.scannedCount} אנשים, אף אחד לא בתפקידים שביקשת (${titles.join(", ")}). כדאי לנסות תפקידים אחרים`
+      : `${name} — נסרקו ${totals.scannedCount} אנשים, ${totals.discoveredCount} בתפקידים שביקשת`;
+  await logProspectingEvent({
+    runId,
+    type: totals.discoveredCount === 0 ? "SKIPPED" : "DISCOVERED",
+    message,
+    detail: {
+      companyTargetId: targetId,
+      scanned: totals.scannedCount,
+      matched: totals.discoveredCount,
+      titles,
+    },
+  });
 }
 
 async function handleSearchFailure(task: TaskRow) {

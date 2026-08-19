@@ -17,7 +17,7 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-const { upsertTechItem } = await import("@/lib/tech-radar/persist");
+const { upsertTechItem, interleaveByLine } = await import("@/lib/tech-radar/persist");
 
 function draft(over: Partial<TechItemDraft> = {}): TechItemDraft {
   return {
@@ -89,5 +89,63 @@ describe("upsertTechItem", () => {
     itemFindUnique.mockResolvedValue({ id: "existing", sources: [], thin: true });
     await upsertTechItem(draft({ thin: false }));
     expect(itemUpdate.mock.calls[0][0].data.thin).toBe(false);
+  });
+});
+
+/**
+ * From the first scan a human ran: Delek's two energy opportunities got zero drafts
+ * because the finance ones drafted first and spent every contact's message budget. The
+ * business-line diversity was real in the feed and absent in the outreach.
+ */
+describe("interleaveByLine", () => {
+  it("takes the best of each line in turn", () => {
+    const rows = [
+      { id: "fin1", businessLine: "financial services" },
+      { id: "fin2", businessLine: "financial services" },
+      { id: "fin3", businessLine: "financial services" },
+      { id: "energy1", businessLine: "oil and gas" },
+      { id: "energy2", businessLine: "oil and gas" },
+    ];
+    expect(interleaveByLine(rows)).toEqual(["fin1", "energy1", "fin2", "energy2", "fin3"]);
+  });
+
+  it("keeps every opportunity, just reorders them", () => {
+    const rows = [
+      { id: "a", businessLine: "x" },
+      { id: "b", businessLine: "y" },
+      { id: "c", businessLine: "x" },
+    ];
+    expect(interleaveByLine(rows).sort()).toEqual(["a", "b", "c"]);
+  });
+
+  it("preserves score order when every opportunity shares one line", () => {
+    const rows = [
+      { id: "first", businessLine: "one" },
+      { id: "second", businessLine: "one" },
+    ];
+    expect(interleaveByLine(rows)).toEqual(["first", "second"]);
+  });
+
+  it("treats unattributed opportunities as a single bucket", () => {
+    const rows = [
+      { id: "n1", businessLine: null },
+      { id: "n2", businessLine: "  " },
+      { id: "line1", businessLine: "energy" },
+    ];
+    // The two unattributed ones must not each claim a turn ahead of the attributed line.
+    expect(interleaveByLine(rows)).toEqual(["n1", "line1", "n2"]);
+  });
+
+  it("is case and whitespace insensitive about line names", () => {
+    const rows = [
+      { id: "a", businessLine: "Energy" },
+      { id: "b", businessLine: " energy " },
+      { id: "c", businessLine: "Finance" },
+    ];
+    expect(interleaveByLine(rows)).toEqual(["a", "c", "b"]);
+  });
+
+  it("handles an empty list", () => {
+    expect(interleaveByLine([])).toEqual([]);
   });
 });

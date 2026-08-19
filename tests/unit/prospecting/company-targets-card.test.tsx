@@ -17,6 +17,7 @@ function target(overrides: Partial<CompanyTargetRow>): CompanyTargetRow {
     resolvedName: null,
     status: "DONE",
     discoveredCount: 0,
+    scannedCount: 0,
     sentCount: 0,
     error: null,
     ...overrides,
@@ -62,5 +63,31 @@ describe("CompanyTargetsCard", () => {
     );
     expect(screen.queryByRole("button", { name: /נכשלו/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /הוסרו/ })).not.toBeInTheDocument();
+  });
+});
+
+// Regression — the playtika row read "נמצאו 0" after LinkedIn had returned 25 people who all held
+// the wrong role. Zero-found and zero-returned must not render identically.
+describe("CompanyTargetsCard — zero matches after scanning people", () => {
+  it("shows how many were scanned next to the zero", () => {
+    render(
+      <CompanyTargetsCard
+        runId="r1"
+        targets={[target({ name: "playtika", status: "DONE", discoveredCount: 0, scannedCount: 25 })]}
+        onChanged={() => {}}
+      />,
+    );
+    expect(screen.getByText("25 נסרקו")).toBeInTheDocument();
+  });
+
+  it("says nothing extra when nothing was scanned", () => {
+    render(
+      <CompanyTargetsCard
+        runId="r1"
+        targets={[target({ name: "quiet co", status: "DONE", discoveredCount: 0, scannedCount: 0 })]}
+        onChanged={() => {}}
+      />,
+    );
+    expect(screen.queryByText(/נסרקו/)).not.toBeInTheDocument();
   });
 });

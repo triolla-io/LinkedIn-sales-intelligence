@@ -124,5 +124,6 @@ export const OR_FEATURE = {
   item: "tech-radar-item",
   fit: "tech-radar-fit",
   recipients: "tech-radar-recipients",
+  suggestContact: "tech-radar-suggest-contact",
   draft: "tech-radar-draft",
 } as const;

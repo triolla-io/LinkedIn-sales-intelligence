@@ -35,6 +35,8 @@ export type CompanyTargetRow = {
     | "FAILED"
     | "REMOVED";
   discoveredCount: number;
+  /** People LinkedIn returned for this company, whether or not they held a searched role. */
+  scannedCount: number;
   sentCount: number;
   error: string | null;
 };
@@ -344,6 +346,12 @@ export function CompanyTargetsCard({
                   </td>
                   <td className="px-4 py-2.5 tabular-nums text-[#111110]">
                     {t.discoveredCount}
+                    {/* A bare "0" hid the real story: people WERE returned, none held the role. */}
+                    {t.discoveredCount === 0 && t.scannedCount > 0 && (
+                      <div className="text-[10px] text-[#9b9895]">
+                        {t.scannedCount} נסרקו
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-2.5 tabular-nums text-[#111110]">
                     {t.sentCount}

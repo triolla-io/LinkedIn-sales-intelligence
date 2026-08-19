@@ -7,7 +7,7 @@
  */
 import { prisma } from "@/lib/prisma";
 import type { CappedCandidate, TechItemDraft } from "@/lib/tech-radar/types";
-import { makeItemDedupeKey, isSameTechnology } from "@/lib/tech-radar/item";
+import { makeItemDedupeKey, isSameLaunch } from "@/lib/tech-radar/item";
 
 /**
  * Create the TechItem or return the existing one. Sources of an existing item are
@@ -45,10 +45,10 @@ export async function upsertTechItem(draft: TechItemDraft): Promise<string> {
   const vendorPrefix = `${dedupeKey.split("::")[0]}::`;
   const siblings = await prisma.techItem.findMany({
     where: { dedupeKey: { startsWith: vendorPrefix } },
-    select: { id: true, technology: true, sources: true, thin: true },
+    select: { id: true, technology: true, categories: true, sources: true, thin: true },
     take: 20,
   });
-  const twin = siblings.find((s) => isSameTechnology(s.technology, draft.technology));
+  const twin = siblings.find((s) => isSameLaunch(s, draft));
   if (twin) return mergeInto(twin, draft);
 
   const created = await prisma.techItem.create({
@@ -82,6 +82,7 @@ export async function createOpportunities(candidates: CappedCandidate[]): Promis
         trackedCompanyId: c.trackedCompanyId,
         itemId: c.itemId,
         fitRationale: c.fitRationale,
+        businessLine: c.lineKey ?? null,
         score: c.score,
         status: "DISCOVERED",
       },
@@ -99,10 +100,46 @@ export async function createOpportunities(candidates: CappedCandidate[]): Promis
 export async function findDraftableOpportunityIds(trackedCompanyId: string): Promise<string[]> {
   const rows = await prisma.techOpportunity.findMany({
     where: { trackedCompanyId, status: "DISCOVERED", drafts: { none: {} } },
-    select: { id: true },
-    orderBy: { score: "desc" },
+    select: { id: true, businessLine: true, score: true },
+    orderBy: [{ score: "desc" }, { id: "asc" }],
   });
-  return rows.map((r) => r.id);
+  return interleaveByLine(rows);
+}
+
+/**
+ * Round-robin the drafting order across business lines.
+ *
+ * Each contact can only hold a couple of open drafts, and drafting strictly by score let
+ * one line spend that budget entirely: in the first human-run scan both of Delek's energy
+ * opportunities ended up with zero drafts because the finance ones drafted first. Taking
+ * the best of each line in turn means every line reaches a person.
+ */
+export function interleaveByLine(
+  rows: { id: string; businessLine: string | null }[]
+): string[] {
+  const byLine = new Map<string, string[]>();
+  for (const r of rows) {
+    // Unattributed opportunities share one bucket rather than each claiming a turn.
+    const key = (r.businessLine ?? "").trim().toLowerCase();
+    const list = byLine.get(key);
+    if (list) list.push(r.id);
+    else byLine.set(key, [r.id]);
+  }
+
+  // Line order follows the best-scoring line first, since `rows` arrives sorted.
+  const lines = [...byLine.keys()];
+  const out: string[] = [];
+  for (let round = 0; out.length < rows.length; round += 1) {
+    let progressed = false;
+    for (const line of lines) {
+      const queue = byLine.get(line);
+      if (!queue || round >= queue.length) continue;
+      out.push(queue[round]);
+      progressed = true;
+    }
+    if (!progressed) break;
+  }
+  return out;
 }
 
 /** Existing item ids for a company, so a scan never re-judges what it already has. */

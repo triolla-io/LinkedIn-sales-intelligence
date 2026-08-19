@@ -93,6 +93,36 @@ export function isSameTechnology(a: string, b: string): boolean {
   return shared / Math.max(la.size, lb.size) >= SAME_TECHNOLOGY_OVERLAP;
 }
 
+/** Categories are specific enough that an identical set is evidence, not coincidence. */
+const SAME_CATEGORIES_OVERLAP = 0.75;
+/** Below this, a shared set is just two broad tags like "payments, api". */
+const MIN_CATEGORIES_FOR_OVERLAP = 3;
+
+/**
+ * True when two write-ups describe the same launch, for items already known to come from
+ * the same vendor.
+ *
+ * Name overlap alone is not enough: two outlets covered TGS's seismic AI launch as "TGS
+ * Seismic Foundation Model" and "AI Model for Subsurface Interpretation", which share
+ * only the word "model" — but both produced the same four specific categories. Either
+ * signal on its own is sufficient; neither fires on two genuinely different products.
+ */
+export function isSameLaunch(
+  a: { technology: string; categories: string[] },
+  b: { technology: string; categories: string[] }
+): boolean {
+  if (isSameTechnology(a.technology, b.technology)) return true;
+
+  const norm = (cs: string[]) => new Set(cs.map((c) => c.toLowerCase().trim()).filter(Boolean));
+  const ca = norm(a.categories ?? []);
+  const cb = norm(b.categories ?? []);
+  if (ca.size < MIN_CATEGORIES_FOR_OVERLAP || cb.size < MIN_CATEGORIES_FOR_OVERLAP) return false;
+
+  let shared = 0;
+  for (const c of ca) if (cb.has(c)) shared += 1;
+  return shared / Math.max(ca.size, cb.size) >= SAME_CATEGORIES_OVERLAP;
+}
+
 export function makeItemDedupeKey(vendor: string | null, technology: string): string {
   const v = normalizeVendorKey(vendor ?? "");
   let t = normalizeKeyPart(technology ?? "");

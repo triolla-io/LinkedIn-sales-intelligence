@@ -4,7 +4,13 @@ import { cleanScrapedName, computeSendPriority, decideCandidate, titleMatchesHea
 import { logProspectingEvent } from "@/lib/prospecting/events";
 import { ERROR_CODE_LABELS } from "@/lib/prospecting/format";
 
-export type PersistResult = { inserted: number; skipped: number };
+/**
+ * `filtered` = cards LinkedIn returned that did not hold the searched role (company runs only).
+ * It is reported, not silently swallowed: a page that scanned 8 people and matched none must look
+ * different from a page that returned nothing, or a whole run finishes "successfully" with zero
+ * people and no explanation (adi's Playtika run, 2026-08-18 — 25 scanned, 25 dropped, 0 recorded).
+ */
+export type PersistResult = { inserted: number; skipped: number; filtered: number };
 
 /**
  * Persist a batch of scraped search cards for a run, applying dedup + filter rules.
@@ -19,7 +25,7 @@ export async function persistCandidates(
   companyTargetId?: string,
   matchTitle?: string
 ): Promise<PersistResult> {
-  if (cards.length === 0) return { inserted: 0, skipped: 0 };
+  if (cards.length === 0) return { inserted: 0, skipped: 0, filtered: 0 };
 
   const urns = cards.map((c) => c.urn);
   const [contacts, requests] = await Promise.all([
@@ -40,17 +46,22 @@ export async function persistCandidates(
 
   let inserted = 0;
   let skipped = 0;
+  let filtered = 0;
+  let scanned = 0;
   const seenInBatch = new Set<string>();
 
   for (const card of cards) {
     if (seenInBatch.has(card.urn)) continue; // de-dupe within the same page
     seenInBatch.add(card.urn);
+    scanned++;
 
     // COMPANY runs: LinkedIn's keyword search is full-text, so it returns anyone at the
     // company who merely mentions an exec term. Keep only real matches for the searched
-    // title. Drop silently WITHOUT recording a row and WITHOUT marking the URN seen, so the
-    // same person can still qualify under a different title's search.
+    // title. A drop writes no ConnectionRequest row and does NOT mark the URN seen — the same
+    // person can still qualify under a different title's search — but it IS counted
+    // (`filtered` + the target's scannedCount) so the outcome stays legible upstream.
     if (matchTitle && !titleMatchesHeadline(matchTitle, card.headline ?? card.title)) {
+      filtered++;
       continue;
     }
 
@@ -137,12 +148,15 @@ export async function persistCandidates(
     });
   }
 
-  if (companyTargetId && inserted > 0) {
+  if (companyTargetId && scanned > 0) {
     await prisma.prospectingCompanyTarget.update({
       where: { id: companyTargetId },
-      data: { discoveredCount: { increment: inserted } },
+      data: {
+        ...(inserted > 0 ? { discoveredCount: { increment: inserted } } : {}),
+        scannedCount: { increment: scanned },
+      },
     });
   }
 
-  return { inserted, skipped };
+  return { inserted, skipped, filtered };
 }

@@ -24,6 +24,11 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
+const suggestContactRole = vi.fn();
+vi.mock("@/lib/tech-radar/suggest-contact", () => ({
+  suggestContactRole: (...a: unknown[]) => suggestContactRole(...a),
+}));
+
 const rankRecipients = vi.fn();
 vi.mock("@/lib/tech-radar/recipients", async () => {
   const actual = await import("@/lib/tech-radar/recipients");
@@ -34,12 +39,21 @@ vi.mock("@/lib/tech-radar/draft", () => ({ draftTechMessage: (...a: unknown[]) =
 
 const { createDraftsForOpportunity } = await import("@/lib/tech-radar/create-drafts");
 
-function opportunity(relationship: "CUSTOMER" | "PROSPECT" = "PROSPECT") {
+function opportunity() {
   return {
     id: "o1",
     fitRationale: "מתחבר לביט ולתשלומים בין-אישיים",
     item: { technology: "Shield", title: "Acme launches Shield", summary: "generic product blurb", vendor: "Acme" },
-    trackedCompany: { id: "c1", orgId: "org1", name: "בנק הפועלים", companyId: "co1", relationship },
+    trackedCompany: {
+      id: "c1", orgId: "org1", name: "בנק הפועלים", companyId: "co1", aliases: [],
+      // A usable profile is required before a contact recommendation can be asked for.
+      profile: {
+        businessLines: [{ name: "Retail payments", description: "cards" }],
+        products: ["Bit"], customerSegments: [], techStack: [], digitalInitiatives: [],
+        focusAreas: [{ area: "fraud", why: "w" }],
+        searchQueries: ["fraud detection launch"], sources: [],
+      },
+    },
   };
 }
 function contact(id: string, currentTitle = "VP Payments") {
@@ -50,8 +64,10 @@ beforeEach(() => {
   for (const m of [
     opportunityFindUniqueOrThrow, opportunityUpdate, userFindMany,
     contactFindMany, draftFindUnique, draftCreate, draftCount, rankRecipients, draftTechMessage,
+    suggestContactRole,
   ]) m.mockReset();
   draftCount.mockResolvedValue(0);
+  suggestContactRole.mockResolvedValue(null);
   opportunityFindUniqueOrThrow.mockResolvedValue(opportunity());
   draftFindUnique.mockResolvedValue(null);
   draftCreate.mockResolvedValue({ id: "d1" });
@@ -122,14 +138,37 @@ describe("createDraftsForOpportunity", () => {
     expect(draftCreate.mock.calls[0][0].data.ownerId).toBe("owner7");
   });
 
-  // "No one to contact" is a legitimate, informative outcome.
+  // "No one to contact" is a legitimate outcome, but a dead end on its own.
   it("creates nothing and stays DISCOVERED when the owner has no senior contact there", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
     contactFindMany.mockResolvedValue([]);
     const out = await createDraftsForOpportunity("o1");
     expect(out.created).toBe(0);
     expect(rankRecipients).not.toHaveBeenCalled();
-    expect(opportunityUpdate).not.toHaveBeenCalled();
+  });
+
+  it("records which role to go after when there is nobody senior at the company", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue([]);
+    suggestContactRole.mockResolvedValue('שווה להגיע לסמנכ״ל התשלומים');
+    await createDraftsForOpportunity("o1");
+    const call = opportunityUpdate.mock.calls.find((c) => "contactSuggestion" in c[0].data);
+    expect(call?.[0].data.contactSuggestion).toBe('שווה להגיע לסמנכ״ל התשלומים');
+  });
+
+  it("does not ask for a recommendation when contacts do exist", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
+    rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
+    await createDraftsForOpportunity("o1");
+    expect(suggestContactRole).not.toHaveBeenCalled();
+  });
+
+  it("survives the recommendation failing", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue([]);
+    suggestContactRole.mockResolvedValue(null);
+    await expect(createDraftsForOpportunity("o1")).resolves.toMatchObject({ created: 0 });
   });
 
   it("creates nothing when ranking rejects everyone", async () => {
@@ -170,10 +209,9 @@ describe("createDraftsForOpportunity", () => {
     expect(JSON.stringify(arg)).not.toContain("generic product blurb");
   });
 
-  // One register for every company now: the relationship no longer reaches the prompt,
-  // it only informs the human who reads the draft.
-  it("does not send the relationship to the drafter", async () => {
-    opportunityFindUniqueOrThrow.mockResolvedValue(opportunity("CUSTOMER"));
+  // One register for every company: the distinction was removed from the model entirely.
+  it("does not send any relationship to the drafter", async () => {
+    opportunityFindUniqueOrThrow.mockResolvedValue(opportunity());
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
     contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);

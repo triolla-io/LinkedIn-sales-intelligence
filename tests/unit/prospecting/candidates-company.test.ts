@@ -43,7 +43,7 @@ describe("persistCandidates with companyTargetId", () => {
 
   it("stamps inserted rows with the companyTargetId and bumps discoveredCount", async () => {
     const res = await persistCandidates("user1", "run1", [CARD], "t1");
-    expect(res).toEqual({ inserted: 1, skipped: 0 });
+    expect(res).toEqual({ inserted: 1, skipped: 0, filtered: 0 });
     expect(requestCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({
         companyTargetId: "t1",
@@ -52,7 +52,7 @@ describe("persistCandidates with companyTargetId", () => {
     });
     expect(targetUpdate).toHaveBeenCalledWith({
       where: { id: "t1" },
-      data: { discoveredCount: { increment: 1 } },
+      data: { discoveredCount: { increment: 1 }, scannedCount: { increment: 1 } },
     });
   });
 
@@ -75,15 +75,19 @@ describe("persistCandidates with companyTargetId", () => {
       company: null,
     };
     const res = await persistCandidates("user1", "run1", [offTitle], "t1", "CEO");
-    expect(res).toEqual({ inserted: 0, skipped: 0 });
+    expect(res).toEqual({ inserted: 0, skipped: 0, filtered: 1 });
     expect(requestCreate).not.toHaveBeenCalled();
-    expect(targetUpdate).not.toHaveBeenCalled();
+    // The drop must still be COUNTED — an invisible drop is what made adi's run look empty.
+    expect(targetUpdate).toHaveBeenCalledWith({
+      where: { id: "t1" },
+      data: { scannedCount: { increment: 1 } },
+    });
   });
 
   it("keeps a card whose headline matches matchTitle", async () => {
     const onTitle = { ...CARD, headline: "Chief Executive Officer", title: "CEO", company: null };
     const res = await persistCandidates("user1", "run1", [onTitle], "t1", "CEO");
-    expect(res).toEqual({ inserted: 1, skipped: 0 });
+    expect(res).toEqual({ inserted: 1, skipped: 0, filtered: 0 });
     expect(requestCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({ companyTargetId: "t1", status: "DISCOVERED" }),
     });
@@ -92,6 +96,55 @@ describe("persistCandidates with companyTargetId", () => {
   it("applies no title filter when matchTitle is omitted (keyword runs)", async () => {
     const offTitle = { ...CARD, headline: "Algorithm Engineer", title: "Algorithm Engineer" };
     const res = await persistCandidates("user1", "run1", [offTitle], "t1");
-    expect(res).toEqual({ inserted: 1, skipped: 0 });
+    expect(res).toEqual({ inserted: 1, skipped: 0, filtered: 0 });
+  });
+});
+
+/**
+ * Regression — the verbatim `"VP Product"` page from adi's Playtika run (2026-08-18 10:12).
+ * Eight cards came back; the run recorded 0 found, 0 skipped and completed "successfully".
+ * Post-fix: the one real product leader is inserted and the other seven are counted as filtered,
+ * so a zero-yield page can never again look identical to a page that returned nothing.
+ */
+describe("persistCandidates — Playtika \"VP Product\" page (2026-08-18)", () => {
+  const page = [
+    ["Ofer Klein", "Product Group Manager at Playtika"],
+    ["Eran Gefen", null],
+    ["Enon Landenberg", null],
+    ["Guy Ceder", "General Manager, WSOP at Playtika"],
+    ["Guy Ben-dov", null],
+    ["Yehuda Sabag", "GM | Playtika"],
+    ["Eran Yarkoni", null],
+    ["Danny Roup", null],
+  ].map(([name, headline], i) => ({
+    ...CARD,
+    urn: `urn:li:member:p${i}`,
+    profileUrl: `https://www.linkedin.com/in/p${i}`,
+    name: name as string,
+    headline: headline as string | null,
+    title: headline as string | null,
+    company: null,
+  }));
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    contactFindMany.mockResolvedValue([]);
+    requestFindMany.mockResolvedValue([]);
+    requestCreate.mockResolvedValue({});
+    runUpdate.mockResolvedValue({});
+    targetUpdate.mockResolvedValue({});
+  });
+
+  it("keeps the product leader and counts the seven it dropped", async () => {
+    const res = await persistCandidates("user1", "run1", page, "t1", '"VP Product"');
+    expect(res).toEqual({ inserted: 1, skipped: 0, filtered: 7 });
+    expect(requestCreate).toHaveBeenCalledTimes(1);
+    expect(requestCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({ fullName: "Ofer Klein", status: "DISCOVERED" }),
+    });
+    expect(targetUpdate).toHaveBeenCalledWith({
+      where: { id: "t1" },
+      data: { discoveredCount: { increment: 1 }, scannedCount: { increment: 8 } },
+    });
   });
 });

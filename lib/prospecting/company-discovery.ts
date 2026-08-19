@@ -326,10 +326,15 @@ export async function maybeCompleteCompanyRun(runId: string): Promise<void> {
     },
   });
   if (done.count === 1) {
+    // A run that found nobody must not sign off like a run that did its job. The per-company
+    // "נסרקו N, אף אחד לא בתפקידים שביקשת" events say where it went; this says it out loud.
     await logProspectingEvent({
       runId,
       type: "COMPLETED",
-      message: "כל החברות נסרקו וכל האנשים טופלו",
+      message:
+        run.totalDiscovered === 0
+          ? "כל החברות נסרקו — לא נמצא אף אדם בתפקידים שביקשת. כדאי לבדוק את רשימת התפקידים"
+          : "כל החברות נסרקו וכל האנשים טופלו",
     });
   }
 }

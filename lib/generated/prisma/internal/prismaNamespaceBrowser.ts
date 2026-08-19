@@ -647,6 +647,7 @@ export const ProspectingCompanyTargetScalarFieldEnum = {
   searchPage: 'searchPage',
   searchTitleIndex: 'searchTitleIndex',
   discoveredCount: 'discoveredCount',
+  scannedCount: 'scannedCount',
   sentCount: 'sentCount',
   error: 'error',
   createdAt: 'createdAt',
@@ -827,6 +828,8 @@ export const TechOpportunityScalarFieldEnum = {
   itemId: 'itemId',
   trackedCompanyId: 'trackedCompanyId',
   fitRationale: 'fitRationale',
+  businessLine: 'businessLine',
+  contactSuggestion: 'contactSuggestion',
   score: 'score',
   status: 'status',
   createdAt: 'createdAt'
