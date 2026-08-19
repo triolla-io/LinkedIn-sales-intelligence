@@ -104,13 +104,6 @@ export type RankedRecipient = {
   reason: string;
 };
 
-/**
- * Whether the org already works with this company. Informational only — it is shown to
- * the rep beside the draft and no longer selects a phrasing (product decision
- * 2026-08-19: one advisory register covers both).
- */
-export type CompanyRelationship = "CUSTOMER" | "PROSPECT";
-
 // ─── Pipeline ceilings (spec: step budget) ───────────────────────────────────
 
 export const MAX_QUERIES_PER_COMPANY = 10;

@@ -158,6 +158,34 @@ describe("parseItemResponse", () => {
   });
 });
 
+describe("item synthesis prompt", () => {
+  // The rep reads these in a Hebrew UI; an English write-up makes them translate in
+  // their head before they can judge whether it is worth sending.
+  it("asks for the summary in Hebrew", async () => {
+    chat.mockResolvedValue(ok(goodJson));
+    await synthesizeItem({ triage, articles: [], pages: [] });
+    const system = (chat.mock.calls[0][1] as { messages: { content: string }[] }).messages[0].content;
+    expect(system).toMatch(/Hebrew/);
+    expect(system).toMatch(/summary/);
+  });
+
+  it("keeps product and vendor names untranslated", () => {
+    chat.mockResolvedValue(ok(goodJson));
+    // Asserted on the prompt: proper nouns must survive verbatim.
+    return synthesizeItem({ triage, articles: [], pages: [] }).then(() => {
+      const system = (chat.mock.calls[0][1] as { messages: { content: string }[] }).messages[0].content;
+      expect(system).toMatch(/do not translate|verbatim/i);
+    });
+  });
+
+  it("keeps the category tags in English for matching", async () => {
+    chat.mockResolvedValue(ok(goodJson));
+    await synthesizeItem({ triage, articles: [], pages: [] });
+    const system = (chat.mock.calls[0][1] as { messages: { content: string }[] }).messages[0].content;
+    expect(system).toMatch(/categories[\s\S]*English|English[\s\S]*categories/i);
+  });
+});
+
 describe("synthesizeItem", () => {
   const articles = [
     { url: "https://news.com/a", title: "Coverage A", snippet: "s", publishedAt: "2026-08-01" },

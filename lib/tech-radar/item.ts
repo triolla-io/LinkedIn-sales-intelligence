@@ -104,7 +104,7 @@ export function makeItemDedupeKey(vendor: string | null, technology: string): st
   return v ? `${v}::${t}` : `::${t}`;
 }
 
-const SYSTEM = `You write a short, factual, vendor-neutral description of ONE newly launched technology, for a technical sales audience.
+const SYSTEM = `You write a short, factual, vendor-neutral description of ONE newly launched technology, for an Israeli technical sales audience who read it in Hebrew.
 
 Describe only the technology itself:
 - what it is and who launched it
@@ -116,10 +116,10 @@ Do NOT speculate about whether it suits any particular customer, industry, or co
 Return strict JSON only — no prose, no fences:
 {"vendor": string or null, "technology": string, "title": string, "summary": string, "categories": ["..."]}
 
-- technology: the concrete product/capability name.
-- title: one short factual headline, max ~90 characters.
-- summary: 2-4 sentences, English.
-- categories: 2-5 short lowercase capability tags (plain descriptive nouns).`;
+- vendor and technology: the real names, in their ORIGINAL script. Do not translate or transliterate a product or company name — "Stripe Radar" stays "Stripe Radar", never "סטרייפ ראדאר". Keep them verbatim.
+- title: one short factual headline IN HEBREW, max ~90 characters. Product and company names stay verbatim inside it.
+- summary: 2-4 sentences IN HEBREW, everyday professional Hebrew. Technical terms with no settled Hebrew form stay in English (API, machine learning, CDP).
+- categories: 2-5 short lowercase capability tags, IN ENGLISH — they are matched against English profile data downstream, so they must not be translated.`;
 
 export type ItemSynthesisInput = {
   triage: TriageVerdict;

@@ -39,7 +39,7 @@ export async function createDraftsForOpportunity(
       fitRationale: true,
       item: { select: { technology: true, title: true, summary: true, vendor: true } },
       trackedCompany: {
-        select: { id: true, orgId: true, name: true, aliases: true, companyId: true, relationship: true },
+        select: { id: true, orgId: true, name: true, aliases: true, companyId: true },
       },
     },
   });

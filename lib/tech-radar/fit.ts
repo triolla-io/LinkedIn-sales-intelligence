@@ -115,7 +115,17 @@ const SYSTEM = `You judge whether a newly launched technology is genuinely relev
 
 The company is a potential or existing customer of a sales rep. The rep wants to bring them technology worth knowing about — not to pitch, and not to send them generic industry news.
 
-Be selective. Return fits=false whenever there is no concrete connection to a named line of business, product, or focus area in the profile.
+Be strict. MOST items you see are not a fit, and returning fits=false is the expected outcome — a rep would rather see three real opportunities than fifteen plausible ones.
+
+Return fits=true ONLY when the technology ties to something NAMED in the profile: a named product, a named business line, a named system in their stack, or a named focus area. The tie must be specific enough that the rep could point at it.
+
+Return fits=false when:
+- the connection is only that they are in the same industry, or the same broad market
+- it would apply equally well to any company of that type
+- the technology addresses a problem the profile gives no evidence they have
+- you have to reason through two or more steps to make it relevant
+
+Examples of what to reject: a food-traceability regulation offered to an energy group merely because it also owns farmland; an e-signature standard offered to a bank merely because banks sign things.
 
 The rationale is the single most important field: it becomes the body of a short Hebrew message to a senior executive there.
 - BAD (rejected): "relevant to fintech", "important for banks", "connects to their digital strategy".

@@ -1055,11 +1055,6 @@ model ArticleMatch {
 // per-company judgement (why it fits you). Same proven shape as
 // FintechArticle + ArticleMatch.
 
-enum CompanyRelationship {
-  CUSTOMER
-  PROSPECT
-}
-
 enum TrackedCompanyStatus {
   PENDING_RESEARCH
   ACTIVE
@@ -1097,7 +1092,6 @@ model TrackedCompany {
   aliases          String[]             @default([])
   linkedinUrl      String?
   website          String?
-  relationship     CompanyRelationship  @default(PROSPECT)
   companyId        String?
   /// Research output. Shape: TechRadarProfile in lib/tech-radar/types.ts
   profile          Json?

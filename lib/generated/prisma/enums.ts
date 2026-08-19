@@ -301,14 +301,6 @@ export const ArticleMatchStatus = {
 export type ArticleMatchStatus = (typeof ArticleMatchStatus)[keyof typeof ArticleMatchStatus]
 
 
-export const CompanyRelationship = {
-  CUSTOMER: 'CUSTOMER',
-  PROSPECT: 'PROSPECT'
-} as const
-
-export type CompanyRelationship = (typeof CompanyRelationship)[keyof typeof CompanyRelationship]
-
-
 export const TrackedCompanyStatus = {
   PENDING_RESEARCH: 'PENDING_RESEARCH',
   ACTIVE: 'ACTIVE',

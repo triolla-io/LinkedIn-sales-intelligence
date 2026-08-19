@@ -1,9 +1,9 @@
 /**
  * Writes the outreach message for one (opportunity, contact) pair.
  *
- * ONE register for every company. The earlier customer/prospect split was dropped by
- * product decision (2026-08-19): a single advisory phrasing covers both, and
- * TrackedCompany.relationship now only informs the human reading the draft.
+ * ONE register for every company. The customer/prospect split was dropped by product
+ * decision (2026-08-19): a single advisory phrasing covers both, and the distinction
+ * itself was removed from the model.
  *
  * The message has a fixed three-part shape:
  *   1. "ראיתי משהו חדש ב<תחום>" — you came across it, nothing more.

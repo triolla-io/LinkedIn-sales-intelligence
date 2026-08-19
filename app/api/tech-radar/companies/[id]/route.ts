@@ -5,14 +5,18 @@ import { inngest } from "@/inngest/client";
 
 type Body =
   | { action: "research" }
+  | { action: "scan" }
   | { action: "aliases"; aliases: string[] }
-  | { action: "relationship"; relationship: "CUSTOMER" | "PROSPECT" }
   | { action: "interval"; scanIntervalDays: number };
 
 /** Resolve the company inside the caller's org — never across tenants. */
 async function findInOrg(userId: string, id: string) {
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { orgId: true } });
-  return prisma.trackedCompany.findFirst({ where: { id, orgId: user.orgId }, select: { id: true } });
+  const company = await prisma.trackedCompany.findFirst({
+    where: { id, orgId: user.orgId },
+    select: { id: true, status: true },
+  });
+  return company ? { ...company, orgId: user.orgId } : null;
 }
 
 export const PATCH = withTenant(async (req: NextRequest, ctx) => {
@@ -31,14 +35,22 @@ export const PATCH = withTenant(async (req: NextRequest, ctx) => {
     return NextResponse.json({ ok: true });
   }
 
-  if (body.action === "relationship") {
-    if (!["CUSTOMER", "PROSPECT"].includes(body.relationship)) {
-      return NextResponse.json({ error: "invalid_relationship" }, { status: 400 });
+  /**
+   * Scan on demand. Without this the only ways to scan are the weekly cron (Sunday
+   * 06:00) and toggling the whole module off and on, so a rep who adds a company today
+   * sees nothing until next week.
+   *
+   * Clearing lastScanAt is what makes the interval check in loadScannableCompanies treat
+   * this company as due. The scan itself is per-ORG by design (one canonical query pool
+   * serves every company), so any other company that is also due gets picked up in the
+   * same run — which is cheaper than scanning them separately.
+   */
+  if (body.action === "scan") {
+    if (company.status !== "ACTIVE") {
+      return NextResponse.json({ error: "not_active", status: company.status }, { status: 409 });
     }
-    await prisma.trackedCompany.update({
-      where: { id: company.id },
-      data: { relationship: body.relationship },
-    });
+    await prisma.trackedCompany.update({ where: { id: company.id }, data: { lastScanAt: null } });
+    await inngest.send({ name: "tech-radar.scan" as const, data: { orgId: company.orgId } });
     return NextResponse.json({ ok: true });
   }
 

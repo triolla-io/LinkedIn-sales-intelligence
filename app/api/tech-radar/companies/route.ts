@@ -16,7 +16,7 @@ export const GET = withTenant(async (_req, ctx) => {
     where: { orgId },
     orderBy: [{ status: "asc" }, { name: "asc" }],
     select: {
-      id: true, name: true, aliases: true, website: true, linkedinUrl: true, relationship: true,
+      id: true, name: true, aliases: true, website: true, linkedinUrl: true,
       status: true, profileError: true, researchedAt: true, lastScanAt: true,
       scanIntervalDays: true, profile: true,
       _count: { select: { opportunities: true } },
@@ -49,7 +49,6 @@ type PostBody = {
   aliases?: string[];
   website?: string | null;
   linkedinUrl?: string | null;
-  relationship?: "CUSTOMER" | "PROSPECT";
 };
 
 /** Trim, drop blanks, and de-duplicate case-insensitively. */
@@ -71,9 +70,6 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
   const body = (await req.json()) as PostBody;
   const name = (body.name ?? "").trim();
   if (!name) return NextResponse.json({ error: "name_required" }, { status: 400 });
-  if (body.relationship && !["CUSTOMER", "PROSPECT"].includes(body.relationship)) {
-    return NextResponse.json({ error: "invalid_relationship" }, { status: 400 });
-  }
 
   const orgId = await orgIdFor(ctx.effectiveUserId);
   const existing = await prisma.trackedCompany.findUnique({
@@ -89,7 +85,6 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
       aliases: cleanAliases(body.aliases),
       website: (body.website ?? "").trim() || null,
       linkedinUrl: (body.linkedinUrl ?? "").trim() || null,
-      relationship: body.relationship ?? "PROSPECT",
       status: "PENDING_RESEARCH",
     },
     select: { id: true },

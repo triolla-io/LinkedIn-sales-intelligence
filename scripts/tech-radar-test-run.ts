@@ -15,7 +15,6 @@ import { createDraftsForOpportunity } from "@/lib/tech-radar/create-drafts";
 
 const name = process.argv[2] ?? "בנק הפועלים";
 const website = process.argv[3] ?? null;
-const relationship = (process.argv[4] as "CUSTOMER" | "PROSPECT") ?? "PROSPECT";
 
 function head(s: string) {
   console.log(`\n${"─".repeat(70)}\n${s}\n${"─".repeat(70)}`);
@@ -28,11 +27,11 @@ async function main() {
   head(`1. TRACKED COMPANY — ${name}`);
   const company = await prisma.trackedCompany.upsert({
     where: { orgId_name: { orgId: org.id, name } },
-    update: { website, relationship },
-    create: { orgId: org.id, name, website, relationship, status: "PENDING_RESEARCH" },
-    select: { id: true, name: true, relationship: true },
+    update: { website },
+    create: { orgId: org.id, name, website, status: "PENDING_RESEARCH" },
+    select: { id: true, name: true },
   });
-  console.log(`id=${company.id} relationship=${company.relationship}`);
+  console.log(`id=${company.id}`);
 
   head("2. RESEARCH — read the site + coverage, build the profile");
   const outcome = await researchTrackedCompany(company.id);

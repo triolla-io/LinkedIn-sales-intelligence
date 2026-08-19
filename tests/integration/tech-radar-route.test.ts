@@ -85,7 +85,7 @@ describe("GET /api/tech-radar/companies", () => {
 
   it("returns the profile read-only, including the sources actually read", async () => {
     companyFindMany.mockResolvedValue([
-      { id: "c1", name: "בנק הפועלים", website: null, linkedinUrl: null, relationship: "CUSTOMER",
+      { id: "c1", name: "בנק הפועלים", aliases: [], website: null, linkedinUrl: null,
         status: "ACTIVE", profileError: null, researchedAt: new Date(), lastScanAt: null,
         scanIntervalDays: 7, profile: usableProfile, _count: { opportunities: 3 } },
     ]);
@@ -95,28 +95,16 @@ describe("GET /api/tech-radar/companies", () => {
     expect(companies[0].profile.sources).toHaveLength(1);
   });
 
-  // A profile that failed research must not masquerade as usable.
-  it("nulls an unusable profile rather than surfacing a broken one", async () => {
-    companyFindMany.mockResolvedValue([
-      { id: "c1", name: "x", website: null, linkedinUrl: null, relationship: "PROSPECT",
-        status: "RESEARCH_FAILED", profileError: "no sources", researchedAt: null, lastScanAt: null,
-        scanIntervalDays: 7, profile: { focusAreas: [], searchQueries: [] }, _count: { opportunities: 0 } },
-    ]);
-    const res = await getCompanies(req());
-    const { companies } = await (res as Response).json();
-    expect(companies[0].profile).toBeNull();
-    expect(companies[0].profileError).toBe("no sources");
-  });
 });
 
 describe("POST /api/tech-radar/companies", () => {
   it("creates the company and fires research", async () => {
     companyFindUnique.mockResolvedValue(null);
     companyCreate.mockResolvedValue({ id: "c1" });
-    const res = await postCompany(req({ name: "בנק הפועלים", relationship: "CUSTOMER" }));
+    const res = await postCompany(req({ name: "בנק הפועלים" }));
     expect((res as Response).status).toBe(200);
     expect(companyCreate.mock.calls[0][0].data).toMatchObject({
-      orgId: "org1", name: "בנק הפועלים", relationship: "CUSTOMER", status: "PENDING_RESEARCH",
+      orgId: "org1", name: "בנק הפועלים", status: "PENDING_RESEARCH",
     });
     expect(send.mock.calls[0][0]).toEqual({
       name: "tech-radar.company.research",
@@ -124,16 +112,17 @@ describe("POST /api/tech-radar/companies", () => {
     });
   });
 
-  it("defaults an unspecified relationship to PROSPECT", async () => {
+  // The customer/prospect distinction was removed entirely (product decision).
+  it("stores no relationship at all", async () => {
     companyFindUnique.mockResolvedValue(null);
     companyCreate.mockResolvedValue({ id: "c1" });
     await postCompany(req({ name: "Acme" }));
-    expect(companyCreate.mock.calls[0][0].data.relationship).toBe("PROSPECT");
+    expect(companyCreate.mock.calls[0][0].data).not.toHaveProperty("relationship");
   });
 
-  it("rejects a blank name and an invalid relationship", async () => {
+  it("rejects a blank name", async () => {
     expect((await postCompany(req({ name: "  " })) as Response).status).toBe(400);
-    expect((await postCompany(req({ name: "x", relationship: "FRIEND" })) as Response).status).toBe(400);
+    expect((await postCompany(req({})) as Response).status).toBe(400);
     expect(companyCreate).not.toHaveBeenCalled();
   });
 
@@ -147,23 +136,52 @@ describe("POST /api/tech-radar/companies", () => {
 
 describe("PATCH /api/tech-radar/companies/[id]", () => {
   it("re-researches, clearing the previous error", async () => {
-    companyFindFirst.mockResolvedValue({ id: "c1" });
+    companyFindFirst.mockResolvedValue({ id: "c1", status: "ACTIVE" });
     const res = await patchCompany(req({ action: "research" }, "/api/tech-radar/companies/c1"));
     expect((res as Response).status).toBe(200);
     expect(companyUpdate.mock.calls[0][0].data).toEqual({ status: "PENDING_RESEARCH", profileError: null });
     expect(send).toHaveBeenCalled();
   });
 
-  it("toggles the relationship and validates it", async () => {
-    companyFindFirst.mockResolvedValue({ id: "c1" });
-    await patchCompany(req({ action: "relationship", relationship: "CUSTOMER" }, "/api/tech-radar/companies/c1"));
-    expect(companyUpdate.mock.calls[0][0].data).toEqual({ relationship: "CUSTOMER" });
-    const bad = await patchCompany(req({ action: "relationship", relationship: "X" }, "/api/tech-radar/companies/c1"));
+  /**
+   * Without this the only way to scan is the weekly cron (Sunday 06:00) or toggling the
+   * whole module off and on — so a rep who adds a company cannot see anything until the
+   * following week.
+   */
+  it("scans on demand: makes the company due and fires the org scan", async () => {
+    companyFindFirst.mockResolvedValue({ id: "c1", status: "ACTIVE" });
+    const res = await patchCompany(req({ action: "scan" }, "/api/tech-radar/companies/c1"));
+    expect((res as Response).status).toBe(200);
+    // Clearing lastScanAt is what makes the interval check consider it due again.
+    expect(companyUpdate.mock.calls[0][0].data).toEqual({ lastScanAt: null });
+    expect(send.mock.calls[0][0]).toEqual({ name: "tech-radar.scan", data: { orgId: "org1" } });
+  });
+
+  it("refuses to scan a company whose research has not finished", async () => {
+    companyFindFirst.mockResolvedValue({ id: "c1", status: "PENDING_RESEARCH" });
+    const res = await patchCompany(req({ action: "scan" }, "/api/tech-radar/companies/c1"));
+    expect((res as Response).status).toBe(409);
+    expect(send).not.toHaveBeenCalled();
+    expect(companyUpdate).not.toHaveBeenCalled();
+  });
+
+  it("refuses to scan a company whose research failed", async () => {
+    companyFindFirst.mockResolvedValue({ id: "c1", status: "RESEARCH_FAILED" });
+    expect(((await patchCompany(req({ action: "scan" }, "/api/tech-radar/companies/c1"))) as Response).status).toBe(409);
+  });
+
+  it("edits the aliases, dropping blanks and case-duplicates", async () => {
+    companyFindFirst.mockResolvedValue({ id: "c1", status: "ACTIVE" });
+    await patchCompany(
+      req({ action: "aliases", aliases: ["Delek", "delek", "  ", "Delek US"] }, "/api/tech-radar/companies/c1")
+    );
+    expect(companyUpdate.mock.calls[0][0].data).toEqual({ aliases: ["Delek", "Delek US"] });
+    const bad = await patchCompany(req({ action: "aliases", aliases: "nope" }, "/api/tech-radar/companies/c1"));
     expect((bad as Response).status).toBe(400);
   });
 
   it("validates the scan interval", async () => {
-    companyFindFirst.mockResolvedValue({ id: "c1" });
+    companyFindFirst.mockResolvedValue({ id: "c1", status: "ACTIVE" });
     await patchCompany(req({ action: "interval", scanIntervalDays: 14 }, "/api/tech-radar/companies/c1"));
     expect(companyUpdate.mock.calls[0][0].data).toEqual({ scanIntervalDays: 14 });
     for (const bad of [0, -1, 91, 1.5, "x"]) {
@@ -183,34 +201,59 @@ describe("PATCH /api/tech-radar/companies/[id]", () => {
   it("deletes only within the caller's org", async () => {
     companyFindFirst.mockResolvedValue(null);
     expect((await deleteCompany(req(undefined, "/api/tech-radar/companies/other")) as Response).status).toBe(404);
-    companyFindFirst.mockResolvedValue({ id: "c1" });
+    companyFindFirst.mockResolvedValue({ id: "c1", status: "ACTIVE" });
     expect((await deleteCompany(req(undefined, "/api/tech-radar/companies/c1")) as Response).status).toBe(200);
     expect(companyDelete).toHaveBeenCalled();
   });
 });
 
 describe("GET /api/tech-radar", () => {
-  it("scopes opportunities to the org and drafts to the caller", async () => {
-    opportunityFindMany.mockResolvedValue([]);
+  it("scopes companies to the org and nests each one's drafts to the caller", async () => {
+    companyFindMany.mockResolvedValue([]);
     await getFeed(req());
-    const args = opportunityFindMany.mock.calls[0][0];
-    expect(args.where.trackedCompany).toEqual({ orgId: "org1" });
-    expect(args.select.drafts.where.ownerId).toBe("owner1");
+    const args = companyFindMany.mock.calls[0][0];
+    expect(args.where).toEqual({ orgId: "org1" });
+    expect(args.select.opportunities.select.drafts.where.ownerId).toBe("owner1");
   });
 
-  // "no one to contact" is information, so an opportunity with no drafts must survive.
-  it("keeps an opportunity that has no drafts", async () => {
-    opportunityFindMany.mockResolvedValue([
-      { id: "o1", fitRationale: "מתחבר לביט", score: 0.8, status: "DISCOVERED", createdAt: new Date(),
-        trackedCompany: { id: "c1", name: "בנק הפועלים", relationship: "CUSTOMER" },
-        item: { id: "i1", vendor: "Acme", technology: "Shield", title: "t", summary: "s",
-                categories: ["fraud"], sources: [], publishedAt: null, thin: false },
-        drafts: [] },
+  // Opportunities belong under the company they were found for, not in a shared feed.
+  it("returns opportunities nested inside their company", async () => {
+    companyFindMany.mockResolvedValue([
+      {
+        id: "c1", name: "בנק הפועלים", aliases: [], website: null, linkedinUrl: null,
+        status: "ACTIVE", profileError: null, researchedAt: new Date(), lastScanAt: new Date(),
+        scanIntervalDays: 7, profile: usableProfile,
+        opportunities: [
+          {
+            id: "o1", fitRationale: "מתחבר לביט", score: 0.8, status: "DISCOVERED", createdAt: new Date(),
+            item: { id: "i1", vendor: "Acme", technology: "Shield", title: "כותרת", summary: "תקציר",
+                    categories: ["fraud"], sources: [], publishedAt: null, thin: false },
+            drafts: [],
+          },
+        ],
+      },
     ]);
     const res = await getFeed(req());
-    const { opportunities } = await (res as Response).json();
-    expect(opportunities).toHaveLength(1);
-    expect(opportunities[0].drafts).toEqual([]);
+    const { companies } = await (res as Response).json();
+    expect(companies).toHaveLength(1);
+    expect(companies[0].opportunities).toHaveLength(1);
+    // "no one to contact" is information — an opportunity with no drafts still shows.
+    expect(companies[0].opportunities[0].drafts).toEqual([]);
+    expect(companies[0].profile.searchQueries).toEqual(["fraud detection launch"]);
+  });
+
+  it("nulls an unusable profile rather than surfacing a broken one", async () => {
+    companyFindMany.mockResolvedValue([
+      {
+        id: "c1", name: "x", aliases: [], website: null, linkedinUrl: null,
+        status: "RESEARCH_FAILED", profileError: "no sources", researchedAt: null, lastScanAt: null,
+        scanIntervalDays: 7, profile: { focusAreas: [], searchQueries: [] }, opportunities: [],
+      },
+    ]);
+    const res = await getFeed(req());
+    const { companies } = await (res as Response).json();
+    expect(companies[0].profile).toBeNull();
+    expect(companies[0].profileError).toBe("no sources");
   });
 });
 

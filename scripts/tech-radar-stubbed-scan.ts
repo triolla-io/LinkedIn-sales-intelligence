@@ -61,11 +61,11 @@ function head(s: string) {
 
 async function main() {
   const company = await prisma.trackedCompany.findFirstOrThrow({
-    select: { id: true, orgId: true, name: true, profile: true, relationship: true },
+    select: { id: true, orgId: true, name: true, profile: true },
   });
   if (!isUsableProfile(company.profile)) throw new Error("company has no usable profile");
   const profile = company.profile as TechRadarProfile;
-  console.log(`company: ${company.name} (${company.relationship}) — ${profile.focusAreas.length} focus areas`);
+  console.log(`company: ${company.name} — ${profile.focusAreas.length} focus areas`);
 
   head("STAGE 2 — shared launch triage (is this a launch at all?)");
   const verdicts = await triageAll(CAPTURED);

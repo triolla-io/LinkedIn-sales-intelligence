@@ -4420,7 +4420,6 @@ export const TrackedCompanyScalarFieldEnum = {
   aliases: 'aliases',
   linkedinUrl: 'linkedinUrl',
   website: 'website',
-  relationship: 'relationship',
   companyId: 'companyId',
   profile: 'profile',
   profileError: 'profileError',
@@ -4962,20 +4961,6 @@ export type EnumArticleMatchStatusFieldRefInput<$PrismaModel> = FieldRefInputTyp
  * Reference to a field of type 'ArticleMatchStatus[]'
  */
 export type ListEnumArticleMatchStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ArticleMatchStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'CompanyRelationship'
- */
-export type EnumCompanyRelationshipFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanyRelationship'>
-    
-
-
-/**
- * Reference to a field of type 'CompanyRelationship[]'
- */
-export type ListEnumCompanyRelationshipFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CompanyRelationship[]'>
     
 
 

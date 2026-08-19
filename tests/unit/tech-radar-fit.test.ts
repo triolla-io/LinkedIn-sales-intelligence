@@ -137,6 +137,29 @@ describe("parseFitResponse", () => {
   });
 });
 
+describe("fit prompt strictness", () => {
+  /**
+   * Live runs produced opportunities that were merely industry-adjacent — an FDA food
+   * traceability rule for an energy holding company, e-signature standards for a bank —
+   * each scoring 0.78. Same-industry is not a fit; the tie has to be to something named
+   * in the profile.
+   */
+  it("requires the connection to name something from the profile", async () => {
+    chat.mockResolvedValue({ ok: true, status: 200, data: { choices: [{ message: { content: '{"fits":false,"fitRationale":"","score":0}' } }] } });
+    await judgeFit(profile(), "x", item());
+    const system = (chat.mock.calls[0][1] as { messages: { content: string }[] }).messages[0].content;
+    expect(system).toMatch(/named/i);
+    expect(system).toMatch(/same industry|industry alone|merely/i);
+  });
+
+  it("tells the model that returning false is the expected outcome", async () => {
+    chat.mockResolvedValue({ ok: true, status: 200, data: { choices: [{ message: { content: '{"fits":false,"fitRationale":"","score":0}' } }] } });
+    await judgeFit(profile(), "x", item());
+    const system = (chat.mock.calls[0][1] as { messages: { content: string }[] }).messages[0].content;
+    expect(system).toMatch(/most|majority|default/i);
+  });
+});
+
 describe("judgeFit", () => {
   function ok(content: string) {
     return { ok: true, status: 200, data: { choices: [{ message: { content } }] } };

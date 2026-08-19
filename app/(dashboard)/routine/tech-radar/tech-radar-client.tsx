@@ -5,7 +5,7 @@ import useSWR from "swr";
 import { Button, TextArea, Switch } from "@heroui/react";
 import {
   Loader2, ExternalLink, Mail, MessageCircle, Share2, Plus, RefreshCw,
-  Trash2, ChevronDown, AlertTriangle, UserX,
+  Trash2, ChevronDown, AlertTriangle, UserX, Radar, Search,
 } from "lucide-react";
 import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
 import { toast } from "@/lib/toast";
@@ -13,7 +13,6 @@ import { ui } from "@/lib/ui";
 import { cn } from "@/lib/cn";
 import { availableChannels, channelHref, type Channel, type ContactChannels } from "@/lib/tech-radar/channels";
 
-type Relationship = "CUSTOMER" | "PROSPECT";
 type CompanyStatus = "PENDING_RESEARCH" | "ACTIVE" | "RESEARCH_FAILED";
 
 type Profile = {
@@ -23,22 +22,6 @@ type Profile = {
   focusAreas: { area: string; why: string }[];
   searchQueries: string[];
   sources: { url: string; title: string }[];
-};
-
-type Company = {
-  id: string;
-  name: string;
-  aliases: string[];
-  website: string | null;
-  linkedinUrl: string | null;
-  relationship: Relationship;
-  status: CompanyStatus;
-  profileError: string | null;
-  researchedAt: string | null;
-  lastScanAt: string | null;
-  scanIntervalDays: number;
-  profile: Profile | null;
-  _count: { opportunities: number };
 };
 
 type DraftStatus = "PENDING_REVIEW" | "PREPARING" | "PREPARED";
@@ -56,7 +39,6 @@ type Opportunity = {
   score: number;
   status: string;
   createdAt: string;
-  trackedCompany: { id: string; name: string; relationship: Relationship };
   item: {
     id: string;
     vendor: string | null;
@@ -69,6 +51,21 @@ type Opportunity = {
     thin: boolean;
   };
   drafts: Draft[];
+};
+
+type Company = {
+  id: string;
+  name: string;
+  aliases: string[];
+  website: string | null;
+  linkedinUrl: string | null;
+  status: CompanyStatus;
+  profileError: string | null;
+  researchedAt: string | null;
+  lastScanAt: string | null;
+  scanIntervalDays: number;
+  profile: Profile | null;
+  opportunities: Opportunity[];
 };
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
@@ -103,6 +100,10 @@ function hostLabel(url: string) {
   }
 }
 
+function dateLabel(iso: string) {
+  return new Date(iso).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" });
+}
+
 /** On/off switch for the page header (mirrors the other Routine module toggles). */
 export function TechRadarModuleSwitch() {
   const { modules, setModule } = useRoutineModules();
@@ -128,74 +129,52 @@ export function TechRadarModuleSwitch() {
 }
 
 export function TechRadarClient() {
-  const companies = useSWR<{ companies: Company[] }>("/api/tech-radar/companies", fetcher, {
-    refreshInterval: 30_000,
-  });
-  const feed = useSWR<{ opportunities: Opportunity[] }>("/api/tech-radar", fetcher, {
+  const { data, isLoading, mutate } = useSWR<{ companies: Company[] }>("/api/tech-radar", fetcher, {
     refreshInterval: 30_000,
   });
   const { modules } = useRoutineModules();
   const radarOn = modules?.techRadarEnabled ?? false;
 
-  const list = companies.data?.companies ?? [];
-  const opportunities = feed.data?.opportunities ?? [];
+  const companies = data?.companies ?? [];
+  const totalOpportunities = companies.reduce((n, c) => n + c.opportunities.length, 0);
 
   return (
-    <div className="flex-1 p-5 flex flex-col gap-6" dir="rtl">
+    <div className="flex-1 p-5 flex flex-col gap-5" dir="rtl">
       {modules && !radarOn && (
         <div className="px-4 py-2.5 rounded-lg bg-[#fffbeb] border border-[#fde68a] text-xs text-[#b45309]">
           הסריקה השבועית מושבתת. אפשר להוסיף חברות ולערוך את הרשימה — הן ייסרקו כשהמודול יופעל.
         </div>
       )}
 
-      <CompaniesSection
-        companies={list}
-        isLoading={companies.isLoading}
-        onChanged={() => companies.mutate()}
-      />
+      <AddCompanyForm onAdded={() => mutate()} />
 
-      <section>
-        <h2 className={cn(ui.sectionTitle, "mb-3")}>
-          הזדמנויות
-          {opportunities.length > 0 && (
-            <span className="ms-2 text-xs font-normal text-[#9b9895]">{opportunities.length} פריטים</span>
-          )}
-        </h2>
-
-        {feed.isLoading ? (
-          <div className="flex items-center gap-2 text-[#9b9895]">
-            <Loader2 className="size-4 animate-spin" /> טוען…
+      {isLoading ? (
+        <div className="flex items-center gap-2 text-[#9b9895]">
+          <Loader2 className="size-4 animate-spin" /> טוען…
+        </div>
+      ) : companies.length === 0 ? (
+        <p className="text-[#9b9895] text-sm">אין חברות במעקב. הוסף חברה כדי להתחיל.</p>
+      ) : (
+        <>
+          <div className="text-xs text-[#9b9895]">
+            {companies.length} חברות · {totalOpportunities} הזדמנויות
           </div>
-        ) : opportunities.length === 0 ? (
-          <p className="text-[#9b9895] text-sm">
-            אין הזדמנויות כרגע. הסריקה רצה פעם בשבוע על החברות הפעילות.
-          </p>
-        ) : (
           <ul className="flex flex-col gap-4">
-            {opportunities.map((o) => (
-              <OpportunityCard key={o.id} opportunity={o} onChanged={() => feed.mutate()} />
+            {companies.map((c) => (
+              <CompanyCard key={c.id} company={c} onChanged={() => mutate()} />
             ))}
           </ul>
-        )}
-      </section>
+        </>
+      )}
     </div>
   );
 }
 
-function CompaniesSection({
-  companies,
-  isLoading,
-  onChanged,
-}: {
-  companies: Company[];
-  isLoading: boolean;
-  onChanged: () => void;
-}) {
+function AddCompanyForm({ onAdded }: { onAdded: () => void }) {
   const [name, setName] = useState("");
   const [website, setWebsite] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [aliases, setAliases] = useState("");
-  const [relationship, setRelationship] = useState<Relationship>("PROSPECT");
   const [busy, setBusy] = useState(false);
 
   async function handleAdd() {
@@ -210,7 +189,6 @@ function CompaniesSection({
           name: trimmed,
           website,
           linkedinUrl,
-          relationship,
           aliases: aliases.split(",").map((a) => a.trim()).filter(Boolean),
         }),
       });
@@ -224,7 +202,7 @@ function CompaniesSection({
       setWebsite("");
       setLinkedinUrl("");
       setAliases("");
-      onChanged();
+      onAdded();
     } catch {
       toast.error("הוספת החברה נכשלה", "נסה שוב");
     } finally {
@@ -233,103 +211,53 @@ function CompaniesSection({
   }
 
   return (
-    <section>
-      <h2 className={cn(ui.sectionTitle, "mb-3")}>חברות במעקב</h2>
-
-      <div className={cn(ui.card, "p-4 mb-4")}>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div>
-            <label className={ui.label} htmlFor="tr-name">שם החברה</label>
-            <input
-              id="tr-name"
-              className={ui.input}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="בנק הפועלים"
-            />
-          </div>
-          <div>
-            <label className={ui.label} htmlFor="tr-website">אתר</label>
-            <input
-              id="tr-website"
-              className={ui.input}
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              placeholder="bankhapoalim.co.il"
-            />
-          </div>
-          <div>
-            <label className={ui.label} htmlFor="tr-linkedin">לינקדאין</label>
-            <input
-              id="tr-linkedin"
-              className={ui.input}
-              value={linkedinUrl}
-              onChange={(e) => setLinkedinUrl(e.target.value)}
-              placeholder="linkedin.com/company/..."
-            />
-          </div>
+    <div className={cn(ui.card, "p-4")}>
+      <h2 className={cn(ui.sectionTitle, "mb-3")}>הוספת חברה למעקב</h2>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div>
+          <label className={ui.label} htmlFor="tr-name">שם החברה</label>
+          <input id="tr-name" className={ui.input} value={name}
+            onChange={(e) => setName(e.target.value)} placeholder="בנק הפועלים" />
         </div>
-
-        {/* Employees of a group write their employer many ways; without these, most of
-            the contacts at a holding company are never matched. */}
-        <div className="mt-3">
-          <label className={ui.label} htmlFor="tr-aliases">
-            שמות נוספים לזיהוי אנשי קשר (מופרדים בפסיק)
-          </label>
-          <input
-            id="tr-aliases"
-            className={ui.input}
-            value={aliases}
-            onChange={(e) => setAliases(e.target.value)}
-            placeholder="Delek, Delek US Holdings, קבוצת דלק"
-          />
+        <div>
+          <label className={ui.label} htmlFor="tr-website">אתר</label>
+          <input id="tr-website" className={ui.input} value={website}
+            onChange={(e) => setWebsite(e.target.value)} placeholder="bankhapoalim.co.il" />
         </div>
-
-        <div className="flex items-center justify-between gap-3 mt-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-[#6b6866]">סוג:</span>
-            {(["PROSPECT", "CUSTOMER"] as Relationship[]).map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setRelationship(r)}
-                className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium transition-colors",
-                  relationship === r
-                    ? "bg-[#1585ff] text-white"
-                    : "bg-[#f3f2ef] text-[#6b6866] hover:bg-[#e7e4dd]"
-                )}
-              >
-                {r === "CUSTOMER" ? "לקוח" : "פרוספקט"}
-              </button>
-            ))}
-          </div>
-          <Button className={ui.btnPrimary} isDisabled={busy || !name.trim()} onPress={handleAdd}>
-            {busy ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-            הוסף חברה
-          </Button>
+        <div>
+          <label className={ui.label} htmlFor="tr-linkedin">לינקדאין</label>
+          <input id="tr-linkedin" className={ui.input} value={linkedinUrl}
+            onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="linkedin.com/company/..." />
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center gap-2 text-[#9b9895]">
-          <Loader2 className="size-4 animate-spin" /> טוען…
-        </div>
-      ) : companies.length === 0 ? (
-        <p className="text-[#9b9895] text-sm">אין חברות במעקב. הוסף חברה כדי להתחיל.</p>
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {companies.map((c) => (
-            <CompanyRow key={c.id} company={c} onChanged={onChanged} />
-          ))}
-        </ul>
-      )}
-    </section>
+      {/* Employees of a group write their employer many ways; without these, most of the
+          contacts at a holding company are never matched. */}
+      <div className="mt-3">
+        <label className={ui.label} htmlFor="tr-aliases">
+          שמות נוספים לזיהוי אנשי קשר (מופרדים בפסיק)
+        </label>
+        <input id="tr-aliases" className={ui.input} value={aliases}
+          onChange={(e) => setAliases(e.target.value)} placeholder="Delek, Delek US Holdings, קבוצת דלק" />
+      </div>
+
+      <div className="flex justify-end mt-3">
+        <Button className={ui.btnPrimary} isDisabled={busy || !name.trim()} onPress={handleAdd}>
+          {busy ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+          הוסף חברה
+        </Button>
+      </div>
+    </div>
   );
 }
 
-function CompanyRow({ company, onChanged }: { company: Company; onChanged: () => void }) {
-  const [open, setOpen] = useState(false);
+/**
+ * A company and everything found for it. Opportunities live INSIDE the company rather
+ * than in a shared feed: a technology only means something next to the business it is
+ * meant for, and a mixed feed makes the reader re-establish that context every card.
+ */
+function CompanyCard({ company, onChanged }: { company: Company; onChanged: () => void }) {
+  const [showProfile, setShowProfile] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
 
   async function patch(body: unknown, label: string) {
@@ -344,6 +272,33 @@ function CompanyRow({ company, onChanged }: { company: Company; onChanged: () =>
       onChanged();
     } catch {
       toast.error("הפעולה נכשלה", "נסה שוב");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  /**
+   * The scan takes minutes and finishes in the background, so the button hands back a
+   * toast rather than a spinner that would have to lie about progress. SWR polls every
+   * 30s, so results appear on their own.
+   */
+  async function handleScan() {
+    setBusy("scan");
+    try {
+      const res = await fetch(`/api/tech-radar/companies/${company.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "scan" }),
+      });
+      if (res.status === 409) {
+        toast.error("החברה עוד לא מוכנה לסריקה", "המחקר צריך להסתיים קודם");
+        return;
+      }
+      if (!res.ok) throw new Error("failed");
+      toast.success("הסריקה התחילה", "לוקח כמה דקות. ההזדמנויות יופיעו כאן מעצמן");
+      onChanged();
+    } catch {
+      toast.error("הפעלת הסריקה נכשלה", "נסה שוב");
     } finally {
       setBusy(null);
     }
@@ -364,46 +319,18 @@ function CompanyRow({ company, onChanged }: { company: Company; onChanged: () =>
   }
 
   return (
-    <li className={cn(ui.card, "p-3")}>
-      <div className="flex items-center gap-3 flex-wrap">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-1.5 font-medium text-[#1a1917] hover:text-[#1585ff] transition-colors"
-        >
-          <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} />
-          {company.name}
-        </button>
+    <li className={cn(ui.card, "overflow-hidden")}>
+      {/* ── Company header ─────────────────────────────────────────── */}
+      <div className="p-4 border-b border-[#f0efec] flex items-center gap-3 flex-wrap">
+        <h3 className="text-base font-semibold text-[#1a1917]">{company.name}</h3>
 
-        <button
-          type="button"
-          onClick={() =>
-            patch(
-              { action: "relationship", relationship: company.relationship === "CUSTOMER" ? "PROSPECT" : "CUSTOMER" },
-              "relationship"
-            )
-          }
-          title="לקוח קיים או פרוספקט — לידיעתך בלבד, לא משנה את נוסח ההודעה"
-          className={cn(
-            "px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors",
-            company.relationship === "CUSTOMER"
-              ? "bg-[#1585ff]/10 text-[#1585ff] hover:bg-[#1585ff]/20"
-              : "bg-[#f3f2ef] text-[#6b6866] hover:bg-[#e7e4dd]"
-          )}
-        >
-          {company.relationship === "CUSTOMER" ? "לקוח" : "פרוספקט"}
-        </button>
-
-        <span
-          className={cn(
-            "px-2 py-0.5 rounded-full text-[11px] font-medium border",
-            STATUS_CLASS[company.status]
-          )}
-        >
+        <span className={cn("px-2 py-0.5 rounded-full text-[11px] font-medium border", STATUS_CLASS[company.status])}>
           {STATUS_LABEL[company.status]}
         </span>
 
-        <span className="text-xs text-[#9b9895]">{company._count.opportunities} הזדמנויות</span>
+        <span className="text-xs text-[#9b9895]">
+          {company.opportunities.length} הזדמנויות
+        </span>
 
         {company.aliases.length > 0 && (
           <span className={ui.chip} title="שמות נוספים לזיהוי אנשי קשר">
@@ -411,21 +338,34 @@ function CompanyRow({ company, onChanged }: { company: Company; onChanged: () =>
           </span>
         )}
 
-        {company.scanIntervalDays !== 7 && (
-          <span className={ui.chip}>סריקה כל {company.scanIntervalDays} ימים</span>
+        {company.lastScanAt && (
+          <span className="text-xs text-[#9b9895]">נסרק {dateLabel(company.lastScanAt)}</span>
         )}
 
         <div className="ms-auto flex items-center gap-1">
-          <Button
-            className={ui.btnGhost}
-            isDisabled={busy !== null}
-            onPress={() => patch({ action: "research" }, "research")}
+          <Button className={ui.btnGhost} onPress={() => setShowProfile((v) => !v)}>
+            <ChevronDown className={cn("size-4 transition-transform", showProfile && "rotate-180")} />
+            פרופיל
+          </Button>
+          <span
+            title={
+              company.status === "ACTIVE"
+                ? "מחפש עכשיו טכנולוגיות חדשות לחברה הזאת, לפי הפרופיל שלה"
+                : "אפשר לסרוק רק אחרי שהמחקר הסתיים"
+            }
           >
-            {busy === "research" ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <RefreshCw className="size-4" />
-            )}
+            <Button
+              className={ui.btnSecondary}
+              isDisabled={busy !== null || company.status !== "ACTIVE"}
+              onPress={handleScan}
+            >
+              {busy === "scan" ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
+              סרוק עכשיו
+            </Button>
+          </span>
+          <Button className={ui.btnGhost} isDisabled={busy !== null}
+            onPress={() => patch({ action: "research" }, "research")}>
+            {busy === "research" ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
             חקור מחדש
           </Button>
           <Button className={ui.btnGhost} isDisabled={busy !== null} onPress={handleDelete}>
@@ -435,34 +375,55 @@ function CompanyRow({ company, onChanged }: { company: Company; onChanged: () =>
       </div>
 
       {company.status === "RESEARCH_FAILED" && company.profileError && (
-        <div className="mt-2 px-3 py-2 rounded-lg bg-[#fef2f2] border border-[#fecaca] text-xs text-[#b91c1c] flex items-start gap-1.5">
+        <div className="mx-4 mt-3 px-3 py-2 rounded-lg bg-[#fef2f2] border border-[#fecaca] text-xs text-[#b91c1c] flex items-start gap-1.5">
           <AlertTriangle className="size-3.5 shrink-0 mt-0.5" />
           <span>{company.profileError}</span>
         </div>
       )}
 
-      {open && <ProfilePanel company={company} />}
+      {showProfile && (
+        <div className="px-4 pt-3">
+          <ProfilePanel company={company} />
+        </div>
+      )}
+
+      {/* ── This company's opportunities ───────────────────────────── */}
+      <div className="p-4">
+        {company.opportunities.length === 0 ? (
+          <p className="text-sm text-[#9b9895]">
+            {company.status === "ACTIVE"
+              ? "אין הזדמנויות לחברה הזאת כרגע. הסריקה רצה פעם בשבוע."
+              : "אין הזדמנויות עד שהמחקר יסתיים."}
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {company.opportunities.map((o) => (
+              <OpportunityRow key={o.id} opportunity={o} onChanged={onChanged} />
+            ))}
+          </ul>
+        )}
+      </div>
     </li>
   );
 }
 
 /**
- * The read-only profile. This is the feature's diagnostic surface: there is no approval
- * gate, so when an opportunity looks wrong the user traces it back to the query that
- * produced it and to how many pages the profile was actually built from.
+ * The read-only profile. There is no approval gate, so when an opportunity looks wrong
+ * this is where the user traces it back to the query that produced it and to how many
+ * pages the profile was actually built from.
  */
 function ProfilePanel({ company }: { company: Company }) {
   const p = company.profile;
   if (!p) {
     return (
-      <div className="mt-3 rounded-lg border border-[#e7e4dd] bg-[#faf9f7] p-3 text-xs text-[#9b9895]">
+      <div className="rounded-lg border border-[#e7e4dd] bg-[#faf9f7] p-3 text-xs text-[#9b9895]">
         אין עדיין פרופיל לחברה הזאת.
       </div>
     );
   }
 
   return (
-    <div className="mt-3 rounded-lg border border-[#e7e4dd] bg-[#faf9f7] p-3 flex flex-col gap-3 text-sm">
+    <div className="rounded-lg border border-[#e7e4dd] bg-[#faf9f7] p-3 flex flex-col gap-3 text-sm">
       <div className="flex items-center gap-2 flex-wrap text-xs">
         <span
           className={cn(
@@ -475,16 +436,7 @@ function ProfilePanel({ company }: { company: Company }) {
           נבנה מ-{p.sources.length} מקורות
         </span>
         {company.researchedAt && (
-          <span className="text-[#9b9895]">
-            נחקר ב-
-            {new Date(company.researchedAt).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" })}
-          </span>
-        )}
-        {company.lastScanAt && (
-          <span className="text-[#9b9895]">
-            נסרק לאחרונה ב-
-            {new Date(company.lastScanAt).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" })}
-          </span>
+          <span className="text-[#9b9895]">נחקר ב-{dateLabel(company.researchedAt)}</span>
         )}
       </div>
 
@@ -521,17 +473,13 @@ function ProfilePanel({ company }: { company: Company }) {
           {p.products.length > 0 && (
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-xs font-medium text-[#6b6866]">מוצרים:</span>
-              {p.products.map((x) => (
-                <span key={x} className={ui.chip}>{x}</span>
-              ))}
+              {p.products.map((x) => <span key={x} className={ui.chip}>{x}</span>)}
             </div>
           )}
           {p.techStack.length > 0 && (
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-xs font-medium text-[#6b6866]">סטאק קיים:</span>
-              {p.techStack.map((x) => (
-                <span key={x} className={ui.chip}>{x}</span>
-              ))}
+              {p.techStack.map((x) => <span key={x} className={ui.chip}>{x}</span>)}
             </div>
           )}
         </div>
@@ -539,13 +487,9 @@ function ProfilePanel({ company }: { company: Company }) {
 
       {p.searchQueries.length > 0 && (
         <div>
-          <h4 className="text-xs font-medium text-[#6b6866] mb-1">
-            שאילתות החיפוש שנגזרו
-          </h4>
-          <ul className="flex flex-col gap-0.5 font-mono text-xs text-[#6b6866]">
-            {p.searchQueries.map((q) => (
-              <li key={q}>{q}</li>
-            ))}
+          <h4 className="text-xs font-medium text-[#6b6866] mb-1">שאילתות החיפוש שנגזרו</h4>
+          <ul className="flex flex-col gap-0.5 font-mono text-xs text-[#6b6866]" dir="ltr">
+            {p.searchQueries.map((q) => <li key={q}>{q}</li>)}
           </ul>
         </div>
       )}
@@ -556,12 +500,8 @@ function ProfilePanel({ company }: { company: Company }) {
           <ul className="flex flex-col gap-0.5 text-xs">
             {p.sources.map((s) => (
               <li key={s.url}>
-                <a
-                  href={s.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[#1585ff] hover:underline inline-flex items-center gap-1"
-                >
+                <a href={s.url} target="_blank" rel="noreferrer"
+                  className="text-[#1585ff] hover:underline inline-flex items-center gap-1">
                   {s.title || hostLabel(s.url)}
                   <ExternalLink className="size-3 shrink-0" />
                 </a>
@@ -574,54 +514,34 @@ function ProfilePanel({ company }: { company: Company }) {
   );
 }
 
-function OpportunityCard({
-  opportunity,
-  onChanged,
-}: {
-  opportunity: Opportunity;
-  onChanged: () => void;
-}) {
-  const { item, trackedCompany } = opportunity;
+function OpportunityRow({ opportunity, onChanged }: { opportunity: Opportunity; onChanged: () => void }) {
+  const { item } = opportunity;
   const sources = (item.sources ?? []).filter((s): s is { url: string; title?: string } => !!s?.url);
 
   return (
-    <li className={cn(ui.card, "p-4 flex flex-col gap-3")}>
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h3 className="font-semibold text-[#1a1917]">
+    <li className="rounded-lg border border-[#e7e4dd] bg-white p-3 flex flex-col gap-2">
+      <div className="flex items-start gap-2 flex-wrap">
+        <Radar className="size-4 text-[#1585ff] shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-0">
+          <h4 className="font-semibold text-[#1a1917]">
             {item.technology}
             {item.vendor && <span className="text-[#6b6866] font-normal"> · {item.vendor}</span>}
-          </h3>
+          </h4>
           <p className="text-xs text-[#9b9895] mt-0.5">{item.title}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-[#1a1917]">{trackedCompany.name}</span>
-          <span
-            className={cn(
-              "px-2 py-0.5 rounded-full text-[11px] font-medium",
-              trackedCompany.relationship === "CUSTOMER"
-                ? "bg-[#1585ff]/10 text-[#1585ff]"
-                : "bg-[#f3f2ef] text-[#6b6866]"
-            )}
-          >
-            {trackedCompany.relationship === "CUSTOMER" ? "לקוח" : "פרוספקט"}
-          </span>
         </div>
       </div>
 
       <p className="text-sm text-[#6b6866]">{item.summary}</p>
 
-      {/* The rationale justifies the outreach, so it is the visual anchor of the card —
-          not a footnote. It is also exactly what the drafted message is built from. */}
+      {/* The rationale is what justifies the outreach, so it is the visual anchor —
+          and it is exactly what the drafted message is built from. */}
       <div className="rounded-lg border-s-[3px] border-s-[#1585ff] bg-[#1585ff]/[0.04] px-3 py-2">
         <span className="block text-[11px] font-medium text-[#1585ff] mb-0.5">למה זה מתאים להם</span>
         <p className="text-sm font-medium text-[#1a1917]">{opportunity.fitRationale}</p>
       </div>
 
       <div className="flex items-center gap-1.5 flex-wrap">
-        {item.categories.map((c) => (
-          <span key={c} className={ui.chip}>{c}</span>
-        ))}
+        {item.categories.map((c) => <span key={c} className={ui.chip} dir="ltr">{c}</span>)}
         {item.thin && (
           <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
             <AlertTriangle className="size-3" />
@@ -629,13 +549,8 @@ function OpportunityCard({
           </span>
         )}
         {sources.map((s) => (
-          <a
-            key={s.url}
-            href={s.url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-[11px] text-[#1585ff] hover:underline"
-          >
+          <a key={s.url} href={s.url} target="_blank" rel="noreferrer"
+            className="inline-flex items-center gap-1 text-[11px] text-[#1585ff] hover:underline">
             {s.title || hostLabel(s.url)}
             <ExternalLink className="size-3 shrink-0" />
           </a>
@@ -712,39 +627,14 @@ function DraftPanel({ draft, onChanged }: { draft: Draft; onChanged: () => void 
     }
   }
 
-  async function handleSentConfirm() {
-    setBusy("sent");
+  async function act(action: "sent" | "save" | "dismiss", okMsg: string, errMsg: string) {
+    setBusy(action);
     try {
-      await patch({ action: "sent" });
-      toast.success("סומן כנשלח", draft.contact.fullName);
-      onChanged();
+      await patch(action === "save" ? { action, message: text } : { action });
+      toast.success(okMsg);
+      if (action !== "save") onChanged();
     } catch {
-      toast.error("שגיאה בסימון השליחה", "נסה שוב");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function handleSave() {
-    setBusy("save");
-    try {
-      await patch({ action: "save", message: text });
-      toast.success("הטיוטה נשמרה");
-    } catch {
-      toast.error("שמירת הטיוטה נכשלה", "נסה שוב");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function handleDismiss() {
-    setBusy("dismiss");
-    try {
-      await patch({ action: "dismiss" });
-      toast.success("הטיוטה הוסרה");
-      onChanged();
-    } catch {
-      toast.error("ההסרה נכשלה", "נסה שוב");
+      toast.error(errMsg, "נסה שוב");
     } finally {
       setBusy(null);
     }
@@ -757,12 +647,8 @@ function DraftPanel({ draft, onChanged }: { draft: Draft; onChanged: () => void 
       <div className="text-sm text-[#1a1917]">
         אל:{" "}
         {draft.contact.linkedinUrl ? (
-          <a
-            href={draft.contact.linkedinUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium text-[#1585ff] hover:underline"
-          >
+          <a href={draft.contact.linkedinUrl} target="_blank" rel="noreferrer"
+            className="font-medium text-[#1585ff] hover:underline">
             {draft.contact.fullName}
           </a>
         ) : (
@@ -782,29 +668,24 @@ function DraftPanel({ draft, onChanged }: { draft: Draft; onChanged: () => void 
               ההודעה בהכנה — טאב לינקדאין עם ההודעה מוקלדת ייפתח אצלך עוד רגע (ודא שהתוסף פעיל)
             </div>
           ) : (
-            <div className="text-sm text-[#059669]">
-              הטיוטה מוכנה — לחץ שליחה שם וחזור לאשר כאן
-            </div>
+            <div className="text-sm text-[#059669]">הטיוטה מוכנה — לחץ שליחה שם וחזור לאשר כאן</div>
           )}
           <div className="flex items-center gap-2 flex-wrap">
-            <Button className={ui.btnPrimary} isDisabled={busy !== null} onPress={handleSentConfirm}>
+            <Button className={ui.btnPrimary} isDisabled={busy !== null}
+              onPress={() => act("sent", "סומן כנשלח", "שגיאה בסימון השליחה")}>
               {busy === "sent" ? <Loader2 className="size-4 animate-spin" /> : null}
               שלחתי
             </Button>
-            <Button className={ui.btnGhost} isDisabled={busy !== null} onPress={handleDismiss}>
+            <Button className={ui.btnGhost} isDisabled={busy !== null}
+              onPress={() => act("dismiss", "הטיוטה הוסרה", "ההסרה נכשלה")}>
               הסר
             </Button>
           </div>
         </>
       ) : (
         <>
-          <TextArea
-            aria-label="טיוטת ההודעה"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            className="w-full"
-            dir="rtl"
-          />
+          <TextArea aria-label="טיוטת ההודעה" value={text}
+            onChange={(e) => setText(e.target.value)} className="w-full" dir="rtl" />
 
           <div className="flex items-center gap-2 flex-wrap">
             {channels.length === 0 ? (
@@ -813,26 +694,20 @@ function DraftPanel({ draft, onChanged }: { draft: Draft; onChanged: () => void 
               channels.map((ch) => {
                 const Icon = CHANNEL_ICON[ch];
                 return (
-                  <Button
-                    key={ch}
-                    className={ui.btnSecondary}
-                    isDisabled={busy !== null || !text.trim()}
-                    onPress={() => handlePrepare(ch)}
-                  >
-                    {busy === ch ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Icon className="size-4" />
-                    )}
+                  <Button key={ch} className={ui.btnSecondary}
+                    isDisabled={busy !== null || !text.trim()} onPress={() => handlePrepare(ch)}>
+                    {busy === ch ? <Loader2 className="size-4 animate-spin" /> : <Icon className="size-4" />}
                     {CHANNEL_LABEL[ch]}
                   </Button>
                 );
               })
             )}
-            <Button className={ui.btnGhost} isDisabled={busy !== null} onPress={handleSave}>
+            <Button className={ui.btnGhost} isDisabled={busy !== null}
+              onPress={() => act("save", "הטיוטה נשמרה", "שמירת הטיוטה נכשלה")}>
               שמור טיוטה
             </Button>
-            <Button className={ui.btnGhost} isDisabled={busy !== null} onPress={handleDismiss}>
+            <Button className={ui.btnGhost} isDisabled={busy !== null}
+              onPress={() => act("dismiss", "הטיוטה הוסרה", "ההסרה נכשלה")}>
               הסר
             </Button>
           </div>
