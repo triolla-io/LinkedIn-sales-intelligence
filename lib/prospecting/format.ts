@@ -22,6 +22,7 @@ export const ERROR_CODE_LABELS: Record<string, string> = {
   connect_button_not_found: "כפתור 'התחבר' לא נמצא בפרופיל",
   follow_only: "בפרופיל יש רק כפתור 'עקוב' — דולג",
   already_or_blocked: "כבר מחוברים או שההצעה כבר ממתינה",
+  not_a_result_card: "לא תוצאת חיפוש — קישור מתוך רייל בעמוד",
   already_connected: "כבר מחוברים",
   already_pending: "הצעת חברות כבר ממתינה",
   invitation_already_pending: "הצעת חברות כבר ממתינה",
