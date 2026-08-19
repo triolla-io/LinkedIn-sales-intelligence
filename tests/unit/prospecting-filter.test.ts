@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeSendPriority, decideCandidate, titleMatchesHeadline, type ScrapedCard } from "@/lib/prospecting/filter";
+import { computeSendPriority, decideCandidate, isResultCard, titleMatchesHeadline, type ScrapedCard } from "@/lib/prospecting/filter";
 
 const base: ScrapedCard = {
   urn: "ACoAA1",
@@ -134,5 +134,25 @@ describe("titleMatchesHeadline — Playtika run (2026-08-18)", () => {
   });
   it.each(DROP)("drops a non-product headline: %s", (headline) => {
     expect(titleMatchesHeadline('"VP Product"', headline)).toBe(false);
+  });
+});
+
+/**
+ * Server-side backstop for the same rail links the extension now drops at scrape time. It has to
+ * live here too: extension distribution is manual, so installed builds lag for weeks.
+ */
+describe("isResultCard", () => {
+  const bare: ScrapedCard = {
+    urn: "u", profileUrl: "https://www.linkedin.com/in/x", name: "Efrat Barak Zadok",
+    headline: null, title: null, company: null, location: null, degree: null, cardAction: null,
+  };
+  it("rejects a name-only rail link", () => {
+    expect(isResultCard(bare)).toBe(false);
+  });
+  it("accepts a card with any real signal", () => {
+    expect(isResultCard({ ...bare, headline: "VP Product at Acme" })).toBe(true);
+    expect(isResultCard({ ...bare, degree: "2nd" })).toBe(true);
+    expect(isResultCard({ ...bare, cardAction: "connect" })).toBe(true);
+    expect(isResultCard({ ...bare, title: "CEO" })).toBe(true);
   });
 });

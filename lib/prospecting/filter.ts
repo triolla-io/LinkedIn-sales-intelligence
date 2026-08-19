@@ -47,6 +47,21 @@ export function titleMatchesHeadline(searchTitle: string, headline: string | nul
   return headline.toLowerCase().includes(title.toLowerCase());
 }
 
+/**
+ * True when a scraped card looks like an actual search result.
+ *
+ * LinkedIn's <main> also holds "People also viewed"-style rails, whose profile links carry a name
+ * and nothing else. The extension drops them at scrape time (extension/src/lib/scrape-search.ts);
+ * this is the server-side backstop, which matters because extension distribution is manual and
+ * installed builds lag. Prod evidence: 1022 of 3832 ConnectionRequest rows had no headline, and all
+ * 1022 also had no title, no location and no action, while of the 2810 rows WITH a headline only 2
+ * lacked a location — an all-or-nothing split across independent fields, i.e. page furniture rather
+ * than result cards that lost a field. 932 of them were sitting in the pool as future sends.
+ */
+export function isResultCard(card: ScrapedCard): boolean {
+  return Boolean(card.headline || card.title || card.degree || card.cardAction);
+}
+
 export type DecisionCtx = {
   existingContactUrns: Set<string>;
   existingRequestUrns: Set<string>;

@@ -43,7 +43,7 @@ describe("persistCandidates with companyTargetId", () => {
 
   it("stamps inserted rows with the companyTargetId and bumps discoveredCount", async () => {
     const res = await persistCandidates("user1", "run1", [CARD], "t1");
-    expect(res).toEqual({ inserted: 1, skipped: 0, filtered: 0 });
+    expect(res).toEqual({ inserted: 1, skipped: 0, filtered: 0, railLinks: 0 });
     expect(requestCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({
         companyTargetId: "t1",
@@ -75,7 +75,7 @@ describe("persistCandidates with companyTargetId", () => {
       company: null,
     };
     const res = await persistCandidates("user1", "run1", [offTitle], "t1", "CEO");
-    expect(res).toEqual({ inserted: 0, skipped: 0, filtered: 1 });
+    expect(res).toEqual({ inserted: 0, skipped: 0, filtered: 1, railLinks: 0 });
     expect(requestCreate).not.toHaveBeenCalled();
     // The drop must still be COUNTED — an invisible drop is what made adi's run look empty.
     expect(targetUpdate).toHaveBeenCalledWith({
@@ -87,7 +87,7 @@ describe("persistCandidates with companyTargetId", () => {
   it("keeps a card whose headline matches matchTitle", async () => {
     const onTitle = { ...CARD, headline: "Chief Executive Officer", title: "CEO", company: null };
     const res = await persistCandidates("user1", "run1", [onTitle], "t1", "CEO");
-    expect(res).toEqual({ inserted: 1, skipped: 0, filtered: 0 });
+    expect(res).toEqual({ inserted: 1, skipped: 0, filtered: 0, railLinks: 0 });
     expect(requestCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({ companyTargetId: "t1", status: "DISCOVERED" }),
     });
@@ -96,7 +96,7 @@ describe("persistCandidates with companyTargetId", () => {
   it("applies no title filter when matchTitle is omitted (keyword runs)", async () => {
     const offTitle = { ...CARD, headline: "Algorithm Engineer", title: "Algorithm Engineer" };
     const res = await persistCandidates("user1", "run1", [offTitle], "t1");
-    expect(res).toEqual({ inserted: 1, skipped: 0, filtered: 0 });
+    expect(res).toEqual({ inserted: 1, skipped: 0, filtered: 0, railLinks: 0 });
   });
 });
 
@@ -137,7 +137,7 @@ describe("persistCandidates — Playtika \"VP Product\" page (2026-08-18)", () =
 
   it("keeps the product leader and counts the seven it dropped", async () => {
     const res = await persistCandidates("user1", "run1", page, "t1", '"VP Product"');
-    expect(res).toEqual({ inserted: 1, skipped: 0, filtered: 7 });
+    expect(res).toEqual({ inserted: 1, skipped: 0, filtered: 7, railLinks: 0 });
     expect(requestCreate).toHaveBeenCalledTimes(1);
     expect(requestCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({ fullName: "Ofer Klein", status: "DISCOVERED" }),
@@ -145,6 +145,52 @@ describe("persistCandidates — Playtika \"VP Product\" page (2026-08-18)", () =
     expect(targetUpdate).toHaveBeenCalledWith({
       where: { id: "t1" },
       data: { discoveredCount: { increment: 1 }, scannedCount: { increment: 8 } },
+    });
+  });
+});
+
+/**
+ * Rail links must not reach the pool, and must not inflate the scanned count either — they are not
+ * people LinkedIn returned for the company, they are page furniture.
+ */
+describe("persistCandidates — name-only rail links", () => {
+  const rail = (i: number) => ({
+    ...CARD,
+    urn: `urn:li:member:rail${i}`,
+    profileUrl: `https://www.linkedin.com/in/rail${i}`,
+    name: `Rail Person ${i}`,
+    headline: null,
+    title: null,
+    company: null,
+    location: null,
+    degree: null,
+    cardAction: null,
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    contactFindMany.mockResolvedValue([]);
+    requestFindMany.mockResolvedValue([]);
+    requestCreate.mockResolvedValue({});
+    runUpdate.mockResolvedValue({});
+    targetUpdate.mockResolvedValue({});
+  });
+
+  it("drops them in a keyword run, where no title filter would have caught them", async () => {
+    const res = await persistCandidates("user1", "run1", [rail(1), rail(2), rail(3), CARD]);
+    expect(res.inserted).toBe(1);
+    expect(res.railLinks).toBe(3);
+    expect(requestCreate).toHaveBeenCalledTimes(1);
+    expect(requestCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({ fullName: "Jane Doe" }),
+    });
+  });
+
+  it("does not count them as people scanned for a company", async () => {
+    await persistCandidates("user1", "run1", [rail(1), rail(2), CARD], "t1", "CEO");
+    expect(targetUpdate).toHaveBeenCalledWith({
+      where: { id: "t1" },
+      data: { discoveredCount: { increment: 1 }, scannedCount: { increment: 1 } },
     });
   });
 });

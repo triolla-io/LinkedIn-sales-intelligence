@@ -1,16 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
-import { cleanScrapedName, computeSendPriority, decideCandidate, titleMatchesHeadline, type ScrapedCard } from "@/lib/prospecting/filter";
+import { cleanScrapedName, computeSendPriority, decideCandidate, isResultCard, titleMatchesHeadline, type ScrapedCard } from "@/lib/prospecting/filter";
 import { logProspectingEvent } from "@/lib/prospecting/events";
 import { ERROR_CODE_LABELS } from "@/lib/prospecting/format";
 
 /**
  * `filtered` = cards LinkedIn returned that did not hold the searched role (company runs only).
+ * `railLinks` = links that were never search results at all (see isResultCard).
  * It is reported, not silently swallowed: a page that scanned 8 people and matched none must look
  * different from a page that returned nothing, or a whole run finishes "successfully" with zero
  * people and no explanation (adi's Playtika run, 2026-08-18 — 25 scanned, 25 dropped, 0 recorded).
  */
-export type PersistResult = { inserted: number; skipped: number; filtered: number };
+export type PersistResult = { inserted: number; skipped: number; filtered: number; railLinks: number };
 
 /**
  * Persist a batch of scraped search cards for a run, applying dedup + filter rules.
@@ -25,7 +26,7 @@ export async function persistCandidates(
   companyTargetId?: string,
   matchTitle?: string
 ): Promise<PersistResult> {
-  if (cards.length === 0) return { inserted: 0, skipped: 0, filtered: 0 };
+  if (cards.length === 0) return { inserted: 0, skipped: 0, filtered: 0, railLinks: 0 };
 
   const urns = cards.map((c) => c.urn);
   const [contacts, requests] = await Promise.all([
@@ -47,12 +48,20 @@ export async function persistCandidates(
   let inserted = 0;
   let skipped = 0;
   let filtered = 0;
+  let railLinks = 0;
   let scanned = 0;
   const seenInBatch = new Set<string>();
 
   for (const card of cards) {
     if (seenInBatch.has(card.urn)) continue; // de-dupe within the same page
     seenInBatch.add(card.urn);
+
+    // Page furniture, not a person LinkedIn returned — so it is dropped BEFORE `scanned`, which
+    // must stay a count of real people.
+    if (!isResultCard(card)) {
+      railLinks++;
+      continue;
+    }
     scanned++;
 
     // COMPANY runs: LinkedIn's keyword search is full-text, so it returns anyone at the
@@ -158,5 +167,14 @@ export async function persistCandidates(
     });
   }
 
-  return { inserted, skipped, filtered };
+  if (railLinks > 0) {
+    await logProspectingEvent({
+      runId,
+      type: "SKIPPED",
+      message: `${railLinks} קישורים שאינם תוצאות חיפוש דולגו`,
+      detail: { railLinks },
+    });
+  }
+
+  return { inserted, skipped, filtered, railLinks };
 }

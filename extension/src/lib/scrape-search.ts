@@ -105,6 +105,12 @@ export function parseCardFields(
     }
   }
 
+  // A link that yielded nothing but a name is not a search result — it is a "People also viewed"
+  // style rail link swept up from inside <main>. Dropping it here keeps it out of the candidate
+  // pool entirely: prod had 1022 such rows (932 of them queued as future sends), and every single
+  // one lacked headline, title, location AND action, while real cards essentially always carry them.
+  if (!headline && !degree && !cardAction) return null;
+
   return { name, headline, title, company, location, degree, cardAction };
 }
 

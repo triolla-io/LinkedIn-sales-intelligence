@@ -72,3 +72,34 @@ describe("parseCardFields — Hebrew UI", () => {
     expect(parseCardFields("", ["", "Some line"])).toBeNull();
   });
 });
+
+/**
+ * Regression — name-only links harvested from inside <main>.
+ *
+ * `scrapeSearchPage` collects every `a[href*="/in/"]` under <main>, which also catches the
+ * "People also viewed" / suggestion rails. Those links carry a name and nothing else, and prod
+ * proved they were reaching the send pipeline: of 3832 ConnectionRequest rows, 1022 had NO
+ * headline — and all 1022 also had no cardAction, no location and no title, while of the 2810 rows
+ * WITH a headline only 2 lacked a location. A perfect all-or-nothing split across three
+ * independent fields is a rail link, not a result card that lost its headline.
+ */
+describe("parseCardFields — name-only rail links", () => {
+  it("rejects a link whose card carried nothing but the name", () => {
+    expect(parseCardFields("Efrat Barak Zadok", ["Efrat Barak Zadok"])).toBeNull();
+  });
+
+  it("rejects it even when the name repeats (image + text link in one rail item)", () => {
+    expect(parseCardFields("Oren Teich", ["Oren Teich", "Oren Teich"])).toBeNull();
+  });
+
+  it("keeps a real card that has only a degree badge and an action", () => {
+    const out = parseCardFields("Dana Levi • 2nd", ["Dana Levi • 2nd", "Connect"]);
+    expect(out?.name).toBe("Dana Levi");
+    expect(out?.degree).toBe("2nd");
+  });
+
+  it("keeps a real card that has a headline but no action button", () => {
+    const out = parseCardFields("Noa Bar", ["Noa Bar", "VP Product at Acme"]);
+    expect(out?.headline).toBe("VP Product at Acme");
+  });
+});
