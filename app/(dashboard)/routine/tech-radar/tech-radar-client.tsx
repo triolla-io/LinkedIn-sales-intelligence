@@ -383,7 +383,7 @@ function CompanyRow({ company, onChanged }: { company: Company; onChanged: () =>
               "relationship"
             )
           }
-          title="החלפה בין לקוח לפרוספקט"
+          title="לקוח קיים או פרוספקט — לידיעתך בלבד, לא משנה את נוסח ההודעה"
           className={cn(
             "px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors",
             company.relationship === "CUSTOMER"

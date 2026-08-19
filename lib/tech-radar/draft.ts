@@ -1,65 +1,60 @@
 /**
  * Writes the outreach message for one (opportunity, contact) pair.
  *
- * Two tone variants, selected by the company's relationship. Both inherit the
- * rules already enforced in production (see lib/fintech-radar/draft.ts): very
- * short, spoken Hebrew, zero emojis, nothing marketing-y. The CUSTOMER variant
- * adds exactly one permission — referencing the shared work and suggesting a
- * look together. Neither variant pitches.
+ * ONE register for every company. The earlier customer/prospect split was dropped by
+ * product decision (2026-08-19): a single advisory phrasing covers both, and
+ * TrackedCompany.relationship now only informs the human reading the draft.
  *
- * The prompt is built from `fitRationale`, NOT the generic item summary. That is
- * what makes the message specific to this company instead of a digest of an
- * article. The source link is shown in the UI, never pushed into the body.
+ * The message has a fixed three-part shape:
+ *   1. "ראיתי משהו חדש ב<תחום>" — you came across it, nothing more.
+ *   2. One short clause on what it actually does.
+ *   3. "אולי תוכלו לשלב את זה ב<מקום ספציפי אצלם>" — a suggestion about the
+ *      technology, never an offer of our services.
+ *
+ * Part 3 is why the prompt is built from `fitRationale` rather than the item summary:
+ * the rationale is the only thing that knows WHERE in their business it would sit.
  */
 import { openrouterChat } from "@/lib/openrouter/client";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
-import { OR_FEATURE, type CompanyRelationshipTone } from "@/lib/tech-radar/types";
+import { OR_FEATURE } from "@/lib/tech-radar/types";
 
 export type TechDraftInput = {
   contactFullName: string;
   hebrewFirstName: string | null;
   contactTitle: string | null;
   companyName: string;
-  relationship: CompanyRelationshipTone;
   technology: string;
   vendor: string | null;
-  /** The per-company rationale — the whole point of the message. */
+  /** The per-company rationale — the only source for where this could fit. */
   fitRationale: string;
 };
 
-const SHARED_RULES = `Rules:
-- Sound like a real person sending something interesting to someone they know: everyday spoken Hebrew, light and matter-of-fact.
-- 1-2 short sentences total. Shorter is always better.
+export const DRAFT_SYSTEM = `You write VERY short, casual Hebrew messages that bring a senior professional a newly launched technology relevant to their company, and suggest where it might fit.
+
+Follow this three-part shape, in this order:
+1. You came across it. Open with "ראיתי" — e.g. "היי דנה, ראיתי את הפיצ'ר החדש של X" or "היי דנה, ראיתי משהו חדש בזיהוי הונאות".
+2. What it does — ONE short clause. Very short. Do not explain the mechanism, do not list benefits.
+3. Where it could fit, phrased as a suggestion. This sentence must use the wording "אולי תוכלו לשלב את זה ב___ אצלכם" (or "...אצלך" for one person).
+   The blank is a SHORT NOUN PHRASE of 2-6 words naming ONE specific place in THEIR business — a named product, system, business line or process. Take the NAME from the relevance note; do not copy the note itself.
+   - GOOD: "אולי תוכלו לשלב את זה בביט אצלכם" / "אולי תוכלו לשלב את זה בחיפושי הגז בים התיכון אצלכם"
+   - BAD, too vague: "בתהליכים שלכם", "במערכות שלכם"
+   - BAD, too long: naming the place AND explaining what it would achieve. Stop after the place. No "כדי ל...", no benefit clause.
+
+Register example:
+"היי דנה, ראיתי משהו חדש בזיהוי הונאות שמזהה דפוסי תקיפה חדשים לבד. אולי תוכלו לשלב את זה בביט אצלכם."
+
+Rules:
+- 2-3 short sentences MAXIMUM. Shorter is always better.
+- NEVER copy the relevance note into the message. It is background for you, not text to reuse — it is written for an analyst, not for the recipient.
+- Everyday spoken Hebrew, light and matter-of-fact — like a person forwarding something useful.
 - ZERO emojis, icons, or decorative symbols.
-- Nothing formal, marketing-y, or AI-sounding: no ברצוני/אשמח לשתף, no hype words, no flattery, no filler.
+- Nothing formal or marketing-y: no ברצוני/אשמח לשתף, no hype words, no flattery, no filler.
 - Address the person by their Hebrew first name if provided, otherwise their first name.
-- Name the technology concretely but in a few words — never recap it.
+- The suggestion is about THE TECHNOLOGY only. Do NOT pitch our services, do not offer help implementing it, and do not ask for a meeting or a call.
 - Do NOT include any URL or link.
 
 Return strict JSON only — no prose, no markdown fences:
 {"draftMessage": string}`;
-
-const PROSPECT_SYSTEM = `You write VERY short, casual Hebrew messages that bring a senior professional a new technology relevant to what their company does, to start a conversation.
-
-Register example: "היי דנה, נתקלתי במשהו חדש בזיהוי הונאות שממש התחבר לי למה שאתם עושים בכרטיסים. חשבתי שיעניין אותך."
-
-- Do NOT pitch anything, do NOT offer help, and do NOT ask for a meeting or a call. You are simply someone who saw something relevant.
-- A short open question at the end is optional, only if it feels natural.
-
-${SHARED_RULES}`;
-
-const CUSTOMER_SYSTEM = `You write VERY short, casual Hebrew messages to a senior professional at a company you ALREADY work with, bringing them a new technology relevant to what they do.
-
-Register example: "היי דנה, יצא משהו חדש בזיהוי הונאות. מתחבר לכיוון שדיברנו עליו, שווה שנסתכל."
-
-- You may reference the shared work and suggest looking at it together ("שווה שנסתכל", "מתחבר למה שעשינו").
-- Still do NOT pitch, do NOT sell, and do NOT ask for a formal meeting. It is a colleague's note, not an offer.
-
-${SHARED_RULES}`;
-
-export function systemPromptFor(relationship: CompanyRelationshipTone): string {
-  return relationship === "CUSTOMER" ? CUSTOMER_SYSTEM : PROSPECT_SYSTEM;
-}
 
 function userPrompt(i: TechDraftInput): string {
   const hebrew = i.hebrewFirstName ? ` (Hebrew first name: ${i.hebrewFirstName})` : "";
@@ -68,7 +63,8 @@ function userPrompt(i: TechDraftInput): string {
     `Recipient title: ${i.contactTitle ?? "unknown"}`,
     `Their company: ${i.companyName}`,
     `New technology: ${i.technology}${i.vendor ? ` (by ${i.vendor})` : ""}`,
-    `Why it is relevant to THEM: ${i.fitRationale}`,
+    // This is where part 3's concrete place comes from.
+    `Where it could fit at THEM (use this for the closing suggestion): ${i.fitRationale}`,
   ].join("\n");
 }
 
@@ -86,7 +82,7 @@ export async function draftTechMessage(input: TechDraftInput): Promise<string> {
     {
       model,
       messages: [
-        { role: "system", content: systemPromptFor(input.relationship) },
+        { role: "system", content: DRAFT_SYSTEM },
         { role: "user", content: userPrompt(input) },
       ],
       temperature: 0.5,

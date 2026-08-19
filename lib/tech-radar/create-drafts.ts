@@ -109,7 +109,6 @@ export async function createDraftsForOpportunity(
         hebrewFirstName: contact.hebrewFirstName,
         contactTitle: contact.currentTitle,
         companyName: company.name,
-        relationship: company.relationship,
         technology: opportunity.item.technology,
         vendor: opportunity.item.vendor,
         // The rationale, not the item summary — this is what makes it specific.

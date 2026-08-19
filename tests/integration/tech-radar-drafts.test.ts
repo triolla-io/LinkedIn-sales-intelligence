@@ -170,13 +170,15 @@ describe("createDraftsForOpportunity", () => {
     expect(JSON.stringify(arg)).not.toContain("generic product blurb");
   });
 
-  it("passes the company relationship through so the tone is right", async () => {
+  // One register for every company now: the relationship no longer reaches the prompt,
+  // it only informs the human who reads the draft.
+  it("does not send the relationship to the drafter", async () => {
     opportunityFindUniqueOrThrow.mockResolvedValue(opportunity("CUSTOMER"));
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
     contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
     await createDraftsForOpportunity("o1");
-    expect(draftTechMessage.mock.calls[0][0].relationship).toBe("CUSTOMER");
+    expect(draftTechMessage.mock.calls[0][0]).not.toHaveProperty("relationship");
     expect(draftTechMessage.mock.calls[0][0].hebrewFirstName).toBe("דנה");
   });
 

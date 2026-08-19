@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const chat = vi.fn();
 vi.mock("@/lib/openrouter/client", () => ({ openrouterChat: (...a: unknown[]) => chat(...a) }));
 
-const { systemPromptFor, parseDraftJson, draftTechMessage } = await import("@/lib/tech-radar/draft");
+const { DRAFT_SYSTEM, parseDraftJson, draftTechMessage } = await import("@/lib/tech-radar/draft");
 
 function input(over: Partial<Parameters<typeof draftTechMessage>[0]> = {}) {
   return {
@@ -11,7 +11,6 @@ function input(over: Partial<Parameters<typeof draftTechMessage>[0]> = {}) {
     hebrewFirstName: "דנה",
     contactTitle: "VP Payments",
     companyName: "בנק הפועלים",
-    relationship: "PROSPECT" as const,
     technology: "Fraud Shield",
     vendor: "Acme",
     fitRationale: "מתחבר לביט ולתשלומים בין-אישיים שאתם מפעילים",
@@ -24,39 +23,57 @@ function ok(content: string) {
 
 beforeEach(() => chat.mockReset());
 
-describe("systemPromptFor", () => {
-  it("returns two different prompts for the two relationships", () => {
-    expect(systemPromptFor("CUSTOMER")).not.toBe(systemPromptFor("PROSPECT"));
+/**
+ * One phrasing for every company. The earlier customer/prospect split was dropped by
+ * product decision: a single advisory register covers both, and the relationship flag
+ * now only informs the human reading the draft.
+ */
+describe("DRAFT_SYSTEM", () => {
+  it("lays out the three-part shape: saw it, what it does, where it could fit", () => {
+    expect(DRAFT_SYSTEM).toMatch(/ראיתי/);
+    expect(DRAFT_SYSTEM).toMatch(/אולי תוכלו לשלב את זה/);
   });
 
-  it("forbids emojis in both variants", () => {
-    for (const r of ["CUSTOMER", "PROSPECT"] as const) {
-      expect(systemPromptFor(r)).toContain("ZERO emojis");
-    }
+  it("requires the closing suggestion to name a concrete place in their business", () => {
+    expect(DRAFT_SYSTEM).toMatch(/specific|concrete/i);
   });
 
-  it("forbids links in both variants — the UI shows the source separately", () => {
-    for (const r of ["CUSTOMER", "PROSPECT"] as const) {
-      expect(systemPromptFor(r)).toMatch(/Do NOT include any URL/);
-    }
+  /**
+   * First live run of this shape: the model pasted the whole relevance note into the
+   * blank — "...בפלטפורמת CDP המאוחדת שלכם כדי לתזמן הצעות מותאמות ב-50+ מועדוני
+   * הלויאליות של IsraCard ולהגביר חוצ-מכירות בקרטיס, אשראי וסחר" — instead of naming
+   * the place. The blank has to be a short noun phrase.
+   */
+  it("caps the closing blank to a short noun phrase", () => {
+    expect(DRAFT_SYSTEM).toMatch(/noun phrase/i);
+    expect(DRAFT_SYSTEM).toMatch(/2-6 words|two to six words/i);
   });
 
-  it("forbids pitching and meeting requests for a prospect", () => {
-    const p = systemPromptFor("PROSPECT");
-    expect(p).toMatch(/Do NOT pitch/);
-    expect(p).toMatch(/do NOT ask for a meeting/);
+  it("forbids copying the relevance note into the message", () => {
+    expect(DRAFT_SYSTEM).toMatch(/do not copy|never copy/i);
   });
 
-  it("lets a customer message reference the shared work", () => {
-    const c = systemPromptFor("CUSTOMER");
-    expect(c).toContain("שווה שנסתכל");
-    expect(c).toMatch(/do NOT pitch/i);
+  it("requires the closing to keep its suggestion wording", () => {
+    expect(DRAFT_SYSTEM).toMatch(/must .*אולי תוכלו לשלב|אולי תוכלו לשלב.*required/i);
   });
 
-  it("caps both variants at 1-2 sentences", () => {
-    for (const r of ["CUSTOMER", "PROSPECT"] as const) {
-      expect(systemPromptFor(r)).toContain("1-2 short sentences");
-    }
+  it("keeps the explanation very short", () => {
+    expect(DRAFT_SYSTEM).toMatch(/one short clause|very short/i);
+  });
+
+  it("still forbids emojis and links", () => {
+    expect(DRAFT_SYSTEM).toContain("ZERO emojis");
+    expect(DRAFT_SYSTEM).toMatch(/Do NOT include any URL/);
+  });
+
+  it("still bans marketing register and flattery", () => {
+    expect(DRAFT_SYSTEM).toMatch(/marketing/i);
+    expect(DRAFT_SYSTEM).toMatch(/flattery/i);
+  });
+
+  it("does not sell anything on our behalf", () => {
+    // The suggestion is about the technology, never about hiring us.
+    expect(DRAFT_SYSTEM).toMatch(/do not offer|not a pitch|do NOT pitch/i);
   });
 });
 
@@ -74,24 +91,24 @@ describe("parseDraftJson", () => {
 
 describe("draftTechMessage", () => {
   it("returns the drafted message", async () => {
-    chat.mockResolvedValue(ok('{"draftMessage":"היי דנה, נתקלתי במשהו חדש בזיהוי הונאות."}'));
-    await expect(draftTechMessage(input())).resolves.toBe("היי דנה, נתקלתי במשהו חדש בזיהוי הונאות.");
+    chat.mockResolvedValue(ok('{"draftMessage":"היי דנה, ראיתי משהו חדש בזיהוי הונאות."}'));
+    await expect(draftTechMessage(input())).resolves.toBe("היי דנה, ראיתי משהו חדש בזיהוי הונאות.");
   });
 
-  // The rationale is what makes the message specific rather than a news digest.
+  it("uses the one shared prompt for every company", async () => {
+    chat.mockResolvedValue(ok('{"draftMessage":"x"}'));
+    await draftTechMessage(input());
+    const body = chat.mock.calls[0][1] as { messages: { content: string }[] };
+    expect(body.messages[0].content).toBe(DRAFT_SYSTEM);
+  });
+
+  // The rationale is what tells the model WHERE the technology could fit.
   it("feeds the fitRationale into the prompt", async () => {
     chat.mockResolvedValue(ok('{"draftMessage":"x"}'));
     await draftTechMessage(input());
     const body = chat.mock.calls[0][1] as { messages: { content: string }[] };
     expect(body.messages[1].content).toContain("מתחבר לביט ולתשלומים בין-אישיים שאתם מפעילים");
     expect(body.messages[1].content).toContain("דנה");
-  });
-
-  it("selects the system prompt by relationship", async () => {
-    chat.mockResolvedValue(ok('{"draftMessage":"x"}'));
-    await draftTechMessage(input({ relationship: "CUSTOMER" }));
-    const body = chat.mock.calls[0][1] as { messages: { content: string }[] };
-    expect(body.messages[0].content).toBe(systemPromptFor("CUSTOMER"));
   });
 
   it("is tagged for cost attribution", async () => {
