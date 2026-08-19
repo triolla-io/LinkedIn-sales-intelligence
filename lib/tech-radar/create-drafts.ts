@@ -10,6 +10,7 @@
  * they need to acquire one.
  */
 import { prisma } from "@/lib/prisma";
+import { isSeniorTitle } from "@/lib/company-signals/clevel";
 import { buildRecipientWhere, rankRecipients } from "@/lib/tech-radar/recipients";
 import { draftTechMessage } from "@/lib/tech-radar/draft";
 import type { RecipientCandidate } from "@/lib/tech-radar/types";
@@ -61,8 +62,12 @@ export async function createDraftsForOpportunity(
     },
   });
 
+  // The SQL filter is coarse by necessity — `contains` cannot express a word boundary,
+  // so "coo" matches every "Coordinator". Decide seniority precisely here.
+  const senior = allContacts.filter((c) => isSeniorTitle(c.currentTitle));
+
   const contactsByOwner = new Map<string, typeof allContacts>();
-  for (const contact of allContacts) {
+  for (const contact of senior) {
     const list = contactsByOwner.get(contact.ownerId);
     if (list) list.push(contact);
     else contactsByOwner.set(contact.ownerId, [contact]);

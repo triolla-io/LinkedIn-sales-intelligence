@@ -32,11 +32,42 @@ export const SENIOR_TITLE_TERMS = [
 const HEBREW_CEO = 'מנכ"ל';
 const HEBREW_DEPUTY_PREFIX = "סמנכ";
 
-export function isCLevelTitle(title: string | null | undefined): boolean {
-  if (!title) return false;
+/**
+ * Bare acronyms have to match as WHOLE WORDS. Matched as substrings, "coo" hit every
+ * "Coordinator" and "cro" hit "Microbiologist" — a Human Resources Coordinator was
+ * drafted a message before this was caught. Multi-word phrases and the Hebrew terms are
+ * distinctive enough to stay substring matches (and \b does not behave usefully around
+ * the quote in מנכ"ל).
+ */
+function matchesTerm(haystack: string, term: string): boolean {
+  const t = term.toLowerCase();
+  if (!/^[a-z][a-z ]*$/.test(t)) return haystack.includes(t);
+  // Trailing space in a term (e.g. "vp ") already forces a boundary on the right.
+  const trimmed = t.trim();
+  const pattern = new RegExp(`(^|[^a-z])${trimmed}($|[^a-z])`, "i");
+  return pattern.test(haystack);
+}
+
+function matchesAny(title: string, terms: readonly string[]): boolean {
   // Strip the deputy form first so 'סמנכ"ל כספים' can't match via its 'מנכ"ל' substring.
+  const t = title.toLowerCase();
+  return terms.some((term) => matchesTerm(t, term));
+}
+
+export function isCLevelTitle(title: string | null | undefined): boolean {
+  if (!title || !title.trim()) return false;
   const t = title.toLowerCase().replace(new RegExp(HEBREW_DEPUTY_PREFIX, "g"), "");
-  return CLEVEL_TITLE_TERMS.some((term) => t.includes(term.toLowerCase()));
+  return matchesAny(t, CLEVEL_TITLE_TERMS);
+}
+
+/**
+ * The wider tier: everything C-level plus VP / head-of / deputy-CEO. Use this AFTER the
+ * SQL prefilter — `contains` cannot express a word boundary, so the query is coarse on
+ * purpose and this is what makes the decision.
+ */
+export function isSeniorTitle(title: string | null | undefined): boolean {
+  if (!title || !title.trim()) return false;
+  return matchesAny(title, SENIOR_TITLE_TERMS);
 }
 
 type ContainsClause = { currentTitle: { contains: string; mode: "insensitive" } };

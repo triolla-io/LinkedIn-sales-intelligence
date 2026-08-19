@@ -42,8 +42,8 @@ function opportunity(relationship: "CUSTOMER" | "PROSPECT" = "PROSPECT") {
     trackedCompany: { id: "c1", orgId: "org1", name: "בנק הפועלים", companyId: "co1", relationship },
   };
 }
-function contact(id: string) {
-  return { id, fullName: `Person ${id}`, hebrewFirstName: "דנה", currentTitle: "VP Payments", headline: null };
+function contact(id: string, currentTitle = "VP Payments") {
+  return { id, fullName: `Person ${id}`, hebrewFirstName: "דנה", currentTitle, headline: null };
 }
 
 beforeEach(() => {
@@ -216,6 +216,38 @@ describe("createDraftsForOpportunity", () => {
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
     draftCount.mockResolvedValue(1);
     expect((await createDraftsForOpportunity("o1")).created).toBe(1);
+  });
+
+  /**
+   * The SQL prefilter uses `contains`, which cannot express a word boundary, so "coo"
+   * matched every "Coordinator". A Human Resources Coordinator was drafted a message in
+   * the live run; the precise check has to run after the query.
+   */
+  it("drops a contact the coarse SQL filter let through but who is not senior", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue([
+      { ...contact("hr", "Human Resources Coordinator"), ownerId: "owner1" },
+      { ...contact("vp", "VP Payments"), ownerId: "owner1" },
+    ]);
+    rankRecipients.mockImplementation(async (_i: unknown, cands: { contactId: string }[]) =>
+      cands.map((c) => ({ contactId: c.contactId, score: 0.9, reason: "r" }))
+    );
+
+    await createDraftsForOpportunity("o1");
+    // The coordinator must never even be offered to the ranker.
+    const offered = (rankRecipients.mock.calls[0][1] as { contactId: string }[]).map((c) => c.contactId);
+    expect(offered).toEqual(["vp"]);
+    expect(draftCreate.mock.calls.map((c) => c[0].data.contactId)).toEqual(["vp"]);
+  });
+
+  it("creates nothing when every prefiltered contact turns out to be junior", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue([
+      { ...contact("hr", "Recruiting Coordinator"), ownerId: "owner1" },
+    ]);
+    const out = await createDraftsForOpportunity("o1");
+    expect(out.created).toBe(0);
+    expect(rankRecipients).not.toHaveBeenCalled();
   });
 
   it("creates drafts in PENDING_REVIEW — the system prepares, the human sends", async () => {
