@@ -42,6 +42,7 @@ export type TechOpportunityMinAggregateOutputType = {
   fitRationale: string | null
   businessLine: string | null
   contactSuggestion: string | null
+  blockReason: string | null
   score: number | null
   status: $Enums.TechOpportunityStatus | null
   createdAt: Date | null
@@ -54,6 +55,7 @@ export type TechOpportunityMaxAggregateOutputType = {
   fitRationale: string | null
   businessLine: string | null
   contactSuggestion: string | null
+  blockReason: string | null
   score: number | null
   status: $Enums.TechOpportunityStatus | null
   createdAt: Date | null
@@ -66,6 +68,7 @@ export type TechOpportunityCountAggregateOutputType = {
   fitRationale: number
   businessLine: number
   contactSuggestion: number
+  blockReason: number
   score: number
   status: number
   createdAt: number
@@ -88,6 +91,7 @@ export type TechOpportunityMinAggregateInputType = {
   fitRationale?: true
   businessLine?: true
   contactSuggestion?: true
+  blockReason?: true
   score?: true
   status?: true
   createdAt?: true
@@ -100,6 +104,7 @@ export type TechOpportunityMaxAggregateInputType = {
   fitRationale?: true
   businessLine?: true
   contactSuggestion?: true
+  blockReason?: true
   score?: true
   status?: true
   createdAt?: true
@@ -112,6 +117,7 @@ export type TechOpportunityCountAggregateInputType = {
   fitRationale?: true
   businessLine?: true
   contactSuggestion?: true
+  blockReason?: true
   score?: true
   status?: true
   createdAt?: true
@@ -211,6 +217,7 @@ export type TechOpportunityGroupByOutputType = {
   fitRationale: string
   businessLine: string | null
   contactSuggestion: string | null
+  blockReason: string | null
   score: number
   status: $Enums.TechOpportunityStatus
   createdAt: Date
@@ -246,6 +253,7 @@ export type TechOpportunityWhereInput = {
   fitRationale?: Prisma.StringFilter<"TechOpportunity"> | string
   businessLine?: Prisma.StringNullableFilter<"TechOpportunity"> | string | null
   contactSuggestion?: Prisma.StringNullableFilter<"TechOpportunity"> | string | null
+  blockReason?: Prisma.StringNullableFilter<"TechOpportunity"> | string | null
   score?: Prisma.FloatFilter<"TechOpportunity"> | number
   status?: Prisma.EnumTechOpportunityStatusFilter<"TechOpportunity"> | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFilter<"TechOpportunity"> | Date | string
@@ -261,6 +269,7 @@ export type TechOpportunityOrderByWithRelationInput = {
   fitRationale?: Prisma.SortOrder
   businessLine?: Prisma.SortOrderInput | Prisma.SortOrder
   contactSuggestion?: Prisma.SortOrderInput | Prisma.SortOrder
+  blockReason?: Prisma.SortOrderInput | Prisma.SortOrder
   score?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -280,6 +289,7 @@ export type TechOpportunityWhereUniqueInput = Prisma.AtLeast<{
   fitRationale?: Prisma.StringFilter<"TechOpportunity"> | string
   businessLine?: Prisma.StringNullableFilter<"TechOpportunity"> | string | null
   contactSuggestion?: Prisma.StringNullableFilter<"TechOpportunity"> | string | null
+  blockReason?: Prisma.StringNullableFilter<"TechOpportunity"> | string | null
   score?: Prisma.FloatFilter<"TechOpportunity"> | number
   status?: Prisma.EnumTechOpportunityStatusFilter<"TechOpportunity"> | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFilter<"TechOpportunity"> | Date | string
@@ -295,6 +305,7 @@ export type TechOpportunityOrderByWithAggregationInput = {
   fitRationale?: Prisma.SortOrder
   businessLine?: Prisma.SortOrderInput | Prisma.SortOrder
   contactSuggestion?: Prisma.SortOrderInput | Prisma.SortOrder
+  blockReason?: Prisma.SortOrderInput | Prisma.SortOrder
   score?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -315,6 +326,7 @@ export type TechOpportunityScalarWhereWithAggregatesInput = {
   fitRationale?: Prisma.StringWithAggregatesFilter<"TechOpportunity"> | string
   businessLine?: Prisma.StringNullableWithAggregatesFilter<"TechOpportunity"> | string | null
   contactSuggestion?: Prisma.StringNullableWithAggregatesFilter<"TechOpportunity"> | string | null
+  blockReason?: Prisma.StringNullableWithAggregatesFilter<"TechOpportunity"> | string | null
   score?: Prisma.FloatWithAggregatesFilter<"TechOpportunity"> | number
   status?: Prisma.EnumTechOpportunityStatusWithAggregatesFilter<"TechOpportunity"> | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"TechOpportunity"> | Date | string
@@ -325,6 +337,7 @@ export type TechOpportunityCreateInput = {
   fitRationale: string
   businessLine?: string | null
   contactSuggestion?: string | null
+  blockReason?: string | null
   score?: number
   status?: $Enums.TechOpportunityStatus
   createdAt?: Date | string
@@ -340,6 +353,7 @@ export type TechOpportunityUncheckedCreateInput = {
   fitRationale: string
   businessLine?: string | null
   contactSuggestion?: string | null
+  blockReason?: string | null
   score?: number
   status?: $Enums.TechOpportunityStatus
   createdAt?: Date | string
@@ -351,6 +365,7 @@ export type TechOpportunityUpdateInput = {
   fitRationale?: Prisma.StringFieldUpdateOperationsInput | string
   businessLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactSuggestion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.EnumTechOpportunityStatusFieldUpdateOperationsInput | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -366,6 +381,7 @@ export type TechOpportunityUncheckedUpdateInput = {
   fitRationale?: Prisma.StringFieldUpdateOperationsInput | string
   businessLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactSuggestion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.EnumTechOpportunityStatusFieldUpdateOperationsInput | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -379,6 +395,7 @@ export type TechOpportunityCreateManyInput = {
   fitRationale: string
   businessLine?: string | null
   contactSuggestion?: string | null
+  blockReason?: string | null
   score?: number
   status?: $Enums.TechOpportunityStatus
   createdAt?: Date | string
@@ -389,6 +406,7 @@ export type TechOpportunityUpdateManyMutationInput = {
   fitRationale?: Prisma.StringFieldUpdateOperationsInput | string
   businessLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactSuggestion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.EnumTechOpportunityStatusFieldUpdateOperationsInput | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -401,6 +419,7 @@ export type TechOpportunityUncheckedUpdateManyInput = {
   fitRationale?: Prisma.StringFieldUpdateOperationsInput | string
   businessLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactSuggestion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.EnumTechOpportunityStatusFieldUpdateOperationsInput | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -428,6 +447,7 @@ export type TechOpportunityCountOrderByAggregateInput = {
   fitRationale?: Prisma.SortOrder
   businessLine?: Prisma.SortOrder
   contactSuggestion?: Prisma.SortOrder
+  blockReason?: Prisma.SortOrder
   score?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -444,6 +464,7 @@ export type TechOpportunityMaxOrderByAggregateInput = {
   fitRationale?: Prisma.SortOrder
   businessLine?: Prisma.SortOrder
   contactSuggestion?: Prisma.SortOrder
+  blockReason?: Prisma.SortOrder
   score?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -456,6 +477,7 @@ export type TechOpportunityMinOrderByAggregateInput = {
   fitRationale?: Prisma.SortOrder
   businessLine?: Prisma.SortOrder
   contactSuggestion?: Prisma.SortOrder
+  blockReason?: Prisma.SortOrder
   score?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -577,6 +599,7 @@ export type TechOpportunityCreateWithoutTrackedCompanyInput = {
   fitRationale: string
   businessLine?: string | null
   contactSuggestion?: string | null
+  blockReason?: string | null
   score?: number
   status?: $Enums.TechOpportunityStatus
   createdAt?: Date | string
@@ -590,6 +613,7 @@ export type TechOpportunityUncheckedCreateWithoutTrackedCompanyInput = {
   fitRationale: string
   businessLine?: string | null
   contactSuggestion?: string | null
+  blockReason?: string | null
   score?: number
   status?: $Enums.TechOpportunityStatus
   createdAt?: Date | string
@@ -632,6 +656,7 @@ export type TechOpportunityScalarWhereInput = {
   fitRationale?: Prisma.StringFilter<"TechOpportunity"> | string
   businessLine?: Prisma.StringNullableFilter<"TechOpportunity"> | string | null
   contactSuggestion?: Prisma.StringNullableFilter<"TechOpportunity"> | string | null
+  blockReason?: Prisma.StringNullableFilter<"TechOpportunity"> | string | null
   score?: Prisma.FloatFilter<"TechOpportunity"> | number
   status?: Prisma.EnumTechOpportunityStatusFilter<"TechOpportunity"> | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFilter<"TechOpportunity"> | Date | string
@@ -642,6 +667,7 @@ export type TechOpportunityCreateWithoutItemInput = {
   fitRationale: string
   businessLine?: string | null
   contactSuggestion?: string | null
+  blockReason?: string | null
   score?: number
   status?: $Enums.TechOpportunityStatus
   createdAt?: Date | string
@@ -655,6 +681,7 @@ export type TechOpportunityUncheckedCreateWithoutItemInput = {
   fitRationale: string
   businessLine?: string | null
   contactSuggestion?: string | null
+  blockReason?: string | null
   score?: number
   status?: $Enums.TechOpportunityStatus
   createdAt?: Date | string
@@ -692,6 +719,7 @@ export type TechOpportunityCreateWithoutDraftsInput = {
   fitRationale: string
   businessLine?: string | null
   contactSuggestion?: string | null
+  blockReason?: string | null
   score?: number
   status?: $Enums.TechOpportunityStatus
   createdAt?: Date | string
@@ -706,6 +734,7 @@ export type TechOpportunityUncheckedCreateWithoutDraftsInput = {
   fitRationale: string
   businessLine?: string | null
   contactSuggestion?: string | null
+  blockReason?: string | null
   score?: number
   status?: $Enums.TechOpportunityStatus
   createdAt?: Date | string
@@ -732,6 +761,7 @@ export type TechOpportunityUpdateWithoutDraftsInput = {
   fitRationale?: Prisma.StringFieldUpdateOperationsInput | string
   businessLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactSuggestion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.EnumTechOpportunityStatusFieldUpdateOperationsInput | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -746,6 +776,7 @@ export type TechOpportunityUncheckedUpdateWithoutDraftsInput = {
   fitRationale?: Prisma.StringFieldUpdateOperationsInput | string
   businessLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactSuggestion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.EnumTechOpportunityStatusFieldUpdateOperationsInput | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -757,6 +788,7 @@ export type TechOpportunityCreateManyTrackedCompanyInput = {
   fitRationale: string
   businessLine?: string | null
   contactSuggestion?: string | null
+  blockReason?: string | null
   score?: number
   status?: $Enums.TechOpportunityStatus
   createdAt?: Date | string
@@ -767,6 +799,7 @@ export type TechOpportunityUpdateWithoutTrackedCompanyInput = {
   fitRationale?: Prisma.StringFieldUpdateOperationsInput | string
   businessLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactSuggestion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.EnumTechOpportunityStatusFieldUpdateOperationsInput | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -780,6 +813,7 @@ export type TechOpportunityUncheckedUpdateWithoutTrackedCompanyInput = {
   fitRationale?: Prisma.StringFieldUpdateOperationsInput | string
   businessLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactSuggestion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.EnumTechOpportunityStatusFieldUpdateOperationsInput | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -792,6 +826,7 @@ export type TechOpportunityUncheckedUpdateManyWithoutTrackedCompanyInput = {
   fitRationale?: Prisma.StringFieldUpdateOperationsInput | string
   businessLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactSuggestion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.EnumTechOpportunityStatusFieldUpdateOperationsInput | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -803,6 +838,7 @@ export type TechOpportunityCreateManyItemInput = {
   fitRationale: string
   businessLine?: string | null
   contactSuggestion?: string | null
+  blockReason?: string | null
   score?: number
   status?: $Enums.TechOpportunityStatus
   createdAt?: Date | string
@@ -813,6 +849,7 @@ export type TechOpportunityUpdateWithoutItemInput = {
   fitRationale?: Prisma.StringFieldUpdateOperationsInput | string
   businessLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactSuggestion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.EnumTechOpportunityStatusFieldUpdateOperationsInput | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -826,6 +863,7 @@ export type TechOpportunityUncheckedUpdateWithoutItemInput = {
   fitRationale?: Prisma.StringFieldUpdateOperationsInput | string
   businessLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactSuggestion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.EnumTechOpportunityStatusFieldUpdateOperationsInput | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -838,6 +876,7 @@ export type TechOpportunityUncheckedUpdateManyWithoutItemInput = {
   fitRationale?: Prisma.StringFieldUpdateOperationsInput | string
   businessLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactSuggestion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   status?: Prisma.EnumTechOpportunityStatusFieldUpdateOperationsInput | $Enums.TechOpportunityStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -881,6 +920,7 @@ export type TechOpportunitySelect<ExtArgs extends runtime.Types.Extensions.Inter
   fitRationale?: boolean
   businessLine?: boolean
   contactSuggestion?: boolean
+  blockReason?: boolean
   score?: boolean
   status?: boolean
   createdAt?: boolean
@@ -897,6 +937,7 @@ export type TechOpportunitySelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   fitRationale?: boolean
   businessLine?: boolean
   contactSuggestion?: boolean
+  blockReason?: boolean
   score?: boolean
   status?: boolean
   createdAt?: boolean
@@ -911,6 +952,7 @@ export type TechOpportunitySelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   fitRationale?: boolean
   businessLine?: boolean
   contactSuggestion?: boolean
+  blockReason?: boolean
   score?: boolean
   status?: boolean
   createdAt?: boolean
@@ -925,12 +967,13 @@ export type TechOpportunitySelectScalar = {
   fitRationale?: boolean
   businessLine?: boolean
   contactSuggestion?: boolean
+  blockReason?: boolean
   score?: boolean
   status?: boolean
   createdAt?: boolean
 }
 
-export type TechOpportunityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "itemId" | "trackedCompanyId" | "fitRationale" | "businessLine" | "contactSuggestion" | "score" | "status" | "createdAt", ExtArgs["result"]["techOpportunity"]>
+export type TechOpportunityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "itemId" | "trackedCompanyId" | "fitRationale" | "businessLine" | "contactSuggestion" | "blockReason" | "score" | "status" | "createdAt", ExtArgs["result"]["techOpportunity"]>
 export type TechOpportunityInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   item?: boolean | Prisma.TechItemDefaultArgs<ExtArgs>
   trackedCompany?: boolean | Prisma.TrackedCompanyDefaultArgs<ExtArgs>
@@ -969,6 +1012,12 @@ export type $TechOpportunityPayload<ExtArgs extends runtime.Types.Extensions.Int
      * "No one to contact" is more useful as a recommendation than as a dead end.
      */
     contactSuggestion: string | null
+    /**
+     * WHY there is nobody to send to: no_senior_contact | no_role_match |
+     * contacts_at_capacity. The screen claimed "you have no senior contact here" for all
+     * three, which was false for two of them.
+     */
+    blockReason: string | null
     score: number
     status: $Enums.TechOpportunityStatus
     createdAt: Date
@@ -1404,6 +1453,7 @@ export interface TechOpportunityFieldRefs {
   readonly fitRationale: Prisma.FieldRef<"TechOpportunity", 'String'>
   readonly businessLine: Prisma.FieldRef<"TechOpportunity", 'String'>
   readonly contactSuggestion: Prisma.FieldRef<"TechOpportunity", 'String'>
+  readonly blockReason: Prisma.FieldRef<"TechOpportunity", 'String'>
   readonly score: Prisma.FieldRef<"TechOpportunity", 'Float'>
   readonly status: Prisma.FieldRef<"TechOpportunity", 'TechOpportunityStatus'>
   readonly createdAt: Prisma.FieldRef<"TechOpportunity", 'DateTime'>

@@ -30,9 +30,18 @@ const CANDIDATE_CAP = 25;
 const MAX_OPEN_DRAFTS_PER_CONTACT = 2;
 const OPEN_DRAFT_WINDOW_DAYS = 7;
 
+/**
+ * Why an opportunity ended up with nobody to send to. The screen used to say "you have
+ * no senior contact here" for all of these, which was false in three of them.
+ */
+export type DraftBlockReason =
+  | "no_senior_contact"      // nobody senior at this company at all
+  | "no_role_match"          // contacts exist, none owns this kind of decision
+  | "contacts_at_capacity";  // right people, already holding enough open drafts
+
 export async function createDraftsForOpportunity(
   opportunityId: string
-): Promise<{ created: number; owners: number }> {
+): Promise<{ created: number; owners: number; blockedBy: DraftBlockReason | null }> {
   const opportunity = await prisma.techOpportunity.findUniqueOrThrow({
     where: { id: opportunityId },
     select: {
@@ -67,26 +76,38 @@ export async function createDraftsForOpportunity(
   // so "coo" matches every "Coordinator". Decide seniority precisely here.
   const senior = allContacts.filter((c) => isSeniorTitle(c.currentTitle));
 
-  // Nobody senior anywhere in the org at this company. Record which role they should go
-  // after, so the gap reads as the next action rather than a dead end.
-  if (senior.length === 0) {
+  /** Ask which role they are missing, and record it. Never fails the caller. */
+  async function recordSuggestion(): Promise<void> {
     const profile = company.profile;
-    if (isUsableProfile(profile)) {
-      const suggestion = await suggestContactRole({
-        companyName: company.name,
-        profile: profile as TechRadarProfile,
-        technology: opportunity.item.technology,
-        vendor: opportunity.item.vendor,
-        fitRationale: opportunity.fitRationale,
+    if (!isUsableProfile(profile)) return;
+    const suggestion = await suggestContactRole({
+      companyName: company.name,
+      profile: profile as TechRadarProfile,
+      technology: opportunity.item.technology,
+      vendor: opportunity.item.vendor,
+      fitRationale: opportunity.fitRationale,
+    });
+    if (suggestion) {
+      await prisma.techOpportunity.update({
+        where: { id: opportunity.id },
+        data: { contactSuggestion: suggestion },
       });
-      if (suggestion) {
-        await prisma.techOpportunity.update({
-          where: { id: opportunity.id },
-          data: { contactSuggestion: suggestion },
-        });
-      }
     }
-    return { created: 0, owners: owners.length };
+  }
+
+  /** Record the reason so the screen can state it instead of guessing. */
+  async function block(reason: DraftBlockReason) {
+    await prisma.techOpportunity.update({
+      where: { id: opportunity.id },
+      data: { blockReason: reason },
+    });
+    return { created: 0, owners: owners.length, blockedBy: reason };
+  }
+
+  // Nobody senior anywhere in the org at this company.
+  if (senior.length === 0) {
+    await recordSuggestion();
+    return block("no_senior_contact");
   }
 
   const contactsByOwner = new Map<string, typeof allContacts>();
@@ -97,6 +118,11 @@ export async function createDraftsForOpportunity(
   }
 
   let created = 0;
+  // Distinguishing "no role match" from "everyone is full" is the whole point of the
+  // recommendation: the first is a gap in their contact list, the second is not.
+  let anyRanked = false;
+  let anyCapped = false;
+
   // Only owners who actually have somebody there cost anything from here on.
   for (const [ownerId, ownerContacts] of contactsByOwner) {
     const contacts = ownerContacts.slice(0, CANDIDATE_CAP);
@@ -109,6 +135,7 @@ export async function createDraftsForOpportunity(
       headline: c.headline,
     }));
     const ranked = await rankRecipients(opportunity.item, candidates);
+    if (ranked.length > 0) anyRanked = true;
     const byId = new Map(contacts.map((c) => [c.id, c]));
 
     for (const pick of ranked) {
@@ -130,7 +157,10 @@ export async function createDraftsForOpportunity(
           createdAt: { gte: new Date(Date.now() - OPEN_DRAFT_WINDOW_DAYS * 24 * 60 * 60 * 1000) },
         },
       });
-      if (openDrafts >= MAX_OPEN_DRAFTS_PER_CONTACT) continue;
+      if (openDrafts >= MAX_OPEN_DRAFTS_PER_CONTACT) {
+        anyCapped = true;
+        continue;
+      }
 
       const message = await draftTechMessage({
         contactFullName: contact.fullName,
@@ -159,8 +189,18 @@ export async function createDraftsForOpportunity(
   if (created > 0) {
     await prisma.techOpportunity.update({
       where: { id: opportunity.id },
-      data: { status: "DRAFTED" },
+      data: { status: "DRAFTED", blockReason: null },
     });
+    return { created, owners: owners.length, blockedBy: null };
   }
-  return { created, owners: owners.length };
+
+  // Nothing was drafted. If the ranker found nobody suitable, the company is missing a
+  // role and knowing which one is worth more than the opportunity itself. If it did find
+  // people and they were merely full, their contact list is fine — recommending a role
+  // there would be noise.
+  if (!anyRanked) {
+    await recordSuggestion();
+    return block("no_role_match");
+  }
+  return block(anyCapped ? "contacts_at_capacity" : "no_role_match");
 }

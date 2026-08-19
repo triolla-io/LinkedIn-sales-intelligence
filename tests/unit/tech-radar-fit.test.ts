@@ -117,6 +117,38 @@ describe("parseFitResponse", () => {
   });
 
   // The line attribution is what stops one business line taking every slot.
+  /**
+   * Asked to copy the business line "verbatim", the model copied the name AND its whole
+   * description: "Oil & Gas Exploration & Production — Upstream E&P operations in the
+   * North Sea (Ithaca Energy), Eastern Mediterranean (NewMed Energy)...". That is a chip
+   * the width of the screen, and the grouping key for draft interleaving. Trimmed here
+   * rather than asked for politely in the prompt.
+   */
+  it("keeps only the business line name, dropping any description the model appended", () => {
+    const withDescription =
+      '{"fits":true,"fitRationale":"x","score":0.9,"businessLine":"Oil & Gas Exploration & Production — Upstream E&P operations in the North Sea (Ithaca Energy)"}';
+    expect(parseFitResponse(withDescription)?.businessLine).toBe("Oil & Gas Exploration & Production");
+  });
+
+  it("handles the other separators a model reaches for", () => {
+    for (const sep of [" - ", ": ", " – ", " | "]) {
+      const raw = `{"fits":true,"fitRationale":"x","score":0.9,"businessLine":"Retail Banking${sep}current accounts and cards"}`;
+      expect(parseFitResponse(raw)?.businessLine).toBe("Retail Banking");
+    }
+  });
+
+  it("leaves a plain business line name untouched", () => {
+    expect(
+      parseFitResponse('{"fits":true,"fitRationale":"x","score":0.9,"businessLine":"Financial Services"}')?.businessLine
+    ).toBe("Financial Services");
+  });
+
+  it("caps a line name that has no separator at all", () => {
+    const long = "a".repeat(200);
+    const out = parseFitResponse(`{"fits":true,"fitRationale":"x","score":0.9,"businessLine":"${long}"}`);
+    expect(out?.businessLine?.length).toBeLessThanOrEqual(60);
+  });
+
   it("nulls a missing or blank business line rather than failing", () => {
     expect(parseFitResponse('{"fits":true,"fitRationale":"x","score":0.5}')?.businessLine).toBeNull();
     expect(

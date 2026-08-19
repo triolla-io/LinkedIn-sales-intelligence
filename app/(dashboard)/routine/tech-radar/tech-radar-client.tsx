@@ -38,6 +38,7 @@ type Opportunity = {
   fitRationale: string;
   businessLine: string | null;
   contactSuggestion: string | null;
+  blockReason: "no_senior_contact" | "no_role_match" | "contacts_at_capacity" | null;
   score: number;
   status: string;
   createdAt: string;
@@ -92,6 +93,17 @@ const STATUS_CLASS: Record<CompanyStatus, string> = {
   PENDING_RESEARCH: "bg-[#fffbeb] text-[#b45309] border-[#fde68a]",
   ACTIVE: "bg-[#ecfdf5] text-[#059669] border-[#a7f3d0]",
   RESEARCH_FAILED: "bg-[#fef2f2] text-[#b91c1c] border-[#fecaca]",
+};
+
+/**
+ * One message per reason. The screen previously said "you have no senior contact here"
+ * for all three, which was false for two of them — and sent the reader looking for a
+ * problem that was not there.
+ */
+const BLOCK_LABEL: Record<NonNullable<Opportunity["blockReason"]>, string> = {
+  no_senior_contact: "אין לך איש קשר בכיר בחברה הזאת",
+  no_role_match: "יש לך אנשי קשר בחברה, אבל אף אחד מהם לא מחזיק את התחום הזה",
+  contacts_at_capacity: "אנשי הקשר הנכונים כבר קיבלו מספיק הודעות השבוע",
 };
 
 function hostLabel(url: string) {
@@ -570,7 +582,8 @@ function OpportunityRow({ opportunity, onChanged }: { opportunity: Opportunity; 
         <div className="text-xs text-[#b45309] bg-[#fffbeb] border border-[#fde68a] rounded-lg px-3 py-2 flex flex-col gap-1">
           <span className="flex items-center gap-1.5 font-medium">
             <UserX className="size-3.5 shrink-0" />
-            אין למי לפנות — אין לך איש קשר בכיר בחברה הזאת
+            אין למי לפנות
+            {opportunity.blockReason ? ` — ${BLOCK_LABEL[opportunity.blockReason]}` : ""}
           </span>
           {opportunity.contactSuggestion && (
             <span className="text-[#8a5a1a]">{opportunity.contactSuggestion}</span>

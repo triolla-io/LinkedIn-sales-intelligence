@@ -1152,6 +1152,10 @@ model TechOpportunity {
   /// When the org has nobody senior at this company: which role they should acquire.
   /// "No one to contact" is more useful as a recommendation than as a dead end.
   contactSuggestion String?               @db.Text
+  /// WHY there is nobody to send to: no_senior_contact | no_role_match |
+  /// contacts_at_capacity. The screen claimed "you have no senior contact here" for all
+  /// three, which was false for two of them.
+  blockReason       String?
   score             Float                 @default(0)
   status            TechOpportunityStatus @default(DISCOVERED)
   createdAt         DateTime              @default(now())

@@ -156,6 +156,28 @@ function userPrompt(profile: TechRadarProfile, companyName: string, item: FitIte
   ].join("\n");
 }
 
+/** Longest business-line name we will store; beyond this it is a description, not a name. */
+const MAX_LINE_NAME = 60;
+
+/**
+ * Keep only the NAME of a business line.
+ *
+ * Asked to copy the profile's business line verbatim, the model copies its description
+ * too — "Oil & Gas Exploration & Production — Upstream E&P operations in the North Sea
+ * (Ithaca Energy), ...". That is both a screen-wide chip and the key drafting groups by,
+ * so it is trimmed here rather than requested politely in the prompt.
+ */
+export function normalizeBusinessLine(raw: string): string | null {
+  const value = (raw ?? "").trim();
+  if (!value) return null;
+  // Cut at the first separator a model uses between a name and its gloss. Dashes and
+  // pipes need spaces on both sides so a hyphenated name survives ("Buy-Now-Pay-Later");
+  // a colon needs only a trailing space, since nobody writes " : ".
+  const cut = value.split(/\s+[—–|-]\s+|:\s+/)[0].trim();
+  const name = cut || value;
+  return (name.length > MAX_LINE_NAME ? name.slice(0, MAX_LINE_NAME).trim() : name) || null;
+}
+
 export function parseFitResponse(text: string): FitVerdict | null {
   const parsed = parseJsonLoose<Record<string, unknown>>(text);
   if (!parsed || typeof parsed !== "object") return null;
@@ -163,12 +185,11 @@ export function parseFitResponse(text: string): FitVerdict | null {
   const fits = parsed.fits === true;
   // A "fits" verdict with no rationale is unusable — the rationale IS the output.
   if (fits && !rationale) return null;
-  const businessLine = String(parsed.businessLine ?? "").trim();
   return {
     fits,
     fitRationale: rationale,
     score: clampScore(parsed.score),
-    businessLine: businessLine || null,
+    businessLine: normalizeBusinessLine(String(parsed.businessLine ?? "")),
   };
 }
 

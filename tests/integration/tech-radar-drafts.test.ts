@@ -87,7 +87,8 @@ describe("createDraftsForOpportunity", () => {
     ]);
     const out = await createDraftsForOpportunity("o1");
     expect(out.created).toBe(2);
-    expect(opportunityUpdate.mock.calls[0][0].data).toEqual({ status: "DRAFTED" });
+    // Drafting also clears any stale reason from a previous run.
+    expect(opportunityUpdate.mock.calls[0][0].data).toEqual({ status: "DRAFTED", blockReason: null });
   });
 
   // The cap is per (opportunity x owner) because the owner is who sends.
@@ -147,20 +148,56 @@ describe("createDraftsForOpportunity", () => {
     expect(rankRecipients).not.toHaveBeenCalled();
   });
 
+  function suggestionWritten() {
+    const call = opportunityUpdate.mock.calls.find((c) => "contactSuggestion" in c[0].data);
+    return call?.[0].data.contactSuggestion as string | undefined;
+  }
+
   it("records which role to go after when there is nobody senior at the company", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
     contactFindMany.mockResolvedValue([]);
     suggestContactRole.mockResolvedValue('שווה להגיע לסמנכ״ל התשלומים');
-    await createDraftsForOpportunity("o1");
-    const call = opportunityUpdate.mock.calls.find((c) => "contactSuggestion" in c[0].data);
-    expect(call?.[0].data.contactSuggestion).toBe('שווה להגיע לסמנכ״ל התשלומים');
+    const out = await createDraftsForOpportunity("o1");
+    expect(suggestionWritten()).toBe('שווה להגיע לסמנכ״ל התשלומים');
+    expect(out.blockedBy).toBe("no_senior_contact");
   });
 
-  it("does not ask for a recommendation when contacts do exist", async () => {
+  /**
+   * The first human-run scan left four opportunities with no drafts and no
+   * recommendation, because the recommendation only fired when the company had zero
+   * senior contacts. In every one of those four the company HAD contacts — the ranker
+   * found none of them a role match, which is exactly when knowing the missing role is
+   * worth most. The screen also claimed "you have no senior contact here", which was
+   * simply false.
+   */
+  it("recommends a role when contacts exist but none matches the technology", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
+    rankRecipients.mockResolvedValue([]); // ranker rejected everyone
+    suggestContactRole.mockResolvedValue('צריך מישהו שמחזיק את הפרשנות התת-קרקעית');
+    const out = await createDraftsForOpportunity("o1");
+    expect(suggestionWritten()).toBe('צריך מישהו שמחזיק את הפרשנות התת-קרקעית');
+    expect(out.blockedBy).toBe("no_role_match");
+  });
+
+  it("reports the cap, without a recommendation, when everyone is simply full", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
     contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
-    await createDraftsForOpportunity("o1");
+    draftCount.mockResolvedValue(2); // already at the per-contact cap
+    const out = await createDraftsForOpportunity("o1");
+    expect(out.blockedBy).toBe("contacts_at_capacity");
+    // Their contacts are right, they are just saturated — recommending a role would be wrong.
+    expect(suggestContactRole).not.toHaveBeenCalled();
+  });
+
+  it("does not ask for a recommendation when drafts were actually created", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
+    rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
+    const out = await createDraftsForOpportunity("o1");
+    expect(out.created).toBe(1);
+    expect(out.blockedBy).toBeNull();
     expect(suggestContactRole).not.toHaveBeenCalled();
   });
 

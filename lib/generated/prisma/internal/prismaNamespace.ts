@@ -4459,6 +4459,7 @@ export const TechOpportunityScalarFieldEnum = {
   fitRationale: 'fitRationale',
   businessLine: 'businessLine',
   contactSuggestion: 'contactSuggestion',
+  blockReason: 'blockReason',
   score: 'score',
   status: 'status',
   createdAt: 'createdAt'
