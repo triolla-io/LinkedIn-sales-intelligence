@@ -21,10 +21,20 @@ import {
   type RecipientCandidate,
 } from "@/lib/tech-radar/types";
 
-/** Accepts one owner or many, so the caller can cover a whole org in a single query. */
-export function buildRecipientWhere(
+export type RecipientCompany = { companyId: string | null; name: string; aliases?: string[] };
+
+/**
+ * "Contacts at this company", with NO seniority filter.
+ *
+ * Split out from buildRecipientWhere so that "at this company" has exactly one
+ * definition. The alias handling below is the load-bearing part — duplicating it
+ * for a second caller is how two employer matchers drift apart.
+ *
+ * Accepts one owner or many, so the caller can cover a whole org in a single query.
+ */
+export function companyMatchWhere(
   ownerId: string | string[],
-  company: { companyId: string | null; name: string; aliases?: string[] }
+  company: RecipientCompany
 ): Prisma.ContactWhereInput {
   const owner: Prisma.ContactWhereInput["ownerId"] = Array.isArray(ownerId) ? { in: ownerId } : ownerId;
   // Prefer the resolved company link — it is exact, so no name matching is needed.
@@ -33,7 +43,6 @@ export function buildRecipientWhere(
       ownerId: owner,
       removedAt: null,
       companyId: company.companyId,
-      ...seniorTitleWhere(),
     };
   }
 
@@ -55,10 +64,20 @@ export function buildRecipientWhere(
     ownerId: owner,
     removedAt: null,
     OR: names.map((name) => ({ currentCompany: { contains: name, mode: "insensitive" as const } })),
-    // seniorTitleWhere() also emits an OR, so it has to be nested rather than spread —
-    // two sibling ORs would overwrite each other and silently drop the seniority filter.
-    AND: [seniorTitleWhere()],
   };
+}
+
+/** Senior contacts at this company — the company match plus the seniority gate. */
+export function buildRecipientWhere(
+  ownerId: string | string[],
+  company: RecipientCompany
+): Prisma.ContactWhereInput {
+  const base = companyMatchWhere(ownerId, company);
+  // seniorTitleWhere() emits its own OR. When the base already has one (the
+  // name-matching branch), the two would be sibling ORs and the second would
+  // overwrite the first, silently dropping the seniority filter — so it has to be
+  // nested under AND there, and can be spread only when the base has no OR.
+  return base.OR ? { ...base, AND: [seniorTitleWhere()] } : { ...base, ...seniorTitleWhere() };
 }
 
 const SYSTEM = `You pick which senior people at ONE company should hear about ONE specific new technology.

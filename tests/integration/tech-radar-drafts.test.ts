@@ -91,6 +91,41 @@ describe("createDraftsForOpportunity", () => {
     expect(opportunityUpdate.mock.calls[0][0].data).toEqual({ status: "DRAFTED", blockReason: null });
   });
 
+  /**
+   * Person-first smoke test: mark the people you want and the run drafts to THEM,
+   * not to whoever the ranker considers senior at that company. The marked contact
+   * here deliberately has a non-senior title — being marked is what gets them in,
+   * exactly as judgeCohort's opt_in bypasses the cohort rule.
+   */
+  it("offers only hand-marked contacts when any exist, bypassing the seniority gate", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue([
+      { ...contact("senior", "VP Payments"), ownerId: "owner1", radarInclude: null },
+      { ...contact("marked", "Marketing Analyst"), ownerId: "owner1", radarInclude: true },
+    ]);
+    rankRecipients.mockResolvedValue([{ contactId: "marked", score: 0.9, reason: "r" }]);
+
+    const out = await createDraftsForOpportunity("o1");
+
+    expect(out.created).toBe(1);
+    const offered = (rankRecipients.mock.calls[0][1] as { contactId: string }[]).map((c) => c.contactId);
+    expect(offered).toEqual(["marked"]);
+  });
+
+  it("never drafts to an explicitly opted-out contact, even a senior one", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue([
+      { ...contact("out", "VP Payments"), ownerId: "owner1", radarInclude: false },
+    ]);
+    rankRecipients.mockResolvedValue([{ contactId: "out", score: 0.9, reason: "r" }]);
+
+    const out = await createDraftsForOpportunity("o1");
+
+    expect(out.created).toBe(0);
+    expect(out.blockedBy).toBe("no_senior_contact");
+    expect(rankRecipients).not.toHaveBeenCalled();
+  });
+
   // The cap is per (opportunity x owner) because the owner is who sends.
   it("gives each owner in the org their own recipients", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }, { id: "owner2" }]);

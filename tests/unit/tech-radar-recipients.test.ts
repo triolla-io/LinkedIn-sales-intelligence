@@ -4,7 +4,7 @@ import { MAX_RECIPIENTS_PER_OPPORTUNITY, type RecipientCandidate } from "@/lib/t
 const chat = vi.fn();
 vi.mock("@/lib/openrouter/client", () => ({ openrouterChat: (...a: unknown[]) => chat(...a) }));
 
-const { buildRecipientWhere, parseRankResponse, rankRecipients } = await import(
+const { buildRecipientWhere, companyMatchWhere, parseRankResponse, rankRecipients } = await import(
   "@/lib/tech-radar/recipients"
 );
 
@@ -81,6 +81,66 @@ describe("buildRecipientWhere", () => {
     const where = buildRecipientWhere("owner1", { companyId: "co1", name: "x" }) as { OR?: unknown[] };
     expect(Array.isArray(where.OR)).toBe(true);
     expect((where.OR ?? []).length).toBeGreaterThan(5);
+  });
+});
+
+describe("companyMatchWhere", () => {
+  /**
+   * The whole reason this is split out: create-drafts needs "everyone at this
+   * company" so a hand-marked contact who is NOT senior can still be drafted to.
+   * If a seniority clause leaks back in here, marking a non-senior person silently
+   * stops working and nothing else fails.
+   */
+  it("does NOT constrain the title, on the company-link branch", () => {
+    const where = companyMatchWhere("owner1", { companyId: "co1", name: "בנק הפועלים" });
+    expect(where.companyId).toBe("co1");
+    expect(where.OR).toBeUndefined();
+    expect(where.AND).toBeUndefined();
+    expect(where.currentTitle).toBeUndefined();
+  });
+
+  it("does NOT constrain the title, on the name-matching branch", () => {
+    const where = companyMatchWhere("owner1", { companyId: null, name: "Delek", aliases: ["Delek Group"] });
+    // The OR present here is the company-name match, not a title match.
+    expect(where.OR).toContainEqual({ currentCompany: { contains: "Delek", mode: "insensitive" } });
+    expect(where.OR).toContainEqual({ currentCompany: { contains: "Delek Group", mode: "insensitive" } });
+    expect(where.AND).toBeUndefined();
+  });
+
+  it("still scopes to the owner and excludes removed contacts", () => {
+    const where = companyMatchWhere(["o1", "o2"], { companyId: null, name: "Acme" });
+    expect(where.ownerId).toEqual({ in: ["o1", "o2"] });
+    expect(where.removedAt).toBeNull();
+  });
+});
+
+describe("buildRecipientWhere composition", () => {
+  /**
+   * seniorTitleWhere() emits its own OR. On the name-matching branch the base already
+   * has one, so the seniority clause must be nested under AND — two sibling ORs would
+   * overwrite each other and the seniority filter would vanish without any test failing.
+   * These two cases pin that the nesting differs by branch, on purpose.
+   */
+  it("nests seniority under AND when the base already has an OR", () => {
+    const where = buildRecipientWhere("owner1", { companyId: null, name: "Acme" });
+    expect(where.OR).toContainEqual({ currentCompany: { contains: "Acme", mode: "insensitive" } });
+    expect(Array.isArray(where.AND)).toBe(true);
+    expect(where.AND).toHaveLength(1);
+  });
+
+  it("spreads seniority when the base has no OR to collide with", () => {
+    const where = buildRecipientWhere("owner1", { companyId: "co1", name: "Acme" });
+    expect(where.companyId).toBe("co1");
+    expect(where.AND).toBeUndefined();
+    // The seniority clause itself is the OR on this branch.
+    expect(where.OR).toBeDefined();
+  });
+
+  it("keeps a seniority constraint on both branches", () => {
+    const linked = buildRecipientWhere("owner1", { companyId: "co1", name: "Acme" });
+    const byName = buildRecipientWhere("owner1", { companyId: null, name: "Acme" });
+    expect(JSON.stringify(linked)).toMatch(/currentTitle/);
+    expect(JSON.stringify(byName)).toMatch(/currentTitle/);
   });
 });
 

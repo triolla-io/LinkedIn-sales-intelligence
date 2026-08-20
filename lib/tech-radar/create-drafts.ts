@@ -11,7 +11,7 @@
  */
 import { prisma } from "@/lib/prisma";
 import { isSeniorTitle } from "@/lib/company-signals/clevel";
-import { buildRecipientWhere, rankRecipients } from "@/lib/tech-radar/recipients";
+import { companyMatchWhere, rankRecipients } from "@/lib/tech-radar/recipients";
 import { draftTechMessage } from "@/lib/tech-radar/draft";
 import { suggestContactRole } from "@/lib/tech-radar/suggest-contact";
 import { isUsableProfile, type RecipientCandidate, type TechRadarProfile } from "@/lib/tech-radar/types";
@@ -62,19 +62,32 @@ export async function createDraftsForOpportunity(
   // round-trip for every user in the org on every opportunity — 2,591 of them in the
   // live run — when only a handful have anyone at the company at all.
   const allContacts = await prisma.contact.findMany({
-    where: buildRecipientWhere(ownerIds, {
+    where: companyMatchWhere(ownerIds, {
       companyId: company.companyId,
       name: company.name,
       aliases: company.aliases,
     }),
     select: {
-      id: true, ownerId: true, fullName: true, hebrewFirstName: true, currentTitle: true, headline: true,
+      id: true, ownerId: true, fullName: true, hebrewFirstName: true, currentTitle: true,
+      headline: true, radarInclude: true,
     },
   });
 
-  // The SQL filter is coarse by necessity — `contains` cannot express a word boundary,
-  // so "coo" matches every "Coordinator". Decide seniority precisely here.
-  const senior = allContacts.filter((c) => isSeniorTitle(c.currentTitle));
+  // Hand-marked contacts WIN when any exist at this company, and they bypass the
+  // seniority gate. `radarInclude` is a deliberate human choice, so it overrides the
+  // automatic rule exactly the way judgeCohort's opt_in does — the whole point of
+  // marking someone is that the automatic rule would not have chosen them.
+  //
+  // This is what makes a person-first smoke test possible: mark the people you want,
+  // and the run drafts to them instead of to whoever the ranker considers senior here.
+  // An explicit opt-out is honoured before anything else. radarInclude === false means
+  // "never contact this person", and the seniority path must not smuggle them back in —
+  // judgeCohort already respects this, and the two must not disagree.
+  const eligible = allContacts.filter((c) => c.radarInclude !== false);
+  const marked = eligible.filter((c) => c.radarInclude === true);
+  // Without marks, fall back to the automatic rule. The SQL filter cannot express a
+  // word boundary — "coo" matches every "Coordinator" — so seniority is decided here.
+  const senior = marked.length > 0 ? marked : eligible.filter((c) => isSeniorTitle(c.currentTitle));
 
   /** Ask which role they are missing, and record it. Never fails the caller. */
   async function recordSuggestion(): Promise<void> {
