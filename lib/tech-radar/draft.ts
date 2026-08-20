@@ -1,18 +1,23 @@
 /**
  * Writes the outreach message for one (opportunity, contact) pair.
  *
- * ONE register for every company. The customer/prospect split was dropped by product
- * decision (2026-08-19): a single advisory phrasing covers both, and the distinction
- * itself was removed from the model.
+ * v2 register — "saw this, thought of you". The message forwards ONE item and stops:
+ * no adoption suggestion, no offer of our services, no ask of any kind. It is sent by
+ * a person the recipient knows, so anything that reads like a system that found a match
+ * defeats the whole point.
  *
- * The message has a fixed three-part shape:
- *   1. "ראיתי משהו חדש ב<תחום>" — you came across it, nothing more.
- *   2. One short clause on what it actually does.
- *   3. "אולי תוכלו לשלב את זה ב<מקום ספציפי אצלם>" — a suggestion about the
- *      technology, never an offer of our services.
+ * The shape is:
+ *   1. "היי <שם>, נתקלתי ב..." — you came across it.
+ *   2. ONE short clause: what it is, and why it made you think of THEM.
+ *   3. The link, alone, on the last line.
  *
- * Part 3 is why the prompt is built from `fitRationale` rather than the item summary:
- * the rationale is the only thing that knows WHERE in their business it would sit.
+ * What changed from v1: v1 closed with "אולי תוכלו לשלב את זה ב___ אצלכם" and forbade
+ * links. Both are gone — the suggestion made every message a soft pitch, and the link
+ * is what makes forwarding an article an actual act of forwarding an article.
+ *
+ * `fitRationale` stays in the prompt as BACKGROUND only: it is the one thing that knows
+ * why this item touches their world. It must never become a recommendation, and must
+ * never be pasted into the message.
  */
 import { openrouterChat } from "@/lib/openrouter/client";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
@@ -25,33 +30,37 @@ export type TechDraftInput = {
   companyName: string;
   technology: string;
   vendor: string | null;
-  /** The per-company rationale — the only source for where this could fit. */
+  /** The per-company rationale — background for WHY this touches them. Never quoted. */
   fitRationale: string;
+  /** The article to forward. Null when the item carries no readable source. */
+  sourceUrl: string | null;
 };
 
-export const DRAFT_SYSTEM = `You write VERY short, casual Hebrew messages that bring a senior professional a newly launched technology relevant to their company, and suggest where it might fit.
+export const DRAFT_SYSTEM = `You write VERY short, casual Hebrew messages that forward ONE interesting item to a senior professional the sender already knows — the way a friend sends a link and says "saw this, thought of you".
 
-Follow this three-part shape, in this order:
-1. You came across it. Open with "ראיתי" — e.g. "היי דנה, ראיתי את הפיצ'ר החדש של X" or "היי דנה, ראיתי משהו חדש בזיהוי הונאות".
-2. What it does — ONE short clause. Very short. Do not explain the mechanism, do not list benefits.
-3. Where it could fit, phrased as a suggestion. This sentence must use the wording "אולי תוכלו לשלב את זה ב___ אצלכם" (or "...אצלך" for one person).
-   The blank is a SHORT NOUN PHRASE of 2-6 words naming ONE specific place in THEIR business — a named product, system, business line or process. Take the NAME from the relevance note; do not copy the note itself.
-   - GOOD: "אולי תוכלו לשלב את זה בביט אצלכם" / "אולי תוכלו לשלב את זה בחיפושי הגז בים התיכון אצלכם"
-   - BAD, too vague: "בתהליכים שלכם", "במערכות שלכם"
-   - BAD, too long: naming the place AND explaining what it would achieve. Stop after the place. No "כדי ל...", no benefit clause.
+Follow this shape, in this order:
+1. Open with the person's name, then say you came across it: "היי דנה, נתקלתי ב..." or "היי דנה, ראיתי...".
+2. ONE short clause: what the item is, and why it made you think of THEM. Anchor it in their world by naming ONE concrete thing — a product, business line, market or process of theirs. A SHORT NOUN PHRASE of 2-6 words. Take the NAME from the relevance note; never the note itself.
+   - GOOD: "חשבתי עליך בגלל ביט" / "נזכרתי בחיפושי הגז שלכם"
+   - BAD, too vague: "חשבתי עליך", "זה קשור לתחום שלכם"
+   - BAD, too long: naming the thing AND explaining what it would achieve.
+3. The link, on its own line, last. Nothing after it.
 
 Register example:
-"היי דנה, ראיתי משהו חדש בזיהוי הונאות שמזהה דפוסי תקיפה חדשים לבד. אולי תוכלו לשלב את זה בביט אצלכם."
+"היי דנה, נתקלתי במשהו על זיהוי הונאות בזמן אמת — חשבתי עליך בגלל ביט.
+https://example.com/article"
 
 Rules:
-- 2-3 short sentences MAXIMUM. Shorter is always better.
+- 1-2 short sentences MAXIMUM, then the link. Shorter is always better.
+- NO ASK of any kind. No meeting, no call, no question, no "מה דעתך", no "נדבר", no "אשמח לשמוע". The message ends with the link and expects nothing back.
+- NO SUGGESTION to adopt, integrate, evaluate, examine or try the thing. You are not recommending it. Never say "אולי תוכלו לשלב", "כדאי לבדוק", "שווה להסתכל" or anything like them.
+- Never mention us, our company, our services, or anything we could do. This is not a pitch.
 - NEVER copy the relevance note into the message. It is background for you, not text to reuse — it is written for an analyst, not for the recipient.
-- Everyday spoken Hebrew, light and matter-of-fact — like a person forwarding something useful.
+- Everyday spoken Hebrew, light and matter-of-fact — like a person forwarding something they read.
 - ZERO emojis, icons, or decorative symbols.
 - Nothing formal or marketing-y: no ברצוני/אשמח לשתף, no hype words, no flattery, no filler.
 - Address the person by their Hebrew first name if provided, otherwise their first name.
-- The suggestion is about THE TECHNOLOGY only. Do NOT pitch our services, do not offer help implementing it, and do not ask for a meeting or a call.
-- Do NOT include any URL or link.
+- Reproduce the link EXACTLY as given, once, as the last line. Never invent, shorten or alter a URL. If no link is provided, end after the sentence and include no URL at all.
 
 Return strict JSON only — no prose, no markdown fences:
 {"draftMessage": string}`;
@@ -62,9 +71,12 @@ function userPrompt(i: TechDraftInput): string {
     `Recipient: ${i.contactFullName}${hebrew}`,
     `Recipient title: ${i.contactTitle ?? "unknown"}`,
     `Their company: ${i.companyName}`,
-    `New technology: ${i.technology}${i.vendor ? ` (by ${i.vendor})` : ""}`,
-    // This is where part 3's concrete place comes from.
-    `Where it could fit at THEM (use this for the closing suggestion): ${i.fitRationale}`,
+    `The item: ${i.technology}${i.vendor ? ` (by ${i.vendor})` : ""}`,
+    // Background for part 2's concrete anchor — never for quoting.
+    `Why it touches THEM (background — take only the name of the thing, never the wording): ${i.fitRationale}`,
+    i.sourceUrl
+      ? `Link (reproduce verbatim as the last line): ${i.sourceUrl}`
+      : `Link: none available — do not include any URL.`,
   ].join("\n");
 }
 

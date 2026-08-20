@@ -14,6 +14,7 @@ function input(over: Partial<Parameters<typeof draftTechMessage>[0]> = {}) {
     technology: "Fraud Shield",
     vendor: "Acme",
     fitRationale: "מתחבר לביט ולתשלומים בין-אישיים שאתם מפעילים",
+    sourceUrl: "https://example.com/a?x=1&y=2",
     ...over,
   };
 }
@@ -24,56 +25,66 @@ function ok(content: string) {
 beforeEach(() => chat.mockReset());
 
 /**
- * One phrasing for every company. The earlier customer/prospect split was dropped by
- * product decision: a single advisory register covers both, and the relationship flag
- * now only informs the human reading the draft.
+ * v2 register: forwarding an article to someone you know. v1 closed every message with
+ * "אולי תוכלו לשלב את זה ב___ אצלכם" and banned links — that made each message a soft
+ * pitch from a system, which is exactly what this feature must not sound like.
  */
 describe("DRAFT_SYSTEM", () => {
-  it("lays out the three-part shape: saw it, what it does, where it could fit", () => {
-    expect(DRAFT_SYSTEM).toMatch(/ראיתי/);
-    expect(DRAFT_SYSTEM).toMatch(/אולי תוכלו לשלב את זה/);
-  });
-
-  it("requires the closing suggestion to name a concrete place in their business", () => {
-    expect(DRAFT_SYSTEM).toMatch(/specific|concrete/i);
+  it("lays out the shape: came across it, why them, then the link", () => {
+    expect(DRAFT_SYSTEM).toMatch(/נתקלתי|ראיתי/);
+    expect(DRAFT_SYSTEM).toMatch(/thought of you/i);
+    expect(DRAFT_SYSTEM).toMatch(/last line/i);
   });
 
   /**
-   * First live run of this shape: the model pasted the whole relevance note into the
-   * blank — "...בפלטפורמת CDP המאוחדת שלכם כדי לתזמן הצעות מותאמות ב-50+ מועדוני
-   * הלויאליות של IsraCard ולהגביר חוצ-מכירות בקרטיס, אשראי וסחר" — instead of naming
-   * the place. The blank has to be a short noun phrase.
+   * The two v1 clauses that made it a pitch. Pinned by their literal Hebrew so a
+   * future prompt edit cannot quietly reintroduce either one.
    */
-  it("caps the closing blank to a short noun phrase", () => {
+  it("bans the v1 adoption suggestion outright", () => {
+    expect(DRAFT_SYSTEM).not.toMatch(/אולי תוכלו לשלב את זה ב___/);
+    expect(DRAFT_SYSTEM).toMatch(/NO SUGGESTION/);
+    expect(DRAFT_SYSTEM).toMatch(/אולי תוכלו לשלב/);   // named, as forbidden wording
+    expect(DRAFT_SYSTEM).toMatch(/כדאי לבדוק/);
+  });
+
+  it("bans every kind of ask", () => {
+    expect(DRAFT_SYSTEM).toMatch(/NO ASK/);
+    expect(DRAFT_SYSTEM).toMatch(/מה דעתך/);
+    expect(DRAFT_SYSTEM).toMatch(/no meeting, no call/i);
+  });
+
+  it("requires the link, verbatim, and forbids inventing one", () => {
+    expect(DRAFT_SYSTEM).toMatch(/EXACTLY as given/);
+    expect(DRAFT_SYSTEM).toMatch(/Never invent/i);
+    expect(DRAFT_SYSTEM).not.toMatch(/Do NOT include any URL$/m);
+  });
+
+  /**
+   * First live run of the v1 shape: the model pasted the whole relevance note in place
+   * of naming the place. The anchor has to stay a short noun phrase in v2 too.
+   */
+  it("caps the why-them anchor to a short noun phrase", () => {
     expect(DRAFT_SYSTEM).toMatch(/noun phrase/i);
-    expect(DRAFT_SYSTEM).toMatch(/2-6 words|two to six words/i);
+    expect(DRAFT_SYSTEM).toMatch(/2-6 words/);
   });
 
   it("forbids copying the relevance note into the message", () => {
-    expect(DRAFT_SYSTEM).toMatch(/do not copy|never copy/i);
+    expect(DRAFT_SYSTEM).toMatch(/NEVER copy/);
   });
 
-  it("requires the closing to keep its suggestion wording", () => {
-    expect(DRAFT_SYSTEM).toMatch(/must .*אולי תוכלו לשלב|אולי תוכלו לשלב.*required/i);
+  it("keeps it to one or two sentences", () => {
+    expect(DRAFT_SYSTEM).toMatch(/1-2 short sentences MAXIMUM/);
   });
 
-  it("keeps the explanation very short", () => {
-    expect(DRAFT_SYSTEM).toMatch(/one short clause|very short/i);
-  });
-
-  it("still forbids emojis and links", () => {
+  it("still forbids emojis, marketing register and flattery", () => {
     expect(DRAFT_SYSTEM).toContain("ZERO emojis");
-    expect(DRAFT_SYSTEM).toMatch(/Do NOT include any URL/);
-  });
-
-  it("still bans marketing register and flattery", () => {
     expect(DRAFT_SYSTEM).toMatch(/marketing/i);
     expect(DRAFT_SYSTEM).toMatch(/flattery/i);
   });
 
-  it("does not sell anything on our behalf", () => {
-    // The suggestion is about the technology, never about hiring us.
-    expect(DRAFT_SYSTEM).toMatch(/do not offer|not a pitch|do NOT pitch/i);
+  it("never sells anything on our behalf", () => {
+    expect(DRAFT_SYSTEM).toMatch(/not a pitch/i);
+    expect(DRAFT_SYSTEM).toMatch(/our services/);
   });
 });
 
@@ -102,13 +113,31 @@ describe("draftTechMessage", () => {
     expect(body.messages[0].content).toBe(DRAFT_SYSTEM);
   });
 
-  // The rationale is what tells the model WHERE the technology could fit.
+  // The rationale is background for the "why them" anchor.
   it("feeds the fitRationale into the prompt", async () => {
     chat.mockResolvedValue(ok('{"draftMessage":"x"}'));
     await draftTechMessage(input());
     const body = chat.mock.calls[0][1] as { messages: { content: string }[] };
     expect(body.messages[1].content).toContain("מתחבר לביט ולתשלומים בין-אישיים שאתם מפעילים");
     expect(body.messages[1].content).toContain("דנה");
+  });
+
+  it("passes the link through for verbatim reproduction", async () => {
+    chat.mockResolvedValue(ok('{"draftMessage":"x"}'));
+    await draftTechMessage(input());
+    const body = chat.mock.calls[0][1] as { messages: { content: string }[] };
+    expect(body.messages[1].content).toContain("https://example.com/a?x=1&y=2");
+    expect(body.messages[1].content).toMatch(/verbatim/i);
+  });
+
+  // A snippet-only item has no readable source. Saying nothing about the link invites
+  // the model to invent one, so the absence is stated explicitly.
+  it("tells the model there is no link when the item has none", async () => {
+    chat.mockResolvedValue(ok('{"draftMessage":"x"}'));
+    await draftTechMessage(input({ sourceUrl: null }));
+    const body = chat.mock.calls[0][1] as { messages: { content: string }[] };
+    expect(body.messages[1].content).toMatch(/none available/);
+    expect(body.messages[1].content).not.toContain("https://");
   });
 
   it("is tagged for cost attribution", async () => {
@@ -122,5 +151,30 @@ describe("draftTechMessage", () => {
     await expect(draftTechMessage(input())).rejects.toThrow(/HTTP 500/);
     chat.mockResolvedValue(ok("nope"));
     await expect(draftTechMessage(input())).rejects.toThrow(/unparseable/);
+  });
+});
+
+const { firstSourceUrl } = await import("@/lib/tech-radar/create-drafts");
+
+/**
+ * `TechItem.sources` is untyped JSON written by an LLM-fed pipeline, so every branch
+ * here has actually occurred: no sources at all, a thin item, a relative path.
+ */
+describe("firstSourceUrl", () => {
+  it("takes the first http(s) url", () => {
+    expect(firstSourceUrl([{ url: "https://a.com/1" }, { url: "https://b.com/2" }])).toBe("https://a.com/1");
+    expect(firstSourceUrl([{ url: "  http://a.com/1  " }])).toBe("http://a.com/1");
+  });
+
+  it("skips entries that are not usable links rather than returning them", () => {
+    expect(firstSourceUrl([{ url: "/relative/path" }, { url: "https://b.com/2" }])).toBe("https://b.com/2");
+    expect(firstSourceUrl([{ title: "no url" }, { url: 42 }, { url: "https://c.com" }])).toBe("https://c.com");
+  });
+
+  it("returns null when there is nothing to forward", () => {
+    expect(firstSourceUrl([])).toBeNull();
+    expect(firstSourceUrl(null)).toBeNull();
+    expect(firstSourceUrl("https://not-an-array.com")).toBeNull();
+    expect(firstSourceUrl([{ url: "javascript:alert(1)" }])).toBeNull();
   });
 });

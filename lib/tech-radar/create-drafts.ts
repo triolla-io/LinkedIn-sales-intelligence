@@ -39,6 +39,20 @@ export type DraftBlockReason =
   | "no_role_match"          // contacts exist, none owns this kind of decision
   | "contacts_at_capacity";  // right people, already holding enough open drafts
 
+/**
+ * The article to forward. `TechItem.sources` is JSON (`[{url,title,publishedAt}]`), not a
+ * column, and an item synthesized from a snippet can arrive with none — the v2 message
+ * carries a link, so this is the one place that decides which one.
+ */
+export function firstSourceUrl(sources: unknown): string | null {
+  if (!Array.isArray(sources)) return null;
+  for (const s of sources) {
+    const url = (s as { url?: unknown })?.url;
+    if (typeof url === "string" && /^https?:\/\//i.test(url.trim())) return url.trim();
+  }
+  return null;
+}
+
 export async function createDraftsForOpportunity(
   opportunityId: string
 ): Promise<{ created: number; owners: number; blockedBy: DraftBlockReason | null }> {
@@ -47,7 +61,7 @@ export async function createDraftsForOpportunity(
     select: {
       id: true,
       fitRationale: true,
-      item: { select: { technology: true, title: true, summary: true, vendor: true } },
+      item: { select: { technology: true, title: true, summary: true, vendor: true, sources: true } },
       trackedCompany: {
         select: { id: true, orgId: true, name: true, aliases: true, companyId: true, profile: true },
       },
@@ -184,6 +198,7 @@ export async function createDraftsForOpportunity(
         vendor: opportunity.item.vendor,
         // The rationale, not the item summary — this is what makes it specific.
         fitRationale: opportunity.fitRationale,
+        sourceUrl: firstSourceUrl(opportunity.item.sources),
       });
 
       await prisma.techOpportunityDraft.create({
