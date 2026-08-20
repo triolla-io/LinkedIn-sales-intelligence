@@ -4,7 +4,7 @@ export interface ContactForDisplay {
   enrichedAt?: string | null;
   /** ISO string — when LinkedIn last synced this contact */
   lastSyncedAt: string;
-  company?: { staffCount: number | null; industry: string | null } | null;
+  company?: { staffCount: number | null; industry?: string | null; website?: string | null } | null;
   industry?: string | null;
   currentCompany?: string | null;
 }

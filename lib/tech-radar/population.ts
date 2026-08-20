@@ -25,7 +25,7 @@ export const COHORT_SELECT = {
   companySize: true,
   enrichedAt: true,
   lastSyncedAt: true,
-  company: { select: { staffCount: true, industry: true } },
+  company: { select: { staffCount: true, website: true } },
 } as const;
 
 export type CohortRow = CohortContact & {
@@ -43,6 +43,12 @@ export type EmployerRef = {
    * why this company was ever in range.
    */
   staffCount: number | null;
+  /**
+   * Carried through so research has a page to read. Without it, research falls
+   * back to news-only (or throws "no sources" after paying for the search) —
+   * same first-wins / upgrade-if-null rule as companyId and staffCount.
+   */
+  website: string | null;
 };
 
 /** Grouping key only — never the string we store. */
@@ -67,16 +73,19 @@ export function employersOf(rows: CohortRow[]): EmployerRef[] {
     const key = normalizeEmployer(raw);
     if (!key) continue;
 
+    const rowWebsite = row.company?.website ?? null;
     const existing = byKey.get(key);
     if (existing) {
       // Keep the first spelling, but upgrade to a resolved id if one shows up.
       if (!existing.companyId && row.companyId) existing.companyId = row.companyId;
       if (existing.staffCount === null) existing.staffCount = displayCompanySize(row).value;
+      if (!existing.website && rowWebsite) existing.website = rowWebsite;
     } else {
       byKey.set(key, {
         companyId: row.companyId ?? null,
         name: raw,
         staffCount: displayCompanySize(row).value,
+        website: rowWebsite,
       });
     }
   }
@@ -84,6 +93,23 @@ export function employersOf(rows: CohortRow[]): EmployerRef[] {
   return [...byKey.entries()]
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     .map(([, v]) => v);
+}
+
+/**
+ * Cohort-included contacts whose employer name is missing or blank. `employersOf`
+ * silently drops these rows because there is nothing to key them by — but they
+ * are still counted as "in cohort" by `tallyCohort`, so without this they vanish
+ * from the screen a second time with no trace. Matters more for the plan that
+ * makes an employer mandatory: these people would disappear again, at a stage
+ * that costs money.
+ */
+export function countNoEmployer(rows: CohortRow[]): number {
+  let n = 0;
+  for (const row of rows) {
+    if (!judgeCohort(row).included) continue;
+    if (!(row.currentCompany ?? "").trim()) n += 1;
+  }
+  return n;
 }
 
 export async function loadCohortRows(ownerId: string): Promise<CohortRow[]> {
@@ -102,9 +128,9 @@ export async function loadCohortRows(ownerId: string): Promise<CohortRow[]> {
 
 export async function summarizeCohort(
   ownerId: string
-): Promise<{ counts: CohortCounts; employers: EmployerRef[] }> {
+): Promise<{ counts: CohortCounts; employers: EmployerRef[]; noEmployer: number }> {
   const rows = await loadCohortRows(ownerId);
-  return { counts: tallyCohort(rows), employers: employersOf(rows) };
+  return { counts: tallyCohort(rows), employers: employersOf(rows), noEmployer: countNoEmployer(rows) };
 }
 
 /**
@@ -144,7 +170,10 @@ export async function upsertEmployers(
 ): Promise<{ created: number; matched: number; pendingResearch: string[]; alreadyPending: string[] }> {
   const existing = await prisma.trackedCompany.findMany({
     where: { orgId },
-    select: { id: true, name: true, aliases: true, status: true },
+    select: {
+      id: true, name: true, aliases: true, status: true,
+      staffCount: true, companyId: true, website: true,
+    },
   });
 
   let created = 0;
@@ -163,6 +192,21 @@ export async function upsertEmployers(
       // turns into duplicate research spend.
       if (row && row.status === "RESEARCH_FAILED") pendingResearch.push(hit);
       else if (row && row.status === "PENDING_RESEARCH") alreadyPending.push(hit);
+
+      // Backfill only what is missing. The column is the snapshot behind the
+      // size gate and the page research reads — a pre-existing row must not
+      // keep a null forever just because it matched by name instead of being
+      // created fresh, but a value we already trust is never overwritten.
+      if (row) {
+        const patch: { staffCount?: number; companyId?: string; website?: string } = {};
+        if (row.staffCount === null && employer.staffCount !== null) patch.staffCount = employer.staffCount;
+        if (row.companyId === null && employer.companyId !== null) patch.companyId = employer.companyId;
+        if (row.website === null && employer.website !== null) patch.website = employer.website;
+        if (Object.keys(patch).length > 0) {
+          await prisma.trackedCompany.update({ where: { id: row.id }, data: patch });
+          Object.assign(row, patch);
+        }
+      }
       continue;
     }
 
@@ -172,10 +216,14 @@ export async function upsertEmployers(
         name: employer.name,
         companyId: employer.companyId,
         staffCount: employer.staffCount,
+        website: employer.website,
         autoAdded: true,
         status: "PENDING_RESEARCH",
       },
-      select: { id: true, name: true, aliases: true, status: true },
+      select: {
+        id: true, name: true, aliases: true, status: true,
+        staffCount: true, companyId: true, website: true,
+      },
     });
     existing.push(row);
     created += 1;

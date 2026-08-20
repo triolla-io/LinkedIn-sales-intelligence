@@ -1,10 +1,10 @@
 "use client";
 
-import type { CohortCounts } from "@/lib/tech-radar/cohort";
+import { MIN_STAFF, MAX_STAFF, type CohortCounts } from "@/lib/tech-radar/cohort";
 import { ui } from "@/lib/ui";
 import { cn } from "@/lib/cn";
 
-export type CohortStripCounts = CohortCounts & { employers: number };
+export type CohortStripCounts = CohortCounts & { employers: number; noEmployer: number };
 
 /**
  * Gate 3 of the staged ascent, made visible.
@@ -38,9 +38,10 @@ export function CohortStrip({ counts }: { counts: CohortStripCounts }) {
 
       {included === 0 && (
         <p className="text-xs text-[#9b9895] mt-2">
-          אין אף איש קשר בקוהורטה. מתוך {counts.total} אנשי קשר: {counts.not_clevel} אינם
-          C-level, {counts.size_out_of_range} בחברות מחוץ לטווח 50–200, ו-{counts.size_unknown}
-          חסרי נתון גודל.
+          אין אף איש קשר בקוהורטה. מתוך {counts.total} אנשי קשר: {counts.opt_out} הוחרגו ידנית,{" "}
+          {counts.not_clevel} אינם C-level, {counts.size_out_of_range} בחברות מחוץ לטווח{" "}
+          {MIN_STAFF}–{MAX_STAFF}, {counts.size_unknown} חסרי נתון גודל, ו-{counts.noEmployer}{" "}
+          בלי שם מעסיק תקין.
         </p>
       )}
 
@@ -48,6 +49,13 @@ export function CohortStrip({ counts }: { counts: CohortStripCounts }) {
         <p className="text-xs text-[#9b9895] mt-2">
           {counts.size_unknown} אנשי קשר C-level ממתינים לנתון גודל חברה — הם לא נפסלו.
           העשרת החברות שלהם תגדיל את הקוהורטה.
+        </p>
+      )}
+
+      {counts.noEmployer > 0 && (
+        <p className="text-xs text-[#9b9895] mt-2">
+          {counts.noEmployer} אנשי קשר בקוהורטה בלי שם מעסיק תקין — אי אפשר לשייך אותם לחברה, ולכן
+          הם לא ייחקרו.
         </p>
       )}
     </section>
