@@ -18,6 +18,7 @@ const SELECT = {
   fullName: true,
   currentTitle: true,
   currentCompany: true,
+  linkedinUrl: true,
   radarInclude: true,
 } as const;
 

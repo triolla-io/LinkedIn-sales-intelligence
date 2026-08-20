@@ -3,7 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { Button } from "@heroui/react";
-import { Loader2, Plus, X, Search } from "lucide-react";
+import { Loader2, Plus, X, Search, ExternalLink } from "lucide-react";
 import { ui } from "@/lib/ui";
 import { cn } from "@/lib/cn";
 
@@ -23,6 +23,7 @@ type Person = {
   fullName: string;
   currentTitle: string | null;
   currentCompany: string | null;
+  linkedinUrl: string | null;
   radarInclude: boolean | null;
 };
 
@@ -35,6 +36,19 @@ function Row({ p, right }: { p: Person; right: React.ReactNode }) {
     <li className="flex items-center justify-between gap-3 py-1.5">
       <span className="min-w-0">
         <span className="text-sm text-[#1a1917]">{p.fullName}</span>
+        {/* The profile link is the only unambiguous identifier — two people share a
+            name far more often than they share a LinkedIn URL. */}
+        {p.linkedinUrl && (
+          <a
+            href={p.linkedinUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex align-middle mx-1 text-[#1585ff] hover:text-[#0a70e0]"
+            aria-label={`פרופיל לינקדאין של ${p.fullName}`}
+          >
+            <ExternalLink className="size-3.5" />
+          </a>
+        )}
         <span className={cn("text-xs", FAINT)}>
           {" — "}
           {p.currentTitle ?? "?"}
@@ -86,8 +100,8 @@ export function MarkPeople() {
     <div className={cn(ui.card, "p-4")} dir="rtl">
       <h2 className={cn(ui.sectionTitle, "mb-1")}>אנשים לבדיקה</h2>
       <p className={cn("text-xs mb-3", MUTED)}>
-        מי שמסומן כאן מקבל את הטיוטות במקום מי שהמערכת הייתה בוחרת לבד — גם אם התפקיד שלו
-        לא בכיר. בלי אף סימון, הכלל האוטומטי חוזר לפעול.
+        הריצה תשלח למי שסימנת כאן — גם אם התפקיד שלו לא בכיר — במקום למי שהמערכת הייתה
+        בוחרת לבד.
       </p>
 
       <label className={ui.label} htmlFor="tr-mark-q">חיפוש לפי שם או חברה</label>
@@ -146,7 +160,7 @@ export function MarkPeople() {
         <p className={cn("text-xs mb-1", MUTED)}>
           {included.length > 0
             ? `${included.length} אנשים לבדיקה`
-            : "אין אף אדם מסומן — הריצה תשתמש בכלל האוטומטי."}
+            : "עוד לא סימנת אף אחד. חפשי שם או חברה למעלה ולחצי «סמן». בלי סימונים, הריצה תיפול חזרה לכלל האוטומטי."}
         </p>
         {included.length > 0 && (
           <ul className="divide-y divide-[#f0eee9]">

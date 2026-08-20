@@ -30,6 +30,7 @@ function person(id: string, radarInclude: boolean | null = null) {
     fullName: `Person ${id}`,
     currentTitle: "Marketing Analyst",
     currentCompany: "Personetics",
+    linkedinUrl: `https://linkedin.com/in/${id}`,
     radarInclude,
   };
 }
@@ -44,10 +45,15 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 describe("MarkPeople", () => {
-  it("says the automatic rule applies when nobody is marked", () => {
+  /**
+   * The empty state has to name the ACTION, not just report a state: the first version
+   * said "nobody is marked" and the reader's question was "marked from where?".
+   */
+  it("tells you how to mark someone when nobody is marked yet", () => {
     data[MARKS] = { marked: [] };
     render(<MarkPeople />);
-    expect(screen.getByText(/אין אף אדם מסומן/)).toBeInTheDocument();
+    expect(screen.getByText(/עוד לא סימנת אף אחד/)).toBeInTheDocument();
+    expect(screen.getByText(/ולחצי «סמן»/)).toBeInTheDocument();
   });
 
   it("counts the marked people", () => {
@@ -96,6 +102,14 @@ describe("MarkPeople", () => {
     data[MARKS] = { marked: [person("a", false)] };
     render(<MarkPeople />);
     expect(screen.getByText(/1 אנשי קשר מוחרגים/)).toBeInTheDocument();
+  });
+
+  it("links each person's LinkedIn profile, the only unambiguous identifier", () => {
+    data[MARKS] = { marked: [person("a", true)] };
+    render(<MarkPeople />);
+    const link = screen.getByLabelText(/פרופיל לינקדאין של Person a/);
+    expect(link).toHaveAttribute("href", "https://linkedin.com/in/a");
+    expect(link).toHaveAttribute("target", "_blank");
   });
 
   it("does not search on an empty box", () => {
