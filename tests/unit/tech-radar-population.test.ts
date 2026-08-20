@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { employersOf, type CohortRow } from "@/lib/tech-radar/population";
+import { employersOf, matchExistingCompany, type CohortRow } from "@/lib/tech-radar/population";
 
 function row(over: Partial<CohortRow> = {}): CohortRow {
   return {
@@ -79,5 +79,29 @@ describe("employersOf", () => {
       row({ id: "b", currentCompany: "Alpha" }),
     ]);
     expect(out.map((e) => e.name)).toEqual(["Alpha", "Zeta"]);
+  });
+});
+
+describe("matchExistingCompany", () => {
+  const existing = [
+    { id: "t1", name: "Shlomo Insurance", aliases: ["SHLOMO GROUP", "Shlomo Sixt"] },
+    { id: "t2", name: "Delek Group", aliases: [] },
+  ];
+  const ref = (name: string) => ({ companyId: null, name, staffCount: 100 });
+
+  it("matches on the canonical name, case-insensitively", () => {
+    expect(matchExistingCompany(ref("shlomo insurance"), existing)).toBe("t1");
+  });
+
+  it("matches on an alias — the case v1 got wrong", () => {
+    expect(matchExistingCompany(ref("SHLOMO GROUP"), existing)).toBe("t1");
+  });
+
+  it("does not match a different company that merely shares a word", () => {
+    expect(matchExistingCompany(ref("Delek US Holdings"), existing)).toBeNull();
+  });
+
+  it("returns null when nothing matches", () => {
+    expect(matchExistingCompany(ref("Brand New Co"), existing)).toBeNull();
   });
 });

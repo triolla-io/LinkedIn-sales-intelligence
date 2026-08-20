@@ -106,3 +106,72 @@ export async function summarizeCohort(
   const rows = await loadCohortRows(ownerId);
   return { counts: tallyCohort(rows), employers: employersOf(rows) };
 }
+
+/**
+ * Exact-name-or-alias match against companies already tracked. Deliberately
+ * EXACT after normalization, not `contains`: v1 used `contains` and matched
+ * "Delek Group" against "Delek US Holdings", which are different companies.
+ * A missed match creates a duplicate row — annoying, and fixable by adding an
+ * alias. A wrong match attributes one company's news to another.
+ */
+export function matchExistingCompany(
+  employer: EmployerRef,
+  existing: { id: string; name: string; aliases: string[] }[]
+): string | null {
+  const key = normalizeEmployer(employer.name);
+  if (!key) return null;
+  for (const row of existing) {
+    for (const candidate of [row.name, ...row.aliases]) {
+      if (normalizeEmployer(candidate ?? "") === key) return row.id;
+    }
+  }
+  return null;
+}
+
+/**
+ * Bring the employer list into TrackedCompany. Idempotent: running the
+ * bootstrap twice must not duplicate rows or re-dispatch research.
+ *
+ * Returns the ids that still need research so the caller — not this module —
+ * decides whether to dispatch. Population and spend stay separable.
+ */
+export async function upsertEmployers(
+  orgId: string,
+  employers: EmployerRef[]
+): Promise<{ created: number; matched: number; pendingResearch: string[] }> {
+  const existing = await prisma.trackedCompany.findMany({
+    where: { orgId },
+    select: { id: true, name: true, aliases: true, status: true },
+  });
+
+  let created = 0;
+  let matched = 0;
+  const pendingResearch: string[] = [];
+
+  for (const employer of employers) {
+    const hit = matchExistingCompany(employer, existing);
+    if (hit) {
+      matched += 1;
+      const row = existing.find((e) => e.id === hit);
+      if (row && row.status !== "ACTIVE") pendingResearch.push(hit);
+      continue;
+    }
+
+    const row = await prisma.trackedCompany.create({
+      data: {
+        orgId,
+        name: employer.name,
+        companyId: employer.companyId,
+        staffCount: employer.staffCount,
+        autoAdded: true,
+        status: "PENDING_RESEARCH",
+      },
+      select: { id: true, name: true, aliases: true, status: true },
+    });
+    existing.push(row);
+    created += 1;
+    pendingResearch.push(row.id);
+  }
+
+  return { created, matched, pendingResearch };
+}
