@@ -75,9 +75,17 @@ export function clickModalClose(): boolean {
   return true;
 }
 
-function collectButtons(): Array<{ el: HTMLElement; meta: ScannedButton }> {
+function collectButtons(root: ParentNode = document): Array<{ el: HTMLElement; meta: ScannedButton }> {
   const out: Array<{ el: HTMLElement; meta: ScannedButton }> = [];
-  for (const node of Array.from(document.querySelectorAll('button,[role="button"]'))) {
+  // Pierce open shadow roots. LinkedIn renders the whole profile app inside the
+  // "interop-outlet" shadow root, so a top-document-only scan saw nothing but the outer
+  // shell: 21 CONNECT failures reported "no modal, no Send button" while the screenshot
+  // showed the invite dialog open, which is what made the real defect invisible.
+  for (const node of Array.from(root.querySelectorAll("*"))) {
+    const shadow = (node as HTMLElement).shadowRoot;
+    if (shadow) out.push(...collectButtons(shadow));
+  }
+  for (const node of Array.from(root.querySelectorAll('button,[role="button"]'))) {
     const el = node as HTMLElement;
     const r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0 || r.top >= 800) continue;

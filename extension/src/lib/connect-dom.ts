@@ -74,50 +74,71 @@ export function clickMore(): boolean {
 
 const SEND_PATTERNS = [/^send\b/i, /send without/i, /^שלח/, /שלח ללא/];
 const SKIP_PATTERN = /cancel|בטל|add a note|הוסף הערה|dismiss|got it|close|סגור/i;
+/** Copy that marks a dialog as the invite modal ("Personalize your invitation to …"). */
+const INVITE_COPY = /invitation|invite|הזמנה/i;
 
 /**
  * Click Send in the invite dialog ("Add a note to your invitation?").
  *
  * Matches Send / Send invitation / Send now / Send without a note (+ Hebrew), and falls
- * back to the dialog's primary action button — but only when a dialog was actually found,
- * so we never click a stray primary button elsewhere on the page.
+ * back to a dialog's primary action button — but only inside a dialog, so we never click a
+ * stray primary button elsewhere on the page.
+ *
+ * EVERY dialog is searched, not just the first one found. LinkedIn renders the profile app
+ * (and its invite modal) inside the "interop-outlet" open shadow root while the outer shell
+ * keeps dialog containers of its own — five of them on a live profile. Scoping the search to
+ * the first match therefore locked onto an empty shell decoy and never looked a shadow root
+ * deeper, which is the send_dialog_not_found failure: three CONNECT tasks on 19.8.26 gave up
+ * with "Send without a note" visible on screen, and the lead was burned for nothing.
  */
 export function clickInviteSend(): boolean {
-  const dialog = findDialog();
-  const scope = dialog ?? document;
-  let found: HTMLElement | null = null;
-  let primary: HTMLElement | null = null;
+  const dialogs = allDialogs();
 
-  for (const el of allActionables(scope)) {
+  const isSend = (el: HTMLElement): boolean => {
     const t = (el.textContent ?? "").trim();
     const a = el.getAttribute("aria-label") ?? "";
-    if (SEND_PATTERNS.some((p) => p.test(t) || p.test(a))) {
-      found = el;
-      break;
-    }
+    return SEND_PATTERNS.some((p) => p.test(t) || p.test(a));
+  };
+  const isUnskippedPrimary = (el: HTMLElement): boolean => {
     const cls = typeof el.className === "string" ? el.className : "";
-    if (!primary && /artdeco-button--primary/.test(cls) && !SKIP_PATTERN.test(`${t} ${a}`)) {
-      primary = el;
+    const label = `${(el.textContent ?? "").trim()} ${el.getAttribute("aria-label") ?? ""}`;
+    return /artdeco-button--primary/.test(cls) && !SKIP_PATTERN.test(label);
+  };
+
+  // An explicit Send label in ANY dialog beats a primary-button guess in ALL of them.
+  for (const dialog of dialogs) {
+    const send = allActionables(dialog).find(isSend);
+    if (send) {
+      send.click();
+      return true;
     }
   }
 
-  const target = found ?? (dialog ? primary : null);
-  if (!target) return false;
-  target.click();
-  return true;
+  // Primary-button fallback, for a Send label we do not match (another UI language). Now
+  // that several dialogs are in play it only fires inside one whose copy actually reads
+  // like the invite modal — otherwise the shell's own dialog could hand us its "Follow"
+  // button and we would report a send that never happened.
+  for (const dialog of dialogs) {
+    if (!INVITE_COPY.test(dialog.textContent ?? "")) continue;
+    const primary = allActionables(dialog).find(isUnskippedPrimary);
+    if (primary) {
+      primary.click();
+      return true;
+    }
+  }
+  return false;
 }
 
-function findDialog(root: ParentNode = document): HTMLElement | null {
-  const direct = root.querySelector<HTMLElement>('[role="dialog"], .artdeco-modal');
-  if (direct) return direct;
+/** Every dialog container — top document AND open shadow roots. */
+function allDialogs(root: ParentNode = document): HTMLElement[] {
+  const out: HTMLElement[] = Array.from(
+    root.querySelectorAll<HTMLElement>('[role="dialog"], .artdeco-modal'),
+  );
   for (const el of Array.from(root.querySelectorAll("*"))) {
     const shadow = (el as HTMLElement).shadowRoot;
-    if (shadow) {
-      const nested = findDialog(shadow);
-      if (nested) return nested;
-    }
+    if (shadow) out.push(...allDialogs(shadow));
   }
-  return null;
+  return out;
 }
 
 /**

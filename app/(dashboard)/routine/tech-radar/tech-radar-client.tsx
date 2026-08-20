@@ -12,7 +12,6 @@ import { toast } from "@/lib/toast";
 import { ui } from "@/lib/ui";
 import { cn } from "@/lib/cn";
 import { availableChannels, channelHref, type Channel, type ContactChannels } from "@/lib/tech-radar/channels";
-import { CohortStrip, type CohortStripCounts } from "./cohort-strip";
 import { MarkPeople } from "./mark-people";
 
 type CompanyStatus = "PENDING_RESEARCH" | "ACTIVE" | "RESEARCH_FAILED";
@@ -150,15 +149,6 @@ export function TechRadarClient() {
     fetcher,
     { refreshInterval: 30_000 }
   );
-  // Separate key, no polling: the cohort summary scans the owner's whole contact
-  // list, which is cheap once but not something to pay for twice a minute per
-  // open tab. It fetches on mount and revalidates on focus (SWR's default),
-  // which is plenty for a number that only moves when contacts are enriched.
-  const { data: cohortData } = useSWR<{ cohort: CohortStripCounts }>(
-    "/api/tech-radar/cohort",
-    fetcher,
-    { refreshInterval: 0 }
-  );
   const { modules } = useRoutineModules();
   const radarOn = modules?.techRadarEnabled ?? false;
 
@@ -172,8 +162,6 @@ export function TechRadarClient() {
           הסריקה השבועית מושבתת. אפשר להוסיף חברות ולערוך את הרשימה — הן ייסרקו כשהמודול יופעל.
         </div>
       )}
-
-      {cohortData?.cohort && <CohortStrip counts={cohortData.cohort} />}
 
       {/* Picking the people comes before adding their companies: the run drafts to
           whoever is marked here, and the company list only decides what is scanned. */}

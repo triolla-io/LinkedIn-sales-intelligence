@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { pickCloseButton, type ScannedButton } from "../src/lib/buttons";
+// @vitest-environment jsdom
+import { describe, it, expect, beforeEach } from "vitest";
+import { pickCloseButton, scanButtons, type ScannedButton } from "../src/lib/buttons";
 
 // A small icon button in the top-right of the screen that is NOT inside any modal —
 // e.g. a LinkedIn global-nav item like "Learning" / "For Business". The old geometric
@@ -76,5 +77,28 @@ describe("pickCloseButton", () => {
       inModal: true,
     };
     expect(pickCloseButton([navIcon(), modalX])).toBe(modalX);
+  });
+});
+
+
+describe("scanButtons", () => {
+  beforeEach(() => {
+    // jsdom has no layout, and collectButtons drops zero-sized buttons.
+    Element.prototype.getBoundingClientRect = () =>
+      ({ x: 10, y: 20, width: 120, height: 32, top: 20, left: 10, right: 130, bottom: 52, toJSON: () => ({}) }) as DOMRect;
+  });
+
+  it("sees buttons inside the shadow-root profile app, not just the outer shell", () => {
+    document.body.innerHTML = `<button>Shell button</button><div id="interop-outlet"></div>`;
+    const shadow = (document.getElementById("interop-outlet") as HTMLElement).attachShadow({ mode: "open" });
+    shadow.innerHTML = `
+      <div role="dialog" class="artdeco-modal">
+        <button>Send without a note</button>
+      </div>`;
+
+    const labels = scanButtons().map((b) => b.text);
+    expect(labels).toContain("Send without a note");
+    expect(labels).toContain("Shell button");
+    expect(scanButtons().find((b) => b.text === "Send without a note")?.inModal).toBe(true);
   });
 });

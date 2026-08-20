@@ -22,10 +22,14 @@
     hit.el.click();
     return true;
   }
-  function collectButtons() {
+  function collectButtons(root = document) {
     var _a;
     const out = [];
-    for (const node of Array.from(document.querySelectorAll('button,[role="button"]'))) {
+    for (const node of Array.from(root.querySelectorAll("*"))) {
+      const shadow = node.shadowRoot;
+      if (shadow) out.push(...collectButtons(shadow));
+    }
+    for (const node of Array.from(root.querySelectorAll('button,[role="button"]'))) {
       const el = node;
       const r = el.getBoundingClientRect();
       if (r.width <= 0 || r.height <= 0 || r.top >= 800) continue;
@@ -236,39 +240,45 @@
   }
   const SEND_PATTERNS = [/^send\b/i, /send without/i, /^שלח/, /שלח ללא/];
   const SKIP_PATTERN = /cancel|בטל|add a note|הוסף הערה|dismiss|got it|close|סגור/i;
+  const INVITE_COPY = /invitation|invite|הזמנה/i;
   function clickInviteSend() {
-    const dialog = findDialog();
-    const scope2 = dialog ?? document;
-    let found = null;
-    let primary = null;
-    for (const el of allActionables(scope2)) {
+    const dialogs = allDialogs();
+    const isSend = (el) => {
       const t = (el.textContent ?? "").trim();
       const a = el.getAttribute("aria-label") ?? "";
-      if (SEND_PATTERNS.some((p) => p.test(t) || p.test(a))) {
-        found = el;
-        break;
-      }
+      return SEND_PATTERNS.some((p) => p.test(t) || p.test(a));
+    };
+    const isUnskippedPrimary = (el) => {
       const cls = typeof el.className === "string" ? el.className : "";
-      if (!primary && /artdeco-button--primary/.test(cls) && !SKIP_PATTERN.test(`${t} ${a}`)) {
-        primary = el;
+      const label = `${(el.textContent ?? "").trim()} ${el.getAttribute("aria-label") ?? ""}`;
+      return /artdeco-button--primary/.test(cls) && !SKIP_PATTERN.test(label);
+    };
+    for (const dialog of dialogs) {
+      const send = allActionables(dialog).find(isSend);
+      if (send) {
+        send.click();
+        return true;
       }
     }
-    const target = found ?? (dialog ? primary : null);
-    if (!target) return false;
-    target.click();
-    return true;
+    for (const dialog of dialogs) {
+      if (!INVITE_COPY.test(dialog.textContent ?? "")) continue;
+      const primary = allActionables(dialog).find(isUnskippedPrimary);
+      if (primary) {
+        primary.click();
+        return true;
+      }
+    }
+    return false;
   }
-  function findDialog(root = document) {
-    const direct = root.querySelector('[role="dialog"], .artdeco-modal');
-    if (direct) return direct;
+  function allDialogs(root = document) {
+    const out = Array.from(
+      root.querySelectorAll('[role="dialog"], .artdeco-modal')
+    );
     for (const el of Array.from(root.querySelectorAll("*"))) {
       const shadow = el.shadowRoot;
-      if (shadow) {
-        const nested = findDialog(shadow);
-        if (nested) return nested;
-      }
+      if (shadow) out.push(...allDialogs(shadow));
     }
-    return null;
+    return out;
   }
   function isFollowOnly() {
     const actionables = allActionables();
@@ -445,6 +455,7 @@
         break;
       }
     }
+    if (!headline && !degree && !cardAction) return null;
     return { name, headline, title, company, location: location2, degree, cardAction };
   }
   function scrapeSearchPage() {

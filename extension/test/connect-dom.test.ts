@@ -7,13 +7,31 @@ import { clickConnect, clickInviteSend, clickMore, isFollowOnly } from "../src/l
 
 function clicked(): string[] {
   const hits: string[] = [];
-  for (const el of Array.from(document.querySelectorAll("button, a, [role=button]"))) {
-    el.addEventListener("click", (e) => {
-      e.preventDefault(); // anchors would otherwise make jsdom attempt a navigation
-      hits.push(el.getAttribute("data-id") ?? "");
-    });
-  }
+  const arm = (root: ParentNode) => {
+    for (const el of Array.from(root.querySelectorAll("button, a, [role=button]"))) {
+      el.addEventListener("click", (e) => {
+        e.preventDefault(); // anchors would otherwise make jsdom attempt a navigation
+        hits.push(el.getAttribute("data-id") ?? "");
+      });
+    }
+    // The profile app renders inside an open shadow root, so its buttons are only
+    // reachable by piercing — the same reason the routines under test have to.
+    for (const el of Array.from(root.querySelectorAll("*"))) {
+      const shadow = (el as HTMLElement).shadowRoot;
+      if (shadow) arm(shadow);
+    }
+  };
+  arm(document);
   return hits;
+}
+
+/** Reproduce prod (19.8.26): LinkedIn renders the profile app — and its invite modal —
+ * inside the "interop-outlet" open shadow root, while the outer shell keeps dialog
+ * containers of its own. Returns the shadow root so a test can populate it. */
+function shellWithShadowProfileApp(shellDialogs: string): ShadowRoot {
+  document.body.innerHTML = `${shellDialogs}<div id="interop-outlet"></div>`;
+  const host = document.getElementById("interop-outlet") as HTMLElement;
+  return host.attachShadow({ mode: "open" });
 }
 
 describe("clickConnect", () => {
@@ -94,6 +112,62 @@ describe("clickInviteSend", () => {
 
   it("never clicks a stray primary button when no dialog opened", () => {
     document.body.innerHTML = `<button data-id="stray" class="artdeco-button--primary">Follow</button>`;
+    const hits = clicked();
+    expect(clickInviteSend()).toBe(false);
+    expect(hits).toEqual([]);
+  });
+});
+
+describe("clickInviteSend across the shadow-DOM profile app", () => {
+  const INVITE_MODAL = `
+    <div class="artdeco-modal-overlay">
+      <div role="dialog" class="artdeco-modal">
+        <div class="artdeco-modal__actionbar">
+          <button data-id="add-note" class="artdeco-button">Add a note</button>
+          <button data-id="send" class="artdeco-button artdeco-button--primary">
+            <span class="artdeco-button__text">Send without a note</span>
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  // The prod failure: three CONNECT tasks on 19.8.26 reported send_dialog_not_found while
+  // the screenshot showed "Send without a note" on screen. The shell owns 5 [role=dialog]
+  // containers, so taking the FIRST dialog scoped the search to a decoy and the real modal
+  // — one shadow root away — was never searched.
+  it("finds Send in the shadow-root modal even when the shell owns decoy dialogs", () => {
+    const shadow = shellWithShadowProfileApp(`
+      <div role="dialog" data-id="decoy-empty"></div>
+      <div role="dialog" data-id="decoy-toast"><button data-id="decoy-dismiss">Dismiss</button></div>`);
+    shadow.innerHTML = INVITE_MODAL;
+    const hits = clicked();
+    expect(clickInviteSend()).toBe(true);
+    expect(hits).toEqual(["send"]);
+  });
+
+  it("still clicks Send when the modal is in the top document", () => {
+    document.body.innerHTML = INVITE_MODAL;
+    const hits = clicked();
+    expect(clickInviteSend()).toBe(true);
+    expect(hits).toEqual(["send"]);
+  });
+
+  it("uses the primary-button fallback in the shadow modal, not a shell decoy", () => {
+    const shadow = shellWithShadowProfileApp(`
+      <div role="dialog"><button data-id="decoy-primary" class="artdeco-button--primary">Follow</button></div>`);
+    shadow.innerHTML = `
+      <div role="dialog" class="artdeco-modal">
+        <p>Personalize your invitation to Niva Barak Kartover by adding a note.</p>
+        <button data-id="real-primary" class="artdeco-button--primary">Verzenden</button>
+      </div>`;
+    const hits = clicked();
+    expect(clickInviteSend()).toBe(true);
+    expect(hits).toEqual(["real-primary"]);
+  });
+
+  it("still refuses to click anything when no dialog holds an invite action", () => {
+    const shadow = shellWithShadowProfileApp(`<div role="dialog" data-id="decoy"></div>`);
+    shadow.innerHTML = `<button data-id="stray" class="artdeco-button--primary">Follow</button>`;
     const hits = clicked();
     expect(clickInviteSend()).toBe(false);
     expect(hits).toEqual([]);
