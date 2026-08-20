@@ -28,6 +28,7 @@ import { techRadarTick, techRadarRefreshTick } from "@/inngest/functions/tech-ra
 import { techRadarDispatchOnEnable } from "@/inngest/functions/tech-radar-dispatch";
 import { techRadarResearch } from "@/inngest/functions/tech-radar-research";
 import { techRadarScan } from "@/inngest/functions/tech-radar-scan";
+import { techRadarRunMarked } from "@/inngest/functions/tech-radar-run-marked";
 import { techRadarDraft } from "@/inngest/functions/tech-radar-draft";
 
 export const { GET, POST, PUT } = serve({
@@ -63,6 +64,7 @@ export const { GET, POST, PUT } = serve({
     techRadarDispatchOnEnable,
     techRadarResearch,
     techRadarScan,
+    techRadarRunMarked,
     techRadarDraft,
   ],
 });

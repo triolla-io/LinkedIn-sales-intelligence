@@ -64,10 +64,20 @@ function normalizeEmployer(name: string): string {
  * exact, and it lets recipient lookup skip name matching entirely later.
  */
 export function employersOf(rows: CohortRow[]): EmployerRef[] {
+  return groupEmployers(rows.filter((r) => judgeCohort(r).included));
+}
+
+/**
+ * The same grouping, with NO eligibility rule applied.
+ *
+ * Split out so a hand-picked run can populate employers from marked contacts alone.
+ * `employersOf` judges the automatic cohort first; this does not judge at all, and the
+ * caller decides which rows to hand it.
+ */
+export function groupEmployers(rows: CohortRow[]): EmployerRef[] {
   const byKey = new Map<string, EmployerRef>();
 
   for (const row of rows) {
-    if (!judgeCohort(row).included) continue;
     const raw = (row.currentCompany ?? "").trim();
     if (!raw) continue;
     const key = normalizeEmployer(raw);
@@ -124,6 +134,28 @@ export async function loadCohortRows(ownerId: string): Promise<CohortRow[]> {
     enrichedAt: r.enrichedAt ? r.enrichedAt.toISOString() : null,
     lastSyncedAt: r.lastSyncedAt.toISOString(),
   }));
+}
+
+/**
+ * Employers of the hand-marked contacts only — the automatic rule is ignored entirely.
+ *
+ * This is what makes a person-first run affordable. The automatic rule on the pilot
+ * owner's list yields ~2,000 people across ~1,700 employers; researching those would
+ * consume the monthly Tavily quota many times over. Six marked people resolve to a
+ * handful of employers.
+ */
+export async function markedEmployers(ownerId: string): Promise<EmployerRef[]> {
+  const rows = await prisma.contact.findMany({
+    where: { ownerId, removedAt: null, radarInclude: true },
+    select: COHORT_SELECT,
+  });
+  return groupEmployers(
+    rows.map((r) => ({
+      ...r,
+      enrichedAt: r.enrichedAt ? r.enrichedAt.toISOString() : null,
+      lastSyncedAt: r.lastSyncedAt.toISOString(),
+    })) as CohortRow[]
+  );
 }
 
 export async function summarizeCohort(
