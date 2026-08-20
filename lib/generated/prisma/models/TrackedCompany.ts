@@ -32,10 +32,12 @@ export type AggregateTrackedCompany = {
 
 export type TrackedCompanyAvgAggregateOutputType = {
   scanIntervalDays: number | null
+  staffCount: number | null
 }
 
 export type TrackedCompanySumAggregateOutputType = {
   scanIntervalDays: number | null
+  staffCount: number | null
 }
 
 export type TrackedCompanyMinAggregateOutputType = {
@@ -50,6 +52,8 @@ export type TrackedCompanyMinAggregateOutputType = {
   lastScanAt: Date | null
   scanIntervalDays: number | null
   status: $Enums.TrackedCompanyStatus | null
+  autoAdded: boolean | null
+  staffCount: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -66,6 +70,8 @@ export type TrackedCompanyMaxAggregateOutputType = {
   lastScanAt: Date | null
   scanIntervalDays: number | null
   status: $Enums.TrackedCompanyStatus | null
+  autoAdded: boolean | null
+  staffCount: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -84,6 +90,8 @@ export type TrackedCompanyCountAggregateOutputType = {
   lastScanAt: number
   scanIntervalDays: number
   status: number
+  autoAdded: number
+  staffCount: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -92,10 +100,12 @@ export type TrackedCompanyCountAggregateOutputType = {
 
 export type TrackedCompanyAvgAggregateInputType = {
   scanIntervalDays?: true
+  staffCount?: true
 }
 
 export type TrackedCompanySumAggregateInputType = {
   scanIntervalDays?: true
+  staffCount?: true
 }
 
 export type TrackedCompanyMinAggregateInputType = {
@@ -110,6 +120,8 @@ export type TrackedCompanyMinAggregateInputType = {
   lastScanAt?: true
   scanIntervalDays?: true
   status?: true
+  autoAdded?: true
+  staffCount?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -126,6 +138,8 @@ export type TrackedCompanyMaxAggregateInputType = {
   lastScanAt?: true
   scanIntervalDays?: true
   status?: true
+  autoAdded?: true
+  staffCount?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -144,6 +158,8 @@ export type TrackedCompanyCountAggregateInputType = {
   lastScanAt?: true
   scanIntervalDays?: true
   status?: true
+  autoAdded?: true
+  staffCount?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -249,6 +265,8 @@ export type TrackedCompanyGroupByOutputType = {
   lastScanAt: Date | null
   scanIntervalDays: number
   status: $Enums.TrackedCompanyStatus
+  autoAdded: boolean
+  staffCount: number | null
   createdAt: Date
   updatedAt: Date
   _count: TrackedCompanyCountAggregateOutputType | null
@@ -290,6 +308,8 @@ export type TrackedCompanyWhereInput = {
   lastScanAt?: Prisma.DateTimeNullableFilter<"TrackedCompany"> | Date | string | null
   scanIntervalDays?: Prisma.IntFilter<"TrackedCompany"> | number
   status?: Prisma.EnumTrackedCompanyStatusFilter<"TrackedCompany"> | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFilter<"TrackedCompany"> | boolean
+  staffCount?: Prisma.IntNullableFilter<"TrackedCompany"> | number | null
   createdAt?: Prisma.DateTimeFilter<"TrackedCompany"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TrackedCompany"> | Date | string
   org?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -311,6 +331,8 @@ export type TrackedCompanyOrderByWithRelationInput = {
   lastScanAt?: Prisma.SortOrderInput | Prisma.SortOrder
   scanIntervalDays?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  autoAdded?: Prisma.SortOrder
+  staffCount?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   org?: Prisma.OrganizationOrderByWithRelationInput
@@ -336,6 +358,8 @@ export type TrackedCompanyWhereUniqueInput = Prisma.AtLeast<{
   lastScanAt?: Prisma.DateTimeNullableFilter<"TrackedCompany"> | Date | string | null
   scanIntervalDays?: Prisma.IntFilter<"TrackedCompany"> | number
   status?: Prisma.EnumTrackedCompanyStatusFilter<"TrackedCompany"> | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFilter<"TrackedCompany"> | boolean
+  staffCount?: Prisma.IntNullableFilter<"TrackedCompany"> | number | null
   createdAt?: Prisma.DateTimeFilter<"TrackedCompany"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TrackedCompany"> | Date | string
   org?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -357,6 +381,8 @@ export type TrackedCompanyOrderByWithAggregationInput = {
   lastScanAt?: Prisma.SortOrderInput | Prisma.SortOrder
   scanIntervalDays?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  autoAdded?: Prisma.SortOrder
+  staffCount?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.TrackedCompanyCountOrderByAggregateInput
@@ -383,6 +409,8 @@ export type TrackedCompanyScalarWhereWithAggregatesInput = {
   lastScanAt?: Prisma.DateTimeNullableWithAggregatesFilter<"TrackedCompany"> | Date | string | null
   scanIntervalDays?: Prisma.IntWithAggregatesFilter<"TrackedCompany"> | number
   status?: Prisma.EnumTrackedCompanyStatusWithAggregatesFilter<"TrackedCompany"> | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolWithAggregatesFilter<"TrackedCompany"> | boolean
+  staffCount?: Prisma.IntNullableWithAggregatesFilter<"TrackedCompany"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"TrackedCompany"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"TrackedCompany"> | Date | string
 }
@@ -399,6 +427,8 @@ export type TrackedCompanyCreateInput = {
   lastScanAt?: Date | string | null
   scanIntervalDays?: number
   status?: $Enums.TrackedCompanyStatus
+  autoAdded?: boolean
+  staffCount?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutTrackedCompaniesInput
@@ -420,6 +450,8 @@ export type TrackedCompanyUncheckedCreateInput = {
   lastScanAt?: Date | string | null
   scanIntervalDays?: number
   status?: $Enums.TrackedCompanyStatus
+  autoAdded?: boolean
+  staffCount?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   opportunities?: Prisma.TechOpportunityUncheckedCreateNestedManyWithoutTrackedCompanyInput
@@ -437,6 +469,8 @@ export type TrackedCompanyUpdateInput = {
   lastScanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scanIntervalDays?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTrackedCompanyStatusFieldUpdateOperationsInput | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutTrackedCompaniesNestedInput
@@ -458,6 +492,8 @@ export type TrackedCompanyUncheckedUpdateInput = {
   lastScanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scanIntervalDays?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTrackedCompanyStatusFieldUpdateOperationsInput | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   opportunities?: Prisma.TechOpportunityUncheckedUpdateManyWithoutTrackedCompanyNestedInput
@@ -477,6 +513,8 @@ export type TrackedCompanyCreateManyInput = {
   lastScanAt?: Date | string | null
   scanIntervalDays?: number
   status?: $Enums.TrackedCompanyStatus
+  autoAdded?: boolean
+  staffCount?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -493,6 +531,8 @@ export type TrackedCompanyUpdateManyMutationInput = {
   lastScanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scanIntervalDays?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTrackedCompanyStatusFieldUpdateOperationsInput | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -511,6 +551,8 @@ export type TrackedCompanyUncheckedUpdateManyInput = {
   lastScanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scanIntervalDays?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTrackedCompanyStatusFieldUpdateOperationsInput | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -544,12 +586,15 @@ export type TrackedCompanyCountOrderByAggregateInput = {
   lastScanAt?: Prisma.SortOrder
   scanIntervalDays?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  autoAdded?: Prisma.SortOrder
+  staffCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type TrackedCompanyAvgOrderByAggregateInput = {
   scanIntervalDays?: Prisma.SortOrder
+  staffCount?: Prisma.SortOrder
 }
 
 export type TrackedCompanyMaxOrderByAggregateInput = {
@@ -564,6 +609,8 @@ export type TrackedCompanyMaxOrderByAggregateInput = {
   lastScanAt?: Prisma.SortOrder
   scanIntervalDays?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  autoAdded?: Prisma.SortOrder
+  staffCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -580,12 +627,15 @@ export type TrackedCompanyMinOrderByAggregateInput = {
   lastScanAt?: Prisma.SortOrder
   scanIntervalDays?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  autoAdded?: Prisma.SortOrder
+  staffCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type TrackedCompanySumOrderByAggregateInput = {
   scanIntervalDays?: Prisma.SortOrder
+  staffCount?: Prisma.SortOrder
 }
 
 export type TrackedCompanyScalarRelationFilter = {
@@ -716,6 +766,8 @@ export type TrackedCompanyCreateWithoutOrgInput = {
   lastScanAt?: Date | string | null
   scanIntervalDays?: number
   status?: $Enums.TrackedCompanyStatus
+  autoAdded?: boolean
+  staffCount?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   company?: Prisma.CompanyCreateNestedOneWithoutTrackedCompaniesInput
@@ -735,6 +787,8 @@ export type TrackedCompanyUncheckedCreateWithoutOrgInput = {
   lastScanAt?: Date | string | null
   scanIntervalDays?: number
   status?: $Enums.TrackedCompanyStatus
+  autoAdded?: boolean
+  staffCount?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   opportunities?: Prisma.TechOpportunityUncheckedCreateNestedManyWithoutTrackedCompanyInput
@@ -783,6 +837,8 @@ export type TrackedCompanyScalarWhereInput = {
   lastScanAt?: Prisma.DateTimeNullableFilter<"TrackedCompany"> | Date | string | null
   scanIntervalDays?: Prisma.IntFilter<"TrackedCompany"> | number
   status?: Prisma.EnumTrackedCompanyStatusFilter<"TrackedCompany"> | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFilter<"TrackedCompany"> | boolean
+  staffCount?: Prisma.IntNullableFilter<"TrackedCompany"> | number | null
   createdAt?: Prisma.DateTimeFilter<"TrackedCompany"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TrackedCompany"> | Date | string
 }
@@ -799,6 +855,8 @@ export type TrackedCompanyCreateWithoutCompanyInput = {
   lastScanAt?: Date | string | null
   scanIntervalDays?: number
   status?: $Enums.TrackedCompanyStatus
+  autoAdded?: boolean
+  staffCount?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutTrackedCompaniesInput
@@ -818,6 +876,8 @@ export type TrackedCompanyUncheckedCreateWithoutCompanyInput = {
   lastScanAt?: Date | string | null
   scanIntervalDays?: number
   status?: $Enums.TrackedCompanyStatus
+  autoAdded?: boolean
+  staffCount?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   opportunities?: Prisma.TechOpportunityUncheckedCreateNestedManyWithoutTrackedCompanyInput
@@ -861,6 +921,8 @@ export type TrackedCompanyCreateWithoutOpportunitiesInput = {
   lastScanAt?: Date | string | null
   scanIntervalDays?: number
   status?: $Enums.TrackedCompanyStatus
+  autoAdded?: boolean
+  staffCount?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   org: Prisma.OrganizationCreateNestedOneWithoutTrackedCompaniesInput
@@ -881,6 +943,8 @@ export type TrackedCompanyUncheckedCreateWithoutOpportunitiesInput = {
   lastScanAt?: Date | string | null
   scanIntervalDays?: number
   status?: $Enums.TrackedCompanyStatus
+  autoAdded?: boolean
+  staffCount?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -913,6 +977,8 @@ export type TrackedCompanyUpdateWithoutOpportunitiesInput = {
   lastScanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scanIntervalDays?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTrackedCompanyStatusFieldUpdateOperationsInput | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutTrackedCompaniesNestedInput
@@ -933,6 +999,8 @@ export type TrackedCompanyUncheckedUpdateWithoutOpportunitiesInput = {
   lastScanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scanIntervalDays?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTrackedCompanyStatusFieldUpdateOperationsInput | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -950,6 +1018,8 @@ export type TrackedCompanyCreateManyOrgInput = {
   lastScanAt?: Date | string | null
   scanIntervalDays?: number
   status?: $Enums.TrackedCompanyStatus
+  autoAdded?: boolean
+  staffCount?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -966,6 +1036,8 @@ export type TrackedCompanyUpdateWithoutOrgInput = {
   lastScanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scanIntervalDays?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTrackedCompanyStatusFieldUpdateOperationsInput | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company?: Prisma.CompanyUpdateOneWithoutTrackedCompaniesNestedInput
@@ -985,6 +1057,8 @@ export type TrackedCompanyUncheckedUpdateWithoutOrgInput = {
   lastScanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scanIntervalDays?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTrackedCompanyStatusFieldUpdateOperationsInput | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   opportunities?: Prisma.TechOpportunityUncheckedUpdateManyWithoutTrackedCompanyNestedInput
@@ -1003,6 +1077,8 @@ export type TrackedCompanyUncheckedUpdateManyWithoutOrgInput = {
   lastScanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scanIntervalDays?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTrackedCompanyStatusFieldUpdateOperationsInput | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1020,6 +1096,8 @@ export type TrackedCompanyCreateManyCompanyInput = {
   lastScanAt?: Date | string | null
   scanIntervalDays?: number
   status?: $Enums.TrackedCompanyStatus
+  autoAdded?: boolean
+  staffCount?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1036,6 +1114,8 @@ export type TrackedCompanyUpdateWithoutCompanyInput = {
   lastScanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scanIntervalDays?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTrackedCompanyStatusFieldUpdateOperationsInput | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   org?: Prisma.OrganizationUpdateOneRequiredWithoutTrackedCompaniesNestedInput
@@ -1055,6 +1135,8 @@ export type TrackedCompanyUncheckedUpdateWithoutCompanyInput = {
   lastScanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scanIntervalDays?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTrackedCompanyStatusFieldUpdateOperationsInput | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   opportunities?: Prisma.TechOpportunityUncheckedUpdateManyWithoutTrackedCompanyNestedInput
@@ -1073,6 +1155,8 @@ export type TrackedCompanyUncheckedUpdateManyWithoutCompanyInput = {
   lastScanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   scanIntervalDays?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTrackedCompanyStatusFieldUpdateOperationsInput | $Enums.TrackedCompanyStatus
+  autoAdded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staffCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1122,6 +1206,8 @@ export type TrackedCompanySelect<ExtArgs extends runtime.Types.Extensions.Intern
   lastScanAt?: boolean
   scanIntervalDays?: boolean
   status?: boolean
+  autoAdded?: boolean
+  staffCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -1144,6 +1230,8 @@ export type TrackedCompanySelectCreateManyAndReturn<ExtArgs extends runtime.Type
   lastScanAt?: boolean
   scanIntervalDays?: boolean
   status?: boolean
+  autoAdded?: boolean
+  staffCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -1164,6 +1252,8 @@ export type TrackedCompanySelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   lastScanAt?: boolean
   scanIntervalDays?: boolean
   status?: boolean
+  autoAdded?: boolean
+  staffCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -1184,11 +1274,13 @@ export type TrackedCompanySelectScalar = {
   lastScanAt?: boolean
   scanIntervalDays?: boolean
   status?: boolean
+  autoAdded?: boolean
+  staffCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type TrackedCompanyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "name" | "aliases" | "linkedinUrl" | "website" | "companyId" | "profile" | "profileError" | "researchedAt" | "lastScanAt" | "scanIntervalDays" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["trackedCompany"]>
+export type TrackedCompanyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "name" | "aliases" | "linkedinUrl" | "website" | "companyId" | "profile" | "profileError" | "researchedAt" | "lastScanAt" | "scanIntervalDays" | "status" | "autoAdded" | "staffCount" | "createdAt" | "updatedAt", ExtArgs["result"]["trackedCompany"]>
 export type TrackedCompanyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   company?: boolean | Prisma.TrackedCompany$companyArgs<ExtArgs>
@@ -1239,6 +1331,16 @@ export type $TrackedCompanyPayload<ExtArgs extends runtime.Types.Extensions.Inte
      */
     scanIntervalDays: number
     status: $Enums.TrackedCompanyStatus
+    /**
+     * True when the row was created automatically from a contact's employer rather
+     * than hand-curated. v2 populates this list from contacts; v1 rows keep false.
+     */
+    autoAdded: boolean
+    /**
+     * Headcount snapshot at population time, for the 50-200 gate. Snapshotted
+     * rather than read live so a cohort decision can be explained after the fact.
+     */
+    staffCount: number | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["trackedCompany"]>
@@ -1680,6 +1782,8 @@ export interface TrackedCompanyFieldRefs {
   readonly lastScanAt: Prisma.FieldRef<"TrackedCompany", 'DateTime'>
   readonly scanIntervalDays: Prisma.FieldRef<"TrackedCompany", 'Int'>
   readonly status: Prisma.FieldRef<"TrackedCompany", 'TrackedCompanyStatus'>
+  readonly autoAdded: Prisma.FieldRef<"TrackedCompany", 'Boolean'>
+  readonly staffCount: Prisma.FieldRef<"TrackedCompany", 'Int'>
   readonly createdAt: Prisma.FieldRef<"TrackedCompany", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"TrackedCompany", 'DateTime'>
 }

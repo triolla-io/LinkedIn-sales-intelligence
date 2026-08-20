@@ -3789,6 +3789,7 @@ export const OrganizationScalarFieldEnum = {
   companySignalsEnabled: 'companySignalsEnabled',
   fintechRadarEnabled: 'fintechRadarEnabled',
   techRadarEnabled: 'techRadarEnabled',
+  radarScheduleEnabled: 'radarScheduleEnabled',
   createdAt: 'createdAt'
 } as const
 
@@ -3846,6 +3847,7 @@ export const ContactScalarFieldEnum = {
   jobSnapshotTitle: 'jobSnapshotTitle',
   jobSnapshotCompany: 'jobSnapshotCompany',
   lastJobCheckAt: 'lastJobCheckAt',
+  radarInclude: 'radarInclude',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   companyId: 'companyId'
@@ -4428,6 +4430,8 @@ export const TrackedCompanyScalarFieldEnum = {
   lastScanAt: 'lastScanAt',
   scanIntervalDays: 'scanIntervalDays',
   status: 'status',
+  autoAdded: 'autoAdded',
+  staffCount: 'staffCount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

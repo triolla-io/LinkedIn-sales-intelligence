@@ -118,6 +118,11 @@ model Organization {
   companySignalsEnabled       Boolean  @default(false)
   fintechRadarEnabled         Boolean  @default(false)
   techRadarEnabled            Boolean  @default(false)
+  /// Gates the SCHEDULED tick only. `techRadarEnabled` means the module exists —
+  /// population runs, the screen is visible, a manual scan can be triggered. This
+  /// second flag is what lets the cron fire, and it is turned on only after a
+  /// human has reviewed a hand-triggered batch.
+  radarScheduleEnabled        Boolean  @default(false)
   createdAt                   DateTime @default(now())
 
   users             User[]
@@ -207,6 +212,11 @@ model Contact {
   jobSnapshotCompany String?
   lastJobCheckAt     DateTime?
   jobChanges         ContactJobChange[]
+
+  /// Radar cohort override. null = follow the cohort rule (C-level at a 50-200
+  /// person company); true = always include, even outside the cohort (this is how
+  /// a handful of people at giants get cultivated); false = never include.
+  radarInclude Boolean?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1103,6 +1113,12 @@ model TrackedCompany {
   /// Tiered-cadence lever: raise for PROSPECTs to halve scan cost at scale.
   scanIntervalDays Int                  @default(7)
   status           TrackedCompanyStatus @default(PENDING_RESEARCH)
+  /// True when the row was created automatically from a contact's employer rather
+  /// than hand-curated. v2 populates this list from contacts; v1 rows keep false.
+  autoAdded        Boolean              @default(false)
+  /// Headcount snapshot at population time, for the 50-200 gate. Snapshotted
+  /// rather than read live so a cohort decision can be explained after the fact.
+  staffCount       Int?
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
 
