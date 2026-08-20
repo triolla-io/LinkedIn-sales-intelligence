@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 import { isUsableProfile, type TechRadarProfile } from "@/lib/tech-radar/types";
+import { summarizeCohort } from "@/lib/tech-radar/population";
 
 const OPEN_DRAFT_STATUSES = ["PENDING_REVIEW", "PREPARING", "PREPARED"] as const;
 
@@ -17,10 +18,15 @@ const OPEN_DRAFT_STATUSES = ["PENDING_REVIEW", "PREPARING", "PREPARED"] as const
  * signal, which tells the rep where they need to acquire a contact.
  */
 export const GET = withTenant(async (_req, ctx) => {
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: ctx.effectiveUserId },
-    select: { orgId: true },
-  });
+  // The user lookup and the cohort summary both depend only on effectiveUserId,
+  // not on each other — run them concurrently rather than paying for both round trips.
+  const [user, { counts, employers }] = await Promise.all([
+    prisma.user.findUniqueOrThrow({
+      where: { id: ctx.effectiveUserId },
+      select: { orgId: true },
+    }),
+    summarizeCohort(ctx.effectiveUserId),
+  ]);
 
   const rows = await prisma.trackedCompany.findMany({
     where: { orgId: user.orgId },
@@ -75,5 +81,5 @@ export const GET = withTenant(async (_req, ctx) => {
     };
   });
 
-  return NextResponse.json({ companies });
+  return NextResponse.json({ companies, cohort: { ...counts, employers: employers.length } });
 });

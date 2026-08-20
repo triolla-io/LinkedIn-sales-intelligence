@@ -9,6 +9,7 @@ vi.mock("@/lib/tenancy/with-tenant", () => ({
 }));
 
 const userFindUniqueOrThrow = vi.fn();
+const contactFindMany = vi.fn();
 const companyFindMany = vi.fn();
 const companyFindUnique = vi.fn();
 const companyFindFirst = vi.fn();
@@ -25,6 +26,7 @@ const send = vi.fn();
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     user: { findUniqueOrThrow: (...a: unknown[]) => userFindUniqueOrThrow(...a) },
+    contact: { findMany: (...a: unknown[]) => contactFindMany(...a) },
     trackedCompany: {
       findMany: (...a: unknown[]) => companyFindMany(...a),
       findUnique: (...a: unknown[]) => companyFindUnique(...a),
@@ -69,11 +71,12 @@ const usableProfile = {
 
 beforeEach(() => {
   for (const m of [
-    userFindUniqueOrThrow, companyFindMany, companyFindUnique, companyFindFirst,
+    userFindUniqueOrThrow, contactFindMany, companyFindMany, companyFindUnique, companyFindFirst,
     companyCreate, companyUpdate, companyDelete, opportunityFindMany,
     draftFindFirst, draftUpdate, draftUpdateMany, taskCreate, send,
   ]) m.mockReset();
   userFindUniqueOrThrow.mockResolvedValue({ orgId: "org1" });
+  contactFindMany.mockResolvedValue([]);
 });
 
 describe("GET /api/tech-radar/companies", () => {

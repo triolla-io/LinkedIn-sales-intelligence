@@ -12,6 +12,7 @@ import { toast } from "@/lib/toast";
 import { ui } from "@/lib/ui";
 import { cn } from "@/lib/cn";
 import { availableChannels, channelHref, type Channel, type ContactChannels } from "@/lib/tech-radar/channels";
+import { CohortStrip, type CohortStripCounts } from "./cohort-strip";
 
 type CompanyStatus = "PENDING_RESEARCH" | "ACTIVE" | "RESEARCH_FAILED";
 
@@ -143,9 +144,11 @@ export function TechRadarModuleSwitch() {
 }
 
 export function TechRadarClient() {
-  const { data, isLoading, mutate } = useSWR<{ companies: Company[] }>("/api/tech-radar", fetcher, {
-    refreshInterval: 30_000,
-  });
+  const { data, isLoading, mutate } = useSWR<{ companies: Company[]; cohort?: CohortStripCounts }>(
+    "/api/tech-radar",
+    fetcher,
+    { refreshInterval: 30_000 }
+  );
   const { modules } = useRoutineModules();
   const radarOn = modules?.techRadarEnabled ?? false;
 
@@ -159,6 +162,8 @@ export function TechRadarClient() {
           הסריקה השבועית מושבתת. אפשר להוסיף חברות ולערוך את הרשימה — הן ייסרקו כשהמודול יופעל.
         </div>
       )}
+
+      {data?.cohort && <CohortStrip counts={data.cohort} />}
 
       <AddCompanyForm onAdded={() => mutate()} />
 
