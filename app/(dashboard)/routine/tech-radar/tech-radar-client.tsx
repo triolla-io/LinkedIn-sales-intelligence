@@ -13,6 +13,7 @@ import { ui } from "@/lib/ui";
 import { cn } from "@/lib/cn";
 import { availableChannels, channelHref, type Channel, type ContactChannels } from "@/lib/tech-radar/channels";
 import { CohortStrip, type CohortStripCounts } from "./cohort-strip";
+import { MarkPeople } from "./mark-people";
 
 type CompanyStatus = "PENDING_RESEARCH" | "ACTIVE" | "RESEARCH_FAILED";
 
@@ -173,6 +174,10 @@ export function TechRadarClient() {
       )}
 
       {cohortData?.cohort && <CohortStrip counts={cohortData.cohort} />}
+
+      {/* Picking the people comes before adding their companies: the run drafts to
+          whoever is marked here, and the company list only decides what is scanned. */}
+      <MarkPeople />
 
       <AddCompanyForm onAdded={() => mutate()} />
 
