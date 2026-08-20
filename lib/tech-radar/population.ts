@@ -129,16 +129,19 @@ export function matchExistingCompany(
 }
 
 /**
- * Bring the employer list into TrackedCompany. Idempotent: running the
- * bootstrap twice must not duplicate rows or re-dispatch research.
+ * Bring the employer list into TrackedCompany. No duplicate rows, and no
+ * research re-offers for jobs already in flight.
  *
- * Returns the ids that still need research so the caller — not this module —
- * decides whether to dispatch. Population and spend stay separable.
+ * Returns both:
+ * - New and failed rows needing research dispatch (caller decides whether to dispatch)
+ * - Existing rows stuck in PENDING_RESEARCH, for observability
+ *
+ * Population and spend stay separable — this module reports, the caller acts.
  */
 export async function upsertEmployers(
   orgId: string,
   employers: EmployerRef[]
-): Promise<{ created: number; matched: number; pendingResearch: string[] }> {
+): Promise<{ created: number; matched: number; pendingResearch: string[]; alreadyPending: string[] }> {
   const existing = await prisma.trackedCompany.findMany({
     where: { orgId },
     select: { id: true, name: true, aliases: true, status: true },
@@ -147,13 +150,19 @@ export async function upsertEmployers(
   let created = 0;
   let matched = 0;
   const pendingResearch: string[] = [];
+  const alreadyPending: string[] = [];
 
   for (const employer of employers) {
     const hit = matchExistingCompany(employer, existing);
     if (hit) {
       matched += 1;
       const row = existing.find((e) => e.id === hit);
-      if (row && row.status !== "ACTIVE") pendingResearch.push(hit);
+      // Only RESEARCH_FAILED is re-offered. A row still sitting in
+      // PENDING_RESEARCH was already dispatched by an earlier run and its job
+      // may still be in flight — re-offering it is how a second bootstrap run
+      // turns into duplicate research spend.
+      if (row && row.status === "RESEARCH_FAILED") pendingResearch.push(hit);
+      else if (row && row.status === "PENDING_RESEARCH") alreadyPending.push(hit);
       continue;
     }
 
@@ -173,5 +182,5 @@ export async function upsertEmployers(
     pendingResearch.push(row.id);
   }
 
-  return { created, matched, pendingResearch };
+  return { created, matched, pendingResearch, alreadyPending };
 }

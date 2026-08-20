@@ -97,8 +97,16 @@ describe("matchExistingCompany", () => {
     expect(matchExistingCompany(ref("SHLOMO GROUP"), existing)).toBe("t1");
   });
 
-  it("does not match a different company that merely shares a word", () => {
-    expect(matchExistingCompany(ref("Delek US Holdings"), existing)).toBeNull();
+  it("does not match when the tracked name is a substring of the probe (v1's actual bug)", () => {
+    // v1 matched with SQL `contains` and the tracked name as the needle: a row
+    // named "Delek" matched a contact whose employer read "Delek US Holdings".
+    const trackedShort = [{ id: "t3", name: "Delek", aliases: [] }];
+    expect(matchExistingCompany(ref("Delek US Holdings"), trackedShort)).toBeNull();
+  });
+
+  it("does not match when the probe is a substring of the tracked name", () => {
+    const trackedLong = [{ id: "t4", name: "Delek US Holdings", aliases: [] }];
+    expect(matchExistingCompany(ref("Delek"), trackedLong)).toBeNull();
   });
 
   it("returns null when nothing matches", () => {
