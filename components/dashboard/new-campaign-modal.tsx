@@ -3,10 +3,10 @@ import { useEffect, useReducer, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 
 type Template = { id: string; name: string; body: string };
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 type FormState = {
   name: string;

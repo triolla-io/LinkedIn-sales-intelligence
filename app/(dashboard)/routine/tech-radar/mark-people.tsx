@@ -3,9 +3,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { Button } from "@heroui/react";
-import { Loader2, Plus, X, Search, ExternalLink } from "lucide-react";
+import { Loader2, Plus, X, Search, ExternalLink, AlertTriangle } from "lucide-react";
 import { ui } from "@/lib/ui";
 import { cn } from "@/lib/cn";
+import { fetcher, fetchErrorMessage, FetchError } from "@/lib/fetcher";
 
 /**
  * Pick the people a run should draft to.
@@ -27,7 +28,6 @@ type Person = {
   radarInclude: boolean | null;
 };
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 const MUTED = "text-[#6b6866]";
 const FAINT = "text-[#9b9895]";
 
@@ -61,9 +61,25 @@ function Row({ p, right }: { p: Person; right: React.ReactNode }) {
   );
 }
 
+/**
+ * A failed load must not look like an empty result. Before this, a 500 from the marks
+ * route rendered as "no contact found by that name" and as "you have not marked anyone
+ * yet" — two sentences that describe the data, while the truth was that there was no
+ * data. That is what made a working search look broken.
+ */
+function ErrorNote({ error }: { error: unknown }) {
+  return (
+    <p className="text-xs text-[#b42318] flex items-center gap-1.5" role="alert">
+      <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
+      {fetchErrorMessage(error)}
+    </p>
+  );
+}
+
 export function MarkPeople() {
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [markError, setMarkError] = useState<unknown>(null);
 
   const marked = useSWR<{ marked: Person[] }>("/api/tech-radar/marks", fetcher, {
     refreshInterval: 0,
@@ -78,14 +94,19 @@ export function MarkPeople() {
 
   async function setMark(contactId: string, radarInclude: boolean | null) {
     setBusy(contactId);
+    setMarkError(null);
     try {
       const res = await fetch("/api/tech-radar/marks", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contactId, radarInclude }),
       });
-      if (!res.ok) throw new Error("failed");
+      // The route rejects an out-of-range radarInclude rather than coercing it, so its
+      // message is worth showing verbatim — the old code threw this away.
+      if (!res.ok) throw new FetchError(res.status, await res.json().then((b) => b?.error ?? null).catch(() => null));
       await Promise.all([marked.mutate(), search.mutate()]);
+    } catch (err) {
+      setMarkError(err);
     } finally {
       setBusy(null);
     }
@@ -118,7 +139,9 @@ export function MarkPeople() {
 
       {q.trim() && (
         <div className="mt-2">
-          {search.isLoading ? (
+          {search.error ? (
+            <ErrorNote error={search.error} />
+          ) : search.isLoading ? (
             <p className={cn("text-xs", FAINT)}>מחפש…</p>
           ) : (search.data?.candidates ?? []).length === 0 ? (
             <p className={cn("text-xs", FAINT)}>לא נמצא אף איש קשר בשם או בחברה הזאת.</p>
@@ -157,11 +180,15 @@ export function MarkPeople() {
       )}
 
       <div className="mt-4">
+        {marked.error && <ErrorNote error={marked.error} />}
+        {markError != null && <ErrorNote error={markError} />}
+        {!marked.error && (
         <p className={cn("text-xs mb-1", MUTED)}>
           {included.length > 0
             ? `${included.length} אנשים לבדיקה`
             : "עוד לא סימנת אף אחד. חפשי שם או חברה למעלה ולחצי «סמן». בלי סימונים, הריצה תיפול חזרה לכלל האוטומטי."}
         </p>
+        )}
         {included.length > 0 && (
           <ul className="divide-y divide-[#f0eee9]">
             {included.map((p) => (

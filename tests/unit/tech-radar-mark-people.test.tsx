@@ -7,11 +7,13 @@ import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/re
  * the component's behaviour instead of about revalidation timing.
  */
 const data: Record<string, unknown> = {};
+const errors: Record<string, unknown> = {};
 const mutate = vi.fn();
 
 vi.mock("swr", () => ({
   default: (key: string | null) => ({
     data: key ? data[key] : undefined,
+    error: key ? errors[key] : undefined,
     isLoading: false,
     mutate,
   }),
@@ -21,6 +23,7 @@ const fetchMock = vi.fn();
 vi.stubGlobal("fetch", fetchMock);
 
 const { MarkPeople } = await import("@/app/(dashboard)/routine/tech-radar/mark-people");
+const { FetchError } = await import("@/lib/fetcher");
 
 const MARKS = "/api/tech-radar/marks";
 
@@ -37,6 +40,7 @@ function person(id: string, radarInclude: boolean | null = null) {
 
 beforeEach(() => {
   for (const k of Object.keys(data)) delete data[k];
+  for (const k of Object.keys(errors)) delete errors[k];
   mutate.mockReset();
   fetchMock.mockReset();
   fetchMock.mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
@@ -118,3 +122,46 @@ describe("MarkPeople", () => {
     expect(screen.queryByText(/לא נמצא אף איש קשר/)).toBeNull();
   });
 });
+
+/**
+ * The bug that made a working feature look broken: a failed request rendered as
+ * "no contact found by that name". A failure has to look like a failure.
+ */
+describe("MarkPeople failure states", () => {
+  it("shows the error instead of «no contact found» when the search request fails", () => {
+    data[MARKS] = { marked: [] };
+    errors[`${MARKS}?q=triol`] = new FetchError(500, "prisma exploded");
+    render(<MarkPeople />);
+    fireEvent.change(screen.getByLabelText(/חיפוש לפי שם או חברה/), { target: { value: "triol" } });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/prisma exploded/);
+    expect(screen.queryByText(/לא נמצא אף איש קשר/)).toBeNull();
+  });
+
+  it("shows the error instead of «you have not marked anyone» when the list fails to load", () => {
+    errors[MARKS] = new FetchError(500, null);
+    render(<MarkPeople />);
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.queryByText(/עוד לא סימנת אף אחד/)).toBeNull();
+  });
+
+  it("tells an unauthorized reader to sign in rather than showing an empty list", () => {
+    errors[MARKS] = new FetchError(401, null);
+    render(<MarkPeople />);
+    expect(screen.getByRole("alert")).toHaveTextContent(/להתחבר מחדש/);
+  });
+
+  /** A rejected PATCH used to throw into an empty catch — the click just did nothing. */
+  it("surfaces a failed mark instead of silently doing nothing", async () => {
+    data[MARKS] = { marked: [person("a", true)] };
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 422,
+      json: async () => ({ error: "radarInclude must be true, false or null" }),
+    });
+    render(<MarkPeople />);
+    fireEvent.click(screen.getByRole("button", { name: /הסר סימון/ }));
+
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent(/radarInclude must be/));
+  });
+})

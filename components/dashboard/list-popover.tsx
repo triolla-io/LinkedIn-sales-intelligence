@@ -3,6 +3,7 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Plus, Loader2 } from "lucide-react";
 import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 
 type ListSummary = { id: string; name: string; memberCount: number };
 
@@ -13,7 +14,6 @@ interface ListPopoverProps {
   placement?: "up" | "down";
 }
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function ListPopover({ contactIds, onClose, anchorRef, placement = "up" }: ListPopoverProps) {
   const { data, isLoading } = useSWR("/api/lists", fetcher);

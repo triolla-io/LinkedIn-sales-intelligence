@@ -1,6 +1,7 @@
 "use client";
 
 import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 
 export type RoutineModules = {
   connectionsEnabled: boolean;
@@ -19,7 +20,6 @@ const MODULE_STATE_KEY: Record<RoutineModuleKey, keyof RoutineModules> = {
   techRadar: "techRadarEnabled",
 };
 
-const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
 export function useRoutineModules() {
   const { data, mutate, isLoading } = useSWR<RoutineModules>("/api/routine/modules", fetcher);

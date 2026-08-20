@@ -13,6 +13,7 @@ import { ui } from "@/lib/ui";
 import { cn } from "@/lib/cn";
 import { availableChannels, channelHref, type Channel, type ContactChannels } from "@/lib/tech-radar/channels";
 import { MarkPeople } from "./mark-people";
+import { fetcher, fetchErrorMessage } from "@/lib/fetcher";
 
 type CompanyStatus = "PENDING_RESEARCH" | "ACTIVE" | "RESEARCH_FAILED";
 
@@ -72,7 +73,6 @@ type Company = {
   opportunities: Opportunity[];
 };
 
-const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
 const CHANNEL_LABEL: Record<Channel, string> = {
   email: "אימייל",
@@ -144,7 +144,7 @@ export function TechRadarModuleSwitch() {
 }
 
 export function TechRadarClient() {
-  const { data, isLoading, mutate } = useSWR<{ companies: Company[] }>(
+  const { data, error, isLoading, mutate } = useSWR<{ companies: Company[] }>(
     "/api/tech-radar",
     fetcher,
     { refreshInterval: 30_000 }
@@ -169,7 +169,15 @@ export function TechRadarClient() {
 
       <AddCompanyForm onAdded={() => mutate()} />
 
-      {isLoading ? (
+      {/* A failed load must not read as "nothing is tracked". The list also polls every
+          30s, so a transient failure would otherwise quietly rewrite the screen into a
+          statement about the data that happens to be false. */}
+      {error && !data ? (
+        <p className="text-sm text-[#b42318] flex items-center gap-1.5" role="alert">
+          <AlertTriangle className="size-4 shrink-0" aria-hidden />
+          {fetchErrorMessage(error)}
+        </p>
+      ) : isLoading ? (
         <div className="flex items-center gap-2 text-[#9b9895]">
           <Loader2 className="size-4 animate-spin" /> טוען…
         </div>

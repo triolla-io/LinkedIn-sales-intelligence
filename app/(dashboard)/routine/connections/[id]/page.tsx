@@ -11,6 +11,7 @@ import {
   CompanyTargetsCard,
   type CompanyTargetRow,
 } from "@/components/prospecting/company-targets-card";
+import { fetcher } from "@/lib/fetcher";
 
 type ConnectionRequest = {
   id: string;
@@ -73,7 +74,6 @@ type RunDetailResponse = {
   pacing?: Pacing;
 };
 
-const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: "bg-[#f3f2ef] text-[#6b6866]",

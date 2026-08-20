@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 
 type WaStatus =
   | "CONNECTED"
@@ -14,7 +15,6 @@ type WaStatus =
   | "REFRESHING"
   | "SERVICE_UNAVAILABLE";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 /** SSE payloads arrive as text; a malformed frame must not throw inside an
  *  event listener and leave the card wedged. Returns null when unusable. */

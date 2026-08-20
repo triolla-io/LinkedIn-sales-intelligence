@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { coveragePct, estimateFullPassDays } from "@/lib/job-check/stats-pure";
 import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
+import { fetcher } from "@/lib/fetcher";
 
 type ScannedRow = {
   id: string;
@@ -31,7 +32,6 @@ type JobChangeStats = {
   recentlyScanned: ScannedRow[];
 };
 
-const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" });

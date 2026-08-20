@@ -6,6 +6,7 @@ import { CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
+import { fetcher } from "@/lib/fetcher";
 
 type InviteFlowState =
   | { phase: "loading" }
@@ -30,7 +31,6 @@ function inviteReducer(_: InviteFlowState, action: InviteAction): InviteFlowStat
   }
 }
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 function InviteContentInner() {
   const params = useSearchParams();

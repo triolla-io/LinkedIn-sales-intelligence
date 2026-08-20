@@ -9,6 +9,7 @@ import { toast } from "@/lib/toast";
 import { ui } from "@/lib/ui";
 import { cn } from "@/lib/cn";
 import { availableChannels, channelHref, type Channel, type ContactChannels } from "@/lib/fintech-radar/channels";
+import { fetcher } from "@/lib/fetcher";
 
 type Contact = ContactChannels & { fullName: string; currentTitle: string | null };
 type MatchStatus = "SUGGESTED" | "PREPARING" | "PREPARED";
@@ -32,7 +33,6 @@ type Article = {
 };
 type FeedResponse = { articles: Article[] };
 
-const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
 const CHANNEL_LABEL: Record<Channel, string> = {
   email: "אימייל",

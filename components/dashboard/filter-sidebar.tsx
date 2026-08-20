@@ -16,6 +16,7 @@ import useSWR from "swr";
 import { cn } from "@/lib/cn";
 import { useCollapsed } from "@/lib/hooks/use-collapsed";
 import { type Filters, DEFAULT_FILTERS } from "./filter-types";
+import { fetcher } from "@/lib/fetcher";
 
 export type { Filters };
 export { DEFAULT_FILTERS };
@@ -113,7 +114,6 @@ function countActiveFilters(filters: Filters): number {
   );
 }
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
   const [customTitle, setCustomTitle] = useState("");

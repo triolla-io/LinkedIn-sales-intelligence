@@ -19,6 +19,7 @@ import {
 import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/cn";
+import { fetcher } from "@/lib/fetcher";
 
 type ProspectingRun = {
   id: string;
@@ -33,7 +34,6 @@ type ProspectingRun = {
 
 type RunsResponse = { runs: ProspectingRun[]; sentToday: number };
 
-const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: "bg-[#f3f2ef] text-[#6b6866]",

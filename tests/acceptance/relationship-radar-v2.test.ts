@@ -90,9 +90,9 @@ describe("(א) inverted triage: a vendor launch is not shareworthy on its own", 
  * founders, and one `fitRationale` shared by all three. A per-person veto that passes
  * more than one of them has not been given anything person-specific to judge.
  *
- * NOTE: this is stricter than the spec's `MAX_RECIPIENTS_PER_ITEM = 3`, which counts
- * across all companies. The run showed that cap is not enough — three recipients at
- * ONE company is the failure. The spec needs `MAX_RECIPIENTS_PER_ITEM_PER_COMPANY = 1`.
+ * The binding rule is `MAX_RECIPIENTS_PER_ITEM_PER_COMPANY = 1` over the item's
+ * lifetime — stricter than, and evaluated before, the spec's `MAX_RECIPIENTS_PER_ITEM
+ * = 3`, which counts across companies. See the spec's "Per-person ranking, then veto".
  */
 describe("(ב) veto: one item, one company, at most one recipient", () => {
   it.skip("passes at most one of three colleagues, each judged on person context", async () => {

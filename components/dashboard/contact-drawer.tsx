@@ -27,8 +27,8 @@ import EditContactModal from "./edit-contact-modal";
 import { toast } from "@/lib/toast";
 import { displayCompanySize } from "@/lib/contacts/display";
 import { enrichmentProgress } from "@/lib/enrichment-progress";
+import { fetcher } from "@/lib/fetcher";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface MessageRecord {
   id: string;
