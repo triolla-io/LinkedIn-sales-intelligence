@@ -42,9 +42,18 @@ const futureModule = (path: string) => import(/* @vite-ignore */ path);
 describe("(א) inverted triage: a vendor launch is not shareworthy on its own", () => {
   const SHAREWORTHY_FLOOR = 0.6;
 
+  /** triageAll takes PoolItem — {title, url, snippet, publishedAt} — not the item record. */
+  const poolItem = (over: Record<string, unknown> = {}) => ({
+    title: VENDOR_LAUNCH_ITEM.title,
+    url: VENDOR_LAUNCH_ITEM.url,
+    snippet: VENDOR_LAUNCH_ITEM.summary,
+    publishedAt: VENDOR_LAUNCH_ITEM.publishedAt,
+    ...over,
+  });
+
   it.skip("scores a pure cloud-vendor capability launch below the floor", async () => {
-    const { triageItems } = await futureModule("@/lib/tech-radar/triage");
-    const [verdict] = await triageItems([VENDOR_LAUNCH_ITEM]);
+    const { triageAll } = await futureModule("@/lib/tech-radar/triage");
+    const [verdict] = await triageAll([poolItem()]);
 
     expect(verdict.shareworthy).toBeLessThan(SHAREWORTHY_FLOOR);
     // `kind` has to name what it is, so the discard is auditable and the per-kind
@@ -53,14 +62,13 @@ describe("(א) inverted triage: a vendor launch is not shareworthy on its own", 
   });
 
   it.skip("scores the same capability high when a third party analyses the trend", async () => {
-    const { triageItems } = await futureModule("@/lib/tech-radar/triage");
-    const withAngle = {
-      ...VENDOR_LAUNCH_ITEM,
-      title: "מחקר: 60% מצוותי הדאטה זנחו מסדי וקטורים נפרדים ב-2026",
-      publisher: "state-of-data-report.org",
-      url: "https://state-of-data-report.org/2026/vector-consolidation",
-    };
-    const [verdict] = await triageItems([withAngle]);
+    const { triageAll } = await futureModule("@/lib/tech-radar/triage");
+    const [verdict] = await triageAll([
+      poolItem({
+        title: "מחקר: 60% מצוותי הדאטה זנחו מסדי וקטורים נפרדים ב-2026",
+        url: "https://state-of-data-report.org/2026/vector-consolidation",
+      }),
+    ]);
 
     expect(verdict.shareworthy).toBeGreaterThanOrEqual(SHAREWORTHY_FLOOR);
     expect(verdict.kind).toBe("research");
@@ -72,10 +80,15 @@ describe("(א) inverted triage: a vendor launch is not shareworthy on its own", 
    * would still be green on the wrong reason.
    */
   it.skip("separates the two by angle rather than by subject matter", async () => {
-    const { triageItems } = await futureModule("@/lib/tech-radar/triage");
+    const { triageAll } = await futureModule("@/lib/tech-radar/triage");
     const [launch, research] = await Promise.all([
-      triageItems([VENDOR_LAUNCH_ITEM]),
-      triageItems([{ ...VENDOR_LAUNCH_ITEM, title: "מחקר: איך צוותי דאטה בוחרים מסד וקטורי", publisher: "state-of-data-report.org" }]),
+      triageAll([poolItem()]),
+      triageAll([
+        poolItem({
+          title: "מחקר: איך צוותי דאטה בוחרים מסד וקטורי",
+          url: "https://state-of-data-report.org/2026/how-teams-choose",
+        }),
+      ]),
     ]);
     expect(research[0].shareworthy - launch[0].shareworthy).toBeGreaterThan(0.25);
   });
