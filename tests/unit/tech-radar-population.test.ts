@@ -52,6 +52,15 @@ describe("employersOf", () => {
     expect(out[0].companyId).toBe("co1");
   });
 
+  it("upgrades headcount when a later contact at the same employer has one", () => {
+    const out = employersOf([
+      row({ id: "a", radarInclude: true, companySize: null, company: null }),
+      row({ id: "b", companySize: null, company: { staffCount: 80, industry: null } }),
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0].staffCount).toBe(80);
+  });
+
   it("skips contacts with no usable employer name", () => {
     expect(employersOf([row({ currentCompany: null }), row({ currentCompany: "   " })])).toEqual([]);
   });
