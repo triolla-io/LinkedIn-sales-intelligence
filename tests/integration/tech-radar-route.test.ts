@@ -329,3 +329,45 @@ describe("PATCH /api/tech-radar/drafts/[draftId]", () => {
     expect((await patchDraft(req({ action: "nope" }, path)) as Response).status).toBe(400);
   });
 });
+
+/**
+ * The 27 drafts from the 2026-08-19 run all closed with v1's "אולי תוכלו לשלב", which
+ * lib/tech-radar/draft-guard.ts rejects. A draft that fails our own rules cannot sit in
+ * a send queue, and deleting it would lose the baseline the v2 register is compared
+ * against — hence SUPERSEDED_V1.
+ *
+ * Two independent barriers, both pinned here, because one of them silently stopping
+ * working is exactly how a v1 draft would reach a real person.
+ */
+describe("SUPERSEDED_V1 drafts are archived, not sendable", () => {
+  it("is not one of the statuses the screen asks for", async () => {
+    companyFindMany.mockResolvedValue([]);
+    await getFeed(req(undefined, "/api/tech-radar"));
+    const statuses = companyFindMany.mock.calls[0][0].select.opportunities.select.drafts.where.status.in;
+    expect(statuses).not.toContain("SUPERSEDED_V1");
+    expect(statuses).toEqual(["PENDING_REVIEW", "PREPARING", "PREPARED"]);
+  });
+
+  /**
+   * The transition guard is a whitelist on PENDING_REVIEW, so an archived draft cannot
+   * be claimed even by someone holding its id. Asserted through the route rather than
+   * by reading the constant, so a change from `status: "PENDING_REVIEW"` to
+   * `status: { not: "SENT" }` would fail here.
+   */
+  it("cannot be prepared even with its id in hand", async () => {
+    draftFindFirst.mockResolvedValue({
+      id: "d-old",
+      status: "SUPERSEDED_V1",
+      contact: { fullName: "לידור", linkedinUrl: "https://li/lidor" },
+    });
+    draftUpdateMany.mockResolvedValue({ count: 0 });
+
+    const res = (await patchDraft(
+      req({ action: "prepare", message: "היי לידור, אולי תוכלו לשלב את זה" }, "/api/tech-radar/drafts/d-old"),
+    )) as Response;
+
+    expect(res.status).toBe(409);
+    expect(draftUpdateMany.mock.calls[0][0].where.status).toBe("PENDING_REVIEW");
+    expect(taskCreate).not.toHaveBeenCalled();
+  });
+});

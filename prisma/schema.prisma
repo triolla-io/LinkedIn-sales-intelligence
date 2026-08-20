@@ -452,6 +452,11 @@ enum JobChangeStatus {
   APPROVED
   SENT
   DISMISSED
+  /// Written by a superseded prompt version. Kept as the comparison baseline for the
+  /// v2 register, never sendable: the 27 drafts from 2026-08-19 all carried v1's
+  /// "אולי תוכלו לשלב" close, which lib/tech-radar/draft-guard.ts rejects. A draft our
+  /// own rules fail cannot sit in a send queue.
+  SUPERSEDED_V1
 }
 
 enum JobChangeType {

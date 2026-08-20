@@ -145,7 +145,8 @@ export const JobChangeStatus = {
   PENDING_REVIEW: 'PENDING_REVIEW',
   APPROVED: 'APPROVED',
   SENT: 'SENT',
-  DISMISSED: 'DISMISSED'
+  DISMISSED: 'DISMISSED',
+  SUPERSEDED_V1: 'SUPERSEDED_V1'
 } as const
 
 export type JobChangeStatus = (typeof JobChangeStatus)[keyof typeof JobChangeStatus]
