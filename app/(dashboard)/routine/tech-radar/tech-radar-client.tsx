@@ -144,10 +144,19 @@ export function TechRadarModuleSwitch() {
 }
 
 export function TechRadarClient() {
-  const { data, isLoading, mutate } = useSWR<{ companies: Company[]; cohort?: CohortStripCounts }>(
+  const { data, isLoading, mutate } = useSWR<{ companies: Company[] }>(
     "/api/tech-radar",
     fetcher,
     { refreshInterval: 30_000 }
+  );
+  // Separate key, no polling: the cohort summary scans the owner's whole contact
+  // list, which is cheap once but not something to pay for twice a minute per
+  // open tab. It fetches on mount and revalidates on focus (SWR's default),
+  // which is plenty for a number that only moves when contacts are enriched.
+  const { data: cohortData } = useSWR<{ cohort: CohortStripCounts }>(
+    "/api/tech-radar/cohort",
+    fetcher,
+    { refreshInterval: 0 }
   );
   const { modules } = useRoutineModules();
   const radarOn = modules?.techRadarEnabled ?? false;
@@ -163,7 +172,7 @@ export function TechRadarClient() {
         </div>
       )}
 
-      {data?.cohort && <CohortStrip counts={data.cohort} />}
+      {cohortData?.cohort && <CohortStrip counts={cohortData.cohort} />}
 
       <AddCompanyForm onAdded={() => mutate()} />
 

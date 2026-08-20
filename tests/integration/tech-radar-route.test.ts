@@ -51,6 +51,7 @@ const { PATCH: patchCompany, DELETE: deleteCompany } = await import(
   "@/app/api/tech-radar/companies/[id]/route"
 );
 const { GET: getFeed } = await import("@/app/api/tech-radar/route");
+const { GET: getCohort } = await import("@/app/api/tech-radar/cohort/route");
 const { PATCH: patchDraft } = await import("@/app/api/tech-radar/drafts/[draftId]/route");
 
 // The route handlers take a NextRequest; only nextUrl.pathname and json() are used.
@@ -257,6 +258,38 @@ describe("GET /api/tech-radar", () => {
     const { companies } = await (res as Response).json();
     expect(companies[0].profile).toBeNull();
     expect(companies[0].profileError).toBe("no sources");
+  });
+});
+
+// Split out of GET /api/tech-radar so the client's 30s poll never re-scans the owner's
+// whole contact list (see lib/tech-radar/population.ts summarizeCohort). This route is
+// fetched once on mount, not on an interval.
+describe("GET /api/tech-radar/cohort", () => {
+  it("scopes the cohort to the caller's own contacts via effectiveUserId, not the org", async () => {
+    contactFindMany.mockResolvedValue([]);
+    await getCohort(req(undefined, "/api/tech-radar/cohort"));
+    expect(contactFindMany.mock.calls[0][0].where).toEqual({ ownerId: "owner1", removedAt: null });
+  });
+
+  it("returns the cohort counts, employer count, and the no-employer backlog", async () => {
+    contactFindMany.mockResolvedValue([
+      {
+        id: "c1", ownerId: "owner1", radarInclude: null, currentTitle: "CEO",
+        currentCompany: "Acme Ltd", companyId: null, companySize: 120,
+        enrichedAt: null, lastSyncedAt: new Date("2026-07-01T00:00:00.000Z"), company: null,
+      },
+      {
+        id: "c2", ownerId: "owner1", radarInclude: null, currentTitle: "CEO",
+        currentCompany: "   ", companyId: null, companySize: 120,
+        enrichedAt: null, lastSyncedAt: new Date("2026-07-01T00:00:00.000Z"), company: null,
+      },
+    ]);
+    const res = await getCohort(req(undefined, "/api/tech-radar/cohort"));
+    const { cohort } = await (res as Response).json();
+    expect(cohort.total).toBe(2);
+    expect(cohort.cohort).toBe(2);
+    expect(cohort.employers).toBe(1);
+    expect(cohort.noEmployer).toBe(1);
   });
 });
 
