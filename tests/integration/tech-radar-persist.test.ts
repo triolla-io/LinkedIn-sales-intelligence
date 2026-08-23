@@ -28,7 +28,7 @@ function draft(over: Partial<TechItemDraft> = {}): TechItemDraft {
     categories: ["carbon accounting"],
     sources: [{ url: "https://esgtoday.com/a", title: "A", publishedAt: null }],
     publishedAt: null,
-    thin: false,
+    thin: false, shareworthy: 0.8, stature: 0.7, kind: "research" as const,
     ...over,
   };
 }
@@ -149,3 +149,35 @@ describe("interleaveByLine", () => {
     expect(interleaveByLine([])).toEqual([]);
   });
 });
+
+/**
+ * Story-level dedup. The 2026-08-23 run stored ONE Nature paper twice — once as
+ * "CO2-EOR" and once as "CO2-EOR with xanthan gum" — because the dedupe key is built
+ * from the model's own naming, and the model named the same article differently on two
+ * passes. A url is not a matter of opinion.
+ */
+describe("normalizeStoryUrl", () => {
+  it("treats the same article as the same story regardless of noise", async () => {
+    const { normalizeStoryUrl } = await import("@/lib/tech-radar/persist");
+    const canonical = normalizeStoryUrl("https://www.nature.com/articles/s41598-026-49640-7");
+    for (const variant of [
+      "http://nature.com/articles/s41598-026-49640-7",
+      "https://www.nature.com/articles/s41598-026-49640-7/",
+      "https://WWW.NATURE.COM/articles/S41598-026-49640-7",
+    ]) {
+      expect(normalizeStoryUrl(variant), variant).toBe(canonical);
+    }
+  });
+
+  it("keeps two different articles apart", async () => {
+    const { normalizeStoryUrl } = await import("@/lib/tech-radar/persist");
+    expect(normalizeStoryUrl("https://nature.com/articles/a")).not.toBe(
+      normalizeStoryUrl("https://nature.com/articles/b")
+    );
+  });
+
+  it("does not throw on a malformed url", async () => {
+    const { normalizeStoryUrl } = await import("@/lib/tech-radar/persist");
+    expect(normalizeStoryUrl("  NOT a url ")).toBe("not a url");
+  });
+})

@@ -25,6 +25,8 @@ type Match = {
   url: string | null;
   kind: string;
   shareworthy: number;
+  stature: number;
+  snippetOnly: boolean;
   score: number;
   rationale: string;
 };
@@ -145,6 +147,13 @@ function AxisRow({ axis }: { axis: Axis }) {
                 <span className={cn("text-xs ms-1", FAINT)}>· {KIND_HE[m.kind] ?? m.kind}</span>
                 {/* The Hebrew summary we already paid to write. Without it the reader has
                     to open every link to form any opinion at all. */}
+                {/* A summary built from a snippet rather than the page is labelled, not
+                    hidden: it is usable context and it is not evidence. */}
+                {m.snippetOnly && (
+                  <span className="block text-xs mt-0.5 text-[#b42318]">
+                    ⚠ הסיכום נוצר מקטע חיפוש ולא מהכתבה — לא אמין, פתחי את הקישור
+                  </span>
+                )}
                 {m.summary && (
                   <span className={cn("block text-xs mt-0.5 leading-relaxed", MUTED)}>{m.summary}</span>
                 )}

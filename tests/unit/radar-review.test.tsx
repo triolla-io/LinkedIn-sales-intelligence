@@ -153,7 +153,7 @@ describe("RadarReview", () => {
     data[KEY] = {
       people: [
         person({
-          axes: [axis({ matches: [{ itemId: "i1", title: "CO2-EOR", summary: "שיטה להגברת הוצאת נפט על ידי הזרקת CO2.", url: "https://x.com/co2", kind: "research", shareworthy: 0.7, score: 0.85, rationale: "מוסיף נתוני אימוץ" }] })],
+          axes: [axis({ matches: [{ itemId: "i1", title: "CO2-EOR", summary: "שיטה להגברת הוצאת נפט על ידי הזרקת CO2.", url: "https://x.com/co2", kind: "research", shareworthy: 0.7, stature: 0.8, snippetOnly: false, score: 0.85, rationale: "מוסיף נתוני אימוץ" }] })],
         }),
       ],
       health: health({ matches: 1 }),
@@ -219,7 +219,7 @@ describe("RadarReview shows the item, not just its name", () => {
               summary: "שיטה להגברת הוצאת נפט מקידוחים קיימים על ידי הזרקת CO2.",
               url: "https://oceannews.com/co2-eor",
               kind: "research",
-              shareworthy: 0.7,
+              shareworthy: 0.7, stature: 0.8, snippetOnly: false,
               score: 0.85,
               rationale: "מוסיף נתוני אימוץ בשדות בוגרים",
               ...over,
@@ -254,5 +254,32 @@ describe("RadarReview shows the item, not just its name", () => {
     data[KEY] = { people: [withItem()], health: health({ matches: 1 }) };
     render(<RadarReview />);
     expect(screen.getByText(/למה זה תואם לציר: מוסיף נתוני אימוץ/)).toBeInTheDocument();
+  });
+});
+
+/**
+ * The write-up used to be built from a title and a snippet, which turned a Bloomberg Law
+ * story about a court ordering OpenAI to hand over 20 million chat logs into a summary of
+ * "ChatGPT is a large language model". When the page cannot be read the summary is
+ * labelled rather than hidden: it is usable context and it is not evidence.
+ */
+describe("RadarReview marks an unreliable summary", () => {
+  const match = (over: Record<string, unknown> = {}) => ({
+    itemId: "i1", title: "כתבה", summary: "סיכום כלשהו",
+    url: "https://x.com/a", kind: "research", shareworthy: 0.7, stature: 0.8,
+    snippetOnly: false, score: 0.8, rationale: "r", ...over,
+  });
+
+  it("warns when the summary came from a snippet, and still shows it", () => {
+    data[KEY] = { people: [person({ axes: [axis({ matches: [match({ snippetOnly: true })] })] })], health: health({ matches: 1 }) };
+    render(<RadarReview />);
+    expect(screen.getByText(/הסיכום נוצר מקטע חיפוש ולא מהכתבה/)).toBeInTheDocument();
+    expect(screen.getByText("סיכום כלשהו")).toBeInTheDocument();
+  });
+
+  it("does not warn when the page was read", () => {
+    data[KEY] = { people: [person({ axes: [axis({ matches: [match()] })] })], health: health({ matches: 1 }) };
+    render(<RadarReview />);
+    expect(screen.queryByText(/הסיכום נוצר מקטע חיפוש/)).toBeNull();
   });
 });

@@ -16,6 +16,7 @@ import { normalizeQuery } from "@/lib/tech-radar/queries";
 import { fetchPoolNews } from "@/lib/tech-radar/fetch-pool-news";
 import { triageAll, type PoolItem } from "@/lib/tech-radar/triage";
 import { synthesizeItem } from "@/lib/tech-radar/item";
+import { readPage } from "@/lib/research/read-page";
 import { upsertTechItem } from "@/lib/tech-radar/persist";
 import { buildAxisQueryPool, judgeAxisFit, capPoolByAxis, AXIS_FIT_FLOOR } from "@/lib/tech-radar/axis-fit";
 import { judgeAndDraft } from "@/lib/tech-radar/judge-and-draft";
@@ -49,6 +50,8 @@ export type PersonScanReport = {
   poolDropped: number;
   /** On-topic but weightless. The failure mode `stature` was added to name. */
   relevantButLight: number;
+  /** Items whose page could not be read, so their summary is snippet-only. */
+  snippetOnly: number;
   /** Did the run clear the pilot's bar, and if not, what was missing. */
   acceptance: AcceptanceReport;
   /** Why candidates were dropped, counted by reason. Never a bare number. */
@@ -59,7 +62,7 @@ export type PersonScanReport = {
 
 const EMPTY: PersonScanReport = {
   axes: 0, queriesRun: 0, poolItems: 0, worthSharing: 0, itemsWritten: 0,
-  axisFitsJudged: 0, candidates: 0, vetoed: 0, drafted: 0, poolDropped: 0, relevantButLight: 0,
+  axisFitsJudged: 0, candidates: 0, vetoed: 0, drafted: 0, poolDropped: 0, relevantButLight: 0, snippetOnly: 0,
   acceptance: { weighty: 0, israeli: 0, met: false, shortfall: "לא נסרק" },
   dropReasons: {}, triageByKind: [], quotaExhausted: false,
 };
@@ -148,15 +151,23 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
 
   // ── 4. Write each surviving item up once ──────────────────────────────────
   const subscribersByUrl = new Map(capped.kept.map((i) => [i.url, i.companyIds]));
+  let pageReadFailures = 0;
   const written: { itemId: string; axisIds: string[]; kind: string; title: string; summary: string; technology: string | null; sources: unknown }[] = [];
   for (const verdict of worthSharing.slice(0, MAX_SYNTHESIS_PER_RUN)) {
     const source = capped.kept.find((i) => i.url === verdict.url);
     if (!source) continue;
     try {
+      // Read the actual article. Passing `pages: []` meant the model saw a title and a
+      // snippet and filled the rest from what it already knew — that is how a Bloomberg
+      // Law story about a court ordering OpenAI to hand over 20 million chat logs became
+      // a summary of "ChatGPT is a large language model". A summary that does not
+      // describe its source is worse than no summary.
+      const page = await readPage(source.url);
+      if (!page) pageReadFailures += 1;
       const draft = await synthesizeItem({
         triage: verdict,
         articles: [{ url: source.url, title: source.title, snippet: source.snippet, publishedAt: source.publishedAt }],
-        pages: [],
+        pages: page ? [page] : [],
       });
       const itemId = await upsertTechItem(draft);
       written.push({
@@ -173,7 +184,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     }
   }
   if (written.length === 0) {
-    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, poolDropped: capped.dropped, relevantButLight, acceptance, triageByKind, quotaExhausted: news.quotaLikely };
+    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, poolDropped: capped.dropped, relevantButLight, snippetOnly: pageReadFailures, acceptance, triageByKind, quotaExhausted: news.quotaLikely };
   }
 
   // ── 5. Per-AXIS fit, judged once and shared by every subscriber ───────────
@@ -211,7 +222,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     }
   }
   if (matchesAboveFloor === 0) {
-    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, itemsWritten: written.length, axisFitsJudged, poolDropped: capped.dropped, relevantButLight, acceptance, triageByKind, quotaExhausted: news.quotaLikely };
+    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, itemsWritten: written.length, axisFitsJudged, poolDropped: capped.dropped, relevantButLight, snippetOnly: pageReadFailures, acceptance, triageByKind, quotaExhausted: news.quotaLikely };
   }
 
   // ── 6-7. Rank, veto, draft — the ONE implementation, shared with radar.judge ──
@@ -229,6 +240,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     drafted: judged.drafted,
     poolDropped: capped.dropped,
     relevantButLight,
+    snippetOnly: pageReadFailures,
     acceptance,
     dropReasons: judged.dropReasons,
     triageByKind,

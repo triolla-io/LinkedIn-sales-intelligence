@@ -31,7 +31,39 @@ async function mergeInto(
   return existing.id;
 }
 
+/** Normalised for comparison: scheme, www, trailing slash and tracking params are noise. */
+export function normalizeStoryUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase().replace(/^www\./, "");
+    const path = u.pathname.replace(/\/+$/, "").toLowerCase();
+    return `${host}${path}`;
+  } catch {
+    return url.trim().toLowerCase();
+  }
+}
+
 export async function upsertTechItem(draft: TechItemDraft): Promise<string> {
+  // Story-level first: the SAME URL is the same story, whatever the write-up called it.
+  // The 2026-08-23 run stored one Nature paper twice, as "CO2-EOR" and as "CO2-EOR with
+  // xanthan gum", because the key is built from the model's own naming and the model
+  // named it differently on two passes. A url is not a matter of opinion.
+  const storyUrls = new Set(draft.sources.map((x) => normalizeStoryUrl(x.url)).filter(Boolean));
+  if (storyUrls.size > 0) {
+    const recent = await prisma.techItem.findMany({
+      where: { createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
+      select: { id: true, sources: true, thin: true },
+      orderBy: { createdAt: "desc" },
+      take: 300,
+    });
+    for (const row of recent) {
+      const rowUrls = Array.isArray(row.sources) ? (row.sources as { url?: string }[]) : [];
+      if (rowUrls.some((x) => x?.url && storyUrls.has(normalizeStoryUrl(x.url)))) {
+        return mergeInto(row, draft);
+      }
+    }
+  }
+
   const dedupeKey = makeItemDedupeKey(draft.vendor, draft.technology);
   const existing = await prisma.techItem.findUnique({
     where: { dedupeKey },

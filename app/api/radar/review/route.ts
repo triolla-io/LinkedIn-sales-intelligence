@@ -47,7 +47,7 @@ export const GET = withTenant(async (_req, ctx) => {
       select: {
         id: true, contactId: true, axisId: true, status: true, draftMessage: true,
         whyHim: true, confidence: true, discardReason: true, createdAt: true,
-        item: { select: { id: true, title: true, summary: true, kind: true, shareworthy: true, sources: true } },
+        item: { select: { id: true, title: true, summary: true, kind: true, shareworthy: true, stature: true, thin: true, sources: true } },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -61,7 +61,7 @@ export const GET = withTenant(async (_req, ctx) => {
         // The summary and the link are the whole point: the reader has to be able to
         // READ the item to judge whether it is worth forwarding. A title in grey text
         // is not something anyone can form an opinion about.
-        item: { select: { id: true, title: true, summary: true, kind: true, shareworthy: true, sources: true } },
+        item: { select: { id: true, title: true, summary: true, kind: true, shareworthy: true, stature: true, thin: true, sources: true } },
       },
       orderBy: { score: "desc" },
     }),
@@ -106,6 +106,9 @@ export const GET = withTenant(async (_req, ctx) => {
           url: firstUrl(m.item.sources),
           kind: m.item.kind,
           shareworthy: m.item.shareworthy,
+          stature: m.item.stature,
+          /** True when the page could not be read: the summary came from a snippet. */
+          snippetOnly: m.item.thin,
           score: m.score,
           rationale: m.rationale,
         })),
