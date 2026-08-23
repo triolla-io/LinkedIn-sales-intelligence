@@ -20,7 +20,8 @@ import { upsertTechItem } from "@/lib/tech-radar/persist";
 import { buildAxisQueryPool, judgeAxisFit, capPoolByAxis, AXIS_FIT_FLOOR } from "@/lib/tech-radar/axis-fit";
 import { judgeAndDraft } from "@/lib/tech-radar/judge-and-draft";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
-import { SHAREWORTHY_FLOOR } from "@/lib/tech-radar/types";
+import { SHAREWORTHY_FLOOR, STATURE_FLOOR } from "@/lib/tech-radar/types";
+import { judgeAcceptance, type AcceptanceReport } from "@/lib/tech-radar/acceptance";
 
 const MAX_QUERIES_PER_AXIS = 3;
 /**
@@ -46,6 +47,10 @@ export type PersonScanReport = {
   drafted: number;
   /** How many pool items the cap discarded, so a truncated run says so. */
   poolDropped: number;
+  /** On-topic but weightless. The failure mode `stature` was added to name. */
+  relevantButLight: number;
+  /** Did the run clear the pilot's bar, and if not, what was missing. */
+  acceptance: AcceptanceReport;
   /** Why candidates were dropped, counted by reason. Never a bare number. */
   dropReasons: Record<string, number>;
   triageByKind: { kind: string; seen: number; passed: number }[];
@@ -54,7 +59,8 @@ export type PersonScanReport = {
 
 const EMPTY: PersonScanReport = {
   axes: 0, queriesRun: 0, poolItems: 0, worthSharing: 0, itemsWritten: 0,
-  axisFitsJudged: 0, candidates: 0, vetoed: 0, drafted: 0, poolDropped: 0,
+  axisFitsJudged: 0, candidates: 0, vetoed: 0, drafted: 0, poolDropped: 0, relevantButLight: 0,
+  acceptance: { weighty: 0, israeli: 0, met: false, shortfall: "לא נסרק" },
   dropReasons: {}, triageByKind: [], quotaExhausted: false,
 };
 
@@ -113,13 +119,28 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
   for (const v of verdicts) {
     const e = byKind.get(v.kind) ?? { kind: v.kind, seen: 0, passed: 0 };
     e.seen += 1;
-    if (v.shareworthy >= SHAREWORTHY_FLOOR && !v.staleness) e.passed += 1;
+    if (v.shareworthy >= SHAREWORTHY_FLOOR && v.stature >= STATURE_FLOOR && !v.staleness) e.passed += 1;
     byKind.set(v.kind, e);
   }
   const triageByKind = [...byKind.values()].sort((a, b) => b.seen - a.seen);
-  const worthSharing = verdicts.filter((v) => v.shareworthy >= SHAREWORTHY_FLOOR && !v.staleness);
+  // Two bars, not one. The run before this returned items that were on-topic and
+  // weightless — a paper on an injection polymer, a trade piece on a pipe robot. Correct
+  // subject, no gift. Relevance and weight are different questions and both have a floor.
+  const worthSharing = verdicts.filter(
+    (v) => v.shareworthy >= SHAREWORTHY_FLOOR && v.stature >= STATURE_FLOOR && !v.staleness
+  );
+  const relevantButLight = verdicts.filter(
+    (v) => v.shareworthy >= SHAREWORTHY_FLOOR && v.stature < STATURE_FLOOR && !v.staleness
+  ).length;
+  // Judged on what CLEARED the filter, so the report says whether the run found gifts —
+  // and when it did not, says that rather than being padded with the best of a weak pool.
+  const acceptance = judgeAcceptance(
+    worthSharing.map((v) => ({ kind: v.kind, stature: v.stature, url: v.url }))
+  );
+  if (!acceptance.met) console.warn(`[radar] acceptance org=${orgId} ${acceptance.shortfall}`);
   console.log(
-    `[radar] triage org=${orgId} ${triageByKind.map((k) => `${k.kind}=${k.passed}/${k.seen}`).join(" ")}`
+    `[radar] triage org=${orgId} ${triageByKind.map((k) => `${k.kind}=${k.passed}/${k.seen}`).join(" ")}` +
+      ` relevant_but_light=${relevantButLight} weighty=${acceptance.weighty} israeli=${acceptance.israeli}`
   );
   if (worthSharing.length === 0) {
     return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, triageByKind, quotaExhausted: news.quotaLikely };
@@ -152,7 +173,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     }
   }
   if (written.length === 0) {
-    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, poolDropped: capped.dropped, triageByKind, quotaExhausted: news.quotaLikely };
+    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, poolDropped: capped.dropped, relevantButLight, acceptance, triageByKind, quotaExhausted: news.quotaLikely };
   }
 
   // ── 5. Per-AXIS fit, judged once and shared by every subscriber ───────────
@@ -190,7 +211,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     }
   }
   if (matchesAboveFloor === 0) {
-    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, itemsWritten: written.length, axisFitsJudged, poolDropped: capped.dropped, triageByKind, quotaExhausted: news.quotaLikely };
+    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, itemsWritten: written.length, axisFitsJudged, poolDropped: capped.dropped, relevantButLight, acceptance, triageByKind, quotaExhausted: news.quotaLikely };
   }
 
   // ── 6-7. Rank, veto, draft — the ONE implementation, shared with radar.judge ──
@@ -207,6 +228,8 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     vetoed: judged.vetoed,
     drafted: judged.drafted,
     poolDropped: capped.dropped,
+    relevantButLight,
+    acceptance,
     dropReasons: judged.dropReasons,
     triageByKind,
     quotaExhausted: news.quotaLikely,

@@ -33,13 +33,14 @@ describe("parseTriageResponse", () => {
 
   it("parses a fenced response", () => {
     const out = parseTriageResponse(
-      '```json\n{"verdicts":[{"url":"https://x.com/1","shareworthy":0.8,"kind":"research","publisher":"report.org","staleness":false,"categories":["Fraud Detection"],"vendor":"Acme","technology":"Shield"}]}\n```',
+      '```json\n{"verdicts":[{"url":"https://x.com/1","shareworthy":0.8,"stature":0.7,"kind":"research","publisher":"report.org","staleness":false,"categories":["Fraud Detection"],"vendor":"Acme","technology":"Shield"}]}\n```',
       valid
     );
     expect(out).toEqual([
       {
         url: "https://x.com/1",
         shareworthy: 0.8,
+        stature: 0.7,
         kind: "research",
         publisher: "report.org",
         staleness: false,
@@ -158,9 +159,25 @@ describe("the triage prompt", () => {
     expect(SYSTEM).not.toMatch(/market analysis, forecasts, surveys, research reports/);
   });
 
-  it("demands a decimal, because a word would clamp to zero", () => {
-    expect(SYSTEM).toMatch(/as a DECIMAL/);
+  it("demands decimals, because a word would clamp to zero", () => {
+    expect(SYSTEM).toMatch(/both as DECIMALS/);
     expect(SYSTEM).toMatch(/Never a word/);
+  });
+
+  /**
+   * Relevance and weight are different questions. The 2026-08-23 run passed a paper on
+   * a CO2 injection polymer and a trade piece on a pipe robot — squarely on topic, no
+   * gift in either.
+   */
+  it("scores weight separately, with the CEO-to-CEO test", () => {
+    expect(SYSTEM).toMatch(/WOULD A CEO FORWARD THIS TO ANOTHER CEO/);
+    expect(SYSTEM).toMatch(/McKinsey, BCG, Deloitte/);
+    expect(SYSTEM).toMatch(/one niche tool, method or instrument in a trade publication/);
+  });
+
+  it("carries the on-topic-but-weightless case as a worked example", () => {
+    expect(SYSTEM).toMatch(/stature 0\.2\. Correct subject for an asset manager/);
+    expect(SYSTEM).toMatch(/ועדת הריכוזיות/);
   });
 
   it("carries both directions of the same subject as a worked example", () => {

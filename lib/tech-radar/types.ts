@@ -74,6 +74,24 @@ export const ITEM_KINDS: readonly ItemKind[] = [
 export const SHAREWORTHY_FLOOR = 0.6;
 
 /**
+ * Weight, separate from relevance.
+ *
+ * The 2026-08-23 run returned items that were genuinely on-topic and still not worth
+ * sending: a Nature paper on a CO2 injection polymer, a trade-journal piece on a pipe
+ * inspection robot. Correct subject, no gift in it. `shareworthy` could not tell them
+ * apart from a flagship report, because relevance and weight are different questions.
+ *
+ * High: a flagship report from a major consultancy or analyst house, a Big-5 survey, a
+ * regulatory move, a large market move. Low: a niche-tool write-up in the trade press.
+ *
+ * The test is "would a CEO forward this to another CEO", not "is this about their field".
+ */
+export const STATURE_FLOOR = 0.5;
+
+/** Kinds that satisfy the flagship half of a run's acceptance criterion. */
+export const FLAGSHIP_KINDS: readonly ItemKind[] = ["research", "big_news", "company_move"] as const;
+
+/**
  * Stage 2 output: would a well-read person forward this to someone they know?
  *
  * This replaced `isLaunch`. The old field asked whether an item was a product launch
@@ -86,6 +104,11 @@ export type TriageVerdict = {
   url: string;
   /** 0-1. Forwardable to a colleague, unprompted, with no agenda. */
   shareworthy: number;
+  /**
+   * 0-1. How much WEIGHT the item carries, independent of how relevant it is.
+   * A correct-subject, low-stature item is the failure mode this exists to catch.
+   */
+  stature: number;
   kind: ItemKind;
   /** Who published it. A vendor publishing about itself is promotion until proven otherwise. */
   publisher: string | null;
@@ -111,6 +134,7 @@ export type TechItemDraft = {
   thin: boolean;
   /** Carried from the triage verdict so a discard can be explained after the fact. */
   shareworthy: number;
+  stature: number;
   kind: ItemKind;
 };
 

@@ -25,6 +25,13 @@ export type AxisProposal = {
   searchQueries: string[];
   /** Why this axis is THIS person's. Becomes PersonAxis.rationale and feeds the veto. */
   rationale: string;
+  /**
+   * True for an axis derived from what the company is doing NOW, rather than from the
+   * job description. "מרווחי זיקוק" is a role. "הרחבת בית הזיקוק שהכריזו עליה ברבעון"
+   * is an agenda — and only the second gives the veto something a colleague with the
+   * same title would not also have.
+   */
+  agenda: boolean;
 };
 
 export type PersonProfileDraft = {
@@ -34,19 +41,29 @@ export type PersonProfileDraft = {
 
 export const PROFILE_SYSTEM = `You describe what ONE person owns at work, and which subjects would make them stop and read.
 
-You are given a person's title and headline, and a research profile of their employer. The employer profile is CONTEXT for understanding what this person's job actually involves. It is NOT the answer. A description of the company is a failed answer.
+You are given a person's title and headline, and a research profile of their employer. The employer profile is CONTEXT for understanding what this person's job actually involves, AND the source of what their company is doing right now. A description of the company as an answer to "what does this person own" is a failed answer.
 
 Return two things.
 
 1. roleLens — one Hebrew sentence: what decisions or problems does THIS person own? Be concrete about the job, not the company. "אחראי על מנוע ההמלצות ועל איכות הדירוג" is a role lens. "עובד בחברת ספורט" is not.
 
-2. axes — 3 to 5 subjects this person would read about because of what they own. For each:
-   - label: 2-5 Hebrew words naming the subject. Rich enough to be distinguishable — "זיהוי הונאות בתשלומים", not "הונאות". Never a single generic word like "פינטק" or "טכנולוגיה": a subject most of an industry shares is not an interest, and it will be discarded.
-   - searchQueries: 2-4 ENGLISH web-search queries that would surface research, reports, trends and analysis on that subject. Two to four words at the core of each query. Do NOT write queries aimed at product launches or vendor announcements.
-   - rationale: one Hebrew sentence saying why this subject is THIS PERSON'S — tied to what they own, not to what their employer sells. This sentence is later used to decide whether to message them at all, so a sentence that would be equally true of any colleague with a different title is worthless.
+2. axes — 3 to 5 subjects this person would read about. EXACTLY ONE of them must have "agenda": true, and the rest "agenda": false.
+
+   The AGENDA axis is derived from what the company is DOING NOW — a project, an expansion, an acquisition, a regulatory exposure, a market they just entered, a facility they announced. Take it from the employer profile. It must be something a colleague with a different title at the same company would ALSO care about, but that a person with the same title at a DIFFERENT company would not.
+   - AGENDA: "הרחבת קיבולת הזיקוק שהוכרזה ברבעון האחרון", "כניסה לשוק ההודי", "עסקת הרכישה שממתינה לאישור רגולטורי"
+   - NOT AGENDA, this is a role: "מרווחי זיקוק", "ניהול עלויות הפעלה", "בקרת איכות"
+
+   For every axis:
+   - label: 2-5 Hebrew words naming the subject. Rich enough to be distinguishable — "זיהוי הונאות בתשלומים", not "הונאות". Never a single generic word like "פינטק": a subject most of an industry shares will be discarded.
+   - rationale: one Hebrew sentence saying why this subject is THIS PERSON'S. It must point at a decision they make, a project they run, an asset they are responsible for, or a problem they personally carry — NOT at their job title. A sentence that begins "כ-VP Assets, אחראי על…" is a restatement of the title and will be rejected downstream. A sentence that names a specific field, product, facility, market or decision will not.
+   - searchQueries: 2-4 web-search queries. They decide what this person actually receives, so aim them at material with WEIGHT:
+     * Aim at flagship reports, industry studies, regulatory moves, market moves and serious business news. NOT at product launches, vendor announcements, or write-ups of individual tools — those are filtered out later, so a query that finds them wastes the run.
+     * If the person or the company is Israeli, AT LEAST ONE query per axis must be IN HEBREW, phrased the way Israeli business press writes — that is what surfaces Globes, Calcalist, TheMarker and Bizportal, and local news is the most forwardable material there is. Do NOT use "site:" operators; plain Hebrew works better.
+     * Other queries in English, two to four words at the core.
+     * For a report-hunting query, name the kind of thing: "outlook report", "industry survey", "regulatory ruling", "market outlook".
 
 Return strict JSON only — no prose, no fences:
-{"roleLens":"...","axes":[{"label":"...","searchQueries":["..."],"rationale":"..."}]}`;
+{"roleLens":"...","axes":[{"label":"...","agenda":true,"searchQueries":["..."],"rationale":"..."}]}`;
 
 export type PersonProfileInput = {
   fullName: string;
@@ -103,11 +120,20 @@ export function parseProfileResponse(text: string): PersonProfileDraft | null {
     if (searchQueries.length === 0) continue;
 
     seen.add(key);
-    axes.push({ label, key, searchQueries, rationale });
+    axes.push({ label, key, searchQueries, rationale, agenda: o.agenda === true });
     if (axes.length >= MAX_AXES_PER_PERSON) break;
   }
 
   if (axes.length === 0) return null;
+  // Exactly one agenda axis. If the model marked several, the first wins; if it marked
+  // none, the first axis is promoted rather than leaving the person with role axes only
+  // — the whole point is that at least one axis is not derivable from a job title.
+  let seenAgenda = false;
+  for (const a of axes) {
+    if (a.agenda && !seenAgenda) seenAgenda = true;
+    else a.agenda = false;
+  }
+  if (!seenAgenda) axes[0].agenda = true;
   return { roleLens, axes };
 }
 

@@ -4975,6 +4975,7 @@ export const TechItemScalarFieldEnum = {
   publishedAt: 'publishedAt',
   thin: 'thin',
   shareworthy: 'shareworthy',
+  stature: 'stature',
   kind: 'kind',
   dedupeKey: 'dedupeKey',
   createdAt: 'createdAt'
@@ -5056,6 +5057,7 @@ export const PersonAxisScalarFieldEnum = {
   personProfileId: 'personProfileId',
   axisId: 'axisId',
   weight: 'weight',
+  agenda: 'agenda',
   rationale: 'rationale',
   source: 'source',
   createdAt: 'createdAt'

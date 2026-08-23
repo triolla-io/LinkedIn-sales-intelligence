@@ -30,10 +30,12 @@ export type AggregateTechItem = {
 
 export type TechItemAvgAggregateOutputType = {
   shareworthy: number | null
+  stature: number | null
 }
 
 export type TechItemSumAggregateOutputType = {
   shareworthy: number | null
+  stature: number | null
 }
 
 export type TechItemMinAggregateOutputType = {
@@ -45,6 +47,7 @@ export type TechItemMinAggregateOutputType = {
   publishedAt: Date | null
   thin: boolean | null
   shareworthy: number | null
+  stature: number | null
   kind: string | null
   dedupeKey: string | null
   createdAt: Date | null
@@ -59,6 +62,7 @@ export type TechItemMaxAggregateOutputType = {
   publishedAt: Date | null
   thin: boolean | null
   shareworthy: number | null
+  stature: number | null
   kind: string | null
   dedupeKey: string | null
   createdAt: Date | null
@@ -75,6 +79,7 @@ export type TechItemCountAggregateOutputType = {
   publishedAt: number
   thin: number
   shareworthy: number
+  stature: number
   kind: number
   dedupeKey: number
   createdAt: number
@@ -84,10 +89,12 @@ export type TechItemCountAggregateOutputType = {
 
 export type TechItemAvgAggregateInputType = {
   shareworthy?: true
+  stature?: true
 }
 
 export type TechItemSumAggregateInputType = {
   shareworthy?: true
+  stature?: true
 }
 
 export type TechItemMinAggregateInputType = {
@@ -99,6 +106,7 @@ export type TechItemMinAggregateInputType = {
   publishedAt?: true
   thin?: true
   shareworthy?: true
+  stature?: true
   kind?: true
   dedupeKey?: true
   createdAt?: true
@@ -113,6 +121,7 @@ export type TechItemMaxAggregateInputType = {
   publishedAt?: true
   thin?: true
   shareworthy?: true
+  stature?: true
   kind?: true
   dedupeKey?: true
   createdAt?: true
@@ -129,6 +138,7 @@ export type TechItemCountAggregateInputType = {
   publishedAt?: true
   thin?: true
   shareworthy?: true
+  stature?: true
   kind?: true
   dedupeKey?: true
   createdAt?: true
@@ -232,6 +242,7 @@ export type TechItemGroupByOutputType = {
   publishedAt: Date | null
   thin: boolean
   shareworthy: number
+  stature: number
   kind: string
   dedupeKey: string
   createdAt: Date
@@ -271,6 +282,7 @@ export type TechItemWhereInput = {
   publishedAt?: Prisma.DateTimeNullableFilter<"TechItem"> | Date | string | null
   thin?: Prisma.BoolFilter<"TechItem"> | boolean
   shareworthy?: Prisma.FloatFilter<"TechItem"> | number
+  stature?: Prisma.FloatFilter<"TechItem"> | number
   kind?: Prisma.StringFilter<"TechItem"> | string
   dedupeKey?: Prisma.StringFilter<"TechItem"> | string
   createdAt?: Prisma.DateTimeFilter<"TechItem"> | Date | string
@@ -290,6 +302,7 @@ export type TechItemOrderByWithRelationInput = {
   publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   thin?: Prisma.SortOrder
   shareworthy?: Prisma.SortOrder
+  stature?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   dedupeKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -313,6 +326,7 @@ export type TechItemWhereUniqueInput = Prisma.AtLeast<{
   publishedAt?: Prisma.DateTimeNullableFilter<"TechItem"> | Date | string | null
   thin?: Prisma.BoolFilter<"TechItem"> | boolean
   shareworthy?: Prisma.FloatFilter<"TechItem"> | number
+  stature?: Prisma.FloatFilter<"TechItem"> | number
   kind?: Prisma.StringFilter<"TechItem"> | string
   createdAt?: Prisma.DateTimeFilter<"TechItem"> | Date | string
   opportunities?: Prisma.TechOpportunityListRelationFilter
@@ -331,6 +345,7 @@ export type TechItemOrderByWithAggregationInput = {
   publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   thin?: Prisma.SortOrder
   shareworthy?: Prisma.SortOrder
+  stature?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   dedupeKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -355,6 +370,7 @@ export type TechItemScalarWhereWithAggregatesInput = {
   publishedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"TechItem"> | Date | string | null
   thin?: Prisma.BoolWithAggregatesFilter<"TechItem"> | boolean
   shareworthy?: Prisma.FloatWithAggregatesFilter<"TechItem"> | number
+  stature?: Prisma.FloatWithAggregatesFilter<"TechItem"> | number
   kind?: Prisma.StringWithAggregatesFilter<"TechItem"> | string
   dedupeKey?: Prisma.StringWithAggregatesFilter<"TechItem"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"TechItem"> | Date | string
@@ -371,6 +387,7 @@ export type TechItemCreateInput = {
   publishedAt?: Date | string | null
   thin?: boolean
   shareworthy?: number
+  stature?: number
   kind?: string
   dedupeKey: string
   createdAt?: Date | string
@@ -390,6 +407,7 @@ export type TechItemUncheckedCreateInput = {
   publishedAt?: Date | string | null
   thin?: boolean
   shareworthy?: number
+  stature?: number
   kind?: string
   dedupeKey: string
   createdAt?: Date | string
@@ -409,6 +427,7 @@ export type TechItemUpdateInput = {
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  stature?: Prisma.FloatFieldUpdateOperationsInput | number
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -428,6 +447,7 @@ export type TechItemUncheckedUpdateInput = {
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  stature?: Prisma.FloatFieldUpdateOperationsInput | number
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -447,6 +467,7 @@ export type TechItemCreateManyInput = {
   publishedAt?: Date | string | null
   thin?: boolean
   shareworthy?: number
+  stature?: number
   kind?: string
   dedupeKey: string
   createdAt?: Date | string
@@ -463,6 +484,7 @@ export type TechItemUpdateManyMutationInput = {
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  stature?: Prisma.FloatFieldUpdateOperationsInput | number
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -479,6 +501,7 @@ export type TechItemUncheckedUpdateManyInput = {
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  stature?: Prisma.FloatFieldUpdateOperationsInput | number
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -495,6 +518,7 @@ export type TechItemCountOrderByAggregateInput = {
   publishedAt?: Prisma.SortOrder
   thin?: Prisma.SortOrder
   shareworthy?: Prisma.SortOrder
+  stature?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   dedupeKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -502,6 +526,7 @@ export type TechItemCountOrderByAggregateInput = {
 
 export type TechItemAvgOrderByAggregateInput = {
   shareworthy?: Prisma.SortOrder
+  stature?: Prisma.SortOrder
 }
 
 export type TechItemMaxOrderByAggregateInput = {
@@ -513,6 +538,7 @@ export type TechItemMaxOrderByAggregateInput = {
   publishedAt?: Prisma.SortOrder
   thin?: Prisma.SortOrder
   shareworthy?: Prisma.SortOrder
+  stature?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   dedupeKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -527,6 +553,7 @@ export type TechItemMinOrderByAggregateInput = {
   publishedAt?: Prisma.SortOrder
   thin?: Prisma.SortOrder
   shareworthy?: Prisma.SortOrder
+  stature?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   dedupeKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -534,6 +561,7 @@ export type TechItemMinOrderByAggregateInput = {
 
 export type TechItemSumOrderByAggregateInput = {
   shareworthy?: Prisma.SortOrder
+  stature?: Prisma.SortOrder
 }
 
 export type TechItemScalarRelationFilter = {
@@ -603,6 +631,7 @@ export type TechItemCreateWithoutOpportunitiesInput = {
   publishedAt?: Date | string | null
   thin?: boolean
   shareworthy?: number
+  stature?: number
   kind?: string
   dedupeKey: string
   createdAt?: Date | string
@@ -621,6 +650,7 @@ export type TechItemUncheckedCreateWithoutOpportunitiesInput = {
   publishedAt?: Date | string | null
   thin?: boolean
   shareworthy?: number
+  stature?: number
   kind?: string
   dedupeKey: string
   createdAt?: Date | string
@@ -655,6 +685,7 @@ export type TechItemUpdateWithoutOpportunitiesInput = {
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  stature?: Prisma.FloatFieldUpdateOperationsInput | number
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -673,6 +704,7 @@ export type TechItemUncheckedUpdateWithoutOpportunitiesInput = {
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  stature?: Prisma.FloatFieldUpdateOperationsInput | number
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -691,6 +723,7 @@ export type TechItemCreateWithoutAxisMatchesInput = {
   publishedAt?: Date | string | null
   thin?: boolean
   shareworthy?: number
+  stature?: number
   kind?: string
   dedupeKey: string
   createdAt?: Date | string
@@ -709,6 +742,7 @@ export type TechItemUncheckedCreateWithoutAxisMatchesInput = {
   publishedAt?: Date | string | null
   thin?: boolean
   shareworthy?: number
+  stature?: number
   kind?: string
   dedupeKey: string
   createdAt?: Date | string
@@ -743,6 +777,7 @@ export type TechItemUpdateWithoutAxisMatchesInput = {
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  stature?: Prisma.FloatFieldUpdateOperationsInput | number
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -761,6 +796,7 @@ export type TechItemUncheckedUpdateWithoutAxisMatchesInput = {
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  stature?: Prisma.FloatFieldUpdateOperationsInput | number
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -779,6 +815,7 @@ export type TechItemCreateWithoutRadarDraftsInput = {
   publishedAt?: Date | string | null
   thin?: boolean
   shareworthy?: number
+  stature?: number
   kind?: string
   dedupeKey: string
   createdAt?: Date | string
@@ -797,6 +834,7 @@ export type TechItemUncheckedCreateWithoutRadarDraftsInput = {
   publishedAt?: Date | string | null
   thin?: boolean
   shareworthy?: number
+  stature?: number
   kind?: string
   dedupeKey: string
   createdAt?: Date | string
@@ -831,6 +869,7 @@ export type TechItemUpdateWithoutRadarDraftsInput = {
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  stature?: Prisma.FloatFieldUpdateOperationsInput | number
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -849,6 +888,7 @@ export type TechItemUncheckedUpdateWithoutRadarDraftsInput = {
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  stature?: Prisma.FloatFieldUpdateOperationsInput | number
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -916,6 +956,7 @@ export type TechItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   publishedAt?: boolean
   thin?: boolean
   shareworthy?: boolean
+  stature?: boolean
   kind?: boolean
   dedupeKey?: boolean
   createdAt?: boolean
@@ -936,6 +977,7 @@ export type TechItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   publishedAt?: boolean
   thin?: boolean
   shareworthy?: boolean
+  stature?: boolean
   kind?: boolean
   dedupeKey?: boolean
   createdAt?: boolean
@@ -952,6 +994,7 @@ export type TechItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   publishedAt?: boolean
   thin?: boolean
   shareworthy?: boolean
+  stature?: boolean
   kind?: boolean
   dedupeKey?: boolean
   createdAt?: boolean
@@ -968,12 +1011,13 @@ export type TechItemSelectScalar = {
   publishedAt?: boolean
   thin?: boolean
   shareworthy?: boolean
+  stature?: boolean
   kind?: boolean
   dedupeKey?: boolean
   createdAt?: boolean
 }
 
-export type TechItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "vendor" | "technology" | "title" | "summary" | "categories" | "sources" | "publishedAt" | "thin" | "shareworthy" | "kind" | "dedupeKey" | "createdAt", ExtArgs["result"]["techItem"]>
+export type TechItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "vendor" | "technology" | "title" | "summary" | "categories" | "sources" | "publishedAt" | "thin" | "shareworthy" | "stature" | "kind" | "dedupeKey" | "createdAt", ExtArgs["result"]["techItem"]>
 export type TechItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   opportunities?: boolean | Prisma.TechItem$opportunitiesArgs<ExtArgs>
   axisMatches?: boolean | Prisma.TechItem$axisMatchesArgs<ExtArgs>
@@ -1010,6 +1054,11 @@ export type $TechItemPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
      * 0-1 from triage. Stored so a discard can be explained after the fact.
      */
     shareworthy: number
+    /**
+     * 0-1 from triage: how much WEIGHT the item carries, separate from relevance. A
+     * niche-tool write-up can be perfectly on-topic and still have no gift in it.
+     */
+    stature: number
     /**
      * See ItemKind in lib/tech-radar/types.ts. A String, not a Postgres enum: the list
      * moves as the learning loop teaches us, and a new enum member cannot be used in the
@@ -1454,6 +1503,7 @@ export interface TechItemFieldRefs {
   readonly publishedAt: Prisma.FieldRef<"TechItem", 'DateTime'>
   readonly thin: Prisma.FieldRef<"TechItem", 'Boolean'>
   readonly shareworthy: Prisma.FieldRef<"TechItem", 'Float'>
+  readonly stature: Prisma.FieldRef<"TechItem", 'Float'>
   readonly kind: Prisma.FieldRef<"TechItem", 'String'>
   readonly dedupeKey: Prisma.FieldRef<"TechItem", 'String'>
   readonly createdAt: Prisma.FieldRef<"TechItem", 'DateTime'>

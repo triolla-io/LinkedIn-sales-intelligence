@@ -34,7 +34,7 @@ export type PoolItem = { title: string; url: string; snippet: string; publishedA
  * old isLaunch one, so 200 rather than 140 — output tokens are the cheap half of the
  * bill and a truncated chunk costs the whole chunk.
  */
-const TOKENS_PER_ITEM = 200;
+const TOKENS_PER_ITEM = 230;
 const TOKENS_OVERHEAD = 300;
 
 export function triageMaxTokens(itemCount: number): number {
@@ -45,7 +45,10 @@ export const SYSTEM = `You decide whether a news item is worth FORWARDING to a s
 
 The test is not "is this new" and not "is this relevant to their industry". It is: would a well-read person send this unprompted, with nothing to gain?
 
-Score \`shareworthy\` from 0 to 1, as a DECIMAL. Never a word, never a percentage.
+Score TWO separate things, both as DECIMALS from 0 to 1. Never a word, never a percentage.
+
+\`shareworthy\` — is this the kind of thing a person forwards at all?
+\`stature\` — how much WEIGHT does it carry? These are different questions and a high answer to one does not imply the other.
 
 HIGH (0.6-1.0):
 - research, reports and surveys with actual findings or numbers
@@ -62,13 +65,34 @@ LOW (0.0-0.4):
 The single most important signal is \`publisher\` versus \`vendor\`. When the organisation that published the item is the organisation the item is about, it is PROMOTION until proven otherwise. A vendor launch rises above 0.6 only when a THIRD PARTY adds an angle the vendor did not: independent analysis, adoption data, a comparison, or evidence of a wider trend.
 
 Worked examples:
-- "Amazon DynamoDB now supports real-time vector search at any scale", published on aws.amazon.com → kind "vendor_launch", shareworthy 0.2. AWS announcing an AWS feature on the AWS blog. Useful, not forwardable.
-- "Research: 60% of data teams dropped their separate vector database in 2026", published by an independent report → kind "research", shareworthy 0.8. Same subject, a finding someone would actually send.
+- "Amazon DynamoDB now supports real-time vector search at any scale", published on aws.amazon.com → kind "vendor_launch", shareworthy 0.2, stature 0.2. AWS announcing an AWS feature on the AWS blog.
+- "Research: 60% of data teams dropped their separate vector database in 2026", published by an independent report → kind "research", shareworthy 0.8, stature 0.7. A finding someone would actually send.
+- "Robotic phased-array ultrasonic inspection for unpiggable offshore pipelines", in a pipeline trade journal → kind "trend", shareworthy 0.7, stature 0.2. Correct subject for an asset manager, and no gift in it: one niche instrument in a trade paper.
+- "ועדת הריכוזיות המליצה: לא לאשר לשפיר לרכוש את בז\"א" in Globes → kind "big_news", shareworthy 0.9, stature 0.9. A regulator blocking an acquisition in their own market.
+
+STATURE — the weight of the thing, independent of how relevant it is:
+
+HIGH (0.7-1.0):
+- a flagship report or study from a major consultancy or analyst house (McKinsey, BCG, Deloitte, PwC, EY, KPMG, Gartner, Forrester, WEF, IEA, IMF, OECD)
+- a large-scale survey with a named sponsor
+- a regulatory or legislative move with real consequences — a ruling, a mandate, an exemption, an antitrust decision
+- a large market move — a major acquisition, a price threshold crossed, a listed company's results
+- national or sector-level news in a serious business publication
+
+LOW (0.0-0.3):
+- a write-up of one niche tool, method or instrument in a trade publication
+- a single narrow academic paper on a technique
+- a vendor's own material, whatever its subject
+
+The test is: WOULD A CEO FORWARD THIS TO ANOTHER CEO? Not "is this about their field".
+
+A paper on a polymer that improves CO2 injection efficiency is squarely on-topic for an oil executive and still has no gift in it — stature LOW. A regulator granting biofuel-mandate exemptions to refiners is the same field and is a gift — stature HIGH.
 
 Set \`staleness\` true when the item is something everyone in the field already saw — forwarding it says "I do not follow your field".
 
 Return for each item:
 - shareworthy: decimal 0-1
+- stature: decimal 0-1
 - kind: exactly one of "research", "trend", "big_news", "company_move", "vendor_launch", "promotion", "other"
 - publisher: the site or organisation that published it, or null
 - staleness: true or false
@@ -77,7 +101,7 @@ Return for each item:
 - technology: the concrete name of the thing, or null
 
 Return strict JSON only — no prose, no fences. Include EVERY input url exactly once:
-{"verdicts":[{"url":"<the url>","shareworthy":0.2,"kind":"vendor_launch","publisher":"aws.amazon.com","staleness":false,"categories":["..."],"vendor":"Amazon","technology":"..."}]}`;
+{"verdicts":[{"url":"<the url>","shareworthy":0.2,"stature":0.2,"kind":"vendor_launch","publisher":"aws.amazon.com","staleness":false,"categories":["..."],"vendor":"Amazon","technology":"..."}]}`;
 
 function userPrompt(items: PoolItem[]): string {
   return items
@@ -137,6 +161,7 @@ export function parseTriageResponse(text: string, validUrls: Set<string>): Triag
     out.push({
       url,
       shareworthy: clampScore(o.shareworthy),
+      stature: clampScore(o.stature),
       kind: asKind(o.kind),
       publisher: str(o.publisher),
       staleness: o.staleness === true,

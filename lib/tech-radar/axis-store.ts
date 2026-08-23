@@ -142,9 +142,10 @@ export async function attachAxes(input: {
         personProfileId: input.personProfileId,
         axisId,
         rationale: proposal.rationale,
+        agenda: proposal.agenda,
         source: "ROLE_COMPANY",
       },
-      update: { rationale: proposal.rationale },
+      update: { rationale: proposal.rationale, agenda: proposal.agenda },
       select: { id: true, createdAt: true },
     });
     if (link) {

@@ -1157,6 +1157,9 @@ model TechItem {
   thin        Boolean   @default(false)
   /// 0-1 from triage. Stored so a discard can be explained after the fact.
   shareworthy Float     @default(0)
+  /// 0-1 from triage: how much WEIGHT the item carries, separate from relevance. A
+  /// niche-tool write-up can be perfectly on-topic and still have no gift in it.
+  stature     Float     @default(0)
   /// See ItemKind in lib/tech-radar/types.ts. A String, not a Postgres enum: the list
   /// moves as the learning loop teaches us, and a new enum member cannot be used in the
   /// transaction that adds it. Validation lives in asKind().
@@ -1317,6 +1320,10 @@ model PersonAxis {
   personProfileId String
   axisId          String
   weight          Float           @default(1)
+  /// True when this axis came from what the company is DOING now rather than from the
+  /// job title. Exactly one per person. The veto weighs it: an agenda axis is the one
+  /// a same-title peer at another company would NOT share.
+  agenda          Boolean         @default(false)
   /// Why this axis is THIS person's. Feeds the veto, and is never the company's reason.
   rationale       String
   source          RadarAxisSource

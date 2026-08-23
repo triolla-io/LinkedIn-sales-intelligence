@@ -37,6 +37,7 @@ const proposal = (label: string, rationale = "כי הוא בנה את זה") => 
   key: normalizeAxisKey(label),
   searchQueries: ["vector search research"],
   rationale,
+  agenda: false,
 });
 
 beforeEach(() => {
@@ -123,9 +124,13 @@ describe("attachAxes", () => {
   });
 
   /** Re-running a build must not overwrite a weight the learning loop has moved. */
+  /** `weight` is moved by the learning loop; a rebuild must not reset it. */
   it("upserts the link without touching its weight", async () => {
     await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [proposal("זיהוי הונאות")] });
-    expect(personAxisUpsert.mock.calls[0][0].update).toEqual({ rationale: "כי הוא בנה את זה" });
+    expect(personAxisUpsert.mock.calls[0][0].update).toEqual({
+      rationale: "כי הוא בנה את זה",
+      agenda: false,
+    });
     expect(Object.keys(personAxisUpsert.mock.calls[0][0].update)).not.toContain("weight");
   });
 

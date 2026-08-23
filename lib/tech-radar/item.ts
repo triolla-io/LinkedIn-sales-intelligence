@@ -193,7 +193,7 @@ function userPrompt(input: ItemSynthesisInput): string {
  */
 export function parseItemResponse(
   text: string
-): Omit<TechItemDraft, "sources" | "thin" | "shareworthy" | "kind"> | null {
+): Omit<TechItemDraft, "sources" | "thin" | "shareworthy" | "stature" | "kind"> | null {
   const parsed = parseJsonLoose<Record<string, unknown>>(text);
   if (!parsed || typeof parsed !== "object") return null;
 
@@ -264,6 +264,7 @@ export async function synthesizeItem(input: ItemSynthesisInput): Promise<TechIte
     // Carried from the verdict, not re-judged. Re-scoring here would give one item two
     // scores that could disagree, and the stored one is what a discard is explained by.
     shareworthy: input.triage.shareworthy,
+    stature: input.triage.stature,
     kind: input.triage.kind,
   };
 }

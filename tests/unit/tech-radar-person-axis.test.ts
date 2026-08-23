@@ -4,13 +4,13 @@ import { parseAxisFit, buildAxisQueryPool, AXIS_FIT_SYSTEM } from "@/lib/tech-ra
 import { normalizeAxisKey, MAX_AXES_PER_PERSON } from "@/lib/tech-radar/axis";
 
 const axis = (label: string, rationale = "כי הוא בנה את זה", queries = ["vector search research"]) =>
-  JSON.stringify({ label, rationale, searchQueries: queries });
+  JSON.stringify({ label, rationale, searchQueries: queries, agenda: false });
 
 describe("PROFILE_SYSTEM", () => {
   /** v1's whole failure was answering "what does this person own?" with the company. */
   it("says the employer profile is context, not the answer", () => {
-    expect(PROFILE_SYSTEM).toMatch(/NOT the answer/);
-    expect(PROFILE_SYSTEM).toMatch(/A description of the company is a failed answer/);
+    expect(PROFILE_SYSTEM).toMatch(/A description of the company as an answer/);
+    expect(PROFILE_SYSTEM).toMatch(/is a failed answer/);
   });
 
   it("forbids a label so generic it would be discarded", () => {
@@ -20,14 +20,40 @@ describe("PROFILE_SYSTEM", () => {
 
   /** The queries must hunt research, not launches — otherwise the inverted triage
    *  filters out everything the axis brings back. */
-  it("aims the queries at research and trends, not launches", () => {
-    expect(PROFILE_SYSTEM).toMatch(/research, reports, trends and analysis/);
-    expect(PROFILE_SYSTEM).toMatch(/Do NOT write queries aimed at product launches/);
+  /**
+   * The queries decide what a person actually receives. Aimed at weight — flagship
+   * reports, regulatory and market moves — because the run before this returned
+   * on-topic, weightless items and the filter now rejects them anyway.
+   */
+  it("aims the queries at weight, not at product launches", () => {
+    expect(PROFILE_SYSTEM).toMatch(/flagship reports, industry studies, regulatory moves/);
+    expect(PROFILE_SYSTEM).toMatch(/NOT at product launches/);
+  });
+
+  /**
+   * Israeli recipients, and the best gifts are local. Plain Hebrew surfaces Globes and
+   * Calcalist; a probe on 2026-08-23 showed "site:" restriction returns the right
+   * publication on the wrong topic, so the prompt forbids it.
+   */
+  it("requires a Hebrew query for Israeli people, and forbids site: operators", () => {
+    expect(PROFILE_SYSTEM).toMatch(/AT LEAST ONE query per axis must be IN HEBREW/);
+    expect(PROFILE_SYSTEM).toMatch(/Do NOT use "site:" operators/);
+  });
+
+  /** Exactly one axis must come from what the company is doing, not from the title. */
+  it("demands exactly one agenda axis, with worked examples of both", () => {
+    expect(PROFILE_SYSTEM).toMatch(/EXACTLY ONE of them must have "agenda": true/);
+    expect(PROFILE_SYSTEM).toMatch(/NOT AGENDA, this is a role/);
   });
 
   /** The rationale is what the veto reads. A company-level one is worthless there. */
-  it("requires a rationale that would not be true of a colleague", () => {
-    expect(PROFILE_SYSTEM).toMatch(/equally true of any colleague/);
+  /**
+   * The exact sentence the veto rejected on 2026-08-23 — "כ-VP Assets, אחראי על…" — is
+   * now named in the prompt as the thing not to produce.
+   */
+  it("names the title-restatement the veto rejected as forbidden", () => {
+    expect(PROFILE_SYSTEM).toMatch(/כ-VP Assets, אחראי על/);
+    expect(PROFILE_SYSTEM).toMatch(/restatement of the title and will be rejected/);
   });
 });
 

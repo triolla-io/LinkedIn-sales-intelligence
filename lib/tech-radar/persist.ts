@@ -62,6 +62,7 @@ export async function upsertTechItem(draft: TechItemDraft): Promise<string> {
       publishedAt: draft.publishedAt ? new Date(draft.publishedAt) : null,
       thin: draft.thin,
       shareworthy: draft.shareworthy,
+      stature: draft.stature,
       kind: draft.kind,
       dedupeKey,
     },
