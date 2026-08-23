@@ -32,7 +32,7 @@ function person(over: Record<string, unknown> = {}) {
   };
 }
 function health(over: Record<string, unknown> = {}) {
-  return { people: 1, axes: 1, sharedAxes: 0, matches: 0, accepted: 0, vetoed: 0, vetoRate: null, ...over };
+  return { lastItemAt: null, people: 1, axes: 1, sharedAxes: 0, matches: 0, accepted: 0, vetoed: 0, vetoRate: null, ...over };
 }
 
 beforeEach(() => {
@@ -176,5 +176,27 @@ describe("RadarReview", () => {
     data[KEY] = { people: [], health: health({ people: 0, axes: 0 }) };
     render(<RadarReview />);
     expect(screen.getByText(/סמני אנשים במסך Tech Radar/)).toBeInTheDocument();
+  });
+});
+
+/**
+ * A page opened while a scan is in flight used to sit empty forever: the screen was
+ * configured with refreshInterval 0, and "empty" is indistinguishable from "stale" —
+ * the same silent-failure shape as a failed fetch rendering as "no results".
+ */
+describe("RadarReview staleness", () => {
+  it("shows when it last saw an item", () => {
+    data[KEY] = { people: [person()], health: health({ lastItemAt: "2026-08-23T09:30:00.000Z" }) };
+    render(<RadarReview />);
+    expect(screen.getByText("סריקה אחרונה")).toBeInTheDocument();
+    // Rendered in he-IL, so assert on the day rather than the exact format.
+    expect(screen.getByText(/23/)).toBeInTheDocument();
+  });
+
+  it("says em-dash rather than a fake date when nothing has been scanned", () => {
+    data[KEY] = { people: [person()], health: health({ lastItemAt: null }) };
+    render(<RadarReview />);
+    const labels = screen.getAllByText("—");
+    expect(labels.length).toBeGreaterThan(0);
   });
 });

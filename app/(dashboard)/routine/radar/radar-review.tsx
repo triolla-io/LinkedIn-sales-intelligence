@@ -60,6 +60,8 @@ type Person = {
 };
 
 type Health = {
+  /** When the newest item was written, so a stale page is visibly stale. */
+  lastItemAt: string | null;
   people: number;
   axes: number;
   sharedAxes: number;
@@ -185,10 +187,14 @@ function DraftCard({ draft }: { draft: Draft }) {
 }
 
 export function RadarReview() {
+  // Polls. This screen shows the result of a background scan, so a page opened while a
+  // run is in flight would otherwise sit empty forever — and "empty" and "stale" look
+  // identical, which is the same silent-failure shape as a failed fetch rendering as
+  // "no results". 20s is cheap: the payload is one owner's people, not a contact scan.
   const { data, error, isLoading } = useSWR<{ people: Person[]; health: Health }>(
     "/api/radar/review",
     fetcher,
-    { refreshInterval: 0 }
+    { refreshInterval: 20_000, revalidateOnFocus: true }
   );
 
   const people = data?.people ?? [];
@@ -217,7 +223,7 @@ export function RadarReview() {
       ) : (
         <>
           {health && (
-            <div className={cn(ui.card, "p-4 grid grid-cols-3 sm:grid-cols-6 gap-4")}>
+            <div className={cn(ui.card, "p-4 grid grid-cols-3 sm:grid-cols-7 gap-4")}>
               <Stat label="אנשים" value={String(health.people)} />
               <Stat label="צירים" value={String(health.axes)} />
               <Stat label="צירים משותפים" value={String(health.sharedAxes)} />
@@ -225,6 +231,14 @@ export function RadarReview() {
               <Stat label="טיוטות" value={String(health.accepted)} />
               {/* The pilot's central metric: near zero means the gate is lenient, near
                   one means the axes are too broad. Either way it has to be visible. */}
+              <Stat
+                label="סריקה אחרונה"
+                value={
+                  health.lastItemAt
+                    ? new Date(health.lastItemAt).toLocaleString("he-IL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+                    : "—"
+                }
+              />
               <Stat
                 label="אחוז ווטו"
                 value={health.vetoRate == null ? "—" : `${Math.round(health.vetoRate * 100)}%`}

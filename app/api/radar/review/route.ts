@@ -117,12 +117,21 @@ export const GET = withTenant(async (_req, ctx) => {
     };
   });
 
+  // So a page opened mid-run can show WHEN it last saw anything, rather than showing
+  // emptiness that is indistinguishable from a scan that found nothing.
+  const newest = await prisma.techItem.findFirst({
+    where: { axisMatches: { some: { axisId: { in: axisIds } } } },
+    select: { createdAt: true },
+    orderBy: { createdAt: "desc" },
+  });
+
   const vetoed = drafts.filter((d) => d.status === "VETOED").length;
   const accepted = drafts.length - vetoed;
 
   return NextResponse.json({
     people,
     health: {
+      lastItemAt: newest?.createdAt ?? null,
       people: people.length,
       axes: axisIds.length,
       // The catalog is only pooling interests if some axes have more than one subscriber.
