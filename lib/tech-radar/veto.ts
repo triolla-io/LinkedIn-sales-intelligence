@@ -59,6 +59,13 @@ export type VetoInput = {
 export type VetoVerdict = {
   /** false means NO DRAFT. The candidate is recorded as vetoed with its reason. */
   specific: boolean;
+  /**
+   * Why it was not sent. "judged" is a real decision; "parse_failed" and "unavailable"
+   * are faults wearing a decision's clothes. On 2026-08-23 all three rejections in a run
+   * were truncated JSON, and the screen showed them as if the gate had thought about
+   * them — which is the difference between a strict gate and a broken one.
+   */
+  outcome: "judged" | "parse_failed" | "unavailable";
   /** One sentence. Recorded either way, so a rejection is explicable. */
   whyHim: string;
   /** -0.2..0.2, folded into confidence. Never a substitute for `specific`. */
@@ -112,11 +119,13 @@ export function parseVetoResponse(text: string): VetoVerdict {
   const whyHimRaw = typeof parsed?.whyHim === "string" ? parsed.whyHim.trim() : "";
   // `specific` must be the literal boolean true. "true", 1 and "yes" are all a model
   // failing to follow the schema, and a schema failure must not become a send.
+  const readable = parsed != null && typeof parsed === "object" && "specific" in (parsed as object);
   const specific = parsed?.specific === true && whyHimRaw.length > 0;
   const adj = typeof parsed?.adjustment === "number" && Number.isFinite(parsed.adjustment) ? parsed.adjustment : 0;
   return {
     specific,
-    whyHim: whyHimRaw || "הווטו לא החזיר נימוק קריא — נדחה מחוסר סיבה ספציפית",
+    outcome: readable ? "judged" : "parse_failed",
+    whyHim: whyHimRaw || "תשובת הווטו לא נקראה (JSON חסר או חתוך) — תקלה, לא שיקול דעת",
     adjustment: Math.max(-0.2, Math.min(0.2, adj)),
   };
 }
@@ -131,7 +140,11 @@ export async function judgeWhyHim(input: VetoInput): Promise<VetoVerdict> {
         { role: "user", content: userPrompt(input) },
       ],
       temperature: 0.2,
-      max_tokens: 400,
+      // 400 truncated Opus mid-JSON on every call in the 2026-08-23 run — the logs read
+      // tokens=993/400, exactly the ceiling — and a cut-off object parses to nothing, so
+      // three real judgements were recorded as rejections. Output tokens are the cheap
+      // half of this bill; a truncated verdict costs the whole call.
+      max_tokens: 1500,
       response_format: { type: "json_object" },
     },
     { timeoutMs: 30_000 }
@@ -139,7 +152,7 @@ export async function judgeWhyHim(input: VetoInput): Promise<VetoVerdict> {
   // A failed call is a rejection, not an exception: one unreachable model must not stop
   // the whole run, and it must certainly not let the candidate through.
   if (!res.ok) {
-    return { specific: false, whyHim: `הווטו לא זמין (HTTP ${res.status})`, adjustment: 0 };
+    return { specific: false, outcome: "unavailable", whyHim: `הווטו לא זמין (HTTP ${res.status})`, adjustment: 0 };
   }
   return parseVetoResponse(res.data.choices?.[0]?.message?.content ?? "");
 }

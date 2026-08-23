@@ -23,12 +23,14 @@ export type JudgeReport = {
   candidates: number;
   ranked: number;
   vetoed: number;
+  /** Of those, how many were faults rather than judgements. Should be 0. */
+  vetoFaults: number;
   drafted: number;
   dropReasons: Record<string, number>;
 };
 
 export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
-  const empty: JudgeReport = { candidates: 0, ranked: 0, vetoed: 0, drafted: 0, dropReasons: {} };
+  const empty: JudgeReport = { candidates: 0, ranked: 0, vetoed: 0, vetoFaults: 0, drafted: 0, dropReasons: {} };
 
   // Only axes somebody subscribes to. An axis with no subscriber has nobody to judge for.
   const axes = await prisma.radarAxis.findMany({
@@ -132,6 +134,7 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
   }
 
   let vetoed = 0;
+  let vetoFaults = 0;
   let drafted = 0;
 
   for (const [itemId, group] of byItem) {
@@ -171,13 +174,15 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
 
       if (!passed) {
         vetoed += 1;
+        if (verdict.outcome !== "judged") vetoFaults += 1;
         // Recorded with its reason. A rejection nobody can read cannot be judged too
         // strict or too lenient, which is the one thing the pilot measures.
         await prisma.radarDraft.upsert({
           where: { contactId_itemId: { contactId: contact.id, itemId } },
           create: {
             contactId: contact.id, itemId, axisId: candidate.axisId, ownerId: contact.ownerId,
-            whyHim: verdict.whyHim, status: "VETOED", discardReason: "not_person_specific",
+            whyHim: verdict.whyHim, status: "VETOED",
+            discardReason: verdict.outcome === "judged" ? "not_person_specific" : verdict.outcome,
           },
           update: {},
         });
@@ -214,5 +219,5 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
   const dropReasons: Record<string, number> = {};
   for (const d of dropped) dropReasons[d.reason] = (dropReasons[d.reason] ?? 0) + 1;
 
-  return { candidates: candidates.length, ranked: ranked.length, vetoed, drafted, dropReasons };
+  return { candidates: candidates.length, ranked: ranked.length, vetoed, vetoFaults, drafted, dropReasons };
 }

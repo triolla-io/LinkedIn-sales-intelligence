@@ -47,6 +47,7 @@ describe("parseVetoResponse", () => {
   it("reads a pass", () => {
     expect(parseVetoResponse('{"specific":true,"whyHim":"הוא בנה את מנוע ההמלצות","adjustment":0.1}')).toEqual({
       specific: true,
+      outcome: "judged",
       whyHim: "הוא בנה את מנוע ההמלצות",
       adjustment: 0.1,
     });
@@ -69,10 +70,11 @@ describe("parseVetoResponse", () => {
     expect(parseVetoResponse('{"specific":true}').specific).toBe(false);
   });
 
-  it("rejects unparseable output and still gives a readable reason", () => {
+  it("rejects unparseable output and says it was a fault", () => {
     const v = parseVetoResponse("sorry, I cannot");
     expect(v.specific).toBe(false);
-    expect(v.whyHim).toMatch(/נדחה/);
+    expect(v.outcome).toBe("parse_failed");
+    expect(v.whyHim).toMatch(/תקלה, לא שיקול דעת/);
   });
 
   it("clamps the adjustment to the stated range", () => {
@@ -181,3 +183,37 @@ describe("selectRecipientsForItem", () => {
     expect(chat).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * Every rejection in the 2026-08-23 run was truncated JSON — the logs read
+ * tokens=993/400, exactly the ceiling — and the screen presented all three as if the
+ * gate had considered them. A fault wearing a decision's clothes is worse than an
+ * error, because it is read as a finding.
+ */
+describe("a fault is not a judgement", () => {
+  it("marks unparseable output as parse_failed, not as a decision", () => {
+    const v = parseVetoResponse('{"specific": true, "whyHim": "הוא בנה את המנו');
+    expect(v.specific).toBe(false);
+    expect(v.outcome).toBe("parse_failed");
+    expect(v.whyHim).toMatch(/תקלה, לא שיקול דעת/);
+  });
+
+  it("marks a real rejection as judged", () => {
+    const v = parseVetoResponse('{"specific":false,"whyHim":"נימוק ברמת החברה"}');
+    expect(v.specific).toBe(false);
+    expect(v.outcome).toBe("judged");
+  });
+
+  it("marks an unreachable model as unavailable", async () => {
+    chat.mockResolvedValue({ ok: false, status: 502, data: {} });
+    const v = await judgeWhyHim({ ...candidate("c1"), item });
+    expect(v.outcome).toBe("unavailable");
+  });
+
+  /** The cause, pinned: Opus needs room to finish the object. */
+  it("gives the model room to finish its JSON", async () => {
+    chat.mockResolvedValue(ok('{"specific":true,"whyHim":"ok"}'));
+    await judgeWhyHim({ ...candidate("c1"), item });
+    expect((chat.mock.calls[0][1] as { max_tokens: number }).max_tokens).toBeGreaterThanOrEqual(1500);
+  });
+})
