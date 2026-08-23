@@ -58,6 +58,7 @@ Use HeroUI (`@heroui/react`) for all React components.
 | `tech-radar.scan` | weekly tick / kick-on-enable | `inngest/functions/tech-radar-scan.ts` |
 | `tech-radar.draft` | per new opportunity | `inngest/functions/tech-radar-draft.ts` |
 | `tech-radar.enabled` | "Tech Radar" module toggled ON (kick-on-enable) | `inngest/functions/tech-radar-dispatch.ts` |
+| `radar.build-profiles` | manual — build the person model (profiles + axes) and STOP, so the axis count can be read before any search is paid for | `inngest/functions/radar-build-profiles.ts` |
 | `radar.person-scan` | manual (pilot) — person-outward run: marked people → their axes → queries from axes → per-axis fit → veto → one draft | `inngest/functions/tech-radar-person-scan.ts` |
 | `tech-radar.run-marked` | person-first run: employers of hand-marked contacts → research → wait → scan. No manual company entry. | `inngest/functions/tech-radar-run-marked.ts` |
 
