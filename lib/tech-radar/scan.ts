@@ -17,7 +17,7 @@ import { synthesizeItem } from "@/lib/tech-radar/item";
 import { prefilterItems, judgeFit, profileTerms, type FitItem } from "@/lib/tech-radar/fit";
 import { allocateWeeklyCap } from "@/lib/tech-radar/cap";
 import { upsertTechItem, createOpportunities, existingItemIds } from "@/lib/tech-radar/persist";
-import type { TriageVerdict } from "@/lib/tech-radar/types";
+import { SHAREWORTHY_FLOOR, type ItemKind, type TriageVerdict } from "@/lib/tech-radar/types";
 import {
   MAX_PAGE_READS_PER_RUN,
   MAX_SYNTHESIS_PER_RUN,
@@ -30,7 +30,11 @@ export type ScanReport = {
   companies: number;
   queriesRun: number;
   poolItems: number;
-  launches: number;
+  /** Items that cleared the shareworthy floor. Kept as `launches` only in name would
+   *  be a lie about what it counts, so it is renamed. */
+  worthSharing: number;
+  /** Per-kind pass rate, so a run can show whether the filter filters. */
+  triageByKind: TriageKindCount[];
   itemsWritten: number;
   opportunitiesCreated: number;
   /** True when providers returned nothing at all — a quota wall, not an empty week. */
@@ -98,13 +102,31 @@ export async function loadScannableCompanies(orgId: string, now = new Date()): P
  * One scan for one org. Returns a report rather than throwing on empty results —
  * an empty week is a legitimate outcome and must be distinguishable from a quota wall.
  */
+export type TriageKindCount = { kind: ItemKind; seen: number; passed: number };
+
+/**
+ * Per-kind seen/passed, ordered by what was seen most. Pure, so the numbers on the
+ * screen and the numbers in the log cannot disagree.
+ */
+export function summarizeTriage(verdicts: TriageVerdict[]): TriageKindCount[] {
+  const byKind = new Map<ItemKind, TriageKindCount>();
+  for (const v of verdicts) {
+    const e = byKind.get(v.kind) ?? { kind: v.kind, seen: 0, passed: 0 };
+    e.seen += 1;
+    if (v.shareworthy >= SHAREWORTHY_FLOOR && !v.staleness) e.passed += 1;
+    byKind.set(v.kind, e);
+  }
+  return [...byKind.values()].sort((a, b) => b.seen - a.seen || (a.kind < b.kind ? -1 : 1));
+}
+
 export async function scanOrg(orgId: string): Promise<ScanReport> {
   const companies = await loadScannableCompanies(orgId);
   const empty: ScanReport = {
     companies: companies.length,
     queriesRun: 0,
     poolItems: 0,
-    launches: 0,
+    worthSharing: 0,
+    triageByKind: [],
     itemsWritten: 0,
     opportunitiesCreated: 0,
     quotaExhausted: false,
@@ -118,7 +140,7 @@ export async function scanOrg(orgId: string): Promise<ScanReport> {
     return { ...empty, queriesRun: news.queriesRun, quotaExhausted: news.quotaLikely };
   }
 
-  // ── Stage 2: shared launch triage, once per pool item ──────────────────────
+  // ── Stage 2: shared shareworthiness triage, once per pool item ────────────
   const poolItems: PoolItem[] = news.items.map((i) => ({
     title: i.title,
     url: i.url,
@@ -126,9 +148,26 @@ export async function scanOrg(orgId: string): Promise<ScanReport> {
     publishedAt: i.publishedAt,
   }));
   const verdicts = await triageAll(poolItems);
-  const launches = verdicts.filter((v) => v.isLaunch);
-  if (launches.length === 0) {
-    return { ...empty, queriesRun: news.queriesRun, poolItems: poolItems.length, quotaExhausted: news.quotaLikely };
+  const worthSharing = verdicts.filter((v) => v.shareworthy >= SHAREWORTHY_FLOOR && !v.staleness);
+
+  // Say what the filter DID, not just how much survived. "N items passed" cannot
+  // distinguish a filter that rejects vendor promotion from one that tags everything
+  // and rejects nothing — and the first run's failure was exactly that ambiguity.
+  const triageByKind = summarizeTriage(verdicts);
+  console.log(
+    `[tech-radar] triage org=${orgId} ${triageByKind.map((k) => `${k.kind}=${k.passed}/${k.seen}`).join(" ")} stale=${
+      verdicts.filter((v) => v.staleness).length
+    }`
+  );
+
+  if (worthSharing.length === 0) {
+    return {
+      ...empty,
+      queriesRun: news.queriesRun,
+      poolItems: poolItems.length,
+      triageByKind,
+      quotaExhausted: news.quotaLikely,
+    };
   }
 
   // ── Stage 3: read the real pages and write each item up once ──────────────
@@ -144,11 +183,11 @@ export async function scanOrg(orgId: string): Promise<ScanReport> {
   // on what the subscribing companies actually care about rather than on whatever came
   // back first: the final Delek run found 19 launches, could write up 8, and dropped 11
   // in arrival order.
-  const ranked = rankLaunchesByRelevance(launches, companies, byUrl);
+  const ranked = rankLaunchesByRelevance(worthSharing, companies, byUrl);
 
   for (const verdict of ranked) {
     if (syntheses >= MAX_SYNTHESIS_PER_RUN * Math.max(1, companies.length)) {
-      console.warn(`[tech-radar] synthesis ceiling reached for org ${orgId}; ${launches.length - syntheses} launches skipped`);
+      console.warn(`[tech-radar] synthesis ceiling reached for org ${orgId}; ${worthSharing.length - syntheses} shareworthy items skipped`);
       break;
     }
     const source = byUrl.get(verdict.url);
@@ -193,7 +232,13 @@ export async function scanOrg(orgId: string): Promise<ScanReport> {
   }
 
   if (itemsById.size === 0) {
-    return { ...empty, queriesRun: news.queriesRun, poolItems: poolItems.length, launches: launches.length };
+    return {
+      ...empty,
+      queriesRun: news.queriesRun,
+      poolItems: poolItems.length,
+      worthSharing: worthSharing.length,
+      triageByKind,
+    };
   }
 
   // ── Stage 4: per-company fit ──────────────────────────────────────────────
@@ -244,7 +289,8 @@ export async function scanOrg(orgId: string): Promise<ScanReport> {
     companies: companies.length,
     queriesRun: news.queriesRun,
     poolItems: poolItems.length,
-    launches: launches.length,
+    worthSharing: worthSharing.length,
+    triageByKind,
     itemsWritten: itemsById.size,
     opportunitiesCreated: created,
     quotaExhausted: news.quotaLikely,

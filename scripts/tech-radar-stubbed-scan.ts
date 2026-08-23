@@ -70,9 +70,9 @@ async function main() {
   head("STAGE 2 — shared launch triage (is this a launch at all?)");
   const verdicts = await triageAll(CAPTURED);
   for (const v of verdicts) {
-    console.log(`  ${v.isLaunch ? "LAUNCH  " : "reject  "} ${v.technology ?? "-"} | ${v.categories.join(", ")}`);
+    console.log(`  ${(v.shareworthy >= 0.6) ? "LAUNCH  " : "reject  "} ${v.technology ?? "-"} | ${v.categories.join(", ")}`);
   }
-  const launches = verdicts.filter((v) => v.isLaunch);
+  const launches = verdicts.filter((v) => v.shareworthy >= 0.6);
   console.log(`\n${launches.length} launches of ${verdicts.length} judged`);
 
   head("STAGE 3 — write each launch up once (shared TechItem)");

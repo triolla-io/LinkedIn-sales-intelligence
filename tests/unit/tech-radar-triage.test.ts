@@ -4,7 +4,7 @@ import { TRIAGE_CHUNK_SIZE } from "@/lib/tech-radar/types";
 const chat = vi.fn();
 vi.mock("@/lib/openrouter/client", () => ({ openrouterChat: (...a: unknown[]) => chat(...a) }));
 
-const { parseTriageResponse, triageChunk, triageAll } = await import("@/lib/tech-radar/triage");
+const { parseTriageResponse, triageChunk, triageAll, SYSTEM } = await import("@/lib/tech-radar/triage");
 
 function item(n: number) {
   return { title: `t${n}`, url: `https://x.com/${n}`, snippet: "s", publishedAt: null };
@@ -33,57 +33,143 @@ describe("parseTriageResponse", () => {
 
   it("parses a fenced response", () => {
     const out = parseTriageResponse(
-      '```json\n{"verdicts":[{"url":"https://x.com/1","isLaunch":true,"categories":["Fraud Detection"],"vendor":"Acme","technology":"Shield"}]}\n```',
+      '```json\n{"verdicts":[{"url":"https://x.com/1","shareworthy":0.8,"kind":"research","publisher":"report.org","staleness":false,"categories":["Fraud Detection"],"vendor":"Acme","technology":"Shield"}]}\n```',
       valid
     );
     expect(out).toEqual([
-      { url: "https://x.com/1", isLaunch: true, categories: ["fraud detection"], vendor: "Acme", technology: "Shield" },
+      {
+        url: "https://x.com/1",
+        shareworthy: 0.8,
+        kind: "research",
+        publisher: "report.org",
+        staleness: false,
+        categories: ["fraud detection"],
+        vendor: "Acme",
+        technology: "Shield",
+      },
     ]);
+  });
+
+  /**
+   * A model answering "very high", or 8 instead of 0.8, must not become a top hit.
+   * Everything untrustworthy clamps to 0 — the safe end: an unscored item skipped is
+   * recoverable, an unscored item sent is not.
+   */
+  it("clamps a score it cannot trust to zero", () => {
+    for (const bad of ['"very high"', "8", "-1", "null", "true", '"0.8"']) {
+      const out = parseTriageResponse(
+        `{"verdicts":[{"url":"https://x.com/1","shareworthy":${bad},"kind":"research"}]}`,
+        valid
+      );
+      expect(out[0].shareworthy, `input ${bad}`).toBe(0);
+    }
+  });
+
+  it("keeps the boundary scores exactly", () => {
+    for (const [raw, expected] of [["1", 1], ["0", 0], ["0.6", 0.6]] as const) {
+      const out = parseTriageResponse(
+        `{"verdicts":[{"url":"https://x.com/1","shareworthy":${raw},"kind":"trend"}]}`,
+        valid
+      );
+      expect(out[0].shareworthy).toBe(expected);
+    }
+  });
+
+  /** An unrecognised kind lands on "other", never on a kind that carries a policy. */
+  it("maps an unknown or missing kind to other", () => {
+    for (const raw of ['"exciting"', "null", "5", '""']) {
+      const out = parseTriageResponse(
+        `{"verdicts":[{"url":"https://x.com/1","shareworthy":0.9,"kind":${raw}}]}`,
+        valid
+      );
+      expect(out[0].kind, `input ${raw}`).toBe("other");
+    }
+  });
+
+  it("accepts a kind in any casing", () => {
+    const out = parseTriageResponse(
+      '{"verdicts":[{"url":"https://x.com/1","shareworthy":0.9,"kind":" Vendor_Launch "}]}',
+      valid
+    );
+    expect(out[0].kind).toBe("vendor_launch");
+  });
+
+  it("defaults staleness to false rather than dropping the item", () => {
+    const out = parseTriageResponse('{"verdicts":[{"url":"https://x.com/1","shareworthy":0.9,"kind":"trend"}]}', valid);
+    expect(out[0].staleness).toBe(false);
+    expect(out[0].publisher).toBeNull();
   });
 
   // The model inventing rows is a real failure mode.
   it("drops hallucinated urls that were never sent", () => {
     const out = parseTriageResponse(
-      '{"verdicts":[{"url":"https://evil.com/made-up","isLaunch":true},{"url":"https://x.com/1","isLaunch":true}]}',
+      '{"verdicts":[{"url":"https://evil.com/made-up","shareworthy":0.9,"kind":"research"},{"url":"https://x.com/1","shareworthy":0.9,"kind":"research"}]}',
       valid
     );
     expect(out.map((v) => v.url)).toEqual(["https://x.com/1"]);
   });
 
-  it("dedupes repeated urls", () => {
+  it("dedupes repeated urls, keeping the first verdict", () => {
     const out = parseTriageResponse(
-      '{"verdicts":[{"url":"https://x.com/1","isLaunch":true},{"url":"https://x.com/1","isLaunch":false}]}',
+      '{"verdicts":[{"url":"https://x.com/1","shareworthy":0.9,"kind":"research"},{"url":"https://x.com/1","shareworthy":0.1,"kind":"other"}]}',
       valid
     );
     expect(out).toHaveLength(1);
-    expect(out[0].isLaunch).toBe(true);
-  });
-
-  it("coerces a non-boolean isLaunch to false", () => {
-    const out = parseTriageResponse('{"verdicts":[{"url":"https://x.com/1","isLaunch":"yes"}]}', valid);
-    expect(out[0].isLaunch).toBe(false);
+    expect(out[0].shareworthy).toBe(0.9);
   });
 
   it("normalizes categories and drops junk entries", () => {
     const out = parseTriageResponse(
-      '{"verdicts":[{"url":"https://x.com/1","isLaunch":true,"categories":["  Payments  ","payments",5,null,""]}]}',
+      '{"verdicts":[{"url":"https://x.com/1","shareworthy":0.9,"kind":"research","categories":["  Payments  ","payments",5,null,""]}]}',
       valid
     );
     expect(out[0].categories).toEqual(["payments"]);
   });
+});
 
-  it("recovers verdicts from truncated JSON", () => {
-    const out = parseTriageResponse(
-      '{"verdicts":[{"url":"https://x.com/1","isLaunch":true,"categories":[]},{"url":"https://x.com/2","isLau',
-      new Set(["https://x.com/1", "https://x.com/2"])
-    );
-    expect(out.map((v) => v.url)).toEqual(["https://x.com/1"]);
+/**
+ * The prompt is the filter. These pin the inversion itself, so a future edit cannot
+ * quietly restore the launch-hunting behaviour that produced eleven vendor launches
+ * and nothing else on 2026-08-20.
+ */
+describe("the triage prompt", () => {
+  it("asks whether a person would forward it, not whether it is new", () => {
+    expect(SYSTEM).toMatch(/FORWARDING|forward/);
+    expect(SYSTEM).toMatch(/nothing to gain|no agenda/);
   });
 
-  it("returns empty on prose", () => {
-    expect(parseTriageResponse("I can't do that", valid)).toEqual([]);
+  it("scores a vendor announcing its own product LOW, even when genuinely new", () => {
+    expect(SYSTEM).toMatch(/EVEN IF the technology is genuinely useful and genuinely new/);
+  });
+
+  it("names publisher-versus-vendor as the decisive signal", () => {
+    expect(SYSTEM).toMatch(/publisher.*vendor|vendor.*publisher/i);
+    expect(SYSTEM).toMatch(/PROMOTION until proven otherwise/);
+  });
+
+  it("rewards research, trends and big news", () => {
+    expect(SYSTEM).toMatch(/research, reports and surveys/);
+    expect(SYSTEM).toMatch(/genuine trend/);
+  });
+
+  /** The old prompt listed these as reasons to REJECT an item. */
+  it("no longer rejects research and analysis outright", () => {
+    expect(SYSTEM).not.toMatch(/isLaunch=false for everything else/);
+    expect(SYSTEM).not.toMatch(/market analysis, forecasts, surveys, research reports/);
+  });
+
+  it("demands a decimal, because a word would clamp to zero", () => {
+    expect(SYSTEM).toMatch(/as a DECIMAL/);
+    expect(SYSTEM).toMatch(/Never a word/);
+  });
+
+  it("carries both directions of the same subject as a worked example", () => {
+    expect(SYSTEM).toContain("aws.amazon.com");
+    expect(SYSTEM).toMatch(/vendor_launch", shareworthy 0\.2|shareworthy 0\.2/);
+    expect(SYSTEM).toMatch(/research", shareworthy 0\.8|shareworthy 0\.8/);
   });
 });
+
 
 describe("triageChunk", () => {
   it("makes no call for an empty chunk", async () => {

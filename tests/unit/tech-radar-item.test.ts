@@ -9,7 +9,10 @@ const { makeItemDedupeKey, isSameTechnology, isSameLaunch, parseItemResponse, sy
 
 const triage: TriageVerdict = {
   url: "https://news.com/a",
-  isLaunch: true,
+  shareworthy: 0.8,
+  kind: "research",
+  publisher: "news.com",
+  staleness: false,
   categories: ["fraud detection"],
   vendor: "Acme",
   technology: "Fraud Shield",

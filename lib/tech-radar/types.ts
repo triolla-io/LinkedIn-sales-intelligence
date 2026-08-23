@@ -43,10 +43,54 @@ export function isUsableProfile(p: unknown): p is TechRadarProfile {
 
 // ─── Discovery pipeline ──────────────────────────────────────────────────────
 
-/** Stage 2 output: is a pool item a genuine technology launch at all? */
+/**
+ * What kind of thing an item is.
+ *
+ * Not decoration: the drafting stage picks its archetype from `kind`, and the learning
+ * loop raises a per-kind `shareworthy` floor when a kind is discarded too often. An
+ * unrecognised value must therefore land on "other" rather than on any kind that
+ * carries a policy.
+ */
+export type ItemKind =
+  | "research"
+  | "trend"
+  | "big_news"
+  | "company_move"
+  | "vendor_launch"
+  | "promotion"
+  | "other";
+
+export const ITEM_KINDS: readonly ItemKind[] = [
+  "research",
+  "trend",
+  "big_news",
+  "company_move",
+  "vendor_launch",
+  "promotion",
+  "other",
+] as const;
+
+/** Below this, an item is not worth a person's attention, whatever its kind. */
+export const SHAREWORTHY_FLOOR = 0.6;
+
+/**
+ * Stage 2 output: would a well-read person forward this to someone they know?
+ *
+ * This replaced `isLaunch`. The old field asked whether an item was a product launch
+ * and the prompt explicitly REJECTED research, surveys, analysis and commentary — the
+ * exact inverse of what a relationship radar wants. The first production run returned
+ * eleven vendor launches and nothing else; the filter was working perfectly, at the
+ * wrong job.
+ */
 export type TriageVerdict = {
   url: string;
-  isLaunch: boolean;
+  /** 0-1. Forwardable to a colleague, unprompted, with no agenda. */
+  shareworthy: number;
+  kind: ItemKind;
+  /** Who published it. A vendor publishing about itself is promotion until proven otherwise. */
+  publisher: string | null;
+  /** True when everyone in the field has already seen it — forwarding it says "I don't follow your field". */
+  staleness: boolean;
   /** Coarse tags used to prefilter items against a company's focus areas. */
   categories: string[];
   /** Short vendor/technology guess; the write-up stage refines it. */
@@ -65,6 +109,9 @@ export type TechItemDraft = {
   publishedAt: string | null;
   /** True when no page could be read and only a snippet was available. */
   thin: boolean;
+  /** Carried from the triage verdict so a discard can be explained after the fact. */
+  shareworthy: number;
+  kind: ItemKind;
 };
 
 /** Stage 4 output: the per-company judgement. */

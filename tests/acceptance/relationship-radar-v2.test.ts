@@ -9,6 +9,8 @@ import {
 } from "@/tests/fixtures/relationship-radar-v2";
 import { checkDraft } from "@/lib/tech-radar/draft-guard";
 import { DRAFT_SYSTEM } from "@/lib/tech-radar/draft";
+import { triageAll } from "@/lib/tech-radar/triage";
+import { SHAREWORTHY_FLOOR } from "@/lib/tech-radar/types";
 
 /**
  * Acceptance tests for Relationship Radar v2, built from the three defects the first
@@ -40,8 +42,6 @@ const futureModule = (path: string) => import(/* @vite-ignore */ path);
  * question, and must answer it low.
  */
 describe("(א) inverted triage: a vendor launch is not shareworthy on its own", () => {
-  const SHAREWORTHY_FLOOR = 0.6;
-
   /** triageAll takes PoolItem — {title, url, snippet, publishedAt} — not the item record. */
   const poolItem = (over: Record<string, unknown> = {}) => ({
     title: VENDOR_LAUNCH_ITEM.title,
@@ -51,8 +51,7 @@ describe("(א) inverted triage: a vendor launch is not shareworthy on its own", 
     ...over,
   });
 
-  it.skip("scores a pure cloud-vendor capability launch below the floor", async () => {
-    const { triageAll } = await futureModule("@/lib/tech-radar/triage");
+  it("scores a pure cloud-vendor capability launch below the floor", async () => {
     const [verdict] = await triageAll([poolItem()]);
 
     expect(verdict.shareworthy).toBeLessThan(SHAREWORTHY_FLOOR);
@@ -61,8 +60,7 @@ describe("(א) inverted triage: a vendor launch is not shareworthy on its own", 
     expect(verdict.kind).toBe("vendor_launch");
   });
 
-  it.skip("scores the same capability high when a third party analyses the trend", async () => {
-    const { triageAll } = await futureModule("@/lib/tech-radar/triage");
+  it("scores the same capability high when a third party analyses the trend", async () => {
     const [verdict] = await triageAll([
       poolItem({
         title: "מחקר: 60% מצוותי הדאטה זנחו מסדי וקטורים נפרדים ב-2026",
@@ -79,8 +77,7 @@ describe("(א) inverted triage: a vendor launch is not shareworthy on its own", 
    * downranked "vector search", both of the above would fail together and the test
    * would still be green on the wrong reason.
    */
-  it.skip("separates the two by angle rather than by subject matter", async () => {
-    const { triageAll } = await futureModule("@/lib/tech-radar/triage");
+  it("separates the two by angle rather than by subject matter", async () => {
     const [launch, research] = await Promise.all([
       triageAll([poolItem()]),
       triageAll([

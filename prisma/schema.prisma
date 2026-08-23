@@ -1151,6 +1151,12 @@ model TechItem {
   publishedAt DateTime?
   /// True when synthesized from a search snippet because no page could be read.
   thin        Boolean   @default(false)
+  /// 0-1 from triage. Stored so a discard can be explained after the fact.
+  shareworthy Float     @default(0)
+  /// See ItemKind in lib/tech-radar/types.ts. A String, not a Postgres enum: the list
+  /// moves as the learning loop teaches us, and a new enum member cannot be used in the
+  /// transaction that adds it. Validation lives in asKind().
+  kind        String    @default("other")
   dedupeKey   String    @unique
   createdAt   DateTime  @default(now())
 

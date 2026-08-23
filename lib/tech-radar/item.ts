@@ -180,7 +180,15 @@ function userPrompt(input: ItemSynthesisInput): string {
   return `${head}\n\nPage content:\n${body}`;
 }
 
-export function parseItemResponse(text: string): Omit<TechItemDraft, "sources" | "thin"> | null {
+/**
+ * The write-up model produces prose, not scores. `shareworthy` and `kind` come from the
+ * triage verdict and are excluded here on purpose: letting this stage return them would
+ * give one item two scores that can disagree, and the stored one is what a discard is
+ * explained by.
+ */
+export function parseItemResponse(
+  text: string
+): Omit<TechItemDraft, "sources" | "thin" | "shareworthy" | "kind"> | null {
   const parsed = parseJsonLoose<Record<string, unknown>>(text);
   if (!parsed || typeof parsed !== "object") return null;
 
@@ -244,5 +252,9 @@ export async function synthesizeItem(input: ItemSynthesisInput): Promise<TechIte
     publishedAt,
     sources,
     thin: input.pages.length === 0,
+    // Carried from the verdict, not re-judged. Re-scoring here would give one item two
+    // scores that could disagree, and the stored one is what a discard is explained by.
+    shareworthy: input.triage.shareworthy,
+    kind: input.triage.kind,
   };
 }

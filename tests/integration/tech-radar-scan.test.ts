@@ -152,10 +152,10 @@ describe("scanOrg", () => {
     oneCompany();
     fetchPoolNews.mockResolvedValue({ items: [poolItem("https://news.com/1")], queriesRun: 1, quotaLikely: false });
     triageAll.mockResolvedValue([
-      { url: "https://news.com/1", isLaunch: false, categories: [], vendor: null, technology: null },
+      { url: "https://news.com/1", shareworthy: 0.2, kind: "vendor_launch", publisher: null, staleness: false, categories: [], vendor: null, technology: null },
     ]);
     const report = await scanOrg("org1");
-    expect(report.launches).toBe(0);
+    expect(report.worthSharing).toBe(0);
     expect(synthesizeItem).not.toHaveBeenCalled();
   });
 
@@ -163,7 +163,7 @@ describe("scanOrg", () => {
     oneCompany();
     fetchPoolNews.mockResolvedValue({ items: [poolItem("https://news.com/1")], queriesRun: 1, quotaLikely: false });
     triageAll.mockResolvedValue([
-      { url: "https://news.com/1", isLaunch: true, categories: ["fraud detection"], vendor: "Acme", technology: "Shield" },
+      { url: "https://news.com/1", shareworthy: 0.8, kind: "research", publisher: null, staleness: false, categories: ["fraud detection"], vendor: "Acme", technology: "Shield" },
     ]);
     synthesizeItem.mockResolvedValue({
       vendor: "Acme", technology: "Shield", title: "t", summary: "s",
@@ -184,7 +184,7 @@ describe("scanOrg", () => {
     oneCompany();
     fetchPoolNews.mockResolvedValue({ items: [poolItem("https://news.com/1")], queriesRun: 1, quotaLikely: false });
     triageAll.mockResolvedValue([
-      { url: "https://news.com/1", isLaunch: true, categories: ["fraud detection"], vendor: "Acme", technology: "Shield" },
+      { url: "https://news.com/1", shareworthy: 0.8, kind: "research", publisher: null, staleness: false, categories: ["fraud detection"], vendor: "Acme", technology: "Shield" },
     ]);
     synthesizeItem.mockResolvedValue({
       vendor: "Acme", technology: "Shield", title: "t", summary: "s",
@@ -204,8 +204,8 @@ describe("scanOrg", () => {
       queriesRun: 1, quotaLikely: false,
     });
     triageAll.mockResolvedValue([
-      { url: "https://news.com/1", isLaunch: true, categories: ["fraud detection"], vendor: "A", technology: "One" },
-      { url: "https://news.com/2", isLaunch: true, categories: ["fraud detection"], vendor: "B", technology: "Two" },
+      { url: "https://news.com/1", shareworthy: 0.8, kind: "research", publisher: null, staleness: false, categories: ["fraud detection"], vendor: "A", technology: "One" },
+      { url: "https://news.com/2", shareworthy: 0.8, kind: "research", publisher: null, staleness: false, categories: ["fraud detection"], vendor: "B", technology: "Two" },
     ]);
     synthesizeItem
       .mockRejectedValueOnce(new Error("llm blew up"))
@@ -223,7 +223,7 @@ describe("scanOrg", () => {
     oneCompany();
     fetchPoolNews.mockResolvedValue({ items: [poolItem("https://news.com/1")], queriesRun: 1, quotaLikely: false });
     triageAll.mockResolvedValue([
-      { url: "https://news.com/1", isLaunch: true, categories: ["fraud detection"], vendor: "A", technology: "One" },
+      { url: "https://news.com/1", shareworthy: 0.8, kind: "research", publisher: null, staleness: false, categories: ["fraud detection"], vendor: "A", technology: "One" },
     ]);
     synthesizeItem.mockResolvedValue({
       vendor: "A", technology: "One", title: "t", summary: "s",
@@ -253,7 +253,7 @@ describe("scanOrg", () => {
     triageAll.mockResolvedValue(
       urls.map((u, i) => ({
         url: u,
-        isLaunch: true,
+        shareworthy: 0.8, kind: "research", publisher: null, staleness: false,
         categories: i === urls.length - 1 ? ["fraud detection"] : ["unrelated widgets"],
         vendor: "V",
         technology: `Tech${i}`,
@@ -276,7 +276,7 @@ describe("scanOrg", () => {
     oneCompany();
     fetchPoolNews.mockResolvedValue({ items: [poolItem("https://news.com/1")], queriesRun: 1, quotaLikely: false });
     triageAll.mockResolvedValue([
-      { url: "https://news.com/1", isLaunch: true, categories: ["fraud detection"], vendor: "A", technology: "One" },
+      { url: "https://news.com/1", shareworthy: 0.8, kind: "research", publisher: null, staleness: false, categories: ["fraud detection"], vendor: "A", technology: "One" },
     ]);
     synthesizeItem.mockResolvedValue({
       vendor: "A", technology: "One", title: "t", summary: "s",
