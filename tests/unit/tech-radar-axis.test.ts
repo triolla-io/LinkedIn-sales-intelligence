@@ -107,16 +107,17 @@ describe("judgeAxisMerge", () => {
   });
 
   /**
-   * A consequence of Jaccard that is worth knowing rather than discovering: two SHORT
-   * labels sharing one token score 1/3, which is below the ask band, so near-synonyms
-   * like "זיהוי הונאות" and "הונאות תשלומים" become separate axes without anyone being
-   * asked. The band assumes labels rich enough to overlap on more than one word — which
-   * is a constraint on the axis-proposing prompt, not a bug here.
+   * This test used to assert that two short labels sharing one token fall BELOW the ask
+   * band and become separate axes "without anyone being asked". The first live build
+   * showed that is precisely the wrong behaviour: near-duplicates score 0.08-0.38, so a
+   * band starting at 0.35 was blind to almost all of them, and 6 people produced 33
+   * axes with one subscriber each. ASK_ABOVE is now 0 — everything the free levels do
+   * not settle is asked. Changed on evidence, not to make an implementation pass.
    */
-  it("falls below the ask band when two short labels share only one token", () => {
+  it("asks about a near-duplicate rather than silently creating one", () => {
     const v = judgeAxisMerge("הונאות תשלומים", existing);
-    expect(v.decision).toBe("create");
-    expect(v.similarity).toBeCloseTo(1 / 3);
+    expect(v.decision).toBe("ask");
+    if (v.decision === "ask") expect(v.axisId).toBe("ax-fraud");
   });
 
   it("auto-merges when overlap is high enough to be certain", () => {
@@ -127,26 +128,25 @@ describe("judgeAxisMerge", () => {
     if (v.decision === "merge") expect(v.via).toBe("similarity");
   });
 
-  it("creates when nothing is close", () => {
-    expect(judgeAxisMerge("אנרגיה מתחדשת", existing).decision).toBe("create");
+  /** Even a distant label is asked: one batched call answers the whole set anyway, and
+   *  lexical distance is exactly what proved unable to make this call. */
+  it("asks even when nothing looks close", () => {
+    expect(judgeAxisMerge("אנרגיה מתחדשת", existing).decision).toBe("ask");
+  });
+
+  /** Create is what remains when there is nothing to ask ABOUT. */
+  it("creates only when the org has no axes at all", () => {
+    expect(judgeAxisMerge("זיהוי הונאות", []).decision).toBe("create");
   });
 
   it("rejects a label that normalises to nothing", () => {
     expect(judgeAxisMerge("תחום", existing)).toEqual({ decision: "reject", reason: "empty_key" });
   });
 
-  it("creates when the org has no axes yet", () => {
-    expect(judgeAxisMerge("זיהוי הונאות", []).decision).toBe("create");
-  });
-
-  /**
-   * The caller passes ACTIVE axes only. Pinned as behaviour: whatever is handed in is
-   * what can be merged into, so a caller that forgets to filter is the caller's bug —
-   * but this function must not invent a merge target that was not offered.
-   */
-  it("never returns an axis it was not given", () => {
+  /** Whatever is handed in is what can be merged into — never an axis not offered. */
+  it("never names an axis it was not given", () => {
     const v = judgeAxisMerge("זיהוי הונאות", [existing[1]]);
-    expect(v.decision).toBe("create");
+    if (v.decision === "merge" || v.decision === "ask") expect(v.axisId).toBe(existing[1].id);
   });
 });
 

@@ -15,6 +15,13 @@ import {
   type AxisRow,
 } from "@/lib/tech-radar/axis";
 import type { AxisProposal } from "@/lib/tech-radar/person-profile";
+import { resolveMergeQuestions } from "@/lib/tech-radar/axis-merge";
+
+/**
+ * How related the nearest axis must be before a ceiling-hit proposal is folded into it.
+ * Below this, the honest answer is "the ceiling stopped this", not a false neighbour.
+ */
+const CEILING_FALLBACK_FLOOR = 0.2;
 
 export type AttachOutcome = {
   attached: number;
@@ -27,11 +34,14 @@ export type AttachOutcome = {
 /**
  * Attach a person to axes, creating only what does not already exist.
  *
- * `ask`-band proposals are treated as CREATE in the pilot rather than paying for an LLM
- * call: the spec puts the disambiguation call in this band, but with a handful of people
- * the band is nearly empty and a wrong auto-merge is worse than a near-duplicate axis —
- * a merged axis cannot be un-merged without losing the rationale it was merged under.
- * Revisit when the catalog is large enough for the band to matter.
+ * Three levels, cheapest first: an exact canonical key is free, overlap at or above
+ * AUTO_MERGE_AT is free, and everything else goes to ONE batched model call.
+ *
+ * That call used to be skipped — `ask` was treated as `create`, on the reasoning that
+ * with a handful of people the band would be nearly empty. The first live build proved
+ * that wrong in the most direct way available: 6 people produced 33 axes with one
+ * subscriber each, including three separate axes for one subject at one company. The
+ * band is not the rare case; it is where near-duplicates live.
  */
 export async function attachAxes(input: {
   orgId: string;
@@ -50,8 +60,20 @@ export async function attachAxes(input: {
   const held = await prisma.personAxis.count({ where: { personProfileId: input.personProfileId } });
   let personAxisCount = held;
 
-  for (const proposal of input.proposals) {
-    const verdict = judgeAxisMerge(proposal.label, existing);
+  // Level 3, batched: everything the free levels did not settle is asked in one call.
+  // Asking per proposal would be N calls per person; asking once is one.
+  const verdicts = input.proposals.map((p) => ({ proposal: p, verdict: judgeAxisMerge(p.label, existing) }));
+  const questions = verdicts.filter((v) => v.verdict.decision === "ask" || v.verdict.decision === "create");
+  const answers =
+    questions.length > 0
+      ? await resolveMergeQuestions(
+          existing.map((e) => ({ id: e.id, label: e.label })),
+          questions.map((q) => ({ label: q.proposal.label }))
+        )
+      : new Map<number, string | null>();
+  const askedIndex = new Map(questions.map((q, n) => [q.proposal.label, n]));
+
+  for (const { proposal, verdict } of verdicts) {
     if (verdict.decision === "reject") {
       out.skipped.push({ label: proposal.label, reason: "empty_key" });
       continue;
@@ -62,12 +84,31 @@ export async function attachAxes(input: {
       axisId = verdict.axisId;
       out.merged += 1;
     } else {
-      // `ask` and `create` both create in the pilot — see the note above.
+      const answeredId = answers.get(askedIndex.get(proposal.label) ?? -1) ?? null;
+      if (answeredId) {
+        // The model recognised it as an existing subject worded differently.
+        axisId = answeredId;
+        out.merged += 1;
+        const link0 = await prisma.personAxis.upsert({
+          where: { personProfileId_axisId: { personProfileId: input.personProfileId, axisId } },
+          create: { personProfileId: input.personProfileId, axisId, rationale: proposal.rationale, source: "ROLE_COMPANY" },
+          update: { rationale: proposal.rationale },
+          select: { id: true },
+        });
+        if (link0) {
+          personAxisCount += 1;
+          out.attached += 1;
+        }
+        continue;
+      }
+
       const ceiling = judgeCeilings({ orgAxisCount, personAxisCount });
       if (!ceiling.allowed) {
-        // At a ceiling the person attaches to the nearest existing axis rather than
-        // being dropped. Only a proposal with nothing near it is skipped.
-        if (verdict.decision === "ask") {
+        // At a ceiling the person attaches to the NEAREST existing axis rather than
+        // being dropped — but only if it is actually near. Since ASK_ABOVE is 0, the
+        // "nearest" axis can have zero overlap, and filing a renewable-energy interest
+        // under core banking is worse than recording that the ceiling was hit.
+        if (verdict.decision === "ask" && verdict.similarity >= CEILING_FALLBACK_FLOOR) {
           axisId = verdict.axisId;
           out.merged += 1;
         } else {

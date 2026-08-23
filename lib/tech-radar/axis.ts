@@ -63,7 +63,28 @@ export function axisSimilarity(a: string, b: string): number {
 
 /** Auto-merge at or above this. Below AUTO_MERGE but at or above ASK, an LLM decides. */
 export const AUTO_MERGE_AT = 0.6;
-export const ASK_ABOVE = 0.35;
+
+/**
+ * Everything not decided for free is ASKED. Was 0.35, which was wrong twice over.
+ *
+ * The first live build produced 33 axes for 6 people, each with one subscriber, and
+ * merged nothing. Three people at one company got three axes for one subject:
+ *   "עיכוב בהעברת נתונים חי וגודל תפוקה"   \
+ *   "עיכוב בהעברת נתונים חיים בספורט"      | one subject, three axes
+ *   "עיבוד נתונים בזמן אמת בקנה מידה ענק"  /
+ * Their pairwise scores were 0.375, 0.083 and 0.091 — so a band starting at 0.35 saw
+ * only one of the three pairs, and the pilot shortcut of treating "ask" as "create"
+ * meant even that one was not asked.
+ *
+ * Lexical distance cannot decide this. Two labels for one subject routinely share
+ * almost no exact tokens, and Hebrew inflection is invisible to token matching without
+ * a lexicon — an attempt to strip it turned "ליבה בנקאית" into "יבה נקאי", which would
+ * merge unrelated subjects, the expensive direction of the error.
+ *
+ * So the model decides, in ONE batched call per profile build. The free levels still
+ * short-circuit: an exact key, or overlap at or above AUTO_MERGE_AT, costs nothing.
+ */
+export const ASK_ABOVE = 0;
 
 export type AxisRow = { id: string; key: string; label: string };
 

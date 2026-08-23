@@ -177,5 +177,6 @@ export const OR_FEATURE = {
    *  it runs on Opus rather than Haiku, so it is the expensive line. */
   personProfile: "tech-radar-person-profile",
   axisFit: "tech-radar-axis-fit",
+  axisMerge: "tech-radar-axis-merge",
   veto: "tech-radar-veto",
 } as const;
