@@ -21,6 +21,8 @@ import { fetcher, fetchErrorMessage } from "@/lib/fetcher";
 type Match = {
   itemId: string;
   title: string;
+  summary: string;
+  url: string | null;
   kind: string;
   shareworthy: number;
   score: number;
@@ -112,12 +114,12 @@ function AxisRow({ axis }: { axis: Axis }) {
       {axis.matches.length === 0 ? (
         <p className={cn("text-xs mt-1", FAINT)}>לא נמצאו כתבות לציר הזה בסריקה האחרונה.</p>
       ) : (
-        <ul className="mt-1.5 flex flex-col gap-1">
+        <ul className="mt-2 flex flex-col gap-2.5">
           {axis.matches.map((m) => (
-            <li key={m.itemId} className="flex items-start gap-2 text-xs">
+            <li key={m.itemId} className="flex items-start gap-2">
               <span
                 className={cn(
-                  "shrink-0 tabular-nums w-9 text-center rounded",
+                  "shrink-0 tabular-nums w-9 text-center text-xs pt-0.5",
                   m.score >= 0.5 ? "text-[#1585ff]" : FAINT
                 )}
                 title="ציון ההתאמה לציר"
@@ -125,9 +127,30 @@ function AxisRow({ axis }: { axis: Axis }) {
                 {m.score.toFixed(2)}
               </span>
               <span className="min-w-0">
-                <span className="text-[#1a1917]">{m.title}</span>
-                <span className={cn("mx-1", FAINT)}>· {KIND_HE[m.kind] ?? m.kind}</span>
-                {m.rationale && <span className={cn("block", MUTED)}>{m.rationale}</span>}
+                {/* The title is a LINK. Judging "would I forward this" is impossible
+                    without being able to open the thing. */}
+                {m.url ? (
+                  <a
+                    href={m.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-[#1585ff] hover:underline"
+                  >
+                    {m.title}
+                    <ExternalLink className="size-3 inline align-baseline ms-1" aria-hidden />
+                  </a>
+                ) : (
+                  <span className="text-sm text-[#1a1917]">{m.title}</span>
+                )}
+                <span className={cn("text-xs ms-1", FAINT)}>· {KIND_HE[m.kind] ?? m.kind}</span>
+                {/* The Hebrew summary we already paid to write. Without it the reader has
+                    to open every link to form any opinion at all. */}
+                {m.summary && (
+                  <span className={cn("block text-xs mt-0.5 leading-relaxed", MUTED)}>{m.summary}</span>
+                )}
+                {m.rationale && (
+                  <span className={cn("block text-xs mt-0.5", FAINT)}>למה זה תואם לציר: {m.rationale}</span>
+                )}
               </span>
             </li>
           ))}

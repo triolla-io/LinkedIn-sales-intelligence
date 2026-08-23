@@ -153,7 +153,7 @@ describe("RadarReview", () => {
     data[KEY] = {
       people: [
         person({
-          axes: [axis({ matches: [{ itemId: "i1", title: "CO2-EOR", kind: "research", shareworthy: 0.7, score: 0.85, rationale: "מוסיף נתוני אימוץ" }] })],
+          axes: [axis({ matches: [{ itemId: "i1", title: "CO2-EOR", summary: "שיטה להגברת הוצאת נפט על ידי הזרקת CO2.", url: "https://x.com/co2", kind: "research", shareworthy: 0.7, score: 0.85, rationale: "מוסיף נתוני אימוץ" }] })],
         }),
       ],
       health: health({ matches: 1 }),
@@ -161,7 +161,8 @@ describe("RadarReview", () => {
     render(<RadarReview />);
     expect(screen.getByText("0.85")).toBeInTheDocument();
     expect(screen.getByText(/מחקר/)).toBeInTheDocument();
-    expect(screen.getByText("מוסיף נתוני אימוץ")).toBeInTheDocument();
+    // Labelled, so it is not read as the reason the PERSON should receive it.
+    expect(screen.getByText(/למה זה תואם לציר: מוסיף נתוני אימוץ/)).toBeInTheDocument();
   });
 
   /** A failed load must not read as "nothing was found". */
@@ -198,5 +199,60 @@ describe("RadarReview staleness", () => {
     render(<RadarReview />);
     const labels = screen.getAllByText("—");
     expect(labels.length).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * The screen showed a grey title and nothing else. Judging "would I forward this to
+ * him" is impossible without being able to read the thing — and we had already paid to
+ * write a Hebrew summary of every item, which was not on screen at all.
+ */
+describe("RadarReview shows the item, not just its name", () => {
+  const withItem = (over: Record<string, unknown> = {}) =>
+    person({
+      axes: [
+        axis({
+          matches: [
+            {
+              itemId: "i1",
+              title: "CO2-EOR — שחזור נפט משופר",
+              summary: "שיטה להגברת הוצאת נפט מקידוחים קיימים על ידי הזרקת CO2.",
+              url: "https://oceannews.com/co2-eor",
+              kind: "research",
+              shareworthy: 0.7,
+              score: 0.85,
+              rationale: "מוסיף נתוני אימוץ בשדות בוגרים",
+              ...over,
+            },
+          ],
+        }),
+      ],
+    });
+
+  it("shows the Hebrew summary so the item can be judged without leaving the page", () => {
+    data[KEY] = { people: [withItem()], health: health({ matches: 1 }) };
+    render(<RadarReview />);
+    expect(screen.getByText(/שיטה להגברת הוצאת נפט/)).toBeInTheDocument();
+  });
+
+  it("makes the title a link to the article", () => {
+    data[KEY] = { people: [withItem()], health: health({ matches: 1 }) };
+    render(<RadarReview />);
+    const link = screen.getByRole("link", { name: /CO2-EOR/ });
+    expect(link).toHaveAttribute("href", "https://oceannews.com/co2-eor");
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
+  it("still shows the title when the item has no readable source", () => {
+    data[KEY] = { people: [withItem({ url: null })], health: health({ matches: 1 }) };
+    render(<RadarReview />);
+    expect(screen.getByText(/CO2-EOR/)).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /CO2-EOR/ })).toBeNull();
+  });
+
+  it("labels the axis-fit reason so it is not confused with the person's reason", () => {
+    data[KEY] = { people: [withItem()], health: health({ matches: 1 }) };
+    render(<RadarReview />);
+    expect(screen.getByText(/למה זה תואם לציר: מוסיף נתוני אימוץ/)).toBeInTheDocument();
   });
 });

@@ -58,7 +58,10 @@ export const GET = withTenant(async (_req, ctx) => {
       where: { axisId: { in: axisIds } },
       select: {
         axisId: true, score: true, rationale: true,
-        item: { select: { id: true, title: true, kind: true, shareworthy: true } },
+        // The summary and the link are the whole point: the reader has to be able to
+        // READ the item to judge whether it is worth forwarding. A title in grey text
+        // is not something anyone can form an opinion about.
+        item: { select: { id: true, title: true, summary: true, kind: true, shareworthy: true, sources: true } },
       },
       orderBy: { score: "desc" },
     }),
@@ -99,6 +102,8 @@ export const GET = withTenant(async (_req, ctx) => {
         matches: (matchesByAxis.get(a.axis.id) ?? []).slice(0, 5).map((m) => ({
           itemId: m.item.id,
           title: m.item.title,
+          summary: m.item.summary,
+          url: firstUrl(m.item.sources),
           kind: m.item.kind,
           shareworthy: m.item.shareworthy,
           score: m.score,
