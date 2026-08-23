@@ -130,6 +130,7 @@ model Organization {
   invites           Invite[]
   personEnrichments PersonEnrichment[]
   trackedCompanies  TrackedCompany[]
+  radarAxes                   RadarAxis[]
 }
 
 model User {
@@ -173,6 +174,7 @@ model User {
   companySignalDrafts CompanySignalDraft[]   @relation("UserCompanySignalDrafts")
   enrichmentSpends    UserEnrichmentSpend[]  @relation("UserEnrichmentSpends")
   techDrafts          TechOpportunityDraft[] @relation("UserTechOpportunityDrafts")
+  radarDrafts RadarDraft[] @relation("UserRadarDrafts")
 }
 
 model Contact {
@@ -239,6 +241,8 @@ model Contact {
   @@index([ownerId, companySize])
   @@index([ownerId, removedAt])
   @@index([ownerId, companyId])
+  personProfile PersonProfile?
+  radarDrafts   RadarDraft[]
 }
 
 model MessageTemplate {
@@ -452,11 +456,6 @@ enum JobChangeStatus {
   APPROVED
   SENT
   DISMISSED
-  /// Written by a superseded prompt version. Kept as the comparison baseline for the
-  /// v2 register, never sendable: the 27 drafts from 2026-08-19 all carried v1's
-  /// "אולי תוכלו לשלב" close, which lib/tech-radar/draft-guard.ts rejects. A draft our
-  /// own rules fail cannot sit in a send queue.
-  SUPERSEDED_V1
 }
 
 enum JobChangeType {
@@ -1091,6 +1090,11 @@ enum TechDraftStatus {
   PREPARED
   SENT
   DISMISSED
+  /// Written by a superseded prompt version. Kept as the comparison baseline for the
+  /// v2 register, never sendable: the 27 drafts from 2026-08-19 all carried v1's
+  /// "אולי תוכלו לשלב" close, which lib/tech-radar/draft-guard.ts rejects. A draft our
+  /// own rules fail cannot sit in a send queue.
+  SUPERSEDED_V1
 }
 
 /// A company the org has chosen to track. Deliberately NOT an extension of the
@@ -1161,6 +1165,8 @@ model TechItem {
   createdAt   DateTime  @default(now())
 
   opportunities TechOpportunity[]
+  axisMatches   AxisMatch[]
+  radarDrafts   RadarDraft[]
 
   @@index([createdAt])
 }
@@ -1218,4 +1224,196 @@ model TechOpportunityDraft {
 
   @@unique([opportunityId, contactId])
   @@index([ownerId, status])
+}
+
+// ─── Relationship Radar v2: the person-level model ──────────────────────────
+//
+// v1 matched an item to a COMPANY and then chose someone who worked there. The
+// rationale was therefore a property of the company, which is why one AWS item
+// produced three drafts to three founders of 365Scores carrying a byte-identical
+// reason. These models move the matching unit to an interest axis that people
+// subscribe to, so relevance is judged against what a person cares about and the
+// cost stays flat as the person count grows.
+
+enum RadarAxisKind {
+  /// Born from crossing a person's role lens with their employer's profile.
+  ROLE_COMPANY
+  /// One per employer with at least one eligible contact. Never shared, never merged.
+  COMPANY_MONITOR
+}
+
+enum RadarAxisStatus {
+  ACTIVE
+  /// Folded into `mergedIntoId`. Never deleted, so a rationale stays explicable.
+  MERGED
+  /// Measured, not judged: too many subscribers or too weak a first scan.
+  TOO_BROAD
+  RETIRED
+}
+
+enum RadarAxisSource {
+  ROLE_COMPANY
+  COMPANY_MONITOR
+}
+
+/// A canonical interest axis for one org. The matching unit: fit is judged once per
+/// (axis, item) and shared by every subscriber.
+model RadarAxis {
+  id               String          @id @default(cuid())
+  orgId            String
+  /// Normalised form — see normalizeAxisKey(). Unique per org so two people
+  /// proposing "זיהוי הונאות" and "הונאות זיהוי" land on one axis.
+  key              String
+  /// Hebrew, human-facing.
+  label            String
+  kind             RadarAxisKind
+  searchQueries    String[]        @default([])
+  /// Org-level importance, moved by the learning loop.
+  weight           Float           @default(1)
+  /// Denormalised for the width guard, which fires at >40% of the org's people.
+  subscriberCount  Int             @default(0)
+  status           RadarAxisStatus @default(ACTIVE)
+  mergedIntoId     String?
+  /// Set only for COMPANY_MONITOR axes.
+  trackedCompanyId String?
+  /// Median shareworthy of the items this axis returned, for the width guard.
+  medianShareworthy Float?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  org         Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  mergedInto  RadarAxis?      @relation("RadarAxisMerge", fields: [mergedIntoId], references: [id], onDelete: SetNull)
+  mergedFrom  RadarAxis[]     @relation("RadarAxisMerge")
+  people      PersonAxis[]
+  matches     AxisMatch[]
+  drafts      RadarDraft[]
+
+  @@unique([orgId, key])
+  @@index([orgId, status])
+}
+
+/// One per eligible contact. The person model the axes hang off.
+model PersonProfile {
+  id                        String   @id @default(cuid())
+  contactId                 String   @unique
+  /// What kind of decisions this person owns, in their own terms.
+  roleLens                  String
+  employerTrackedCompanyId  String?
+  /// Learned from feedback. Capped at 400 chars so it stays a note, not a dossier.
+  personalNotes             String?
+  refreshedAt               DateTime @default(now())
+  createdAt                 DateTime @default(now())
+
+  contact  Contact         @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  axes     PersonAxis[]
+
+  @@index([employerTrackedCompanyId])
+}
+
+/// The join, carrying a PER-PERSON weight. Two people can share an axis and care
+/// about it to different degrees — which is the whole difference from v1.
+model PersonAxis {
+  id              String          @id @default(cuid())
+  personProfileId String
+  axisId          String
+  weight          Float           @default(1)
+  /// Why this axis is THIS person's. Feeds the veto, and is never the company's reason.
+  rationale       String
+  source          RadarAxisSource
+  createdAt       DateTime        @default(now())
+
+  personProfile PersonProfile @relation(fields: [personProfileId], references: [id], onDelete: Cascade)
+  axis          RadarAxis     @relation(fields: [axisId], references: [id], onDelete: Cascade)
+
+  @@unique([personProfileId, axisId])
+  @@index([axisId])
+}
+
+/// The shared per-axis judgement of one item. Judged once, used by every subscriber —
+/// this is what keeps LLM cost flat as the person count grows.
+model AxisMatch {
+  id        String   @id @default(cuid())
+  axisId    String
+  itemId    String
+  rationale String
+  score     Float
+  createdAt DateTime @default(now())
+
+  axis RadarAxis @relation(fields: [axisId], references: [id], onDelete: Cascade)
+  item TechItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([axisId, itemId])
+  @@index([itemId])
+}
+
+enum RadarDraftStatus {
+  PENDING_REVIEW
+  PREPARING
+  PREPARED
+  SENT
+  DISMISSED
+  /// Killed by the veto: the connection was not specific to this person.
+  VETOED
+}
+
+/// The person-level unit. Replaces TechOpportunityDraft, which hung off a
+/// company-level opportunity.
+model RadarDraft {
+  id              String           @id @default(cuid())
+  contactId       String
+  itemId          String
+  /// Which axis earned this person the item. Null only for a vetoed candidate.
+  axisId          String?
+  ownerId         String
+  draftMessage    String?
+  /// The veto's answer to "why him", in one sentence. Recorded even when it fails.
+  whyHim          String?
+  confidence      Float            @default(0)
+  /// The parts the confidence was built from, so a score can be explained.
+  confidenceParts Json?
+  status          RadarDraftStatus @default(PENDING_REVIEW)
+  discardReason   String?
+  sentAt          DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  contact Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  item    TechItem   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  axis    RadarAxis? @relation(fields: [axisId], references: [id], onDelete: SetNull)
+  owner   User       @relation("UserRadarDrafts", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  /// Never the same item twice to the same person — enforced by the database, not by
+  /// code that a retry can bypass.
+  @@unique([contactId, itemId])
+  @@index([ownerId, status])
+}
+
+enum RadarFeedbackEvent {
+  SENT
+  EDITED
+  DISCARDED
+}
+
+/// The learning log. Only DISCARDED with a `not_interesting` reason moves a filter.
+model RadarFeedback {
+  id          String             @id @default(cuid())
+  draftId     String
+  event       RadarFeedbackEvent
+  reason      String?
+  draftBefore String?
+  sentAfter   String?
+  createdAt   DateTime           @default(now())
+
+  @@index([draftId])
+}
+
+/// Per-org source reputation. A domain whose items keep getting discarded gets penalised.
+model RadarDomain {
+  id       String   @id @default(cuid())
+  orgId    String
+  domain   String
+  penalty  Float    @default(0)
+  discards Int      @default(0)
+
+  @@unique([orgId, domain])
 }
