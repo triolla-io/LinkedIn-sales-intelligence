@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-const { incr, expire } = vi.hoisted(() => ({ incr: vi.fn(), expire: vi.fn() }));
+const { incr, expire, decr } = vi.hoisted(() => ({ incr: vi.fn(), expire: vi.fn(), decr: vi.fn() }));
 vi.mock("@upstash/redis", () => ({
-  Redis: { fromEnv: () => ({ incr, expire }) },
+  Redis: { fromEnv: () => ({ incr, expire, decr }) },
 }));
 
 import { reserveNewsCall } from "@/lib/news/budget";
@@ -12,6 +12,10 @@ describe("reserveNewsCall", () => {
     incr.mockReset();
     expire.mockReset();
     expire.mockResolvedValue(1);
+    // A refused reservation gives its increment back, so the counter measures usage
+    // rather than attempts. See reserveNewsCall.
+    decr.mockReset();
+    decr.mockResolvedValue(1);
     process.env.UPSTASH_REDIS_REST_URL = "https://example.upstash.io";
     process.env.UPSTASH_REDIS_REST_TOKEN = "token";
   });
