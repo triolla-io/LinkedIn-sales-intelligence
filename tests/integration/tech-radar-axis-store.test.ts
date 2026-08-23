@@ -20,10 +20,14 @@ vi.mock("@/lib/prisma", () => ({
       count: (...a: unknown[]) => personAxisCount(...a),
       upsert: (...a: unknown[]) => personAxisUpsert(...a),
       groupBy: (...a: unknown[]) => personAxisGroupBy(...a),
+      findMany: (...a: unknown[]) => personAxisFindMany(...a),
+      update: (...a: unknown[]) => personAxisUpdate(...a),
     },
   },
 }));
 
+const personAxisFindMany = vi.fn();
+const personAxisUpdate = vi.fn();
 const resolveMergeQuestions = vi.fn();
 vi.mock("@/lib/tech-radar/axis-merge", () => ({
   resolveMergeQuestions: (...a: unknown[]) => resolveMergeQuestions(...a),
@@ -41,9 +45,10 @@ const proposal = (label: string, rationale = "כי הוא בנה את זה") => 
 });
 
 beforeEach(() => {
-  for (const m of [axisFindMany, axisCreate, axisUpdate, axisUpsert, personAxisCount, personAxisUpsert, personAxisGroupBy, resolveMergeQuestions]) {
+  for (const m of [axisFindMany, axisCreate, axisUpdate, axisUpsert, personAxisCount, personAxisUpsert, personAxisGroupBy, resolveMergeQuestions, personAxisFindMany, personAxisUpdate]) {
     m.mockReset();
   }
+  personAxisFindMany.mockResolvedValue([{ id: "pa1", agenda: true }]);
   // Default: the model says every proposal is a new subject.
   resolveMergeQuestions.mockResolvedValue(new Map());
   axisFindMany.mockResolvedValue([]);
@@ -216,3 +221,44 @@ describe("attachAxes level-3 merge", () => {
     expect(resolveMergeQuestions).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * The "exactly one agenda axis" guarantee is enforced when proposals are parsed, which
+ * is BEFORE the merge gate. On 2026-08-23 three of six people lost their agenda axis to
+ * a ceiling or a rejection and ended with role axes only — the exact thing the agenda
+ * axis exists to prevent, and what the veto rejected them for.
+ */
+describe("attachAxes protects the agenda axis", () => {
+  const agenda = (label: string) => ({ ...proposal(label), agenda: true });
+
+  it("processes the agenda proposal first, so a ceiling cannot squeeze it out", async () => {
+    axisFindMany.mockResolvedValue([]);
+    await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp1",
+      proposals: [proposal("נושא תפקיד ראשון"), proposal("נושא תפקיד שני"), agenda("הרחבת הקיבולת שהוכרזה")],
+    });
+    expect(axisCreate.mock.calls[0][0].data.label).toBe("הרחבת הקיבולת שהוכרזה");
+  });
+
+  it("marks the link as agenda", async () => {
+    axisFindMany.mockResolvedValue([]);
+    await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [agenda("הרחבת הקיבולת")] });
+    expect(personAxisUpsert.mock.calls[0][0].create.agenda).toBe(true);
+  });
+
+  it("promotes a surviving link when the agenda proposal was dropped anyway", async () => {
+    axisFindMany.mockResolvedValue([]);
+    personAxisFindMany.mockResolvedValue([{ id: "pa-first", agenda: false }, { id: "pa-2", agenda: false }]);
+    const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [proposal("נושא תפקיד")] });
+    expect(personAxisUpdate).toHaveBeenCalledWith({ where: { id: "pa-first" }, data: { agenda: true } });
+    expect(out.skipped.map((s) => s.reason)).toContain("agenda_proposal_dropped_promoted_first_link");
+  });
+
+  it("does not promote when an agenda link already exists", async () => {
+    axisFindMany.mockResolvedValue([]);
+    personAxisFindMany.mockResolvedValue([{ id: "pa1", agenda: true }]);
+    await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [agenda("הרחבת הקיבולת")] });
+    expect(personAxisUpdate).not.toHaveBeenCalled();
+  });
+})

@@ -62,7 +62,13 @@ export async function attachAxes(input: {
 
   // Level 3, batched: everything the free levels did not settle is asked in one call.
   // Asking per proposal would be N calls per person; asking once is one.
-  const verdicts = input.proposals.map((p) => ({ proposal: p, verdict: judgeAxisMerge(p.label, existing) }));
+  // Agenda FIRST. The "exactly one agenda axis" guarantee is enforced when the proposals
+  // are parsed, which is before this gate runs — so on 2026-08-23 three of six people
+  // lost their agenda axis to a ceiling or a rejection and were left with role axes only,
+  // which is the exact thing the agenda axis exists to prevent. Processing it first means
+  // it is never the proposal that gets squeezed out.
+  const ordered = [...input.proposals].sort((a, b) => Number(b.agenda) - Number(a.agenda));
+  const verdicts = ordered.map((p) => ({ proposal: p, verdict: judgeAxisMerge(p.label, existing) }));
   const questions = verdicts.filter((v) => v.verdict.decision === "ask" || v.verdict.decision === "create");
   const answers =
     questions.length > 0
@@ -152,6 +158,19 @@ export async function attachAxes(input: {
       personAxisCount += 1;
       out.attached += 1;
     }
+  }
+
+  // Last resort: if the agenda proposal was dropped anyway, promote a surviving link.
+  // A person with only role axes gives the veto nothing a same-title peer would not also
+  // have — and the veto rejected exactly that on 2026-08-23.
+  const links = await prisma.personAxis.findMany({
+    where: { personProfileId: input.personProfileId },
+    select: { id: true, agenda: true },
+    orderBy: { createdAt: "asc" },
+  });
+  if (links.length > 0 && !links.some((l) => l.agenda)) {
+    await prisma.personAxis.update({ where: { id: links[0].id }, data: { agenda: true } });
+    out.skipped.push({ label: "(agenda)", reason: "agenda_proposal_dropped_promoted_first_link" });
   }
 
   // Denormalised for the width guard, recomputed rather than incremented so a retry
