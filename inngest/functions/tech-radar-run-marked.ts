@@ -1,12 +1,14 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { markedEmployers, upsertEmployers } from "@/lib/tech-radar/population";
+import { buildProfilesForMarked } from "@/lib/tech-radar/build-profiles";
 
 /**
  * One person-first run, end to end, with no manual steps.
  *
  * The user marks people; everything after that is this function's job: resolve their
- * employers, research the ones we have no profile for, wait for that to land, then scan.
+ * employers, research the ones we have no profile for, wait for that to land, build the
+ * PERSON model from them, then run a person-outward scan.
  * Previously the employer half was manual — you typed companies into a form — which made
  * "test these six people" impossible to express.
  *
@@ -60,8 +62,17 @@ export const techRadarRunMarked = inngest.createFunction(
       });
     }
 
+    // The person model has to exist before a person-outward scan can find anything: no
+    // PersonProfile means no subscribed axis, means an empty query pool, means a run
+    // that reports "no news" for a reason that has nothing to do with news.
+    const profiles = await step.run("build-person-profiles", () =>
+      buildProfilesForMarked({ orgId, ownerId })
+    );
+
+    // radar.person-scan, NOT tech-radar.scan. The old event starts from the org's
+    // tracked companies and would pull in companies nobody marked.
     await step.sendEvent("dispatch-scan", [
-      { name: "tech-radar.scan" as const, data: { orgId } },
+      { name: "radar.person-scan" as const, data: { orgId } },
     ]);
 
     return {
@@ -70,6 +81,7 @@ export const techRadarRunMarked = inngest.createFunction(
       matched: upsert.matched,
       researched: upsert.pendingResearch.length,
       waitedOut: !settled,
+      profiles,
       scan: 1,
     };
   }
