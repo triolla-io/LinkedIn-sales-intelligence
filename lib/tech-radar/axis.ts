@@ -173,3 +173,21 @@ export function judgeCeilings(input: { orgAxisCount: number; personAxisCount: nu
 export function companyMonitorKey(trackedCompanyId: string): string {
   return `company:${trackedCompanyId}`;
 }
+
+/** Any Hebrew letter. Used to check that an Israeli person's axes can reach local press. */
+export function hasHebrew(text: string): boolean {
+  return typeof text === "string" && /[\u0590-\u05FF]/.test(text);
+}
+
+/**
+ * An Israeli person with no Hebrew query cannot reach Globes, Calcalist or TheMarker —
+ * and local news is the most forwardable material there is. The prompt requires one;
+ * this checks the database, because a constraint enforced only in a prompt is a
+ * constraint that silently stops holding.
+ *
+ * The 2026-08-23 pattern, twice over: an invariant asserted at one stage and quietly
+ * undone downstream.
+ */
+export function countHebrewQueries(axes: { searchQueries: string[] }[]): number {
+  return axes.reduce((n, a) => n + (a.searchQueries ?? []).filter(hasHebrew).length, 0);
+}

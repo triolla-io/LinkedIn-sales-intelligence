@@ -9,6 +9,8 @@
 import { prisma } from "@/lib/prisma";
 import { buildPersonProfile } from "@/lib/tech-radar/person-profile";
 import { attachAxes, ensureCompanyMonitorAxis } from "@/lib/tech-radar/axis-store";
+import { countHebrewQueries } from "@/lib/tech-radar/axis";
+import { prisma as db } from "@/lib/prisma";
 import { isUsableProfile } from "@/lib/tech-radar/types";
 
 /** Rebuilt only when older than this — a role does not change weekly. */
@@ -20,6 +22,10 @@ export type BuildProfilesReport = {
   refreshed: number;
   axesCreated: number;
   axesMerged: number;
+  /** Hebrew search queries per person, from the DATABASE. Zero for anyone is a defect. */
+  hebrewQueriesByPerson: { name: string; hebrew: number; agenda: number }[];
+  /** People with no Hebrew query at all. Must be empty. */
+  noHebrewQuery: string[];
   /** Every person who did NOT get a profile, and why. Never a silent shortfall. */
   skipped: { contactId: string; name: string; reason: string }[];
 };
@@ -29,7 +35,8 @@ export async function buildProfilesForMarked(input: {
   ownerId: string;
 }): Promise<BuildProfilesReport> {
   const report: BuildProfilesReport = {
-    considered: 0, built: 0, refreshed: 0, axesCreated: 0, axesMerged: 0, skipped: [],
+    considered: 0, built: 0, refreshed: 0, axesCreated: 0, axesMerged: 0,
+    hebrewQueriesByPerson: [], noHebrewQuery: [], skipped: [],
   };
 
   const contacts = await prisma.contact.findMany({
@@ -126,6 +133,28 @@ export async function buildProfilesForMarked(input: {
 
     if (contact.personProfile) report.refreshed += 1;
     else report.built += 1;
+  }
+
+  // Verified against the database, not against the prompt. A prompt that asks for a
+  // Hebrew query and a pipeline that drops it look identical from the prompt's side.
+  const built = await db.personProfile.findMany({
+    where: { contact: { ownerId: input.ownerId } },
+    select: {
+      contact: { select: { fullName: true } },
+      axes: { select: { agenda: true, axis: { select: { searchQueries: true } } } },
+    },
+  });
+  for (const row of built) {
+    const name = row.contact.fullName ?? "?";
+    const hebrew = countHebrewQueries(row.axes.map((a) => a.axis));
+    const agenda = row.axes.filter((a) => a.agenda).length;
+    report.hebrewQueriesByPerson.push({ name, hebrew, agenda });
+    if (hebrew === 0) report.noHebrewQuery.push(name);
+  }
+  if (report.noHebrewQuery.length > 0) {
+    console.error(
+      `[radar] INVARIANT FAILED org=${input.orgId}: no Hebrew query for ${report.noHebrewQuery.join(", ")} — these people cannot reach Israeli press`
+    );
   }
 
   return report;

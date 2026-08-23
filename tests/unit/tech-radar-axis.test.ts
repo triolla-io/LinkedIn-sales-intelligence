@@ -210,3 +210,38 @@ describe("companyMonitorKey", () => {
     expect(normalizeAxisKey("company tc1")).not.toBe(companyMonitorKey("tc1"));
   });
 });
+
+/**
+ * An Israeli person with no Hebrew query cannot reach Globes, Calcalist or TheMarker,
+ * and local news is the most forwardable material there is. The prompt asks for one;
+ * this is checked against the database, because a constraint that lives only in a prompt
+ * silently stops holding — twice already in this feature.
+ */
+describe("hasHebrew / countHebrewQueries", () => {
+  it("detects Hebrew and does not fire on English", async () => {
+    const { hasHebrew } = await import("@/lib/tech-radar/axis");
+    expect(hasHebrew("מרווחי זיקוק דלק ישראל")).toBe(true);
+    expect(hasHebrew("refining margins israel")).toBe(false);
+    expect(hasHebrew("")).toBe(false);
+  });
+
+  it("finds Hebrew in a mixed query", async () => {
+    const { hasHebrew } = await import("@/lib/tech-radar/axis");
+    expect(hasHebrew("בז\"ן refinery outlook")).toBe(true);
+  });
+
+  it("counts Hebrew queries across a person's axes", async () => {
+    const { countHebrewQueries } = await import("@/lib/tech-radar/axis");
+    expect(
+      countHebrewQueries([
+        { searchQueries: ["refining margins", "מרווחי זיקוק"] },
+        { searchQueries: ["crude oil outlook"] },
+      ])
+    ).toBe(1);
+  });
+
+  it("is zero for an all-English person, which is the defect it exists to name", async () => {
+    const { countHebrewQueries } = await import("@/lib/tech-radar/axis");
+    expect(countHebrewQueries([{ searchQueries: ["a", "b"] }, { searchQueries: [] }])).toBe(0);
+  });
+})
