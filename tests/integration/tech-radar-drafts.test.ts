@@ -37,6 +37,8 @@ vi.mock("@/lib/tech-radar/recipients", async () => {
 const draftTechMessage = vi.fn();
 vi.mock("@/lib/tech-radar/draft", () => ({ draftTechMessage: (...a: unknown[]) => draftTechMessage(...a) }));
 
+const counts = { recipientsForOpportunity: 0, openDraftsForContact: 0 };
+
 const { createDraftsForOpportunity } = await import("@/lib/tech-radar/create-drafts");
 
 function opportunity() {
@@ -66,7 +68,18 @@ beforeEach(() => {
     contactFindMany, draftFindUnique, draftCreate, draftCount, rankRecipients, draftTechMessage,
     suggestContactRole,
   ]) m.mockReset();
-  draftCount.mockResolvedValue(0);
+  // draftCount now answers TWO different questions: how many people at this company
+  // already hold this item (keyed by opportunityId), and how many open drafts this
+  // contact holds (keyed by contactId). Routing by `where` stops a test from
+  // accidentally answering the wrong one — and makes a wrong `where` in the
+  // implementation visible instead of silently reusing the other number.
+  counts.recipientsForOpportunity = 0;
+  counts.openDraftsForContact = 0;
+  draftCount.mockImplementation((args: { where?: { opportunityId?: string } }) =>
+    Promise.resolve(
+      args?.where?.opportunityId != null ? counts.recipientsForOpportunity : counts.openDraftsForContact
+    )
+  );
   suggestContactRole.mockResolvedValue(null);
   opportunityFindUniqueOrThrow.mockResolvedValue(opportunity());
   draftFindUnique.mockResolvedValue(null);
@@ -75,7 +88,13 @@ beforeEach(() => {
 });
 
 describe("createDraftsForOpportunity", () => {
-  it("creates one draft per ranked recipient and marks the opportunity DRAFTED", async () => {
+  /**
+   * This test used to expect TWO drafts from two ranked recipients. That expectation was
+   * the defect, not the guard: one item reaching two colleagues at one company is the
+   * mailing-list failure the 2026-08-20 run demonstrated. Changed by product decision,
+   * not to make an implementation pass.
+   */
+  it("drafts to only the top-ranked recipient at a company, and marks the opportunity DRAFTED", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
     contactFindMany.mockResolvedValue([
       { ...contact("a"), ownerId: "owner1" },
@@ -86,7 +105,8 @@ describe("createDraftsForOpportunity", () => {
       { contactId: "b", score: 0.7, reason: "r" },
     ]);
     const out = await createDraftsForOpportunity("o1");
-    expect(out.created).toBe(2);
+    expect(out.created).toBe(1);
+    expect(draftCreate.mock.calls[0][0].data.contactId).toBe("a");
     // Drafting also clears any stale reason from a previous run.
     expect(opportunityUpdate.mock.calls[0][0].data).toEqual({ status: "DRAFTED", blockReason: null });
   });
@@ -127,7 +147,13 @@ describe("createDraftsForOpportunity", () => {
   });
 
   // The cap is per (opportunity x owner) because the owner is who sends.
-  it("gives each owner in the org their own recipients", async () => {
+  /**
+   * Used to expect one draft PER OWNER. Two of our users each having a contact at the
+   * same company does not make the item less of a duplicate to the two recipients, who
+   * work together and will compare notes — so the cap is org-wide, and one of the two
+   * owners gets nothing. Changed by product decision.
+   */
+  it("caps one item at one recipient per company even across two owners", async () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }, { id: "owner2" }]);
     contactFindMany.mockResolvedValue([
       { ...contact("a"), ownerId: "owner1" },
@@ -138,8 +164,7 @@ describe("createDraftsForOpportunity", () => {
     ]);
     const out = await createDraftsForOpportunity("o1");
     expect(out.owners).toBe(2);
-    expect(out.created).toBe(2);
-    expect(draftCreate.mock.calls.map((c) => c[0].data.ownerId).sort()).toEqual(["owner1", "owner2"]);
+    expect(out.created).toBe(1);
   });
 
   it("scopes the contact query to the org's owners and the company", async () => {
@@ -219,7 +244,7 @@ describe("createDraftsForOpportunity", () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
     contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
-    draftCount.mockResolvedValue(2); // already at the per-contact cap
+    counts.openDraftsForContact = 2; // already at the per-contact cap
     const out = await createDraftsForOpportunity("o1");
     expect(out.blockedBy).toBe("contacts_at_capacity");
     // Their contacts are right, they are just saturated — recommending a role would be wrong.
@@ -301,7 +326,7 @@ describe("createDraftsForOpportunity", () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
     contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
-    draftCount.mockResolvedValue(2);
+    counts.openDraftsForContact = 2;
     const out = await createDraftsForOpportunity("o1");
     expect(out.created).toBe(0);
     expect(draftTechMessage).not.toHaveBeenCalled();
@@ -312,7 +337,7 @@ describe("createDraftsForOpportunity", () => {
     contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
     await createDraftsForOpportunity("o1");
-    const where = draftCount.mock.calls[0][0].where;
+    const where = draftCount.mock.calls.map((c) => c[0].where).find((w) => w.contactId != null);
     expect(where.contactId).toBe("a");
     expect(where.status.in).toEqual(expect.arrayContaining(["PENDING_REVIEW"]));
     expect(where.createdAt.gte).toBeInstanceOf(Date);
@@ -324,7 +349,7 @@ describe("createDraftsForOpportunity", () => {
     userFindMany.mockResolvedValue([{ id: "owner1" }]);
     contactFindMany.mockResolvedValue([{ ...contact("a"), ownerId: "owner1" }]);
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
-    draftCount.mockResolvedValue(1);
+    counts.openDraftsForContact = 1;
     expect((await createDraftsForOpportunity("o1")).created).toBe(1);
   });
 
@@ -366,5 +391,82 @@ describe("createDraftsForOpportunity", () => {
     rankRecipients.mockResolvedValue([{ contactId: "a", score: 0.9, reason: "r" }]);
     await createDraftsForOpportunity("o1");
     expect(draftCreate.mock.calls[0][0].data.status).toBe("PENDING_REVIEW");
+  });
+});
+
+/**
+ * The mailing-list guard, from the run that produced it: one AWS item, one company,
+ * three founders, one byte-identical fitRationale for all three.
+ */
+describe("one recipient per company per item", () => {
+  const founders = [
+    { ...contact("ami", "Co-Founder & Ceo"), ownerId: "owner1" },
+    { ...contact("ori", "COO"), ownerId: "owner1" },
+    { ...contact("roy", "Co-Founder & VP-R&D"), ownerId: "owner1" },
+  ];
+
+  it("drafts to one of three colleagues, never all three", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue(founders);
+    rankRecipients.mockResolvedValue([
+      { contactId: "ami", score: 0.9, reason: "r" },
+      { contactId: "ori", score: 0.8, reason: "r" },
+      { contactId: "roy", score: 0.7, reason: "r" },
+    ]);
+    const out = await createDraftsForOpportunity("o1");
+    expect(out.created).toBe(1);
+    expect(draftCreate).toHaveBeenCalledTimes(1);
+  });
+
+  /**
+   * The expensive half. Ranking and drafting are LLM calls, so a company that already
+   * has its one recipient must cost nothing — the check comes before both.
+   */
+  it("spends no LLM call when somebody at the company already holds the item", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue(founders);
+    counts.recipientsForOpportunity = 1;
+
+    const out = await createDraftsForOpportunity("o1");
+    expect(out.created).toBe(0);
+    expect(out.blockedBy).toBe("recipient_cap_reached");
+    expect(rankRecipients).not.toHaveBeenCalled();
+    expect(draftTechMessage).not.toHaveBeenCalled();
+  });
+
+  /** Never silently. The screen has to be able to say which of the four reasons it was. */
+  it("records the reason on the opportunity", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue(founders);
+    counts.recipientsForOpportunity = 1;
+    await createDraftsForOpportunity("o1");
+    expect(opportunityUpdate.mock.calls.at(-1)?.[0].data.blockReason).toBe("recipient_cap_reached");
+  });
+
+  /**
+   * A dismissed draft reached nobody, so it must not hold the slot forever — otherwise
+   * rejecting a draft silently retires the item for that company.
+   */
+  it("does not count a dismissed draft as a recipient", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue(founders);
+    rankRecipients.mockResolvedValue([{ contactId: "ami", score: 0.9, reason: "r" }]);
+    await createDraftsForOpportunity("o1");
+    const statuses = draftCount.mock.calls
+      .map((c) => c[0].where)
+      .find((w) => w.opportunityId != null).status.in;
+    expect(statuses).not.toContain("DISMISSED");
+    expect(statuses).not.toContain("SUPERSEDED_V1");
+    expect(statuses).toEqual(["PENDING_REVIEW", "PREPARING", "PREPARED", "SENT"]);
+  });
+
+  /** The count is keyed on the opportunity, which IS (company, item). */
+  it("counts recipients per opportunity, not per owner", async () => {
+    userFindMany.mockResolvedValue([{ id: "owner1" }]);
+    contactFindMany.mockResolvedValue(founders);
+    rankRecipients.mockResolvedValue([{ contactId: "ami", score: 0.9, reason: "r" }]);
+    await createDraftsForOpportunity("o1");
+    const where = draftCount.mock.calls.map((c) => c[0].where).find((w) => w.opportunityId != null);
+    expect(where.opportunityId).toBe("o1");
   });
 });

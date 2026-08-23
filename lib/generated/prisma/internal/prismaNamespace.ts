@@ -4449,6 +4449,8 @@ export const TechItemScalarFieldEnum = {
   sources: 'sources',
   publishedAt: 'publishedAt',
   thin: 'thin',
+  shareworthy: 'shareworthy',
+  kind: 'kind',
   dedupeKey: 'dedupeKey',
   createdAt: 'createdAt'
 } as const

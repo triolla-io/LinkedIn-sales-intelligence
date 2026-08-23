@@ -28,6 +28,30 @@ const CANDIDATE_CAP = 25;
  * queue in front of a person, not their lifetime total.
  */
 const MAX_OPEN_DRAFTS_PER_CONTACT = 2;
+
+/**
+ * How many people at ONE company may receive the SAME item, over the item's lifetime.
+ *
+ * One. Not three, which is the cross-company cap.
+ *
+ * The first person-first run (2026-08-20) sent one AWS item to three founders of
+ * 365Scores — CEO, COO and VP-R&D — and an earlier run sent one Fen-AI item to two
+ * people at Bank Hapoalim with a byte-identical body. Colleagues in the same corridor
+ * do not merely *might* compare notes; they will, and two of them holding the same
+ * "I thought of you" message is a demonstration that nobody thought of anyone.
+ *
+ * An opportunity is already @@unique([trackedCompanyId, itemId]), so "one recipient per
+ * company per item" is exactly "one draft per opportunity" — which is also why this is
+ * org-wide rather than per owner. The recipients talk to each other regardless of which
+ * of our users sent it.
+ */
+const MAX_RECIPIENTS_PER_ITEM_PER_COMPANY = 1;
+
+/**
+ * Statuses that mean a person is holding, or has held, this item. A draft the human
+ * dismissed reached nobody, so it frees the slot for someone else on a later run.
+ */
+const CLAIMS_A_RECIPIENT_SLOT = ["PENDING_REVIEW", "PREPARING", "PREPARED", "SENT"] as const;
 const OPEN_DRAFT_WINDOW_DAYS = 7;
 
 /**
@@ -37,7 +61,8 @@ const OPEN_DRAFT_WINDOW_DAYS = 7;
 export type DraftBlockReason =
   | "no_senior_contact"      // nobody senior at this company at all
   | "no_role_match"          // contacts exist, none owns this kind of decision
-  | "contacts_at_capacity";  // right people, already holding enough open drafts
+  | "contacts_at_capacity"   // right people, already holding enough open drafts
+  | "recipient_cap_reached"; // somebody at this company already has this item
 
 /**
  * The article to forward. `TechItem.sources` is JSON (`[{url,title,publishedAt}]`), not a
@@ -137,6 +162,16 @@ export async function createDraftsForOpportunity(
     return block("no_senior_contact");
   }
 
+  // Checked before any ranking or drafting, because the LLM calls below are the
+  // expensive part and a company that already has its one recipient needs none of them.
+  const alreadyRecipients = await prisma.techOpportunityDraft.count({
+    where: { opportunityId: opportunity.id, status: { in: [...CLAIMS_A_RECIPIENT_SLOT] } },
+  });
+  if (alreadyRecipients >= MAX_RECIPIENTS_PER_ITEM_PER_COMPANY) {
+    return block("recipient_cap_reached");
+  }
+  let recipientSlots = MAX_RECIPIENTS_PER_ITEM_PER_COMPANY - alreadyRecipients;
+
   const contactsByOwner = new Map<string, typeof allContacts>();
   for (const contact of senior) {
     const list = contactsByOwner.get(contact.ownerId);
@@ -152,6 +187,7 @@ export async function createDraftsForOpportunity(
 
   // Only owners who actually have somebody there cost anything from here on.
   for (const [ownerId, ownerContacts] of contactsByOwner) {
+    if (recipientSlots <= 0) break;
     const contacts = ownerContacts.slice(0, CANDIDATE_CAP);
 
     const candidates: RecipientCandidate[] = contacts.map((c) => ({
@@ -166,6 +202,7 @@ export async function createDraftsForOpportunity(
     const byId = new Map(contacts.map((c) => [c.id, c]));
 
     for (const pick of ranked) {
+      if (recipientSlots <= 0) break;
       const contact = byId.get(pick.contactId);
       if (!contact) continue;
 
@@ -211,6 +248,7 @@ export async function createDraftsForOpportunity(
         },
       });
       created += 1;
+      recipientSlots -= 1;
     }
   }
 
