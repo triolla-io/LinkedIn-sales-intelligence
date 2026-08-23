@@ -42,6 +42,7 @@ const routineItems = [
   { href: "/routine/company-signals", label: "חדשות חברות", icon: Sparkles },
   { href: "/routine/fintech-radar", label: "ראדאר", icon: Newspaper },
   { href: "/routine/tech-radar", label: "ראדאר טכנולוגי", icon: Radar },
+  { href: "/routine/radar", label: "ראדאר קשרים", icon: Users },
 ];
 
 const secondaryItems = [

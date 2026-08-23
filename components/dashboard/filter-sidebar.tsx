@@ -117,8 +117,13 @@ function countActiveFilters(filters: Filters): number {
 
 export default function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
   const [customTitle, setCustomTitle] = useState("");
-  const { data: listsData } = useSWR("/api/lists", fetcher);
-  const lists: { id: string; name: string; memberCount: number }[] = listsData?.lists ?? [];
+  // Typed at the call site: the shared fetcher returns `unknown` on purpose, so a
+  // response shape has to be declared rather than assumed.
+  const { data: listsData } = useSWR<{ lists: { id: string; name: string; memberCount: number }[] }>(
+    "/api/lists",
+    fetcher
+  );
+  const lists = listsData?.lists ?? [];
   const [collapsed, toggleCollapsed] = useCollapsed("filter-sidebar-collapsed");
 
   const hasFilters =
