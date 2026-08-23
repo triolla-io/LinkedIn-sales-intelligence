@@ -18,9 +18,7 @@ import { triageAll, type PoolItem } from "@/lib/tech-radar/triage";
 import { synthesizeItem } from "@/lib/tech-radar/item";
 import { upsertTechItem } from "@/lib/tech-radar/persist";
 import { buildAxisQueryPool, judgeAxisFit, capPoolByAxis, AXIS_FIT_FLOOR } from "@/lib/tech-radar/axis-fit";
-import { selectRecipientsForItem, type RecipientCandidate } from "@/lib/tech-radar/veto";
-import { rankForPeople, pairKey, type RankCandidate } from "@/lib/tech-radar/person-rank";
-import { draftTechMessage } from "@/lib/tech-radar/draft";
+import { judgeAndDraft } from "@/lib/tech-radar/judge-and-draft";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
 import { SHAREWORTHY_FLOOR } from "@/lib/tech-radar/types";
 
@@ -158,10 +156,12 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
   }
 
   // ── 5. Per-AXIS fit, judged once and shared by every subscriber ───────────
+  // This stage only WRITES AxisMatch rows. Turning them into candidates, ranking, the
+  // veto and the drafting all live in judgeAndDraft, which reads them back — so there is
+  // one implementation of the judgement half rather than two that drift.
   const axisById = new Map(axes.map((a) => [a.id, a]));
-  const candidates: RankCandidate[] = [];
-  const itemById = new Map(written.map((w) => [w.itemId, w]));
   let axisFitsJudged = 0;
+  let matchesAboveFloor = 0;
 
   for (const item of written) {
     for (const axisId of item.axisIds) {
@@ -186,153 +186,15 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
         });
         score = fit.score;
       }
-      if (score < AXIS_FIT_FLOOR) continue;
-
-      // One shared judgement fans out to every subscriber of the axis.
-      for (const link of axis.people) {
-        const contact = link.personProfile.contact;
-        candidates.push({
-          contactId: contact.id,
-          itemId: item.itemId,
-          axisId,
-          trackedCompanyId: link.personProfile.employerTrackedCompanyId ?? contact.currentCompany ?? contact.id,
-          axisScore: score,
-          personWeight: link.weight,
-          kind: item.kind,
-        });
-      }
+      if (score >= AXIS_FIT_FLOOR) matchesAboveFloor += 1;
     }
   }
-  if (candidates.length === 0) {
+  if (matchesAboveFloor === 0) {
     return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, itemsWritten: written.length, axisFitsJudged, poolDropped: capped.dropped, triageByKind, quotaExhausted: news.quotaLikely };
   }
 
-  // ── 6. Deterministic per-person rank ─────────────────────────────────────
-  const contactIds = [...new Set(candidates.map((c) => c.contactId))];
-  const priorDrafts = await prisma.radarDraft.findMany({
-    where: { contactId: { in: contactIds } },
-    select: { contactId: true, itemId: true, createdAt: true, item: { select: { kind: true } } },
-    orderBy: { createdAt: "desc" },
-  });
-  const alreadySeen = new Set(priorDrafts.map((d) => pairKey(d.contactId, d.itemId)));
-  const recentKinds = new Map<string, string[]>();
-  const daysSinceLastMessage = new Map<string, number>();
-  const now = Date.now();
-  for (const d of priorDrafts) {
-    const kinds = recentKinds.get(d.contactId) ?? [];
-    if (kinds.length < 3) kinds.push(d.item.kind);
-    recentKinds.set(d.contactId, kinds);
-    if (!daysSinceLastMessage.has(d.contactId)) {
-      daysSinceLastMessage.set(d.contactId, (now - d.createdAt.getTime()) / 86_400_000);
-    }
-  }
-
-  const { ranked, dropped } = rankForPeople({
-    candidates,
-    alreadySeen,
-    recentKinds,
-    daysSinceLastMessage,
-    minDaysBetweenMessages: MIN_DAYS_BETWEEN_MESSAGES,
-    limit: MAX_DRAFTS_PER_DAY,
-  });
-
-  // ── 7. The veto, then one draft ──────────────────────────────────────────
-  let drafted = 0;
-  let vetoed = 0;
-  const byItem = new Map<string, RankCandidate[]>();
-  for (const c of ranked) {
-    const list = byItem.get(c.itemId);
-    if (list) list.push(c);
-    else byItem.set(c.itemId, [c]);
-  }
-
-  for (const [itemId, group] of byItem) {
-    const item = itemById.get(itemId);
-    if (!item) continue;
-
-    const vetoCandidates: RecipientCandidate[] = group.map((c) => {
-      const axis = axisById.get(c.axisId);
-      const link = axis?.people.find((p) => p.personProfile.contactId === c.contactId);
-      const contact = link?.personProfile.contact;
-      return {
-        contact: {
-          contactId: c.contactId,
-          fullName: contact?.fullName ?? "",
-          currentTitle: contact?.currentTitle ?? null,
-          roleLens: link?.personProfile.roleLens ?? null,
-          personalNotes: link?.personProfile.personalNotes ?? null,
-        },
-        company: { trackedCompanyId: c.trackedCompanyId, name: contact?.currentCompany ?? "" },
-        axisRationale: link?.rationale ?? "",
-        axisLabel: axis?.label,
-        axisId: c.axisId,
-      };
-    });
-
-    const decisions = await selectRecipientsForItem({
-      item: { technology: item.technology, title: item.title, summary: item.summary, kind: item.kind },
-      candidates: vetoCandidates,
-    });
-    vetoed += decisions.filter((d) => !d.passed).length;
-
-    // A rejection is recorded with its reason, as a VETOED draft carrying no message.
-    // Without this the run reports "0 drafts" and the reasons are gone, so nobody can
-    // tell a gate that is working from one that is too strict.
-    for (const { candidate, verdict } of decisions.filter((d) => !d.passed)) {
-      const axis = axisById.get(candidate.axisId ?? "");
-      const link = axis?.people.find((p) => p.personProfile.contactId === candidate.contact.contactId);
-      const contact = link?.personProfile.contact;
-      if (!contact) continue;
-      await prisma.radarDraft.upsert({
-        where: { contactId_itemId: { contactId: contact.id, itemId } },
-        create: {
-          contactId: contact.id,
-          itemId,
-          axisId: candidate.axisId,
-          ownerId: contact.ownerId,
-          whyHim: verdict.whyHim,
-          status: "VETOED",
-          discardReason: "not_person_specific",
-        },
-        update: {},
-      });
-    }
-
-    for (const { candidate, verdict } of decisions.filter((d) => d.passed)) {
-      const rank = group.find((c) => c.contactId === candidate.contact.contactId);
-      const axis = axisById.get(candidate.axisId ?? "");
-      const link = axis?.people.find((p) => p.personProfile.contactId === candidate.contact.contactId);
-      const contact = link?.personProfile.contact;
-      if (!contact || !rank) continue;
-
-      const message = await draftTechMessage({
-        contactFullName: contact.fullName,
-        hebrewFirstName: contact.hebrewFirstName,
-        contactTitle: contact.currentTitle,
-        companyName: contact.currentCompany ?? "",
-        technology: item.technology ?? item.title,
-        vendor: null,
-        // The PERSON's reason, from the veto — not the company's fit rationale. This is
-        // the line that made three founders receive byte-identical drafts in v1.
-        fitRationale: verdict.whyHim,
-        sourceUrl: firstSourceUrl(item.sources),
-      });
-
-      await prisma.radarDraft.create({
-        data: {
-          contactId: contact.id,
-          itemId,
-          axisId: candidate.axisId,
-          ownerId: contact.ownerId,
-          draftMessage: message,
-          whyHim: verdict.whyHim,
-          confidence: Math.max(0, Math.min(1, rank.axisScore * rank.personWeight + verdict.adjustment)),
-          confidenceParts: { axisScore: rank.axisScore, personWeight: rank.personWeight, vetoAdjustment: verdict.adjustment },
-        },
-      });
-      drafted += 1;
-    }
-  }
+  // ── 6-7. Rank, veto, draft — the ONE implementation, shared with radar.judge ──
+  const judged = await judgeAndDraft(orgId);
 
   return {
     axes: axes.length,
@@ -341,11 +203,11 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     worthSharing: worthSharing.length,
     itemsWritten: written.length,
     axisFitsJudged,
-    candidates: candidates.length,
-    vetoed,
-    drafted,
+    candidates: judged.candidates,
+    vetoed: judged.vetoed,
+    drafted: judged.drafted,
     poolDropped: capped.dropped,
-    dropReasons: countBy(dropped.map((d) => d.reason)),
+    dropReasons: judged.dropReasons,
     triageByKind,
     quotaExhausted: news.quotaLikely,
   };
