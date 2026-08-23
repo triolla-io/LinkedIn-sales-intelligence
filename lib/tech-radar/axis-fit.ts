@@ -128,3 +128,53 @@ export function buildAxisQueryPool(
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     .map(([, v]) => ({ query: v.query, axisIds: [...v.axisIds].sort() }));
 }
+
+/**
+ * Cap the pool BEFORE triage, spreading the cut across axes.
+ *
+ * Triage is the dominant cost line and it scales with pool size, not with anything
+ * useful. The 2026-08-23 run pulled 677 items from 72 queries — Serper returns ~10 per
+ * query and every query can retry broader — and triaging them cost ~$1, over half the
+ * daily budget, for 30 survivors. The estimate had assumed 150.
+ *
+ * Round-robin by axis so the cut never starves one interest: every axis contributes its
+ * best item before any axis contributes a second. Cutting by arrival order instead would
+ * hand the whole budget to whichever queries happened to run first.
+ *
+ * Pure and deterministic, so an Inngest step replay produces the same pool.
+ */
+export function capPoolByAxis<T extends { url: string; companyIds: string[] }>(
+  items: T[],
+  limit: number
+): { kept: T[]; dropped: number } {
+  if (limit <= 0) return { kept: [], dropped: items.length };
+  if (items.length <= limit) return { kept: items, dropped: 0 };
+
+  // Group by first subscribing axis; an item with none shares one bucket rather than
+  // claiming a turn of its own.
+  const byAxis = new Map<string, T[]>();
+  for (const item of items) {
+    const key = item.companyIds[0] ?? "";
+    const list = byAxis.get(key);
+    if (list) list.push(item);
+    else byAxis.set(key, [item]);
+  }
+
+  const axes = [...byAxis.keys()].sort();
+  const kept: T[] = [];
+  const seen = new Set<string>();
+  for (let round = 0; kept.length < limit; round += 1) {
+    let addedThisRound = false;
+    for (const axis of axes) {
+      if (kept.length >= limit) break;
+      const item = byAxis.get(axis)?.[round];
+      if (!item || seen.has(item.url)) continue;
+      seen.add(item.url);
+      kept.push(item);
+      addedThisRound = true;
+    }
+    if (!addedThisRound) break;
+  }
+
+  return { kept, dropped: items.length - kept.length };
+}

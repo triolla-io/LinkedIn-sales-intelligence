@@ -180,3 +180,72 @@ describe("buildAxisQueryPool", () => {
     expect(pool[0].query).toBe("real query");
   });
 });
+
+const { capPoolByAxis } = await import("@/lib/tech-radar/axis-fit");
+
+const item = (url: string, axes: string[]) => ({ url, companyIds: axes });
+
+/**
+ * Triage cost scales with pool size and nothing else useful. The 2026-08-23 run pulled
+ * 677 items and spent ~$1 triaging them for 30 survivors — over half the daily budget.
+ */
+describe("capPoolByAxis", () => {
+  it("keeps everything when the pool is already small", () => {
+    const items = [item("a", ["ax1"]), item("b", ["ax2"])];
+    expect(capPoolByAxis(items, 10)).toEqual({ kept: items, dropped: 0 });
+  });
+
+  /**
+   * The load-bearing property: cutting by arrival order would hand the whole budget to
+   * whichever queries ran first, starving every other interest.
+   */
+  it("gives every axis a turn before any axis gets a second", () => {
+    const items = [
+      item("a1", ["ax1"]), item("a2", ["ax1"]), item("a3", ["ax1"]),
+      item("b1", ["ax2"]), item("b2", ["ax2"]),
+      item("c1", ["ax3"]),
+    ];
+    const { kept } = capPoolByAxis(items, 3);
+    expect(kept.map((i) => i.url).sort()).toEqual(["a1", "b1", "c1"]);
+  });
+
+  it("reports what it discarded, so a truncated run says so", () => {
+    const items = Array.from({ length: 20 }, (_, i) => item(`u${i}`, ["ax1"]));
+    const out = capPoolByAxis(items, 5);
+    expect(out.kept).toHaveLength(5);
+    expect(out.dropped).toBe(15);
+  });
+
+  it("keeps filling from the axes that have more when others run dry", () => {
+    const items = [
+      item("a1", ["ax1"]), item("a2", ["ax1"]), item("a3", ["ax1"]), item("a4", ["ax1"]),
+      item("b1", ["ax2"]),
+    ];
+    const { kept } = capPoolByAxis(items, 4);
+    expect(kept.map((i) => i.url)).toEqual(["a1", "b1", "a2", "a3"]);
+  });
+
+  it("does not duplicate an item that several axes subscribe to", () => {
+    const items = [item("shared", ["ax1", "ax2"]), item("b1", ["ax2"])];
+    const { kept } = capPoolByAxis(items, 5);
+    expect(kept.map((i) => i.url)).toEqual(["shared", "b1"]);
+  });
+
+  it("handles an item with no subscribing axis without starving the rest", () => {
+    const items = [item("orphan", []), item("a1", ["ax1"])];
+    const { kept } = capPoolByAxis(items, 2);
+    expect(kept).toHaveLength(2);
+  });
+
+  it("returns nothing at a limit of zero rather than everything", () => {
+    expect(capPoolByAxis([item("a", ["ax1"])], 0)).toEqual({ kept: [], dropped: 1 });
+  });
+
+  /** Deterministic, so an Inngest step replay produces the same pool. */
+  it("is stable across input order", () => {
+    const items = [item("a1", ["ax1"]), item("b1", ["ax2"]), item("c1", ["ax3"])];
+    const first = capPoolByAxis(items, 2).kept.map((i) => i.url);
+    const again = capPoolByAxis([...items].reverse(), 2).kept.map((i) => i.url);
+    expect(first).toEqual(again);
+  });
+});

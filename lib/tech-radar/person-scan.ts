@@ -17,7 +17,7 @@ import { fetchPoolNews } from "@/lib/tech-radar/fetch-pool-news";
 import { triageAll, type PoolItem } from "@/lib/tech-radar/triage";
 import { synthesizeItem } from "@/lib/tech-radar/item";
 import { upsertTechItem } from "@/lib/tech-radar/persist";
-import { buildAxisQueryPool, judgeAxisFit, AXIS_FIT_FLOOR } from "@/lib/tech-radar/axis-fit";
+import { buildAxisQueryPool, judgeAxisFit, capPoolByAxis, AXIS_FIT_FLOOR } from "@/lib/tech-radar/axis-fit";
 import { selectRecipientsForItem, type RecipientCandidate } from "@/lib/tech-radar/veto";
 import { rankForPeople, pairKey, type RankCandidate } from "@/lib/tech-radar/person-rank";
 import { draftTechMessage } from "@/lib/tech-radar/draft";
@@ -25,6 +25,11 @@ import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
 import { SHAREWORTHY_FLOOR } from "@/lib/tech-radar/types";
 
 const MAX_QUERIES_PER_AXIS = 3;
+/**
+ * Triage cost scales with this and nothing else useful. 677 items cost ~$1 for 30
+ * survivors on 2026-08-23 — over half the daily budget. 200 keeps a run near $0.35.
+ */
+const MAX_POOL_ITEMS = 200;
 const MAX_SYNTHESIS_PER_RUN = 12;
 const MAX_AXIS_FIT_PER_RUN = 40;
 /** Pilot: one small batch a day, read by a human before anything is sent. */
@@ -41,6 +46,8 @@ export type PersonScanReport = {
   candidates: number;
   vetoed: number;
   drafted: number;
+  /** How many pool items the cap discarded, so a truncated run says so. */
+  poolDropped: number;
   /** Why candidates were dropped, counted by reason. Never a bare number. */
   dropReasons: Record<string, number>;
   triageByKind: { kind: string; seen: number; passed: number }[];
@@ -49,7 +56,7 @@ export type PersonScanReport = {
 
 const EMPTY: PersonScanReport = {
   axes: 0, queriesRun: 0, poolItems: 0, worthSharing: 0, itemsWritten: 0,
-  axisFitsJudged: 0, candidates: 0, vetoed: 0, drafted: 0,
+  axisFitsJudged: 0, candidates: 0, vetoed: 0, drafted: 0, poolDropped: 0,
   dropReasons: {}, triageByKind: [], quotaExhausted: false,
 };
 
@@ -94,7 +101,13 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
   }
 
   // ── 3. Shareworthiness triage, once per item, company- and person-agnostic ─
-  const poolItems: PoolItem[] = news.items.map((i) => ({
+  // Capped before triage, round-robin across axes, so the cut never starves one
+  // interest and the bill stays predictable.
+  const capped = capPoolByAxis(news.items, MAX_POOL_ITEMS);
+  if (capped.dropped > 0) {
+    console.log(`[radar] pool capped org=${orgId} kept=${capped.kept.length} dropped=${capped.dropped}`);
+  }
+  const poolItems: PoolItem[] = capped.kept.map((i) => ({
     title: i.title, url: i.url, snippet: i.snippet, publishedAt: i.publishedAt,
   }));
   const verdicts = await triageAll(poolItems);
@@ -115,10 +128,10 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
   }
 
   // ── 4. Write each surviving item up once ──────────────────────────────────
-  const subscribersByUrl = new Map(news.items.map((i) => [i.url, i.companyIds]));
+  const subscribersByUrl = new Map(capped.kept.map((i) => [i.url, i.companyIds]));
   const written: { itemId: string; axisIds: string[]; kind: string; title: string; summary: string; technology: string | null; sources: unknown }[] = [];
   for (const verdict of worthSharing.slice(0, MAX_SYNTHESIS_PER_RUN)) {
-    const source = news.items.find((i) => i.url === verdict.url);
+    const source = capped.kept.find((i) => i.url === verdict.url);
     if (!source) continue;
     try {
       const draft = await synthesizeItem({
@@ -141,7 +154,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     }
   }
   if (written.length === 0) {
-    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, triageByKind, quotaExhausted: news.quotaLikely };
+    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, poolDropped: capped.dropped, triageByKind, quotaExhausted: news.quotaLikely };
   }
 
   // ── 5. Per-AXIS fit, judged once and shared by every subscriber ───────────
@@ -191,7 +204,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     }
   }
   if (candidates.length === 0) {
-    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, itemsWritten: written.length, axisFitsJudged, triageByKind, quotaExhausted: news.quotaLikely };
+    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, itemsWritten: written.length, axisFitsJudged, poolDropped: capped.dropped, triageByKind, quotaExhausted: news.quotaLikely };
   }
 
   // ── 6. Deterministic per-person rank ─────────────────────────────────────
@@ -308,6 +321,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     candidates: candidates.length,
     vetoed,
     drafted,
+    poolDropped: capped.dropped,
     dropReasons: countBy(dropped.map((d) => d.reason)),
     triageByKind,
     quotaExhausted: news.quotaLikely,
