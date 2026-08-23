@@ -3,12 +3,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const contactFindMany = vi.fn();
 const companyFindMany = vi.fn();
 const profileUpsert = vi.fn();
+const profileFindMany = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     contact: { findMany: (...a: unknown[]) => contactFindMany(...a) },
     trackedCompany: { findMany: (...a: unknown[]) => companyFindMany(...a) },
-    personProfile: { upsert: (...a: unknown[]) => profileUpsert(...a) },
+    personProfile: {
+      upsert: (...a: unknown[]) => profileUpsert(...a),
+      findMany: (...a: unknown[]) => profileFindMany(...a),
+    },
   },
 }));
 
@@ -42,7 +46,9 @@ const employer = (over: Record<string, unknown> = {}) => ({
 });
 
 beforeEach(() => {
-  for (const m of [contactFindMany, companyFindMany, profileUpsert, buildPersonProfile, attachAxes, ensureCompanyMonitorAxis]) m.mockReset();
+  for (const m of [contactFindMany, companyFindMany, profileUpsert, profileFindMany, buildPersonProfile, attachAxes, ensureCompanyMonitorAxis]) m.mockReset();
+  // The invariant read-back: verified against the DB, not against the model's response.
+  profileFindMany.mockResolvedValue([]);
   companyFindMany.mockResolvedValue([employer()]);
   profileUpsert.mockResolvedValue({ id: "pp1" });
   buildPersonProfile.mockResolvedValue({
@@ -144,3 +150,28 @@ describe("buildProfilesForMarked", () => {
     expect(out.skipped[0].reason).toMatch(/axis_empty_key: תחום/);
   });
 });
+
+describe("the Hebrew-query invariant", () => {
+  it("reports Hebrew queries per person, read back from the database", async () => {
+    contactFindMany.mockResolvedValue([contact()]);
+    profileFindMany.mockResolvedValue([
+      {
+        contact: { fullName: "Roy Hayumi" },
+        axes: [{ agenda: true, axis: { searchQueries: ["מרווחי זיקוק", "refining outlook"] } }],
+      },
+    ]);
+    const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    expect(out.hebrewQueriesByPerson).toEqual([{ name: "Roy Hayumi", hebrew: 1, agenda: 1 }]);
+    expect(out.noHebrewQuery).toEqual([]);
+  });
+
+  /** The exact state after the 23.8 scan: 54 queries, zero Israeli sources. */
+  it("names anyone left with no Hebrew query at all", async () => {
+    contactFindMany.mockResolvedValue([contact()]);
+    profileFindMany.mockResolvedValue([
+      { contact: { fullName: "Ofir Alon" }, axes: [{ agenda: true, axis: { searchQueries: ["refining margins"] } }] },
+    ]);
+    const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    expect(out.noHebrewQuery).toEqual(["Ofir Alon"]);
+  });
+})
