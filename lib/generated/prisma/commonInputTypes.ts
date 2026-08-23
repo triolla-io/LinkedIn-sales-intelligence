@@ -820,6 +820,118 @@ export type EnumTechDraftStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumTechDraftStatusFilter<$PrismaModel>
 }
 
+export type EnumRadarAxisKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarAxisKind | Prisma.EnumRadarAxisKindFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarAxisKind[] | Prisma.ListEnumRadarAxisKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarAxisKind[] | Prisma.ListEnumRadarAxisKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarAxisKindFilter<$PrismaModel> | $Enums.RadarAxisKind
+}
+
+export type EnumRadarAxisStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarAxisStatus | Prisma.EnumRadarAxisStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarAxisStatus[] | Prisma.ListEnumRadarAxisStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarAxisStatus[] | Prisma.ListEnumRadarAxisStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarAxisStatusFilter<$PrismaModel> | $Enums.RadarAxisStatus
+}
+
+export type FloatNullableFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel> | null
+  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
+  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatNullableFilter<$PrismaModel> | number | null
+}
+
+export type EnumRadarAxisKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarAxisKind | Prisma.EnumRadarAxisKindFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarAxisKind[] | Prisma.ListEnumRadarAxisKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarAxisKind[] | Prisma.ListEnumRadarAxisKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarAxisKindWithAggregatesFilter<$PrismaModel> | $Enums.RadarAxisKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRadarAxisKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRadarAxisKindFilter<$PrismaModel>
+}
+
+export type EnumRadarAxisStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarAxisStatus | Prisma.EnumRadarAxisStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarAxisStatus[] | Prisma.ListEnumRadarAxisStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarAxisStatus[] | Prisma.ListEnumRadarAxisStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarAxisStatusWithAggregatesFilter<$PrismaModel> | $Enums.RadarAxisStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRadarAxisStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRadarAxisStatusFilter<$PrismaModel>
+}
+
+export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel> | null
+  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
+  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+  _sum?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+}
+
+export type EnumRadarAxisSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarAxisSource | Prisma.EnumRadarAxisSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarAxisSource[] | Prisma.ListEnumRadarAxisSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarAxisSource[] | Prisma.ListEnumRadarAxisSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarAxisSourceFilter<$PrismaModel> | $Enums.RadarAxisSource
+}
+
+export type EnumRadarAxisSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarAxisSource | Prisma.EnumRadarAxisSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarAxisSource[] | Prisma.ListEnumRadarAxisSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarAxisSource[] | Prisma.ListEnumRadarAxisSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarAxisSourceWithAggregatesFilter<$PrismaModel> | $Enums.RadarAxisSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRadarAxisSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRadarAxisSourceFilter<$PrismaModel>
+}
+
+export type EnumRadarDraftStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarDraftStatus | Prisma.EnumRadarDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarDraftStatus[] | Prisma.ListEnumRadarDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarDraftStatus[] | Prisma.ListEnumRadarDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarDraftStatusFilter<$PrismaModel> | $Enums.RadarDraftStatus
+}
+
+export type EnumRadarDraftStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarDraftStatus | Prisma.EnumRadarDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarDraftStatus[] | Prisma.ListEnumRadarDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarDraftStatus[] | Prisma.ListEnumRadarDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarDraftStatusWithAggregatesFilter<$PrismaModel> | $Enums.RadarDraftStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRadarDraftStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRadarDraftStatusFilter<$PrismaModel>
+}
+
+export type EnumRadarFeedbackEventFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarFeedbackEvent | Prisma.EnumRadarFeedbackEventFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarFeedbackEvent[] | Prisma.ListEnumRadarFeedbackEventFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarFeedbackEvent[] | Prisma.ListEnumRadarFeedbackEventFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarFeedbackEventFilter<$PrismaModel> | $Enums.RadarFeedbackEvent
+}
+
+export type EnumRadarFeedbackEventWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarFeedbackEvent | Prisma.EnumRadarFeedbackEventFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarFeedbackEvent[] | Prisma.ListEnumRadarFeedbackEventFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarFeedbackEvent[] | Prisma.ListEnumRadarFeedbackEventFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarFeedbackEventWithAggregatesFilter<$PrismaModel> | $Enums.RadarFeedbackEvent
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRadarFeedbackEventFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRadarFeedbackEventFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1572,6 +1684,107 @@ export type NestedEnumTechDraftStatusWithAggregatesFilter<$PrismaModel = never> 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumTechDraftStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumTechDraftStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumRadarAxisKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarAxisKind | Prisma.EnumRadarAxisKindFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarAxisKind[] | Prisma.ListEnumRadarAxisKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarAxisKind[] | Prisma.ListEnumRadarAxisKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarAxisKindFilter<$PrismaModel> | $Enums.RadarAxisKind
+}
+
+export type NestedEnumRadarAxisStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarAxisStatus | Prisma.EnumRadarAxisStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarAxisStatus[] | Prisma.ListEnumRadarAxisStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarAxisStatus[] | Prisma.ListEnumRadarAxisStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarAxisStatusFilter<$PrismaModel> | $Enums.RadarAxisStatus
+}
+
+export type NestedEnumRadarAxisKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarAxisKind | Prisma.EnumRadarAxisKindFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarAxisKind[] | Prisma.ListEnumRadarAxisKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarAxisKind[] | Prisma.ListEnumRadarAxisKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarAxisKindWithAggregatesFilter<$PrismaModel> | $Enums.RadarAxisKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRadarAxisKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRadarAxisKindFilter<$PrismaModel>
+}
+
+export type NestedEnumRadarAxisStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarAxisStatus | Prisma.EnumRadarAxisStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarAxisStatus[] | Prisma.ListEnumRadarAxisStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarAxisStatus[] | Prisma.ListEnumRadarAxisStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarAxisStatusWithAggregatesFilter<$PrismaModel> | $Enums.RadarAxisStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRadarAxisStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRadarAxisStatusFilter<$PrismaModel>
+}
+
+export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel> | null
+  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
+  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+  _sum?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumRadarAxisSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarAxisSource | Prisma.EnumRadarAxisSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarAxisSource[] | Prisma.ListEnumRadarAxisSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarAxisSource[] | Prisma.ListEnumRadarAxisSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarAxisSourceFilter<$PrismaModel> | $Enums.RadarAxisSource
+}
+
+export type NestedEnumRadarAxisSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarAxisSource | Prisma.EnumRadarAxisSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarAxisSource[] | Prisma.ListEnumRadarAxisSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarAxisSource[] | Prisma.ListEnumRadarAxisSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarAxisSourceWithAggregatesFilter<$PrismaModel> | $Enums.RadarAxisSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRadarAxisSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRadarAxisSourceFilter<$PrismaModel>
+}
+
+export type NestedEnumRadarDraftStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarDraftStatus | Prisma.EnumRadarDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarDraftStatus[] | Prisma.ListEnumRadarDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarDraftStatus[] | Prisma.ListEnumRadarDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarDraftStatusFilter<$PrismaModel> | $Enums.RadarDraftStatus
+}
+
+export type NestedEnumRadarDraftStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarDraftStatus | Prisma.EnumRadarDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarDraftStatus[] | Prisma.ListEnumRadarDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarDraftStatus[] | Prisma.ListEnumRadarDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarDraftStatusWithAggregatesFilter<$PrismaModel> | $Enums.RadarDraftStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRadarDraftStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRadarDraftStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumRadarFeedbackEventFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarFeedbackEvent | Prisma.EnumRadarFeedbackEventFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarFeedbackEvent[] | Prisma.ListEnumRadarFeedbackEventFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarFeedbackEvent[] | Prisma.ListEnumRadarFeedbackEventFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarFeedbackEventFilter<$PrismaModel> | $Enums.RadarFeedbackEvent
+}
+
+export type NestedEnumRadarFeedbackEventWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RadarFeedbackEvent | Prisma.EnumRadarFeedbackEventFieldRefInput<$PrismaModel>
+  in?: $Enums.RadarFeedbackEvent[] | Prisma.ListEnumRadarFeedbackEventFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RadarFeedbackEvent[] | Prisma.ListEnumRadarFeedbackEventFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRadarFeedbackEventWithAggregatesFilter<$PrismaModel> | $Enums.RadarFeedbackEvent
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRadarFeedbackEventFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRadarFeedbackEventFilter<$PrismaModel>
 }
 
 

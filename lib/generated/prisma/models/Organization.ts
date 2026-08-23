@@ -277,6 +277,7 @@ export type OrganizationWhereInput = {
   invites?: Prisma.InviteListRelationFilter
   personEnrichments?: Prisma.PersonEnrichmentListRelationFilter
   trackedCompanies?: Prisma.TrackedCompanyListRelationFilter
+  radarAxes?: Prisma.RadarAxisListRelationFilter
 }
 
 export type OrganizationOrderByWithRelationInput = {
@@ -296,6 +297,7 @@ export type OrganizationOrderByWithRelationInput = {
   invites?: Prisma.InviteOrderByRelationAggregateInput
   personEnrichments?: Prisma.PersonEnrichmentOrderByRelationAggregateInput
   trackedCompanies?: Prisma.TrackedCompanyOrderByRelationAggregateInput
+  radarAxes?: Prisma.RadarAxisOrderByRelationAggregateInput
 }
 
 export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -318,6 +320,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   invites?: Prisma.InviteListRelationFilter
   personEnrichments?: Prisma.PersonEnrichmentListRelationFilter
   trackedCompanies?: Prisma.TrackedCompanyListRelationFilter
+  radarAxes?: Prisma.RadarAxisListRelationFilter
 }, "id">
 
 export type OrganizationOrderByWithAggregationInput = {
@@ -373,6 +376,7 @@ export type OrganizationCreateInput = {
   invites?: Prisma.InviteCreateNestedManyWithoutOrgInput
   personEnrichments?: Prisma.PersonEnrichmentCreateNestedManyWithoutOrgInput
   trackedCompanies?: Prisma.TrackedCompanyCreateNestedManyWithoutOrgInput
+  radarAxes?: Prisma.RadarAxisCreateNestedManyWithoutOrgInput
 }
 
 export type OrganizationUncheckedCreateInput = {
@@ -392,6 +396,7 @@ export type OrganizationUncheckedCreateInput = {
   invites?: Prisma.InviteUncheckedCreateNestedManyWithoutOrgInput
   personEnrichments?: Prisma.PersonEnrichmentUncheckedCreateNestedManyWithoutOrgInput
   trackedCompanies?: Prisma.TrackedCompanyUncheckedCreateNestedManyWithoutOrgInput
+  radarAxes?: Prisma.RadarAxisUncheckedCreateNestedManyWithoutOrgInput
 }
 
 export type OrganizationUpdateInput = {
@@ -411,6 +416,7 @@ export type OrganizationUpdateInput = {
   invites?: Prisma.InviteUpdateManyWithoutOrgNestedInput
   personEnrichments?: Prisma.PersonEnrichmentUpdateManyWithoutOrgNestedInput
   trackedCompanies?: Prisma.TrackedCompanyUpdateManyWithoutOrgNestedInput
+  radarAxes?: Prisma.RadarAxisUpdateManyWithoutOrgNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
@@ -430,6 +436,7 @@ export type OrganizationUncheckedUpdateInput = {
   invites?: Prisma.InviteUncheckedUpdateManyWithoutOrgNestedInput
   personEnrichments?: Prisma.PersonEnrichmentUncheckedUpdateManyWithoutOrgNestedInput
   trackedCompanies?: Prisma.TrackedCompanyUncheckedUpdateManyWithoutOrgNestedInput
+  radarAxes?: Prisma.RadarAxisUncheckedUpdateManyWithoutOrgNestedInput
 }
 
 export type OrganizationCreateManyInput = {
@@ -615,6 +622,20 @@ export type OrganizationUpdateOneRequiredWithoutTrackedCompaniesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutTrackedCompaniesInput, Prisma.OrganizationUpdateWithoutTrackedCompaniesInput>, Prisma.OrganizationUncheckedUpdateWithoutTrackedCompaniesInput>
 }
 
+export type OrganizationCreateNestedOneWithoutRadarAxesInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutRadarAxesInput, Prisma.OrganizationUncheckedCreateWithoutRadarAxesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutRadarAxesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutRadarAxesNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutRadarAxesInput, Prisma.OrganizationUncheckedCreateWithoutRadarAxesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutRadarAxesInput
+  upsert?: Prisma.OrganizationUpsertWithoutRadarAxesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutRadarAxesInput, Prisma.OrganizationUpdateWithoutRadarAxesInput>, Prisma.OrganizationUncheckedUpdateWithoutRadarAxesInput>
+}
+
 export type OrganizationCreateWithoutUsersInput = {
   id?: string
   name: string
@@ -631,6 +652,7 @@ export type OrganizationCreateWithoutUsersInput = {
   invites?: Prisma.InviteCreateNestedManyWithoutOrgInput
   personEnrichments?: Prisma.PersonEnrichmentCreateNestedManyWithoutOrgInput
   trackedCompanies?: Prisma.TrackedCompanyCreateNestedManyWithoutOrgInput
+  radarAxes?: Prisma.RadarAxisCreateNestedManyWithoutOrgInput
 }
 
 export type OrganizationUncheckedCreateWithoutUsersInput = {
@@ -649,6 +671,7 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   invites?: Prisma.InviteUncheckedCreateNestedManyWithoutOrgInput
   personEnrichments?: Prisma.PersonEnrichmentUncheckedCreateNestedManyWithoutOrgInput
   trackedCompanies?: Prisma.TrackedCompanyUncheckedCreateNestedManyWithoutOrgInput
+  radarAxes?: Prisma.RadarAxisUncheckedCreateNestedManyWithoutOrgInput
 }
 
 export type OrganizationCreateOrConnectWithoutUsersInput = {
@@ -683,6 +706,7 @@ export type OrganizationUpdateWithoutUsersInput = {
   invites?: Prisma.InviteUpdateManyWithoutOrgNestedInput
   personEnrichments?: Prisma.PersonEnrichmentUpdateManyWithoutOrgNestedInput
   trackedCompanies?: Prisma.TrackedCompanyUpdateManyWithoutOrgNestedInput
+  radarAxes?: Prisma.RadarAxisUpdateManyWithoutOrgNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutUsersInput = {
@@ -701,6 +725,7 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   invites?: Prisma.InviteUncheckedUpdateManyWithoutOrgNestedInput
   personEnrichments?: Prisma.PersonEnrichmentUncheckedUpdateManyWithoutOrgNestedInput
   trackedCompanies?: Prisma.TrackedCompanyUncheckedUpdateManyWithoutOrgNestedInput
+  radarAxes?: Prisma.RadarAxisUncheckedUpdateManyWithoutOrgNestedInput
 }
 
 export type OrganizationCreateWithoutEnrichmentSpendsInput = {
@@ -719,6 +744,7 @@ export type OrganizationCreateWithoutEnrichmentSpendsInput = {
   invites?: Prisma.InviteCreateNestedManyWithoutOrgInput
   personEnrichments?: Prisma.PersonEnrichmentCreateNestedManyWithoutOrgInput
   trackedCompanies?: Prisma.TrackedCompanyCreateNestedManyWithoutOrgInput
+  radarAxes?: Prisma.RadarAxisCreateNestedManyWithoutOrgInput
 }
 
 export type OrganizationUncheckedCreateWithoutEnrichmentSpendsInput = {
@@ -737,6 +763,7 @@ export type OrganizationUncheckedCreateWithoutEnrichmentSpendsInput = {
   invites?: Prisma.InviteUncheckedCreateNestedManyWithoutOrgInput
   personEnrichments?: Prisma.PersonEnrichmentUncheckedCreateNestedManyWithoutOrgInput
   trackedCompanies?: Prisma.TrackedCompanyUncheckedCreateNestedManyWithoutOrgInput
+  radarAxes?: Prisma.RadarAxisUncheckedCreateNestedManyWithoutOrgInput
 }
 
 export type OrganizationCreateOrConnectWithoutEnrichmentSpendsInput = {
@@ -771,6 +798,7 @@ export type OrganizationUpdateWithoutEnrichmentSpendsInput = {
   invites?: Prisma.InviteUpdateManyWithoutOrgNestedInput
   personEnrichments?: Prisma.PersonEnrichmentUpdateManyWithoutOrgNestedInput
   trackedCompanies?: Prisma.TrackedCompanyUpdateManyWithoutOrgNestedInput
+  radarAxes?: Prisma.RadarAxisUpdateManyWithoutOrgNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutEnrichmentSpendsInput = {
@@ -789,6 +817,7 @@ export type OrganizationUncheckedUpdateWithoutEnrichmentSpendsInput = {
   invites?: Prisma.InviteUncheckedUpdateManyWithoutOrgNestedInput
   personEnrichments?: Prisma.PersonEnrichmentUncheckedUpdateManyWithoutOrgNestedInput
   trackedCompanies?: Prisma.TrackedCompanyUncheckedUpdateManyWithoutOrgNestedInput
+  radarAxes?: Prisma.RadarAxisUncheckedUpdateManyWithoutOrgNestedInput
 }
 
 export type OrganizationCreateWithoutPersonEnrichmentsInput = {
@@ -807,6 +836,7 @@ export type OrganizationCreateWithoutPersonEnrichmentsInput = {
   enrichmentSpends?: Prisma.EnrichmentSpendCreateNestedManyWithoutOrgInput
   invites?: Prisma.InviteCreateNestedManyWithoutOrgInput
   trackedCompanies?: Prisma.TrackedCompanyCreateNestedManyWithoutOrgInput
+  radarAxes?: Prisma.RadarAxisCreateNestedManyWithoutOrgInput
 }
 
 export type OrganizationUncheckedCreateWithoutPersonEnrichmentsInput = {
@@ -825,6 +855,7 @@ export type OrganizationUncheckedCreateWithoutPersonEnrichmentsInput = {
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedCreateNestedManyWithoutOrgInput
   invites?: Prisma.InviteUncheckedCreateNestedManyWithoutOrgInput
   trackedCompanies?: Prisma.TrackedCompanyUncheckedCreateNestedManyWithoutOrgInput
+  radarAxes?: Prisma.RadarAxisUncheckedCreateNestedManyWithoutOrgInput
 }
 
 export type OrganizationCreateOrConnectWithoutPersonEnrichmentsInput = {
@@ -859,6 +890,7 @@ export type OrganizationUpdateWithoutPersonEnrichmentsInput = {
   enrichmentSpends?: Prisma.EnrichmentSpendUpdateManyWithoutOrgNestedInput
   invites?: Prisma.InviteUpdateManyWithoutOrgNestedInput
   trackedCompanies?: Prisma.TrackedCompanyUpdateManyWithoutOrgNestedInput
+  radarAxes?: Prisma.RadarAxisUpdateManyWithoutOrgNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPersonEnrichmentsInput = {
@@ -877,6 +909,7 @@ export type OrganizationUncheckedUpdateWithoutPersonEnrichmentsInput = {
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedUpdateManyWithoutOrgNestedInput
   invites?: Prisma.InviteUncheckedUpdateManyWithoutOrgNestedInput
   trackedCompanies?: Prisma.TrackedCompanyUncheckedUpdateManyWithoutOrgNestedInput
+  radarAxes?: Prisma.RadarAxisUncheckedUpdateManyWithoutOrgNestedInput
 }
 
 export type OrganizationCreateWithoutInvitesInput = {
@@ -895,6 +928,7 @@ export type OrganizationCreateWithoutInvitesInput = {
   enrichmentSpends?: Prisma.EnrichmentSpendCreateNestedManyWithoutOrgInput
   personEnrichments?: Prisma.PersonEnrichmentCreateNestedManyWithoutOrgInput
   trackedCompanies?: Prisma.TrackedCompanyCreateNestedManyWithoutOrgInput
+  radarAxes?: Prisma.RadarAxisCreateNestedManyWithoutOrgInput
 }
 
 export type OrganizationUncheckedCreateWithoutInvitesInput = {
@@ -913,6 +947,7 @@ export type OrganizationUncheckedCreateWithoutInvitesInput = {
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedCreateNestedManyWithoutOrgInput
   personEnrichments?: Prisma.PersonEnrichmentUncheckedCreateNestedManyWithoutOrgInput
   trackedCompanies?: Prisma.TrackedCompanyUncheckedCreateNestedManyWithoutOrgInput
+  radarAxes?: Prisma.RadarAxisUncheckedCreateNestedManyWithoutOrgInput
 }
 
 export type OrganizationCreateOrConnectWithoutInvitesInput = {
@@ -947,6 +982,7 @@ export type OrganizationUpdateWithoutInvitesInput = {
   enrichmentSpends?: Prisma.EnrichmentSpendUpdateManyWithoutOrgNestedInput
   personEnrichments?: Prisma.PersonEnrichmentUpdateManyWithoutOrgNestedInput
   trackedCompanies?: Prisma.TrackedCompanyUpdateManyWithoutOrgNestedInput
+  radarAxes?: Prisma.RadarAxisUpdateManyWithoutOrgNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutInvitesInput = {
@@ -965,6 +1001,7 @@ export type OrganizationUncheckedUpdateWithoutInvitesInput = {
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedUpdateManyWithoutOrgNestedInput
   personEnrichments?: Prisma.PersonEnrichmentUncheckedUpdateManyWithoutOrgNestedInput
   trackedCompanies?: Prisma.TrackedCompanyUncheckedUpdateManyWithoutOrgNestedInput
+  radarAxes?: Prisma.RadarAxisUncheckedUpdateManyWithoutOrgNestedInput
 }
 
 export type OrganizationCreateWithoutTrackedCompaniesInput = {
@@ -983,6 +1020,7 @@ export type OrganizationCreateWithoutTrackedCompaniesInput = {
   enrichmentSpends?: Prisma.EnrichmentSpendCreateNestedManyWithoutOrgInput
   invites?: Prisma.InviteCreateNestedManyWithoutOrgInput
   personEnrichments?: Prisma.PersonEnrichmentCreateNestedManyWithoutOrgInput
+  radarAxes?: Prisma.RadarAxisCreateNestedManyWithoutOrgInput
 }
 
 export type OrganizationUncheckedCreateWithoutTrackedCompaniesInput = {
@@ -1001,6 +1039,7 @@ export type OrganizationUncheckedCreateWithoutTrackedCompaniesInput = {
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedCreateNestedManyWithoutOrgInput
   invites?: Prisma.InviteUncheckedCreateNestedManyWithoutOrgInput
   personEnrichments?: Prisma.PersonEnrichmentUncheckedCreateNestedManyWithoutOrgInput
+  radarAxes?: Prisma.RadarAxisUncheckedCreateNestedManyWithoutOrgInput
 }
 
 export type OrganizationCreateOrConnectWithoutTrackedCompaniesInput = {
@@ -1035,6 +1074,7 @@ export type OrganizationUpdateWithoutTrackedCompaniesInput = {
   enrichmentSpends?: Prisma.EnrichmentSpendUpdateManyWithoutOrgNestedInput
   invites?: Prisma.InviteUpdateManyWithoutOrgNestedInput
   personEnrichments?: Prisma.PersonEnrichmentUpdateManyWithoutOrgNestedInput
+  radarAxes?: Prisma.RadarAxisUpdateManyWithoutOrgNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutTrackedCompaniesInput = {
@@ -1053,6 +1093,99 @@ export type OrganizationUncheckedUpdateWithoutTrackedCompaniesInput = {
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedUpdateManyWithoutOrgNestedInput
   invites?: Prisma.InviteUncheckedUpdateManyWithoutOrgNestedInput
   personEnrichments?: Prisma.PersonEnrichmentUncheckedUpdateManyWithoutOrgNestedInput
+  radarAxes?: Prisma.RadarAxisUncheckedUpdateManyWithoutOrgNestedInput
+}
+
+export type OrganizationCreateWithoutRadarAxesInput = {
+  id?: string
+  name: string
+  syncCadenceDays?: number
+  monthlyApolloBudget?: number
+  perUserMonthlyApolloCredits?: number
+  jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
+  fintechRadarEnabled?: boolean
+  techRadarEnabled?: boolean
+  radarScheduleEnabled?: boolean
+  createdAt?: Date | string
+  users?: Prisma.UserCreateNestedManyWithoutOrgInput
+  enrichmentSpends?: Prisma.EnrichmentSpendCreateNestedManyWithoutOrgInput
+  invites?: Prisma.InviteCreateNestedManyWithoutOrgInput
+  personEnrichments?: Prisma.PersonEnrichmentCreateNestedManyWithoutOrgInput
+  trackedCompanies?: Prisma.TrackedCompanyCreateNestedManyWithoutOrgInput
+}
+
+export type OrganizationUncheckedCreateWithoutRadarAxesInput = {
+  id?: string
+  name: string
+  syncCadenceDays?: number
+  monthlyApolloBudget?: number
+  perUserMonthlyApolloCredits?: number
+  jobCheckEnabled?: boolean
+  companySignalsEnabled?: boolean
+  fintechRadarEnabled?: boolean
+  techRadarEnabled?: boolean
+  radarScheduleEnabled?: boolean
+  createdAt?: Date | string
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrgInput
+  enrichmentSpends?: Prisma.EnrichmentSpendUncheckedCreateNestedManyWithoutOrgInput
+  invites?: Prisma.InviteUncheckedCreateNestedManyWithoutOrgInput
+  personEnrichments?: Prisma.PersonEnrichmentUncheckedCreateNestedManyWithoutOrgInput
+  trackedCompanies?: Prisma.TrackedCompanyUncheckedCreateNestedManyWithoutOrgInput
+}
+
+export type OrganizationCreateOrConnectWithoutRadarAxesInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutRadarAxesInput, Prisma.OrganizationUncheckedCreateWithoutRadarAxesInput>
+}
+
+export type OrganizationUpsertWithoutRadarAxesInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutRadarAxesInput, Prisma.OrganizationUncheckedUpdateWithoutRadarAxesInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutRadarAxesInput, Prisma.OrganizationUncheckedCreateWithoutRadarAxesInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutRadarAxesInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutRadarAxesInput, Prisma.OrganizationUncheckedUpdateWithoutRadarAxesInput>
+}
+
+export type OrganizationUpdateWithoutRadarAxesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
+  perUserMonthlyApolloCredits?: Prisma.IntFieldUpdateOperationsInput | number
+  jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.UserUpdateManyWithoutOrgNestedInput
+  enrichmentSpends?: Prisma.EnrichmentSpendUpdateManyWithoutOrgNestedInput
+  invites?: Prisma.InviteUpdateManyWithoutOrgNestedInput
+  personEnrichments?: Prisma.PersonEnrichmentUpdateManyWithoutOrgNestedInput
+  trackedCompanies?: Prisma.TrackedCompanyUpdateManyWithoutOrgNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutRadarAxesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  syncCadenceDays?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyApolloBudget?: Prisma.IntFieldUpdateOperationsInput | number
+  perUserMonthlyApolloCredits?: Prisma.IntFieldUpdateOperationsInput | number
+  jobCheckEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrgNestedInput
+  enrichmentSpends?: Prisma.EnrichmentSpendUncheckedUpdateManyWithoutOrgNestedInput
+  invites?: Prisma.InviteUncheckedUpdateManyWithoutOrgNestedInput
+  personEnrichments?: Prisma.PersonEnrichmentUncheckedUpdateManyWithoutOrgNestedInput
+  trackedCompanies?: Prisma.TrackedCompanyUncheckedUpdateManyWithoutOrgNestedInput
 }
 
 
@@ -1066,6 +1199,7 @@ export type OrganizationCountOutputType = {
   invites: number
   personEnrichments: number
   trackedCompanies: number
+  radarAxes: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1074,6 +1208,7 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   invites?: boolean | OrganizationCountOutputTypeCountInvitesArgs
   personEnrichments?: boolean | OrganizationCountOutputTypeCountPersonEnrichmentsArgs
   trackedCompanies?: boolean | OrganizationCountOutputTypeCountTrackedCompaniesArgs
+  radarAxes?: boolean | OrganizationCountOutputTypeCountRadarAxesArgs
 }
 
 /**
@@ -1121,6 +1256,13 @@ export type OrganizationCountOutputTypeCountTrackedCompaniesArgs<ExtArgs extends
   where?: Prisma.TrackedCompanyWhereInput
 }
 
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountRadarAxesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RadarAxisWhereInput
+}
+
 
 export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1139,6 +1281,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   invites?: boolean | Prisma.Organization$invitesArgs<ExtArgs>
   personEnrichments?: boolean | Prisma.Organization$personEnrichmentsArgs<ExtArgs>
   trackedCompanies?: boolean | Prisma.Organization$trackedCompaniesArgs<ExtArgs>
+  radarAxes?: boolean | Prisma.Organization$radarAxesArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -1191,6 +1334,7 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   invites?: boolean | Prisma.Organization$invitesArgs<ExtArgs>
   personEnrichments?: boolean | Prisma.Organization$personEnrichmentsArgs<ExtArgs>
   trackedCompanies?: boolean | Prisma.Organization$trackedCompaniesArgs<ExtArgs>
+  radarAxes?: boolean | Prisma.Organization$radarAxesArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1204,6 +1348,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     invites: Prisma.$InvitePayload<ExtArgs>[]
     personEnrichments: Prisma.$PersonEnrichmentPayload<ExtArgs>[]
     trackedCompanies: Prisma.$TrackedCompanyPayload<ExtArgs>[]
+    radarAxes: Prisma.$RadarAxisPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1626,6 +1771,7 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   invites<T extends Prisma.Organization$invitesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$invitesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   personEnrichments<T extends Prisma.Organization$personEnrichmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$personEnrichmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PersonEnrichmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   trackedCompanies<T extends Prisma.Organization$trackedCompaniesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$trackedCompaniesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TrackedCompanyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  radarAxes<T extends Prisma.Organization$radarAxesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$radarAxesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RadarAxisPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2176,6 +2322,30 @@ export type Organization$trackedCompaniesArgs<ExtArgs extends runtime.Types.Exte
   take?: number
   skip?: number
   distinct?: Prisma.TrackedCompanyScalarFieldEnum | Prisma.TrackedCompanyScalarFieldEnum[]
+}
+
+/**
+ * Organization.radarAxes
+ */
+export type Organization$radarAxesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RadarAxis
+   */
+  select?: Prisma.RadarAxisSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RadarAxis
+   */
+  omit?: Prisma.RadarAxisOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RadarAxisInclude<ExtArgs> | null
+  where?: Prisma.RadarAxisWhereInput
+  orderBy?: Prisma.RadarAxisOrderByWithRelationInput | Prisma.RadarAxisOrderByWithRelationInput[]
+  cursor?: Prisma.RadarAxisWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RadarAxisScalarFieldEnum | Prisma.RadarAxisScalarFieldEnum[]
 }
 
 /**

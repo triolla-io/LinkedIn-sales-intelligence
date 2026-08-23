@@ -271,6 +271,7 @@ export type UserWhereInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftListRelationFilter
   enrichmentSpends?: Prisma.UserEnrichmentSpendListRelationFilter
   techDrafts?: Prisma.TechOpportunityDraftListRelationFilter
+  radarDrafts?: Prisma.RadarDraftListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -312,6 +313,7 @@ export type UserOrderByWithRelationInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftOrderByRelationAggregateInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendOrderByRelationAggregateInput
   techDrafts?: Prisma.TechOpportunityDraftOrderByRelationAggregateInput
+  radarDrafts?: Prisma.RadarDraftOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -356,6 +358,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   companySignalDrafts?: Prisma.CompanySignalDraftListRelationFilter
   enrichmentSpends?: Prisma.UserEnrichmentSpendListRelationFilter
   techDrafts?: Prisma.TechOpportunityDraftListRelationFilter
+  radarDrafts?: Prisma.RadarDraftListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -434,6 +437,7 @@ export type UserCreateInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -474,6 +478,7 @@ export type UserUncheckedCreateInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUpdateInput = {
@@ -514,6 +519,7 @@ export type UserUpdateInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -554,6 +560,7 @@ export type UserUncheckedUpdateInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -1059,6 +1066,20 @@ export type UserUpdateOneRequiredWithoutTechDraftsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTechDraftsInput, Prisma.UserUpdateWithoutTechDraftsInput>, Prisma.UserUncheckedUpdateWithoutTechDraftsInput>
 }
 
+export type UserCreateNestedOneWithoutRadarDraftsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRadarDraftsInput, Prisma.UserUncheckedCreateWithoutRadarDraftsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRadarDraftsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutRadarDraftsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRadarDraftsInput, Prisma.UserUncheckedCreateWithoutRadarDraftsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRadarDraftsInput
+  upsert?: Prisma.UserUpsertWithoutRadarDraftsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRadarDraftsInput, Prisma.UserUpdateWithoutRadarDraftsInput>, Prisma.UserUncheckedUpdateWithoutRadarDraftsInput>
+}
+
 export type UserCreateWithoutAccountsInput = {
   id?: string
   email: string
@@ -1096,6 +1117,7 @@ export type UserCreateWithoutAccountsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -1135,6 +1157,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -1190,6 +1213,7 @@ export type UserUpdateWithoutAccountsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -1229,6 +1253,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -1268,6 +1293,7 @@ export type UserCreateWithoutSessionsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -1307,6 +1333,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -1362,6 +1389,7 @@ export type UserUpdateWithoutSessionsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -1401,6 +1429,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutOrgInput = {
@@ -1440,6 +1469,7 @@ export type UserCreateWithoutOrgInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutOrgInput = {
@@ -1479,6 +1509,7 @@ export type UserUncheckedCreateWithoutOrgInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutOrgInput = {
@@ -1563,6 +1594,7 @@ export type UserCreateWithoutContactsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutContactsInput = {
@@ -1602,6 +1634,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutContactsInput = {
@@ -1657,6 +1690,7 @@ export type UserUpdateWithoutContactsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactsInput = {
@@ -1696,6 +1730,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutTemplatesInput = {
@@ -1735,6 +1770,7 @@ export type UserCreateWithoutTemplatesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutTemplatesInput = {
@@ -1774,6 +1810,7 @@ export type UserUncheckedCreateWithoutTemplatesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutTemplatesInput = {
@@ -1829,6 +1866,7 @@ export type UserUpdateWithoutTemplatesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTemplatesInput = {
@@ -1868,6 +1906,7 @@ export type UserUncheckedUpdateWithoutTemplatesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSentMessagesInput = {
@@ -1907,6 +1946,7 @@ export type UserCreateWithoutSentMessagesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSentMessagesInput = {
@@ -1946,6 +1986,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSentMessagesInput = {
@@ -1990,6 +2031,7 @@ export type UserCreateWithoutActedMessagesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutActedMessagesInput = {
@@ -2029,6 +2071,7 @@ export type UserUncheckedCreateWithoutActedMessagesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutActedMessagesInput = {
@@ -2084,6 +2127,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentMessagesInput = {
@@ -2123,6 +2167,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutActedMessagesInput = {
@@ -2173,6 +2218,7 @@ export type UserUpdateWithoutActedMessagesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActedMessagesInput = {
@@ -2212,6 +2258,7 @@ export type UserUncheckedUpdateWithoutActedMessagesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSavedViewsInput = {
@@ -2251,6 +2298,7 @@ export type UserCreateWithoutSavedViewsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSavedViewsInput = {
@@ -2290,6 +2338,7 @@ export type UserUncheckedCreateWithoutSavedViewsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSavedViewsInput = {
@@ -2345,6 +2394,7 @@ export type UserUpdateWithoutSavedViewsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSavedViewsInput = {
@@ -2384,6 +2434,7 @@ export type UserUncheckedUpdateWithoutSavedViewsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutAuditActedInput = {
@@ -2423,6 +2474,7 @@ export type UserCreateWithoutAuditActedInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAuditActedInput = {
@@ -2462,6 +2514,7 @@ export type UserUncheckedCreateWithoutAuditActedInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAuditActedInput = {
@@ -2506,6 +2559,7 @@ export type UserCreateWithoutAuditTargetedInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutAuditTargetedInput = {
@@ -2545,6 +2599,7 @@ export type UserUncheckedCreateWithoutAuditTargetedInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutAuditTargetedInput = {
@@ -2600,6 +2655,7 @@ export type UserUpdateWithoutAuditActedInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditActedInput = {
@@ -2639,6 +2695,7 @@ export type UserUncheckedUpdateWithoutAuditActedInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUpsertWithoutAuditTargetedInput = {
@@ -2689,6 +2746,7 @@ export type UserUpdateWithoutAuditTargetedInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditTargetedInput = {
@@ -2728,6 +2786,7 @@ export type UserUncheckedUpdateWithoutAuditTargetedInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutMcpTokensInput = {
@@ -2767,6 +2826,7 @@ export type UserCreateWithoutMcpTokensInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutMcpTokensInput = {
@@ -2806,6 +2866,7 @@ export type UserUncheckedCreateWithoutMcpTokensInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutMcpTokensInput = {
@@ -2861,6 +2922,7 @@ export type UserUpdateWithoutMcpTokensInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMcpTokensInput = {
@@ -2900,6 +2962,7 @@ export type UserUncheckedUpdateWithoutMcpTokensInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutEnrichmentSpendsInput = {
@@ -2939,6 +3002,7 @@ export type UserCreateWithoutEnrichmentSpendsInput = {
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutEnrichmentSpendsInput = {
@@ -2978,6 +3042,7 @@ export type UserUncheckedCreateWithoutEnrichmentSpendsInput = {
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutEnrichmentSpendsInput = {
@@ -3033,6 +3098,7 @@ export type UserUpdateWithoutEnrichmentSpendsInput = {
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEnrichmentSpendsInput = {
@@ -3072,6 +3138,7 @@ export type UserUncheckedUpdateWithoutEnrichmentSpendsInput = {
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutLinkedinSessionInput = {
@@ -3111,6 +3178,7 @@ export type UserCreateWithoutLinkedinSessionInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutLinkedinSessionInput = {
@@ -3150,6 +3218,7 @@ export type UserUncheckedCreateWithoutLinkedinSessionInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutLinkedinSessionInput = {
@@ -3205,6 +3274,7 @@ export type UserUpdateWithoutLinkedinSessionInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
@@ -3244,6 +3314,7 @@ export type UserUncheckedUpdateWithoutLinkedinSessionInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutCampaignsInput = {
@@ -3283,6 +3354,7 @@ export type UserCreateWithoutCampaignsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutCampaignsInput = {
@@ -3322,6 +3394,7 @@ export type UserUncheckedCreateWithoutCampaignsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutCampaignsInput = {
@@ -3377,6 +3450,7 @@ export type UserUpdateWithoutCampaignsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCampaignsInput = {
@@ -3416,6 +3490,7 @@ export type UserUncheckedUpdateWithoutCampaignsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutImportsInput = {
@@ -3455,6 +3530,7 @@ export type UserCreateWithoutImportsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutImportsInput = {
@@ -3494,6 +3570,7 @@ export type UserUncheckedCreateWithoutImportsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutImportsInput = {
@@ -3549,6 +3626,7 @@ export type UserUpdateWithoutImportsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutImportsInput = {
@@ -3588,6 +3666,7 @@ export type UserUncheckedUpdateWithoutImportsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutImportJobsInput = {
@@ -3627,6 +3706,7 @@ export type UserCreateWithoutImportJobsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutImportJobsInput = {
@@ -3666,6 +3746,7 @@ export type UserUncheckedCreateWithoutImportJobsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutImportJobsInput = {
@@ -3721,6 +3802,7 @@ export type UserUpdateWithoutImportJobsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutImportJobsInput = {
@@ -3760,6 +3842,7 @@ export type UserUncheckedUpdateWithoutImportJobsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutContactListsInput = {
@@ -3799,6 +3882,7 @@ export type UserCreateWithoutContactListsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutContactListsInput = {
@@ -3838,6 +3922,7 @@ export type UserUncheckedCreateWithoutContactListsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutContactListsInput = {
@@ -3893,6 +3978,7 @@ export type UserUpdateWithoutContactListsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactListsInput = {
@@ -3932,6 +4018,7 @@ export type UserUncheckedUpdateWithoutContactListsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutSequencesInput = {
@@ -3971,6 +4058,7 @@ export type UserCreateWithoutSequencesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutSequencesInput = {
@@ -4010,6 +4098,7 @@ export type UserUncheckedCreateWithoutSequencesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutSequencesInput = {
@@ -4065,6 +4154,7 @@ export type UserUpdateWithoutSequencesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSequencesInput = {
@@ -4104,6 +4194,7 @@ export type UserUncheckedUpdateWithoutSequencesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutExtensionTasksInput = {
@@ -4143,6 +4234,7 @@ export type UserCreateWithoutExtensionTasksInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutExtensionTasksInput = {
@@ -4182,6 +4274,7 @@ export type UserUncheckedCreateWithoutExtensionTasksInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutExtensionTasksInput = {
@@ -4237,6 +4330,7 @@ export type UserUpdateWithoutExtensionTasksInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutExtensionTasksInput = {
@@ -4276,6 +4370,7 @@ export type UserUncheckedUpdateWithoutExtensionTasksInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutExtensionSessionInput = {
@@ -4315,6 +4410,7 @@ export type UserCreateWithoutExtensionSessionInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutExtensionSessionInput = {
@@ -4354,6 +4450,7 @@ export type UserUncheckedCreateWithoutExtensionSessionInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutExtensionSessionInput = {
@@ -4409,6 +4506,7 @@ export type UserUpdateWithoutExtensionSessionInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutExtensionSessionInput = {
@@ -4448,6 +4546,7 @@ export type UserUncheckedUpdateWithoutExtensionSessionInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutExtensionAlertsInput = {
@@ -4487,6 +4586,7 @@ export type UserCreateWithoutExtensionAlertsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutExtensionAlertsInput = {
@@ -4526,6 +4626,7 @@ export type UserUncheckedCreateWithoutExtensionAlertsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutExtensionAlertsInput = {
@@ -4581,6 +4682,7 @@ export type UserUpdateWithoutExtensionAlertsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutExtensionAlertsInput = {
@@ -4620,6 +4722,7 @@ export type UserUncheckedUpdateWithoutExtensionAlertsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutProspectingRunsInput = {
@@ -4659,6 +4762,7 @@ export type UserCreateWithoutProspectingRunsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutProspectingRunsInput = {
@@ -4698,6 +4802,7 @@ export type UserUncheckedCreateWithoutProspectingRunsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutProspectingRunsInput = {
@@ -4753,6 +4858,7 @@ export type UserUpdateWithoutProspectingRunsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProspectingRunsInput = {
@@ -4792,6 +4898,7 @@ export type UserUncheckedUpdateWithoutProspectingRunsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutConnectionRequestsInput = {
@@ -4831,6 +4938,7 @@ export type UserCreateWithoutConnectionRequestsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutConnectionRequestsInput = {
@@ -4870,6 +4978,7 @@ export type UserUncheckedCreateWithoutConnectionRequestsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutConnectionRequestsInput = {
@@ -4925,6 +5034,7 @@ export type UserUpdateWithoutConnectionRequestsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutConnectionRequestsInput = {
@@ -4964,6 +5074,7 @@ export type UserUncheckedUpdateWithoutConnectionRequestsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutCompanySignalDraftsInput = {
@@ -5003,6 +5114,7 @@ export type UserCreateWithoutCompanySignalDraftsInput = {
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutCompanySignalDraftsInput = {
@@ -5042,6 +5154,7 @@ export type UserUncheckedCreateWithoutCompanySignalDraftsInput = {
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutCompanySignalDraftsInput = {
@@ -5097,6 +5210,7 @@ export type UserUpdateWithoutCompanySignalDraftsInput = {
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCompanySignalDraftsInput = {
@@ -5136,6 +5250,7 @@ export type UserUncheckedUpdateWithoutCompanySignalDraftsInput = {
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateWithoutTechDraftsInput = {
@@ -5175,6 +5290,7 @@ export type UserCreateWithoutTechDraftsInput = {
   mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutOwnerInput
 }
 
 export type UserUncheckedCreateWithoutTechDraftsInput = {
@@ -5214,6 +5330,7 @@ export type UserUncheckedCreateWithoutTechDraftsInput = {
   mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutOwnerInput
 }
 
 export type UserCreateOrConnectWithoutTechDraftsInput = {
@@ -5269,6 +5386,7 @@ export type UserUpdateWithoutTechDraftsInput = {
   mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTechDraftsInput = {
@@ -5308,6 +5426,183 @@ export type UserUncheckedUpdateWithoutTechDraftsInput = {
   mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserCreateWithoutRadarDraftsInput = {
+  id?: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  emailSignature?: string | null
+  routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
+  createdAt?: Date | string
+  org: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportCreateNestedManyWithoutOwnerInput
+  importJobs?: Prisma.ImportJobCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestCreateNestedManyWithoutOwnerInput
+  mcpTokens?: Prisma.McpAccessTokenCreateNestedManyWithoutUserInput
+  companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendCreateNestedManyWithoutUserInput
+  techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutOwnerInput
+}
+
+export type UserUncheckedCreateWithoutRadarDraftsInput = {
+  id?: string
+  orgId: string
+  email: string
+  emailVerified?: Date | string | null
+  name: string
+  image?: string | null
+  title?: string | null
+  role?: $Enums.Role
+  timezone?: string
+  emailSignature?: string | null
+  routineConnectionsEnabled?: boolean
+  connectWarmupStartedAt?: Date | string | null
+  createdAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOwnerInput
+  sentMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutSenderInput
+  actedMessages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutActorInput
+  savedViews?: Prisma.SavedViewUncheckedCreateNestedManyWithoutOwnerInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutOwnerInput
+  auditActed?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  auditTargeted?: Prisma.AuditEventUncheckedCreateNestedManyWithoutTargetInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOwnerInput
+  imports?: Prisma.ImportUncheckedCreateNestedManyWithoutOwnerInput
+  importJobs?: Prisma.ImportJobUncheckedCreateNestedManyWithoutOwnerInput
+  contactLists?: Prisma.ContactListUncheckedCreateNestedManyWithoutOwnerInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedCreateNestedOneWithoutUserInput
+  sequences?: Prisma.SequenceUncheckedCreateNestedManyWithoutOwnerInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedCreateNestedManyWithoutUserInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedCreateNestedOneWithoutUserInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedCreateNestedManyWithoutUserInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedCreateNestedManyWithoutOwnerInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedCreateNestedManyWithoutOwnerInput
+  mcpTokens?: Prisma.McpAccessTokenUncheckedCreateNestedManyWithoutUserInput
+  companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutOwnerInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedCreateNestedManyWithoutUserInput
+  techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+export type UserCreateOrConnectWithoutRadarDraftsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutRadarDraftsInput, Prisma.UserUncheckedCreateWithoutRadarDraftsInput>
+}
+
+export type UserUpsertWithoutRadarDraftsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutRadarDraftsInput, Prisma.UserUncheckedUpdateWithoutRadarDraftsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutRadarDraftsInput, Prisma.UserUncheckedCreateWithoutRadarDraftsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutRadarDraftsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutRadarDraftsInput, Prisma.UserUncheckedUpdateWithoutRadarDraftsInput>
+}
+
+export type UserUpdateWithoutRadarDraftsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  org?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUpdateManyWithoutOwnerNestedInput
+  importJobs?: Prisma.ImportJobUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUpdateManyWithoutOwnerNestedInput
+  mcpTokens?: Prisma.McpAccessTokenUpdateManyWithoutUserNestedInput
+  companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
+  techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutRadarDraftsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  emailSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  routineConnectionsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  connectWarmupStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutOwnerNestedInput
+  sentMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutSenderNestedInput
+  actedMessages?: Prisma.SentMessageUncheckedUpdateManyWithoutActorNestedInput
+  savedViews?: Prisma.SavedViewUncheckedUpdateManyWithoutOwnerNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutOwnerNestedInput
+  auditActed?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  auditTargeted?: Prisma.AuditEventUncheckedUpdateManyWithoutTargetNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOwnerNestedInput
+  imports?: Prisma.ImportUncheckedUpdateManyWithoutOwnerNestedInput
+  importJobs?: Prisma.ImportJobUncheckedUpdateManyWithoutOwnerNestedInput
+  contactLists?: Prisma.ContactListUncheckedUpdateManyWithoutOwnerNestedInput
+  linkedinSession?: Prisma.LinkedinSessionUncheckedUpdateOneWithoutUserNestedInput
+  sequences?: Prisma.SequenceUncheckedUpdateManyWithoutOwnerNestedInput
+  extensionTasks?: Prisma.ExtensionTaskUncheckedUpdateManyWithoutUserNestedInput
+  extensionSession?: Prisma.ExtensionSessionUncheckedUpdateOneWithoutUserNestedInput
+  extensionAlerts?: Prisma.ExtensionAlertUncheckedUpdateManyWithoutUserNestedInput
+  prospectingRuns?: Prisma.ProspectingRunUncheckedUpdateManyWithoutOwnerNestedInput
+  connectionRequests?: Prisma.ConnectionRequestUncheckedUpdateManyWithoutOwnerNestedInput
+  mcpTokens?: Prisma.McpAccessTokenUncheckedUpdateManyWithoutUserNestedInput
+  companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
+  techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserCreateManyOrgInput = {
@@ -5362,6 +5657,7 @@ export type UserUpdateWithoutOrgInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrgInput = {
@@ -5401,6 +5697,7 @@ export type UserUncheckedUpdateWithoutOrgInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutOwnerNestedInput
   enrichmentSpends?: Prisma.UserEnrichmentSpendUncheckedUpdateManyWithoutUserNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutOwnerNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutOrgInput = {
@@ -5446,6 +5743,7 @@ export type UserCountOutputType = {
   companySignalDrafts: number
   enrichmentSpends: number
   techDrafts: number
+  radarDrafts: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5471,6 +5769,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   companySignalDrafts?: boolean | UserCountOutputTypeCountCompanySignalDraftsArgs
   enrichmentSpends?: boolean | UserCountOutputTypeCountEnrichmentSpendsArgs
   techDrafts?: boolean | UserCountOutputTypeCountTechDraftsArgs
+  radarDrafts?: boolean | UserCountOutputTypeCountRadarDraftsArgs
 }
 
 /**
@@ -5637,6 +5936,13 @@ export type UserCountOutputTypeCountTechDraftsArgs<ExtArgs extends runtime.Types
   where?: Prisma.TechOpportunityDraftWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountRadarDraftsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RadarDraftWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -5677,6 +5983,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   companySignalDrafts?: boolean | Prisma.User$companySignalDraftsArgs<ExtArgs>
   enrichmentSpends?: boolean | Prisma.User$enrichmentSpendsArgs<ExtArgs>
   techDrafts?: boolean | Prisma.User$techDraftsArgs<ExtArgs>
+  radarDrafts?: boolean | Prisma.User$radarDraftsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -5757,6 +6064,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   companySignalDrafts?: boolean | Prisma.User$companySignalDraftsArgs<ExtArgs>
   enrichmentSpends?: boolean | Prisma.User$enrichmentSpendsArgs<ExtArgs>
   techDrafts?: boolean | Prisma.User$techDraftsArgs<ExtArgs>
+  radarDrafts?: boolean | Prisma.User$radarDraftsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5794,6 +6102,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     companySignalDrafts: Prisma.$CompanySignalDraftPayload<ExtArgs>[]
     enrichmentSpends: Prisma.$UserEnrichmentSpendPayload<ExtArgs>[]
     techDrafts: Prisma.$TechOpportunityDraftPayload<ExtArgs>[]
+    radarDrafts: Prisma.$RadarDraftPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -6231,6 +6540,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   companySignalDrafts<T extends Prisma.User$companySignalDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$companySignalDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CompanySignalDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   enrichmentSpends<T extends Prisma.User$enrichmentSpendsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$enrichmentSpendsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserEnrichmentSpendPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   techDrafts<T extends Prisma.User$techDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$techDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TechOpportunityDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  radarDrafts<T extends Prisma.User$radarDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$radarDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RadarDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7237,6 +7547,30 @@ export type User$techDraftsArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.TechOpportunityDraftScalarFieldEnum | Prisma.TechOpportunityDraftScalarFieldEnum[]
+}
+
+/**
+ * User.radarDrafts
+ */
+export type User$radarDraftsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RadarDraft
+   */
+  select?: Prisma.RadarDraftSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RadarDraft
+   */
+  omit?: Prisma.RadarDraftOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RadarDraftInclude<ExtArgs> | null
+  where?: Prisma.RadarDraftWhereInput
+  orderBy?: Prisma.RadarDraftOrderByWithRelationInput | Prisma.RadarDraftOrderByWithRelationInput[]
+  cursor?: Prisma.RadarDraftWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RadarDraftScalarFieldEnum | Prisma.RadarDraftScalarFieldEnum[]
 }
 
 /**

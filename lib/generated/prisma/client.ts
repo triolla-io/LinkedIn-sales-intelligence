@@ -270,3 +270,42 @@ export type TechOpportunity = Prisma.TechOpportunityModel
  * One prepared message to one contact. The system prepares; the human sends.
  */
 export type TechOpportunityDraft = Prisma.TechOpportunityDraftModel
+/**
+ * Model RadarAxis
+ * A canonical interest axis for one org. The matching unit: fit is judged once per
+ * (axis, item) and shared by every subscriber.
+ */
+export type RadarAxis = Prisma.RadarAxisModel
+/**
+ * Model PersonProfile
+ * One per eligible contact. The person model the axes hang off.
+ */
+export type PersonProfile = Prisma.PersonProfileModel
+/**
+ * Model PersonAxis
+ * The join, carrying a PER-PERSON weight. Two people can share an axis and care
+ * about it to different degrees — which is the whole difference from v1.
+ */
+export type PersonAxis = Prisma.PersonAxisModel
+/**
+ * Model AxisMatch
+ * The shared per-axis judgement of one item. Judged once, used by every subscriber —
+ * this is what keeps LLM cost flat as the person count grows.
+ */
+export type AxisMatch = Prisma.AxisMatchModel
+/**
+ * Model RadarDraft
+ * The person-level unit. Replaces TechOpportunityDraft, which hung off a
+ * company-level opportunity.
+ */
+export type RadarDraft = Prisma.RadarDraftModel
+/**
+ * Model RadarFeedback
+ * The learning log. Only DISCARDED with a `not_interesting` reason moves a filter.
+ */
+export type RadarFeedback = Prisma.RadarFeedbackModel
+/**
+ * Model RadarDomain
+ * Per-org source reputation. A domain whose items keep getting discarded gets penalised.
+ */
+export type RadarDomain = Prisma.RadarDomainModel

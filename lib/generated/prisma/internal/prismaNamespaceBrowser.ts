@@ -94,7 +94,14 @@ export const ModelName = {
   TrackedCompany: 'TrackedCompany',
   TechItem: 'TechItem',
   TechOpportunity: 'TechOpportunity',
-  TechOpportunityDraft: 'TechOpportunityDraft'
+  TechOpportunityDraft: 'TechOpportunityDraft',
+  RadarAxis: 'RadarAxis',
+  PersonProfile: 'PersonProfile',
+  PersonAxis: 'PersonAxis',
+  AxisMatch: 'AxisMatch',
+  RadarDraft: 'RadarDraft',
+  RadarFeedback: 'RadarFeedback',
+  RadarDomain: 'RadarDomain'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -862,6 +869,108 @@ export const TechOpportunityDraftScalarFieldEnum = {
 } as const
 
 export type TechOpportunityDraftScalarFieldEnum = (typeof TechOpportunityDraftScalarFieldEnum)[keyof typeof TechOpportunityDraftScalarFieldEnum]
+
+
+export const RadarAxisScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  key: 'key',
+  label: 'label',
+  kind: 'kind',
+  searchQueries: 'searchQueries',
+  weight: 'weight',
+  subscriberCount: 'subscriberCount',
+  status: 'status',
+  mergedIntoId: 'mergedIntoId',
+  trackedCompanyId: 'trackedCompanyId',
+  medianShareworthy: 'medianShareworthy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RadarAxisScalarFieldEnum = (typeof RadarAxisScalarFieldEnum)[keyof typeof RadarAxisScalarFieldEnum]
+
+
+export const PersonProfileScalarFieldEnum = {
+  id: 'id',
+  contactId: 'contactId',
+  roleLens: 'roleLens',
+  employerTrackedCompanyId: 'employerTrackedCompanyId',
+  personalNotes: 'personalNotes',
+  refreshedAt: 'refreshedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type PersonProfileScalarFieldEnum = (typeof PersonProfileScalarFieldEnum)[keyof typeof PersonProfileScalarFieldEnum]
+
+
+export const PersonAxisScalarFieldEnum = {
+  id: 'id',
+  personProfileId: 'personProfileId',
+  axisId: 'axisId',
+  weight: 'weight',
+  rationale: 'rationale',
+  source: 'source',
+  createdAt: 'createdAt'
+} as const
+
+export type PersonAxisScalarFieldEnum = (typeof PersonAxisScalarFieldEnum)[keyof typeof PersonAxisScalarFieldEnum]
+
+
+export const AxisMatchScalarFieldEnum = {
+  id: 'id',
+  axisId: 'axisId',
+  itemId: 'itemId',
+  rationale: 'rationale',
+  score: 'score',
+  createdAt: 'createdAt'
+} as const
+
+export type AxisMatchScalarFieldEnum = (typeof AxisMatchScalarFieldEnum)[keyof typeof AxisMatchScalarFieldEnum]
+
+
+export const RadarDraftScalarFieldEnum = {
+  id: 'id',
+  contactId: 'contactId',
+  itemId: 'itemId',
+  axisId: 'axisId',
+  ownerId: 'ownerId',
+  draftMessage: 'draftMessage',
+  whyHim: 'whyHim',
+  confidence: 'confidence',
+  confidenceParts: 'confidenceParts',
+  status: 'status',
+  discardReason: 'discardReason',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RadarDraftScalarFieldEnum = (typeof RadarDraftScalarFieldEnum)[keyof typeof RadarDraftScalarFieldEnum]
+
+
+export const RadarFeedbackScalarFieldEnum = {
+  id: 'id',
+  draftId: 'draftId',
+  event: 'event',
+  reason: 'reason',
+  draftBefore: 'draftBefore',
+  sentAfter: 'sentAfter',
+  createdAt: 'createdAt'
+} as const
+
+export type RadarFeedbackScalarFieldEnum = (typeof RadarFeedbackScalarFieldEnum)[keyof typeof RadarFeedbackScalarFieldEnum]
+
+
+export const RadarDomainScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  domain: 'domain',
+  penalty: 'penalty',
+  discards: 'discards'
+} as const
+
+export type RadarDomainScalarFieldEnum = (typeof RadarDomainScalarFieldEnum)[keyof typeof RadarDomainScalarFieldEnum]
 
 
 export const SortOrder = {

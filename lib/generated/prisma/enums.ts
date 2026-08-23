@@ -145,8 +145,7 @@ export const JobChangeStatus = {
   PENDING_REVIEW: 'PENDING_REVIEW',
   APPROVED: 'APPROVED',
   SENT: 'SENT',
-  DISMISSED: 'DISMISSED',
-  SUPERSEDED_V1: 'SUPERSEDED_V1'
+  DISMISSED: 'DISMISSED'
 } as const
 
 export type JobChangeStatus = (typeof JobChangeStatus)[keyof typeof JobChangeStatus]
@@ -325,7 +324,55 @@ export const TechDraftStatus = {
   PREPARING: 'PREPARING',
   PREPARED: 'PREPARED',
   SENT: 'SENT',
-  DISMISSED: 'DISMISSED'
+  DISMISSED: 'DISMISSED',
+  SUPERSEDED_V1: 'SUPERSEDED_V1'
 } as const
 
 export type TechDraftStatus = (typeof TechDraftStatus)[keyof typeof TechDraftStatus]
+
+
+export const RadarAxisKind = {
+  ROLE_COMPANY: 'ROLE_COMPANY',
+  COMPANY_MONITOR: 'COMPANY_MONITOR'
+} as const
+
+export type RadarAxisKind = (typeof RadarAxisKind)[keyof typeof RadarAxisKind]
+
+
+export const RadarAxisStatus = {
+  ACTIVE: 'ACTIVE',
+  MERGED: 'MERGED',
+  TOO_BROAD: 'TOO_BROAD',
+  RETIRED: 'RETIRED'
+} as const
+
+export type RadarAxisStatus = (typeof RadarAxisStatus)[keyof typeof RadarAxisStatus]
+
+
+export const RadarAxisSource = {
+  ROLE_COMPANY: 'ROLE_COMPANY',
+  COMPANY_MONITOR: 'COMPANY_MONITOR'
+} as const
+
+export type RadarAxisSource = (typeof RadarAxisSource)[keyof typeof RadarAxisSource]
+
+
+export const RadarDraftStatus = {
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  PREPARING: 'PREPARING',
+  PREPARED: 'PREPARED',
+  SENT: 'SENT',
+  DISMISSED: 'DISMISSED',
+  VETOED: 'VETOED'
+} as const
+
+export type RadarDraftStatus = (typeof RadarDraftStatus)[keyof typeof RadarDraftStatus]
+
+
+export const RadarFeedbackEvent = {
+  SENT: 'SENT',
+  EDITED: 'EDITED',
+  DISCARDED: 'DISCARDED'
+} as const
+
+export type RadarFeedbackEvent = (typeof RadarFeedbackEvent)[keyof typeof RadarFeedbackEvent]

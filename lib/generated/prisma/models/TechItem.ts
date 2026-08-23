@@ -275,6 +275,8 @@ export type TechItemWhereInput = {
   dedupeKey?: Prisma.StringFilter<"TechItem"> | string
   createdAt?: Prisma.DateTimeFilter<"TechItem"> | Date | string
   opportunities?: Prisma.TechOpportunityListRelationFilter
+  axisMatches?: Prisma.AxisMatchListRelationFilter
+  radarDrafts?: Prisma.RadarDraftListRelationFilter
 }
 
 export type TechItemOrderByWithRelationInput = {
@@ -292,6 +294,8 @@ export type TechItemOrderByWithRelationInput = {
   dedupeKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   opportunities?: Prisma.TechOpportunityOrderByRelationAggregateInput
+  axisMatches?: Prisma.AxisMatchOrderByRelationAggregateInput
+  radarDrafts?: Prisma.RadarDraftOrderByRelationAggregateInput
 }
 
 export type TechItemWhereUniqueInput = Prisma.AtLeast<{
@@ -312,6 +316,8 @@ export type TechItemWhereUniqueInput = Prisma.AtLeast<{
   kind?: Prisma.StringFilter<"TechItem"> | string
   createdAt?: Prisma.DateTimeFilter<"TechItem"> | Date | string
   opportunities?: Prisma.TechOpportunityListRelationFilter
+  axisMatches?: Prisma.AxisMatchListRelationFilter
+  radarDrafts?: Prisma.RadarDraftListRelationFilter
 }, "id" | "dedupeKey">
 
 export type TechItemOrderByWithAggregationInput = {
@@ -369,6 +375,8 @@ export type TechItemCreateInput = {
   dedupeKey: string
   createdAt?: Date | string
   opportunities?: Prisma.TechOpportunityCreateNestedManyWithoutItemInput
+  axisMatches?: Prisma.AxisMatchCreateNestedManyWithoutItemInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutItemInput
 }
 
 export type TechItemUncheckedCreateInput = {
@@ -386,6 +394,8 @@ export type TechItemUncheckedCreateInput = {
   dedupeKey: string
   createdAt?: Date | string
   opportunities?: Prisma.TechOpportunityUncheckedCreateNestedManyWithoutItemInput
+  axisMatches?: Prisma.AxisMatchUncheckedCreateNestedManyWithoutItemInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutItemInput
 }
 
 export type TechItemUpdateInput = {
@@ -403,6 +413,8 @@ export type TechItemUpdateInput = {
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   opportunities?: Prisma.TechOpportunityUpdateManyWithoutItemNestedInput
+  axisMatches?: Prisma.AxisMatchUpdateManyWithoutItemNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutItemNestedInput
 }
 
 export type TechItemUncheckedUpdateInput = {
@@ -420,6 +432,8 @@ export type TechItemUncheckedUpdateInput = {
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   opportunities?: Prisma.TechOpportunityUncheckedUpdateManyWithoutItemNestedInput
+  axisMatches?: Prisma.AxisMatchUncheckedUpdateManyWithoutItemNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutItemNestedInput
 }
 
 export type TechItemCreateManyInput = {
@@ -550,6 +564,34 @@ export type TechItemUpdateOneRequiredWithoutOpportunitiesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TechItemUpdateToOneWithWhereWithoutOpportunitiesInput, Prisma.TechItemUpdateWithoutOpportunitiesInput>, Prisma.TechItemUncheckedUpdateWithoutOpportunitiesInput>
 }
 
+export type TechItemCreateNestedOneWithoutAxisMatchesInput = {
+  create?: Prisma.XOR<Prisma.TechItemCreateWithoutAxisMatchesInput, Prisma.TechItemUncheckedCreateWithoutAxisMatchesInput>
+  connectOrCreate?: Prisma.TechItemCreateOrConnectWithoutAxisMatchesInput
+  connect?: Prisma.TechItemWhereUniqueInput
+}
+
+export type TechItemUpdateOneRequiredWithoutAxisMatchesNestedInput = {
+  create?: Prisma.XOR<Prisma.TechItemCreateWithoutAxisMatchesInput, Prisma.TechItemUncheckedCreateWithoutAxisMatchesInput>
+  connectOrCreate?: Prisma.TechItemCreateOrConnectWithoutAxisMatchesInput
+  upsert?: Prisma.TechItemUpsertWithoutAxisMatchesInput
+  connect?: Prisma.TechItemWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TechItemUpdateToOneWithWhereWithoutAxisMatchesInput, Prisma.TechItemUpdateWithoutAxisMatchesInput>, Prisma.TechItemUncheckedUpdateWithoutAxisMatchesInput>
+}
+
+export type TechItemCreateNestedOneWithoutRadarDraftsInput = {
+  create?: Prisma.XOR<Prisma.TechItemCreateWithoutRadarDraftsInput, Prisma.TechItemUncheckedCreateWithoutRadarDraftsInput>
+  connectOrCreate?: Prisma.TechItemCreateOrConnectWithoutRadarDraftsInput
+  connect?: Prisma.TechItemWhereUniqueInput
+}
+
+export type TechItemUpdateOneRequiredWithoutRadarDraftsNestedInput = {
+  create?: Prisma.XOR<Prisma.TechItemCreateWithoutRadarDraftsInput, Prisma.TechItemUncheckedCreateWithoutRadarDraftsInput>
+  connectOrCreate?: Prisma.TechItemCreateOrConnectWithoutRadarDraftsInput
+  upsert?: Prisma.TechItemUpsertWithoutRadarDraftsInput
+  connect?: Prisma.TechItemWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TechItemUpdateToOneWithWhereWithoutRadarDraftsInput, Prisma.TechItemUpdateWithoutRadarDraftsInput>, Prisma.TechItemUncheckedUpdateWithoutRadarDraftsInput>
+}
+
 export type TechItemCreateWithoutOpportunitiesInput = {
   id?: string
   vendor?: string | null
@@ -564,6 +606,8 @@ export type TechItemCreateWithoutOpportunitiesInput = {
   kind?: string
   dedupeKey: string
   createdAt?: Date | string
+  axisMatches?: Prisma.AxisMatchCreateNestedManyWithoutItemInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutItemInput
 }
 
 export type TechItemUncheckedCreateWithoutOpportunitiesInput = {
@@ -580,6 +624,8 @@ export type TechItemUncheckedCreateWithoutOpportunitiesInput = {
   kind?: string
   dedupeKey: string
   createdAt?: Date | string
+  axisMatches?: Prisma.AxisMatchUncheckedCreateNestedManyWithoutItemInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutItemInput
 }
 
 export type TechItemCreateOrConnectWithoutOpportunitiesInput = {
@@ -612,6 +658,8 @@ export type TechItemUpdateWithoutOpportunitiesInput = {
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  axisMatches?: Prisma.AxisMatchUpdateManyWithoutItemNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutItemNestedInput
 }
 
 export type TechItemUncheckedUpdateWithoutOpportunitiesInput = {
@@ -628,6 +676,184 @@ export type TechItemUncheckedUpdateWithoutOpportunitiesInput = {
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  axisMatches?: Prisma.AxisMatchUncheckedUpdateManyWithoutItemNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutItemNestedInput
+}
+
+export type TechItemCreateWithoutAxisMatchesInput = {
+  id?: string
+  vendor?: string | null
+  technology: string
+  title: string
+  summary: string
+  categories?: Prisma.TechItemCreatecategoriesInput | string[]
+  sources: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  publishedAt?: Date | string | null
+  thin?: boolean
+  shareworthy?: number
+  kind?: string
+  dedupeKey: string
+  createdAt?: Date | string
+  opportunities?: Prisma.TechOpportunityCreateNestedManyWithoutItemInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutItemInput
+}
+
+export type TechItemUncheckedCreateWithoutAxisMatchesInput = {
+  id?: string
+  vendor?: string | null
+  technology: string
+  title: string
+  summary: string
+  categories?: Prisma.TechItemCreatecategoriesInput | string[]
+  sources: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  publishedAt?: Date | string | null
+  thin?: boolean
+  shareworthy?: number
+  kind?: string
+  dedupeKey: string
+  createdAt?: Date | string
+  opportunities?: Prisma.TechOpportunityUncheckedCreateNestedManyWithoutItemInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutItemInput
+}
+
+export type TechItemCreateOrConnectWithoutAxisMatchesInput = {
+  where: Prisma.TechItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.TechItemCreateWithoutAxisMatchesInput, Prisma.TechItemUncheckedCreateWithoutAxisMatchesInput>
+}
+
+export type TechItemUpsertWithoutAxisMatchesInput = {
+  update: Prisma.XOR<Prisma.TechItemUpdateWithoutAxisMatchesInput, Prisma.TechItemUncheckedUpdateWithoutAxisMatchesInput>
+  create: Prisma.XOR<Prisma.TechItemCreateWithoutAxisMatchesInput, Prisma.TechItemUncheckedCreateWithoutAxisMatchesInput>
+  where?: Prisma.TechItemWhereInput
+}
+
+export type TechItemUpdateToOneWithWhereWithoutAxisMatchesInput = {
+  where?: Prisma.TechItemWhereInput
+  data: Prisma.XOR<Prisma.TechItemUpdateWithoutAxisMatchesInput, Prisma.TechItemUncheckedUpdateWithoutAxisMatchesInput>
+}
+
+export type TechItemUpdateWithoutAxisMatchesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  vendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  technology?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.StringFieldUpdateOperationsInput | string
+  categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  opportunities?: Prisma.TechOpportunityUpdateManyWithoutItemNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutItemNestedInput
+}
+
+export type TechItemUncheckedUpdateWithoutAxisMatchesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  vendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  technology?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.StringFieldUpdateOperationsInput | string
+  categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  opportunities?: Prisma.TechOpportunityUncheckedUpdateManyWithoutItemNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutItemNestedInput
+}
+
+export type TechItemCreateWithoutRadarDraftsInput = {
+  id?: string
+  vendor?: string | null
+  technology: string
+  title: string
+  summary: string
+  categories?: Prisma.TechItemCreatecategoriesInput | string[]
+  sources: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  publishedAt?: Date | string | null
+  thin?: boolean
+  shareworthy?: number
+  kind?: string
+  dedupeKey: string
+  createdAt?: Date | string
+  opportunities?: Prisma.TechOpportunityCreateNestedManyWithoutItemInput
+  axisMatches?: Prisma.AxisMatchCreateNestedManyWithoutItemInput
+}
+
+export type TechItemUncheckedCreateWithoutRadarDraftsInput = {
+  id?: string
+  vendor?: string | null
+  technology: string
+  title: string
+  summary: string
+  categories?: Prisma.TechItemCreatecategoriesInput | string[]
+  sources: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  publishedAt?: Date | string | null
+  thin?: boolean
+  shareworthy?: number
+  kind?: string
+  dedupeKey: string
+  createdAt?: Date | string
+  opportunities?: Prisma.TechOpportunityUncheckedCreateNestedManyWithoutItemInput
+  axisMatches?: Prisma.AxisMatchUncheckedCreateNestedManyWithoutItemInput
+}
+
+export type TechItemCreateOrConnectWithoutRadarDraftsInput = {
+  where: Prisma.TechItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.TechItemCreateWithoutRadarDraftsInput, Prisma.TechItemUncheckedCreateWithoutRadarDraftsInput>
+}
+
+export type TechItemUpsertWithoutRadarDraftsInput = {
+  update: Prisma.XOR<Prisma.TechItemUpdateWithoutRadarDraftsInput, Prisma.TechItemUncheckedUpdateWithoutRadarDraftsInput>
+  create: Prisma.XOR<Prisma.TechItemCreateWithoutRadarDraftsInput, Prisma.TechItemUncheckedCreateWithoutRadarDraftsInput>
+  where?: Prisma.TechItemWhereInput
+}
+
+export type TechItemUpdateToOneWithWhereWithoutRadarDraftsInput = {
+  where?: Prisma.TechItemWhereInput
+  data: Prisma.XOR<Prisma.TechItemUpdateWithoutRadarDraftsInput, Prisma.TechItemUncheckedUpdateWithoutRadarDraftsInput>
+}
+
+export type TechItemUpdateWithoutRadarDraftsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  vendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  technology?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.StringFieldUpdateOperationsInput | string
+  categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  opportunities?: Prisma.TechOpportunityUpdateManyWithoutItemNestedInput
+  axisMatches?: Prisma.AxisMatchUpdateManyWithoutItemNestedInput
+}
+
+export type TechItemUncheckedUpdateWithoutRadarDraftsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  vendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  technology?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.StringFieldUpdateOperationsInput | string
+  categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  shareworthy?: Prisma.FloatFieldUpdateOperationsInput | number
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  dedupeKey?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  opportunities?: Prisma.TechOpportunityUncheckedUpdateManyWithoutItemNestedInput
+  axisMatches?: Prisma.AxisMatchUncheckedUpdateManyWithoutItemNestedInput
 }
 
 
@@ -637,10 +863,14 @@ export type TechItemUncheckedUpdateWithoutOpportunitiesInput = {
 
 export type TechItemCountOutputType = {
   opportunities: number
+  axisMatches: number
+  radarDrafts: number
 }
 
 export type TechItemCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   opportunities?: boolean | TechItemCountOutputTypeCountOpportunitiesArgs
+  axisMatches?: boolean | TechItemCountOutputTypeCountAxisMatchesArgs
+  radarDrafts?: boolean | TechItemCountOutputTypeCountRadarDraftsArgs
 }
 
 /**
@@ -660,6 +890,20 @@ export type TechItemCountOutputTypeCountOpportunitiesArgs<ExtArgs extends runtim
   where?: Prisma.TechOpportunityWhereInput
 }
 
+/**
+ * TechItemCountOutputType without action
+ */
+export type TechItemCountOutputTypeCountAxisMatchesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AxisMatchWhereInput
+}
+
+/**
+ * TechItemCountOutputType without action
+ */
+export type TechItemCountOutputTypeCountRadarDraftsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RadarDraftWhereInput
+}
+
 
 export type TechItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -676,6 +920,8 @@ export type TechItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   dedupeKey?: boolean
   createdAt?: boolean
   opportunities?: boolean | Prisma.TechItem$opportunitiesArgs<ExtArgs>
+  axisMatches?: boolean | Prisma.TechItem$axisMatchesArgs<ExtArgs>
+  radarDrafts?: boolean | Prisma.TechItem$radarDraftsArgs<ExtArgs>
   _count?: boolean | Prisma.TechItemCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["techItem"]>
 
@@ -730,6 +976,8 @@ export type TechItemSelectScalar = {
 export type TechItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "vendor" | "technology" | "title" | "summary" | "categories" | "sources" | "publishedAt" | "thin" | "shareworthy" | "kind" | "dedupeKey" | "createdAt", ExtArgs["result"]["techItem"]>
 export type TechItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   opportunities?: boolean | Prisma.TechItem$opportunitiesArgs<ExtArgs>
+  axisMatches?: boolean | Prisma.TechItem$axisMatchesArgs<ExtArgs>
+  radarDrafts?: boolean | Prisma.TechItem$radarDraftsArgs<ExtArgs>
   _count?: boolean | Prisma.TechItemCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TechItemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -739,6 +987,8 @@ export type $TechItemPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   name: "TechItem"
   objects: {
     opportunities: Prisma.$TechOpportunityPayload<ExtArgs>[]
+    axisMatches: Prisma.$AxisMatchPayload<ExtArgs>[]
+    radarDrafts: Prisma.$RadarDraftPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1163,6 +1413,8 @@ readonly fields: TechItemFieldRefs;
 export interface Prisma__TechItemClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   opportunities<T extends Prisma.TechItem$opportunitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TechItem$opportunitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TechOpportunityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  axisMatches<T extends Prisma.TechItem$axisMatchesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TechItem$axisMatchesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AxisMatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  radarDrafts<T extends Prisma.TechItem$radarDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TechItem$radarDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RadarDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1619,6 +1871,54 @@ export type TechItem$opportunitiesArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.TechOpportunityScalarFieldEnum | Prisma.TechOpportunityScalarFieldEnum[]
+}
+
+/**
+ * TechItem.axisMatches
+ */
+export type TechItem$axisMatchesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AxisMatch
+   */
+  select?: Prisma.AxisMatchSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AxisMatch
+   */
+  omit?: Prisma.AxisMatchOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AxisMatchInclude<ExtArgs> | null
+  where?: Prisma.AxisMatchWhereInput
+  orderBy?: Prisma.AxisMatchOrderByWithRelationInput | Prisma.AxisMatchOrderByWithRelationInput[]
+  cursor?: Prisma.AxisMatchWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AxisMatchScalarFieldEnum | Prisma.AxisMatchScalarFieldEnum[]
+}
+
+/**
+ * TechItem.radarDrafts
+ */
+export type TechItem$radarDraftsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RadarDraft
+   */
+  select?: Prisma.RadarDraftSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RadarDraft
+   */
+  omit?: Prisma.RadarDraftOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RadarDraftInclude<ExtArgs> | null
+  where?: Prisma.RadarDraftWhereInput
+  orderBy?: Prisma.RadarDraftOrderByWithRelationInput | Prisma.RadarDraftOrderByWithRelationInput[]
+  cursor?: Prisma.RadarDraftWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RadarDraftScalarFieldEnum | Prisma.RadarDraftScalarFieldEnum[]
 }
 
 /**
