@@ -181,7 +181,7 @@ describe("(ב) veto: one item, one company, at most one recipient", () => {
         axisRationale: SHARED_COMPANY_RATIONALE,
       })),
     });
-    expect(chosen.length).toBeLessThanOrEqual(1);
+    expect(chosen.filter((d) => d.passed).length).toBeLessThanOrEqual(1);
   }, LLM_TIMEOUT);
 });
 

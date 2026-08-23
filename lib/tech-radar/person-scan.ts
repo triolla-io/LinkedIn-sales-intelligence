@@ -269,13 +269,36 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
       };
     });
 
-    const chosen = await selectRecipientsForItem({
+    const decisions = await selectRecipientsForItem({
       item: { technology: item.technology, title: item.title, summary: item.summary, kind: item.kind },
       candidates: vetoCandidates,
     });
-    vetoed += vetoCandidates.length - chosen.length;
+    vetoed += decisions.filter((d) => !d.passed).length;
 
-    for (const { candidate, verdict } of chosen) {
+    // A rejection is recorded with its reason, as a VETOED draft carrying no message.
+    // Without this the run reports "0 drafts" and the reasons are gone, so nobody can
+    // tell a gate that is working from one that is too strict.
+    for (const { candidate, verdict } of decisions.filter((d) => !d.passed)) {
+      const axis = axisById.get(candidate.axisId ?? "");
+      const link = axis?.people.find((p) => p.personProfile.contactId === candidate.contact.contactId);
+      const contact = link?.personProfile.contact;
+      if (!contact) continue;
+      await prisma.radarDraft.upsert({
+        where: { contactId_itemId: { contactId: contact.id, itemId } },
+        create: {
+          contactId: contact.id,
+          itemId,
+          axisId: candidate.axisId,
+          ownerId: contact.ownerId,
+          whyHim: verdict.whyHim,
+          status: "VETOED",
+          discardReason: "not_person_specific",
+        },
+        update: {},
+      });
+    }
+
+    for (const { candidate, verdict } of decisions.filter((d) => d.passed)) {
       const rank = group.find((c) => c.contactId === candidate.contact.contactId);
       const axis = axisById.get(candidate.axisId ?? "");
       const link = axis?.people.find((p) => p.personProfile.contactId === candidate.contact.contactId);

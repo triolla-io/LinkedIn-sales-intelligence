@@ -1,7 +1,7 @@
 /**
  * Stage 3: the shared TechItem write-up.
  *
- * Written ONCE per technology and reused by every company it fits, because
+ * Written ONCE per item and reused by everyone it fits, because
  * "what did Stripe launch and what does it do" is not a per-customer question.
  * Only the fit rationale (stage 4) is per-company.
  *
@@ -134,22 +134,26 @@ export function makeItemDedupeKey(vendor: string | null, technology: string): st
   return v ? `${v}::${t}` : `::${t}`;
 }
 
-const SYSTEM = `You write a short, factual, vendor-neutral description of ONE newly launched technology, for an Israeli technical sales audience who read it in Hebrew.
+const SYSTEM = `You write a short, factual, neutral description of ONE news item, for an Israeli professional audience who read it in Hebrew.
 
-Describe only the technology itself:
-- what it is and who launched it
-- what it actually does
-- what adopting or integrating it involves (prerequisites, where it sits, what it replaces or augments)
+The item may be a research finding, a trend, a report, a piece of significant news, a move by a company, or a product launch. Describe what it actually SAYS.
 
-Do NOT speculate about whether it suits any particular customer, industry, or company — a later step decides that. No marketing language, no hype, no adjectives like "revolutionary" or "game-changing".
+- If it reports a finding or a number, name the finding and the number.
+- If it describes a trend, say what is changing and what the evidence is.
+- If it concerns a company, say what that company did.
+- If it is a product, say what it is and what it does.
+
+Do NOT speculate about whether it suits any particular person, company or industry — a later step decides that. No marketing language, no hype, no adjectives like "revolutionary" or "game-changing". Do not recommend anything.
 
 Return strict JSON only — no prose, no fences:
-{"vendor": string or null, "technology": string, "title": string, "summary": string, "categories": ["..."]}
+{"vendor": string or null, "subject": string, "title": string, "summary": string, "categories": ["..."]}
 
-- vendor and technology: the real names, in their ORIGINAL script. Do not translate or transliterate a product or company name — "Stripe Radar" stays "Stripe Radar", never "סטרייפ ראדאר". Keep them verbatim.
+- subject: what the item is ABOUT, in a few words. For a product this is its name ("Stripe Radar"). For research or a trend it is the topic ("מרווחי זיקוק בארה\"ב", "אימוץ מסדי וקטורים"). REQUIRED — never null.
+- vendor: the organisation the item concerns, or null. Many research items have none, and null is the correct answer then — do not invent one.
+- Names stay in their ORIGINAL script. Do not translate or transliterate a product or company name — "Stripe Radar" stays "Stripe Radar", never "סטרייפ ראדאר".
 - title: one short factual headline IN HEBREW, max ~90 characters. Product and company names stay verbatim inside it.
 - summary: 2-4 sentences IN HEBREW, everyday professional Hebrew. Technical terms with no settled Hebrew form stay in English (API, machine learning, CDP).
-- categories: 2-5 short lowercase capability tags, IN ENGLISH — they are matched against English profile data downstream, so they must not be translated.`;
+- categories: 2-5 short lowercase capability or topic tags, IN ENGLISH — they are matched against English data downstream, so they must not be translated.`;
 
 export type ItemSynthesisInput = {
   triage: TriageVerdict;
@@ -161,7 +165,8 @@ export type ItemSynthesisInput = {
 function userPrompt(input: ItemSynthesisInput): string {
   const head = [
     input.triage.vendor ? `Likely vendor: ${input.triage.vendor}` : null,
-    input.triage.technology ? `Likely technology: ${input.triage.technology}` : null,
+    input.triage.technology ? `Likely subject: ${input.triage.technology}` : null,
+    input.triage.kind ? `Kind: ${input.triage.kind}` : null,
     `Tags: ${input.triage.categories.join(", ") || "n/a"}`,
     ``,
     `Coverage:`,
@@ -192,7 +197,11 @@ export function parseItemResponse(
   const parsed = parseJsonLoose<Record<string, unknown>>(text);
   if (!parsed || typeof parsed !== "object") return null;
 
-  const technology = String(parsed.technology ?? "").trim();
+  // `subject` replaced `technology`. The old field demanded the name of a launched
+  // product, and the inverted triage now brings research and trends, which have no
+  // product — eight of eleven write-ups failed to parse on 2026-08-23 for exactly that
+  // reason. `technology` is still read as a fallback so an older response still parses.
+  const technology = String(parsed.subject ?? parsed.technology ?? "").trim();
   const summary = String(parsed.summary ?? "").trim();
   if (!technology || !summary) return null;
 

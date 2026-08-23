@@ -128,9 +128,26 @@ describe("selectRecipientsForItem", () => {
 
   it("sends to at most one person per company", async () => {
     chat.mockResolvedValue(ok('{"specific":true,"whyHim":"ok","adjustment":0}'));
-    const chosen = await selectRecipientsForItem({ item, candidates: founders });
-    expect(chosen).toHaveLength(1);
-    expect(chosen[0].candidate.contact.contactId).toBe("ami");
+    const decisions = await selectRecipientsForItem({ item, candidates: founders });
+    const passed = decisions.filter((d) => d.passed);
+    expect(passed).toHaveLength(1);
+    expect(passed[0].candidate.contact.contactId).toBe("ami");
+  });
+
+  /**
+   * Rejections come back too, with their reason. Returning only survivors threw the
+   * reasons away, and a veto whose rejections are invisible cannot be judged too strict
+   * or too lenient — the one thing the pilot has to measure.
+   */
+  it("returns the rejections as well, each with its reason", async () => {
+    chat.mockResolvedValue(ok('{"specific":false,"whyHim":"נימוק ברמת החברה","adjustment":0}'));
+    const decisions = await selectRecipientsForItem({
+      item,
+      candidates: [candidate("ami"), candidate("avigal", "tc-delek")],
+    });
+    expect(decisions).toHaveLength(2);
+    expect(decisions.every((d) => d.passed === false)).toBe(true);
+    expect(decisions[0].verdict.whyHim).toBe("נימוק ברמת החברה");
   });
 
   /**
@@ -139,9 +156,10 @@ describe("selectRecipientsForItem", () => {
    */
   it("does not promote a colleague after vetoing the first candidate", async () => {
     chat.mockResolvedValue(ok('{"specific":false,"whyHim":"נימוק ברמת החברה","adjustment":0}'));
-    const chosen = await selectRecipientsForItem({ item, candidates: founders });
-    expect(chosen).toHaveLength(0);
-    // One call, not three: the other two were never even judged.
+    const decisions = await selectRecipientsForItem({ item, candidates: founders });
+    expect(decisions.filter((d) => d.passed)).toHaveLength(0);
+    // One decision for the company, and one call — the other two were never judged.
+    expect(decisions).toHaveLength(1);
     expect(chat).toHaveBeenCalledTimes(1);
   });
 
@@ -149,12 +167,13 @@ describe("selectRecipientsForItem", () => {
     chat
       .mockResolvedValueOnce(ok('{"specific":false,"whyHim":"לא ספציפי"}'))
       .mockResolvedValueOnce(ok('{"specific":true,"whyHim":"כן ספציפי","adjustment":0}'));
-    const chosen = await selectRecipientsForItem({
+    const decisions = await selectRecipientsForItem({
       item,
       candidates: [candidate("ami"), candidate("avigal", "tc-delek")],
     });
-    expect(chosen).toHaveLength(1);
-    expect(chosen[0].candidate.contact.contactId).toBe("avigal");
+    const passed = decisions.filter((d) => d.passed);
+    expect(passed).toHaveLength(1);
+    expect(passed[0].candidate.contact.contactId).toBe("avigal");
   });
 
   it("judges nobody when there are no candidates", async () => {

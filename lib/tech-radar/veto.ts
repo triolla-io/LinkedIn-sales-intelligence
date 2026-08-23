@@ -153,6 +153,7 @@ export type RecipientCandidate = {
 };
 
 export type SelectedRecipient = { candidate: RecipientCandidate; verdict: VetoVerdict };
+export type VetoDecision = { candidate: RecipientCandidate; verdict: VetoVerdict; passed: boolean };
 
 /**
  * Pick who, if anyone, receives one item — at most one person per company.
@@ -166,8 +167,8 @@ export type SelectedRecipient = { candidate: RecipientCandidate; verdict: VetoVe
 export async function selectRecipientsForItem(input: {
   item: VetoItem;
   candidates: RecipientCandidate[];
-}): Promise<SelectedRecipient[]> {
-  const chosen: SelectedRecipient[] = [];
+}): Promise<VetoDecision[]> {
+  const decisions: VetoDecision[] = [];
   const companiesDecided = new Set<string>();
 
   for (const candidate of input.candidates) {
@@ -183,8 +184,11 @@ export async function selectRecipientsForItem(input: {
       axisRationale: candidate.axisRationale,
       axisLabel: candidate.axisLabel,
     });
-    if (verdict.specific) chosen.push({ candidate, verdict });
+    // EVERY decision is returned, pass or fail. Returning only survivors threw away the
+    // reasons, and a veto whose rejections are invisible cannot be judged too strict or
+    // too lenient — which is the one thing the pilot needs to measure.
+    decisions.push({ candidate, verdict, passed: verdict.specific });
   }
 
-  return chosen;
+  return decisions;
 }
