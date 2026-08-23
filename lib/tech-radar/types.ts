@@ -173,4 +173,9 @@ export const OR_FEATURE = {
   recipients: "tech-radar-recipients",
   suggestContact: "tech-radar-suggest-contact",
   draft: "tech-radar-draft",
+  /** Person-level stages. Separate keys so the veto's cost is visible on its own —
+   *  it runs on Opus rather than Haiku, so it is the expensive line. */
+  personProfile: "tech-radar-person-profile",
+  axisFit: "tech-radar-axis-fit",
+  veto: "tech-radar-veto",
 } as const;

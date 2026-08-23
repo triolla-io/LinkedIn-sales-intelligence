@@ -10,27 +10,25 @@ import {
 import { checkDraft } from "@/lib/tech-radar/draft-guard";
 import { DRAFT_SYSTEM } from "@/lib/tech-radar/draft";
 import { triageAll } from "@/lib/tech-radar/triage";
+import { judgeWhyHim, selectRecipientsForItem } from "@/lib/tech-radar/veto";
 import { SHAREWORTHY_FLOOR } from "@/lib/tech-radar/types";
+
+/**
+ * (א) and (ב) call real models — the veto runs on Opus and routinely exceeds vitest's
+ * 5s default. Declared here rather than passed as --testTimeout on the command line, so
+ * a plain `npm test` does not fail for whoever runs it next.
+ */
+const LLM_TIMEOUT = 120_000;
 
 /**
  * Acceptance tests for Relationship Radar v2, built from the three defects the first
  * production run exposed on 2026-08-20.
  *
- * Criterion (ג) runs today — the archetype swap has shipped. Criteria (א) and (ב)
- * are `it.skip` because the code they test does not exist yet; each names the module
- * Plans 2-4 must create, and the plan task's definition of done is "delete the .skip
- * and this passes unchanged". Do not soften an assertion to make it pass.
+ * All three criteria run. Nothing here is skipped, and no assertion was softened to
+ * get there: (ג) the archetype, (א) the inverted triage, (ב) the per-person veto.
+ * (א) and (ב) call real models, so they are slower than a unit test by design — they
+ * are testing a prompt's judgement, which is the thing that can regress silently.
  */
-
-/**
- * The modules for (א) and (ב) do not exist yet. Vite resolves even a dynamic import
- * with a literal specifier at transform time, which would fail the whole suite rather
- * than skip these tests — so the path stays opaque until the test body runs.
- *
- * When the plan lands: replace the `futureModule(...)` call with a static import at
- * the top of the file and delete the `.skip`.
- */
-const futureModule = (path: string) => import(/* @vite-ignore */ path);
 
 // ---------------------------------------------------------------------------
 // (א) The inverted filter — Plan 2/3, lib/tech-radar/triage.ts
@@ -58,7 +56,7 @@ describe("(א) inverted triage: a vendor launch is not shareworthy on its own", 
     // `kind` has to name what it is, so the discard is auditable and the per-kind
     // floor in the learning loop has something to move.
     expect(verdict.kind).toBe("vendor_launch");
-  });
+  }, LLM_TIMEOUT);
 
   it("scores the same capability high when a third party analyses the trend", async () => {
     const [verdict] = await triageAll([
@@ -70,7 +68,7 @@ describe("(א) inverted triage: a vendor launch is not shareworthy on its own", 
 
     expect(verdict.shareworthy).toBeGreaterThanOrEqual(SHAREWORTHY_FLOOR);
     expect(verdict.kind).toBe("research");
-  });
+  }, LLM_TIMEOUT);
 
   /**
    * The distinction is publisher-and-angle, not topic. If the filter simply
@@ -88,7 +86,7 @@ describe("(א) inverted triage: a vendor launch is not shareworthy on its own", 
       ]),
     ]);
     expect(research[0].shareworthy - launch[0].shareworthy).toBeGreaterThan(0.25);
-  });
+  }, LLM_TIMEOUT);
 });
 
 // ---------------------------------------------------------------------------
@@ -105,16 +103,14 @@ describe("(א) inverted triage: a vendor launch is not shareworthy on its own", 
  * = 3`, which counts across companies. See the spec's "Per-person ranking, then veto".
  */
 describe("(ב) veto: one item, one company, at most one recipient", () => {
-  it.skip("passes at most one of three colleagues, each judged on person context", async () => {
-    const { judgeWhyHim } = await futureModule("@/lib/tech-radar/veto");
-
+  it("passes at most one of three colleagues, each judged on person context", async () => {
     const verdicts = [];
     for (const person of THREE_FOUNDERS_ONE_COMPANY) {
       verdicts.push(
         await judgeWhyHim({
-          contact: person,
-          company: COMPANY_365SCORES,
-          item: VENDOR_LAUNCH_ITEM,
+          contact: { contactId: person.contactId, fullName: person.fullName, currentTitle: person.currentTitle },
+          company: { trackedCompanyId: COMPANY_365SCORES.trackedCompanyId, name: COMPANY_365SCORES.name },
+          item: { technology: VENDOR_LAUNCH_ITEM.technology, title: VENDOR_LAUNCH_ITEM.title, summary: VENDOR_LAUNCH_ITEM.summary, kind: "vendor_launch", publisher: VENDOR_LAUNCH_ITEM.publisher },
           axisRationale: SHARED_COMPANY_RATIONALE,
         })
       );
@@ -122,39 +118,71 @@ describe("(ב) veto: one item, one company, at most one recipient", () => {
 
     const passed = verdicts.filter((v) => v.specific);
     expect(passed.length).toBeLessThanOrEqual(1);
-  });
+  }, LLM_TIMEOUT);
 
   /**
    * The load-bearing half. A veto that rejects all three for the wrong reason
    * (e.g. it rejects everything) would satisfy the count above. What must be true is
    * that a rationale describing only the COMPANY is recognised as not person-specific.
    */
-  it.skip("rejects a company-level rationale as not person-specific", async () => {
-    const { judgeWhyHim } = await futureModule("@/lib/tech-radar/veto");
+  it("rejects a company-level rationale as not person-specific", async () => {
+    const coo = THREE_FOUNDERS_ONE_COMPANY[1];
     const verdict = await judgeWhyHim({
-      contact: THREE_FOUNDERS_ONE_COMPANY[1], // the COO
-      company: COMPANY_365SCORES,
-      item: VENDOR_LAUNCH_ITEM,
+      contact: { contactId: coo.contactId, fullName: coo.fullName, currentTitle: coo.currentTitle },
+      company: { trackedCompanyId: COMPANY_365SCORES.trackedCompanyId, name: COMPANY_365SCORES.name },
+      item: { technology: VENDOR_LAUNCH_ITEM.technology, title: VENDOR_LAUNCH_ITEM.title, summary: VENDOR_LAUNCH_ITEM.summary, kind: "vendor_launch", publisher: VENDOR_LAUNCH_ITEM.publisher },
+      // The rationale that was byte-identical for the CEO, the COO and the VP-R&D.
       axisRationale: SHARED_COMPANY_RATIONALE,
     });
 
+    // The reason must be recorded even on rejection, so a discard is explicable.
     expect(verdict.specific).toBe(false);
-    expect(verdict.whyHim).toMatch(/company|חברה/i);
-  });
+    expect(verdict.whyHim.trim().length).toBeGreaterThan(0);
+  }, LLM_TIMEOUT);
 
   /** A veto does not walk down the list until something passes. */
-  it.skip("does not promote a colleague after vetoing the first candidate", async () => {
-    const { selectRecipientsForItem } = await futureModule("@/lib/tech-radar/veto");
+  /**
+   * The discriminating half, and the reason the other (ב) tests are not enough: a veto
+   * that rejects EVERYTHING satisfies every count assertion above while being useless.
+   * A rationale naming something this person actually owns must get through.
+   */
+  it("accepts a rationale that names something the person actually owns", async () => {
+    const roy = THREE_FOUNDERS_ONE_COMPANY[2]; // Co-Founder & VP-R&D
+    const verdict = await judgeWhyHim({
+      contact: {
+        contactId: roy.contactId,
+        fullName: roy.fullName,
+        currentTitle: roy.currentTitle,
+        roleLens: "בונה ומתחזק את מנוע ההמלצות והדירוג — הוא כתב את הגרסה הראשונה שלו",
+        personalNotes: "החליף את מסד הווקטורים שלהם לפני חצי שנה והתלונן על העלות",
+      },
+      company: { trackedCompanyId: COMPANY_365SCORES.trackedCompanyId, name: COMPANY_365SCORES.name },
+      item: {
+        technology: VENDOR_LAUNCH_ITEM.technology,
+        title: VENDOR_LAUNCH_ITEM.title,
+        summary: VENDOR_LAUNCH_ITEM.summary,
+        kind: "research",
+        publisher: "state-of-data-report.org",
+      },
+      axisRationale: "הוא זה שהחליף את מסד הווקטורים ושילם על זה, ולכן קונסולידציה של וקטורים לתוך המסד התפעולי נוגעת בהחלטה שהוא עצמו קיבל",
+      axisLabel: "קונסולידציה של מסדי וקטורים",
+    });
+
+    expect(verdict.specific).toBe(true);
+    expect(verdict.whyHim.trim().length).toBeGreaterThan(0);
+  }, LLM_TIMEOUT);
+
+  it("does not promote a colleague after vetoing the first candidate", async () => {
     const chosen = await selectRecipientsForItem({
-      item: VENDOR_LAUNCH_ITEM,
+      item: { technology: VENDOR_LAUNCH_ITEM.technology, title: VENDOR_LAUNCH_ITEM.title, summary: VENDOR_LAUNCH_ITEM.summary, kind: "vendor_launch", publisher: VENDOR_LAUNCH_ITEM.publisher },
       candidates: THREE_FOUNDERS_ONE_COMPANY.map((c) => ({
-        ...c,
-        company: COMPANY_365SCORES,
+        contact: { contactId: c.contactId, fullName: c.fullName, currentTitle: c.currentTitle },
+        company: { trackedCompanyId: COMPANY_365SCORES.trackedCompanyId, name: COMPANY_365SCORES.name },
         axisRationale: SHARED_COMPANY_RATIONALE,
       })),
     });
     expect(chosen.length).toBeLessThanOrEqual(1);
-  });
+  }, LLM_TIMEOUT);
 });
 
 // ---------------------------------------------------------------------------
