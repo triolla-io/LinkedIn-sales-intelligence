@@ -189,7 +189,10 @@ export async function triageChunk(items: PoolItem[]): Promise<TriageVerdict[]> {
       max_tokens: triageMaxTokens(items.length),
       response_format: { type: "json_object" },
     },
-    { timeoutMs: 30_000 }
+    // 30s aborted EVERY chunk once `stature` was added: a 25-item chunk now asks for
+    // ~6,000 output tokens (300 + 25x230) and generating that does not finish in 30s.
+    // The whole chunk is lost on a timeout, so the ceiling has to fit the work.
+    { timeoutMs: 120_000 }
   );
   if (!res.ok) throw new Error(`tech-radar triage failed: HTTP ${res.status}`);
   const text: string = res.data.choices?.[0]?.message?.content ?? "";
