@@ -336,3 +336,26 @@ describe("firstSourceUrl canonicalization", () => {
     expect(firstSourceUrl([{ url: "https://real.com/a?utm_source=nl&id=3" }])).toBe("https://real.com/a?id=3");
   });
 });
+
+/**
+ * The refreshed Uri draft (2026-08-24) came back "ראיתי שMLB חתמה" — a Hebrew letter
+ * glued to Latin, a rule draft-guard has known since the first production run but
+ * nothing at runtime enforced. The separator is deterministic, so it is repaired, not
+ * rejected; the rest of draft-guard's rules become retryable rejections.
+ */
+describe("draft-guard rules run at drafting time", () => {
+  it("repairs Hebrew glued to Latin with a hyphen", () => {
+    const i = input({ hebrewFirstName: "אורי", sourceUrl: null, itemText: "MLB" });
+    const r = enforceDraftRules("היי אורי, ראיתי שMLB חתמה הסכם.", i);
+    expect(r.ok && r.message).toBe("היי אורי, ראיתי ש-MLB חתמה הסכם.");
+  });
+
+  it("rejects an ask, retryably, naming the violation", () => {
+    const r = enforceDraftRules("היי דנה, ראיתי משהו. מה דעתך?", input({ sourceUrl: null }));
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.reason).toContain("ask");
+      expect(r.retryable).toBe(true);
+    }
+  });
+});
