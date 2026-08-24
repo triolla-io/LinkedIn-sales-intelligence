@@ -113,6 +113,22 @@ describe("judgeWhyHim", () => {
     expect(chat.mock.calls[0][0]).toBe("tech-radar-veto");
   });
 
+  /**
+   * 2026-08-24: the SAME pair (Ori Bar-Shavit × the MLB/Polymarket item) was accepted at
+   * 19:0x and rejected at 20:4x — identical person, identical item, identical rationale,
+   * because the veto judges one person against one item in isolation and nothing about
+   * the input had changed. At temperature 0.2 the gate was sampling, not deciding.
+   *
+   * A gate nobody can reproduce cannot be calibrated: "is the veto too strict?" — the
+   * pilot's open question — has no answer if asking twice gives two answers. This does
+   * not make the gate more lenient; it makes it answer the same question the same way.
+   */
+  it("decides rather than samples — no temperature on the judgement", async () => {
+    chat.mockResolvedValue(ok('{"specific":true,"whyHim":"ok"}'));
+    await judgeWhyHim({ ...candidate("c1"), item });
+    expect((chat.mock.calls[0][1] as { temperature: number }).temperature).toBe(0);
+  });
+
   /** An unreachable model must stop this candidate, not the run — and never pass it. */
   it("rejects rather than throwing when the call fails", async () => {
     chat.mockResolvedValue({ ok: false, status: 502, data: {} });

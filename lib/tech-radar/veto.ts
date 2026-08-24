@@ -139,7 +139,14 @@ export async function judgeWhyHim(input: VetoInput): Promise<VetoVerdict> {
         { role: "system", content: VETO_SYSTEM },
         { role: "user", content: userPrompt(input) },
       ],
-      temperature: 0.2,
+      // Zero, because this is a gate and not a writer. On 2026-08-24 the SAME pair (Ori
+      // Bar-Shavit × the MLB/Polymarket item) was accepted in one run and rejected in the
+      // next, with nothing about the input changed — the veto judges one person against
+      // one item in isolation, so there was nothing to explain the flip except sampling.
+      // A draft the reviewer had already approved simply vanished on the next run, and
+      // "is the veto too strict?" cannot be answered by a gate that answers twice.
+      // This does not loosen the bar; it stops the bar from moving.
+      temperature: 0,
       // 400 truncated Opus mid-JSON on every call in the 2026-08-23 run — the logs read
       // tokens=993/400, exactly the ceiling — and a cut-off object parses to nothing, so
       // three real judgements were recorded as rejections. Output tokens are the cheap
