@@ -35,7 +35,9 @@ const MAX_SYNTHESIS_PER_RUN = 12;
 const MAX_AXIS_FIT_PER_RUN = 40;
 /** Pilot: one small batch a day, read by a human before anything is sent. */
 const MAX_DRAFTS_PER_DAY = 10;
-const MIN_DAYS_BETWEEN_MESSAGES = 7;
+/** MUST equal QUIET_COOLDOWN_DAYS in lib/tech-radar/quiet.ts, which stays prisma-free
+ *  and therefore cannot import this. */
+export const MIN_DAYS_BETWEEN_MESSAGES = 7;
 
 export type PersonScanReport = {
   axes: number;
@@ -75,6 +77,28 @@ function countBy(reasons: string[]): Record<string, number> {
 }
 
 export async function personScan(orgId: string): Promise<PersonScanReport> {
+  // ── 0. Open the run row before any work ───────────────────────────────────
+  // A crash leaves finishedAt null, which reads as a stuck run instead of silence —
+  // and EVERY exit path below must close the row, or the UI shows a scan that never
+  // happened.
+  const run = await prisma.radarScanRun.create({ data: { orgId }, select: { id: true } });
+  const finish = async (report: PersonScanReport): Promise<PersonScanReport> => {
+    await prisma.radarScanRun.update({
+      where: { id: run.id },
+      data: {
+        finishedAt: new Date(),
+        scanned: report.poolItems,
+        topical: report.worthSharing,
+        important: report.itemsWritten,
+        connected: report.candidates,
+        drafts: report.drafted,
+        vetoed: report.vetoed,
+        report: JSON.parse(JSON.stringify(report)),
+      },
+    });
+    return report;
+  };
+
   // ── 1. The axes people actually subscribe to ──────────────────────────────
   // An axis with no subscribers contributes no query. That single condition is what
   // makes this run person-outward rather than company-outward.
@@ -95,7 +119,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
       },
     },
   });
-  if (axes.length === 0) return EMPTY;
+  if (axes.length === 0) return finish(EMPTY);
 
   // ── 2. Queries from axes, not from company profiles ───────────────────────
   const pool = buildAxisQueryPool(
@@ -105,7 +129,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
   );
   const news = await fetchPoolNews(pool.map((p) => ({ query: p.query, companyIds: p.axisIds })));
   if (news.items.length === 0) {
-    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, quotaExhausted: news.quotaLikely };
+    return finish({ ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, quotaExhausted: news.quotaLikely });
   }
 
   // ── 3. Shareworthiness triage, once per item, company- and person-agnostic ─
@@ -147,7 +171,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
       ` relevant_but_light=${relevantButLight} weighty=${acceptance.weighty} israeli=${acceptance.israeli}`
   );
   if (worthSharing.length === 0) {
-    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, triageByKind, quotaExhausted: news.quotaLikely };
+    return finish({ ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, triageByKind, quotaExhausted: news.quotaLikely });
   }
 
   // ── 4. Write each surviving item up once ──────────────────────────────────
@@ -188,7 +212,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     }
   }
   if (written.length === 0) {
-    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, poolDropped: capped.dropped, relevantButLight, snippetOnly: pageReadFailures, acceptance, triageByKind, quotaExhausted: news.quotaLikely };
+    return finish({ ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, poolDropped: capped.dropped, relevantButLight, snippetOnly: pageReadFailures, acceptance, triageByKind, quotaExhausted: news.quotaLikely });
   }
 
   // ── 5. Per-AXIS fit, judged once and shared by every subscriber ───────────
@@ -226,13 +250,13 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     }
   }
   if (matchesAboveFloor === 0) {
-    return { ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, itemsWritten: written.length, axisFitsJudged, poolDropped: capped.dropped, relevantButLight, snippetOnly: pageReadFailures, acceptance, triageByKind, quotaExhausted: news.quotaLikely };
+    return finish({ ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, itemsWritten: written.length, axisFitsJudged, poolDropped: capped.dropped, relevantButLight, snippetOnly: pageReadFailures, acceptance, triageByKind, quotaExhausted: news.quotaLikely });
   }
 
   // ── 6-7. Rank, veto, draft — the ONE implementation, shared with radar.judge ──
   const judged = await judgeAndDraft(orgId);
 
-  return {
+  return finish({
     axes: axes.length,
     queriesRun: news.queriesRun,
     poolItems: poolItems.length,
@@ -249,5 +273,5 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     dropReasons: judged.dropReasons,
     triageByKind,
     quotaExhausted: news.quotaLikely,
-  };
+  });
 }

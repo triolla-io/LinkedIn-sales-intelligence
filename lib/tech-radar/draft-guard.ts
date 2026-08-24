@@ -43,3 +43,42 @@ export function checkDraft(message: string): DraftViolation[] {
   const text = typeof message === "string" ? message : "";
   return RULES.filter((r) => r.pattern.test(text)).map((r) => r.code);
 }
+
+export type HardEditViolation =
+  /** A URL that is not the article's own address. Tracking wrappers included. */
+  | "foreign_link"
+  /** A figure the source text never said. The claim has no provenance. */
+  | "unsourced_figure";
+
+export type EditCheck = { hard: HardEditViolation[]; soft: DraftViolation[] };
+
+const URL_RE = /https?:\/\/[^\s<>"')]+/g;
+
+/**
+ * Every digit-group in the prose appears in the source's own words. Digits inside the
+ * canonical URL are the link, not a claim. Shared by the edit gate and by the approvals
+ * screen's "העובדות אומתו" chip, so the two can never disagree.
+ */
+export function figuresSourced(message: string, sourceText: string, canonicalUrl: string | null): boolean {
+  const prose = canonicalUrl ? message.split(canonicalUrl).join(" ") : message;
+  const figures = prose.match(/\d[\d.,]*/g) ?? [];
+  return figures.every((f) => sourceText.includes(f.replace(/[.,]+$/, "")));
+}
+
+/**
+ * The gate for a HUMAN edit — two tiers, unlike checkDraft which is the machine's gate.
+ * HARD violations block the save: the link must be the article's own address and a
+ * figure must exist in the source. Everything checkDraft flags becomes a SOFT warning:
+ * the message is the user's, and an edit blocked over taste teaches them to abandon the
+ * screen, not to write better.
+ */
+export function checkDraftEdit(
+  message: string,
+  opts: { canonicalUrl: string | null; sourceText: string }
+): EditCheck {
+  const hard: HardEditViolation[] = [];
+  const urls = message.match(URL_RE) ?? [];
+  if (urls.some((u) => u !== opts.canonicalUrl)) hard.push("foreign_link");
+  if (!figuresSourced(message, opts.sourceText, opts.canonicalUrl)) hard.push("unsourced_figure");
+  return { hard, soft: checkDraft(message) };
+}

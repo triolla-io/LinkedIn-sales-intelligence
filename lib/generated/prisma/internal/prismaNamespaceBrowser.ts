@@ -101,6 +101,7 @@ export const ModelName = {
   AxisMatch: 'AxisMatch',
   RadarDraft: 'RadarDraft',
   RadarFeedback: 'RadarFeedback',
+  RadarScanRun: 'RadarScanRun',
   RadarDomain: 'RadarDomain'
 } as const
 
@@ -226,6 +227,7 @@ export const ContactScalarFieldEnum = {
   jobSnapshotCompany: 'jobSnapshotCompany',
   lastJobCheckAt: 'lastJobCheckAt',
   radarInclude: 'radarInclude',
+  messageLanguage: 'messageLanguage',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   companyId: 'companyId'
@@ -559,6 +561,7 @@ export const ExtensionTaskScalarFieldEnum = {
   companySignalDraftId: 'companySignalDraftId',
   articleMatchId: 'articleMatchId',
   techDraftId: 'techDraftId',
+  radarDraftId: 'radarDraftId',
   scheduledFor: 'scheduledFor',
   claimedAt: 'claimedAt',
   completedAt: 'completedAt',
@@ -913,6 +916,7 @@ export const PersonAxisScalarFieldEnum = {
   agenda: 'agenda',
   rationale: 'rationale',
   source: 'source',
+  mutedAt: 'mutedAt',
   createdAt: 'createdAt'
 } as const
 
@@ -962,6 +966,24 @@ export const RadarFeedbackScalarFieldEnum = {
 } as const
 
 export type RadarFeedbackScalarFieldEnum = (typeof RadarFeedbackScalarFieldEnum)[keyof typeof RadarFeedbackScalarFieldEnum]
+
+
+export const RadarScanRunScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  scanned: 'scanned',
+  topical: 'topical',
+  important: 'important',
+  connected: 'connected',
+  drafts: 'drafts',
+  vetoed: 'vetoed',
+  report: 'report',
+  axisStats: 'axisStats'
+} as const
+
+export type RadarScanRunScalarFieldEnum = (typeof RadarScanRunScalarFieldEnum)[keyof typeof RadarScanRunScalarFieldEnum]
 
 
 export const RadarDomainScalarFieldEnum = {

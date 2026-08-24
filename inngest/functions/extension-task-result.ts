@@ -256,6 +256,13 @@ async function handlePrepareSuccess(task: TaskRow) {
       where: { id: task.techDraftId, status: "PREPARING" },
       data: { status: "PREPARED" },
     });
+    return;
+  }
+  if (task.radarDraftId) {
+    await prisma.radarDraft.updateMany({
+      where: { id: task.radarDraftId, status: "PREPARING" },
+      data: { status: "PREPARED" },
+    });
   }
 }
 
@@ -289,6 +296,13 @@ async function handlePrepareFailure(task: TaskRow) {
   if (task.techDraftId) {
     await prisma.techOpportunityDraft.updateMany({
       where: { id: task.techDraftId, status: "PREPARING" },
+      data: { status: "PENDING_REVIEW" },
+    });
+    return;
+  }
+  if (task.radarDraftId) {
+    await prisma.radarDraft.updateMany({
+      where: { id: task.radarDraftId, status: "PREPARING" },
       data: { status: "PENDING_REVIEW" },
     });
   }

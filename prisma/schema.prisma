@@ -219,6 +219,8 @@ model Contact {
   /// person company); true = always include, even outside the cohort (this is how
   /// a handful of people at giants get cultivated); false = never include.
   radarInclude Boolean?
+  /// Radar drafts to this person are written in this language. "he" | "en".
+  messageLanguage String @default("he")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -752,6 +754,7 @@ model ExtensionTask {
   companySignalDraftId String?
   articleMatchId       String?
   techDraftId          String?
+  radarDraftId         String?
   scheduledFor         DateTime            @default(now())
   claimedAt            DateTime?
   completedAt          DateTime?
@@ -1327,6 +1330,9 @@ model PersonAxis {
   /// Why this axis is THIS person's. Feeds the veto, and is never the company's reason.
   rationale       String
   source          RadarAxisSource
+  /// "לא מעניין אותו": a muted axis is not scanned for this person, and a rebuild
+  /// respects the mute. Never deleted — the learning trail stays.
+  mutedAt         DateTime?
   createdAt       DateTime        @default(now())
 
   personProfile PersonProfile @relation(fields: [personProfileId], references: [id], onDelete: Cascade)
@@ -1399,6 +1405,9 @@ enum RadarFeedbackEvent {
   SENT
   EDITED
   DISCARDED
+  /// A human re-admitted a candidate the personal gate rejected. The reason field
+  /// carries WHY the gate was wrong — half the value of the event.
+  OVERRIDDEN
 }
 
 /// The learning log. Only DISCARDED with a `not_interesting` reason moves a filter.
@@ -1412,6 +1421,30 @@ model RadarFeedback {
   createdAt   DateTime           @default(now())
 
   @@index([draftId])
+}
+
+/// One row per person-outward scan. The funnel the decisions tab renders, and the
+/// source of the approvals-tab subline. Counters, not per-item audit: the journey of a
+/// persisted item is derived from its own fields, this row only carries the aggregates
+/// that exist nowhere else.
+model RadarScanRun {
+  id         String    @id @default(cuid())
+  orgId      String
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  /// Funnel: scanned → topical → important → connected → drafts.
+  scanned    Int       @default(0)
+  topical    Int       @default(0)
+  important  Int       @default(0)
+  connected  Int       @default(0)
+  drafts     Int       @default(0)
+  vetoed     Int       @default(0)
+  /// The full PersonScanReport, verbatim, so the funnel stays explicable.
+  report     Json?
+  /// Per-axis query stats — filled by the decisions-tab phase.
+  axisStats  Json?
+
+  @@index([orgId, startedAt])
 }
 
 /// Per-org source reputation. A domain whose items keep getting discarded gets penalised.

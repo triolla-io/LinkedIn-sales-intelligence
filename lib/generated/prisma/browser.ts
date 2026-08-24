@@ -281,6 +281,14 @@ export type RadarDraft = Prisma.RadarDraftModel
  */
 export type RadarFeedback = Prisma.RadarFeedbackModel
 /**
+ * Model RadarScanRun
+ * One row per person-outward scan. The funnel the decisions tab renders, and the
+ * source of the approvals-tab subline. Counters, not per-item audit: the journey of a
+ * persisted item is derived from its own fields, this row only carries the aggregates
+ * that exist nowhere else.
+ */
+export type RadarScanRun = Prisma.RadarScanRunModel
+/**
  * Model RadarDomain
  * Per-org source reputation. A domain whose items keep getting discarded gets penalised.
  */
