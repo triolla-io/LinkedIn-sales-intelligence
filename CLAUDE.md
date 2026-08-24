@@ -59,6 +59,7 @@ Use HeroUI (`@heroui/react`) for all React components.
 | `tech-radar.draft` | per new opportunity | `inngest/functions/tech-radar-draft.ts` |
 | `tech-radar.enabled` | "Tech Radar" module toggled ON (kick-on-enable) | `inngest/functions/tech-radar-dispatch.ts` |
 | `radar.build-profiles` | manual — build the person model (profiles + axes) and STOP, so the axis count can be read before any search is paid for | `inngest/functions/radar-build-profiles.ts` |
+| `radar.person.prepare` | a contact is added to the radar from the "אנשים" tab — resolve that person's employer → research it → build their axes. Deliberately dispatches NO scan; they join the next scheduled one | `inngest/functions/radar-person-prepare.ts` |
 | `radar.judge` | manual — rank + veto + draft on AxisMatch rows that already exist. No search, no triage: ~$0.10 vs ~$1 for a full scan, which is what makes tuning the judgement affordable | `inngest/functions/radar-judge.ts` |
 | `radar.person-scan` | manual (pilot) — person-outward run: marked people → their axes → queries from axes → per-axis fit → veto → one draft | `inngest/functions/tech-radar-person-scan.ts` |
 | `tech-radar.run-marked` | person-first run: employers of hand-marked contacts → research → wait → scan. No manual company entry. | `inngest/functions/tech-radar-run-marked.ts` |

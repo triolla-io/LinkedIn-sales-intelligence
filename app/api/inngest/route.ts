@@ -30,6 +30,7 @@ import { techRadarResearch } from "@/inngest/functions/tech-radar-research";
 import { techRadarScan } from "@/inngest/functions/tech-radar-scan";
 import { radarJudge } from "@/inngest/functions/radar-judge";
 import { radarBuildProfiles } from "@/inngest/functions/radar-build-profiles";
+import { radarPersonPrepare } from "@/inngest/functions/radar-person-prepare";
 import { techRadarPersonScan } from "@/inngest/functions/tech-radar-person-scan";
 import { techRadarRunMarked } from "@/inngest/functions/tech-radar-run-marked";
 import { techRadarDraft } from "@/inngest/functions/tech-radar-draft";
@@ -70,6 +71,7 @@ export const { GET, POST, PUT } = serve({
     techRadarRunMarked,
     techRadarPersonScan,
     radarBuildProfiles,
+    radarPersonPrepare,
     radarJudge,
     techRadarDraft,
   ],
