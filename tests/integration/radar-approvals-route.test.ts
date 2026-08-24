@@ -70,11 +70,11 @@ beforeEach(() => {
 });
 
 describe("GET /api/radar/approvals", () => {
-  it("asks only for PENDING_REVIEW drafts of the effective user", async () => {
+  it("asks only for the effective user's open drafts — mid-prepare cards stay visible", async () => {
     await GET(req);
     expect(draftFindMany.mock.calls[0][0].where).toMatchObject({
       ownerId: "owner1",
-      status: "PENDING_REVIEW",
+      status: { in: ["PENDING_REVIEW", "PREPARING", "PREPARED"] },
     });
   });
 

@@ -44,10 +44,13 @@ export const GET = withTenant(async (_req, ctx) => {
 
   const [pending, profiles, scan] = await Promise.all([
     prisma.radarDraft.findMany({
-      where: { ownerId: ctx.effectiveUserId, status: "PENDING_REVIEW" },
+      // PREPARING/PREPARED stay visible: the card has to survive until the user confirms
+      // "שלחתי", or the prepare flow loses its confirmation step on the next poll.
+      where: { ownerId: ctx.effectiveUserId, status: { in: ["PENDING_REVIEW", "PREPARING", "PREPARED"] } },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
+        status: true,
         draftMessage: true,
         whyHim: true,
         createdAt: true,
@@ -107,6 +110,7 @@ export const GET = withTenant(async (_req, ctx) => {
     const factsVerified = /\d/.test(prose) && figuresSourced(message, sourceText, canonicalUrl);
     return {
       id: d.id,
+      status: d.status,
       contact: d.contact,
       message,
       whyHim: d.whyHim,
