@@ -221,6 +221,9 @@ model Contact {
   radarInclude Boolean?
   /// Radar drafts to this person are written in this language. "he" | "en".
   messageLanguage String @default("he")
+  /// When this person was put on the radar. The clock the "בהכנה" stall rule measures:
+  /// without it a stuck preparation is indistinguishable from a slow one.
+  radarAddedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
