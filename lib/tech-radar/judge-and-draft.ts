@@ -200,6 +200,7 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
         // argument is what made three founders receive byte-identical drafts in v1.
         fitRationale: verdict.whyHim,
         sourceUrl: firstSourceUrl(item.sources),
+        itemText: `${item.title}\n${item.summary ?? ""}`,
       });
 
       await prisma.radarDraft.upsert({

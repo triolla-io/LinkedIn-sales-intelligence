@@ -303,7 +303,10 @@ describe("createDraftsForOpportunity", () => {
     await createDraftsForOpportunity("o1");
     const arg = draftTechMessage.mock.calls[0][0];
     expect(arg.fitRationale).toBe("מתחבר לביט ולתשלומים בין-אישיים");
-    expect(JSON.stringify(arg)).not.toContain("generic product blurb");
+    // The summary travels ONLY as itemText — the source a figure may be checked against.
+    // It must never reach fitRationale, which is what the message is actually built from.
+    expect(arg.fitRationale).not.toContain("generic product blurb");
+    expect(arg.itemText).toContain("generic product blurb");
   });
 
   // One register for every company: the distinction was removed from the model entirely.

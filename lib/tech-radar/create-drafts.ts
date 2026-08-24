@@ -236,6 +236,7 @@ export async function createDraftsForOpportunity(
         // The rationale, not the item summary — this is what makes it specific.
         fitRationale: opportunity.fitRationale,
         sourceUrl: firstSourceUrl(opportunity.item.sources),
+        itemText: `${opportunity.item.title}\n${opportunity.item.summary ?? ""}`,
       });
 
       await prisma.techOpportunityDraft.create({

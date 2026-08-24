@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const chat = vi.fn();
 vi.mock("@/lib/openrouter/client", () => ({ openrouterChat: (...a: unknown[]) => chat(...a) }));
 
-const { DRAFT_SYSTEM, parseDraftJson, draftTechMessage } = await import("@/lib/tech-radar/draft");
+const { DRAFT_SYSTEM, parseDraftJson, draftTechMessage, salutationName, unverifiedQuantities, enforceDraftRules } =
+  await import("@/lib/tech-radar/draft");
 
 function input(over: Partial<Parameters<typeof draftTechMessage>[0]> = {}) {
   return {
@@ -15,6 +16,7 @@ function input(over: Partial<Parameters<typeof draftTechMessage>[0]> = {}) {
     vendor: "Acme",
     fitRationale: "מתחבר לביט ולתשלומים בין-אישיים שאתם מפעילים",
     sourceUrl: "https://example.com/a?x=1&y=2",
+    itemText: "Fraud Shield זיהוי הונאות בזמן אמת",
     ...over,
   };
 }
@@ -176,5 +178,71 @@ describe("firstSourceUrl", () => {
     expect(firstSourceUrl(null)).toBeNull();
     expect(firstSourceUrl("https://not-an-array.com")).toBeNull();
     expect(firstSourceUrl([{ url: "javascript:alert(1)" }])).toBeNull();
+  });
+});
+
+
+/**
+ * Two rules the 2026-08-24 draft to Avigal Soreq broke at once: it greeted her as
+ * "אביגיל" (a transliteration, not the recorded name) and asserted "בשלוש המפעלות"
+ * about a company that runs four refineries — a figure no source ever supplied.
+ */
+describe("the recorded name is the name", () => {
+  it("uses the stored Hebrew name verbatim rather than a transliteration", () => {
+    const i = input({ contactFullName: "Avigal Soreq", hebrewFirstName: "אביגל" });
+    const r = enforceDraftRules("היי אביגיל, נתקלתי במשהו.\nhttps://e.com/a", i);
+    expect(r.ok && r.message.startsWith("היי אביגל,")).toBe(true);
+  });
+
+  it("leaves a correct greeting alone", () => {
+    const i = input({ hebrewFirstName: "דנה" });
+    const r = enforceDraftRules("היי דנה, ראיתי משהו.", i);
+    expect(r.ok && r.message).toBe("היי דנה, ראיתי משהו.");
+  });
+
+  it("falls back to the first name on the record when no Hebrew name is stored", () => {
+    expect(salutationName({ contactFullName: "Avigal Soreq", hebrewFirstName: null })).toBe("Avigal");
+  });
+});
+
+describe("a figure about the recipient must come from a source", () => {
+  const item = "EPA קבעה יעדי חובה לדלקים מתחדשים לשנים 2026-2027";
+
+  it("rejects a count that appears in no source", () => {
+    expect(unverifiedQuantities("היי אביגל, חשבתי עליך בגלל הנחיות התפוקה בשלוש המפעלות.", item))
+      .toContain("בשלוש");
+  });
+
+  it("accepts a figure the item itself states", () => {
+    expect(unverifiedQuantities("היי אביגל, נתקלתי במשהו על חובות ה-RIN ל-2026-2027.", item)).toEqual([]);
+  });
+
+  it("does not read digits out of the URL as a claim", () => {
+    expect(unverifiedQuantities("היי דנה, ראיתי משהו.\nhttps://e.com/articles/9999-x", item)).toEqual([]);
+  });
+
+  it("accepts the same anchor once the count is dropped", () => {
+    expect(unverifiedQuantities("היי אביגל, חשבתי עליך בגלל יעדי התפוקה שהצגתם.", item)).toEqual([]);
+  });
+
+  it("blocks the whole draft rather than sending an unverified figure", () => {
+    const r = enforceDraftRules("היי אביגל, בגלל שלוש המפעלות.", input({ hebrewFirstName: "אביגל", itemText: item }));
+    expect(r.ok).toBe(false);
+  });
+});
+
+describe("draftTechMessage repairs an unverified figure once", () => {
+  it("retries with a correction and returns the clean message", async () => {
+    chat
+      .mockResolvedValueOnce(ok('{"draftMessage":"היי אביגל, בגלל שלוש המפעלות."}'))
+      .mockResolvedValueOnce(ok('{"draftMessage":"היי אביגל, בגלל יעדי התפוקה שהצגתם."}'));
+    const i = input({ hebrewFirstName: "אביגל", itemText: "EPA קבעה יעדי חובה" });
+    await expect(draftTechMessage(i)).resolves.toBe("היי אביגל, בגלל יעדי התפוקה שהצגתם.");
+    expect(chat.mock.calls[1][1].messages[1].content).toMatch(/appears in no source/);
+  });
+
+  it("throws rather than returning a message that still carries the figure", async () => {
+    chat.mockResolvedValue(ok('{"draftMessage":"היי אביגל, בגלל שלוש המפעלות."}'));
+    await expect(draftTechMessage(input({ hebrewFirstName: "אביגל", itemText: "EPA" }))).rejects.toThrow(/unverified figure/);
   });
 });

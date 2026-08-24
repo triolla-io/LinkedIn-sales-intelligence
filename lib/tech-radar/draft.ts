@@ -34,6 +34,13 @@ export type TechDraftInput = {
   fitRationale: string;
   /** The article to forward. Null when the item carries no readable source. */
   sourceUrl: string | null;
+  /**
+   * The ITEM's own words — title plus summary. The only text that counts as a source
+   * when checking a figure. `fitRationale` deliberately does NOT count: it is prose we
+   * generated ourselves, and a number that entered there unverified stays unverified
+   * however many stages it passes through.
+   */
+  itemText: string;
 };
 
 export const DRAFT_SYSTEM = `You write VERY short, casual Hebrew messages that forward ONE interesting item to a senior professional the sender already knows — the way a friend sends a link and says "saw this, thought of you".
@@ -59,25 +66,121 @@ Rules:
 - Everyday spoken Hebrew, light and matter-of-fact — like a person forwarding something they read.
 - ZERO emojis, icons, or decorative symbols.
 - Nothing formal or marketing-y: no ברצוני/אשמח לשתף, no hype words, no flattery, no filler.
-- Address the person by their Hebrew first name if provided, otherwise their first name.
+- Address the person by EXACTLY the name given under "Address them as". Copy those characters verbatim. Never re-spell, transliterate, lengthen, shorten or "correct" it — it is the name as it is recorded, and it is not yours to adjust.
+- NEVER state a quantity about the RECIPIENT or their company — how many plants, sites, people, products, markets, quarters, percent — unless that exact figure appears in the ITEM text you were given. If you have no verified figure, write the anchor WITHOUT one: "יעדי התפוקה שהצגתם", not "בשלוש המפעלות". A figure that belongs to the item itself is fine.
 - Reproduce the link EXACTLY as given, once, as the last line. Never invent, shorten or alter a URL. If no link is provided, end after the sentence and include no URL at all.
 
 Return strict JSON only — no prose, no markdown fences:
 {"draftMessage": string}`;
 
 function userPrompt(i: TechDraftInput): string {
-  const hebrew = i.hebrewFirstName ? ` (Hebrew first name: ${i.hebrewFirstName})` : "";
   return [
-    `Recipient: ${i.contactFullName}${hebrew}`,
+    `Address them as (copy verbatim): ${salutationName(i)}`,
+    `Recipient: ${i.contactFullName}`,
     `Recipient title: ${i.contactTitle ?? "unknown"}`,
     `Their company: ${i.companyName}`,
     `The item: ${i.technology}${i.vendor ? ` (by ${i.vendor})` : ""}`,
     // Background for part 2's concrete anchor — never for quoting.
     `Why it touches THEM (background — take only the name of the thing, never the wording): ${i.fitRationale}`,
+    `The item's own text (the ONLY text a figure may be taken from): ${i.itemText}`,
     i.sourceUrl
       ? `Link (reproduce verbatim as the last line): ${i.sourceUrl}`
       : `Link: none available — do not include any URL.`,
   ].join("\n");
+}
+
+/**
+ * The name to greet them by, taken from the record AS IT IS.
+ *
+ * Never re-derived, never transliterated. If the stored Hebrew name is wrong, the fix
+ * belongs in the record — a draft that "corrects" it makes the message and the record
+ * disagree, and the person who reads the draft has no way to see which one drifted.
+ */
+export function salutationName(i: Pick<TechDraftInput, "hebrewFirstName" | "contactFullName">): string {
+  const hebrew = (i.hebrewFirstName ?? "").trim();
+  if (hebrew) return hebrew;
+  return (i.contactFullName ?? "").trim().split(/\s+/)[0] ?? "";
+}
+
+/** Hebrew words that state a quantity. Ordinals included: "ברבעון השלישי" is a figure. */
+const QUANTITY_WORDS = [
+  "אחד", "אחת", "שני", "שתי", "שניים", "שתיים", "שלוש", "שלושה", "ארבע", "ארבעה",
+  "חמש", "חמישה", "שש", "שישה", "שבע", "שבעה", "שמונה", "תשע", "תשעה", "עשר", "עשרה",
+  "עשרים", "שלושים", "ארבעים", "חמישים", "שישים", "שבעים", "שמונים", "תשעים",
+  "מאה", "מאות", "אלף", "אלפים", "מיליון", "מיליארד", "עשרות", "שלישי", "רביעי",
+  "חמישי", "שישי", "שביעי", "שמיני", "תשיעי", "עשירי", "ראשון",
+];
+
+/**
+ * Prefix forms to try, longest first. Deliberately an explicit list and NOT a stripping
+ * loop: a loop over [בלמכשו] eats "שלוש" letter by letter down to nothing, because ש is
+ * both a prefix and a root letter. Hebrew prefixes cannot be removed without a lexicon,
+ * so we ADD prefixes to a known word instead of removing them from an unknown one.
+ */
+const QUANTITY_PREFIXES = ["", "ב", "ל", "מ", "כ", "ש", "ו", "ה", "בה", "לה", "מה", "כה", "שה", "וה"];
+
+/** The quantity word this token is, prefix and all — or null if it states no quantity. */
+export function quantityRoot(word: string): string | null {
+  for (const w of QUANTITY_WORDS) {
+    for (const p of QUANTITY_PREFIXES) if (word === p + w) return w;
+  }
+  return null;
+}
+
+/**
+ * Figures in `message` that appear nowhere in `itemText`.
+ *
+ * The rule this enforces: a quantitative claim about the recipient must be traceable to
+ * a source, or be left out. The 2026-08-24 run wrote "בשלוש המפעלות" to a CEO whose
+ * company runs four refineries — a figure no source ever supplied, inherited from our
+ * own upstream prose and repeated with total confidence. A wrong number in the first
+ * sentence costs more than a missing one: it tells the recipient we did not check.
+ *
+ * Verification is against the ITEM only. Our own generated rationale does not count as
+ * a source, however many stages the number has survived.
+ */
+export function unverifiedQuantities(message: string, itemText: string): string[] {
+  const source = itemText ?? "";
+  const digitsInSource = new Set(source.match(/\d+/g) ?? []);
+
+  // A URL is reproduced verbatim from the source, so its digits are not a claim.
+  const body = (message ?? "").replace(/https?:\/\/\S+/gu, " ");
+
+  const bad = new Set<string>();
+  for (const d of body.match(/\d+/g) ?? []) {
+    if (!digitsInSource.has(d)) bad.add(d);
+  }
+  for (const w of body.match(/[֐-׿]+/gu) ?? []) {
+    const root = quantityRoot(w);
+    if (root && !source.includes(root)) bad.add(w);
+  }
+  return [...bad];
+}
+
+export type DraftCheck = { ok: true; message: string } | { ok: false; reason: string };
+
+/**
+ * Pure. Both rules, applied to a message the model just returned.
+ *
+ * The greeting is REPAIRED rather than rejected — the correct name is known, so there is
+ * nothing to decide. An unverified figure is REJECTED, because the correct figure is
+ * exactly what we do not have.
+ */
+export function enforceDraftRules(message: string, input: TechDraftInput): DraftCheck {
+  const name = salutationName(input);
+  let out = message;
+  if (name) {
+    out = out.replace(
+      /^(\s*(?:היי|הי|שלום|אהלן)\s+)([^\s,.!?\n]+)/u,
+      (_m, greet: string, got: string) => (got === name ? _m : `${greet}${name}`)
+    );
+  }
+
+  const figures = unverifiedQuantities(out, input.itemText);
+  if (figures.length > 0) {
+    return { ok: false, reason: `unverified figure(s): ${figures.join(", ")}` };
+  }
+  return { ok: true, message: out };
 }
 
 export function parseDraftJson(text: string): string | null {
@@ -86,16 +189,19 @@ export function parseDraftJson(text: string): string | null {
   return typeof msg === "string" && msg.trim().length > 0 ? msg.trim() : null;
 }
 
-export async function draftTechMessage(input: TechDraftInput): Promise<string> {
+async function callModel(input: TechDraftInput, correction: string | null): Promise<string> {
   const model =
     process.env.TECH_RADAR_MODEL ?? process.env.COMPANY_SIGNALS_MODEL ?? "anthropic/claude-haiku-4.5";
+  const user = correction
+    ? `${userPrompt(input)}\n\nYour previous attempt stated ${correction}, which appears in no source. Rewrite the anchor with NO figure at all.`
+    : userPrompt(input);
   const res = await openrouterChat(
     OR_FEATURE.draft,
     {
       model,
       messages: [
         { role: "system", content: DRAFT_SYSTEM },
-        { role: "user", content: userPrompt(input) },
+        { role: "user", content: user },
       ],
       temperature: 0.5,
       max_tokens: 400,
@@ -104,8 +210,18 @@ export async function draftTechMessage(input: TechDraftInput): Promise<string> {
     { timeoutMs: 20_000 }
   );
   if (!res.ok) throw new Error(`tech-radar draft failed: HTTP ${res.status}`);
-  const text: string = res.data.choices?.[0]?.message?.content ?? "";
-  const msg = parseDraftJson(text);
+  const msg = parseDraftJson(res.data.choices?.[0]?.message?.content ?? "");
   if (!msg) throw new Error("tech-radar draft returned unparseable output");
   return msg;
+}
+
+export async function draftTechMessage(input: TechDraftInput): Promise<string> {
+  const first = enforceDraftRules(await callModel(input, null), input);
+  if (first.ok) return first.message;
+
+  // One repair attempt naming the offending figure. A cent buys a correct message; a
+  // rejection here would otherwise throw away an item that is genuinely worth sending.
+  const second = enforceDraftRules(await callModel(input, first.reason), input);
+  if (second.ok) return second.message;
+  throw new Error(`tech-radar draft rejected — ${second.reason}`);
 }
