@@ -1,0 +1,127 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+/**
+ * Every personScan run must open a RadarScanRun row before any work and close it with
+ * the funnel counters on EVERY exit path — the decisions tab renders this row, and the
+ * approvals subline reads it. A path that returns without closing the run shows up in
+ * the UI as a scan that never happened.
+ */
+
+const axisFindMany = vi.fn();
+const scanRunCreate = vi.fn();
+const scanRunUpdate = vi.fn();
+const axisMatchFindUnique = vi.fn();
+const axisMatchCreate = vi.fn();
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    radarAxis: { findMany: (...a: unknown[]) => axisFindMany(...a) },
+    radarScanRun: {
+      create: (...a: unknown[]) => scanRunCreate(...a),
+      update: (...a: unknown[]) => scanRunUpdate(...a),
+    },
+    axisMatch: {
+      findUnique: (...a: unknown[]) => axisMatchFindUnique(...a),
+      create: (...a: unknown[]) => axisMatchCreate(...a),
+    },
+  },
+}));
+
+const fetchPoolNews = vi.fn();
+vi.mock("@/lib/tech-radar/fetch-pool-news", () => ({
+  fetchPoolNews: (...a: unknown[]) => fetchPoolNews(...a),
+  SCAN_WINDOW_DAYS: 30,
+}));
+const triageAll = vi.fn();
+vi.mock("@/lib/tech-radar/triage", () => ({ triageAll: (...a: unknown[]) => triageAll(...a) }));
+const synthesizeItem = vi.fn();
+vi.mock("@/lib/tech-radar/item", async () => {
+  const actual = await import("@/lib/tech-radar/item");
+  return { ...actual, synthesizeItem: (...a: unknown[]) => synthesizeItem(...a) };
+});
+const readPage = vi.fn();
+vi.mock("@/lib/research/read-page", () => ({
+  readPage: (...a: unknown[]) => readPage(...a),
+  readPages: async () => [],
+  MAX_PAGE_CHARS: 8000,
+}));
+const judgeAxisFit = vi.fn();
+vi.mock("@/lib/tech-radar/axis-fit", async () => {
+  const actual = await import("@/lib/tech-radar/axis-fit");
+  return { ...actual, judgeAxisFit: (...a: unknown[]) => judgeAxisFit(...a) };
+});
+const judgeAndDraft = vi.fn();
+vi.mock("@/lib/tech-radar/judge-and-draft", () => ({ judgeAndDraft: (...a: unknown[]) => judgeAndDraft(...a) }));
+const upsertTechItem = vi.fn();
+vi.mock("@/lib/tech-radar/persist", () => ({ upsertTechItem: (...a: unknown[]) => upsertTechItem(...a) }));
+
+const { personScan } = await import("@/lib/tech-radar/person-scan");
+
+function subscribedAxis() {
+  return {
+    id: "a1",
+    label: "חבות RIN",
+    searchQueries: ["RIN obligations refiners"],
+    weight: 1,
+    people: [
+      {
+        weight: 1,
+        rationale: "הוא מחזיק בהחלטת התפוקה",
+        personProfile: {
+          contactId: "ct1",
+          roleLens: "CEO",
+          personalNotes: null,
+          employerTrackedCompanyId: null,
+          contact: { id: "ct1", ownerId: "u1", fullName: "Avigal", hebrewFirstName: null, currentTitle: "CEO", currentCompany: "Delek" },
+        },
+      },
+    ],
+  };
+}
+
+beforeEach(() => {
+  for (const m of [
+    axisFindMany, scanRunCreate, scanRunUpdate, axisMatchFindUnique, axisMatchCreate,
+    fetchPoolNews, triageAll, synthesizeItem, readPage, judgeAxisFit, judgeAndDraft, upsertTechItem,
+  ]) m.mockReset();
+  scanRunCreate.mockResolvedValue({ id: "run1" });
+  scanRunUpdate.mockResolvedValue({});
+});
+
+describe("personScan scan-run accounting", () => {
+  it("closes the run even on the earliest exit (no subscribed axes)", async () => {
+    axisFindMany.mockResolvedValue([]);
+    await personScan("org1");
+    expect(scanRunCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ orgId: "org1" }) })
+    );
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { where: unknown; data: Record<string, unknown> };
+    expect(update.where).toEqual({ id: "run1" });
+    expect(update.data.finishedAt).toBeInstanceOf(Date);
+  });
+
+  it("closes an exhausted-quota run with its counters, not silence", async () => {
+    axisFindMany.mockResolvedValue([subscribedAxis()]);
+    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 4, quotaLikely: true });
+    await personScan("org1");
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
+    expect(update.data).toMatchObject({ scanned: 0, drafts: 0 });
+    expect((update.data.report as { quotaExhausted: boolean }).quotaExhausted).toBe(true);
+  });
+
+  it("records the funnel: seen items that triage rejected count as scanned, not topical", async () => {
+    axisFindMany.mockResolvedValue([subscribedAxis()]);
+    fetchPoolNews.mockResolvedValue({
+      items: [{ title: "t", url: "https://news.com/1", snippet: "s", source: "tavily", publishedAt: null, companyIds: ["a1"] }],
+      queriesRun: 1,
+      quotaLikely: false,
+    });
+    triageAll.mockResolvedValue([
+      { url: "https://news.com/1", shareworthy: 0.2, stature: 0.1, kind: "other", staleness: false, categories: [], vendor: null, technology: null },
+    ]);
+    await personScan("org1");
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
+    expect(update.data).toMatchObject({ scanned: 1, topical: 0, important: 0, connected: 0, drafts: 0 });
+    expect(update.data.finishedAt).toBeInstanceOf(Date);
+  });
+});
