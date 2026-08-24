@@ -372,7 +372,8 @@ export type RadarDraftStatus = (typeof RadarDraftStatus)[keyof typeof RadarDraft
 export const RadarFeedbackEvent = {
   SENT: 'SENT',
   EDITED: 'EDITED',
-  DISCARDED: 'DISCARDED'
+  DISCARDED: 'DISCARDED',
+  OVERRIDDEN: 'OVERRIDDEN'
 } as const
 
 export type RadarFeedbackEvent = (typeof RadarFeedbackEvent)[keyof typeof RadarFeedbackEvent]

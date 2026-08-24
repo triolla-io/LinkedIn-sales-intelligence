@@ -65,6 +65,7 @@ export type ContactMinAggregateOutputType = {
   jobSnapshotCompany: string | null
   lastJobCheckAt: Date | null
   radarInclude: boolean | null
+  messageLanguage: string | null
   createdAt: Date | null
   updatedAt: Date | null
   companyId: string | null
@@ -101,6 +102,7 @@ export type ContactMaxAggregateOutputType = {
   jobSnapshotCompany: string | null
   lastJobCheckAt: Date | null
   radarInclude: boolean | null
+  messageLanguage: string | null
   createdAt: Date | null
   updatedAt: Date | null
   companyId: string | null
@@ -139,6 +141,7 @@ export type ContactCountAggregateOutputType = {
   jobSnapshotCompany: number
   lastJobCheckAt: number
   radarInclude: number
+  messageLanguage: number
   createdAt: number
   updatedAt: number
   companyId: number
@@ -185,6 +188,7 @@ export type ContactMinAggregateInputType = {
   jobSnapshotCompany?: true
   lastJobCheckAt?: true
   radarInclude?: true
+  messageLanguage?: true
   createdAt?: true
   updatedAt?: true
   companyId?: true
@@ -221,6 +225,7 @@ export type ContactMaxAggregateInputType = {
   jobSnapshotCompany?: true
   lastJobCheckAt?: true
   radarInclude?: true
+  messageLanguage?: true
   createdAt?: true
   updatedAt?: true
   companyId?: true
@@ -259,6 +264,7 @@ export type ContactCountAggregateInputType = {
   jobSnapshotCompany?: true
   lastJobCheckAt?: true
   radarInclude?: true
+  messageLanguage?: true
   createdAt?: true
   updatedAt?: true
   companyId?: true
@@ -384,6 +390,7 @@ export type ContactGroupByOutputType = {
   jobSnapshotCompany: string | null
   lastJobCheckAt: Date | null
   radarInclude: boolean | null
+  messageLanguage: string
   createdAt: Date
   updatedAt: Date
   companyId: string | null
@@ -445,6 +452,7 @@ export type ContactWhereInput = {
   jobSnapshotCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
   lastJobCheckAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   radarInclude?: Prisma.BoolNullableFilter<"Contact"> | boolean | null
+  messageLanguage?: Prisma.StringFilter<"Contact"> | string
   createdAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   companyId?: Prisma.StringNullableFilter<"Contact"> | string | null
@@ -495,6 +503,7 @@ export type ContactOrderByWithRelationInput = {
   jobSnapshotCompany?: Prisma.SortOrderInput | Prisma.SortOrder
   lastJobCheckAt?: Prisma.SortOrderInput | Prisma.SortOrder
   radarInclude?: Prisma.SortOrderInput | Prisma.SortOrder
+  messageLanguage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   companyId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -549,6 +558,7 @@ export type ContactWhereUniqueInput = Prisma.AtLeast<{
   jobSnapshotCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
   lastJobCheckAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   radarInclude?: Prisma.BoolNullableFilter<"Contact"> | boolean | null
+  messageLanguage?: Prisma.StringFilter<"Contact"> | string
   createdAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   companyId?: Prisma.StringNullableFilter<"Contact"> | string | null
@@ -599,6 +609,7 @@ export type ContactOrderByWithAggregationInput = {
   jobSnapshotCompany?: Prisma.SortOrderInput | Prisma.SortOrder
   lastJobCheckAt?: Prisma.SortOrderInput | Prisma.SortOrder
   radarInclude?: Prisma.SortOrderInput | Prisma.SortOrder
+  messageLanguage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   companyId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -645,6 +656,7 @@ export type ContactScalarWhereWithAggregatesInput = {
   jobSnapshotCompany?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
   lastJobCheckAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Contact"> | Date | string | null
   radarInclude?: Prisma.BoolNullableWithAggregatesFilter<"Contact"> | boolean | null
+  messageLanguage?: Prisma.StringWithAggregatesFilter<"Contact"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Contact"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Contact"> | Date | string
   companyId?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
@@ -682,6 +694,7 @@ export type ContactCreateInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
@@ -731,6 +744,7 @@ export type ContactUncheckedCreateInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -778,6 +792,7 @@ export type ContactUpdateInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
@@ -827,6 +842,7 @@ export type ContactUncheckedUpdateInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -875,6 +891,7 @@ export type ContactCreateManyInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -912,6 +929,7 @@ export type ContactUpdateManyMutationInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -949,6 +967,7 @@ export type ContactUncheckedUpdateManyInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1010,6 +1029,7 @@ export type ContactCountOrderByAggregateInput = {
   jobSnapshotCompany?: Prisma.SortOrder
   lastJobCheckAt?: Prisma.SortOrder
   radarInclude?: Prisma.SortOrder
+  messageLanguage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
@@ -1050,6 +1070,7 @@ export type ContactMaxOrderByAggregateInput = {
   jobSnapshotCompany?: Prisma.SortOrder
   lastJobCheckAt?: Prisma.SortOrder
   radarInclude?: Prisma.SortOrder
+  messageLanguage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
@@ -1086,6 +1107,7 @@ export type ContactMinOrderByAggregateInput = {
   jobSnapshotCompany?: Prisma.SortOrder
   lastJobCheckAt?: Prisma.SortOrder
   radarInclude?: Prisma.SortOrder
+  messageLanguage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
@@ -1377,6 +1399,7 @@ export type ContactCreateWithoutOwnerInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
@@ -1424,6 +1447,7 @@ export type ContactUncheckedCreateWithoutOwnerInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -1501,6 +1525,7 @@ export type ContactScalarWhereInput = {
   jobSnapshotCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
   lastJobCheckAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   radarInclude?: Prisma.BoolNullableFilter<"Contact"> | boolean | null
+  messageLanguage?: Prisma.StringFilter<"Contact"> | string
   createdAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   companyId?: Prisma.StringNullableFilter<"Contact"> | string | null
@@ -1538,6 +1563,7 @@ export type ContactCreateWithoutMessagesInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
@@ -1586,6 +1612,7 @@ export type ContactUncheckedCreateWithoutMessagesInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -1648,6 +1675,7 @@ export type ContactUpdateWithoutMessagesInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
@@ -1696,6 +1724,7 @@ export type ContactUncheckedUpdateWithoutMessagesInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1742,6 +1771,7 @@ export type ContactCreateWithoutCompanyInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
@@ -1790,6 +1820,7 @@ export type ContactUncheckedCreateWithoutCompanyInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   jobChanges?: Prisma.ContactJobChangeUncheckedCreateNestedManyWithoutContactInput
@@ -1862,6 +1893,7 @@ export type ContactCreateWithoutCampaignRecipientsInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
@@ -1910,6 +1942,7 @@ export type ContactUncheckedCreateWithoutCampaignRecipientsInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -1972,6 +2005,7 @@ export type ContactUpdateWithoutCampaignRecipientsInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
@@ -2020,6 +2054,7 @@ export type ContactUncheckedUpdateWithoutCampaignRecipientsInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2066,6 +2101,7 @@ export type ContactCreateWithoutListsInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
@@ -2114,6 +2150,7 @@ export type ContactUncheckedCreateWithoutListsInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -2176,6 +2213,7 @@ export type ContactUpdateWithoutListsInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
@@ -2224,6 +2262,7 @@ export type ContactUncheckedUpdateWithoutListsInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2270,6 +2309,7 @@ export type ContactCreateWithoutSequenceEnrollmentsInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
@@ -2318,6 +2358,7 @@ export type ContactUncheckedCreateWithoutSequenceEnrollmentsInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -2380,6 +2421,7 @@ export type ContactUpdateWithoutSequenceEnrollmentsInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
@@ -2428,6 +2470,7 @@ export type ContactUncheckedUpdateWithoutSequenceEnrollmentsInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2474,6 +2517,7 @@ export type ContactCreateWithoutJobChangesInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   company?: Prisma.CompanyCreateNestedOneWithoutContactsInput
@@ -2522,6 +2566,7 @@ export type ContactUncheckedCreateWithoutJobChangesInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -2584,6 +2629,7 @@ export type ContactUpdateWithoutJobChangesInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company?: Prisma.CompanyUpdateOneWithoutContactsNestedInput
@@ -2632,6 +2678,7 @@ export type ContactUncheckedUpdateWithoutJobChangesInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2678,6 +2725,7 @@ export type ContactCreateWithoutCompanySignalDraftsInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
@@ -2726,6 +2774,7 @@ export type ContactUncheckedCreateWithoutCompanySignalDraftsInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -2788,6 +2837,7 @@ export type ContactUpdateWithoutCompanySignalDraftsInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
@@ -2836,6 +2886,7 @@ export type ContactUncheckedUpdateWithoutCompanySignalDraftsInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2882,6 +2933,7 @@ export type ContactCreateWithoutArticleMatchesInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
@@ -2930,6 +2982,7 @@ export type ContactUncheckedCreateWithoutArticleMatchesInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -2992,6 +3045,7 @@ export type ContactUpdateWithoutArticleMatchesInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
@@ -3040,6 +3094,7 @@ export type ContactUncheckedUpdateWithoutArticleMatchesInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3086,6 +3141,7 @@ export type ContactCreateWithoutTechDraftsInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
@@ -3134,6 +3190,7 @@ export type ContactUncheckedCreateWithoutTechDraftsInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -3196,6 +3253,7 @@ export type ContactUpdateWithoutTechDraftsInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
@@ -3244,6 +3302,7 @@ export type ContactUncheckedUpdateWithoutTechDraftsInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3290,6 +3349,7 @@ export type ContactCreateWithoutPersonProfileInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
@@ -3338,6 +3398,7 @@ export type ContactUncheckedCreateWithoutPersonProfileInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -3400,6 +3461,7 @@ export type ContactUpdateWithoutPersonProfileInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
@@ -3448,6 +3510,7 @@ export type ContactUncheckedUpdateWithoutPersonProfileInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3494,6 +3557,7 @@ export type ContactCreateWithoutRadarDraftsInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
@@ -3542,6 +3606,7 @@ export type ContactUncheckedCreateWithoutRadarDraftsInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -3604,6 +3669,7 @@ export type ContactUpdateWithoutRadarDraftsInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
@@ -3652,6 +3718,7 @@ export type ContactUncheckedUpdateWithoutRadarDraftsInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3698,6 +3765,7 @@ export type ContactCreateManyOwnerInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   companyId?: string | null
@@ -3735,6 +3803,7 @@ export type ContactUpdateWithoutOwnerInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
@@ -3782,6 +3851,7 @@ export type ContactUncheckedUpdateWithoutOwnerInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3829,6 +3899,7 @@ export type ContactUncheckedUpdateManyWithoutOwnerInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3867,6 +3938,7 @@ export type ContactCreateManyCompanyInput = {
   jobSnapshotCompany?: string | null
   lastJobCheckAt?: Date | string | null
   radarInclude?: boolean | null
+  messageLanguage?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -3903,6 +3975,7 @@ export type ContactUpdateWithoutCompanyInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
@@ -3951,6 +4024,7 @@ export type ContactUncheckedUpdateWithoutCompanyInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobChanges?: Prisma.ContactJobChangeUncheckedUpdateManyWithoutContactNestedInput
@@ -3998,6 +4072,7 @@ export type ContactUncheckedUpdateManyWithoutCompanyInput = {
   jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -4138,6 +4213,7 @@ export type ContactSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   jobSnapshotCompany?: boolean
   lastJobCheckAt?: boolean
   radarInclude?: boolean
+  messageLanguage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   companyId?: boolean
@@ -4189,6 +4265,7 @@ export type ContactSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   jobSnapshotCompany?: boolean
   lastJobCheckAt?: boolean
   radarInclude?: boolean
+  messageLanguage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   companyId?: boolean
@@ -4229,6 +4306,7 @@ export type ContactSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   jobSnapshotCompany?: boolean
   lastJobCheckAt?: boolean
   radarInclude?: boolean
+  messageLanguage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   companyId?: boolean
@@ -4269,12 +4347,13 @@ export type ContactSelectScalar = {
   jobSnapshotCompany?: boolean
   lastJobCheckAt?: boolean
   radarInclude?: boolean
+  messageLanguage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   companyId?: boolean
 }
 
-export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "hebrewFirstName" | "headline" | "currentTitle" | "currentCompany" | "currentCompanyId" | "companySize" | "seniority" | "function" | "location" | "industry" | "profilePicUrl" | "connectedAt" | "lastSyncedAt" | "removedAt" | "email" | "phone" | "enrichedAt" | "enrichmentSource" | "manualFields" | "enrichmentLog" | "enrichmentRanAt" | "enrichmentError" | "hubspotSyncedAt" | "jobSnapshotTitle" | "jobSnapshotCompany" | "lastJobCheckAt" | "radarInclude" | "createdAt" | "updatedAt" | "companyId", ExtArgs["result"]["contact"]>
+export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "hebrewFirstName" | "headline" | "currentTitle" | "currentCompany" | "currentCompanyId" | "companySize" | "seniority" | "function" | "location" | "industry" | "profilePicUrl" | "connectedAt" | "lastSyncedAt" | "removedAt" | "email" | "phone" | "enrichedAt" | "enrichmentSource" | "manualFields" | "enrichmentLog" | "enrichmentRanAt" | "enrichmentError" | "hubspotSyncedAt" | "jobSnapshotTitle" | "jobSnapshotCompany" | "lastJobCheckAt" | "radarInclude" | "messageLanguage" | "createdAt" | "updatedAt" | "companyId", ExtArgs["result"]["contact"]>
 export type ContactInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   jobChanges?: boolean | Prisma.Contact$jobChangesArgs<ExtArgs>
   company?: boolean | Prisma.Contact$companyArgs<ExtArgs>
@@ -4353,6 +4432,10 @@ export type $ContactPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
      * a handful of people at giants get cultivated); false = never include.
      */
     radarInclude: boolean | null
+    /**
+     * Radar drafts to this person are written in this language. "he" | "en".
+     */
+    messageLanguage: string
     createdAt: Date
     updatedAt: Date
     companyId: string | null
@@ -4823,6 +4906,7 @@ export interface ContactFieldRefs {
   readonly jobSnapshotCompany: Prisma.FieldRef<"Contact", 'String'>
   readonly lastJobCheckAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly radarInclude: Prisma.FieldRef<"Contact", 'Boolean'>
+  readonly messageLanguage: Prisma.FieldRef<"Contact", 'String'>
   readonly createdAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly companyId: Prisma.FieldRef<"Contact", 'String'>

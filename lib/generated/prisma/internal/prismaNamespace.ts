@@ -434,6 +434,7 @@ export const ModelName = {
   AxisMatch: 'AxisMatch',
   RadarDraft: 'RadarDraft',
   RadarFeedback: 'RadarFeedback',
+  RadarScanRun: 'RadarScanRun',
   RadarDomain: 'RadarDomain'
 } as const
 
@@ -450,7 +451,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "mcpAccessToken" | "enrichmentSpend" | "userEnrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange" | "companySignal" | "companySignalDraft" | "fintechArticle" | "articleMatch" | "trackedCompany" | "techItem" | "techOpportunity" | "techOpportunityDraft" | "radarAxis" | "personProfile" | "personAxis" | "axisMatch" | "radarDraft" | "radarFeedback" | "radarDomain"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "mcpAccessToken" | "enrichmentSpend" | "userEnrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange" | "companySignal" | "companySignalDraft" | "fintechArticle" | "articleMatch" | "trackedCompany" | "techItem" | "techOpportunity" | "techOpportunityDraft" | "radarAxis" | "personProfile" | "personAxis" | "axisMatch" | "radarDraft" | "radarFeedback" | "radarScanRun" | "radarDomain"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4154,6 +4155,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    RadarScanRun: {
+      payload: Prisma.$RadarScanRunPayload<ExtArgs>
+      fields: Prisma.RadarScanRunFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RadarScanRunFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarScanRunPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RadarScanRunFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarScanRunPayload>
+        }
+        findFirst: {
+          args: Prisma.RadarScanRunFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarScanRunPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RadarScanRunFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarScanRunPayload>
+        }
+        findMany: {
+          args: Prisma.RadarScanRunFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarScanRunPayload>[]
+        }
+        create: {
+          args: Prisma.RadarScanRunCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarScanRunPayload>
+        }
+        createMany: {
+          args: Prisma.RadarScanRunCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RadarScanRunCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarScanRunPayload>[]
+        }
+        delete: {
+          args: Prisma.RadarScanRunDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarScanRunPayload>
+        }
+        update: {
+          args: Prisma.RadarScanRunUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarScanRunPayload>
+        }
+        deleteMany: {
+          args: Prisma.RadarScanRunDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RadarScanRunUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RadarScanRunUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarScanRunPayload>[]
+        }
+        upsert: {
+          args: Prisma.RadarScanRunUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarScanRunPayload>
+        }
+        aggregate: {
+          args: Prisma.RadarScanRunAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRadarScanRun>
+        }
+        groupBy: {
+          args: Prisma.RadarScanRunGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RadarScanRunGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RadarScanRunCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RadarScanRunCountAggregateOutputType> | number
+        }
+      }
+    }
     RadarDomain: {
       payload: Prisma.$RadarDomainPayload<ExtArgs>
       fields: Prisma.RadarDomainFieldRefs
@@ -4373,6 +4448,7 @@ export const ContactScalarFieldEnum = {
   jobSnapshotCompany: 'jobSnapshotCompany',
   lastJobCheckAt: 'lastJobCheckAt',
   radarInclude: 'radarInclude',
+  messageLanguage: 'messageLanguage',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   companyId: 'companyId'
@@ -4706,6 +4782,7 @@ export const ExtensionTaskScalarFieldEnum = {
   companySignalDraftId: 'companySignalDraftId',
   articleMatchId: 'articleMatchId',
   techDraftId: 'techDraftId',
+  radarDraftId: 'radarDraftId',
   scheduledFor: 'scheduledFor',
   claimedAt: 'claimedAt',
   completedAt: 'completedAt',
@@ -5060,6 +5137,7 @@ export const PersonAxisScalarFieldEnum = {
   agenda: 'agenda',
   rationale: 'rationale',
   source: 'source',
+  mutedAt: 'mutedAt',
   createdAt: 'createdAt'
 } as const
 
@@ -5109,6 +5187,24 @@ export const RadarFeedbackScalarFieldEnum = {
 } as const
 
 export type RadarFeedbackScalarFieldEnum = (typeof RadarFeedbackScalarFieldEnum)[keyof typeof RadarFeedbackScalarFieldEnum]
+
+
+export const RadarScanRunScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  scanned: 'scanned',
+  topical: 'topical',
+  important: 'important',
+  connected: 'connected',
+  drafts: 'drafts',
+  vetoed: 'vetoed',
+  report: 'report',
+  axisStats: 'axisStats'
+} as const
+
+export type RadarScanRunScalarFieldEnum = (typeof RadarScanRunScalarFieldEnum)[keyof typeof RadarScanRunScalarFieldEnum]
 
 
 export const RadarDomainScalarFieldEnum = {
@@ -5874,6 +5970,7 @@ export type GlobalOmitConfig = {
   axisMatch?: Prisma.AxisMatchOmit
   radarDraft?: Prisma.RadarDraftOmit
   radarFeedback?: Prisma.RadarFeedbackOmit
+  radarScanRun?: Prisma.RadarScanRunOmit
   radarDomain?: Prisma.RadarDomainOmit
 }
 
