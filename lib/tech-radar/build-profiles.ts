@@ -33,6 +33,8 @@ export type BuildProfilesReport = {
 export async function buildProfilesForMarked(input: {
   orgId: string;
   ownerId: string;
+  /** Restrict to these contacts. Omitted = the whole marked cohort; empty = nobody. */
+  contactIds?: string[];
 }): Promise<BuildProfilesReport> {
   const report: BuildProfilesReport = {
     considered: 0, built: 0, refreshed: 0, axesCreated: 0, axesMerged: 0,
@@ -40,7 +42,12 @@ export async function buildProfilesForMarked(input: {
   };
 
   const contacts = await prisma.contact.findMany({
-    where: { ownerId: input.ownerId, removedAt: null, radarInclude: true },
+    where: {
+      ownerId: input.ownerId,
+      removedAt: null,
+      radarInclude: true,
+      ...(input.contactIds === undefined ? {} : { id: { in: input.contactIds } }),
+    },
     select: {
       id: true, fullName: true, currentTitle: true, headline: true, currentCompany: true, companyId: true,
       personProfile: { select: { id: true, refreshedAt: true } },

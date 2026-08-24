@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { prisma } from "@/lib/prisma";
 import { queueNextConnect, rescheduleRunPendingConnect } from "@/lib/prospecting/connect-scheduler";
 
@@ -41,6 +41,17 @@ async function makeRunWithWindow(window: { sendDays: number[]; sendHoursStart: n
 }
 
 describe("send window scheduling", () => {
+  // "A later day is at least 2 hours away" is only true when the run happens well before
+  // midnight — after ~22:00 the next day is minutes away and the assertion fails for a
+  // reason that has nothing to do with the scheduler. Pin the clock to midday.
+  beforeAll(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date(new Date().setHours(12, 0, 0, 0)));
+  });
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it("schedules outside-today runs for a later day (run sendDays respected)", async () => {
     const today = jerusalemWeekdayNow();
     const run = await makeRunWithWindow({
