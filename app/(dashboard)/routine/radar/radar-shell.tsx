@@ -1,18 +1,15 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { ApprovalsTab } from "./approvals-tab";
 import { PeopleTab } from "./people-tab";
+import { DecisionsTab } from "./decisions-tab";
 
 /**
  * The three-tab shell of /routine/radar. Same data, two stories: the default tab is
- * Yuval's morning (approve/edit/skip), the decisions tab will be Ariel's calibration
- * view. The active tab lives in ?tab= so a link can land anywhere.
- *
- * The people and decisions tabs ship in the next phases; until then they explain
- * themselves and point at the legacy screen — never a dead end.
+ * Yuval's morning (approve/edit/skip), the decisions tab is Ariel's calibration view.
+ * The active tab lives in ?tab= so a link can land anywhere.
  */
 
 const TABS = [
@@ -22,21 +19,6 @@ const TABS = [
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
-
-function ComingSoon({ title }: { title: string }) {
-  return (
-    <div className="mt-10 max-w-xl">
-      <p className="text-[15px] text-[#1c2430]">{title} — הטאב הזה בבנייה.</p>
-      <p className="text-[13px] mt-1 text-[rgba(28,36,48,0.5)]">
-        עד שהוא עולה, כל הפירוט הקיים (צירים, התאמות, נימוקים) נמצא{" "}
-        <Link href="/routine/radar/legacy" className="text-[#0a66c2] hover:underline">
-          במסך הישן
-        </Link>
-        .
-      </p>
-    </div>
-  );
-}
 
 export function RadarShell() {
   const searchParams = useSearchParams();
@@ -76,7 +58,7 @@ export function RadarShell() {
 
         {tab === "approvals" && <ApprovalsTab />}
         {tab === "people" && <PeopleTab />}
-        {tab === "decisions" && <ComingSoon title="מסלול ההחלטות" />}
+        {tab === "decisions" && <DecisionsTab />}
       </div>
     </div>
   );
