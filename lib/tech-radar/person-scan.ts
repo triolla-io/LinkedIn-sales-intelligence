@@ -35,8 +35,8 @@ const MAX_SYNTHESIS_PER_RUN = 12;
 const MAX_AXIS_FIT_PER_RUN = 40;
 /** Pilot: one small batch a day, read by a human before anything is sent. */
 const MAX_DRAFTS_PER_DAY = 10;
-/** Exported for the approvals screen's quiet-week derivation, so "waiting" there means
- *  exactly what the scan's own cooldown means. */
+/** MUST equal QUIET_COOLDOWN_DAYS in lib/tech-radar/quiet.ts, which stays prisma-free
+ *  and therefore cannot import this. */
 export const MIN_DAYS_BETWEEN_MESSAGES = 7;
 
 export type PersonScanReport = {
