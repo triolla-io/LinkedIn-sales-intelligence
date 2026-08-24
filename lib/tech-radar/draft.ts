@@ -21,6 +21,7 @@
  */
 import { openrouterChat } from "@/lib/openrouter/client";
 import { isSearchEngineHost } from "@/lib/news/canonical-url";
+import { checkDraft } from "@/lib/tech-radar/draft-guard";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
 import { OR_FEATURE } from "@/lib/tech-radar/types";
 
@@ -217,6 +218,26 @@ export function enforceDraftRules(message: string, input: TechDraftInput): Draft
   } else if (urls.length > 0) {
     // No source means no link; whatever URL is here, the model made it up.
     out = out.replace(/https?:\/\/\S+/gu, "").replace(/[ \t]+\n/g, "\n").trimEnd();
+  }
+
+  // Hebrew glued to Latin ("שMLB") — the refreshed 2026-08-24 Uri draft shipped this.
+  // The correct separator is known (a hyphen: "ש-MLB"), so it is repaired, not rejected.
+  out = out
+    .replace(/([֐-׿])([A-Za-z])/gu, "$1-$2")
+    .replace(/([A-Za-z])([֐-׿])/gu, "$1-$2");
+
+  // The rest of draft-guard, at drafting time. These rules were written from real
+  // failures but only ran in tests — and a prompt rule with no runtime check is a
+  // suggestion, which is how the glued script above reached a stored draft.
+  // The URL is excluded: its "?" is not an ask and its letters are not prose.
+  const violations = checkDraft(out.replace(/https?:\/\/\S+/gu, " ")).filter((v) => v !== "glued_script");
+  if (violations.length > 0) {
+    return {
+      ok: false,
+      reason: `draft-guard: ${violations.join(", ")}`,
+      instruction: `Your previous attempt broke these rules: ${violations.join(", ")}. Rewrite it — no question or ask of any kind, no suggestion to adopt or evaluate, nothing about us or our services, no emoji, no doubled possessive.`,
+      retryable: true,
+    };
   }
 
   for (const t of WRONG_TERMS) {
