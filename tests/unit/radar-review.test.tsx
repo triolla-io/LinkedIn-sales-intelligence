@@ -124,6 +124,37 @@ describe("RadarReview", () => {
     expect(screen.getByRole("link", { name: /הכתבה המקורית/ })).toHaveAttribute("href", "https://x.com/a");
   });
 
+  /**
+   * 2026-08-24 review: a draft asserted a figure its source never stated, and nothing
+   * on the card let the reviewer see that. The card now shows WHERE the facts come
+   * from — the source's own domain and the item's own words — so every claim in the
+   * message can be checked without leaving the screen.
+   */
+  it("shows the fact's source on the card: the domain and the item's own words", () => {
+    data[KEY] = {
+      people: [
+        person({
+          drafts: [
+            {
+              id: "d3", status: "PENDING_REVIEW",
+              message: "היי אופיר, נתקלתי במשהו על CO2-EOR — חשבתי עליך.",
+              whyHim: "הוא זה שמנהל את השדות הבוגרים",
+              confidence: 0.78, discardReason: null,
+              item: {
+                title: "CO2-EOR", kind: "research", url: "https://www.x.com/a",
+                summary: "מחקר על שחזור נפט משופר בשדות בוגרים",
+              },
+            },
+          ],
+        }),
+      ],
+      health: health({ accepted: 1, vetoRate: 0 }),
+    };
+    render(<RadarReview />);
+    expect(screen.getByText("x.com")).toBeInTheDocument();
+    expect(screen.getByText(/מחקר על שחזור נפט משופר בשדות בוגרים/)).toBeInTheDocument();
+  });
+
   /** The pilot's central metric. Flagged red at both extremes, not only when high. */
   it("flags a veto rate that is suspicious in either direction", () => {
     data[KEY] = { people: [person()], health: health({ accepted: 0, vetoed: 10, vetoRate: 1 }) };

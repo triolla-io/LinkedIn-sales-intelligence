@@ -172,3 +172,26 @@ describe("readPages", () => {
     expect(await readPages(["https://a.com"], { limit: 0 })).toEqual([]);
   });
 });
+
+/**
+ * The URL a result carries and the URL the browser lands on are not the same thing —
+ * providers hand back redirect wrappers. The fetch already follows them; this makes it
+ * REPORT where it landed, so the caller can store the real address.
+ */
+describe("readPage finalUrl", () => {
+  it("reports the URL the fetch actually landed on", async () => {
+    delete process.env.TAVILY_API_KEY;
+    const res = htmlResponse("<title>t</title><p>content</p>");
+    (res as { url?: string }).url = "https://real.com/landed";
+    fetchMock.mockResolvedValue(res);
+    const page = await readPage("https://google.com/goto?url=CAES");
+    expect(page?.finalUrl).toBe("https://real.com/landed");
+  });
+
+  it("falls back to the requested URL when the response does not say", async () => {
+    delete process.env.TAVILY_API_KEY;
+    fetchMock.mockResolvedValue(htmlResponse("<p>content</p>"));
+    const page = await readPage("https://real.com/a");
+    expect(page?.finalUrl).toBe("https://real.com/a");
+  });
+});

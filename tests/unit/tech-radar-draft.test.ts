@@ -62,12 +62,17 @@ describe("DRAFT_SYSTEM", () => {
   });
 
   /**
-   * First live run of the v1 shape: the model pasted the whole relevance note in place
-   * of naming the place. The anchor has to stay a short noun phrase in v2 too.
+   * 2026-08-24 review, Uri/MLB draft: the whyHim said "contract renewals against
+   * leagues — pricing/exclusivity/latency change" and the message said "בגלל נתוני
+   * אירועים בזמן אמת" — the specific stake flattened into its category. The anchor is
+   * no longer a bare noun phrase: the LAST sentence must carry the reason itself,
+   * rephrased for a person. The acceptance test is deletion: remove the item's subject
+   * and it must still be clear why THIS person received the message.
    */
-  it("caps the why-them anchor to a short noun phrase", () => {
-    expect(DRAFT_SYSTEM).toMatch(/noun phrase/i);
-    expect(DRAFT_SYSTEM).toMatch(/2-6 words/);
+  it("makes the last sentence carry the specific whyHim reason", () => {
+    expect(DRAFT_SYSTEM).toMatch(/LAST sentence/);
+    expect(DRAFT_SYSTEM).toMatch(/delete the item's subject/i);
+    expect(DRAFT_SYSTEM).toMatch(/category/);
   });
 
   it("forbids copying the relevance note into the message", () => {
@@ -103,9 +108,12 @@ describe("parseDraftJson", () => {
 });
 
 describe("draftTechMessage", () => {
-  it("returns the drafted message", async () => {
+  it("returns the drafted message, with the link guaranteed present", async () => {
     chat.mockResolvedValue(ok('{"draftMessage":"היי דנה, ראיתי משהו חדש בזיהוי הונאות."}'));
-    await expect(draftTechMessage(input())).resolves.toBe("היי דנה, ראיתי משהו חדש בזיהוי הונאות.");
+    // The model dropped the link; the guard appends the canonical one.
+    await expect(draftTechMessage(input())).resolves.toBe(
+      "היי דנה, ראיתי משהו חדש בזיהוי הונאות.\nhttps://example.com/a?x=1&y=2"
+    );
   });
 
   it("uses the one shared prompt for every company", async () => {
@@ -195,7 +203,7 @@ describe("the recorded name is the name", () => {
   });
 
   it("leaves a correct greeting alone", () => {
-    const i = input({ hebrewFirstName: "דנה" });
+    const i = input({ hebrewFirstName: "דנה", sourceUrl: null });
     const r = enforceDraftRules("היי דנה, ראיתי משהו.", i);
     expect(r.ok && r.message).toBe("היי דנה, ראיתי משהו.");
   });
@@ -233,16 +241,98 @@ describe("a figure about the recipient must come from a source", () => {
 
 describe("draftTechMessage repairs an unverified figure once", () => {
   it("retries with a correction and returns the clean message", async () => {
+    // "הפלטפורמות" and not the real run's "המפעלות", so this exercises the figure rule
+    // alone — the wrong-term rule catches מפעלות first, and has its own test.
     chat
-      .mockResolvedValueOnce(ok('{"draftMessage":"היי אביגל, בגלל שלוש המפעלות."}'))
+      .mockResolvedValueOnce(ok('{"draftMessage":"היי אביגל, בגלל שלוש הפלטפורמות."}'))
       .mockResolvedValueOnce(ok('{"draftMessage":"היי אביגל, בגלל יעדי התפוקה שהצגתם."}'));
-    const i = input({ hebrewFirstName: "אביגל", itemText: "EPA קבעה יעדי חובה" });
+    const i = input({ hebrewFirstName: "אביגל", itemText: "EPA קבעה יעדי חובה", sourceUrl: null });
     await expect(draftTechMessage(i)).resolves.toBe("היי אביגל, בגלל יעדי התפוקה שהצגתם.");
     expect(chat.mock.calls[1][1].messages[1].content).toMatch(/appears in no source/);
   });
 
   it("throws rather than returning a message that still carries the figure", async () => {
-    chat.mockResolvedValue(ok('{"draftMessage":"היי אביגל, בגלל שלוש המפעלות."}'));
+    chat.mockResolvedValue(ok('{"draftMessage":"היי אביגל, בגלל שלוש הפלטפורמות."}'));
     await expect(draftTechMessage(input({ hebrewFirstName: "אביגל", itemText: "EPA" }))).rejects.toThrow(/unverified figure/);
+  });
+});
+
+/**
+ * 2026-08-24 review, Uri/MLB draft: the message went out with
+ * google.com/goto?url=CAESvQEB… — a search-engine redirect, not the article. The
+ * "reproduce the link verbatim" rule worked exactly as written; the input was already
+ * wrong. This layer is the last line of defence: whatever reached the draft, the link
+ * in the MESSAGE must be the source's own domain.
+ */
+describe("the link in the message is the source's own domain", () => {
+  it("replaces a link the model altered with the canonical source", () => {
+    const i = input({ sourceUrl: "https://real.com/story" });
+    const r = enforceDraftRules("היי דנה, ראיתי משהו.\nhttps://real.com/story?utm_source=x", i);
+    expect(r.ok && r.message.endsWith("\nhttps://real.com/story")).toBe(true);
+    expect(r.ok && (r.message.match(/https?:\/\//g) ?? []).length).toBe(1);
+  });
+
+  it("appends the link when the model dropped it", () => {
+    const r = enforceDraftRules("היי דנה, ראיתי משהו.", input({ sourceUrl: "https://real.com/story" }));
+    expect(r.ok && r.message).toBe("היי דנה, ראיתי משהו.\nhttps://real.com/story");
+  });
+
+  it("strips a link the model invented when the item has none", () => {
+    const r = enforceDraftRules("היי דנה, ראיתי משהו.\nhttps://invented.com/x", input({ sourceUrl: null }));
+    expect(r.ok && r.message).toBe("היי דנה, ראיתי משהו.");
+  });
+
+  it("rejects outright — not retryably — when the source itself is a redirect", () => {
+    const i = input({ sourceUrl: "https://google.com/goto?url=CAESvQEB" });
+    const r = enforceDraftRules("היי דנה, ראיתי משהו.\nhttps://google.com/goto?url=CAESvQEB", i);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.retryable).toBe(false);
+  });
+});
+
+describe("Hebrew the guard knows is wrong", () => {
+  // 2026-08-24, Avigal draft: "המפעלות" for refineries. Not a word anyone says.
+  it('rejects "מפעלות" and tells the retry to say בתי הזיקוק', () => {
+    const i = input({ hebrewFirstName: "אביגל", sourceUrl: null });
+    const r = enforceDraftRules("היי אביגל, חשבתי עליך בגלל המפעלות שלכם.", i);
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.reason).toContain("מפעלות");
+      expect(r.instruction).toContain("בתי הזיקוק");
+      expect(r.retryable).toBe(true);
+    }
+  });
+});
+
+describe("draftTechMessage and the redirect source", () => {
+  it("does not pay for a retry the model cannot win", async () => {
+    chat.mockResolvedValue(ok('{"draftMessage":"היי דנה, ראיתי משהו."}'));
+    await expect(
+      draftTechMessage(input({ sourceUrl: "https://google.com/goto?url=CAES" }))
+    ).rejects.toThrow(/search-engine/);
+    expect(chat).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * The stored sources for the existing drafts already carry wrapped URLs — the refresh
+ * re-drafts from the database without a new scan, so the cleanup has to happen on READ.
+ */
+describe("firstSourceUrl canonicalization", () => {
+  it("skips a search-engine redirect and takes the next real source", () => {
+    expect(
+      firstSourceUrl([{ url: "https://google.com/goto?url=CAESvQEB" }, { url: "https://real.com/a" }])
+    ).toBe("https://real.com/a");
+  });
+
+  it("returns null when every source is a redirect that cannot be unwrapped", () => {
+    expect(firstSourceUrl([{ url: "https://google.com/goto?url=CAESvQEB" }])).toBeNull();
+  });
+
+  it("unwraps and cleans what it returns", () => {
+    expect(firstSourceUrl([{ url: "https://www.google.com/url?q=https://real.com/a&ved=x" }])).toBe(
+      "https://real.com/a"
+    );
+    expect(firstSourceUrl([{ url: "https://real.com/a?utm_source=nl&id=3" }])).toBe("https://real.com/a?id=3");
   });
 });

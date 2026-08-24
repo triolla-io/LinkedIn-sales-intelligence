@@ -10,6 +10,7 @@
  * they need to acquire one.
  */
 import { prisma } from "@/lib/prisma";
+import { canonicalizeSourceUrl, isSearchEngineHost } from "@/lib/news/canonical-url";
 import { isSeniorTitle } from "@/lib/company-signals/clevel";
 import { companyMatchWhere, rankRecipients } from "@/lib/tech-radar/recipients";
 import { draftTechMessage } from "@/lib/tech-radar/draft";
@@ -73,7 +74,14 @@ export function firstSourceUrl(sources: unknown): string | null {
   if (!Array.isArray(sources)) return null;
   for (const s of sources) {
     const url = (s as { url?: unknown })?.url;
-    if (typeof url === "string" && /^https?:\/\//i.test(url.trim())) return url.trim();
+    if (typeof url !== "string" || !/^https?:\/\//i.test(url.trim())) continue;
+    // Canonicalized on READ, deliberately: rows written before 2026-08-24 already carry
+    // wrapped URLs, and the judge path re-drafts from those rows without a new scan.
+    const canonical = canonicalizeSourceUrl(url.trim());
+    // Still a search-engine host after unwrapping = a redirect with an opaque token
+    // (google.com/goto?url=CAES…). That is not the article; the next source may be.
+    if (isSearchEngineHost(canonical)) continue;
+    return canonical;
   }
   return null;
 }

@@ -20,6 +20,7 @@
  * never be pasted into the message.
  */
 import { openrouterChat } from "@/lib/openrouter/client";
+import { isSearchEngineHost } from "@/lib/news/canonical-url";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
 import { OR_FEATURE } from "@/lib/tech-radar/types";
 
@@ -47,14 +48,15 @@ export const DRAFT_SYSTEM = `You write VERY short, casual Hebrew messages that f
 
 Follow this shape, in this order:
 1. Open with the person's name, then say you came across it: "היי דנה, נתקלתי ב..." or "היי דנה, ראיתי...".
-2. ONE short clause: what the item is, and why it made you think of THEM. Anchor it in their world by naming ONE concrete thing — a product, business line, market or process of theirs. A SHORT NOUN PHRASE of 2-6 words. Take the NAME from the relevance note; never the note itself.
-   - GOOD: "חשבתי עליך בגלל ביט" / "נזכרתי בחיפושי הגז שלכם"
+2. Why THEM: the LAST sentence carries the SPECIFIC reason from the "why it touches them" note, rephrased in your own everyday words — the concrete mechanism or stake for THEM, never the generic category it belongs to. Anchor it in their world by naming ONE concrete thing of theirs — a product, business line, market or process.
+   - The test: delete the item's subject from your message — it must STILL be clear why THIS person received it and not a colleague.
+   - GOOD: "חשבתי עליך, כי אם ליגות מתחילות לרשיין דאטה בזמן אמת, זה משנה את המו"מ מול ספקי הנתונים שלכם"
+   - BAD, the category instead of the reason: "חשבתי עליך בגלל נתוני אירועים בזמן אמת"
    - BAD, too vague: "חשבתי עליך", "זה קשור לתחום שלכם"
-   - BAD, too long: naming the thing AND explaining what it would achieve.
 3. The link, on its own line, last. Nothing after it.
 
 Register example:
-"היי דנה, נתקלתי במשהו על זיהוי הונאות בזמן אמת — חשבתי עליך בגלל ביט.
+"היי דנה, נתקלתי במשהו על זיהוי הונאות בזמן אמת — חשבתי עליך, כי זה נוגע ישר באיך ביט מאשרת תשלומים בין-אישיים.
 https://example.com/article"
 
 Rules:
@@ -80,8 +82,8 @@ function userPrompt(i: TechDraftInput): string {
     `Recipient title: ${i.contactTitle ?? "unknown"}`,
     `Their company: ${i.companyName}`,
     `The item: ${i.technology}${i.vendor ? ` (by ${i.vendor})` : ""}`,
-    // Background for part 2's concrete anchor — never for quoting.
-    `Why it touches THEM (background — take only the name of the thing, never the wording): ${i.fitRationale}`,
+    // The last sentence must carry this reason — rephrased, never quoted.
+    `Why it touches THEM (your LAST sentence must carry this exact reason, rephrased in everyday words — never copied): ${i.fitRationale}`,
     `The item's own text (the ONLY text a figure may be taken from): ${i.itemText}`,
     i.sourceUrl
       ? `Link (reproduce verbatim as the last line): ${i.sourceUrl}`
@@ -157,14 +159,33 @@ export function unverifiedQuantities(message: string, itemText: string): string[
   return [...bad];
 }
 
-export type DraftCheck = { ok: true; message: string } | { ok: false; reason: string };
+export type DraftCheck =
+  | { ok: true; message: string }
+  | {
+      ok: false;
+      reason: string;
+      /** The retry prompt, when a rewrite could fix it. */
+      instruction: string;
+      /** False when no rewrite can help — the INPUT is what is wrong. */
+      retryable: boolean;
+    };
 
 /**
- * Pure. Both rules, applied to a message the model just returned.
+ * Hebrew a run actually produced that no person would write, with the word a person
+ * would use. Rejected rather than repaired: the surrounding sentence has to be
+ * rewritten around the right word, and that is the model's job.
+ */
+const WRONG_TERMS = [
+  // 2026-08-24, Avigal/RIN draft: "המפעלות" for refineries.
+  { pattern: /מפעלות/u, bad: "מפעלות", use: "בתי הזיקוק" },
+];
+
+/**
+ * Pure. Every rule, applied to a message the model just returned.
  *
- * The greeting is REPAIRED rather than rejected — the correct name is known, so there is
- * nothing to decide. An unverified figure is REJECTED, because the correct figure is
- * exactly what we do not have.
+ * What is REPAIRED vs REJECTED follows one line: repair when the correct answer is
+ * known (the greeting name, the canonical link), reject when it is exactly what we do
+ * not have (the true figure, the right sentence around a wrong word).
  */
 export function enforceDraftRules(message: string, input: TechDraftInput): DraftCheck {
   const name = salutationName(input);
@@ -176,9 +197,47 @@ export function enforceDraftRules(message: string, input: TechDraftInput): Draft
     );
   }
 
+  // The link in the message is the source's own domain — the 2026-08-24 Uri draft went
+  // out with google.com/goto?url=… because the INPUT was already wrong, and no rewrite
+  // by the model can produce a URL nobody gave it.
+  const sourceUrl = input.sourceUrl?.trim() || null;
+  if (sourceUrl && isSearchEngineHost(sourceUrl)) {
+    return {
+      ok: false,
+      reason: `source url is a search-engine redirect, not the article: ${sourceUrl}`,
+      instruction: "",
+      retryable: false,
+    };
+  }
+  const urls = out.match(/https?:\/\/\S+/gu) ?? [];
+  if (sourceUrl) {
+    if (urls.length !== 1 || urls[0] !== sourceUrl) {
+      out = `${out.replace(/https?:\/\/\S+/gu, "").replace(/[ \t]+\n/g, "\n").trimEnd()}\n${sourceUrl}`;
+    }
+  } else if (urls.length > 0) {
+    // No source means no link; whatever URL is here, the model made it up.
+    out = out.replace(/https?:\/\/\S+/gu, "").replace(/[ \t]+\n/g, "\n").trimEnd();
+  }
+
+  for (const t of WRONG_TERMS) {
+    if (t.pattern.test(out)) {
+      return {
+        ok: false,
+        reason: `wrong Hebrew term: ${t.bad}`,
+        instruction: `Your previous attempt used "${t.bad}", which is not the Hebrew a person would write here. Use "${t.use}" instead, or rewrite the sentence without that noun.`,
+        retryable: true,
+      };
+    }
+  }
+
   const figures = unverifiedQuantities(out, input.itemText);
   if (figures.length > 0) {
-    return { ok: false, reason: `unverified figure(s): ${figures.join(", ")}` };
+    return {
+      ok: false,
+      reason: `unverified figure(s): ${figures.join(", ")}`,
+      instruction: `Your previous attempt stated ${figures.join(", ")}, which appears in no source. Rewrite the anchor with NO figure at all.`,
+      retryable: true,
+    };
   }
   return { ok: true, message: out };
 }
@@ -192,9 +251,7 @@ export function parseDraftJson(text: string): string | null {
 async function callModel(input: TechDraftInput, correction: string | null): Promise<string> {
   const model =
     process.env.TECH_RADAR_MODEL ?? process.env.COMPANY_SIGNALS_MODEL ?? "anthropic/claude-haiku-4.5";
-  const user = correction
-    ? `${userPrompt(input)}\n\nYour previous attempt stated ${correction}, which appears in no source. Rewrite the anchor with NO figure at all.`
-    : userPrompt(input);
+  const user = correction ? `${userPrompt(input)}\n\n${correction}` : userPrompt(input);
   const res = await openrouterChat(
     OR_FEATURE.draft,
     {
@@ -218,10 +275,11 @@ async function callModel(input: TechDraftInput, correction: string | null): Prom
 export async function draftTechMessage(input: TechDraftInput): Promise<string> {
   const first = enforceDraftRules(await callModel(input, null), input);
   if (first.ok) return first.message;
+  if (!first.retryable) throw new Error(`tech-radar draft rejected — ${first.reason}`);
 
-  // One repair attempt naming the offending figure. A cent buys a correct message; a
-  // rejection here would otherwise throw away an item that is genuinely worth sending.
-  const second = enforceDraftRules(await callModel(input, first.reason), input);
+  // One repair attempt naming the offence. A cent buys a correct message; a rejection
+  // here would otherwise throw away an item that is genuinely worth sending.
+  const second = enforceDraftRules(await callModel(input, first.instruction), input);
   if (second.ok) return second.message;
   throw new Error(`tech-radar draft rejected — ${second.reason}`);
 }

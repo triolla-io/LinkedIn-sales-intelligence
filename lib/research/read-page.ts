@@ -21,7 +21,17 @@ export const MAX_PAGE_CHARS = 8000;
 const TIMEOUT_MS = 10_000;
 const TAVILY_EXTRACT_URL = "https://api.tavily.com/extract";
 
-export type PageContent = { url: string; title: string | null; text: string };
+export type PageContent = {
+  url: string;
+  title: string | null;
+  text: string;
+  /**
+   * Where the fetch actually LANDED after following redirects — the article's own
+   * address, when the requested URL was a redirect wrapper. Equal to `url` when the
+   * path taken cannot know (Tavily Extract, or a response that does not say).
+   */
+  finalUrl: string;
+};
 
 const NAMED_ENTITIES: Record<string, string> = {
   amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ",
@@ -96,7 +106,7 @@ async function viaTavilyExtract(url: string): Promise<PageContent | null> {
     const first = rows[0] as Record<string, unknown> | undefined;
     const raw = typeof first?.raw_content === "string" ? first.raw_content.trim() : "";
     if (!raw) return null;
-    return { url, title: null, text: raw.slice(0, MAX_PAGE_CHARS) };
+    return { url, title: null, text: raw.slice(0, MAX_PAGE_CHARS), finalUrl: url };
   } catch {
     return null;
   } finally {
@@ -120,7 +130,8 @@ async function viaPlainFetch(url: string): Promise<PageContent | null> {
     const body = await res.text();
     const { title, text } = htmlToText(body);
     if (!text) return null;
-    return { url, title, text: text.slice(0, MAX_PAGE_CHARS) };
+    const landed = typeof res.url === "string" && res.url ? res.url : url;
+    return { url, title, text: text.slice(0, MAX_PAGE_CHARS), finalUrl: landed };
   } catch {
     return null;
   } finally {

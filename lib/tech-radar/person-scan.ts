@@ -17,6 +17,7 @@ import { fetchPoolNews } from "@/lib/tech-radar/fetch-pool-news";
 import { triageAll, type PoolItem } from "@/lib/tech-radar/triage";
 import { synthesizeItem } from "@/lib/tech-radar/item";
 import { readPage } from "@/lib/research/read-page";
+import { canonicalizeSourceUrl } from "@/lib/news/canonical-url";
 import { upsertTechItem } from "@/lib/tech-radar/persist";
 import { buildAxisQueryPool, judgeAxisFit, capPoolByAxis, AXIS_FIT_FLOOR } from "@/lib/tech-radar/axis-fit";
 import { judgeAndDraft } from "@/lib/tech-radar/judge-and-draft";
@@ -164,9 +165,12 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
       // describe its source is worse than no summary.
       const page = await readPage(source.url);
       if (!page) pageReadFailures += 1;
+      // Store where the read LANDED, not where the search pointed — a redirect wrapper
+      // the ingest could not unwrap statically resolves here or never.
+      const storedUrl = page?.finalUrl ? canonicalizeSourceUrl(page.finalUrl) : source.url;
       const draft = await synthesizeItem({
         triage: verdict,
-        articles: [{ url: source.url, title: source.title, snippet: source.snippet, publishedAt: source.publishedAt }],
+        articles: [{ url: storedUrl, title: source.title, snippet: source.snippet, publishedAt: source.publishedAt }],
         pages: page ? [page] : [],
       });
       const itemId = await upsertTechItem(draft);

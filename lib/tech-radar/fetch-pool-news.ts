@@ -17,6 +17,7 @@ import { fetchGnews } from "@/lib/news/gnews";
 import { fetchSerper } from "@/lib/news/serper";
 import { fetchSerpapi } from "@/lib/news/serpapi";
 import { normalizeUrl } from "@/lib/fintech-radar/fetch-topic-news";
+import { canonicalizeSourceUrl } from "@/lib/news/canonical-url";
 
 /** Recency window for "new technology" — the user's decision: the last month. */
 export const SCAN_WINDOW_DAYS = 30;
@@ -133,7 +134,11 @@ export async function fetchPoolNews(
 
     for (const r of results) {
       if (!r.url) continue;
-      const key = normalizeUrl(r.url);
+      // Canonicalized at the door: providers hand back search-engine redirect wrappers
+      // (google.com/url?q=…), and the 2026-08-24 run forwarded one to a real person.
+      // Everything downstream — dedupe, stored sources, the message — sees only this.
+      const url = canonicalizeSourceUrl(r.url);
+      const key = normalizeUrl(url);
       const existing = byUrl.get(key);
       if (existing) {
         for (const id of entry.companyIds) {
@@ -141,7 +146,7 @@ export async function fetchPoolNews(
         }
         continue;
       }
-      byUrl.set(key, { ...r, companyIds: [...entry.companyIds] });
+      byUrl.set(key, { ...r, url, companyIds: [...entry.companyIds] });
     }
   }
 

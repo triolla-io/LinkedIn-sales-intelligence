@@ -48,8 +48,17 @@ type Draft = {
   whyHim: string | null;
   confidence: number;
   discardReason: string | null;
-  item: { title: string; kind: string; url: string | null };
+  item: { title: string; kind: string; url: string | null; summary: string | null };
 };
+
+/** The domain shown as the fact's provenance. Null for an unparseable URL. */
+function sourceHost(url: string): string | null {
+  try {
+    return new URL(url).hostname.replace(/^www\./i, "");
+  } catch {
+    return null;
+  }
+}
 
 type Person = {
   contactId: string;
@@ -191,14 +200,17 @@ function DraftCard({ draft }: { draft: Draft }) {
           </>
         )}
         <span className={cn("truncate", FAINT)}>· {draft.item.title}</span>
+        {/* The domain is VISIBLE, not an icon: the reviewer must see where the facts
+            come from — and a search-engine domain here is itself a finding. */}
         {draft.item.url && (
           <a
             href={draft.item.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#1585ff] shrink-0"
+            className="text-[#1585ff] shrink-0 inline-flex items-center gap-0.5"
             aria-label="הכתבה המקורית"
           >
+            {sourceHost(draft.item.url)}
             <ExternalLink className="size-3.5" />
           </a>
         )}
@@ -213,6 +225,14 @@ function DraftCard({ draft }: { draft: Draft }) {
 
       {draft.message && (
         <p className="text-sm text-[#1a1917] whitespace-pre-wrap leading-relaxed">{draft.message}</p>
+      )}
+
+      {/* The item's own words — the only text a figure in the message may come from.
+          Shown so every claim can be checked against its source without leaving the card. */}
+      {draft.item.summary && (
+        <p className={cn("text-xs mt-1.5 pt-1.5 border-t", vetoed ? "border-[#f0eee9]" : "border-[#cfe4ff]", MUTED)}>
+          מה המקור אומר: {draft.item.summary}
+        </p>
       )}
     </div>
   );

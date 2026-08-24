@@ -216,3 +216,26 @@ describe("fetchPoolNews", () => {
     expect(sleeps).toEqual([]);
   });
 });
+
+/**
+ * 2026-08-24: a draft went out with google.com/goto?url=… as its link. The wrapped URL
+ * entered here, at ingestion, and every stage downstream stored and forwarded it.
+ * Canonicalization happens once, at the door.
+ */
+describe("fetchPoolNews canonicalizes result urls", () => {
+  it("unwraps a search-engine redirect before storing", async () => {
+    const fetcher = vi.fn(async () => [result("https://www.google.com/url?q=https://real.com/x&ved=abc")]);
+    const out = await fetchPoolNews([{ query: "q", companyIds: ["c1"] }], fetcher, { sleep: async () => {} });
+    expect(out.items).toHaveLength(1);
+    expect(out.items[0].url).toBe("https://real.com/x");
+  });
+
+  it("dedupes the wrapped and unwrapped forms of the same story", async () => {
+    const fetcher = vi.fn(async () => [
+      result("https://www.google.com/url?q=https://real.com/x"),
+      result("https://real.com/x"),
+    ]);
+    const out = await fetchPoolNews([{ query: "q", companyIds: ["c1"] }], fetcher, { sleep: async () => {} });
+    expect(out.items).toHaveLength(1);
+  });
+});
