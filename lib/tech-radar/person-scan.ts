@@ -23,7 +23,7 @@ import { buildAxisQueryPool, judgeAxisFit, capPoolByAxis, AXIS_FIT_FLOOR } from 
 import { judgeAndDraft } from "@/lib/tech-radar/judge-and-draft";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
 import { SHAREWORTHY_FLOOR, STATURE_FLOOR } from "@/lib/tech-radar/types";
-import { judgeAcceptance, type AcceptanceReport } from "@/lib/tech-radar/acceptance";
+import { judgeAcceptance, isIsraeliSource, type AcceptanceReport } from "@/lib/tech-radar/acceptance";
 
 const MAX_QUERIES_PER_AXIS = 3;
 /**
@@ -38,6 +38,42 @@ const MAX_DRAFTS_PER_DAY = 10;
 /** MUST equal QUIET_COOLDOWN_DAYS in lib/tech-radar/quiet.ts, which stays prisma-free
  *  and therefore cannot import this. */
 export const MIN_DAYS_BETWEEN_MESSAGES = 7;
+
+/** What one axis asked for this run, and what came back. Rendered as explained silence. */
+export type AxisStat = {
+  axisId: string;
+  label: string;
+  queries: number;
+  results: number;
+  /** A Hebrew query that returned no Israeli source — a warning, not a failure. */
+  hebrewNoIsraeliSource: boolean;
+};
+
+const HEBREW_RE = /[֐-׿]/;
+
+/**
+ * Attribute each query and each returned item back to the axes that asked for it. The
+ * pool is deduplicated across axes, so one query can serve several — every subscriber
+ * is credited, which is why this cannot be a simple per-query count.
+ */
+export function tallyAxisStats(
+  axes: { id: string; label: string }[],
+  pool: { query: string; axisIds: string[] }[],
+  items: { url: string; companyIds: string[] }[]
+): AxisStat[] {
+  return axes.map((axis) => {
+    const mine = pool.filter((p) => p.axisIds.includes(axis.id));
+    const got = items.filter((i) => i.companyIds.includes(axis.id));
+    const askedInHebrew = mine.some((p) => HEBREW_RE.test(p.query));
+    return {
+      axisId: axis.id,
+      label: axis.label,
+      queries: mine.length,
+      results: got.length,
+      hebrewNoIsraeliSource: askedInHebrew && !got.some((i) => isIsraeliSource(i.url)),
+    };
+  });
+}
 
 export type PersonScanReport = {
   axes: number;
@@ -82,6 +118,12 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
   // and EVERY exit path below must close the row, or the UI shows a scan that never
   // happened.
   const run = await prisma.radarScanRun.create({ data: { orgId }, select: { id: true } });
+  /**
+   * Per-axis query accounting, filled as the run progresses. An axis with zero results
+   * is the difference between "the radar is broken" and "there was nothing this week" —
+   * the decisions screen renders these as an explained silence, not a bug.
+   */
+  let axisStats: AxisStat[] = [];
   const finish = async (report: PersonScanReport): Promise<PersonScanReport> => {
     await prisma.radarScanRun.update({
       where: { id: run.id },
@@ -94,6 +136,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
         drafts: report.drafted,
         vetoed: report.vetoed,
         report: JSON.parse(JSON.stringify(report)),
+        axisStats: axisStats.length ? JSON.parse(JSON.stringify(axisStats)) : undefined,
       },
     });
     return report;
@@ -128,6 +171,13 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     MAX_QUERIES_PER_AXIS
   );
   const news = await fetchPoolNews(pool.map((p) => ({ query: p.query, companyIds: p.axisIds })));
+  // Recorded before any filtering: this answers "did the axis get anything at all",
+  // which is a different question from "did anything survive triage".
+  axisStats = tallyAxisStats(
+    axes.map((a) => ({ id: a.id, label: a.label })),
+    pool,
+    news.items
+  );
   if (news.items.length === 0) {
     return finish({ ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, quotaExhausted: news.quotaLikely });
   }
