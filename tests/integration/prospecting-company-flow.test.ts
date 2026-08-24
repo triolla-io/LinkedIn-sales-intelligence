@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 
 vi.mock("@/inngest/client", () => ({
   inngest: {
@@ -54,6 +54,18 @@ async function fireResult(taskId: string) {
 }
 
 describe("company run: resolve → search → next company → completion", () => {
+  // The "next company in 2–5 minutes" assertion is only true INSIDE discovery hours
+  // (9–21); run the suite in the evening and the scheduler correctly defers to next
+  // morning, failing the test. Pin the clock to midday so the test checks the
+  // scheduler, not the time of day it happened to run at.
+  beforeAll(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date(new Date().setHours(12, 0, 0, 0)));
+  });
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it("runs the full chain", async () => {
     const { user, run, t1, t2 } = await setup();
 
