@@ -181,3 +181,28 @@ describe("normalizeStoryUrl", () => {
     expect(normalizeStoryUrl("  NOT a url ")).toBe("not a url");
   });
 })
+
+/**
+ * Prod, 2026-08-24: one item titled "MLB signs with Polymarket" carried four sources,
+ * three of them EPA/biofuel stories. Every google.com/goto?url=<token> collapses to
+ * "google.com/goto" under normalizeStoryUrl, so unrelated stories looked like the SAME
+ * story and merged. A search-engine wrapper identifies nothing — it must not dedupe.
+ */
+describe("story dedupe and search-engine wrappers", () => {
+  it("does not story-merge two different stories that share a wrapper host", async () => {
+    itemFindMany
+      .mockResolvedValueOnce([
+        { id: "mlb", sources: [{ url: "https://www.google.com/goto?url=CAESvQ" }], thin: false },
+      ])
+      .mockResolvedValueOnce([]);
+    const out = await upsertTechItem(
+      draft({
+        vendor: "EPA",
+        technology: "Renewable Fuel Standard",
+        sources: [{ url: "https://www.google.com/goto?url=CAESrA", title: "EPA", publishedAt: null }],
+      })
+    );
+    expect(out).toBe("new");
+    expect(itemCreate).toHaveBeenCalled();
+  });
+});

@@ -6,6 +6,7 @@
  * reuse an item another company already paid to write up.
  */
 import { prisma } from "@/lib/prisma";
+import { isSearchEngineHost } from "@/lib/news/canonical-url";
 import type { CappedCandidate, TechItemDraft } from "@/lib/tech-radar/types";
 import { makeItemDedupeKey, isSameLaunch } from "@/lib/tech-radar/item";
 
@@ -48,7 +49,17 @@ export async function upsertTechItem(draft: TechItemDraft): Promise<string> {
   // The 2026-08-23 run stored one Nature paper twice, as "CO2-EOR" and as "CO2-EOR with
   // xanthan gum", because the key is built from the model's own naming and the model
   // named it differently on two passes. A url is not a matter of opinion.
-  const storyUrls = new Set(draft.sources.map((x) => normalizeStoryUrl(x.url)).filter(Boolean));
+  //
+  // A search-engine wrapper is excluded from that logic entirely: every
+  // google.com/goto?url=<token> collapses to "google.com/goto" under normalizeStoryUrl,
+  // and on 2026-08-24 that merged three EPA stories into an MLB item. The wrapper names
+  // the search engine, not the story.
+  const storyUrls = new Set(
+    draft.sources
+      .filter((x) => !isSearchEngineHost(x.url))
+      .map((x) => normalizeStoryUrl(x.url))
+      .filter(Boolean)
+  );
   if (storyUrls.size > 0) {
     const recent = await prisma.techItem.findMany({
       where: { createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
@@ -58,7 +69,7 @@ export async function upsertTechItem(draft: TechItemDraft): Promise<string> {
     });
     for (const row of recent) {
       const rowUrls = Array.isArray(row.sources) ? (row.sources as { url?: string }[]) : [];
-      if (rowUrls.some((x) => x?.url && storyUrls.has(normalizeStoryUrl(x.url)))) {
+      if (rowUrls.some((x) => x?.url && !isSearchEngineHost(x.url) && storyUrls.has(normalizeStoryUrl(x.url)))) {
         return mergeInto(row, draft);
       }
     }
