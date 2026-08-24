@@ -144,9 +144,17 @@ export async function loadCohortRows(ownerId: string): Promise<CohortRow[]> {
  * consume the monthly Tavily quota many times over. Six marked people resolve to a
  * handful of employers.
  */
-export async function markedEmployers(ownerId: string): Promise<EmployerRef[]> {
+export async function markedEmployers(ownerId: string, contactIds?: string[]): Promise<EmployerRef[]> {
   const rows = await prisma.contact.findMany({
-    where: { ownerId, removedAt: null, radarInclude: true },
+    where: {
+      ownerId,
+      removedAt: null,
+      radarInclude: true,
+      // Omitted when undefined so the whole-cohort callers are unchanged. An EMPTY array
+      // must mean nobody: spreading nothing there would research every employer on the
+      // list instead of the one person who was just added.
+      ...(contactIds === undefined ? {} : { id: { in: contactIds } }),
+    },
     select: COHORT_SELECT,
   });
   return groupEmployers(

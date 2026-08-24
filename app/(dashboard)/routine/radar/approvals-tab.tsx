@@ -341,7 +341,9 @@ export function ApprovalsTab() {
               <span className="tabular-nums">{data.quiet.length}</span> אנשים שקט
             </>
           ) : (
-            "עוד לא הסתיימה סריקה — הראשונה תרוץ ביום ראשון בבוקר, ומה שיעבור את השערים יופיע כאן."
+            // No cron dispatches the person-outward scan yet — during the pilot it is run
+            // by hand, so promising "Sunday morning" would invent a schedule.
+            "עוד לא הסתיימה סריקה. אחרי הסריקה הבאה, מה שיעבור את השערים יופיע כאן."
           )}
         </span>
       </p>

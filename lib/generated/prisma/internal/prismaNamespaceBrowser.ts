@@ -228,6 +228,7 @@ export const ContactScalarFieldEnum = {
   lastJobCheckAt: 'lastJobCheckAt',
   radarInclude: 'radarInclude',
   messageLanguage: 'messageLanguage',
+  radarAddedAt: 'radarAddedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   companyId: 'companyId'

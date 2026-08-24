@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { ApprovalsTab } from "./approvals-tab";
+import { PeopleTab } from "./people-tab";
 
 /**
  * The three-tab shell of /routine/radar. Same data, two stories: the default tab is
@@ -74,7 +75,7 @@ export function RadarShell() {
         </header>
 
         {tab === "approvals" && <ApprovalsTab />}
-        {tab === "people" && <ComingSoon title="אנשים במעקב" />}
+        {tab === "people" && <PeopleTab />}
         {tab === "decisions" && <ComingSoon title="מסלול ההחלטות" />}
       </div>
     </div>
