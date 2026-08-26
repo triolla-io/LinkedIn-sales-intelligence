@@ -165,6 +165,11 @@ export function parseTriageResponse(text: string, validUrls: Set<string>): Triag
       stature: clampScore(o.stature),
       kind: asKind(o.kind),
       publisher: str(o.publisher),
+      // This is the model's judgement that the IDEA is old news to insiders — a
+      // brand-new article rehashing a stale idea is still staleness=true. It is
+      // unrelated to the hard 30-day publish-date gate in freshness.ts, which runs
+      // on the pool before it ever reaches triage; that gate does not make this
+      // field redundant, and neither makes the other unnecessary.
       staleness: o.staleness === true,
       // Absent means false: a missing field must never be read as "yes, Israel-relevant",
       // or a model that forgets the key would silently satisfy the acceptance bar.

@@ -8,6 +8,10 @@ const UNIT_MS: Record<string, number> = {
   hour: 3_600_000,
   day: 86_400_000,
   week: 7 * 86_400_000,
+  // Flat 30 days: a serper item reported as "1 month ago" is stamped at fetch time and
+  // the freshness gate compares it slightly later, so it lands just outside the 30-day
+  // window and is deterministically dropped. Acceptable — an item this vague about its
+  // own age is borderline by definition.
   month: 30 * 86_400_000,
 };
 

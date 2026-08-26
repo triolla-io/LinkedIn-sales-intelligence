@@ -14,7 +14,7 @@ import { openrouterChat } from "@/lib/openrouter/client";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
 import { OR_FEATURE } from "@/lib/tech-radar/types";
 import { isIsraeliSource } from "@/lib/tech-radar/acceptance";
-import { publishedMs } from "./freshness";
+import { publishedMs } from "@/lib/tech-radar/freshness";
 
 const MODEL = process.env.TECH_RADAR_MODEL ?? "anthropic/claude-haiku-4.5";
 
@@ -172,7 +172,6 @@ function poolRank(a: PoolRankable, b: PoolRankable): number {
 }
 
 type PoolRankable = { url: string; companyIds: string[]; publishedAt?: string | null };
-
 
 export function capPoolByAxis<T extends PoolRankable>(
   items: T[],
