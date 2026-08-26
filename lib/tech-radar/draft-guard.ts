@@ -21,7 +21,9 @@ export type DraftViolation =
   | "duplicate_possessive"
   /** A Hebrew letter touching a Latin one with no separator: "שProtoPie", "לprototyping". */
   | "glued_script"
-  | "emoji";
+  | "emoji"
+  /** Over MAX_DRAFT_CHARS, excluding the URL — the backstop once the message grows to a paragraph. */
+  | "too_long";
 
 /**
  * Phrases, not vibes. Each pattern is anchored on wording that actually appeared, so a
@@ -29,7 +31,7 @@ export type DraftViolation =
  */
 const RULES: { code: DraftViolation; pattern: RegExp }[] = [
   { code: "adoption_suggestion", pattern: /אולי\s+תוכל(?:ו|י)?\s+לשלב|כדאי\s+ל(?:בדוק|שקול|הסתכל)|שווה\s+ל(?:בדוק|הסתכל)|ממליץ\s+ל/u },
-  { code: "ask", pattern: /מה\s+דעת(?:ך|כם)|א?שמח\s+לשמוע|נשמח\s+לשמוע|בוא(?:י)?\s+נ(?:דבר|קבע)|שיחה\s+קצרה|מעניין\s+אות(?:ך|כם)|\?/u },
+  { code: "ask", pattern: /מה\s+דעת(?:ך|כם)|א?שמח\s+לשמוע|נשמח\s+לשמוע|בוא(?:י)?\s+נ(?:דבר|קבע)|שיחה\s+קצרה|מעניין\s+אות(?:ך|כם)/u },
   { code: "self_pitch", pattern: /אנחנו\s+(?:יכולים|עושים)|נוכל\s+לעזור|השירות\s+שלנו|החברה\s+שלנו|אצלנו\s+ב/u },
   { code: "duplicate_possessive", pattern: /של(?:כם|כן|ך|ו|ה)\s+אצל(?:כם|כן|ך|ו|ה)/u },
   // Direct adjacency of the two scripts is always a typography failure in Hebrew —
@@ -38,10 +40,24 @@ const RULES: { code: DraftViolation; pattern: RegExp }[] = [
   { code: "emoji", pattern: /\p{Extended_Pictographic}/u },
 ];
 
+/** Beyond this a message has stopped forwarding one item and started pitching. */
+export const MAX_DRAFT_CHARS = 600;
+
 /** Every rule the message breaks, in a stable order. Empty means it passed. */
 export function checkDraft(message: string): DraftViolation[] {
-  const text = typeof message === "string" ? message : "";
-  return RULES.filter((r) => r.pattern.test(text)).map((r) => r.code);
+  const raw = typeof message === "string" ? message : "";
+  // URLs are not prose: their "?" is not an ask and their length is not the
+  // reader's burden.
+  const text = raw.replace(/https?:\/\/\S+/gu, " ");
+  const out = RULES.filter((r) => r.pattern.test(text)).map((r) => r.code);
+  // A rhetorical question may OPEN the message (the sender's real voice); a
+  // question anywhere later is an ask — the no-CTA guarantee lives on the tail
+  // of the message, not on its opener.
+  const boundary = text.search(/[.!?\n]/u);
+  const tail = boundary === -1 ? "" : text.slice(boundary + 1);
+  if (tail.includes("?") && !out.includes("ask")) out.push("ask");
+  if (text.replace(/\s+/gu, " ").trim().length > MAX_DRAFT_CHARS) out.push("too_long");
+  return out;
 }
 
 export type AxisLabelViolation =

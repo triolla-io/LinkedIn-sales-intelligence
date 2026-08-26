@@ -21,7 +21,7 @@
  */
 import { openrouterChat } from "@/lib/openrouter/client";
 import { isSearchEngineHost } from "@/lib/news/canonical-url";
-import { checkDraft } from "@/lib/tech-radar/draft-guard";
+import { checkDraft, MAX_DRAFT_CHARS } from "@/lib/tech-radar/draft-guard";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
 import { OR_FEATURE } from "@/lib/tech-radar/types";
 
@@ -235,7 +235,7 @@ export function enforceDraftRules(message: string, input: TechDraftInput): Draft
     return {
       ok: false,
       reason: `draft-guard: ${violations.join(", ")}`,
-      instruction: `Your previous attempt broke these rules: ${violations.join(", ")}. Rewrite it — no question or ask of any kind, no suggestion to adopt or evaluate, nothing about us or our services, no emoji, no doubled possessive.`,
+      instruction: `Your previous attempt broke these rules: ${violations.join(", ")}. Rewrite it — a question mark only in the opening sentence, no ask of any kind, no suggestion to adopt or evaluate, nothing about us or our services, no emoji, no doubled possessive, and at most ${MAX_DRAFT_CHARS} characters before the link.`,
       retryable: true,
     };
   }
