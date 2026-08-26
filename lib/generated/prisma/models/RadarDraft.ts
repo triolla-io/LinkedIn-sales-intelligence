@@ -46,6 +46,7 @@ export type RadarDraftMinAggregateOutputType = {
   confidence: number | null
   status: $Enums.RadarDraftStatus | null
   discardReason: string | null
+  supersededAt: Date | null
   sentAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -62,6 +63,7 @@ export type RadarDraftMaxAggregateOutputType = {
   confidence: number | null
   status: $Enums.RadarDraftStatus | null
   discardReason: string | null
+  supersededAt: Date | null
   sentAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -79,6 +81,7 @@ export type RadarDraftCountAggregateOutputType = {
   confidenceParts: number
   status: number
   discardReason: number
+  supersededAt: number
   sentAt: number
   createdAt: number
   updatedAt: number
@@ -105,6 +108,7 @@ export type RadarDraftMinAggregateInputType = {
   confidence?: true
   status?: true
   discardReason?: true
+  supersededAt?: true
   sentAt?: true
   createdAt?: true
   updatedAt?: true
@@ -121,6 +125,7 @@ export type RadarDraftMaxAggregateInputType = {
   confidence?: true
   status?: true
   discardReason?: true
+  supersededAt?: true
   sentAt?: true
   createdAt?: true
   updatedAt?: true
@@ -138,6 +143,7 @@ export type RadarDraftCountAggregateInputType = {
   confidenceParts?: true
   status?: true
   discardReason?: true
+  supersededAt?: true
   sentAt?: true
   createdAt?: true
   updatedAt?: true
@@ -242,6 +248,7 @@ export type RadarDraftGroupByOutputType = {
   confidenceParts: runtime.JsonValue | null
   status: $Enums.RadarDraftStatus
   discardReason: string | null
+  supersededAt: Date | null
   sentAt: Date | null
   createdAt: Date
   updatedAt: Date
@@ -282,6 +289,7 @@ export type RadarDraftWhereInput = {
   confidenceParts?: Prisma.JsonNullableFilter<"RadarDraft">
   status?: Prisma.EnumRadarDraftStatusFilter<"RadarDraft"> | $Enums.RadarDraftStatus
   discardReason?: Prisma.StringNullableFilter<"RadarDraft"> | string | null
+  supersededAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
   sentAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"RadarDraft"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RadarDraft"> | Date | string
@@ -303,6 +311,7 @@ export type RadarDraftOrderByWithRelationInput = {
   confidenceParts?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   discardReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  supersededAt?: Prisma.SortOrderInput | Prisma.SortOrder
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -328,6 +337,7 @@ export type RadarDraftWhereUniqueInput = Prisma.AtLeast<{
   confidenceParts?: Prisma.JsonNullableFilter<"RadarDraft">
   status?: Prisma.EnumRadarDraftStatusFilter<"RadarDraft"> | $Enums.RadarDraftStatus
   discardReason?: Prisma.StringNullableFilter<"RadarDraft"> | string | null
+  supersededAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
   sentAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"RadarDraft"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RadarDraft"> | Date | string
@@ -349,6 +359,7 @@ export type RadarDraftOrderByWithAggregationInput = {
   confidenceParts?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   discardReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  supersededAt?: Prisma.SortOrderInput | Prisma.SortOrder
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -374,6 +385,7 @@ export type RadarDraftScalarWhereWithAggregatesInput = {
   confidenceParts?: Prisma.JsonNullableWithAggregatesFilter<"RadarDraft">
   status?: Prisma.EnumRadarDraftStatusWithAggregatesFilter<"RadarDraft"> | $Enums.RadarDraftStatus
   discardReason?: Prisma.StringNullableWithAggregatesFilter<"RadarDraft"> | string | null
+  supersededAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RadarDraft"> | Date | string | null
   sentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RadarDraft"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RadarDraft"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"RadarDraft"> | Date | string
@@ -387,6 +399,7 @@ export type RadarDraftCreateInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -408,6 +421,7 @@ export type RadarDraftUncheckedCreateInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -421,6 +435,7 @@ export type RadarDraftUpdateInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -442,6 +457,7 @@ export type RadarDraftUncheckedUpdateInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -459,6 +475,7 @@ export type RadarDraftCreateManyInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -472,6 +489,7 @@ export type RadarDraftUpdateManyMutationInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -489,6 +507,7 @@ export type RadarDraftUncheckedUpdateManyInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -521,6 +540,7 @@ export type RadarDraftCountOrderByAggregateInput = {
   confidenceParts?: Prisma.SortOrder
   status?: Prisma.SortOrder
   discardReason?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -541,6 +561,7 @@ export type RadarDraftMaxOrderByAggregateInput = {
   confidence?: Prisma.SortOrder
   status?: Prisma.SortOrder
   discardReason?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -557,6 +578,7 @@ export type RadarDraftMinOrderByAggregateInput = {
   confidence?: Prisma.SortOrder
   status?: Prisma.SortOrder
   discardReason?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -746,6 +768,7 @@ export type RadarDraftCreateWithoutOwnerInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -765,6 +788,7 @@ export type RadarDraftUncheckedCreateWithoutOwnerInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -811,6 +835,7 @@ export type RadarDraftScalarWhereInput = {
   confidenceParts?: Prisma.JsonNullableFilter<"RadarDraft">
   status?: Prisma.EnumRadarDraftStatusFilter<"RadarDraft"> | $Enums.RadarDraftStatus
   discardReason?: Prisma.StringNullableFilter<"RadarDraft"> | string | null
+  supersededAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
   sentAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"RadarDraft"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RadarDraft"> | Date | string
@@ -824,6 +849,7 @@ export type RadarDraftCreateWithoutContactInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -843,6 +869,7 @@ export type RadarDraftUncheckedCreateWithoutContactInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -882,6 +909,7 @@ export type RadarDraftCreateWithoutItemInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -901,6 +929,7 @@ export type RadarDraftUncheckedCreateWithoutItemInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -940,6 +969,7 @@ export type RadarDraftCreateWithoutAxisInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -959,6 +989,7 @@ export type RadarDraftUncheckedCreateWithoutAxisInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1001,6 +1032,7 @@ export type RadarDraftCreateManyOwnerInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1014,6 +1046,7 @@ export type RadarDraftUpdateWithoutOwnerInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1033,6 +1066,7 @@ export type RadarDraftUncheckedUpdateWithoutOwnerInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1049,6 +1083,7 @@ export type RadarDraftUncheckedUpdateManyWithoutOwnerInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1065,6 +1100,7 @@ export type RadarDraftCreateManyContactInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1078,6 +1114,7 @@ export type RadarDraftUpdateWithoutContactInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1097,6 +1134,7 @@ export type RadarDraftUncheckedUpdateWithoutContactInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1113,6 +1151,7 @@ export type RadarDraftUncheckedUpdateManyWithoutContactInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1129,6 +1168,7 @@ export type RadarDraftCreateManyItemInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1142,6 +1182,7 @@ export type RadarDraftUpdateWithoutItemInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1161,6 +1202,7 @@ export type RadarDraftUncheckedUpdateWithoutItemInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1177,6 +1219,7 @@ export type RadarDraftUncheckedUpdateManyWithoutItemInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1193,6 +1236,7 @@ export type RadarDraftCreateManyAxisInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.RadarDraftStatus
   discardReason?: string | null
+  supersededAt?: Date | string | null
   sentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1206,6 +1250,7 @@ export type RadarDraftUpdateWithoutAxisInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1225,6 +1270,7 @@ export type RadarDraftUncheckedUpdateWithoutAxisInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1241,6 +1287,7 @@ export type RadarDraftUncheckedUpdateManyWithoutAxisInput = {
   confidenceParts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumRadarDraftStatusFieldUpdateOperationsInput | $Enums.RadarDraftStatus
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1260,6 +1307,7 @@ export type RadarDraftSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   confidenceParts?: boolean
   status?: boolean
   discardReason?: boolean
+  supersededAt?: boolean
   sentAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1281,6 +1329,7 @@ export type RadarDraftSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   confidenceParts?: boolean
   status?: boolean
   discardReason?: boolean
+  supersededAt?: boolean
   sentAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1302,6 +1351,7 @@ export type RadarDraftSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   confidenceParts?: boolean
   status?: boolean
   discardReason?: boolean
+  supersededAt?: boolean
   sentAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1323,12 +1373,13 @@ export type RadarDraftSelectScalar = {
   confidenceParts?: boolean
   status?: boolean
   discardReason?: boolean
+  supersededAt?: boolean
   sentAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type RadarDraftOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contactId" | "itemId" | "axisId" | "ownerId" | "draftMessage" | "whyHim" | "confidence" | "confidenceParts" | "status" | "discardReason" | "sentAt" | "createdAt" | "updatedAt", ExtArgs["result"]["radarDraft"]>
+export type RadarDraftOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contactId" | "itemId" | "axisId" | "ownerId" | "draftMessage" | "whyHim" | "confidence" | "confidenceParts" | "status" | "discardReason" | "supersededAt" | "sentAt" | "createdAt" | "updatedAt", ExtArgs["result"]["radarDraft"]>
 export type RadarDraftInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
   item?: boolean | Prisma.TechItemDefaultArgs<ExtArgs>
@@ -1377,6 +1428,12 @@ export type $RadarDraftPayload<ExtArgs extends runtime.Types.Extensions.Internal
     confidenceParts: runtime.JsonValue | null
     status: $Enums.RadarDraftStatus
     discardReason: string | null
+    /**
+     * Set when a rebuild removed the axis this was judged against. A stale veto must not
+     * be counted as the current decision, and a stale pending draft must not stay
+     * approvable. NEVER set on a SENT draft — that one really went out.
+     */
+    supersededAt: Date | null
     sentAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -1818,6 +1875,7 @@ export interface RadarDraftFieldRefs {
   readonly confidenceParts: Prisma.FieldRef<"RadarDraft", 'Json'>
   readonly status: Prisma.FieldRef<"RadarDraft", 'RadarDraftStatus'>
   readonly discardReason: Prisma.FieldRef<"RadarDraft", 'String'>
+  readonly supersededAt: Prisma.FieldRef<"RadarDraft", 'DateTime'>
   readonly sentAt: Prisma.FieldRef<"RadarDraft", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"RadarDraft", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"RadarDraft", 'DateTime'>

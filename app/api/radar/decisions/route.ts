@@ -48,7 +48,11 @@ export const GET = withTenant(async (_req, ctx) => {
   const [matches, drafts, run] = await Promise.all([
     axisIds.length
       ? prisma.axisMatch.findMany({
-          where: { axisId: { in: axisIds } },
+          // A match judged against an axis a rebuild retired is not the current
+          // decision. (axisIds already comes from LIVE subscriptions, so this is the
+          // belt to that braces: an axis can be retired for one person and live for
+          // another, and the match itself carries the flag.)
+          where: { axisId: { in: axisIds }, supersededAt: null },
           orderBy: { createdAt: "desc" },
           take: 200,
           select: {
@@ -62,7 +66,9 @@ export const GET = withTenant(async (_req, ctx) => {
         })
       : [],
     prisma.radarDraft.findMany({
-      where: { ownerId: ctx.effectiveUserId },
+      // Without this a stale veto attaches itself to an item that reaches the screen
+      // through a DIFFERENT live axis, and reads as this week's decision.
+      where: { ownerId: ctx.effectiveUserId, supersededAt: null },
       select: {
         id: true, contactId: true, axisId: true, itemId: true, status: true,
         whyHim: true, discardReason: true,

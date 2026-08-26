@@ -13,6 +13,7 @@ import { attachAxes, ensureCompanyMonitorAxis } from "@/lib/tech-radar/axis-stor
 import { countHebrewQueries } from "@/lib/tech-radar/axis";
 import { prisma as db } from "@/lib/prisma";
 import { isUsableProfile } from "@/lib/tech-radar/types";
+import { markSuperseded } from "@/lib/tech-radar/superseded";
 
 /** Rebuilt only when older than this — a role does not change weekly. */
 const STALE_AFTER_DAYS = 90;
@@ -29,6 +30,8 @@ export type BuildProfilesReport = {
   noHebrewQuery: string[];
   /** Every person who did NOT get a profile, and why. Never a silent shortfall. */
   skipped: { contactId: string; name: string; reason: string }[];
+  /** Stale judgements marked (never deleted) because their axis was retired. */
+  superseded: { matches: number; drafts: number };
   /**
    * Axes killed by each DETERMINISTIC rule. `title_pattern` is the compliance meter for
    * the prompt's prohibition on opening a rationale with the job title: a number that
@@ -53,6 +56,7 @@ export async function buildProfilesForMarked(input: {
   const report: BuildProfilesReport = {
     considered: 0, built: 0, refreshed: 0, axesCreated: 0, axesMerged: 0,
     hebrewQueriesByPerson: [], noHebrewQuery: [], skipped: [], rejectedByRule: {},
+    superseded: { matches: 0, drafts: 0 },
   };
 
   const contacts = await prisma.contact.findMany({
@@ -76,6 +80,10 @@ export async function buildProfilesForMarked(input: {
   });
 
   const staleBefore = new Date(Date.now() - STALE_AFTER_DAYS * 86_400_000);
+
+  /** Contacts whose model this run actually replaced — the only ones whose old
+   *  judgements are stale. Someone skipped or unchanged must not have history rewritten. */
+  const rebuilt: string[] = [];
 
   for (const contact of contacts) {
     const name = contact.fullName ?? contact.id;
@@ -186,9 +194,18 @@ export async function buildProfilesForMarked(input: {
       companyName: employer.name,
     });
 
+    rebuilt.push(contact.id);
     if (contact.personProfile) report.refreshed += 1;
     else report.built += 1;
   }
+
+  // Everything judged against the axes this run retired stops presenting itself as the
+  // current decision. Marked, not deleted, and never the SENT draft.
+  report.superseded = await markSuperseded({
+    orgId: input.orgId,
+    ownerId: input.ownerId,
+    contactIds: rebuilt,
+  });
 
   // Verified against the database, not against the prompt. A prompt that asks for a
   // Hebrew query and a pipeline that drops it look identical from the prompt's side.

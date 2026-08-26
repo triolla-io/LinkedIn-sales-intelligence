@@ -97,6 +97,23 @@ describe("GET /api/radar/approvals", () => {
   });
 
   /**
+   * A rebuild invalidates every judgement made against the axes it removed. Erez
+   * Rachmil's 11 vetoes were all judged through the old CTO lens; counting them as
+   * "נפסלו בשער האישי" this week would report stale reasoning as the current decision.
+   */
+  it("excludes superseded drafts from the pending list and the weekly veto count", async () => {
+    draftFindMany.mockResolvedValue([pendingDraft()]);
+    const res = await GET(req);
+    await (res as Response).json();
+
+    const pendingWhere = draftFindMany.mock.calls[0][0].where;
+    expect(pendingWhere.supersededAt).toBeNull();
+
+    const vetoWhere = draftGroupBy.mock.calls[0][0].where;
+    expect(vetoWhere.supersededAt).toBeNull();
+  });
+
+  /**
    * A contact's extra channels ride along on the card, so the client can offer "שלח
    * בוואטסאפ" for the people whose relationship supports it (channels=["whatsapp"]).
    * The default — empty channels — keeps the card LinkedIn-only.

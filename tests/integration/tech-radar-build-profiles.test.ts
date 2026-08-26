@@ -13,8 +13,28 @@ vi.mock("@/lib/prisma", () => ({
       upsert: (...a: unknown[]) => profileUpsert(...a),
       findMany: (...a: unknown[]) => profileFindMany(...a),
     },
+    // The rebuild detaches stale subscriptions and marks what they had already produced.
+    personAxis: {
+      deleteMany: (...a: unknown[]) => personAxisDeleteMany(...a),
+      findMany: (...a: unknown[]) => personAxisFindMany(...a),
+    },
+    axisMatch: {
+      findMany: (...a: unknown[]) => axisMatchFindMany(...a),
+      updateMany: (...a: unknown[]) => axisMatchUpdateMany(...a),
+    },
+    radarDraft: {
+      findMany: (...a: unknown[]) => draftFindMany(...a),
+      updateMany: (...a: unknown[]) => draftUpdateMany(...a),
+    },
   },
 }));
+
+const personAxisDeleteMany = vi.fn(async (..._a: unknown[]) => ({ count: 0 }));
+const personAxisFindMany = vi.fn(async (..._a: unknown[]) => [] as unknown[]);
+const axisMatchFindMany = vi.fn(async (..._a: unknown[]) => [] as unknown[]);
+const axisMatchUpdateMany = vi.fn(async (..._a: unknown[]) => ({ count: 0 }));
+const draftFindMany = vi.fn(async (..._a: unknown[]) => [] as unknown[]);
+const draftUpdateMany = vi.fn(async (..._a: unknown[]) => ({ count: 0 }));
 
 const buildPersonProfile = vi.fn();
 vi.mock("@/lib/tech-radar/person-profile", () => ({

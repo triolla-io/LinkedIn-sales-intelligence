@@ -42,6 +42,7 @@ export type AxisMatchMinAggregateOutputType = {
   rationale: string | null
   score: number | null
   createdAt: Date | null
+  supersededAt: Date | null
 }
 
 export type AxisMatchMaxAggregateOutputType = {
@@ -51,6 +52,7 @@ export type AxisMatchMaxAggregateOutputType = {
   rationale: string | null
   score: number | null
   createdAt: Date | null
+  supersededAt: Date | null
 }
 
 export type AxisMatchCountAggregateOutputType = {
@@ -60,6 +62,7 @@ export type AxisMatchCountAggregateOutputType = {
   rationale: number
   score: number
   createdAt: number
+  supersededAt: number
   _all: number
 }
 
@@ -79,6 +82,7 @@ export type AxisMatchMinAggregateInputType = {
   rationale?: true
   score?: true
   createdAt?: true
+  supersededAt?: true
 }
 
 export type AxisMatchMaxAggregateInputType = {
@@ -88,6 +92,7 @@ export type AxisMatchMaxAggregateInputType = {
   rationale?: true
   score?: true
   createdAt?: true
+  supersededAt?: true
 }
 
 export type AxisMatchCountAggregateInputType = {
@@ -97,6 +102,7 @@ export type AxisMatchCountAggregateInputType = {
   rationale?: true
   score?: true
   createdAt?: true
+  supersededAt?: true
   _all?: true
 }
 
@@ -193,6 +199,7 @@ export type AxisMatchGroupByOutputType = {
   rationale: string
   score: number
   createdAt: Date
+  supersededAt: Date | null
   _count: AxisMatchCountAggregateOutputType | null
   _avg: AxisMatchAvgAggregateOutputType | null
   _sum: AxisMatchSumAggregateOutputType | null
@@ -225,6 +232,7 @@ export type AxisMatchWhereInput = {
   rationale?: Prisma.StringFilter<"AxisMatch"> | string
   score?: Prisma.FloatFilter<"AxisMatch"> | number
   createdAt?: Prisma.DateTimeFilter<"AxisMatch"> | Date | string
+  supersededAt?: Prisma.DateTimeNullableFilter<"AxisMatch"> | Date | string | null
   axis?: Prisma.XOR<Prisma.RadarAxisScalarRelationFilter, Prisma.RadarAxisWhereInput>
   item?: Prisma.XOR<Prisma.TechItemScalarRelationFilter, Prisma.TechItemWhereInput>
 }
@@ -236,6 +244,7 @@ export type AxisMatchOrderByWithRelationInput = {
   rationale?: Prisma.SortOrder
   score?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrderInput | Prisma.SortOrder
   axis?: Prisma.RadarAxisOrderByWithRelationInput
   item?: Prisma.TechItemOrderByWithRelationInput
 }
@@ -251,6 +260,7 @@ export type AxisMatchWhereUniqueInput = Prisma.AtLeast<{
   rationale?: Prisma.StringFilter<"AxisMatch"> | string
   score?: Prisma.FloatFilter<"AxisMatch"> | number
   createdAt?: Prisma.DateTimeFilter<"AxisMatch"> | Date | string
+  supersededAt?: Prisma.DateTimeNullableFilter<"AxisMatch"> | Date | string | null
   axis?: Prisma.XOR<Prisma.RadarAxisScalarRelationFilter, Prisma.RadarAxisWhereInput>
   item?: Prisma.XOR<Prisma.TechItemScalarRelationFilter, Prisma.TechItemWhereInput>
 }, "id" | "axisId_itemId">
@@ -262,6 +272,7 @@ export type AxisMatchOrderByWithAggregationInput = {
   rationale?: Prisma.SortOrder
   score?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AxisMatchCountOrderByAggregateInput
   _avg?: Prisma.AxisMatchAvgOrderByAggregateInput
   _max?: Prisma.AxisMatchMaxOrderByAggregateInput
@@ -279,6 +290,7 @@ export type AxisMatchScalarWhereWithAggregatesInput = {
   rationale?: Prisma.StringWithAggregatesFilter<"AxisMatch"> | string
   score?: Prisma.FloatWithAggregatesFilter<"AxisMatch"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AxisMatch"> | Date | string
+  supersededAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AxisMatch"> | Date | string | null
 }
 
 export type AxisMatchCreateInput = {
@@ -286,6 +298,7 @@ export type AxisMatchCreateInput = {
   rationale: string
   score: number
   createdAt?: Date | string
+  supersededAt?: Date | string | null
   axis: Prisma.RadarAxisCreateNestedOneWithoutMatchesInput
   item: Prisma.TechItemCreateNestedOneWithoutAxisMatchesInput
 }
@@ -297,6 +310,7 @@ export type AxisMatchUncheckedCreateInput = {
   rationale: string
   score: number
   createdAt?: Date | string
+  supersededAt?: Date | string | null
 }
 
 export type AxisMatchUpdateInput = {
@@ -304,6 +318,7 @@ export type AxisMatchUpdateInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   axis?: Prisma.RadarAxisUpdateOneRequiredWithoutMatchesNestedInput
   item?: Prisma.TechItemUpdateOneRequiredWithoutAxisMatchesNestedInput
 }
@@ -315,6 +330,7 @@ export type AxisMatchUncheckedUpdateInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AxisMatchCreateManyInput = {
@@ -324,6 +340,7 @@ export type AxisMatchCreateManyInput = {
   rationale: string
   score: number
   createdAt?: Date | string
+  supersededAt?: Date | string | null
 }
 
 export type AxisMatchUpdateManyMutationInput = {
@@ -331,6 +348,7 @@ export type AxisMatchUpdateManyMutationInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AxisMatchUncheckedUpdateManyInput = {
@@ -340,6 +358,7 @@ export type AxisMatchUncheckedUpdateManyInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AxisMatchListRelationFilter = {
@@ -364,6 +383,7 @@ export type AxisMatchCountOrderByAggregateInput = {
   rationale?: Prisma.SortOrder
   score?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrder
 }
 
 export type AxisMatchAvgOrderByAggregateInput = {
@@ -377,6 +397,7 @@ export type AxisMatchMaxOrderByAggregateInput = {
   rationale?: Prisma.SortOrder
   score?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrder
 }
 
 export type AxisMatchMinOrderByAggregateInput = {
@@ -386,6 +407,7 @@ export type AxisMatchMinOrderByAggregateInput = {
   rationale?: Prisma.SortOrder
   score?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrder
 }
 
 export type AxisMatchSumOrderByAggregateInput = {
@@ -481,6 +503,7 @@ export type AxisMatchCreateWithoutItemInput = {
   rationale: string
   score: number
   createdAt?: Date | string
+  supersededAt?: Date | string | null
   axis: Prisma.RadarAxisCreateNestedOneWithoutMatchesInput
 }
 
@@ -490,6 +513,7 @@ export type AxisMatchUncheckedCreateWithoutItemInput = {
   rationale: string
   score: number
   createdAt?: Date | string
+  supersededAt?: Date | string | null
 }
 
 export type AxisMatchCreateOrConnectWithoutItemInput = {
@@ -528,6 +552,7 @@ export type AxisMatchScalarWhereInput = {
   rationale?: Prisma.StringFilter<"AxisMatch"> | string
   score?: Prisma.FloatFilter<"AxisMatch"> | number
   createdAt?: Prisma.DateTimeFilter<"AxisMatch"> | Date | string
+  supersededAt?: Prisma.DateTimeNullableFilter<"AxisMatch"> | Date | string | null
 }
 
 export type AxisMatchCreateWithoutAxisInput = {
@@ -535,6 +560,7 @@ export type AxisMatchCreateWithoutAxisInput = {
   rationale: string
   score: number
   createdAt?: Date | string
+  supersededAt?: Date | string | null
   item: Prisma.TechItemCreateNestedOneWithoutAxisMatchesInput
 }
 
@@ -544,6 +570,7 @@ export type AxisMatchUncheckedCreateWithoutAxisInput = {
   rationale: string
   score: number
   createdAt?: Date | string
+  supersededAt?: Date | string | null
 }
 
 export type AxisMatchCreateOrConnectWithoutAxisInput = {
@@ -578,6 +605,7 @@ export type AxisMatchCreateManyItemInput = {
   rationale: string
   score: number
   createdAt?: Date | string
+  supersededAt?: Date | string | null
 }
 
 export type AxisMatchUpdateWithoutItemInput = {
@@ -585,6 +613,7 @@ export type AxisMatchUpdateWithoutItemInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   axis?: Prisma.RadarAxisUpdateOneRequiredWithoutMatchesNestedInput
 }
 
@@ -594,6 +623,7 @@ export type AxisMatchUncheckedUpdateWithoutItemInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AxisMatchUncheckedUpdateManyWithoutItemInput = {
@@ -602,6 +632,7 @@ export type AxisMatchUncheckedUpdateManyWithoutItemInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AxisMatchCreateManyAxisInput = {
@@ -610,6 +641,7 @@ export type AxisMatchCreateManyAxisInput = {
   rationale: string
   score: number
   createdAt?: Date | string
+  supersededAt?: Date | string | null
 }
 
 export type AxisMatchUpdateWithoutAxisInput = {
@@ -617,6 +649,7 @@ export type AxisMatchUpdateWithoutAxisInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   item?: Prisma.TechItemUpdateOneRequiredWithoutAxisMatchesNestedInput
 }
 
@@ -626,6 +659,7 @@ export type AxisMatchUncheckedUpdateWithoutAxisInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AxisMatchUncheckedUpdateManyWithoutAxisInput = {
@@ -634,6 +668,7 @@ export type AxisMatchUncheckedUpdateManyWithoutAxisInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -645,6 +680,7 @@ export type AxisMatchSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   rationale?: boolean
   score?: boolean
   createdAt?: boolean
+  supersededAt?: boolean
   axis?: boolean | Prisma.RadarAxisDefaultArgs<ExtArgs>
   item?: boolean | Prisma.TechItemDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["axisMatch"]>
@@ -656,6 +692,7 @@ export type AxisMatchSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   rationale?: boolean
   score?: boolean
   createdAt?: boolean
+  supersededAt?: boolean
   axis?: boolean | Prisma.RadarAxisDefaultArgs<ExtArgs>
   item?: boolean | Prisma.TechItemDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["axisMatch"]>
@@ -667,6 +704,7 @@ export type AxisMatchSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   rationale?: boolean
   score?: boolean
   createdAt?: boolean
+  supersededAt?: boolean
   axis?: boolean | Prisma.RadarAxisDefaultArgs<ExtArgs>
   item?: boolean | Prisma.TechItemDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["axisMatch"]>
@@ -678,9 +716,10 @@ export type AxisMatchSelectScalar = {
   rationale?: boolean
   score?: boolean
   createdAt?: boolean
+  supersededAt?: boolean
 }
 
-export type AxisMatchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "axisId" | "itemId" | "rationale" | "score" | "createdAt", ExtArgs["result"]["axisMatch"]>
+export type AxisMatchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "axisId" | "itemId" | "rationale" | "score" | "createdAt" | "supersededAt", ExtArgs["result"]["axisMatch"]>
 export type AxisMatchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   axis?: boolean | Prisma.RadarAxisDefaultArgs<ExtArgs>
   item?: boolean | Prisma.TechItemDefaultArgs<ExtArgs>
@@ -707,6 +746,12 @@ export type $AxisMatchPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     rationale: string
     score: number
     createdAt: Date
+    /**
+     * Set when a rebuild left this axis with no subscribers: the judgement was made
+     * through a lens nobody holds any more. Marked, never deleted — see
+     * lib/tech-radar/superseded.ts.
+     */
+    supersededAt: Date | null
   }, ExtArgs["result"]["axisMatch"]>
   composites: {}
 }
@@ -1138,6 +1183,7 @@ export interface AxisMatchFieldRefs {
   readonly rationale: Prisma.FieldRef<"AxisMatch", 'String'>
   readonly score: Prisma.FieldRef<"AxisMatch", 'Float'>
   readonly createdAt: Prisma.FieldRef<"AxisMatch", 'DateTime'>
+  readonly supersededAt: Prisma.FieldRef<"AxisMatch", 'DateTime'>
 }
     
 

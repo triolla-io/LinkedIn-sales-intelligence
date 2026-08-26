@@ -46,7 +46,13 @@ export const GET = withTenant(async (_req, ctx) => {
     prisma.radarDraft.findMany({
       // PREPARING/PREPARED stay visible: the card has to survive until the user confirms
       // "שלחתי", or the prepare flow loses its confirmation step on the next poll.
-      where: { ownerId: ctx.effectiveUserId, status: { in: ["PENDING_REVIEW", "PREPARING", "PREPARED"] } },
+      // supersededAt: a rebuild replaced the axis this was judged against, so the card
+      // is no longer approvable — the reasoning behind it belongs to a lens nobody holds.
+      where: {
+        ownerId: ctx.effectiveUserId,
+        status: { in: ["PENDING_REVIEW", "PREPARING", "PREPARED"] },
+        supersededAt: null,
+      },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -85,7 +91,9 @@ export const GET = withTenant(async (_req, ctx) => {
       : [],
     prisma.radarDraft.groupBy({
       by: ["contactId"],
-      where: { ownerId: ctx.effectiveUserId, status: "VETOED", createdAt: { gte: weekAgo } },
+      // Stale vetoes must not read as "N נפסלו בשער האישי" this week: Erez Rachmil's 11
+      // were all judged through the CTO lens the rebuild removed.
+      where: { ownerId: ctx.effectiveUserId, status: "VETOED", createdAt: { gte: weekAgo }, supersededAt: null },
       _count: { _all: true },
     }),
     pending.length

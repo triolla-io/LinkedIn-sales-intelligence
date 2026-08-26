@@ -1362,6 +1362,10 @@ model AxisMatch {
   rationale String
   score     Float
   createdAt DateTime @default(now())
+  /// Set when a rebuild left this axis with no subscribers: the judgement was made
+  /// through a lens nobody holds any more. Marked, never deleted — see
+  /// lib/tech-radar/superseded.ts.
+  supersededAt DateTime?
 
   axis RadarAxis @relation(fields: [axisId], references: [id], onDelete: Cascade)
   item TechItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
@@ -1397,6 +1401,10 @@ model RadarDraft {
   confidenceParts Json?
   status          RadarDraftStatus @default(PENDING_REVIEW)
   discardReason   String?
+  /// Set when a rebuild removed the axis this was judged against. A stale veto must not
+  /// be counted as the current decision, and a stale pending draft must not stay
+  /// approvable. NEVER set on a SENT draft — that one really went out.
+  supersededAt    DateTime?
   sentAt          DateTime?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt

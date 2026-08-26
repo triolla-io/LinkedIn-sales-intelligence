@@ -5153,7 +5153,8 @@ export const AxisMatchScalarFieldEnum = {
   itemId: 'itemId',
   rationale: 'rationale',
   score: 'score',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  supersededAt: 'supersededAt'
 } as const
 
 export type AxisMatchScalarFieldEnum = (typeof AxisMatchScalarFieldEnum)[keyof typeof AxisMatchScalarFieldEnum]
@@ -5171,6 +5172,7 @@ export const RadarDraftScalarFieldEnum = {
   confidenceParts: 'confidenceParts',
   status: 'status',
   discardReason: 'discardReason',
+  supersededAt: 'supersededAt',
   sentAt: 'sentAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
