@@ -11,7 +11,9 @@ import { buildPersonProfile, type AxisProposal } from "@/lib/tech-radar/person-p
 import { gateRationales } from "@/lib/tech-radar/rationale-gate";
 import { attachAxes, ensureCompanyMonitorAxis, ensureIndustryAxis } from "@/lib/tech-radar/axis-store";
 import { countHebrewQueries } from "@/lib/tech-radar/axis";
-import { poolQueryCount } from "@/lib/tech-radar/person-scan";
+import { poolQueryCount, MAX_QUERIES_PER_AXIS } from "@/lib/tech-radar/person-scan";
+import { buildAxisQueryPool } from "@/lib/tech-radar/axis-fit";
+import { normalizeQuery } from "@/lib/tech-radar/queries";
 import { prisma as db } from "@/lib/prisma";
 import { isUsableProfile } from "@/lib/tech-radar/types";
 import { markSuperseded } from "@/lib/tech-radar/superseded";
@@ -294,11 +296,19 @@ export async function buildProfilesForMarked(input: {
     // the profile row and the industry subscription are safe to write unconditionally;
     // the detach stays gated behind having something to detach FOR.
     if (employerFacts?.industry?.canonical && (employerFacts.industry.queries?.length ?? 0) > 0) {
-      await ensureIndustryAxis({
+      const industryAxisId = await ensureIndustryAxis({
         orgId: input.orgId,
         personProfileId: profile.id,
         industry: employerFacts.industry,
       });
+      // Task 8's all-filler-canonical guard: a canonical made only of stopwords
+      // normalises to an empty key and ensureIndustryAxis refuses to mint a degenerate
+      // axis for it, returning null. That refusal is correct — but silently discarded
+      // here would leave the person with NO industry link and no explanation why,
+      // exactly the silent-gap pattern this review exists to catch.
+      if (industryAxisId === null) {
+        report.notes.push(`industry_key_empty: ${employer.name}`);
+      }
     } else {
       // Task 8's own interface note: the skip itself is correct (never invent an industry
       // for a profile researched before research v2) but it was silent — indistinguishable
@@ -402,15 +412,26 @@ export async function buildProfilesForMarked(input: {
     select: {
       contact: { select: { fullName: true } },
       employerTrackedCompanyId: true,
-      axes: { select: { agenda: true, axis: { select: { id: true, kind: true, searchQueries: true } } } },
+      axes: {
+        select: {
+          agenda: true,
+          mutedAt: true,
+          axis: { select: { id: true, kind: true, status: true, searchQueries: true } },
+        },
+      },
     },
   });
-  const industryQueries = new Set<string>();
-  const companyMonitorQueries = new Set<string>();
-  const personQueries = new Set<string>();
-  /** Per INDUSTRY axis id: which employers subscribe to it, and how many queries it
-   *  carries — the two ingredients of the savedQueries formula below. */
-  const industryAxes = new Map<string, { employerIds: Set<string>; queryCount: number }>();
+  /**
+   * Every ACTIVE, un-muted axis this cohort actually subscribes to, deduped by id (a
+   * shared INDUSTRY axis appears once per subscriber but must only be counted once) and
+   * carrying which employers subscribe to it — the two ingredients layerQueries and
+   * industryShared.savedQueries both need.
+   *
+   * A muted link is not scanned (axis-store.ts) and a non-ACTIVE axis (MERGED/RETIRED/
+   * TOO_BROAD) can still be joined via a stale PersonAxis row — neither belongs in a
+   * report describing what the pool actually fetches.
+   */
+  const liveAxes = new Map<string, { kind: string; searchQueries: string[]; employerIds: Set<string> }>();
   for (const row of built) {
     const name = row.contact.fullName ?? "?";
     const hebrew = countHebrewQueries(row.axes.map((a) => a.axis));
@@ -419,17 +440,13 @@ export async function buildProfilesForMarked(input: {
     if (hebrew === 0) report.noHebrewQuery.push(name);
 
     for (const a of row.axes) {
-      const queries = a.axis.searchQueries ?? [];
-      if (a.axis.kind === "INDUSTRY") {
-        for (const q of queries) industryQueries.add(q);
-        const entry = industryAxes.get(a.axis.id) ?? { employerIds: new Set(), queryCount: queries.length };
-        if (row.employerTrackedCompanyId) entry.employerIds.add(row.employerTrackedCompanyId);
-        industryAxes.set(a.axis.id, entry);
-      } else if (a.axis.kind === "COMPANY_MONITOR") {
-        for (const q of queries) companyMonitorQueries.add(q);
-      } else {
-        for (const q of queries) personQueries.add(q);
+      if (a.mutedAt || a.axis.status !== "ACTIVE") continue;
+      let entry = liveAxes.get(a.axis.id);
+      if (!entry) {
+        entry = { kind: a.axis.kind, searchQueries: a.axis.searchQueries ?? [], employerIds: new Set() };
+        liveAxes.set(a.axis.id, entry);
       }
+      if (row.employerTrackedCompanyId) entry.employerIds.add(row.employerTrackedCompanyId);
     }
   }
   if (report.noHebrewQuery.length > 0) {
@@ -437,19 +454,38 @@ export async function buildProfilesForMarked(input: {
       `[radar] INVARIANT FAILED org=${input.orgId}: no Hebrew query for ${report.noHebrewQuery.join(", ")} — these people cannot reach Israeli press`
     );
   }
+
+  // Unique query strings per kind, capped and deduped by buildAxisQueryPool — the SAME
+  // function and the SAME effective per-axis limit (MAX_QUERIES_PER_AXIS) the real pool
+  // fetches under, so this number can never claim more recall than a scan would actually
+  // buy. Anything that is not INDUSTRY or COMPANY_MONITOR falls into "person" by default,
+  // so a future RadarAxisKind is counted rather than silently dropped.
+  const byKind: Record<"industry" | "companyMonitor" | "person", { id: string; searchQueries: string[] }[]> = {
+    industry: [], companyMonitor: [], person: [],
+  };
+  for (const [id, entry] of liveAxes) {
+    const bucket = entry.kind === "INDUSTRY" ? "industry" : entry.kind === "COMPANY_MONITOR" ? "companyMonitor" : "person";
+    byKind[bucket].push({ id, searchQueries: entry.searchQueries });
+  }
   report.layerQueries = {
-    industry: industryQueries.size,
-    companyMonitor: companyMonitorQueries.size,
-    person: personQueries.size,
+    industry: buildAxisQueryPool(byKind.industry, normalizeQuery, MAX_QUERIES_PER_AXIS).length,
+    companyMonitor: buildAxisQueryPool(byKind.companyMonitor, normalizeQuery, MAX_QUERIES_PER_AXIS).length,
+    person: buildAxisQueryPool(byKind.person, normalizeQuery, MAX_QUERIES_PER_AXIS).length,
   };
   {
     let savedQueries = 0;
+    let industries = 0;
     const sharedEmployerIds = new Set<string>();
-    for (const { employerIds, queryCount } of industryAxes.values()) {
-      savedQueries += Math.max(0, employerIds.size - 1) * queryCount;
-      for (const id of employerIds) sharedEmployerIds.add(id);
+    for (const [id, entry] of liveAxes) {
+      if (entry.kind !== "INDUSTRY") continue;
+      industries += 1;
+      // This axis's OWN capped query count — the same cap, applied per-axis rather than
+      // pooled across axes, since savedQueries is a per-axis sum.
+      const queryCount = buildAxisQueryPool([{ id, searchQueries: entry.searchQueries }], normalizeQuery, MAX_QUERIES_PER_AXIS).length;
+      savedQueries += Math.max(0, entry.employerIds.size - 1) * queryCount;
+      for (const employerId of entry.employerIds) sharedEmployerIds.add(employerId);
     }
-    report.industryShared = { industries: industryAxes.size, employers: sharedEmployerIds.size, savedQueries };
+    report.industryShared = { industries, employers: sharedEmployerIds.size, savedQueries };
   }
 
   // Built with the run's own builder, normalizer and per-axis cap, so the number in

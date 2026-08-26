@@ -726,6 +726,32 @@ describe("attachAxes persists axis evidence", () => {
     });
     expect(personAxisUpsert.mock.calls[0][0].create.evidence).toEqual(evidence);
   });
+
+  /**
+   * Fix round 1 test gap: refresh-on-update (evidence written in BOTH create and update,
+   * mirroring rationale/agenda) was implemented but had zero coverage proving it actually
+   * refreshes rather than freezing at whatever the first build wrote.
+   */
+  it("refreshes evidence on a later build with a different rationale/decision — not frozen at the original", async () => {
+    axisFindMany.mockResolvedValue([
+      { id: "ax-existing", key: normalizeAxisKey("זיהוי הונאות"), label: "זיהוי הונאות", kind: "ROLE_COMPANY" },
+    ]);
+    const firstEvidence = { ...evidence, personDecision: "d1 — first build" };
+    const secondEvidence = { ...evidence, personDecision: "d2 — updated on a later build" };
+
+    await attachAxes({
+      orgId: "org1", personProfileId: "pp2", employer: HAPOALIM,
+      proposals: [{ ...proposal("הונאות זיהוי"), evidence: firstEvidence }],
+    });
+    await attachAxes({
+      orgId: "org1", personProfileId: "pp2", employer: HAPOALIM,
+      proposals: [{ ...proposal("הונאות זיהוי"), evidence: secondEvidence }],
+    });
+
+    expect(personAxisUpsert).toHaveBeenCalledTimes(2);
+    expect(personAxisUpsert.mock.calls[1][0].update.evidence).toEqual(secondEvidence);
+    expect(personAxisUpsert.mock.calls[1][0].update.evidence).not.toEqual(firstEvidence);
+  });
 });
 
 describe("attachAxes ceiling exemption for INDUSTRY", () => {

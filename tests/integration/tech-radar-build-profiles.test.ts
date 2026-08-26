@@ -75,6 +75,9 @@ vi.mock("@/lib/tech-radar/rationale-gate", () => ({
 
 vi.mock("@/lib/tech-radar/person-scan", () => ({
   poolQueryCount: (...a: unknown[]) => poolQueryCount(...a),
+  // The SAME effective per-axis cap the real pool fetches under — a report field that
+  // mirrors this must be tested against the real value, not an arbitrary mock number.
+  MAX_QUERIES_PER_AXIS: 3,
 }));
 
 const { buildProfilesForMarked } = await import("@/lib/tech-radar/build-profiles");
@@ -553,22 +556,23 @@ describe("persisting the model's receipts (Task 10)", () => {
         }],
       });
     // The DB read-back: two employers subscribed to the SAME shared INDUSTRY axis, plus
-    // their own ROLE_COMPANY axis each.
+    // their own ROLE_COMPANY axis each. `status: "ACTIVE"` and `mutedAt: null` on every
+    // row — the report must only count what the pool would actually fetch.
     profileFindMany.mockResolvedValue([
       {
         contact: { fullName: "Roy Hayumi" },
         employerTrackedCompanyId: "tc1",
         axes: [
-          { agenda: true, axis: { id: "ax-role1", kind: "ROLE_COMPANY", searchQueries: ["role query 1"] } },
-          { agenda: false, axis: { id: "ax-industry-1", kind: "INDUSTRY", searchQueries: ["חדשות ספורט", "sports industry outlook"] } },
+          { agenda: true, mutedAt: null, axis: { id: "ax-role1", kind: "ROLE_COMPANY", status: "ACTIVE", searchQueries: ["role query 1"] } },
+          { agenda: false, mutedAt: null, axis: { id: "ax-industry-1", kind: "INDUSTRY", status: "ACTIVE", searchQueries: ["חדשות ספורט", "sports industry outlook"] } },
         ],
       },
       {
         contact: { fullName: "Dana Cohen" },
         employerTrackedCompanyId: "tc2",
         axes: [
-          { agenda: true, axis: { id: "ax-role2", kind: "ROLE_COMPANY", searchQueries: ["role query 2"] } },
-          { agenda: false, axis: { id: "ax-industry-1", kind: "INDUSTRY", searchQueries: ["חדשות ספורט", "sports industry outlook"] } },
+          { agenda: true, mutedAt: null, axis: { id: "ax-role2", kind: "ROLE_COMPANY", status: "ACTIVE", searchQueries: ["role query 2"] } },
+          { agenda: false, mutedAt: null, axis: { id: "ax-industry-1", kind: "INDUSTRY", status: "ACTIVE", searchQueries: ["חדשות ספורט", "sports industry outlook"] } },
         ],
       },
     ]);
@@ -587,5 +591,92 @@ describe("persisting the model's receipts (Task 10)", () => {
     // ax-industry-1 has 2 distinct subscriber employers (tc1, tc2) and 2 queries:
     // savedQueries = (2 − 1) × 2 = 2 — the brief's "1 × queryCount".
     expect(out.industryShared).toEqual({ industries: 1, employers: 2, savedQueries: 2 });
+  });
+
+  /**
+   * Fix round 1: the read-back used raw `searchQueries.length`, with no cap — so
+   * `savedQueries` could overstate the industry net's real recall benefit by up to 2.5x
+   * relative to what the pool (capped by MAX_QUERIES_PER_AXIS, mocked here to 3) would
+   * actually fetch. Mirrors the SAME effective cap the pool itself uses, not a hardcoded
+   * number.
+   */
+  it("caps layerQueries and industryShared.savedQueries at the pool's own effective per-axis limit, not raw searchQueries.length", async () => {
+    contactFindMany.mockResolvedValue([contact()]);
+    const fiveQueries = ["q1", "q2", "q3", "q4", "q5"];
+    profileFindMany.mockResolvedValue([
+      {
+        contact: { fullName: "Roy Hayumi" },
+        employerTrackedCompanyId: "tc1",
+        axes: [
+          { agenda: false, mutedAt: null, axis: { id: "ax-industry-1", kind: "INDUSTRY", status: "ACTIVE", searchQueries: fiveQueries } },
+        ],
+      },
+      {
+        contact: { fullName: "Dana Cohen" },
+        employerTrackedCompanyId: "tc2",
+        axes: [
+          { agenda: false, mutedAt: null, axis: { id: "ax-industry-1", kind: "INDUSTRY", status: "ACTIVE", searchQueries: fiveQueries } },
+        ],
+      },
+    ]);
+    const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    // 5 raw queries, capped at MAX_QUERIES_PER_AXIS (mocked to 3) — the pool would never
+    // fetch q4/q5.
+    expect(out.layerQueries.industry).toBe(3);
+    // 2 distinct subscriber employers, CAPPED queryCount 3: (2 − 1) × 3 = 3, not
+    // (2 − 1) × 5 = 5.
+    expect(out.industryShared).toEqual({ industries: 1, employers: 2, savedQueries: 3 });
+  });
+
+  /** A muted link is not scanned (axis-store.ts) — it must not count as a saved query
+   *  or as a subscriber employer either. */
+  it("excludes a muted PersonAxis link from layerQueries and industryShared", async () => {
+    contactFindMany.mockResolvedValue([contact()]);
+    profileFindMany.mockResolvedValue([
+      {
+        contact: { fullName: "Roy Hayumi" },
+        employerTrackedCompanyId: "tc1",
+        axes: [{ agenda: false, mutedAt: null, axis: { id: "ax-industry-1", kind: "INDUSTRY", status: "ACTIVE", searchQueries: ["q1"] } }],
+      },
+      {
+        contact: { fullName: "Dana Cohen" },
+        employerTrackedCompanyId: "tc2",
+        axes: [{ agenda: false, mutedAt: new Date("2026-08-20T00:00:00Z"), axis: { id: "ax-industry-1", kind: "INDUSTRY", status: "ACTIVE", searchQueries: ["q1"] } }],
+      },
+    ]);
+    const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    expect(out.industryShared).toEqual({ industries: 1, employers: 1, savedQueries: 0 });
+  });
+
+  /** A retired/merged axis can still be joined via a stale PersonAxis row; it must not
+   *  count towards a report describing what the pool actually fetches. */
+  it("excludes a non-ACTIVE axis from layerQueries and industryShared", async () => {
+    contactFindMany.mockResolvedValue([contact()]);
+    profileFindMany.mockResolvedValue([
+      {
+        contact: { fullName: "Roy Hayumi" },
+        employerTrackedCompanyId: "tc1",
+        axes: [{ agenda: false, mutedAt: null, axis: { id: "ax-old", kind: "INDUSTRY", status: "MERGED", searchQueries: ["q1", "q2"] } }],
+      },
+    ]);
+    const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    expect(out.layerQueries).toEqual({ industry: 0, companyMonitor: 0, person: 0 });
+    expect(out.industryShared).toEqual({ industries: 0, employers: 0, savedQueries: 0 });
+  });
+
+  /**
+   * Fix round 1, Important 2: ensureIndustryAxis's `null` return (the all-filler-canonical
+   * guard Task 8 added) was silently discarded — a person whose employer's industry
+   * canonical normalises to nothing got NO industry link and no explanation why.
+   */
+  it('emits an "industry_key_empty" note when ensureIndustryAxis returns null (the all-filler-canonical guard)', async () => {
+    contactFindMany.mockResolvedValue([contact()]);
+    companyFindMany.mockResolvedValue([
+      employer({ profile: { ...usableProfile, industry: { canonical: "the of and", queries: ["q"] } } }),
+    ]);
+    ensureIndustryAxis.mockResolvedValueOnce(null);
+    const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    expect(out.notes).toContain("industry_key_empty: 365Scores");
+    expect(out.notes).not.toContain("no_industry: 365Scores");
   });
 });
