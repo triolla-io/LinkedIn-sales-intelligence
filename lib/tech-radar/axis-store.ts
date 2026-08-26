@@ -23,7 +23,7 @@ import {
   type CompetitiveSet,
 } from "@/lib/tech-radar/axis";
 import { MAX_INDUSTRY_QUERIES } from "@/lib/tech-radar/types";
-import type { AxisProposal } from "@/lib/tech-radar/person-profile";
+import type { AxisProposal, AxisLayerEvidence, PersonDomainSource } from "@/lib/tech-radar/person-profile";
 import { resolveMergeQuestions } from "@/lib/tech-radar/axis-merge";
 import { checkAxisLabel } from "@/lib/tech-radar/draft-guard";
 
@@ -32,6 +32,22 @@ import { checkAxisLabel } from "@/lib/tech-radar/draft-guard";
  * Below this, the honest answer is "the ceiling stopped this", not a false neighbour.
  */
 const CEILING_FALLBACK_FLOOR = 0.2;
+
+/**
+ * The receipts behind an axis, persisted onto PersonAxis.evidence so an axis's "why" can
+ * be read back without re-running the model. The caller assembles this — buildProfilesForMarked
+ * has `draft.domains` in hand to resolve domainKind/domainSource, attachAxes does not — and
+ * hands it in on each proposal; attachAxes only threads it onto whichever create/update
+ * branch the merge gate actually takes.
+ */
+export type PersonAxisEvidence = {
+  personDecision: string;
+  companyFact: string;
+  domain: string;
+  domainKind: "found" | "derived";
+  domainSource: PersonDomainSource | null;
+  layerEvidence: AxisLayerEvidence;
+};
 
 export type AttachOutcome = {
   attached: number;
@@ -66,7 +82,9 @@ export type AttachOutcome = {
 export async function attachAxes(input: {
   orgId: string;
   personProfileId: string;
-  proposals: AxisProposal[];
+  /** Each proposal carries its own `evidence` (Task 10) — the caller assembled it, this
+   *  function only threads it onto whichever PersonAxis row the proposal ends up on. */
+  proposals: (AxisProposal & { evidence: PersonAxisEvidence })[];
   /**
    * The person's employer. REQUIRED: label similarity decided merges without it until
    * 2026-08-26, and the merge it made cannot be spotted by looking at the labels.
@@ -246,8 +264,14 @@ export async function attachAxes(input: {
         out.merged += 1;
         const link0 = await prisma.personAxis.upsert({
           where: { personProfileId_axisId: { personProfileId: input.personProfileId, axisId } },
-          create: { personProfileId: input.personProfileId, axisId, rationale: proposal.rationale, source: "ROLE_COMPANY" },
-          update: { rationale: proposal.rationale },
+          create: {
+            personProfileId: input.personProfileId,
+            axisId,
+            rationale: proposal.rationale,
+            source: "ROLE_COMPANY",
+            evidence: proposal.evidence,
+          },
+          update: { rationale: proposal.rationale, evidence: proposal.evidence },
           select: { id: true },
         });
         if (link0) {
@@ -299,8 +323,9 @@ export async function attachAxes(input: {
         rationale: proposal.rationale,
         agenda: proposal.agenda,
         source: "ROLE_COMPANY",
+        evidence: proposal.evidence,
       },
-      update: { rationale: proposal.rationale, agenda: proposal.agenda },
+      update: { rationale: proposal.rationale, agenda: proposal.agenda, evidence: proposal.evidence },
       select: { id: true, createdAt: true },
     });
     if (link) {
