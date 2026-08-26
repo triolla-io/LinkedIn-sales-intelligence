@@ -54,6 +54,20 @@ vi.mock("@/lib/tech-radar/axis-store", () => ({
  * BILL if it raises the count of distinct query strings.
  */
 const poolQueryCount = vi.fn();
+/**
+ * The gate is MOCKED, not exercised. Until 2026-08-26 it was not, so `gateRationales`
+ * made a real OpenRouter call on every run of this file — money spent by a test suite
+ * with no announcement, and a ~4.4s call against a 5s timeout that made it flaky too.
+ * Nothing here is testing the gate's judgement; the subject is what buildProfilesForMarked
+ * does with the gate's answer. See tests/unit/tech-radar-rationale-gate.test.ts for the
+ * gate itself, and lib/openrouter/client.ts for the guard that now makes this impossible
+ * to forget.
+ */
+const gateRationales = vi.fn();
+vi.mock("@/lib/tech-radar/rationale-gate", () => ({
+  gateRationales: (...a: unknown[]) => gateRationales(...a),
+}));
+
 vi.mock("@/lib/tech-radar/person-scan", () => ({
   poolQueryCount: (...a: unknown[]) => poolQueryCount(...a),
 }));
@@ -76,16 +90,23 @@ const employer = (over: Record<string, unknown> = {}) => ({
 });
 
 beforeEach(() => {
-  for (const m of [contactFindMany, companyFindMany, profileUpsert, profileFindMany, buildPersonProfile, attachAxes, ensureCompanyMonitorAxis, poolQueryCount]) m.mockReset();
+  for (const m of [contactFindMany, companyFindMany, profileUpsert, profileFindMany, buildPersonProfile, attachAxes, ensureCompanyMonitorAxis, poolQueryCount, gateRationales]) m.mockReset();
+  // Default: the gate keeps what it was given. A test that cares about a rejection says so.
+  gateRationales.mockImplementation(async (_lens: string, axes: unknown[]) => ({
+    kept: axes,
+    rejected: [],
+    judged: true,
+    deterministic: {},
+  }));
   // The invariant read-back: verified against the DB, not against the model's response.
   profileFindMany.mockResolvedValue([]);
   companyFindMany.mockResolvedValue([employer()]);
   profileUpsert.mockResolvedValue({ id: "pp1" });
   buildPersonProfile.mockResolvedValue({
     roleLens: "בונה את מנוע ההמלצות",
-    // The real gateRationales runs in this file, and it now rejects an axis that does
-    // not DECLARE both sides of the crossing — which decision of this person, and which
-    // fact about this company met it. A fixture with neither is no longer a valid axis.
+    // The declared two sides of the crossing. The gate is mocked here, so these are not
+    // what keeps the axis alive — they are what a real proposal looks like now, and a
+    // fixture that lies about the shape teaches the next reader the wrong thing.
     axes: [{
       label: "קונסולידציה של מסדי וקטורים", key: "k", searchQueries: ["q"],
       rationale: "כי הוא בנה את זה",

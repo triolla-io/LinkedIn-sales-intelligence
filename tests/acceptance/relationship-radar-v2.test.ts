@@ -21,13 +21,27 @@ import { SHAREWORTHY_FLOOR } from "@/lib/tech-radar/types";
 const LLM_TIMEOUT = 120_000;
 
 /**
+ * (א) and (ב) call real models, so they cost money — and until 2026-08-26 they did that
+ * on a plain `npm test`, unannounced. They are not deleted, because what they assert is a
+ * PROMPT'S JUDGEMENT, and a stubbed model cannot regress a prompt. They are opt-in:
+ *
+ *   RADAR_LIVE_LLM=1 npx vitest run tests/acceptance/relationship-radar-v2.test.ts
+ *
+ * (ג) is a pure check on draft-guard and always runs. lib/openrouter/client.ts refuses a
+ * real call from a test without that variable, so a future test cannot re-open this by
+ * forgetting a mock.
+ */
+const LIVE_LLM = (process.env.RADAR_LIVE_LLM ?? "").trim() === "1";
+const describeLive = LIVE_LLM ? describe : describe.skip;
+
+/**
  * Acceptance tests for Relationship Radar v2, built from the three defects the first
  * production run exposed on 2026-08-20.
  *
- * All three criteria run. Nothing here is skipped, and no assertion was softened to
- * get there: (ג) the archetype, (א) the inverted triage, (ב) the per-person veto.
- * (א) and (ב) call real models, so they are slower than a unit test by design — they
- * are testing a prompt's judgement, which is the thing that can regress silently.
+ * No assertion here was softened: (ג) the archetype, (א) the inverted triage, (ב) the
+ * per-person veto. (ג) runs always. (א) and (ב) call real models — they are testing a
+ * prompt's judgement, which is the thing that can regress silently — and are therefore
+ * gated behind RADAR_LIVE_LLM=1 rather than billed to whoever runs `npm test`.
  */
 
 // ---------------------------------------------------------------------------
@@ -39,7 +53,7 @@ const LLM_TIMEOUT = 120_000;
  * AWS announcing an AWS feature on the AWS blog. The inverted filter asks a different
  * question, and must answer it low.
  */
-describe("(א) inverted triage: a vendor launch is not shareworthy on its own", () => {
+describeLive("(א) inverted triage: a vendor launch is not shareworthy on its own [live models]", () => {
   /** triageAll takes PoolItem — {title, url, snippet, publishedAt} — not the item record. */
   const poolItem = (over: Record<string, unknown> = {}) => ({
     title: VENDOR_LAUNCH_ITEM.title,
@@ -102,7 +116,7 @@ describe("(א) inverted triage: a vendor launch is not shareworthy on its own", 
  * lifetime — stricter than, and evaluated before, the spec's `MAX_RECIPIENTS_PER_ITEM
  * = 3`, which counts across companies. See the spec's "Per-person ranking, then veto".
  */
-describe("(ב) veto: one item, one company, at most one recipient", () => {
+describeLive("(ב) veto: one item, one company, at most one recipient [live models]", () => {
   it("passes at most one of three colleagues, each judged on person context", async () => {
     const verdicts = [];
     for (const person of THREE_FOUNDERS_ONE_COMPANY) {

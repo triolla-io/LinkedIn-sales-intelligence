@@ -25,6 +25,39 @@ export const DEFAULT_DAILY_BUDGET_USD = 2;
 /** Thrown before any money is spent. NonRetriable so Inngest won't retry-spin. */
 export class OpenRouterBlockedError extends NonRetriableError {}
 
+/**
+ * A test run does not spend money.
+ *
+ * On 2026-08-26 two suites billed the account with no announcement: the build-profiles
+ * integration test mocked four modules but not the rationale gate, so `gateRationales`
+ * called OpenRouter on every single run; and the v2 acceptance file called live models by
+ * design, with a 120-second timeout, on a plain `npm test`.
+ *
+ * The check lives HERE rather than as a list of mocks each test must remember, because a
+ * list is exactly the thing that gets forgotten when the next test is added. A test that
+ * forgets its mock now fails with the feature name in the message — findable from the
+ * failure alone — instead of quietly costing a few cents every run.
+ *
+ * The predicate is "would this reach the real network", not "are we in a test". Four
+ * suites exist whose SUBJECT is a module that calls openrouterChat — the budget client,
+ * the batch company enricher, the signals drafter, the name translator — and every one of
+ * them stubs `fetch`. Nothing leaves the process there, so nothing is refused. A vitest
+ * mock is recognisable by its `.mock` property; a real `fetch` has none.
+ *
+ * RADAR_LIVE_LLM=1 is the deliberate opt-in for the tests whose whole subject is a
+ * prompt's judgement, which cannot be asserted against a stub.
+ */
+function refuseInsideTests(feature: string): void {
+  const inTest = process.env.VITEST === "true" || process.env.NODE_ENV === "test";
+  if (!inTest) return;
+  if ((process.env.RADAR_LIVE_LLM ?? "").trim() === "1") return;
+  const f = globalThis.fetch as unknown as { mock?: unknown } | undefined;
+  if (typeof f === "function" && f.mock !== undefined) return;
+  throw new Error(
+    `Refusing a real OpenRouter call from a test (${feature}). Mock it, or set RADAR_LIVE_LLM=1 to spend money on purpose.`
+  );
+}
+
 export type BudgetDecision = { blocked: false } | { blocked: true; reason: string };
 
 /** Pure gate logic — exported for unit tests. */
@@ -105,6 +138,8 @@ export async function openrouterChat(
   body: Record<string, unknown>,
   opts: { timeoutMs?: number } = {}
 ): Promise<OpenRouterChatResult> {
+  refuseInsideTests(feature);
+
   const apiKey = (process.env.OPENROUTER_API_KEY ?? "").trim();
   if (!apiKey) throw new Error(`OPENROUTER_API_KEY is not configured — refusing OpenRouter call (${feature})`);
 
