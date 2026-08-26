@@ -68,6 +68,7 @@ export type PersonAxisCountAggregateOutputType = {
   rationale: number
   source: number
   mutedAt: number
+  evidence: number
   createdAt: number
   _all: number
 }
@@ -114,6 +115,7 @@ export type PersonAxisCountAggregateInputType = {
   rationale?: true
   source?: true
   mutedAt?: true
+  evidence?: true
   createdAt?: true
   _all?: true
 }
@@ -213,6 +215,7 @@ export type PersonAxisGroupByOutputType = {
   rationale: string
   source: $Enums.RadarAxisSource
   mutedAt: Date | null
+  evidence: runtime.JsonValue | null
   createdAt: Date
   _count: PersonAxisCountAggregateOutputType | null
   _avg: PersonAxisAvgAggregateOutputType | null
@@ -248,6 +251,7 @@ export type PersonAxisWhereInput = {
   rationale?: Prisma.StringFilter<"PersonAxis"> | string
   source?: Prisma.EnumRadarAxisSourceFilter<"PersonAxis"> | $Enums.RadarAxisSource
   mutedAt?: Prisma.DateTimeNullableFilter<"PersonAxis"> | Date | string | null
+  evidence?: Prisma.JsonNullableFilter<"PersonAxis">
   createdAt?: Prisma.DateTimeFilter<"PersonAxis"> | Date | string
   personProfile?: Prisma.XOR<Prisma.PersonProfileScalarRelationFilter, Prisma.PersonProfileWhereInput>
   axis?: Prisma.XOR<Prisma.RadarAxisScalarRelationFilter, Prisma.RadarAxisWhereInput>
@@ -262,6 +266,7 @@ export type PersonAxisOrderByWithRelationInput = {
   rationale?: Prisma.SortOrder
   source?: Prisma.SortOrder
   mutedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  evidence?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   personProfile?: Prisma.PersonProfileOrderByWithRelationInput
   axis?: Prisma.RadarAxisOrderByWithRelationInput
@@ -280,6 +285,7 @@ export type PersonAxisWhereUniqueInput = Prisma.AtLeast<{
   rationale?: Prisma.StringFilter<"PersonAxis"> | string
   source?: Prisma.EnumRadarAxisSourceFilter<"PersonAxis"> | $Enums.RadarAxisSource
   mutedAt?: Prisma.DateTimeNullableFilter<"PersonAxis"> | Date | string | null
+  evidence?: Prisma.JsonNullableFilter<"PersonAxis">
   createdAt?: Prisma.DateTimeFilter<"PersonAxis"> | Date | string
   personProfile?: Prisma.XOR<Prisma.PersonProfileScalarRelationFilter, Prisma.PersonProfileWhereInput>
   axis?: Prisma.XOR<Prisma.RadarAxisScalarRelationFilter, Prisma.RadarAxisWhereInput>
@@ -294,6 +300,7 @@ export type PersonAxisOrderByWithAggregationInput = {
   rationale?: Prisma.SortOrder
   source?: Prisma.SortOrder
   mutedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  evidence?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.PersonAxisCountOrderByAggregateInput
   _avg?: Prisma.PersonAxisAvgOrderByAggregateInput
@@ -314,6 +321,7 @@ export type PersonAxisScalarWhereWithAggregatesInput = {
   rationale?: Prisma.StringWithAggregatesFilter<"PersonAxis"> | string
   source?: Prisma.EnumRadarAxisSourceWithAggregatesFilter<"PersonAxis"> | $Enums.RadarAxisSource
   mutedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PersonAxis"> | Date | string | null
+  evidence?: Prisma.JsonNullableWithAggregatesFilter<"PersonAxis">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PersonAxis"> | Date | string
 }
 
@@ -324,6 +332,7 @@ export type PersonAxisCreateInput = {
   rationale: string
   source: $Enums.RadarAxisSource
   mutedAt?: Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   personProfile: Prisma.PersonProfileCreateNestedOneWithoutAxesInput
   axis: Prisma.RadarAxisCreateNestedOneWithoutPeopleInput
@@ -338,6 +347,7 @@ export type PersonAxisUncheckedCreateInput = {
   rationale: string
   source: $Enums.RadarAxisSource
   mutedAt?: Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -348,6 +358,7 @@ export type PersonAxisUpdateInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.EnumRadarAxisSourceFieldUpdateOperationsInput | $Enums.RadarAxisSource
   mutedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   personProfile?: Prisma.PersonProfileUpdateOneRequiredWithoutAxesNestedInput
   axis?: Prisma.RadarAxisUpdateOneRequiredWithoutPeopleNestedInput
@@ -362,6 +373,7 @@ export type PersonAxisUncheckedUpdateInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.EnumRadarAxisSourceFieldUpdateOperationsInput | $Enums.RadarAxisSource
   mutedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -374,6 +386,7 @@ export type PersonAxisCreateManyInput = {
   rationale: string
   source: $Enums.RadarAxisSource
   mutedAt?: Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -384,6 +397,7 @@ export type PersonAxisUpdateManyMutationInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.EnumRadarAxisSourceFieldUpdateOperationsInput | $Enums.RadarAxisSource
   mutedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -396,6 +410,7 @@ export type PersonAxisUncheckedUpdateManyInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.EnumRadarAxisSourceFieldUpdateOperationsInput | $Enums.RadarAxisSource
   mutedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -423,6 +438,7 @@ export type PersonAxisCountOrderByAggregateInput = {
   rationale?: Prisma.SortOrder
   source?: Prisma.SortOrder
   mutedAt?: Prisma.SortOrder
+  evidence?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -553,6 +569,7 @@ export type PersonAxisCreateWithoutAxisInput = {
   rationale: string
   source: $Enums.RadarAxisSource
   mutedAt?: Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   personProfile: Prisma.PersonProfileCreateNestedOneWithoutAxesInput
 }
@@ -565,6 +582,7 @@ export type PersonAxisUncheckedCreateWithoutAxisInput = {
   rationale: string
   source: $Enums.RadarAxisSource
   mutedAt?: Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -606,6 +624,7 @@ export type PersonAxisScalarWhereInput = {
   rationale?: Prisma.StringFilter<"PersonAxis"> | string
   source?: Prisma.EnumRadarAxisSourceFilter<"PersonAxis"> | $Enums.RadarAxisSource
   mutedAt?: Prisma.DateTimeNullableFilter<"PersonAxis"> | Date | string | null
+  evidence?: Prisma.JsonNullableFilter<"PersonAxis">
   createdAt?: Prisma.DateTimeFilter<"PersonAxis"> | Date | string
 }
 
@@ -616,6 +635,7 @@ export type PersonAxisCreateWithoutPersonProfileInput = {
   rationale: string
   source: $Enums.RadarAxisSource
   mutedAt?: Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   axis: Prisma.RadarAxisCreateNestedOneWithoutPeopleInput
 }
@@ -628,6 +648,7 @@ export type PersonAxisUncheckedCreateWithoutPersonProfileInput = {
   rationale: string
   source: $Enums.RadarAxisSource
   mutedAt?: Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -665,6 +686,7 @@ export type PersonAxisCreateManyAxisInput = {
   rationale: string
   source: $Enums.RadarAxisSource
   mutedAt?: Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -675,6 +697,7 @@ export type PersonAxisUpdateWithoutAxisInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.EnumRadarAxisSourceFieldUpdateOperationsInput | $Enums.RadarAxisSource
   mutedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   personProfile?: Prisma.PersonProfileUpdateOneRequiredWithoutAxesNestedInput
 }
@@ -687,6 +710,7 @@ export type PersonAxisUncheckedUpdateWithoutAxisInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.EnumRadarAxisSourceFieldUpdateOperationsInput | $Enums.RadarAxisSource
   mutedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -698,6 +722,7 @@ export type PersonAxisUncheckedUpdateManyWithoutAxisInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.EnumRadarAxisSourceFieldUpdateOperationsInput | $Enums.RadarAxisSource
   mutedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -709,6 +734,7 @@ export type PersonAxisCreateManyPersonProfileInput = {
   rationale: string
   source: $Enums.RadarAxisSource
   mutedAt?: Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -719,6 +745,7 @@ export type PersonAxisUpdateWithoutPersonProfileInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.EnumRadarAxisSourceFieldUpdateOperationsInput | $Enums.RadarAxisSource
   mutedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   axis?: Prisma.RadarAxisUpdateOneRequiredWithoutPeopleNestedInput
 }
@@ -731,6 +758,7 @@ export type PersonAxisUncheckedUpdateWithoutPersonProfileInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.EnumRadarAxisSourceFieldUpdateOperationsInput | $Enums.RadarAxisSource
   mutedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -742,6 +770,7 @@ export type PersonAxisUncheckedUpdateManyWithoutPersonProfileInput = {
   rationale?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.EnumRadarAxisSourceFieldUpdateOperationsInput | $Enums.RadarAxisSource
   mutedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  evidence?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -756,6 +785,7 @@ export type PersonAxisSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   rationale?: boolean
   source?: boolean
   mutedAt?: boolean
+  evidence?: boolean
   createdAt?: boolean
   personProfile?: boolean | Prisma.PersonProfileDefaultArgs<ExtArgs>
   axis?: boolean | Prisma.RadarAxisDefaultArgs<ExtArgs>
@@ -770,6 +800,7 @@ export type PersonAxisSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   rationale?: boolean
   source?: boolean
   mutedAt?: boolean
+  evidence?: boolean
   createdAt?: boolean
   personProfile?: boolean | Prisma.PersonProfileDefaultArgs<ExtArgs>
   axis?: boolean | Prisma.RadarAxisDefaultArgs<ExtArgs>
@@ -784,6 +815,7 @@ export type PersonAxisSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   rationale?: boolean
   source?: boolean
   mutedAt?: boolean
+  evidence?: boolean
   createdAt?: boolean
   personProfile?: boolean | Prisma.PersonProfileDefaultArgs<ExtArgs>
   axis?: boolean | Prisma.RadarAxisDefaultArgs<ExtArgs>
@@ -798,10 +830,11 @@ export type PersonAxisSelectScalar = {
   rationale?: boolean
   source?: boolean
   mutedAt?: boolean
+  evidence?: boolean
   createdAt?: boolean
 }
 
-export type PersonAxisOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "personProfileId" | "axisId" | "weight" | "agenda" | "rationale" | "source" | "mutedAt" | "createdAt", ExtArgs["result"]["personAxis"]>
+export type PersonAxisOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "personProfileId" | "axisId" | "weight" | "agenda" | "rationale" | "source" | "mutedAt" | "evidence" | "createdAt", ExtArgs["result"]["personAxis"]>
 export type PersonAxisInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   personProfile?: boolean | Prisma.PersonProfileDefaultArgs<ExtArgs>
   axis?: boolean | Prisma.RadarAxisDefaultArgs<ExtArgs>
@@ -842,6 +875,12 @@ export type $PersonAxisPayload<ExtArgs extends runtime.Types.Extensions.Internal
      * respects the mute. Never deleted — the learning trail stays.
      */
     mutedAt: Date | null
+    /**
+     * { personDecision, companyFact, domain, domainKind, domainSource, layerEvidence: { layer: 2|3, quote, dateIso? } }
+     * personDecision/companyFact used to live only in memory; the layer cake makes the
+     * evidence chain a first-class row.
+     */
+    evidence: runtime.JsonValue | null
     createdAt: Date
   }, ExtArgs["result"]["personAxis"]>
   composites: {}
@@ -1276,6 +1315,7 @@ export interface PersonAxisFieldRefs {
   readonly rationale: Prisma.FieldRef<"PersonAxis", 'String'>
   readonly source: Prisma.FieldRef<"PersonAxis", 'RadarAxisSource'>
   readonly mutedAt: Prisma.FieldRef<"PersonAxis", 'DateTime'>
+  readonly evidence: Prisma.FieldRef<"PersonAxis", 'Json'>
   readonly createdAt: Prisma.FieldRef<"PersonAxis", 'DateTime'>
 }
     

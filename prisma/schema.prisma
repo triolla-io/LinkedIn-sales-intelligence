@@ -1259,6 +1259,8 @@ enum RadarAxisKind {
   ROLE_COMPANY
   /// One per employer with at least one eligible contact. Never shared, never merged.
   COMPANY_MONITOR
+  /// The shared industry-wide net (layer 1), not a subject.
+  INDUSTRY
 }
 
 enum RadarAxisStatus {
@@ -1273,6 +1275,8 @@ enum RadarAxisStatus {
 enum RadarAxisSource {
   ROLE_COMPANY
   COMPANY_MONITOR
+  /// The shared industry-wide net (layer 1), not a subject.
+  INDUSTRY
 }
 
 /// A canonical interest axis for one org. The matching unit: fit is judged once per
@@ -1323,6 +1327,10 @@ model PersonProfile {
   /// The staged thinking (החלטות/מתחרים/מה-יעצור-הכול) that produced the axes.
   /// Saved so a human can audit how the brain reached them.
   reasoning                 String?
+  /// { domain, kind: "found"|"derived", source: "title"|"headline"|"about"|"experience"|"post"|null, evidence }[]
+  /// personDecision/companyFact used to live only in memory; the layer cake makes the
+  /// evidence chain a first-class row.
+  domains                   Json?
   refreshedAt               DateTime @default(now())
   createdAt                 DateTime @default(now())
 
@@ -1349,6 +1357,10 @@ model PersonAxis {
   /// "לא מעניין אותו": a muted axis is not scanned for this person, and a rebuild
   /// respects the mute. Never deleted — the learning trail stays.
   mutedAt         DateTime?
+  /// { personDecision, companyFact, domain, domainKind, domainSource, layerEvidence: { layer: 2|3, quote, dateIso? } }
+  /// personDecision/companyFact used to live only in memory; the layer cake makes the
+  /// evidence chain a first-class row.
+  evidence        Json?
   createdAt       DateTime        @default(now())
 
   personProfile PersonProfile @relation(fields: [personProfileId], references: [id], onDelete: Cascade)
@@ -1411,6 +1423,9 @@ model RadarDraft {
   /// approvable. NEVER set on a SENT draft — that one really went out.
   supersededAt    DateTime?
   sentAt          DateTime?
+  /// Held by the pilot gate: created while RADAR_PILOT_HOLD was on, so it is invisible to
+  /// the owner's approvals screen until a reviewer releases it. Null = visible as usual.
+  pilotHeldAt     DateTime?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
@@ -1480,4 +1495,22 @@ model RadarDomain {
   discards Int      @default(0)
 
   @@unique([orgId, domain])
+}
+
+/// One fetched news query, kept so a retried or re-fired run never pays for it twice.
+/// Born 2026-08-26: an Inngest step retry re-ran a whole person-scan from the top four times and
+/// spent 156 provider calls on one approved run. Keyed by the NORMALIZED query string, so two
+/// axes asking the same thing share the row.
+model NewsQueryCache {
+  id          String   @id @default(cuid())
+  /// normalizeQuery() output — the same key the query pool dedupes on.
+  queryKey    String   @unique
+  /// The query as sent, for a human reading the table.
+  query       String
+  /// NewsResult[] exactly as the providers returned it, already canonicalized.
+  results     Json
+  resultCount Int      @default(0)
+  fetchedAt   DateTime @default(now())
+
+  @@index([fetchedAt])
 }

@@ -333,7 +333,8 @@ export type TechDraftStatus = (typeof TechDraftStatus)[keyof typeof TechDraftSta
 
 export const RadarAxisKind = {
   ROLE_COMPANY: 'ROLE_COMPANY',
-  COMPANY_MONITOR: 'COMPANY_MONITOR'
+  COMPANY_MONITOR: 'COMPANY_MONITOR',
+  INDUSTRY: 'INDUSTRY'
 } as const
 
 export type RadarAxisKind = (typeof RadarAxisKind)[keyof typeof RadarAxisKind]
@@ -351,7 +352,8 @@ export type RadarAxisStatus = (typeof RadarAxisStatus)[keyof typeof RadarAxisSta
 
 export const RadarAxisSource = {
   ROLE_COMPANY: 'ROLE_COMPANY',
-  COMPANY_MONITOR: 'COMPANY_MONITOR'
+  COMPANY_MONITOR: 'COMPANY_MONITOR',
+  INDUSTRY: 'INDUSTRY'
 } as const
 
 export type RadarAxisSource = (typeof RadarAxisSource)[keyof typeof RadarAxisSource]

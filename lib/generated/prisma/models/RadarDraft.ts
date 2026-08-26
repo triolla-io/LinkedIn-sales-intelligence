@@ -48,6 +48,7 @@ export type RadarDraftMinAggregateOutputType = {
   discardReason: string | null
   supersededAt: Date | null
   sentAt: Date | null
+  pilotHeldAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -65,6 +66,7 @@ export type RadarDraftMaxAggregateOutputType = {
   discardReason: string | null
   supersededAt: Date | null
   sentAt: Date | null
+  pilotHeldAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -83,6 +85,7 @@ export type RadarDraftCountAggregateOutputType = {
   discardReason: number
   supersededAt: number
   sentAt: number
+  pilotHeldAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -110,6 +113,7 @@ export type RadarDraftMinAggregateInputType = {
   discardReason?: true
   supersededAt?: true
   sentAt?: true
+  pilotHeldAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -127,6 +131,7 @@ export type RadarDraftMaxAggregateInputType = {
   discardReason?: true
   supersededAt?: true
   sentAt?: true
+  pilotHeldAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -145,6 +150,7 @@ export type RadarDraftCountAggregateInputType = {
   discardReason?: true
   supersededAt?: true
   sentAt?: true
+  pilotHeldAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -250,6 +256,7 @@ export type RadarDraftGroupByOutputType = {
   discardReason: string | null
   supersededAt: Date | null
   sentAt: Date | null
+  pilotHeldAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: RadarDraftCountAggregateOutputType | null
@@ -291,6 +298,7 @@ export type RadarDraftWhereInput = {
   discardReason?: Prisma.StringNullableFilter<"RadarDraft"> | string | null
   supersededAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
   sentAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
+  pilotHeldAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"RadarDraft"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RadarDraft"> | Date | string
   contact?: Prisma.XOR<Prisma.ContactScalarRelationFilter, Prisma.ContactWhereInput>
@@ -313,6 +321,7 @@ export type RadarDraftOrderByWithRelationInput = {
   discardReason?: Prisma.SortOrderInput | Prisma.SortOrder
   supersededAt?: Prisma.SortOrderInput | Prisma.SortOrder
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  pilotHeldAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   contact?: Prisma.ContactOrderByWithRelationInput
@@ -339,6 +348,7 @@ export type RadarDraftWhereUniqueInput = Prisma.AtLeast<{
   discardReason?: Prisma.StringNullableFilter<"RadarDraft"> | string | null
   supersededAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
   sentAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
+  pilotHeldAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"RadarDraft"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RadarDraft"> | Date | string
   contact?: Prisma.XOR<Prisma.ContactScalarRelationFilter, Prisma.ContactWhereInput>
@@ -361,6 +371,7 @@ export type RadarDraftOrderByWithAggregationInput = {
   discardReason?: Prisma.SortOrderInput | Prisma.SortOrder
   supersededAt?: Prisma.SortOrderInput | Prisma.SortOrder
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  pilotHeldAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.RadarDraftCountOrderByAggregateInput
@@ -387,6 +398,7 @@ export type RadarDraftScalarWhereWithAggregatesInput = {
   discardReason?: Prisma.StringNullableWithAggregatesFilter<"RadarDraft"> | string | null
   supersededAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RadarDraft"> | Date | string | null
   sentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RadarDraft"> | Date | string | null
+  pilotHeldAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RadarDraft"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RadarDraft"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"RadarDraft"> | Date | string
 }
@@ -401,6 +413,7 @@ export type RadarDraftCreateInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   contact: Prisma.ContactCreateNestedOneWithoutRadarDraftsInput
@@ -423,6 +436,7 @@ export type RadarDraftUncheckedCreateInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -437,6 +451,7 @@ export type RadarDraftUpdateInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contact?: Prisma.ContactUpdateOneRequiredWithoutRadarDraftsNestedInput
@@ -459,6 +474,7 @@ export type RadarDraftUncheckedUpdateInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -477,6 +493,7 @@ export type RadarDraftCreateManyInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -491,6 +508,7 @@ export type RadarDraftUpdateManyMutationInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -509,6 +527,7 @@ export type RadarDraftUncheckedUpdateManyInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -542,6 +561,7 @@ export type RadarDraftCountOrderByAggregateInput = {
   discardReason?: Prisma.SortOrder
   supersededAt?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
+  pilotHeldAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -563,6 +583,7 @@ export type RadarDraftMaxOrderByAggregateInput = {
   discardReason?: Prisma.SortOrder
   supersededAt?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
+  pilotHeldAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -580,6 +601,7 @@ export type RadarDraftMinOrderByAggregateInput = {
   discardReason?: Prisma.SortOrder
   supersededAt?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
+  pilotHeldAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -770,6 +792,7 @@ export type RadarDraftCreateWithoutOwnerInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   contact: Prisma.ContactCreateNestedOneWithoutRadarDraftsInput
@@ -790,6 +813,7 @@ export type RadarDraftUncheckedCreateWithoutOwnerInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -837,6 +861,7 @@ export type RadarDraftScalarWhereInput = {
   discardReason?: Prisma.StringNullableFilter<"RadarDraft"> | string | null
   supersededAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
   sentAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
+  pilotHeldAt?: Prisma.DateTimeNullableFilter<"RadarDraft"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"RadarDraft"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RadarDraft"> | Date | string
 }
@@ -851,6 +876,7 @@ export type RadarDraftCreateWithoutContactInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   item: Prisma.TechItemCreateNestedOneWithoutRadarDraftsInput
@@ -871,6 +897,7 @@ export type RadarDraftUncheckedCreateWithoutContactInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -911,6 +938,7 @@ export type RadarDraftCreateWithoutItemInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   contact: Prisma.ContactCreateNestedOneWithoutRadarDraftsInput
@@ -931,6 +959,7 @@ export type RadarDraftUncheckedCreateWithoutItemInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -971,6 +1000,7 @@ export type RadarDraftCreateWithoutAxisInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   contact: Prisma.ContactCreateNestedOneWithoutRadarDraftsInput
@@ -991,6 +1021,7 @@ export type RadarDraftUncheckedCreateWithoutAxisInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1034,6 +1065,7 @@ export type RadarDraftCreateManyOwnerInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1048,6 +1080,7 @@ export type RadarDraftUpdateWithoutOwnerInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contact?: Prisma.ContactUpdateOneRequiredWithoutRadarDraftsNestedInput
@@ -1068,6 +1101,7 @@ export type RadarDraftUncheckedUpdateWithoutOwnerInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1085,6 +1119,7 @@ export type RadarDraftUncheckedUpdateManyWithoutOwnerInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1102,6 +1137,7 @@ export type RadarDraftCreateManyContactInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1116,6 +1152,7 @@ export type RadarDraftUpdateWithoutContactInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   item?: Prisma.TechItemUpdateOneRequiredWithoutRadarDraftsNestedInput
@@ -1136,6 +1173,7 @@ export type RadarDraftUncheckedUpdateWithoutContactInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1153,6 +1191,7 @@ export type RadarDraftUncheckedUpdateManyWithoutContactInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1170,6 +1209,7 @@ export type RadarDraftCreateManyItemInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1184,6 +1224,7 @@ export type RadarDraftUpdateWithoutItemInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contact?: Prisma.ContactUpdateOneRequiredWithoutRadarDraftsNestedInput
@@ -1204,6 +1245,7 @@ export type RadarDraftUncheckedUpdateWithoutItemInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1221,6 +1263,7 @@ export type RadarDraftUncheckedUpdateManyWithoutItemInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1238,6 +1281,7 @@ export type RadarDraftCreateManyAxisInput = {
   discardReason?: string | null
   supersededAt?: Date | string | null
   sentAt?: Date | string | null
+  pilotHeldAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1252,6 +1296,7 @@ export type RadarDraftUpdateWithoutAxisInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contact?: Prisma.ContactUpdateOneRequiredWithoutRadarDraftsNestedInput
@@ -1272,6 +1317,7 @@ export type RadarDraftUncheckedUpdateWithoutAxisInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1289,6 +1335,7 @@ export type RadarDraftUncheckedUpdateManyWithoutAxisInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pilotHeldAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1309,6 +1356,7 @@ export type RadarDraftSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   discardReason?: boolean
   supersededAt?: boolean
   sentAt?: boolean
+  pilotHeldAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
@@ -1331,6 +1379,7 @@ export type RadarDraftSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   discardReason?: boolean
   supersededAt?: boolean
   sentAt?: boolean
+  pilotHeldAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
@@ -1353,6 +1402,7 @@ export type RadarDraftSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   discardReason?: boolean
   supersededAt?: boolean
   sentAt?: boolean
+  pilotHeldAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
@@ -1375,11 +1425,12 @@ export type RadarDraftSelectScalar = {
   discardReason?: boolean
   supersededAt?: boolean
   sentAt?: boolean
+  pilotHeldAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type RadarDraftOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contactId" | "itemId" | "axisId" | "ownerId" | "draftMessage" | "whyHim" | "confidence" | "confidenceParts" | "status" | "discardReason" | "supersededAt" | "sentAt" | "createdAt" | "updatedAt", ExtArgs["result"]["radarDraft"]>
+export type RadarDraftOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contactId" | "itemId" | "axisId" | "ownerId" | "draftMessage" | "whyHim" | "confidence" | "confidenceParts" | "status" | "discardReason" | "supersededAt" | "sentAt" | "pilotHeldAt" | "createdAt" | "updatedAt", ExtArgs["result"]["radarDraft"]>
 export type RadarDraftInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
   item?: boolean | Prisma.TechItemDefaultArgs<ExtArgs>
@@ -1435,6 +1486,11 @@ export type $RadarDraftPayload<ExtArgs extends runtime.Types.Extensions.Internal
      */
     supersededAt: Date | null
     sentAt: Date | null
+    /**
+     * Held by the pilot gate: created while RADAR_PILOT_HOLD was on, so it is invisible to
+     * the owner's approvals screen until a reviewer releases it. Null = visible as usual.
+     */
+    pilotHeldAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["radarDraft"]>
@@ -1877,6 +1933,7 @@ export interface RadarDraftFieldRefs {
   readonly discardReason: Prisma.FieldRef<"RadarDraft", 'String'>
   readonly supersededAt: Prisma.FieldRef<"RadarDraft", 'DateTime'>
   readonly sentAt: Prisma.FieldRef<"RadarDraft", 'DateTime'>
+  readonly pilotHeldAt: Prisma.FieldRef<"RadarDraft", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"RadarDraft", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"RadarDraft", 'DateTime'>
 }

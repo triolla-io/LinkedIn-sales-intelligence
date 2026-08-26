@@ -102,7 +102,8 @@ export const ModelName = {
   RadarDraft: 'RadarDraft',
   RadarFeedback: 'RadarFeedback',
   RadarScanRun: 'RadarScanRun',
-  RadarDomain: 'RadarDomain'
+  RadarDomain: 'RadarDomain',
+  NewsQueryCache: 'NewsQueryCache'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -907,6 +908,7 @@ export const PersonProfileScalarFieldEnum = {
   employerTrackedCompanyId: 'employerTrackedCompanyId',
   personalNotes: 'personalNotes',
   reasoning: 'reasoning',
+  domains: 'domains',
   refreshedAt: 'refreshedAt',
   createdAt: 'createdAt'
 } as const
@@ -923,6 +925,7 @@ export const PersonAxisScalarFieldEnum = {
   rationale: 'rationale',
   source: 'source',
   mutedAt: 'mutedAt',
+  evidence: 'evidence',
   createdAt: 'createdAt'
 } as const
 
@@ -956,6 +959,7 @@ export const RadarDraftScalarFieldEnum = {
   discardReason: 'discardReason',
   supersededAt: 'supersededAt',
   sentAt: 'sentAt',
+  pilotHeldAt: 'pilotHeldAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1003,6 +1007,18 @@ export const RadarDomainScalarFieldEnum = {
 } as const
 
 export type RadarDomainScalarFieldEnum = (typeof RadarDomainScalarFieldEnum)[keyof typeof RadarDomainScalarFieldEnum]
+
+
+export const NewsQueryCacheScalarFieldEnum = {
+  id: 'id',
+  queryKey: 'queryKey',
+  query: 'query',
+  results: 'results',
+  resultCount: 'resultCount',
+  fetchedAt: 'fetchedAt'
+} as const
+
+export type NewsQueryCacheScalarFieldEnum = (typeof NewsQueryCacheScalarFieldEnum)[keyof typeof NewsQueryCacheScalarFieldEnum]
 
 
 export const SortOrder = {

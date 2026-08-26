@@ -317,3 +317,11 @@ export type RadarScanRun = Prisma.RadarScanRunModel
  * Per-org source reputation. A domain whose items keep getting discarded gets penalised.
  */
 export type RadarDomain = Prisma.RadarDomainModel
+/**
+ * Model NewsQueryCache
+ * One fetched news query, kept so a retried or re-fired run never pays for it twice.
+ * Born 2026-08-26: an Inngest step retry re-ran a whole person-scan from the top four times and
+ * spent 156 provider calls on one approved run. Keyed by the NORMALIZED query string, so two
+ * axes asking the same thing share the row.
+ */
+export type NewsQueryCache = Prisma.NewsQueryCacheModel
