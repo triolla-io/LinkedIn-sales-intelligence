@@ -22,7 +22,11 @@ import { scrapeProfile } from "./lib/scrape-profile";
 
 const POLL_INTERVAL_S = 30;
 const HEARTBEAT_INTERVAL_S = 60;
-const VERSION = "0.6.7";
+// Read from the manifest rather than restated here. This string is what the heartbeat
+// reports, so it is how prod tells which build a customer is actually running — and a
+// hand-maintained copy had already drifted two versions behind (0.6.7 vs manifest 0.6.9),
+// which would have made the About/Experience rollout unverifiable from the server side.
+const VERSION = chrome.runtime.getManifest().version;
 
 // Hard ceiling for a single task. Real tasks finish in seconds; the slowest legitimate
 // path (compose poll 15s + navigation waits 30s + sleeps) stays well under a minute.

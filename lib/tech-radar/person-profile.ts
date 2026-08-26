@@ -160,6 +160,13 @@ export type PersonProfileInput = {
   companyName: string;
   /** The employer's research profile, as context only. */
   employerProfile: unknown;
+  /**
+   * LinkedIn "About" paragraph, captured by SCRAPE_PROFILE. Threaded through as of
+   * 2026-08-26 but not yet read by the prompt below — that lands in a later task.
+   */
+  about?: string | null;
+  /** [{title, company, dateRange}], newest first, max 5. Same threading-only status as `about`. */
+  experience?: unknown;
 };
 
 /** A string[] out of an unknown, for reading legacy profiles defensively. */

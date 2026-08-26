@@ -349,9 +349,71 @@
     }
     return out;
   }
+  const clean = (s) => (s || "").replace(/\s+/g, " ").trim();
+  const ABOUT_HEADERS = ["about", "אודות"];
+  const EXPERIENCE_HEADERS = ["experience", "ניסיון"];
+  function findSection(headers) {
+    for (const section of Array.from(document.querySelectorAll("section"))) {
+      const h2 = section.querySelector("h2");
+      if (h2 && headers.includes(clean(h2.textContent).toLowerCase())) {
+        return section;
+      }
+    }
+    return null;
+  }
+  function readProfileAbout() {
+    var _a;
+    const section = findSection(ABOUT_HEADERS);
+    if (!section) return null;
+    const paragraphs = Array.from(section.querySelectorAll("p")).map((p) => clean(p.textContent)).filter(Boolean);
+    let text = paragraphs.length ? paragraphs.reduce((a, b) => b.length > a.length ? b : a) : "";
+    if (!text) {
+      const h2Text = clean((_a = section.querySelector("h2")) == null ? void 0 : _a.textContent);
+      text = clean(section.textContent).replace(h2Text, "").trim();
+    }
+    return text ? text.slice(0, 2e3) : null;
+  }
+  function leafLines(root) {
+    const lines = [];
+    const seen = /* @__PURE__ */ new Set();
+    const walk = (el) => {
+      const children = Array.from(el.children);
+      if (children.length) {
+        for (const child of children) walk(child);
+        return;
+      }
+      const text = clean(el.textContent);
+      if (!text || seen.has(text)) return;
+      seen.add(text);
+      lines.push({ text, bold: !!el.closest("h3, strong, b") });
+    };
+    walk(root);
+    return lines;
+  }
+  const EMPLOYMENT_SUFFIX = /\s*[·•]\s*(Full-time|Part-time|Contract|Internship|Freelance|Self[- ]employed|Seasonal|Temporary|משרה מלאה|משרה חלקית|חוזה|פרילנס)\b.*$/i;
+  function readProfileExperience() {
+    var _a, _b, _c;
+    const section = findSection(EXPERIENCE_HEADERS);
+    if (!section) return [];
+    const results = [];
+    for (const li of Array.from(section.querySelectorAll("li"))) {
+      if ((_a = li.parentElement) == null ? void 0 : _a.closest("li")) continue;
+      const lines = leafLines(li);
+      if (!lines.length) continue;
+      const titleIdx = lines.findIndex((l) => l.bold);
+      const title = (_b = titleIdx >= 0 ? lines[titleIdx] : lines[0]) == null ? void 0 : _b.text;
+      if (!title) continue;
+      const after = lines.slice((titleIdx >= 0 ? titleIdx : 0) + 1);
+      const rawCompany = ((_c = after.find((l) => !/\d{4}/.test(l.text))) == null ? void 0 : _c.text) ?? null;
+      const company = rawCompany ? rawCompany.replace(EMPLOYMENT_SUFFIX, "").trim() || null : null;
+      const dateLine = lines.find((l) => /\d{4}/.test(l.text)) ?? null;
+      results.push({ title, company, dateRange: (dateLine == null ? void 0 : dateLine.text) ?? null });
+      if (results.length >= 5) break;
+    }
+    return results;
+  }
   function readProfileTopcard() {
     var _a;
-    const clean = (s) => (s || "").replace(/\s+/g, " ").trim();
     const titleName = clean((document.title || "").split("|")[0]);
     let company = null;
     const compIcon = document.querySelector('svg[id^="company-accent"]');
@@ -525,6 +587,7 @@
     );
   }
   async function handle(msg) {
+    var _a;
     switch (msg.kind) {
       case "PING":
         return true;
@@ -532,6 +595,15 @@
         return scrapeSearchPage();
       case "READ_PROFILE_TOPCARD":
         return readProfileTopcard();
+      case "READ_PROFILE_FULL": {
+        const { entries, headline } = readProfileTopcard();
+        return {
+          headline,
+          company: ((_a = entries[0]) == null ? void 0 : _a.company) ?? null,
+          about: readProfileAbout(),
+          experience: readProfileExperience()
+        };
+      }
       case "EXTRACT_COMPANY":
         return extractCompany();
       case "TOP_COMPANY_RESULTS":

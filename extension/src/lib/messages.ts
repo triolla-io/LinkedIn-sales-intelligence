@@ -14,7 +14,7 @@
 
 import type { ScannedButton } from "./buttons";
 import type { ScrapeResult } from "./scrape-search";
-import type { RawEntry } from "./profile-dom";
+import type { RawEntry, ExperienceItem } from "./profile-dom";
 import type { ProfileState } from "./dom-detect";
 
 export type PageRequest =
@@ -22,6 +22,10 @@ export type PageRequest =
   | { kind: "PING" }
   | { kind: "SCRAPE_SEARCH" }
   | { kind: "READ_PROFILE_TOPCARD" }
+  /** Richer read for the radar's person model: topcard + About + Experience. Added
+   * alongside READ_PROFILE_TOPCARD (not replacing it) so job-check can keep using the
+   * cheap, already-verified topcard-only read; this is the new, wider one. */
+  | { kind: "READ_PROFILE_FULL" }
   | { kind: "EXTRACT_COMPANY" }
   | { kind: "TOP_COMPANY_RESULTS" }
   | { kind: "PROFILE_STATE" }
@@ -44,6 +48,12 @@ export interface PageResults {
   PING: true;
   SCRAPE_SEARCH: ScrapeResult;
   READ_PROFILE_TOPCARD: { entries: RawEntry[]; headline: string | null };
+  READ_PROFILE_FULL: {
+    headline: string | null;
+    company: string | null;
+    about: string | null;
+    experience: ExperienceItem[];
+  };
   EXTRACT_COMPANY: { companyId: string | null; resolvedName: string | null; url: string };
   TOP_COMPANY_RESULTS: Array<{ companyUrl: string; name: string | null }>;
   PROFILE_STATE: ProfileState;

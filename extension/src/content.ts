@@ -18,7 +18,7 @@ import {
 import { clickConnect, clickInviteSend, clickMore, isFollowOnly } from "./lib/connect-dom";
 import { detectProfileState } from "./lib/dom-detect";
 import { extractCompany, topCompanyResults } from "./lib/resolve-company";
-import { readProfileTopcard } from "./lib/profile-dom";
+import { readProfileTopcard, readProfileAbout, readProfileExperience } from "./lib/profile-dom";
 import { scrapeSearchPage } from "./lib/scrape-search";
 
 // Idempotence guard: this file ships twice — declared in the manifest (via the bundler's
@@ -57,6 +57,17 @@ async function handle(msg: PageRequest): Promise<unknown> {
       return scrapeSearchPage();
     case "READ_PROFILE_TOPCARD":
       return readProfileTopcard();
+    case "READ_PROFILE_FULL": {
+      // Compose the three readers here rather than in scrape-profile.ts: they all read the
+      // SAME already-loaded page, so one page-message round-trip beats three.
+      const { entries, headline } = readProfileTopcard();
+      return {
+        headline,
+        company: entries[0]?.company ?? null,
+        about: readProfileAbout(),
+        experience: readProfileExperience(),
+      };
+    }
     case "EXTRACT_COMPANY":
       return extractCompany();
     case "TOP_COMPANY_RESULTS":
