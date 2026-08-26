@@ -17,6 +17,7 @@ import { selectRecipientsForItem, type RecipientCandidate } from "@/lib/tech-rad
 import { rankForPeople, pairKey, type RankCandidate } from "@/lib/tech-radar/person-rank";
 import { draftTechMessage } from "@/lib/tech-radar/draft";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
+import { classifySource } from "@/lib/tech-radar/source-quality";
 
 /**
  * Drafts one org may produce in a day.
@@ -36,10 +37,29 @@ export type JudgeReport = {
   vetoFaults: number;
   drafted: number;
   dropReasons: Record<string, number>;
+  /**
+   * Hosts we drafted from that `classifySource` couldn't name — `rejectsAsGift` PASSES
+   * an unknown host rather than rejecting it, so this is how the allowlist in
+   * source-quality.ts grows from evidence instead of guesses. Deduped, capped at 20.
+   */
+  unknownSourceHosts: string[];
 };
 
+const MAX_UNKNOWN_SOURCE_HOSTS = 20;
+
+/** draft.ts's own wording for this rejection — see enforceDraftRules beside L267-ish. */
+const NOT_GIFT_WORTHY_MARKER = "source is not a gift-worthy publisher";
+
 export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
-  const empty: JudgeReport = { candidates: 0, ranked: 0, vetoed: 0, vetoFaults: 0, drafted: 0, dropReasons: {} };
+  const empty: JudgeReport = {
+    candidates: 0,
+    ranked: 0,
+    vetoed: 0,
+    vetoFaults: 0,
+    drafted: 0,
+    dropReasons: {},
+    unknownSourceHosts: [],
+  };
 
   // Only axes somebody subscribes to. An axis with no subscriber has nobody to judge for.
   const axes = await prisma.radarAxis.findMany({
@@ -154,6 +174,8 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
   let vetoFaults = 0;
   let drafted = 0;
   let draftFailed = 0;
+  let sourceRejected = 0;
+  const unknownSourceHosts: string[] = [];
 
   for (const [itemId, group] of byItem) {
     const item = itemById.get(itemId);
@@ -211,6 +233,7 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
       // this call is outside draftTechMessage's own retry, and judgeAndDraft has no
       // other guard around it — an uncaught throw here would abort every candidate
       // still waiting behind this one.
+      const sourceUrl = firstSourceUrl(item.sources);
       let message: string;
       try {
         message = await draftTechMessage({
@@ -223,7 +246,7 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
           // The VETO's person-specific sentence, not the company's fit rationale. That one
           // argument is what made three founders receive byte-identical drafts in v1.
           fitRationale: verdict.whyHim,
-          sourceUrl: firstSourceUrl(item.sources),
+          sourceUrl,
           itemText: `${item.title}\n${item.summary ?? ""}`,
           // The tone rule and the thin-source clamp read these. Without them every item
           // gets the loudest register, and a snippet gets a paragraph completed from memory.
@@ -239,9 +262,24 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
         // the guard, whose whole purpose is to fail loudly. Only a genuine per-draft
         // failure (a truncated response, a rejected retry) is worth continuing past.
         if (err instanceof OpenRouterBlockedError) throw err;
-        console.warn(`[radar] draft failed for contact=${contact.id} item=${itemId}: ${(err as Error).message}`);
-        draftFailed += 1;
+        const msg = (err as Error).message;
+        console.warn(`[radar] draft failed for contact=${contact.id} item=${itemId}: ${msg}`);
+        // A non-gift-worthy source (draft.ts, beside the search-engine rejection) is a
+        // SOURCE problem, not a generic model failure — its own bucket so the decisions
+        // screen can tell "the model choked" apart from "the link wasn't worth sending".
+        if (msg.includes(NOT_GIFT_WORTHY_MARKER)) sourceRejected += 1;
+        else draftFailed += 1;
         continue;
+      }
+
+      // classifySource never rejects an unknown host (that's rejectsAsGift's job, run
+      // inside draftTechMessage) — this is purely reporting, so the allowlist in
+      // source-quality.ts can grow from what we actually drafted from.
+      if (sourceUrl) {
+        const { cls, host } = classifySource(sourceUrl);
+        if (cls === "unknown" && !unknownSourceHosts.includes(host) && unknownSourceHosts.length < MAX_UNKNOWN_SOURCE_HOSTS) {
+          unknownSourceHosts.push(host);
+        }
       }
 
       await prisma.radarDraft.upsert({
@@ -261,6 +299,15 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
   const dropReasons: Record<string, number> = {};
   for (const d of dropped) dropReasons[d.reason] = (dropReasons[d.reason] ?? 0) + 1;
   if (draftFailed > 0) dropReasons.draft_failed = draftFailed;
+  if (sourceRejected > 0) dropReasons.source_not_publisher = sourceRejected;
 
-  return { candidates: candidates.length, ranked: ranked.length, vetoed, vetoFaults, drafted, dropReasons };
+  return {
+    candidates: candidates.length,
+    ranked: ranked.length,
+    vetoed,
+    vetoFaults,
+    drafted,
+    dropReasons,
+    unknownSourceHosts,
+  };
 }

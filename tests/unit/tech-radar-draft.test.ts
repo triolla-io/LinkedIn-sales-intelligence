@@ -357,6 +357,50 @@ describe("draftTechMessage and the redirect source", () => {
 });
 
 /**
+ * 2026-08-26, Gil Tamir: the link was streamlinefeed.co.ke, a content farm reprint —
+ * not a search-engine redirect (isSearchEngineHost passes it), but not a gift-worthy
+ * source either. rejectsAsGift catches what the search-engine check does not.
+ */
+describe("the link must be a gift-worthy source", () => {
+  it("rejects outright — not retryably — when the source is an aggregator", () => {
+    const i = input({ sourceUrl: "https://streamlinefeed.co.ke/news/some-story" });
+    const r = enforceDraftRules(
+      "היי דנה, ראיתי משהו.\nhttps://streamlinefeed.co.ke/news/some-story",
+      i
+    );
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.reason).toContain("streamlinefeed.co.ke");
+      expect(r.reason).toContain("aggregator");
+      expect(r.retryable).toBe(false);
+    }
+  });
+
+  it("does not pay for a retry the model cannot win, on an aggregator source", async () => {
+    chat.mockResolvedValue(ok('{"draftMessage":"היי דנה, ראיתי משהו."}'));
+    await expect(
+      draftTechMessage(input({ sourceUrl: "https://streamlinefeed.co.ke/news/some-story" }))
+    ).rejects.toThrow(/gift-worthy publisher/);
+    expect(chat).toHaveBeenCalledTimes(1);
+  });
+
+  it("passes a recognized publisher through untouched", () => {
+    const i = input({ sourceUrl: "https://www.globes.co.il/news/article.aspx?did=1" });
+    const r = enforceDraftRules("היי דנה, ראיתי משהו.\nhttps://www.globes.co.il/news/article.aspx?did=1", i);
+    expect(r.ok).toBe(true);
+  });
+
+  it("passes an unknown host through — unknown is never a rejection", () => {
+    const i = input({ sourceUrl: "https://a-fintech-startup-blog.example.com/post/1" });
+    const r = enforceDraftRules(
+      "היי דנה, ראיתי משהו.\nhttps://a-fintech-startup-blog.example.com/post/1",
+      i
+    );
+    expect(r.ok).toBe(true);
+  });
+});
+
+/**
  * The stored sources for the existing drafts already carry wrapped URLs — the refresh
  * re-drafts from the database without a new scan, so the cleanup has to happen on READ.
  */

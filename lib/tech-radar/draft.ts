@@ -28,6 +28,7 @@
  */
 import { openrouterChat } from "@/lib/openrouter/client";
 import { isSearchEngineHost } from "@/lib/news/canonical-url";
+import { classifySource, rejectsAsGift } from "@/lib/tech-radar/source-quality";
 import { checkDraft, MAX_DRAFT_CHARS } from "@/lib/tech-radar/draft-guard";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
 import { OR_FEATURE } from "@/lib/tech-radar/types";
@@ -269,6 +270,17 @@ export function enforceDraftRules(message: string, input: TechDraftInput): Draft
     return {
       ok: false,
       reason: `source url is a search-engine redirect, not the article: ${sourceUrl}`,
+      instruction: "",
+      retryable: false,
+    };
+  }
+  // A link handed to a senior exec is a gift; a farm reprint (2026-08-26, Gil Tamir:
+  // streamlinefeed.co.ke) is not. An unknown host still PASSES — see source-quality.ts.
+  if (sourceUrl && rejectsAsGift(sourceUrl)) {
+    const { cls, host } = classifySource(sourceUrl);
+    return {
+      ok: false,
+      reason: `source is not a gift-worthy publisher (${cls}): ${host}`,
       instruction: "",
       retryable: false,
     };
