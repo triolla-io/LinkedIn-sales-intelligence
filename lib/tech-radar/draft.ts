@@ -244,8 +244,7 @@ export function enforceDraftRules(message: string, input: TechDraftInput): Draft
   // The rest of draft-guard, at drafting time. These rules were written from real
   // failures but only ran in tests — and a prompt rule with no runtime check is a
   // suggestion, which is how the glued script above reached a stored draft.
-  // The URL is excluded: its "?" is not an ask and its letters are not prose.
-  const violations = checkDraft(out.replace(/https?:\/\/\S+/gu, " ")).filter((v) => v !== "glued_script");
+  const violations = checkDraft(out).filter((v) => v !== "glued_script");
   if (violations.length > 0) {
     return {
       ok: false,
@@ -297,7 +296,10 @@ async function callModel(input: TechDraftInput, correction: string | null): Prom
         { role: "user", content: user },
       ],
       temperature: 0.5,
-      max_tokens: 400,
+      // A ceiling-length 600-char Hebrew draft needs ~330-500 output tokens once
+      // JSON-wrapped; 400 truncated a full-length draft. Output tokens bill on what
+      // is produced, so the headroom above that is free.
+      max_tokens: 900,
       response_format: { type: "json_object" },
     },
     { timeoutMs: 20_000 }
