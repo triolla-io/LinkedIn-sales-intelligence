@@ -158,6 +158,70 @@ describe("gateRationales declared sides", () => {
   });
 });
 
+/**
+ * Layer 3 ("what occupies them now") is only as good as its date. The prompt requires
+ * dateIso on a layer-3 quote, but the parser deliberately KEEPS an axis whose date failed
+ * to parse rather than dropping it (person-profile.ts) — so this gate is where an undated
+ * layer-3 fact actually dies, named `layer3_undated`, before any LLM call is spent on it.
+ */
+describe("gateRationales layer3_undated (Task 11)", () => {
+  const layer3 = (over: Partial<(typeof proposals)[number]> = {}) => ({
+    ...proposals[0],
+    layerEvidence: { layer: 3 as const, quote: "מיזוג הזרוע הדיגיטלית הוכרז החודש" },
+    ...over,
+  });
+
+  it("rejects a layer-3 axis with no dateIso at all, before the LLM call", async () => {
+    const out = await gateRationales("lens", [layer3()]);
+    expect(out.rejected.map((r) => r.reason)).toEqual(["layer3_undated"]);
+    expect(out.deterministic.layer3_undated).toBe(1);
+    expect(chat).not.toHaveBeenCalled();
+  });
+
+  it("rejects a layer-3 axis whose dateIso doesn't parse", async () => {
+    const out = await gateRationales("lens", [
+      layer3({ layerEvidence: { layer: 3, quote: "q", dateIso: "not-a-date" } }),
+    ]);
+    expect(out.rejected.map((r) => r.reason)).toEqual(["layer3_undated"]);
+    expect(chat).not.toHaveBeenCalled();
+  });
+
+  it("passes a layer-3 axis with a valid dateIso through to the judge", async () => {
+    chat.mockResolvedValue(ok('{"verdicts":[{"i":0,"generic":false}]}'));
+    const out = await gateRationales("lens", [
+      layer3({ layerEvidence: { layer: 3, quote: "q", dateIso: "2026-08-01" } }),
+    ]);
+    expect(out.rejected).toEqual([]);
+    expect(out.kept).toHaveLength(1);
+    expect(chat).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not require a date on layer-2 evidence — the rule is layer-3 only", async () => {
+    chat.mockResolvedValue(ok('{"verdicts":[{"i":0,"generic":false}]}'));
+    const out = await gateRationales("lens", [layer3({ layerEvidence: { layer: 2, quote: "q" } })]);
+    expect(out.rejected).toEqual([]);
+    expect(chat).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the existing five rules ahead of layer3_undated in the chain", async () => {
+    // personDecision empty -> no_person_side fires first, even though this axis also
+    // carries an undated layer-3 quote that would otherwise trip layer3_undated.
+    const out = await gateRationales("lens", [layer3({ personDecision: "" })]);
+    expect(out.rejected.map((r) => r.reason)).toEqual(["no_person_side"]);
+    expect(out.deterministic.layer3_undated).toBeUndefined();
+  });
+
+  it("regression: a competitor-shaped axis (label names a rival, personDecision empty) still dies on no_person_side", async () => {
+    const out = await gateRationales(
+      "lens",
+      [{ ...proposals[0], label: "מהלכים של Lemonade", personDecision: "" }],
+      { namedCompetitors: ["Lemonade"] }
+    );
+    expect(out.rejected.map((r) => r.reason)).toEqual(["no_person_side"]);
+    expect(chat).not.toHaveBeenCalled();
+  });
+});
+
 describe("RATIONALE_GATE_SYSTEM swap tests", () => {
   it("carries BOTH swaps, not only the company swap", () => {
     expect(RATIONALE_GATE_SYSTEM).toMatch(/SWAP THE PERSON/);

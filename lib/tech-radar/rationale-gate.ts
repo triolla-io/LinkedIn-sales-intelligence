@@ -25,6 +25,11 @@ import {
 
 const MODEL = process.env.TECH_RADAR_MODEL ?? "anthropic/claude-haiku-4.5";
 
+/** True only for a non-empty string that `Date.parse` can actually read. */
+function hasUsableDate(dateIso: string | undefined): boolean {
+  return typeof dateIso === "string" && dateIso.length > 0 && !Number.isNaN(Date.parse(dateIso));
+}
+
 export const RATIONALE_GATE_SYSTEM = `You judge the RATIONALE attached to each proposed interest of one professional. Each one arrives with the two sides it claims to cross: the DECISION this person holds, and the FACT about their company that decision met.
 
 A rationale passes when it points at something THIS person holds: a decision they sign (מחזיק את החלטת X), a project they run, an asset they carry, or a named competitor pressing on customers they own.
@@ -62,7 +67,8 @@ export type GateResult = {
   judged: boolean;
   /**
    * How many axes the DETERMINISTIC rules killed, by rule: `title_pattern`,
-   * `unknown_competitor`, `no_person_side`, `no_company_side`, `contradicts_reasoning`.
+   * `unknown_competitor`, `no_person_side`, `no_company_side`, `contradicts_reasoning`,
+   * `layer3_undated`.
    *
    * `title_pattern` is the one to watch for prompt compliance: it measures whether the
    * brain is obeying the prompt's prohibition, and a number that stays high means the
@@ -152,6 +158,16 @@ export async function gateRationales(
     }
     if (!reason && ctx.reasoning && contradictsReasoning(p, ctx.reasoning)) {
       reason = "contradicts_reasoning";
+    }
+    // Layer 3 ("what occupies them now") is only as good as its date — an undated move
+    // cannot be told apart from one that occupied the company last spring, and
+    // layer3Expired (layers.ts) can only age out a date it can parse. The prompt REQUIRES
+    // dateIso on a layer-3 quote, but the parser deliberately keeps an axis whose date
+    // failed to parse (person-profile.ts) rather than silently dropping it — so the gate
+    // is where an undated layer-3 fact actually dies, named, instead of vanishing into an
+    // anonymous "no usable axis" count.
+    if (!reason && p.layerEvidence?.layer === 3 && !hasUsableDate(p.layerEvidence.dateIso)) {
+      reason = "layer3_undated";
     }
 
     if (reason) {
