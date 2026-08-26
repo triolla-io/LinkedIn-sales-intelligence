@@ -89,10 +89,44 @@ function candidatesFromEnumeration(rationale: string): string[] {
   return out;
 }
 
+/**
+ * A token written entirely in capitals: API, CTO, AI, KYC, ESG.
+ *
+ * These are technical terms, and a technical term cannot be the failure this rule exists
+ * to catch — an INVENTED COMPANY NAME reaching an executive. Treating them as names cost
+ * Erez Rachmil three of five axes and Elinor two of five in the 2026-08-26 preview: the
+ * CITO, whose entire world is written in acronyms, was the one it silenced hardest.
+ *
+ * The exemption is deliberately narrow — 2 to 5 capitals and nothing else — so a real
+ * name never hides behind it. "IBM" is exempt too; a bank rival called IBM is not the
+ * shape of hallucination anyone has seen, and the LLM judge is still the second net.
+ */
+const ACRONYM = /^[A-Z]{2,5}$/;
+
 /** Capitalised Latin runs: "Pepper", "Poalim Digital", "Bank Leumi". */
 function candidatesFromLatin(rationale: string): string[] {
   return [...rationale.matchAll(/\b([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*)\b/g)].map((m) => m[1]);
 }
+
+/**
+ * True when a candidate names no company — every word in it is an acronym, a stopword or
+ * a Hebrew particle.
+ *
+ * Applied to BOTH sources, because the same acronym arrives by both roads: the Latin
+ * scan reads "API" out of "API-first", and the enumeration scan reads "ה-CTO שלה" out of
+ * "מול ה-CTO שלה". A mixed run ("SAP Ariba") still names something and survives.
+ */
+function namesNothing(candidate: string): boolean {
+  const words = candidate
+    .split(/\s+/)
+    // The definite article and a conjunction glued by a hyphen — "ה-CTO", "ו-API".
+    .map((w) => w.replace(/^[הוב-ל]-/u, "").replace(/^[-–]+|[-–]+$/g, ""))
+    .filter((w) => w && !NAME_STOPWORDS.has(norm(w)) && !POSSESSIVES.has(norm(w)));
+  return words.length === 0 || words.every((w) => ACRONYM.test(w));
+}
+
+/** Hebrew possessives that trail a name and are not part of it. */
+const POSSESSIVES = new Set(["שלה", "שלו", "שלהם", "שלכם", "שלנו"]);
 
 /**
  * Names that appear in the rationale but not in the employer's researched competitors.
@@ -110,7 +144,7 @@ export function unknownNames(rationale: string, gazetteer: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const c of [...candidatesFromEnumeration(rationale), ...candidatesFromLatin(rationale)]) {
-    if (!c || known(c) || seen.has(norm(c))) continue;
+    if (!c || namesNothing(c) || known(c) || seen.has(norm(c))) continue;
     seen.add(norm(c));
     out.push(c);
   }

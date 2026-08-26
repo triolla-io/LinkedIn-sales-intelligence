@@ -82,6 +82,24 @@ describe("unknownNames", () => {
   it("ignores prose with no rival enumeration at all", () => {
     expect(unknownNames("כי הוא מחזיק את החלטת המודרניזציה של מערכות הליבה", allowed)).toEqual([]);
   });
+
+  /**
+   * The 2026-08-26 preview: this rule deleted three of Erez Rachmil's five axes on
+   * "unknown_competitor: API, CTO, AI" and two of Elinor's on "KYC, API". An all-caps
+   * acronym is a technical term, not a company — it cannot BE the failure this rule
+   * exists to catch, which is an invented company name reaching an executive. The CITO,
+   * whose whole world is written in acronyms, is the person it silenced hardest.
+   */
+  it("does not mistake a technical acronym for a company name", () => {
+    const r = "כי הוא חתום על המעבר לארכיטקטורת API-first ועל מינוי ה-CTO החדש, ועל זיהוי הונאות מבוסס AI ואוטומציה של KYC";
+    expect(unknownNames(r, allowed)).toEqual([]);
+  });
+
+  it("still flags a Title-Case name sitting next to acronyms", () => {
+    // The acronym exemption must not become a hole: a real invented name in the same
+    // sentence has to survive it.
+    expect(unknownNames("כי Revolut בונה API פתוח מול ה-CTO שלה", allowed)).toEqual(["Revolut"]);
+  });
 });
 
 /**

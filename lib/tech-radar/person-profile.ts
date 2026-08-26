@@ -149,13 +149,28 @@ function str(v: unknown): string {
  * every future proposal collides with.
  */
 export function parseProfileResponse(text: string): PersonProfileDraft | null {
+  return parseProfileResponseWithReason(text).draft;
+}
+
+/**
+ * The same parse, with the reason it came back empty.
+ *
+ * Gil Tamir's 2026-08-26 brain call spent 2045 output tokens and produced nothing, and
+ * the log could only say "failed or returned no reasoning" — four different gates, one
+ * message, no way to tell which. A null that cannot say why costs a paid re-run to
+ * diagnose, which is the expensive kind of silence.
+ */
+export function parseProfileResponseWithReason(
+  text: string
+): { draft: PersonProfileDraft | null; reason: string | null } {
   const parsed = parseJsonLoose<{ reasoning?: unknown; roleLens?: unknown; axes?: unknown }>(text);
+  if (!parsed) return { draft: null, reason: "response was not parseable JSON" };
   const roleLens = str(parsed?.roleLens);
-  if (!roleLens) return null;
+  if (!roleLens) return { draft: null, reason: "no roleLens in the response" };
   // No reasoning, no profile: a model that skipped the stages is the old brain with a
   // new name, and the caller records profile_call_failed rather than building blind.
   const reasoning = str(parsed?.reasoning);
-  if (!reasoning) return null;
+  if (!reasoning) return { draft: null, reason: "no reasoning — the staged thinking was skipped" };
 
   const rows = Array.isArray(parsed?.axes) ? parsed.axes : [];
   const axes: AxisProposal[] = [];
@@ -181,7 +196,12 @@ export function parseProfileResponse(text: string): PersonProfileDraft | null {
     if (axes.length >= MAX_AXES_PER_PERSON) break;
   }
 
-  if (axes.length === 0) return null;
+  if (axes.length === 0) {
+    return {
+      draft: null,
+      reason: `no usable axis out of ${rows.length} proposed (each needs a label, a rationale and at least one query)`,
+    };
+  }
   // Exactly one agenda axis. If the model marked several, the first wins; if it marked
   // none, the first axis is promoted rather than leaving the person with role axes only
   // — the whole point is that at least one axis is not derivable from a job title.
@@ -191,7 +211,7 @@ export function parseProfileResponse(text: string): PersonProfileDraft | null {
     else a.agenda = false;
   }
   if (!seenAgenda) axes[0].agenda = true;
-  return { reasoning, roleLens, axes };
+  return { draft: { reasoning, roleLens, axes }, reason: null };
 }
 
 export async function buildPersonProfile(input: PersonProfileInput): Promise<PersonProfileDraft | null> {
@@ -213,7 +233,10 @@ export async function buildPersonProfile(input: PersonProfileInput): Promise<Per
     },
     { timeoutMs: 30_000 }
   );
-  if (!res.ok) return null;
+  if (!res.ok) {
+    console.warn(`[radar] person-profile call FAILED for ${input.fullName}: ${res.status + " " + res.detail}`);
+    return null;
+  }
 
   // A truncated response is the failure mode that produced 2 axes instead of 3-5 on the
   // first live run, and it looks exactly like a model that had little to say. Say it
@@ -224,7 +247,9 @@ export async function buildPersonProfile(input: PersonProfileInput): Promise<Per
       `[radar] person-profile TRUNCATED for ${input.fullName} — raise max_tokens or shorten the reasoning`
     );
   }
-  return parseProfileResponse(res.data.choices?.[0]?.message?.content ?? "");
+  const { draft, reason } = parseProfileResponseWithReason(res.data.choices?.[0]?.message?.content ?? "");
+  if (!draft) console.warn(`[radar] person-profile EMPTY for ${input.fullName}: ${reason}`);
+  return draft;
 }
 
 /** Truncate a learned note at a word boundary rather than mid-word. */
