@@ -312,7 +312,10 @@ export async function buildPersonProfile(input: PersonProfileInput): Promise<Per
       max_tokens: 5000,
       response_format: { type: "json_object" },
     },
-    { timeoutMs: 30_000 }
+    // 30s was the cap until the prompt grew to five staged questions and 5000 max_tokens;
+    // the 2026-08-26 preview aborted mid-cohort on the first person. The reasoning and the
+    // axes share one long response, so this is a slow call by construction.
+    { timeoutMs: 90_000 }
   );
   if (!res.ok) {
     console.warn(`[radar] person-profile call FAILED for ${input.fullName}: ${res.status + " " + res.detail}`);

@@ -55,11 +55,29 @@ describe("the test-money guard", () => {
   });
 
   it("allows a real call only when the environment explicitly asks to spend money", async () => {
-    process.env.RADAR_LIVE_LLM = "1";
+    // A PLAIN function, not vi.fn(): it has no `.mock`, so the stubbed-fetch exemption does
+    // not apply and the flag is genuinely what decides. It never reaches the network.
+    let reached = false;
+    globalThis.fetch = (async () => {
+      reached = true;
+      throw new Error("ECONNREFUSED");
+    }) as unknown as typeof fetch;
+
     const { openrouterChat } = await import("@/lib/openrouter/client");
-    // Not awaited to completion — the point is that the guard did not refuse it.
-    await expect(
-      openrouterChat("some-feature", { model: "m", messages: [] }, { timeoutMs: 1 })
-    ).rejects.not.toThrow(/RADAR_LIVE_LLM/);
+
+    // The refusal THROWS rather than returning ok:false: a forgotten mock is a defect in the
+    // test, not a runtime condition the caller should handle.
+    await expect(openrouterChat("some-feature", { model: "m", messages: [] })).rejects.toThrow(
+      /RADAR_LIVE_LLM/
+    );
+    expect(reached).toBe(false);
+
+    process.env.RADAR_LIVE_LLM = "1";
+    vi.resetModules();
+    const { openrouterChat: allowed } = await import("@/lib/openrouter/client");
+    const r = await allowed("some-feature", { model: "m", messages: [] });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.detail).toContain("ECONNREFUSED");
+    expect(reached).toBe(true);
   });
 });

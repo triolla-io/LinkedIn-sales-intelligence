@@ -182,6 +182,15 @@ export async function openrouterChat(
       `[openrouter] feature=${feature} model=${String(body.model)} cost=$${Number.isFinite(cost) ? cost.toFixed(5) : "?"} tokens=${data?.usage?.prompt_tokens ?? "?"}/${data?.usage?.completion_tokens ?? "?"}`
     );
     return { ok: true, status: res.status, data };
+  } catch (err) {
+    // A timeout is an ANSWER, not an exception. This was try/finally with no catch, so an
+    // AbortError propagated out of a function whose whole contract is `{ok:false}` — and on
+    // 2026-08-26 one slow brain call ended a preview run after the three employer-research
+    // calls before it had already been paid for. Every caller checks `res.ok`; none expects
+    // a throw. The kill-switch and the budget cap still throw, from above the try.
+    const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    console.error(`[openrouter] feature=${feature} request failed — ${detail}`);
+    return { ok: false, status: 0, detail };
   } finally {
     clearTimeout(timeout);
   }
