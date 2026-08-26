@@ -382,6 +382,50 @@ describe("the INDUSTRY net survives a wholesale gate rejection", () => {
 });
 
 /**
+ * Task 11: a rejection now says which floor of the four-layer cake was missing, so a
+ * human reading the skip log can tell "no person-specific field" (layer 4) apart from
+ * "no company identity" (layer 2) apart from "the dated fact wasn't dated" (layer 3)
+ * without opening layers.ts.
+ */
+describe("rejected-axis reason strings carry the missing layer (Task 11)", () => {
+  it("suffixes a layer-4 rejection with קומה 4", async () => {
+    contactFindMany.mockResolvedValue([contact()]);
+    gateRationales.mockResolvedValue({
+      kept: [],
+      rejected: [{ label: "כ-VP Assets, אחראי על", rationale: "r", reason: "no_person_side" }],
+      judged: true,
+      deterministic: { no_person_side: 1 },
+    });
+    const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    expect(out.skipped.map((s) => s.reason)).toContain("axis_no_person_side [קומה 4 חסרה]: כ-VP Assets, אחראי על");
+  });
+
+  it("suffixes a layer-3 rejection (layer3_undated) with קומה 3", async () => {
+    contactFindMany.mockResolvedValue([contact()]);
+    gateRationales.mockResolvedValue({
+      kept: [],
+      rejected: [{ label: "מהלכי מיזוג", rationale: "r", reason: "layer3_undated" }],
+      judged: true,
+      deterministic: { layer3_undated: 1 },
+    });
+    const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    expect(out.skipped.map((s) => s.reason)).toContain("axis_layer3_undated [קומה 3 חסרה]: מהלכי מיזוג");
+  });
+
+  it("leaves a rule missingLayer doesn't recognise (contradicts_reasoning) with no suffix", async () => {
+    contactFindMany.mockResolvedValue([contact()]);
+    gateRationales.mockResolvedValue({
+      kept: [],
+      rejected: [{ label: "סתירה", rationale: "r", reason: "contradicts_reasoning" }],
+      judged: true,
+      deterministic: { contradicts_reasoning: 1 },
+    });
+    const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    expect(out.skipped.map((s) => s.reason)).toContain("axis_contradicts_reasoning: סתירה");
+  });
+});
+
+/**
  * 2026-08-26 review, Important 1. The industry-net fix moved `personProfile.upsert`
  * ahead of the "all rejected" exit so ensureIndustryAxis would have a personProfileId to
  * subscribe to — but the force-detach was ALSO moved up in the same pass, and that is

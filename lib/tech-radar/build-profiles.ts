@@ -14,6 +14,7 @@ import { countHebrewQueries } from "@/lib/tech-radar/axis";
 import { poolQueryCount, MAX_QUERIES_PER_AXIS } from "@/lib/tech-radar/person-scan";
 import { buildAxisQueryPool } from "@/lib/tech-radar/axis-fit";
 import { normalizeQuery } from "@/lib/tech-radar/queries";
+import { missingLayer } from "@/lib/tech-radar/layers";
 import { prisma as db } from "@/lib/prisma";
 import { isUsableProfile } from "@/lib/tech-radar/types";
 import { markSuperseded } from "@/lib/tech-radar/superseded";
@@ -24,6 +25,22 @@ import {
 
 /** Rebuilt only when older than this — a role does not change weekly. */
 const STALE_AFTER_DAYS = 90;
+
+/**
+ * A gate rejection reason, formatted so a human reading the skip log can tell which floor
+ * of the four-layer model was missing — `axis_no_person_side [קומה 4 חסרה]: <label>` reads
+ * differently from `axis_no_company_side [קומה 2 חסרה]: <label>` without opening
+ * layers.ts. `reason` may carry a `:detail` suffix (e.g. `unknown_competitor:Revolut`);
+ * only the rule name before the colon is looked up, but the full reason (detail included)
+ * is still printed. Rules `missingLayer` doesn't recognise (`contradicts_reasoning`, and
+ * any future rule not about a missing layer) print with no suffix at all.
+ */
+function formatAxisRejection(reason: string, label: string): string {
+  const rule = reason.split(":")[0];
+  const layer = missingLayer(rule);
+  const suffix = layer === null ? "" : ` [קומה ${layer} חסרה]`;
+  return `axis_${reason}${suffix}: ${label}`;
+}
 
 export type BuildProfilesReport = {
   considered: number;
@@ -254,7 +271,7 @@ export async function buildProfilesForMarked(input: {
       reasoning: draft.reasoning,
     });
     for (const r of gate.rejected) {
-      report.skipped.push({ contactId: contact.id, name, reason: `axis_rejected[${r.reason}]: ${r.label}` });
+      report.skipped.push({ contactId: contact.id, name, reason: formatAxisRejection(r.reason, r.label) });
     }
     // Deterministic rejections are counted per rule so "is the brain obeying the
     // prompt?" is answerable from the report rather than by reading rationales.
