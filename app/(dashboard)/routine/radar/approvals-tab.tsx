@@ -39,6 +39,8 @@ type Draft = {
   factsVerified: boolean;
   lastMessageFromUsAt: string | null;
   overridden: boolean;
+  /** Born held by the pilot gate — this viewer is a reviewer, not the owner. */
+  pilotHeld: boolean;
 };
 
 type Approvals = {
@@ -234,6 +236,7 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
 
       {/* chips — only what the data knows */}
       <div className="flex flex-wrap gap-2 mt-3.5">
+        {draft.pilotHeld && <Chip>ממתין לאישור אריאל</Chip>}
         {draft.factsVerified && draft.sourceHost && <Chip ok>✓ העובדות אומתו מול {draft.sourceHost}</Chip>}
         {draft.lastMessageFromUsAt && <Chip>הודעה אחרונה מכאן: {relativeHe(draft.lastMessageFromUsAt)}</Chip>}
         {draft.sourceHost && (

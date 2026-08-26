@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 /**
  * AxisMatch rows are created and never deleted, so judgeAndDraft's own query needs its
@@ -138,6 +138,58 @@ describe("judgeAndDraft freshness predicate on AxisMatch", () => {
     const expectedFloor = Date.now() - FRESHNESS_WINDOW_DAYS * 86_400_000;
     // Within a few seconds of the expected window edge — not brittle to exact millisecond timing.
     expect(Math.abs(gte.getTime() - expectedFloor)).toBeLessThan(5000);
+  });
+});
+
+describe("judgeAndDraft pilot gate", () => {
+  function passingDecision() {
+    return [
+      {
+        candidate: { contact: { contactId: "c1" }, axisId: "a1" },
+        verdict: { outcome: "judged", whyHim: "why", adjustment: 0 },
+        passed: true,
+      },
+    ];
+  }
+
+  function freshDraftableAxis() {
+    const freshAt = new Date(Date.now() - 3 * 86_400_000);
+    return axisWithMatches([{ itemId: "fresh1", publishedAt: freshAt, title: "current news" }]);
+  }
+
+  let prevHold: string | undefined;
+  beforeEach(() => {
+    prevHold = process.env.RADAR_PILOT_HOLD;
+  });
+  afterEach(() => {
+    if (prevHold === undefined) delete process.env.RADAR_PILOT_HOLD;
+    else process.env.RADAR_PILOT_HOLD = prevHold;
+  });
+
+  it("a drafted row is born held (pilotHeldAt set) when the gate is on (default)", async () => {
+    delete process.env.RADAR_PILOT_HOLD;
+    const axis = freshDraftableAxis();
+    axisFindMany.mockImplementation(async (args: { select: unknown }) => [applyMatchesFilter(axis, args.select)]);
+    selectRecipientsForItem.mockResolvedValue(passingDecision());
+
+    await judgeAndDraft("org1");
+
+    expect(draftUpsert).toHaveBeenCalledTimes(1);
+    const payload = draftUpsert.mock.calls[0][0] as { create: { pilotHeldAt: Date | null } };
+    expect(payload.create.pilotHeldAt).toBeInstanceOf(Date);
+  });
+
+  it("a drafted row is not held when RADAR_PILOT_HOLD=off", async () => {
+    process.env.RADAR_PILOT_HOLD = "off";
+    const axis = freshDraftableAxis();
+    axisFindMany.mockImplementation(async (args: { select: unknown }) => [applyMatchesFilter(axis, args.select)]);
+    selectRecipientsForItem.mockResolvedValue(passingDecision());
+
+    await judgeAndDraft("org1");
+
+    expect(draftUpsert).toHaveBeenCalledTimes(1);
+    const payload = draftUpsert.mock.calls[0][0] as { create: { pilotHeldAt: Date | null } };
+    expect(payload.create.pilotHeldAt).toBeNull();
   });
 });
 

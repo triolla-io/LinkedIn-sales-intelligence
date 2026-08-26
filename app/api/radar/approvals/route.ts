@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
 import { figuresSourced } from "@/lib/tech-radar/draft-guard";
 import { deriveQuietReason, type QuietReason } from "@/lib/tech-radar/quiet";
+import { pilotHoldEnabled, isPilotReviewer } from "@/lib/tech-radar/pilot-gate";
 
 /**
  * The morning story, in one scoped call: pending drafts with honest chips, the scan
@@ -42,6 +43,10 @@ export const GET = withTenant(async (_req, ctx) => {
   const now = new Date();
   const weekAgo = new Date(now.getTime() - 7 * 864e5);
 
+  // Pilot gate: a row born held (pilotHeldAt set) stays off the owner's screen until a
+  // reviewer releases it. A reviewer sees held rows too, flagged via `pilotHeld` below.
+  const holdsFromThisViewer = pilotHoldEnabled() && !isPilotReviewer(ctx.user.email);
+
   const [pending, profiles, scan] = await Promise.all([
     prisma.radarDraft.findMany({
       // PREPARING/PREPARED stay visible: the card has to survive until the user confirms
@@ -52,6 +57,7 @@ export const GET = withTenant(async (_req, ctx) => {
         ownerId: ctx.effectiveUserId,
         status: { in: ["PENDING_REVIEW", "PREPARING", "PREPARED"] },
         supersededAt: null,
+        ...(holdsFromThisViewer ? { pilotHeldAt: null } : {}),
       },
       orderBy: { createdAt: "desc" },
       select: {
@@ -60,6 +66,7 @@ export const GET = withTenant(async (_req, ctx) => {
         draftMessage: true,
         whyHim: true,
         createdAt: true,
+        pilotHeldAt: true,
         contact: {
           select: { id: true, fullName: true, currentTitle: true, currentCompany: true, linkedinUrl: true, phone: true, channels: true },
         },
@@ -130,6 +137,7 @@ export const GET = withTenant(async (_req, ctx) => {
       factsVerified,
       lastMessageFromUsAt: lastByContact.get(d.contact.id) ?? null,
       overridden: overridden.has(d.id),
+      pilotHeld: d.pilotHeldAt !== null,
     };
   });
 
