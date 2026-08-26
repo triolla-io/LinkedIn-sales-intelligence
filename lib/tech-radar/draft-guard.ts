@@ -54,9 +54,9 @@ export function checkDraft(message: string): DraftViolation[] {
   // question anywhere later is an ask — the no-CTA guarantee lives on the tail
   // of the message, not on its opener.
   // A "." between digits is a decimal point, not a sentence end — funding figures
-  // and version numbers are ordinary content here, and treating them as terminators
-  // would reject the very opener this rule exists to permit.
-  const boundary = text.search(/\?|\n|[.!](?=\s|$)/u);
+  // and version numbers are ordinary content here. Anything else after it, including
+  // no space at all, still ends the sentence: a run-on must not hide a later ask.
+  const boundary = text.search(/\?|\n|[.!](?![0-9])/u);
   const tail = boundary === -1 ? "" : text.slice(boundary + 1);
   if (tail.includes("?") && !out.includes("ask")) out.push("ask");
   if (text.replace(/\s+/gu, " ").trim().length > MAX_DRAFT_CHARS) out.push("too_long");

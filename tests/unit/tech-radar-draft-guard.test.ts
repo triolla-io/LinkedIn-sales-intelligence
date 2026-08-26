@@ -17,6 +17,9 @@ describe("rhetorical opener", () => {
   it("does not treat a decimal point in a funding figure as a sentence end", () => {
     expect(checkDraft("היי דנה, ראית שגייסו 3.5 מיליון דולר?")).toEqual([]);
   });
+  it("still flags a run-on with no space after the period hiding a later ask", () => {
+    expect(checkDraft("היי דנה, ראית את המחקר.יש לך זמן לשיחה?")).toContain("ask");
+  });
 });
 
 describe("length cap", () => {
