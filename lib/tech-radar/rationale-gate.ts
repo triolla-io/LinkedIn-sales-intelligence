@@ -19,15 +19,23 @@ import {
   unknownNames,
   contradictsReasoning,
   competitorGazetteer,
+  declaresPersonSide,
+  declaresCompanySide,
 } from "@/lib/tech-radar/rationale-rules";
 
 const MODEL = process.env.TECH_RADAR_MODEL ?? "anthropic/claude-haiku-4.5";
 
-export const RATIONALE_GATE_SYSTEM = `You judge the RATIONALE attached to each proposed interest of one professional.
+export const RATIONALE_GATE_SYSTEM = `You judge the RATIONALE attached to each proposed interest of one professional. Each one arrives with the two sides it claims to cross: the DECISION this person holds, and the FACT about their company that decision met.
 
 A rationale passes when it points at something THIS person holds: a decision they sign (מחזיק את החלטת X), a project they run, an asset they carry, or a named competitor pressing on customers they own.
 
-A rationale fails as GENERIC when it merely describes a domain, an industry, or restates the job title — "כי הוא בבנקאות", "כתפקידו אחראי על טכנולוגיה". The test: could this sentence be written, unchanged, about a different person with the same title at another company? If yes, it is generic.
+THE SWAP TEST — run both swaps on every rationale:
+- SWAP THE PERSON: keep the company, put a different executive from a different chair in it. Does the sentence still hold? If yes, it is the COMPANY'S subject rather than this person's.
+- SWAP THE COMPANY: keep the title, move the person to a company in a different industry. Does the sentence still hold? If yes, it is the TITLE'S subject rather than an intersection.
+
+A rationale is GENERIC only when it survives BOTH swaps — true of a different executive at this same company AND of the same title at a company in another industry. "כי הוא בבנקאות" and "כתפקידו אחראי על טכנולוגיה" survive both: they describe a domain, and everyone in the domain fits them.
+
+A rationale that survives only ONE swap is NOT generic, and calling it generic is the mistake to avoid. An adopt-stage rationale — this person's own decision plus something done well in another market or another industry — typically breaks under the person swap and survives the company swap. Leave it: it is a real interest, and it is the material people actually forward.
 
 Return strict JSON only: {"verdicts":[{"i":<index>,"generic":true|false}]} — one verdict per input index.`;
 
@@ -53,9 +61,15 @@ export type GateResult = {
   /** False when the judge call failed and everything was kept unjudged. */
   judged: boolean;
   /**
-   * How many axes the DETERMINISTIC rules killed, by rule. `title_pattern` is the one to
-   * watch: it measures whether the brain is obeying the prompt's prohibition, and a
-   * number that stays high means the prompt is not landing — not that the rule is wrong.
+   * How many axes the DETERMINISTIC rules killed, by rule: `title_pattern`,
+   * `unknown_competitor`, `no_person_side`, `no_company_side`, `contradicts_reasoning`.
+   *
+   * `title_pattern` is the one to watch for prompt compliance: it measures whether the
+   * brain is obeying the prompt's prohibition, and a number that stays high means the
+   * prompt is not landing — not that the rule is wrong. The two side counters read the
+   * same way for the crossing: `no_company_side` staying high means the brain is still
+   * proposing unions, which is the 2026-08-26 failure showing up as a number instead of
+   * as four generic axes on a CITO's screen.
    */
   deterministic: Record<string, number>;
 };
@@ -64,6 +78,14 @@ export type GateResult = {
 export type GateContext = {
   /** From the employer research. Both scripts per competitor. */
   namedCompetitors?: string[];
+  /**
+   * From the employer research, and stored in ENGLISH ("B2C: Individual consumers and
+   * retail customers") while the brain declares its companyFact in HEBREW. So this is
+   * NOT the primary way the company side is recognised — a Hebrew segment lexicon in
+   * rationale-rules.ts is — and it only lets a fact that quotes the research verbatim
+   * count as what it plainly is.
+   */
+  customerSegments?: string[];
   /** The brain's own staged answers, for the self-contradiction check. */
   reasoning?: string;
 };
@@ -79,6 +101,11 @@ export async function gateRationales(
 
   // ── Deterministic rules FIRST, so the judge never gets a say on them ──────
   const gazetteer = competitorGazetteer(ctx.namedCompetitors ?? []);
+  // The research's OWN words cannot be a hallucination. A companyFact that quotes a
+  // stored segment — "B2C: Individual consumers" — would otherwise be rejected for the
+  // capitalised "Individual", which names no company at all; the same normalisation the
+  // competitor gazetteer uses makes the quote recognisable.
+  const allowedNames = [...gazetteer, ...competitorGazetteer(ctx.customerSegments ?? [])];
   const deterministic: Record<string, number> = {};
   const hardRejected: { label: string; rationale: string; reason: string }[] = [];
   const survivors: AxisProposal[] = [];
@@ -89,8 +116,22 @@ export async function gateRationales(
     if (opensWithTitle(p.rationale)) {
       reason = "title_pattern";
     } else if (gazetteer.length > 0) {
-      const unknown = unknownNames(p.rationale, gazetteer);
+      // The companyFact is scanned alongside the rationale, because it is now where the
+      // rival names live — and an invented rival in a message to a board member cannot
+      // be taken back. Checked BEFORE the two side rules so a hallucination is reported
+      // as a hallucination rather than as an unrecognised company side.
+      const unknown = unknownNames(`${p.rationale} ${p.companyFact}`, allowedNames);
       if (unknown.length > 0) reason = `unknown_competitor:${unknown.join(",")}`;
+    }
+    // Both sides of the crossing, declared. The 2026-08-26 run produced axes that were
+    // unions — a CITO got his employer's four technical axes — and prose could not be
+    // asked which half was the person and which was the company. Now it is asked, in
+    // code, before the judge gets a say on anything.
+    if (!reason && !declaresPersonSide(p.personDecision)) {
+      reason = "no_person_side";
+    }
+    if (!reason && !declaresCompanySide(p.companyFact, gazetteer, ctx.customerSegments ?? [])) {
+      reason = "no_company_side";
     }
     if (!reason && ctx.reasoning && contradictsReasoning(p, ctx.reasoning)) {
       reason = "contradicts_reasoning";
@@ -110,9 +151,14 @@ export async function gateRationales(
   }
   proposals = survivors;
 
+  // The judge is shown both declared sides, not just the sentence: it cannot run the
+  // person swap without knowing which decision the axis claims this person holds.
   const user = [
     `Person's role lens: ${roleLens}`,
-    ...proposals.map((p, i) => `${i}. [${p.label}] ${p.rationale}`),
+    ...proposals.map(
+      (p, i) =>
+        `${i}. [${p.label}] stage=${p.stage} | person's decision: ${p.personDecision} | fact about the company: ${p.companyFact} | rationale: ${p.rationale}`
+    ),
   ].join("\n");
 
   const res = await openrouterChat(

@@ -48,6 +48,16 @@ vi.mock("@/lib/tech-radar/axis-store", () => ({
   ensureCompanyMonitorAxis: (...a: unknown[]) => ensureCompanyMonitorAxis(...a),
 }));
 
+/**
+ * The pool count the report carries after a rebuild — the number the competitive-set gate
+ * has to be judged on, since refusing a merge raises the axis count but only raises the
+ * BILL if it raises the count of distinct query strings.
+ */
+const poolQueryCount = vi.fn();
+vi.mock("@/lib/tech-radar/person-scan", () => ({
+  poolQueryCount: (...a: unknown[]) => poolQueryCount(...a),
+}));
+
 const { buildProfilesForMarked } = await import("@/lib/tech-radar/build-profiles");
 
 const usableProfile = {
@@ -66,17 +76,30 @@ const employer = (over: Record<string, unknown> = {}) => ({
 });
 
 beforeEach(() => {
-  for (const m of [contactFindMany, companyFindMany, profileUpsert, profileFindMany, buildPersonProfile, attachAxes, ensureCompanyMonitorAxis]) m.mockReset();
+  for (const m of [contactFindMany, companyFindMany, profileUpsert, profileFindMany, buildPersonProfile, attachAxes, ensureCompanyMonitorAxis, poolQueryCount]) m.mockReset();
   // The invariant read-back: verified against the DB, not against the model's response.
   profileFindMany.mockResolvedValue([]);
   companyFindMany.mockResolvedValue([employer()]);
   profileUpsert.mockResolvedValue({ id: "pp1" });
   buildPersonProfile.mockResolvedValue({
     roleLens: "בונה את מנוע ההמלצות",
-    axes: [{ label: "קונסולידציה של מסדי וקטורים", key: "k", searchQueries: ["q"], rationale: "כי הוא בנה את זה" }],
+    // The real gateRationales runs in this file, and it now rejects an axis that does
+    // not DECLARE both sides of the crossing — which decision of this person, and which
+    // fact about this company met it. A fixture with neither is no longer a valid axis.
+    axes: [{
+      label: "קונסולידציה של מסדי וקטורים", key: "k", searchQueries: ["q"],
+      rationale: "כי הוא בנה את זה",
+      stage: "decision",
+      personDecision: "מחזיק את החלטת מנוע ההמלצות",
+      companyFact: "לקוחות פרטיים שצורכים תוצאות ספורט",
+    }],
   });
-  attachAxes.mockResolvedValue({ attached: 1, created: 1, merged: 0, skipped: [] });
+  // refused/mergeRefused: the competitive-set gate's half of the outcome. An axis the gate
+  // refused is not a loss — the person got their OWN axis — so it is counted apart from
+  // `skipped` and reported with the axis it would have joined.
+  attachAxes.mockResolvedValue({ attached: 1, created: 1, merged: 0, refused: 0, skipped: [], mergeRefused: [] });
   ensureCompanyMonitorAxis.mockResolvedValue("ax-mon");
+  poolQueryCount.mockResolvedValue({ axes: 12, uniqueQueries: 34 });
 });
 
 describe("buildProfilesForMarked", () => {
@@ -165,9 +188,47 @@ describe("buildProfilesForMarked", () => {
 
   it("surfaces an axis the gate refused", async () => {
     contactFindMany.mockResolvedValue([contact()]);
-    attachAxes.mockResolvedValue({ attached: 0, created: 0, merged: 0, skipped: [{ label: "תחום", reason: "empty_key" }] });
+    attachAxes.mockResolvedValue({ attached: 0, created: 0, merged: 0, refused: 0, skipped: [{ label: "תחום", reason: "empty_key" }], mergeRefused: [] });
     const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
     expect(out.skipped[0].reason).toMatch(/axis_empty_key: תחום/);
+  });
+
+  /**
+   * A merge decided on the label alone IS the 2026-08-26 bug: Elinor (Bank Leumi) was
+   * folded into Gil Tamir's Phoenix axis and inherited its insurance queries. The gate
+   * cannot make that call without knowing whose competitors are whose.
+   */
+  it("hands attachAxes the employer's competitive set", async () => {
+    contactFindMany.mockResolvedValue([contact()]);
+    companyFindMany.mockResolvedValue([
+      employer({ aliases: ["365"], profile: { ...usableProfile, namedCompetitors: ["Sofascore / סופהסקור"] } }),
+    ]);
+    await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    expect(attachAxes.mock.calls[0][0].employer).toEqual({
+      employerId: "tc1",
+      names: ["365Scores", "365"],
+      namedCompetitors: ["Sofascore / סופהסקור"],
+    });
+  });
+
+  it("surfaces a refused merge with the person, the label and the axis it would have joined", async () => {
+    contactFindMany.mockResolvedValue([contact()]);
+    attachAxes.mockResolvedValue({
+      attached: 1, created: 1, merged: 0, refused: 1, skipped: [],
+      mergeRefused: [{
+        label: "תחרות מוצרית מול הפועלים ודיסקונט",
+        reason: "merge_refused[תחרות דיגיטלית מול הראל ומגדל · The Phoenix Holdings]",
+      }],
+    });
+    const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    expect(out.axesRefused).toBe(1);
+    expect(out.skipped[0].name).toBe("Roy Hayumi");
+    expect(out.skipped[0].reason).toContain(
+      "axis_merge_refused[תחרות דיגיטלית מול הראל ומגדל · The Phoenix Holdings]: תחרות מוצרית מול הפועלים ודיסקונט"
+    );
+    // The bill, not just the axis count: refusing a merge only costs money if it raises
+    // the number of unique queries the next scan runs.
+    expect(out.pool).toEqual({ axes: 12, uniqueQueries: 34 });
   });
 });
 

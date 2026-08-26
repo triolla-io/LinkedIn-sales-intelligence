@@ -5,14 +5,21 @@
  * The gate runs here rather than in the proposing prompt because it needs the org's
  * existing axes, and because a pure function is the only version of it that can be
  * tested without a database. See lib/tech-radar/axis.ts for the three levels.
+ *
+ * Since 2026-08-26 there is a FOURTH condition on every merge, and it is about the
+ * employer rather than the label: an axis may only be shared by people whose companies
+ * compete for the same customers. This file does the database half — which employer each
+ * existing axis's subscribers work at — and judgeCompetitiveSetMerge() decides.
  */
 import { prisma } from "@/lib/prisma";
 import {
   judgeAxisMerge,
   judgeCeilings,
+  judgeCompetitiveSetMerge,
   normalizeAxisKey,
   companyMonitorKey,
   type AxisRow,
+  type CompetitiveSet,
 } from "@/lib/tech-radar/axis";
 import type { AxisProposal } from "@/lib/tech-radar/person-profile";
 import { resolveMergeQuestions } from "@/lib/tech-radar/axis-merge";
@@ -28,8 +35,18 @@ export type AttachOutcome = {
   attached: number;
   created: number;
   merged: number;
+  /** Merges the competitive-set gate refused. Counted separately from `skipped`,
+   *  because the person still got an axis — just their OWN one. */
+  refused: number;
   /** Proposals that hit a ceiling or normalised to nothing. Never silent. */
   skipped: { label: string; reason: string }[];
+  /**
+   * Each refused merge, naming both halves: the label that was proposed and the axis
+   * (plus the employer) it would have been folded into. A bare count could not have
+   * shown that Elinor's bank axis was folded into Phoenix's insurance one — which is the
+   * whole reason this exists.
+   */
+  mergeRefused: { label: string; reason: string }[];
 };
 
 /**
@@ -48,15 +65,95 @@ export async function attachAxes(input: {
   orgId: string;
   personProfileId: string;
   proposals: AxisProposal[];
+  /**
+   * The person's employer. REQUIRED: label similarity decided merges without it until
+   * 2026-08-26, and the merge it made cannot be spotted by looking at the labels.
+   */
+  employer: CompetitiveSet;
 }): Promise<AttachOutcome> {
-  const out: AttachOutcome = { attached: 0, created: 0, merged: 0, skipped: [] };
+  const out: AttachOutcome = { attached: 0, created: 0, merged: 0, refused: 0, skipped: [], mergeRefused: [] };
 
   const existingRows = await prisma.radarAxis.findMany({
     where: { orgId: input.orgId, status: "ACTIVE" },
-    select: { id: true, key: true, label: true },
+    select: {
+      id: true,
+      key: true,
+      label: true,
+      kind: true,
+      // An axis belongs to the competitive set of whoever already subscribes to it.
+      people: { select: { personProfile: { select: { employerTrackedCompanyId: true } } } },
+    },
   });
-  const existing: AxisRow[] = existingRows;
+  const existing: AxisRow[] = existingRows.map((r) => ({ id: r.id, key: r.key, label: r.label }));
+  const rowKind = new Map(existingRows.map((r) => [r.id, r.kind]));
   let orgAxisCount = existingRows.length;
+
+  // ── The competitive-set gate, database half ────────────────────────────────
+  const subscriberEmployerIds = [
+    ...new Set(
+      existingRows.flatMap((r) =>
+        (r.people ?? [])
+          .map((p) => p.personProfile?.employerTrackedCompanyId)
+          .filter((id): id is string => !!id)
+      )
+    ),
+  ];
+  const employerRows =
+    subscriberEmployerIds.length > 0
+      ? await prisma.trackedCompany.findMany({
+          where: { id: { in: subscriberEmployerIds } },
+          select: { id: true, name: true, aliases: true, profile: true },
+        })
+      : [];
+  const employerById = new Map<string, CompetitiveSet>(
+    employerRows.map((r) => [
+      r.id,
+      {
+        employerId: r.id,
+        names: [r.name, ...(r.aliases ?? [])],
+        namedCompetitors: (r.profile as { namedCompetitors?: string[] } | null)?.namedCompetitors ?? [],
+      },
+    ])
+  );
+  // The caller's copy of THIS person's employer wins: a rebuild re-researches the
+  // employer first, and the row read back here can be the pre-refresh one.
+  employerById.set(input.employer.employerId, input.employer);
+
+  /** axisId -> the employer whose competitive set this person's does not share. */
+  const blocked = new Map<string, string>();
+  for (const row of existingRows) {
+    const owners = (row.people ?? [])
+      .map((p) => p.personProfile?.employerTrackedCompanyId)
+      .filter((id): id is string => !!id)
+      .map((id) => employerById.get(id))
+      .filter((o): o is CompetitiveSet => !!o);
+    const verdict = judgeCompetitiveSetMerge(input.employer, owners);
+    if (!verdict.allowed) blocked.set(row.id, verdict.blockedBy);
+  }
+  /**
+   * A COMPANY_MONITOR axis is not a merge target at all — its single query is the
+   * employer's name, so folding a role axis into it would hand that person their own
+   * company's press instead of their subject. Same failure as the insurance labels, by a
+   * different road: the axis row owns the queries either way. Its structural key
+   * ("company:<id>") cannot be hit by a label, but its LABEL can score 1.0 against
+   * "מהלכים של הפניקס", so it has to be kept out of the candidate list by kind.
+   */
+  const catalog = existing.filter((row) => rowKind.get(row.id) !== "COMPANY_MONITOR");
+  const mergeable = catalog.filter((row) => !blocked.has(row.id));
+  const mergeableIds = new Set(mergeable.map((row) => row.id));
+
+  /** One refusal per proposal, naming the axis and what stopped the merge. */
+  const refused = new Set<string>();
+  const refuse = (label: string, axisId: string) => {
+    if (refused.has(label)) return;
+    refused.add(label);
+    out.refused += 1;
+    const target = existing.find((e) => e.id === axisId);
+    const why =
+      blocked.get(axisId) ??
+      (rowKind.get(axisId) === "COMPANY_MONITOR" ? "company_monitor" : "not an active axis");
+    out.mergeRefused.push({ label, reason: `merge_refused[${target?.label ?? axisId} · ${why}]` });
+  };
 
   const held = await prisma.personAxis.count({ where: { personProfileId: input.personProfileId } });
   let personAxisCount = held;
@@ -69,18 +166,33 @@ export async function attachAxes(input: {
   // which is the exact thing the agenda axis exists to prevent. Processing it first means
   // it is never the proposal that gets squeezed out.
   const ordered = [...input.proposals].sort((a, b) => Number(b.agenda) - Number(a.agenda));
-  const verdicts = ordered.map((p) => ({ proposal: p, verdict: judgeAxisMerge(p.label, existing) }));
+  // Judged TWICE on purpose. `ungated` is what label similarity alone wants — kept so a
+  // refusal can be reported instead of quietly not happening. `verdict` is the operative
+  // one, and it only ever sees axes this person's employer may actually share.
+  //
+  // Level 1 is exempt from the gate: RadarAxis is unique on [orgId, key], so for a label
+  // whose canonical key already exists there is no "create" to fall back to. It is also
+  // not the road the failure travelled — another company's competitor names arrive on a
+  // DIFFERENT label ("תחרות דיגיטלית מול הראל ומגדל" against a proposal naming הפועלים).
+  const verdicts = ordered.map((p) => {
+    const ungated = judgeAxisMerge(p.label, catalog);
+    const verdict =
+      ungated.decision === "merge" && ungated.via === "exact_key"
+        ? ungated
+        : judgeAxisMerge(p.label, mergeable);
+    return { proposal: p, verdict, ungated };
+  });
   const questions = verdicts.filter((v) => v.verdict.decision === "ask" || v.verdict.decision === "create");
   const answers =
     questions.length > 0
       ? await resolveMergeQuestions(
-          existing.map((e) => ({ id: e.id, label: e.label })),
+          catalog.map((e) => ({ id: e.id, label: e.label })),
           questions.map((q) => ({ label: q.proposal.label }))
         )
       : new Map<number, string | null>();
   const askedIndex = new Map(questions.map((q, n) => [q.proposal.label, n]));
 
-  for (const { proposal, verdict } of verdicts) {
+  for (const { proposal, verdict, ungated } of verdicts) {
     if (verdict.decision === "reject") {
       out.skipped.push({ label: proposal.label, reason: "empty_key" });
       continue;
@@ -95,13 +207,26 @@ export async function attachAxes(input: {
       continue;
     }
 
+    // The free levels wanted a merge across a competitive-set line. Recorded before any
+    // decision, so the report shows what the gate stopped rather than only what it did.
+    if (ungated.decision === "merge" && ungated.via === "similarity" && blocked.has(ungated.axisId)) {
+      refuse(proposal.label, ungated.axisId);
+    }
+
     let axisId: string;
     if (verdict.decision === "merge") {
       axisId = verdict.axisId;
       out.merged += 1;
     } else {
       const answeredId = answers.get(askedIndex.get(proposal.label) ?? -1) ?? null;
-      if (answeredId) {
+      // The model is shown the WHOLE catalog, and its answer is gated here rather than
+      // its candidates being filtered first — that is what makes a refused merge visible
+      // instead of merely absent. Creating instead is the safe direction (see
+      // axis-merge.ts): a near-duplicate axis wastes a little search budget, and two
+      // axes carrying the same query string are fetched once by the pool anyway.
+      if (answeredId && !mergeableIds.has(answeredId)) {
+        refuse(proposal.label, answeredId);
+      } else if (answeredId) {
         // The model recognised it as an existing subject worded differently.
         axisId = answeredId;
         out.merged += 1;

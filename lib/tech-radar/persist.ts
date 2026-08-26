@@ -6,6 +6,7 @@
  * reuse an item another company already paid to write up.
  */
 import { prisma } from "@/lib/prisma";
+import { parsePublishedAt } from "@/lib/news/published-at";
 import { isSearchEngineHost } from "@/lib/news/canonical-url";
 import type { CappedCandidate, TechItemDraft } from "@/lib/tech-radar/types";
 import { makeItemDedupeKey, isSameLaunch } from "@/lib/tech-radar/item";
@@ -102,7 +103,10 @@ export async function upsertTechItem(draft: TechItemDraft): Promise<string> {
       summary: draft.summary,
       categories: draft.categories,
       sources: draft.sources,
-      publishedAt: draft.publishedAt ? new Date(draft.publishedAt) : null,
+      // parsePublishedAt, not new Date(): serper reports "2 months ago", and an Invalid
+      // Date handed to Prisma is what lost an item in the 2026-08-26 scan. One reader,
+      // shared with the freshness gate, so the two cannot disagree about a date.
+      publishedAt: parsePublishedAt(draft.publishedAt),
       thin: draft.thin,
       shareworthy: draft.shareworthy,
       stature: draft.stature,

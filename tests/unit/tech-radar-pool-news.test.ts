@@ -2,8 +2,14 @@ import { describe, it, expect, vi } from "vitest";
 import { fetchPoolNews, broadenQuery, SCAN_WINDOW_DAYS } from "@/lib/tech-radar/fetch-pool-news";
 import type { NewsResult } from "@/lib/news/types";
 
-function result(url: string, title = "t"): NewsResult {
-  return { title, url, snippet: "s", source: "tavily", publishedAt: null };
+/**
+ * Dated inside the window by default. The freshness gate rejects an item whose date it
+ * cannot read — an unreadable date is not evidence of freshness, and it is the shape a
+ * silent provider failure takes — so a fixture that means "a normal result" has to say
+ * when it was published. See tech-radar-freshness-gate.test.ts for the gate itself.
+ */
+function result(url: string, title = "t", publishedAt: string | null = "1 day ago"): NewsResult {
+  return { title, url, snippet: "s", source: "tavily", publishedAt };
 }
 
 describe("SCAN_WINDOW_DAYS", () => {
@@ -129,7 +135,16 @@ describe("fetchPoolNews", () => {
 
   it("returns empty and unflagged for an empty pool", async () => {
     const out = await fetchPoolNews([], async () => []);
-    expect(out).toEqual({ items: [], queriesRun: 0, quotaLikely: false });
+    // The freshness fields are all-null rather than zero: zeros would read as "nothing
+    // was stale and everything was fresh", which is a claim an empty run cannot make.
+    expect(out).toEqual({
+      items: [],
+      queriesRun: 0,
+      quotaLikely: false,
+      staleDropped: 0,
+      undatedDropped: 0,
+      freshness: { freshest: null, median: null, oldest: null, unknown: 0, counted: 0 },
+    });
   });
 
   // GNews rate-limits a burst: firing 10 pooled queries back to back returned

@@ -6,6 +6,8 @@ import {
   disclaimedSubjects,
   contradictsReasoning,
   competitorGazetteer,
+  declaresPersonSide,
+  declaresCompanySide,
 } from "@/lib/tech-radar/rationale-rules";
 
 /**
@@ -145,5 +147,87 @@ describe("contradictsReasoning", () => {
         reasoning
       )
     ).toBe(false);
+  });
+});
+
+/**
+ * The 2026-08-26 run produced UNIONS, not intersections: Erez Rachmil (CITO, Bank
+ * Hapoalim) got core-systems modernization, real-time payments, open APIs and fraud
+ * detection — four axes that fit any CITO at any bank, i.e. his EMPLOYER'S axes. The
+ * crossing never happened, and no rule could tell, because the two sides of it existed
+ * only as prose inside one Hebrew sentence.
+ *
+ * So each axis now DECLARES its two sides, and these rules check the declaration:
+ * personDecision must point at ownership, companyFact must name a competitor the
+ * research actually found or a customer segment.
+ */
+describe("declaresPersonSide", () => {
+  it("accepts a decision the person signs", () => {
+    expect(declaresPersonSide("חתום על ארכיטקטורת הליבה ועל תקציב הסייבר")).toBe(true);
+    expect(declaresPersonSide("מחזיקה את החלטת ההיצע הקמעונאי")).toBe(true);
+  });
+
+  it("rejects the bare job title, the same failure the rationale rule catches one field over", () => {
+    expect(declaresPersonSide("כראש בנקאות קמעונאית")).toBe(false);
+    expect(declaresPersonSide("כ-CITO של בנק הפועלים")).toBe(false);
+  });
+
+  it("rejects a title with no ownership word in it at all", () => {
+    // "ראש בנקאות קמעונאית" names the chair, not what the chair signs — which is
+    // exactly the union the swap test exists to break.
+    expect(declaresPersonSide("ראש בנקאות קמעונאית")).toBe(false);
+  });
+
+  it("rejects an empty declaration — a missing side admits no crossing happened", () => {
+    expect(declaresPersonSide("")).toBe(false);
+    expect(declaresPersonSide("   ")).toBe(false);
+  });
+
+  it("reads an ownership word through a Hebrew prefix and a final letter form", () => {
+    // "חתום" ends in a final mem, so a stem written "חתומ" would never match it, and
+    // "בהחלטות" carries the ownership noun behind a ב prefix.
+    expect(declaresPersonSide("חתום על מערכות הליבה")).toBe(true);
+    expect(declaresPersonSide("שותף בהחלטות התמחור של האשראי הצרכני")).toBe(true);
+  });
+});
+
+describe("declaresCompanySide", () => {
+  const gazetteer = competitorGazetteer([
+    "Bank Leumi / בנק לאומי / לאומי",
+    "Pepper",
+  ]);
+
+  it("accepts a competitor the employer research actually found, in either script", () => {
+    expect(declaresCompanySide("לאומי משיק אשראי צרכני מיידי", gazetteer)).toBe(true);
+    expect(declaresCompanySide("Pepper is taking the young retail segment", gazetteer)).toBe(true);
+  });
+
+  it("accepts a Hebrew customer segment, because the researched segments are stored in English", () => {
+    expect(declaresCompanySide("הלקוחות הם צרכנים פרטיים שנוטלים הלוואות וחוסכים", gazetteer)).toBe(true);
+    expect(declaresCompanySide("מבוטחי הביטוח הסיעודי", gazetteer)).toBe(true);
+  });
+
+  it("accepts a verbatim quote of the employer's own English segment when it is supplied", () => {
+    expect(
+      declaresCompanySide("B2C: Individual consumers", gazetteer, [
+        "B2C: Individual consumers and retail customers",
+      ])
+    ).toBe(true);
+  });
+
+  it("rejects a fact that names neither a competitor nor a segment", () => {
+    expect(declaresCompanySide("בנק גדול בישראל", gazetteer)).toBe(false);
+    expect(declaresCompanySide("", gazetteer)).toBe(false);
+  });
+
+  it("does not accept a technical acronym as the company side", () => {
+    // The ACRONYM exemption in unknownNames exists because API/CTO/KYC are not company
+    // names. The same must hold here, in the other direction: naming a technology is
+    // not naming a fact about the company.
+    expect(declaresCompanySide("ארכיטקטורת API פתוחה ותקני KYC", gazetteer)).toBe(false);
+  });
+
+  it("rejects a rival name the research never found, rather than trusting the declaration", () => {
+    expect(declaresCompanySide("Revolut נכנסת לשוק הישראלי", gazetteer)).toBe(false);
   });
 });

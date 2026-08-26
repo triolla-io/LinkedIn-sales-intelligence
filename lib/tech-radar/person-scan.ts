@@ -79,6 +79,16 @@ export function tallyAxisStats(
 export type PersonScanReport = {
   axes: number;
   queriesRun: number;
+  /**
+   * DISTINCT query strings the pool asked for, before any provider was called.
+   *
+   * The number the axis-merge decision is judged on. Merging axes by label was supposed
+   * to be the cost lever; the saving is actually here — two axes asking for the same
+   * string are one fetched query — so when the competitive-set gate refuses a merge, this
+   * is what says whether it cost anything. `queriesRun` counts what the fetcher executed,
+   * which includes the broaden-retry, and cannot answer that question.
+   */
+  uniqueQueries: number;
   poolItems: number;
   worthSharing: number;
   itemsWritten: number;
@@ -98,19 +108,57 @@ export type PersonScanReport = {
   dropReasons: Record<string, number>;
   triageByKind: { kind: string; seen: number; passed: number }[];
   quotaExhausted: boolean;
+  /**
+   * How old the pool actually was, in days, plus what the window rejected.
+   *
+   * The 2026-08-26 report said "poolItems: 200, itemsWritten: 11" and every one of those
+   * eleven was stale — the freshest by 56 days. Nothing in the report could show it,
+   * because the report carried no age. It does now.
+   */
+  freshness: {
+    freshest: number | null;
+    median: number | null;
+    oldest: number | null;
+    /** Rejected for being past the window. */
+    staleDropped: number;
+    /** Rejected because no date could be read — a silent provider failure, named. */
+    undatedDropped: number;
+  };
 };
 
 const EMPTY: PersonScanReport = {
-  axes: 0, queriesRun: 0, poolItems: 0, worthSharing: 0, itemsWritten: 0,
+  axes: 0, queriesRun: 0, uniqueQueries: 0, poolItems: 0, worthSharing: 0, itemsWritten: 0,
   axisFitsJudged: 0, candidates: 0, vetoed: 0, drafted: 0, poolDropped: 0, relevantButLight: 0, snippetOnly: 0,
   acceptance: { weighty: 0, israeliSource: 0, israelRelevant: 0, met: false, shortfall: "לא נסרק" },
   dropReasons: {}, triageByKind: [], quotaExhausted: false,
+  freshness: { freshest: null, median: null, oldest: null, staleDropped: 0, undatedDropped: 0 },
 };
 
 function countBy(reasons: string[]): Record<string, number> {
   const out: Record<string, number> = {};
   for (const r of reasons) out[r] = (out[r] ?? 0) + 1;
   return out;
+}
+
+/**
+ * What the NEXT scan would ask the providers for, without asking them.
+ *
+ * The same builder, normalizer and per-axis cap the run itself uses — a second
+ * implementation would drift and the number would stop being the one that gets billed.
+ *
+ * This exists because the competitive-set gate (2026-08-26) stopped merging axes between
+ * companies that do not share competitors, and the whole bet is that the saving was never
+ * in the merge but in this pool: two axes asking for the same string are one query. A
+ * rebuild that raises the axis count without raising THIS number cost nothing.
+ */
+export async function poolQueryCount(orgId: string): Promise<{ axes: number; uniqueQueries: number }> {
+  const axes = await prisma.radarAxis.findMany({
+    // Subscriber-less axes contribute no query, exactly as in the run below.
+    where: { orgId, status: "ACTIVE", people: { some: {} } },
+    select: { id: true, searchQueries: true },
+  });
+  const pool = buildAxisQueryPool(axes, normalizeQuery, MAX_QUERIES_PER_AXIS);
+  return { axes: axes.length, uniqueQueries: pool.length };
 }
 
 export async function personScan(orgId: string): Promise<PersonScanReport> {
@@ -125,7 +173,22 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
    * the decisions screen renders these as an explained silence, not a bug.
    */
   let axisStats: AxisStat[] = [];
-  const finish = async (report: PersonScanReport): Promise<PersonScanReport> => {
+  // Set once the pool is fetched and folded into EVERY exit path by finish(), rather
+  // than added to each of the six early returns by hand — which is how a field ends up
+  // present on some of them and zero on the rest.
+  let freshness = EMPTY.freshness;
+  /** Set once the pool is built, and folded into every exit path by finish() — the six
+   *  early returns are exactly how a field ends up present on some of them and zero on
+   *  the rest. */
+  let uniqueQueries = 0;
+  // The two folded-in fields are Omit-ed from the argument on purpose: the last exit path
+  // built its report without `freshness` and type-checked only because every other call
+  // spread EMPTY. A caller must not be able to pass a stale value for a field finish()
+  // owns, and must not have to invent one either.
+  const finish = async (
+    raw: Omit<PersonScanReport, "freshness" | "uniqueQueries">
+  ): Promise<PersonScanReport> => {
+    const report = { ...raw, freshness, uniqueQueries };
     await prisma.radarScanRun.update({
       where: { id: run.id },
       data: {
@@ -171,9 +234,22 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     normalizeQuery,
     MAX_QUERIES_PER_AXIS
   );
+  uniqueQueries = pool.length;
   const news = await fetchPoolNews(pool.map((p) => ({ query: p.query, companyIds: p.axisIds })));
   // Recorded before any filtering: this answers "did the axis get anything at all",
   // which is a different question from "did anything survive triage".
+  freshness = {
+    freshest: news.freshness.freshest,
+    median: news.freshness.median,
+    oldest: news.freshness.oldest,
+    staleDropped: news.staleDropped,
+    undatedDropped: news.undatedDropped,
+  };
+  if (news.staleDropped > 0 || news.undatedDropped > 0) {
+    console.log(
+      `[radar] freshness gate org=${orgId} stale=${news.staleDropped} undated=${news.undatedDropped} kept=${news.items.length}`
+    );
+  }
   axisStats = tallyAxisStats(
     axes.map((a) => ({ id: a.id, label: a.label })),
     pool,

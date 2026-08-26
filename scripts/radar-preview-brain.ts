@@ -146,20 +146,27 @@ async function main() {
 
     console.log(`\n  roleLens: ${draft.roleLens}`);
     console.log(`\n  REASONING (the staged thinking):`);
-    for (const line of draft.reasoning.split(/(?=\([אבג]\))/)) {
+    for (const line of draft.reasoning.split(/(?=\([אבגדה]\))/)) {
       if (line.trim()) console.log(`    ${line.trim()}`);
     }
 
-    const facts = freshProfiles.get(employer.id) as { namedCompetitors?: string[] } | undefined;
+    const facts = freshProfiles.get(employer.id) as
+      | { namedCompetitors?: string[]; customerSegments?: string[] }
+      | undefined;
     const gate = await gateRationales(draft.roleLens, draft.axes, {
       namedCompetitors: facts?.namedCompetitors ?? [],
+      customerSegments: facts?.customerSegments ?? [],
       reasoning: draft.reasoning,
     });
     if (!gate.judged) console.log(`\n  ⚠ rationale gate call failed — nothing was filtered`);
 
     console.log(`\n  PROPOSED AXES (${gate.kept.length} kept, ${gate.rejected.length} rejected by the gate):`);
     for (const a of gate.kept) {
-      console.log(`    · ${a.label}${a.agenda ? "   [agenda]" : ""}`);
+      // The stage tag and the crossing are the whole point of the 2026-08-26 rework:
+      // "derived from the role and the company" is a tag that distinguishes nothing, and
+      // a rationale naming one side is an admission that no crossing happened.
+      console.log(`    · ${a.label}${a.agenda ? "   [agenda]" : ""}   [${a.stage}]`);
+      console.log(`      crossing: ${a.personDecision}  ×  ${a.companyFact}`);
       console.log(`      why him: ${a.rationale}`);
       console.log(`      queries: ${a.searchQueries.join(" | ")}`);
     }

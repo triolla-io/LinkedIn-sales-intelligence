@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 
 import {
   parseProfileResponse,
+  parseProfileResponseWithReason,
   personPromptInput,
   PROFILE_SYSTEM,
 } from "@/lib/tech-radar/person-profile";
@@ -23,12 +24,18 @@ const validAxes = [
   {
     label: "מוצרי מתחרים בריטייל הבנקאי",
     agenda: false,
+    stage: "competitor",
+    personDecision: "מחזיקה את החלטת ההיצע הקמעונאי",
+    companyFact: "לאומי מתחרה על אותם לקוחות פרטיים",
     searchQueries: ["לאומי דיגיטל השקה", "retail banking product launch Israel"],
     rationale: "כי לאומי והדיסקונט מתחרים ישירות על לקוחות הריטייל שהיא מנהלת",
   },
   {
     label: "כניסת הבנק למסחר בקריפטו",
     agenda: true,
+    stage: "decision",
+    personDecision: "חתומה על תמהיל המוצרים הקמעונאי",
+    companyFact: "לקוחות קמעונאיים שחוסכים ומשקיעים",
     searchQueries: ["בנק ישראל קריפטו רגולציה"],
     rationale: "כי היא מחזיקה את החלטת ההיצע הקמעונאי מול המהלך של לאומי",
   },
@@ -123,5 +130,98 @@ describe("PROFILE_SYSTEM staged thinking", () => {
 
   it("requires competitor axes to carry the competitors' actual names as queries", () => {
     expect(PROFILE_SYSTEM).toMatch(/namedCompetitors|competitor.*BY NAME|actual names/i);
+  });
+});
+
+/**
+ * The structural half of the swap-test fix.
+ *
+ * On 2026-08-26 the crossing could not be checked at all: both sides of it existed only
+ * inside one Hebrew sentence, and a regex over prose cannot say which half is the person
+ * and which is the company. So the axis declares them — and declares WHICH staged
+ * question produced it, because "derived from the role and the company" is a tag that
+ * distinguishes nothing.
+ */
+describe("parseProfileResponse declared intersection", () => {
+  const base = { reasoning: "(א) חותמת על ההיצע. (ב) לאומי אוכל לה לקוחות.", roleLens: "מחזיקה את ההיצע הקמעונאי" };
+
+  it("carries both declared sides and the stage tag onto the axis", () => {
+    const draft = parseProfileResponse(JSON.stringify({ ...base, axes: validAxes }));
+    expect(draft?.axes[0].personDecision).toBe("מחזיקה את החלטת ההיצע הקמעונאי");
+    expect(draft?.axes[0].companyFact).toBe("לאומי מתחרה על אותם לקוחות פרטיים");
+    expect(draft?.axes[0].stage).toBe("competitor");
+    expect(draft?.axes[1].stage).toBe("decision");
+  });
+
+  it("accepts the adopt stage, the one that produced ZERO axes for everyone", () => {
+    // Stage (ד) — "what is done well somewhere else" — died in the live run because its
+    // rationales named no fact about the person's own company, so they survived the
+    // company swap and the judge (which had only that test) called them generic.
+    const draft = parseProfileResponse(
+      JSON.stringify({
+        ...base,
+        axes: [{ ...validAxes[0], stage: "adopt" }],
+      })
+    );
+    expect(draft?.axes[0].stage).toBe("adopt");
+  });
+
+  it("drops an axis that cannot say which staged question produced it", () => {
+    const draft = parseProfileResponse(
+      JSON.stringify({
+        ...base,
+        axes: [
+          { ...validAxes[0], stage: "derived from the role and the company" },
+          { ...validAxes[1], stage: undefined },
+        ],
+      })
+    );
+    expect(draft).toBeNull();
+  });
+
+  it("says which requirement emptied the axis list, rather than one message for four gates", () => {
+    const { reason } = parseProfileResponseWithReason(
+      JSON.stringify({ ...base, axes: [{ ...validAxes[0], stage: "whatever" }] })
+    );
+    expect(reason).toContain("stage");
+  });
+});
+
+/**
+ * The swap test, inside the thinking and before the derivation — which is where the
+ * product owner asked for it, precisely because a filter afterwards can only delete what
+ * a union already spent its output budget on.
+ */
+describe("PROFILE_SYSTEM swap test", () => {
+  it("carries both swaps, not just the company swap", () => {
+    expect(PROFILE_SYSTEM).toMatch(/SWAP THE PERSON/);
+    expect(PROFILE_SYSTEM).toMatch(/SWAP THE COMPANY/);
+  });
+
+  it("puts the swaps BEFORE any axis is derived", () => {
+    const swap = PROFILE_SYSTEM.indexOf("SWAP THE PERSON");
+    const derive = PROFILE_SYSTEM.indexOf("axes — 3 to 5 subjects");
+    expect(swap).toBeGreaterThan(-1);
+    expect(derive).toBeGreaterThan(swap);
+  });
+
+  it("keeps an axis only when it breaks under both swaps", () => {
+    expect(PROFILE_SYSTEM).toMatch(/BREAKS UNDER BOTH/);
+  });
+
+  it("names the union failure it exists to prevent", () => {
+    // Any CITO at any bank would have received Erez Rachmil's four axes.
+    expect(PROFILE_SYSTEM).toMatch(/the COMPANY'S subject/);
+    expect(PROFILE_SYSTEM).toMatch(/the TITLE'S subject/);
+  });
+
+  it("requires the rationale to name both sides of the crossing", () => {
+    expect(PROFILE_SYSTEM).toMatch(/BOTH SIDES/);
+  });
+
+  it("declares the two sides and the stage tag as fields, not as prose", () => {
+    expect(PROFILE_SYSTEM).toMatch(/personDecision/);
+    expect(PROFILE_SYSTEM).toMatch(/companyFact/);
+    expect(PROFILE_SYSTEM).toMatch(/"stage":"decision"\|"competitor"\|"stop_and_read"\|"adopt"/);
   });
 });

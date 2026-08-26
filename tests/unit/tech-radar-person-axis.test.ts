@@ -3,8 +3,21 @@ import { parseProfileResponse, clampPersonalNotes, PROFILE_SYSTEM, MAX_PERSONAL_
 import { parseAxisFit, buildAxisQueryPool, AXIS_FIT_SYSTEM } from "@/lib/tech-radar/axis-fit";
 import { normalizeAxisKey, MAX_AXES_PER_PERSON } from "@/lib/tech-radar/axis";
 
+/**
+ * The fixture carries the declared crossing — stage, personDecision, companyFact —
+ * because an axis that cannot say which staged question produced it is dropped at parse:
+ * a source tag the parser defaults for the model is a tag that distinguishes nothing.
+ */
 const axis = (label: string, rationale = "כי הוא בנה את זה", queries = ["vector search research"]) =>
-  JSON.stringify({ label, rationale, searchQueries: queries, agenda: false });
+  JSON.stringify({
+    label,
+    rationale,
+    searchQueries: queries,
+    agenda: false,
+    stage: "decision",
+    personDecision: "חתום על מנוע הדירוג",
+    companyFact: "לקוחות פרטיים שמחפשים מוצרים",
+  });
 
 describe("PROFILE_SYSTEM", () => {
   /** v1's whole failure was answering "what does this person own?" with the company. */

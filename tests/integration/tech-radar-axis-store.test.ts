@@ -16,6 +16,9 @@ vi.mock("@/lib/prisma", () => ({
       update: (...a: unknown[]) => axisUpdate(...a),
       upsert: (...a: unknown[]) => axisUpsert(...a),
     },
+    trackedCompany: {
+      findMany: (...a: unknown[]) => trackedCompanyFindMany(...a),
+    },
     personAxis: {
       count: (...a: unknown[]) => personAxisCount(...a),
       upsert: (...a: unknown[]) => personAxisUpsert(...a),
@@ -26,6 +29,7 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
+const trackedCompanyFindMany = vi.fn();
 const personAxisFindMany = vi.fn();
 const personAxisUpdate = vi.fn();
 const resolveMergeQuestions = vi.fn();
@@ -41,17 +45,70 @@ const proposal = (label: string, rationale = "כי הוא בנה את זה") => 
   key: normalizeAxisKey(label),
   searchQueries: ["vector search research"],
   rationale,
+  // The declared two sides of the crossing. attachAxes does not read them — it decides on
+  // the label, the queries and the employer — but a proposal is not a proposal without them.
+  personDecision: "היא חותמת על חוויית הלקוח בריטייל",
+  companyFact: "הפועלים השיקה אפליקציה חדשה",
+  stage: "competitor" as const,
   agenda: false,
 });
 
+/**
+ * The 2026-08-26 cohort's employers, in the shape research writes them. Gil Tamir sits at
+ * Phoenix (insurance); Elinor at Bank Leumi; Erez and Pazit at Bank Hapoalim.
+ */
+const HAPOALIM = {
+  employerId: "tc-hapoalim",
+  names: ["Bank Hapoalim", "בנק הפועלים"],
+  namedCompetitors: [
+    "Bank Leumi / בנק לאומי / לאומי",
+    "Israel Discount Bank / בנק דיסקונט / דיסקונט",
+    "Mizrahi-Tefahot / מזרחי טפחות",
+  ],
+};
+const LEUMI = {
+  employerId: "tc-leumi",
+  names: ["Bank Leumi", "בנק לאומי"],
+  namedCompetitors: [
+    "Bank Hapoalim / בנק הפועלים / הפועלים",
+    "Israel Discount Bank / בנק דיסקונט / דיסקונט",
+    "Mizrahi-Tefahot / מזרחי טפחות",
+  ],
+};
+const PHOENIX_ROW = {
+  id: "tc-phoenix",
+  name: "The Phoenix Holdings",
+  aliases: ["הפניקס"],
+  profile: {
+    namedCompetitors: ["Harel Insurance / הראל", "Migdal Insurance / מגדל", "Bank Hapoalim / בנק הפועלים"],
+  },
+};
+const HAPOALIM_ROW = {
+  id: "tc-hapoalim",
+  name: "Bank Hapoalim",
+  aliases: ["בנק הפועלים"],
+  profile: { namedCompetitors: HAPOALIM.namedCompetitors },
+};
+
+/** An existing axis and the employer its subscribers work at. */
+function ownedAxis(id: string, label: string, employerId: string | null) {
+  return {
+    id,
+    key: normalizeAxisKey(label),
+    label,
+    people: [{ personProfile: { employerTrackedCompanyId: employerId } }],
+  };
+}
+
 beforeEach(() => {
-  for (const m of [axisFindMany, axisCreate, axisUpdate, axisUpsert, personAxisCount, personAxisUpsert, personAxisGroupBy, resolveMergeQuestions, personAxisFindMany, personAxisUpdate]) {
+  for (const m of [axisFindMany, axisCreate, axisUpdate, axisUpsert, personAxisCount, personAxisUpsert, personAxisGroupBy, resolveMergeQuestions, personAxisFindMany, personAxisUpdate, trackedCompanyFindMany]) {
     m.mockReset();
   }
   personAxisFindMany.mockResolvedValue([{ id: "pa1", agenda: true }]);
   // Default: the model says every proposal is a new subject.
   resolveMergeQuestions.mockResolvedValue(new Map());
   axisFindMany.mockResolvedValue([]);
+  trackedCompanyFindMany.mockResolvedValue([]);
   personAxisCount.mockResolvedValue(0);
   personAxisUpsert.mockResolvedValue({ id: "pa1", createdAt: new Date("2026-08-23T00:00:00Z") });
   personAxisGroupBy.mockResolvedValue([]);
@@ -63,7 +120,7 @@ beforeEach(() => {
 
 describe("attachAxes", () => {
   it("creates an axis nobody has yet, and attaches the person to it", async () => {
-    const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [proposal("קונסולידציה של מסדי וקטורים")] });
+    const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [proposal("קונסולידציה של מסדי וקטורים")] });
     expect(out).toMatchObject({ created: 1, merged: 0, attached: 1 });
     expect(personAxisUpsert.mock.calls[0][0].create.rationale).toBe("כי הוא בנה את זה");
   });
@@ -73,27 +130,27 @@ describe("attachAxes", () => {
     axisFindMany.mockResolvedValue([
       { id: "ax-existing", key: normalizeAxisKey("זיהוי הונאות"), label: "זיהוי הונאות" },
     ]);
-    const out = await attachAxes({ orgId: "org1", personProfileId: "pp2", proposals: [proposal("הונאות זיהוי")] });
+    const out = await attachAxes({ orgId: "org1", personProfileId: "pp2", employer: HAPOALIM, proposals: [proposal("הונאות זיהוי")] });
     expect(out).toMatchObject({ created: 0, merged: 1, attached: 1 });
     expect(axisCreate).not.toHaveBeenCalled();
     expect(personAxisUpsert.mock.calls[0][0].where.personProfileId_axisId.axisId).toBe("ax-existing");
   });
 
   it("only queries ACTIVE axes, since a merged axis is not a merge target", async () => {
-    await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [proposal("זיהוי הונאות")] });
+    await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [proposal("זיהוי הונאות")] });
     expect(axisFindMany.mock.calls[0][0].where).toEqual({ orgId: "org1", status: "ACTIVE" });
   });
 
   /** Never silent: a dropped proposal has a recorded reason. */
   it("records a rejected label rather than dropping it quietly", async () => {
-    const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [proposal("תחום")] });
+    const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [proposal("תחום")] });
     expect(out.attached).toBe(0);
     expect(out.skipped).toEqual([{ label: "תחום", reason: "empty_key" }]);
   });
 
   it("records the ceiling that stopped a creation", async () => {
     personAxisCount.mockResolvedValue(MAX_AXES_PER_PERSON);
-    const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [proposal("אנרגיה מתחדשת")] });
+    const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [proposal("אנרגיה מתחדשת")] });
     expect(out.created).toBe(0);
     expect(out.skipped).toEqual([{ label: "אנרגיה מתחדשת", reason: "person_ceiling" }]);
   });
@@ -102,7 +159,7 @@ describe("attachAxes", () => {
     axisFindMany.mockResolvedValue(
       Array.from({ length: MAX_AXES_PER_ORG }, (_, i) => ({ id: `a${i}`, key: `k${i}`, label: `נושא ייחודי מספר ${i}` }))
     );
-    const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [proposal("אנרגיה מתחדשת")] });
+    const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [proposal("אנרגיה מתחדשת")] });
     expect(axisCreate).not.toHaveBeenCalled();
     expect(out.skipped[0].reason).toBe("org_ceiling");
   });
@@ -120,7 +177,7 @@ describe("attachAxes", () => {
     ]);
     const out = await attachAxes({
       orgId: "org1",
-      personProfileId: "pp1",
+      personProfileId: "pp1", employer: HAPOALIM,
       proposals: [proposal("זיהוי הונאות בהעברות")],
     });
     expect(axisCreate).not.toHaveBeenCalled();
@@ -131,7 +188,7 @@ describe("attachAxes", () => {
   /** Re-running a build must not overwrite a weight the learning loop has moved. */
   /** `weight` is moved by the learning loop; a rebuild must not reset it. */
   it("upserts the link without touching its weight", async () => {
-    await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [proposal("זיהוי הונאות")] });
+    await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [proposal("זיהוי הונאות")] });
     expect(personAxisUpsert.mock.calls[0][0].update).toEqual({
       rationale: "כי הוא בנה את זה",
       agenda: false,
@@ -142,14 +199,14 @@ describe("attachAxes", () => {
   /** Recomputed, not incremented, so a retry cannot inflate the width guard's input. */
   it("recomputes subscriberCount from the join table", async () => {
     personAxisGroupBy.mockResolvedValue([{ axisId: "ax1", _count: { axisId: 3 } }]);
-    await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [proposal("זיהוי הונאות")] });
+    await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [proposal("זיהוי הונאות")] });
     expect(axisUpdate).toHaveBeenCalledWith({ where: { id: "ax1" }, data: { subscriberCount: 3 } });
   });
 
   it("keeps going after one bad proposal", async () => {
     const out = await attachAxes({
       orgId: "org1",
-      personProfileId: "pp1",
+      personProfileId: "pp1", employer: HAPOALIM,
       proposals: [proposal("תחום"), proposal("זיהוי הונאות בתשלומים")],
     });
     expect(out.created).toBe(1);
@@ -186,7 +243,7 @@ describe("attachAxes level-3 merge", () => {
     resolveMergeQuestions.mockResolvedValue(new Map([[0, "ax-live"]]));
     const out = await attachAxes({
       orgId: "org1",
-      personProfileId: "pp2",
+      personProfileId: "pp2", employer: HAPOALIM,
       proposals: [proposal("עיבוד נתונים בזמן אמת בקנה מידה ענק")],
     });
     expect(out).toMatchObject({ created: 0, merged: 1, attached: 1 });
@@ -198,7 +255,7 @@ describe("attachAxes level-3 merge", () => {
     axisFindMany.mockResolvedValue([live]);
     await attachAxes({
       orgId: "org1",
-      personProfileId: "pp2",
+      personProfileId: "pp2", employer: HAPOALIM,
       proposals: [proposal("נושא ראשון ייחודי"), proposal("נושא שני ייחודי"), proposal("נושא שלישי ייחודי")],
     });
     expect(resolveMergeQuestions).toHaveBeenCalledTimes(1);
@@ -208,7 +265,7 @@ describe("attachAxes level-3 merge", () => {
   it("creates when the model says the subject is new", async () => {
     axisFindMany.mockResolvedValue([live]);
     resolveMergeQuestions.mockResolvedValue(new Map([[0, null]]));
-    const out = await attachAxes({ orgId: "org1", personProfileId: "pp2", proposals: [proposal("אנרגיה מתחדשת")] });
+    const out = await attachAxes({ orgId: "org1", personProfileId: "pp2", employer: HAPOALIM, proposals: [proposal("אנרגיה מתחדשת")] });
     expect(out.created).toBe(1);
   });
 
@@ -217,7 +274,7 @@ describe("attachAxes level-3 merge", () => {
     axisFindMany.mockResolvedValue([
       { id: "ax-fraud", key: normalizeAxisKey("זיהוי הונאות"), label: "זיהוי הונאות" },
     ]);
-    await attachAxes({ orgId: "org1", personProfileId: "pp2", proposals: [proposal("הונאות זיהוי")] });
+    await attachAxes({ orgId: "org1", personProfileId: "pp2", employer: HAPOALIM, proposals: [proposal("הונאות זיהוי")] });
     expect(resolveMergeQuestions).not.toHaveBeenCalled();
   });
 });
@@ -235,7 +292,7 @@ describe("attachAxes protects the agenda axis", () => {
     axisFindMany.mockResolvedValue([]);
     await attachAxes({
       orgId: "org1",
-      personProfileId: "pp1",
+      personProfileId: "pp1", employer: HAPOALIM,
       proposals: [proposal("נושא תפקיד ראשון"), proposal("נושא תפקיד שני"), agenda("הרחבת הקיבולת שהוכרזה")],
     });
     expect(axisCreate.mock.calls[0][0].data.label).toBe("הרחבת הקיבולת שהוכרזה");
@@ -243,14 +300,14 @@ describe("attachAxes protects the agenda axis", () => {
 
   it("marks the link as agenda", async () => {
     axisFindMany.mockResolvedValue([]);
-    await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [agenda("הרחבת הקיבולת")] });
+    await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [agenda("הרחבת הקיבולת")] });
     expect(personAxisUpsert.mock.calls[0][0].create.agenda).toBe(true);
   });
 
   it("promotes a surviving link when the agenda proposal was dropped anyway", async () => {
     axisFindMany.mockResolvedValue([]);
     personAxisFindMany.mockResolvedValue([{ id: "pa-first", agenda: false }, { id: "pa-2", agenda: false }]);
-    const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [proposal("נושא תפקיד")] });
+    const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [proposal("נושא תפקיד")] });
     expect(personAxisUpdate).toHaveBeenCalledWith({ where: { id: "pa-first" }, data: { agenda: true } });
     expect(out.skipped.map((s) => s.reason)).toContain("agenda_proposal_dropped_promoted_first_link");
   });
@@ -258,7 +315,158 @@ describe("attachAxes protects the agenda axis", () => {
   it("does not promote when an agenda link already exists", async () => {
     axisFindMany.mockResolvedValue([]);
     personAxisFindMany.mockResolvedValue([{ id: "pa1", agenda: true }]);
-    await attachAxes({ orgId: "org1", personProfileId: "pp1", proposals: [agenda("הרחבת הקיבולת")] });
+    await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [agenda("הרחבת הקיבולת")] });
     expect(personAxisUpdate).not.toHaveBeenCalled();
   });
 })
+
+
+/**
+ * The competitive-set gate — part (ג) of the 2026-08-26 fix.
+ *
+ * Gil Tamir (Phoenix, insurance) was processed first and created
+ * "תחרות דיגיטלית מול הראל ומגדל". Elinor Levinson Gafni (Bank Leumi) proposed her own
+ * competitive axis, correctly naming הפועלים, דיסקונט ומזרחי-טפחות — and the merge folded
+ * her into Gil's. The RadarAxis row owns the QUERIES, so a VP Product at a bank spent one
+ * of her two axes on "ביטוח הראל אפליקציה דיגיטלית חדשה". Label similarity is blind to
+ * the employer; these pin that it no longer decides alone.
+ */
+describe("attachAxes competitive-set gate", () => {
+  const gilsAxis = ownedAxis("ax-gil", "תחרות דיגיטלית מול הראל ומגדל", "tc-phoenix");
+
+  it("refuses the model's cross-sector merge and creates the bank's own axis", async () => {
+    axisFindMany.mockResolvedValue([gilsAxis]);
+    trackedCompanyFindMany.mockResolvedValue([PHOENIX_ROW]);
+    // Exactly what the live run answered.
+    resolveMergeQuestions.mockResolvedValue(new Map([[0, "ax-gil"]]));
+
+    const out = await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp-elinor",
+      employer: LEUMI,
+      proposals: [proposal("תחרות מוצרית מול הפועלים ודיסקונט")],
+    });
+
+    expect(out).toMatchObject({ created: 1, merged: 0, refused: 1, attached: 1 });
+    expect(out.mergeRefused).toHaveLength(1);
+    expect(out.mergeRefused[0].label).toBe("תחרות מוצרית מול הפועלים ודיסקונט");
+    // Both halves named: the axis that was refused and the employer that blocked it.
+    expect(out.mergeRefused[0].reason).toContain("תחרות דיגיטלית מול הראל ומגדל");
+    expect(out.mergeRefused[0].reason).toContain("The Phoenix Holdings");
+    expect(personAxisUpsert.mock.calls[0][0].where.personProfileId_axisId.axisId).not.toBe("ax-gil");
+  });
+
+  /** The free similarity level is gated too — 0.6 overlap across sectors is still wrong. */
+  it("refuses a high-similarity merge across sectors", async () => {
+    axisFindMany.mockResolvedValue([ownedAxis("ax-gil", "תחרות דיגיטלית מול הראל", "tc-phoenix")]);
+    trackedCompanyFindMany.mockResolvedValue([PHOENIX_ROW]);
+    const out = await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp-elinor",
+      employer: LEUMI,
+      proposals: [proposal("תחרות דיגיטלית מול מגדל")],
+    });
+    expect(out).toMatchObject({ created: 1, merged: 0, refused: 1 });
+  });
+
+  /** Two executives at ONE employer are the case sharing was designed for. */
+  it("lets two people at the same employer share an axis", async () => {
+    axisFindMany.mockResolvedValue([ownedAxis("ax-erez", "אימוץ מוצרי B2C מענפים אחרים", "tc-hapoalim")]);
+    trackedCompanyFindMany.mockResolvedValue([HAPOALIM_ROW]);
+    resolveMergeQuestions.mockResolvedValue(new Map([[0, "ax-erez"]]));
+    const out = await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp-pazit",
+      employer: HAPOALIM,
+      proposals: [proposal("חידושים צרכניים לאימוץ מבנקים בעולם")],
+    });
+    expect(out).toMatchObject({ created: 0, merged: 1, refused: 0 });
+    expect(out.mergeRefused).toEqual([]);
+  });
+
+  /**
+   * The saving that WAS real: two banks share most of their competitor list, so a genuine
+   * peer merge still happens and the shared AxisMatch is still computed once.
+   */
+  it("lets two banks share an axis", async () => {
+    axisFindMany.mockResolvedValue([ownedAxis("ax-erez", "אימוץ מוצרי B2C מענפים אחרים", "tc-hapoalim")]);
+    trackedCompanyFindMany.mockResolvedValue([HAPOALIM_ROW]);
+    resolveMergeQuestions.mockResolvedValue(new Map([[0, "ax-erez"]]));
+    const out = await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp-elinor",
+      employer: LEUMI,
+      proposals: [proposal("חידושים צרכניים לאימוץ מבנקים בעולם")],
+    });
+    expect(out).toMatchObject({ created: 0, merged: 1 });
+    expect(out.mergeRefused).toEqual([]);
+  });
+
+  /**
+   * Level 1 is exempt, and not as a favour: RadarAxis is unique on [orgId, key], so for a
+   * label whose canonical key already exists there is no "create" to fall back to.
+   */
+  it("still merges an identical canonical key across sectors", async () => {
+    axisFindMany.mockResolvedValue([ownedAxis("ax-gil", "בנקאות פתוחה", "tc-phoenix")]);
+    trackedCompanyFindMany.mockResolvedValue([PHOENIX_ROW]);
+    const out = await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp-elinor",
+      employer: LEUMI,
+      proposals: [proposal("פתוחה בנקאות")],
+    });
+    expect(axisCreate).not.toHaveBeenCalled();
+    expect(out).toMatchObject({ merged: 1, refused: 0 });
+  });
+
+  /** An axis whose subscribers were detached carries nobody's competitive set. */
+  it("allows a merge into an axis with no subscribers left", async () => {
+    axisFindMany.mockResolvedValue([ownedAxis("ax-orphan", "אימוץ מוצרי B2C מענפים אחרים", null)]);
+    trackedCompanyFindMany.mockResolvedValue([]);
+    resolveMergeQuestions.mockResolvedValue(new Map([[0, "ax-orphan"]]));
+    const out = await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp-elinor",
+      employer: LEUMI,
+      proposals: [proposal("חידושים צרכניים לאימוץ מבנקים בעולם")],
+    });
+    expect(out).toMatchObject({ merged: 1, refused: 0 });
+  });
+  /**
+   * A COMPANY_MONITOR axis carries ONE query — the employer's name — so folding a role
+   * axis into it would hand the person their own company's press instead of their
+   * subject. The axis row owns the queries, which is the same mechanism that put
+   * insurance searches on a bank VP; this is the other road to it.
+   */
+  it("never folds a proposal into a COMPANY_MONITOR axis, however alike the labels", async () => {
+    axisFindMany.mockResolvedValue([
+      { id: "ax-mon", key: "company:tc-phoenix", label: "מהלכים של הפניקס", kind: "COMPANY_MONITOR", people: [] },
+    ]);
+    // Even if the model were to name it, membership decides — not the model.
+    resolveMergeQuestions.mockResolvedValue(new Map([[0, "ax-mon"]]));
+    const out = await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp-gil",
+      employer: { employerId: "tc-phoenix", names: ["The Phoenix Holdings"], namedCompetitors: ["Harel / הראל"] },
+      proposals: [proposal("מהלכים של הפניקס")],
+    });
+    expect(out).toMatchObject({ created: 1, merged: 0 });
+    expect(out.mergeRefused[0].reason).toContain("company_monitor");
+  });
+
+  /** The model must not even be offered a monitor axis as a merge target. */
+  it("keeps monitor axes out of the question the model is asked", async () => {
+    axisFindMany.mockResolvedValue([
+      { id: "ax-mon", key: "company:tc-phoenix", label: "מהלכים של הפניקס", kind: "COMPANY_MONITOR", people: [] },
+      ownedAxis("ax-role", "אימוץ מוצרי B2C מענפים אחרים", "tc-hapoalim"),
+    ]);
+    trackedCompanyFindMany.mockResolvedValue([HAPOALIM_ROW]);
+    await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp-erez",
+      employer: HAPOALIM,
+      proposals: [proposal("נושא חדש לגמרי")],
+    });
+    expect(resolveMergeQuestions.mock.calls[0][0].map((e: { id: string }) => e.id)).toEqual(["ax-role"]);
+  });
+});

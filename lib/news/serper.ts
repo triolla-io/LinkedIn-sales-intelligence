@@ -2,9 +2,27 @@ import type { NewsResult } from "@/lib/news/types";
 import { reserveNewsCall } from "@/lib/news/budget";
 import { localeForQuery } from "@/lib/news/locale";
 
+/**
+ * Google's recency operator for a day count: qdr:d / qdr:w / qdr:m / qdr:y.
+ *
+ * Rounded UP to the coarser bucket — asking for less than the window would drop news the
+ * window allows, and the exact cut is made after the fetch anyway.
+ */
+export function recencyTbs(days: number | undefined): string | null {
+  if (!days || days <= 0) return null;
+  if (days <= 1) return "qdr:d";
+  if (days <= 7) return "qdr:w";
+  if (days <= 31) return "qdr:m";
+  if (days <= 366) return "qdr:y";
+  return null;
+}
+
 /** Serper.dev news search — https://serper.dev. Free credits then ~$0.001/query.
  *  Missing key, budget exhausted, or any error → [] (never throws). */
-export async function fetchSerper(query: string): Promise<NewsResult[]> {
+export async function fetchSerper(
+  query: string,
+  opts: { days?: number } = {}
+): Promise<NewsResult[]> {
   const key = (process.env.SERPER_API_KEY ?? "").trim();
   if (!key) return [];
   if (!(await reserveNewsCall("serper"))) return []; // cap monthly pay-per-query spend
@@ -18,7 +36,17 @@ export async function fetchSerper(query: string): Promise<NewsResult[]> {
       headers: { "X-API-KEY": key, "Content-Type": "application/json" },
       // Spread rather than send nulls: serper reads an explicit gl/hl as an instruction,
       // so an English query must carry no locale keys at all rather than empty ones.
-      body: JSON.stringify({ q: query, num: 10, ...(locale ? { gl: locale.gl, hl: locale.hl, location: locale.location } : {}) }),
+      // tbs is Google's recency filter, which serper passes through. Without it every
+      // result is untimed, and in August 2026 serper served an entire scan alone — so
+      // "the last 30 days" silently became "any time", and a 66-day-old story reached a
+      // bank executive. The post-fetch gate is what actually enforces the window; this
+      // just stops us paying for results we are about to throw away.
+      body: JSON.stringify({
+        q: query,
+        num: 10,
+        ...(recencyTbs(opts.days) ? { tbs: recencyTbs(opts.days) } : {}),
+        ...(locale ? { gl: locale.gl, hl: locale.hl, location: locale.location } : {}),
+      }),
     });
     clearTimeout(timeout);
     if (!res.ok) {

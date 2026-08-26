@@ -15,6 +15,7 @@
  * This module is PURE: no prisma, no LLM. Everything here is the cheap half of the
  * merge gate, and it must stay callable from a test without a database.
  */
+import { competitorGazetteer } from "@/lib/tech-radar/rationale-rules";
 
 /** Words that carry no distinguishing meaning in an axis label. */
 const FILLER = new Set([
@@ -124,6 +125,145 @@ export function judgeAxisMerge(label: string, existing: AxisRow[]): MergeVerdict
     return { decision: "merge", axisId: best.row.id, via: "similarity", similarity: best.similarity };
   }
   return { decision: "ask", axisId: best.row.id, similarity: best.similarity };
+}
+
+// ─── The competitive-set gate: WHOSE axis may a person join? ─────────────────
+
+/**
+ * One employer, as far as the merge gate is concerned.
+ *
+ * Everything here comes off the employer's TrackedCompany row and its research profile,
+ * so the caller does the database half and this file stays testable without one.
+ */
+export type CompetitiveSet = {
+  /** TrackedCompany id. Two people at ONE employer are always free to share an axis. */
+  employerId: string;
+  /** The employer's own name and aliases — needed to see whether a rival names it back. */
+  names: string[];
+  /** Raw namedCompetitors from research: one entry per company, all its spellings. */
+  namedCompetitors: string[];
+};
+
+/**
+ * How many DISTINCT researched competitors two employers must share before an axis may
+ * be shared between them. Two, not one, and the pilot's own numbers are why:
+ *
+ *   Bank Leumi   → הפועלים, דיסקונט, מזרחי-טפחות, הבינלאומי, וואן זירו
+ *   Bank Hapoalim→ לאומי, דיסקונט, מזרחי-טפחות, וואן זירו        ∩ Leumi = 3
+ *   The Phoenix  → הראל, מגדל, מנורה, כלל, Lemonade, בנק הפועלים ∩ Leumi = 1
+ *
+ * Phoenix genuinely competes with Bank Hapoalim on pension and savings, so its list
+ * really does contain a bank — which is exactly why a single shared name cannot be the
+ * test. At a threshold of one, Elinor Levinson Gafni (Bank Leumi) would still be folded
+ * into "תחרות דיגיטלית מול הראל ומגדל" and would still search
+ * "ביטוח הראל אפליקציה דיגיטלית חדשה" with one of her two axes, which is the 2026-08-26
+ * failure this gate exists to stop. Two separates the sectors and keeps every real peer
+ * pair (bank↔bank, insurer↔insurer) merging.
+ */
+export const MIN_SHARED_COMPETITORS = 2;
+
+/**
+ * Shortest alias allowed to match by containment.
+ *
+ * "בנק" and "bank" are categories, not names: at three characters, containment would
+ * make every Israeli bank a competitor of every other by string alone — the "Delek
+ * Group" / "Delek US Holdings" mistake in a new costume. Four keeps "לאומי" inside
+ * "בנק לאומי" (the case that has to work) and drops the category words.
+ */
+const MIN_ALIAS_CHARS = 4;
+
+/**
+ * The accepted spellings of each researched competitor, ONE GROUP PER COMPANY.
+ *
+ * competitorGazetteer is reused for the normalisation — the rationale gate and this gate
+ * must agree on what a name looks like — but it is applied per ENTRY rather than to the
+ * whole list, because flattening loses which spellings belong to which company:
+ * "Israel Discount Bank / בנק דיסקונט / דיסקונט" is one shared rival, and counting it as
+ * three would clear a threshold of two on its own.
+ */
+function competitorGroups(namedCompetitors: string[]): string[][] {
+  return (namedCompetitors ?? [])
+    .map((entry) => competitorGazetteer([entry]))
+    .filter((group) => group.length > 0);
+}
+
+/** Two spelling groups that name the same company. */
+function sameCompany(a: string[], b: string[]): boolean {
+  for (const x of a) {
+    for (const y of b) {
+      if (x === y) return true;
+      if (x.length >= MIN_ALIAS_CHARS && y.length >= MIN_ALIAS_CHARS && (x.includes(y) || y.includes(x))) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function namesTheOther(groups: string[][], otherNames: string[]): boolean {
+  const other = competitorGazetteer(otherNames);
+  return other.length > 0 && groups.some((g) => sameCompany(g, other));
+}
+
+/**
+ * Do these two employers compete for the same customers?
+ *
+ * Two roads to yes, and both are deliberately head-to-head:
+ *   - MUTUAL naming. Leumi's research names Hapoalim and Hapoalim's names Leumi. A
+ *     ONE-directional mention is not enough: Phoenix names Bank Hapoalim while a bank's
+ *     list is other banks, and treating that asymmetry as a shared set is how insurance
+ *     queries reached a bank VP.
+ *   - MIN_SHARED_COMPETITORS distinct rivals in common.
+ */
+export function sharesCompetitiveSet(a: CompetitiveSet, b: CompetitiveSet): boolean {
+  if (a.employerId === b.employerId) return true;
+
+  const ga = competitorGroups(a.namedCompetitors);
+  const gb = competitorGroups(b.namedCompetitors);
+  if (ga.length === 0 || gb.length === 0) return false;
+
+  if (namesTheOther(ga, b.names) && namesTheOther(gb, a.names)) return true;
+
+  let shared = 0;
+  for (const g of ga) {
+    if (gb.some((h) => sameCompany(g, h))) shared += 1;
+    if (shared >= MIN_SHARED_COMPETITORS) return true;
+  }
+  return false;
+}
+
+export type CompetitiveMergeVerdict =
+  | { allowed: true }
+  | { allowed: false; reason: "no_shared_competitive_set"; blockedBy: string };
+
+/**
+ * May this person's proposal be folded into an axis whose current subscribers work at
+ * `owners`?
+ *
+ * ALL of them must share the incoming employer's competitive set, not any of them:
+ * "any" lets a bank join an insurer's axis through a third subscriber that happens to
+ * bridge both, and the axis then describes nobody's competitive set. "All" keeps the
+ * invariant that every pair of subscribers on one axis competes for the same customers.
+ *
+ * An axis with no subscribers left (its people were detached by a forced rebuild) is
+ * allowed: it carries nobody's competitive set into anyone's model, and refusing it
+ * would mint a duplicate axis on every rebuild — walking the org toward the 60-axis
+ * ceiling that already cost three people their agenda axis on 2026-08-23.
+ */
+export function judgeCompetitiveSetMerge(
+  incoming: CompetitiveSet,
+  owners: CompetitiveSet[]
+): CompetitiveMergeVerdict {
+  for (const owner of owners) {
+    if (!sharesCompetitiveSet(incoming, owner)) {
+      return {
+        allowed: false,
+        reason: "no_shared_competitive_set",
+        blockedBy: owner.names[0] ?? owner.employerId,
+      };
+    }
+  }
+  return { allowed: true };
 }
 
 export const MAX_AXES_PER_ORG = 60;

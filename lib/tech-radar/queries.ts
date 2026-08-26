@@ -8,6 +8,15 @@
  * company that asked for it, which is roughly a 6x reduction in provider calls
  * at 50 companies. If this grouping breaks, spend silently multiplies.
  *
+ * Since 2026-08-26 this is the ONLY cost lever left on the query side. Axes are no
+ * longer merged between people whose employers do not share a competitive set — a bank
+ * VP had inherited an insurer's label and, with it, its insurance search queries — so
+ * more axes now exist and the grouping below is what keeps that from multiplying spend.
+ * Two axes asking for the same string are still one provider call. normalizeQuery is
+ * shared with buildAxisQueryPool (lib/tech-radar/axis-fit.ts), which is the person-outward
+ * path's pool; if this normalization loosens, both pools split and the bill doubles
+ * quietly. tests/unit/tech-radar-axis-query-dedup.test.ts is the guard.
+ *
  * Pure — no prisma, no LLM. Deterministic output so Inngest step replays match.
  */
 import { MAX_QUERIES_PER_COMPANY } from "@/lib/tech-radar/types";

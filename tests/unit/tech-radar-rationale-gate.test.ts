@@ -19,6 +19,9 @@ const proposals = [
     key: "a",
     searchQueries: ["q"],
     rationale: "כי לאומי מתחרה ישירות על לקוחות הריטייל שהיא מנהלת",
+    personDecision: "מחזיקה את החלטת ההיצע הקמעונאי",
+    companyFact: "לאומי מתחרה על אותם לקוחות פרטיים",
+    stage: "competitor" as const,
     agenda: false,
   },
   {
@@ -26,6 +29,9 @@ const proposals = [
     key: "b",
     searchQueries: ["q"],
     rationale: "כי היא עובדת בבנקאות",
+    personDecision: "חתומה על תמהיל המוצרים",
+    companyFact: "לקוחות קמעונאיים שחוסכים",
+    stage: "decision" as const,
     agenda: true,
   },
 ];
@@ -83,5 +89,86 @@ describe("RATIONALE_GATE_SYSTEM", () => {
   it("names the bar in both directions", () => {
     expect(RATIONALE_GATE_SYSTEM).toMatch(/כי הוא בבנקאות/);
     expect(RATIONALE_GATE_SYSTEM).toMatch(/decision|מחזיק/i);
+  });
+});
+
+/**
+ * The two swap tests, which is what the judge was missing.
+ *
+ * Its ONE test was the company swap ("could this sentence be written about a different
+ * person with the same title at another company?"). A stage-(ד) rationale — "what is done
+ * well somewhere else that this person could adopt" — names the person's decision and an
+ * external exemplar and no fact about their own employer, so it PASSES the company swap
+ * and was correctly killed by a justly-applied but incomplete test. Both of Pazit
+ * Garfinkel's adoption axes died that way, and stage (ד) produced zero axes for all four
+ * people in the 2026-08-26 run.
+ */
+describe("gateRationales declared sides", () => {
+  const withSides = (over: Partial<(typeof proposals)[number]>) => ({ ...proposals[0], ...over });
+
+  it("rejects an axis whose person side is only the job title", async () => {
+    const out = await gateRationales("lens", [withSides({ personDecision: "ראש בנקאות קמעונאית" })]);
+    expect(out.rejected.map((r) => r.reason)).toEqual(["no_person_side"]);
+    expect(out.deterministic.no_person_side).toBe(1);
+    expect(chat).not.toHaveBeenCalled();
+  });
+
+  it("rejects an axis that declares no company side at all", async () => {
+    const out = await gateRationales("lens", [withSides({ companyFact: "" })], {
+      namedCompetitors: ["Bank Leumi / לאומי"],
+    });
+    expect(out.rejected.map((r) => r.reason)).toEqual(["no_company_side"]);
+    expect(out.deterministic.no_company_side).toBe(1);
+  });
+
+  it("rejects a company side that names a technology instead of the company", async () => {
+    // "ארכיטקטורת API פתוחה" is the exact shape of the axes a CITO was handed: it names
+    // no customer and no rival, so nothing was crossed.
+    const out = await gateRationales("lens", [withSides({ companyFact: "ארכיטקטורת API פתוחה" })], {
+      namedCompetitors: ["Bank Leumi / לאומי"],
+    });
+    expect(out.rejected.map((r) => r.reason)).toEqual(["no_company_side"]);
+  });
+
+  it("accepts a company side that quotes the employer's researched segment", async () => {
+    chat.mockResolvedValue(ok('{"verdicts":[{"i":0,"generic":false}]}'));
+    const out = await gateRationales("lens", [withSides({ companyFact: "B2C: Individual consumers" })], {
+      namedCompetitors: ["Bank Leumi / לאומי"],
+      customerSegments: ["B2C: Individual consumers and retail customers"],
+    });
+    expect(out.kept).toHaveLength(1);
+  });
+
+  it("flags a hallucinated rival that appears only in the companyFact", async () => {
+    // The rationale used to be the only field scanned for invented names. The company
+    // side is now where names live, so it is scanned too — an invented rival in a
+    // message to a board member cannot be taken back.
+    const out = await gateRationales("lens", [withSides({ companyFact: "Revolut נכנסת לשוק שלה" })], {
+      namedCompetitors: ["Bank Leumi / לאומי"],
+    });
+    expect(out.rejected[0].reason).toContain("unknown_competitor:Revolut");
+  });
+
+  it("shows the judge both declared sides, so it can run the swaps at all", async () => {
+    chat.mockResolvedValue(ok('{"verdicts":[{"i":0,"generic":false}]}'));
+    await gateRationales("lens", [proposals[0]]);
+    const user = chat.mock.calls[0][1].messages[1].content as string;
+    expect(user).toContain("מחזיקה את החלטת ההיצע הקמעונאי");
+    expect(user).toContain("לאומי מתחרה על אותם לקוחות פרטיים");
+  });
+});
+
+describe("RATIONALE_GATE_SYSTEM swap tests", () => {
+  it("carries BOTH swaps, not only the company swap", () => {
+    expect(RATIONALE_GATE_SYSTEM).toMatch(/SWAP THE PERSON/);
+    expect(RATIONALE_GATE_SYSTEM).toMatch(/SWAP THE COMPANY/);
+  });
+
+  it("calls an axis generic only when it survives BOTH swaps", () => {
+    expect(RATIONALE_GATE_SYSTEM).toMatch(/survives BOTH/);
+  });
+
+  it("tells the judge that an adoption rationale surviving one swap is not generic", () => {
+    expect(RATIONALE_GATE_SYSTEM).toMatch(/adopt/i);
   });
 });

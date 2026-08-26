@@ -11,6 +11,7 @@ import { buildPersonProfile } from "@/lib/tech-radar/person-profile";
 import { gateRationales } from "@/lib/tech-radar/rationale-gate";
 import { attachAxes, ensureCompanyMonitorAxis } from "@/lib/tech-radar/axis-store";
 import { countHebrewQueries } from "@/lib/tech-radar/axis";
+import { poolQueryCount } from "@/lib/tech-radar/person-scan";
 import { prisma as db } from "@/lib/prisma";
 import { isUsableProfile } from "@/lib/tech-radar/types";
 import { markSuperseded } from "@/lib/tech-radar/superseded";
@@ -24,6 +25,18 @@ export type BuildProfilesReport = {
   refreshed: number;
   axesCreated: number;
   axesMerged: number;
+  /**
+   * Merges the competitive-set gate refused. NOT a loss — the person got their own axis
+   * instead of inheriting one whose customers are not theirs. Each refusal is named in
+   * `skipped`, with the axis it would have joined and the employer that blocked it.
+   */
+  axesRefused: number;
+  /**
+   * What the NEXT scan will ask the providers for, after this rebuild. Refusing a merge
+   * raises the axis count; it only raises the BILL if it raises this. The 2026-08-26 run
+   * used 34 unique queries — that is the number to compare against.
+   */
+  pool: { axes: number; uniqueQueries: number };
   /** Hebrew search queries per person, from the DATABASE. Zero for anyone is a defect. */
   hebrewQueriesByPerson: { name: string; hebrew: number; agenda: number }[];
   /** People with no Hebrew query at all. Must be empty. */
@@ -54,7 +67,8 @@ export async function buildProfilesForMarked(input: {
   force?: boolean;
 }): Promise<BuildProfilesReport> {
   const report: BuildProfilesReport = {
-    considered: 0, built: 0, refreshed: 0, axesCreated: 0, axesMerged: 0,
+    considered: 0, built: 0, refreshed: 0, axesCreated: 0, axesMerged: 0, axesRefused: 0,
+    pool: { axes: 0, uniqueQueries: 0 },
     hebrewQueriesByPerson: [], noHebrewQuery: [], skipped: [], rejectedByRule: {},
     superseded: { matches: 0, drafts: 0 },
   };
@@ -132,9 +146,16 @@ export async function buildProfilesForMarked(input: {
 
     // The veto's person-specificity bar, applied to the rationale BEFORE any axis is
     // paid for. A domain-description rationale ("כי הוא בבנקאות") dies here, loudly.
-    const employerFacts = employer.profile as { namedCompetitors?: string[] } | null;
+    const employerFacts = employer.profile as
+      | { namedCompetitors?: string[]; customerSegments?: string[] }
+      | null;
     const gate = await gateRationales(draft.roleLens, draft.axes, {
       namedCompetitors: employerFacts?.namedCompetitors ?? [],
+      // Stored in English while companyFact is written in Hebrew, so this is NOT how the
+      // company side is recognised. It is here only so a fact that quotes the research
+      // verbatim ("B2C: Individual consumers") is not read as an invented rival — the
+      // capitalised "Individual" would otherwise trip the unknown-name scan.
+      customerSegments: employerFacts?.customerSegments ?? [],
       reasoning: draft.reasoning,
     });
     for (const r of gate.rejected) {
@@ -181,10 +202,22 @@ export async function buildProfilesForMarked(input: {
       orgId: input.orgId,
       personProfileId: profile.id,
       proposals: gate.kept,
+      // The employer, so a merge is never decided on the label alone. Gil Tamir (Phoenix)
+      // created "תחרות דיגיטלית מול הראל ומגדל"; Elinor (Bank Leumi) was folded into it and
+      // inherited its three insurance queries, because the axis row owns the queries and
+      // label similarity cannot see whose competitors those are.
+      employer: {
+        employerId: employer.id,
+        names: [employer.name, ...employer.aliases],
+        namedCompetitors: employerFacts?.namedCompetitors ?? [],
+      },
     });
     report.axesCreated += attached.created;
     report.axesMerged += attached.merged;
-    for (const s of attached.skipped) {
+    report.axesRefused += attached.refused;
+    // Refusals go where a human already reads axis outcomes, so each one renders as
+    // `axis_merge_refused[<axis> · <employer>]: <label>` next to the person it belongs to.
+    for (const s of [...attached.skipped, ...attached.mergeRefused]) {
       report.skipped.push({ contactId: contact.id, name, reason: `axis_${s.reason}: ${s.label}` });
     }
 
@@ -228,6 +261,11 @@ export async function buildProfilesForMarked(input: {
       `[radar] INVARIANT FAILED org=${input.orgId}: no Hebrew query for ${report.noHebrewQuery.join(", ")} — these people cannot reach Israeli press`
     );
   }
+
+  // Built with the run's own builder, normalizer and per-axis cap, so the number in
+  // the report is the number that gets billed. Refusing a merge raises the axis count;
+  // this is where it becomes visible whether it raised the bill.
+  report.pool = await poolQueryCount(input.orgId);
 
   return report;
 }

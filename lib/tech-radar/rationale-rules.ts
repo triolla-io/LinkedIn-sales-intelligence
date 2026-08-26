@@ -191,3 +191,129 @@ export function contradictsReasoning(
   }
   return false;
 }
+
+// ─── The two declared sides of the crossing ──────────────────────────────────
+//
+// The 2026-08-26 run produced axes that were UNIONS, not intersections: Erez Rachmil
+// (CITO, Bank Hapoalim) got core-systems modernization, real-time payments, open API
+// architecture and fraud detection — his EMPLOYER'S axes, identical for any CITO at any
+// bank. Nothing in the pipeline could tell, because the two sides of the crossing lived
+// only as prose inside one Hebrew sentence, and no regex reads intent out of prose.
+//
+// So an axis now DECLARES its sides — `personDecision` and `companyFact` — and these two
+// rules check the declaration. A rationale that names only one side is an admission that
+// no crossing happened, and the same is true of a side declared with a job title or with
+// a fact that turns out to be about technology rather than about the company.
+
+/** Final letter forms folded to their base, so a stem can be written once. */
+function foldFinals(s: string): string {
+  return s.replace(/ך/g, "כ").replace(/ם/g, "מ").replace(/ן/g, "נ").replace(/ף/g, "פ").replace(/ץ/g, "צ");
+}
+
+/**
+ * Words, Hebrew-safe.
+ *
+ * Every "does this text contain word X" test in this file works on split tokens rather
+ * than on `\b`, because in JavaScript `\b` is defined on ASCII word characters: there is
+ * no boundary between a Hebrew letter and a space, so a `\b`-anchored Hebrew pattern
+ * silently never fires (the same trap that once flagged "כמו שקרה כשלאומי השיקה" as a
+ * title restatement — see HEBREW_CONJUNCTIONS).
+ */
+function tokens(s: string): string[] {
+  return norm(s)
+    .split(/[^\p{L}\p{N}&]+/u)
+    .filter(Boolean);
+}
+
+/** One-letter Hebrew prefixes that glue onto a noun: "בהחלטות", "להחלטת", "ומחזיק". */
+const HEB_PREFIX = /^[הובלמשכ]/u;
+
+function startsWithStem(word: string, stem: string): boolean {
+  const w = foldFinals(word);
+  const s = foldFinals(stem);
+  return w.startsWith(s) || (HEB_PREFIX.test(w) && w.slice(1).startsWith(s));
+}
+
+/**
+ * Wording that claims OWNERSHIP rather than describing a chair.
+ *
+ * Taken from what the prompt asks for and from what the brain actually wrote in the
+ * 2026-08-26 preview ("חתום על", "מחזיקה את החלטת", "אחראית על"). A personDecision made
+ * only of role nouns — "ראש בנקאות קמעונאית" — passes no swap test: it is the title, and
+ * the title is the side that has to be crossed, not the crossing.
+ */
+const OWNERSHIP_STEMS = [
+  "חתומ", "חות", "מחזיק", "אחראי", "אחריות", "מנהל", "מוביל", "בעל", "החלט",
+  "תקציב", "מופקד", "יעד", "p&l", "owns", "signs", "holds",
+];
+
+export function declaresPersonSide(personDecision: string): boolean {
+  const t = (personDecision ?? "").trim();
+  if (!t) return false;
+  // A title in this field is the title-restatement failure moved one field over, so the
+  // rationale rule is reused rather than restated: "כ-CITO של בנק הפועלים" names the
+  // chair, and every CITO of every bank sits in the same one.
+  if (opensWithTitle(t)) return false;
+  return tokens(t).some((w) => OWNERSHIP_STEMS.some((s) => startsWithStem(w, s)));
+}
+
+/**
+ * Hebrew words that name WHO a company serves.
+ *
+ * Why a lexicon and not the employer's own `customerSegments`: research stores that field
+ * in ENGLISH ("B2C: Individual consumers and retail customers") while the brain writes
+ * the companyFact in HEBREW, so a membership test against the stored segments matches
+ * nothing at all — cross-script word matching does not exist, and a translation layer
+ * here would be a second paid call to answer what the judge already answers. The stored
+ * segments are still honoured when the fact quotes them verbatim (see the third path in
+ * declaresCompanySide); this lexicon covers the normal case, in the words Israeli
+ * business Hebrew actually uses for a customer base.
+ */
+const SEGMENT_STEMS = [
+  "לקוח", "צרכנ", "מבוטח", "חוסכ", "לוו", "משקיע", "מעסיק", "סוחר", "מנוי",
+  "עמית", "גמלא", "פנסיונר", "סטודנט", "קמעונאי", "עסקים", "עסקיים", "משתמש",
+  "b2c", "b2b", "b2g", "consumers", "policyholders", "merchants", "smb", "sme",
+];
+
+/** Multi-word segment phrases, matched on the normalised string. */
+const SEGMENT_PHRASES = ["משקי בית", "עסקים קטנים", "retail customers", "small business"];
+
+function namesSegment(normalised: string, words: string[]): boolean {
+  if (SEGMENT_PHRASES.some((p) => normalised.includes(p))) return true;
+  return words.some((w) => SEGMENT_STEMS.some((s) => startsWithStem(w, s)));
+}
+
+/** The employer's stored segments as matchable words, for a verbatim quote of them. */
+function segmentQuoteWords(customerSegments: string[]): string[] {
+  const out = new Set<string>();
+  for (const seg of customerSegments ?? []) {
+    for (const w of tokens(String(seg))) {
+      if (w.length > 2 && !NAME_STOPWORDS.has(w)) out.add(w);
+    }
+  }
+  return [...out];
+}
+
+/**
+ * True when the companyFact actually names something about THE COMPANY: a competitor the
+ * research found, or the customer base.
+ *
+ * Naming a technology is not naming the company — "ארכיטקטורת API פתוחה" is the shape of
+ * every axis Erez Rachmil was given, and it is why the ACRONYM exemption in unknownNames
+ * must not be read as "an acronym is a company fact". It is neither.
+ */
+export function declaresCompanySide(
+  companyFact: string,
+  gazetteer: string[],
+  customerSegments: string[] = []
+): boolean {
+  const t = (companyFact ?? "").trim();
+  if (!t) return false;
+  const n = norm(t);
+  // A rival BY NAME is the strongest company side there is — provided the research
+  // actually found it. The gazetteer already spans both scripts of each name.
+  if (gazetteer.some((g) => g.length > 1 && n.includes(g))) return true;
+  const words = tokens(n);
+  if (namesSegment(n, words)) return true;
+  return segmentQuoteWords(customerSegments).some((w) => words.includes(w));
+}
