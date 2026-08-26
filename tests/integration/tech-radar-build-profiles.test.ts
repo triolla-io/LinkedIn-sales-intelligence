@@ -335,6 +335,40 @@ describe("the Hebrew-query invariant", () => {
  * PersonProfile row, which would have made ensureIndustryAxis unreachable for exactly the
  * people this exemption exists for.
  */
+/**
+ * 2026-08-26 final review, Finding 2. Task 8 correctly moved the `gate.kept.length ===
+ * 0` early exit to AFTER personProfile.upsert, so the INDUSTRY net could still reach a
+ * wholesale-rejected person. But the upsert's `update` branch unconditionally stamped
+ * `refreshedAt: new Date()`, and the staleness guard at the top of this loop
+ * (`contact.personProfile.refreshedAt > staleBefore`) does not look at axis count — so a
+ * person whose every subject was rejected got written as "freshly modelled" and silently
+ * skipped by every NON-FORCE rebuild for 90 days, with no way to retry short of `force`.
+ * `refreshedAt` must only advance when the person actually got something built.
+ */
+describe("refreshedAt only advances when the person actually got something built (Finding 2)", () => {
+  const staleProfile = { id: "pp1", refreshedAt: new Date("2026-05-01T00:00:00Z") };
+
+  it("does NOT advance refreshedAt on a rebuild whose every rationale was rejected", async () => {
+    contactFindMany.mockResolvedValue([contact({ personProfile: staleProfile })]);
+    gateRationales.mockResolvedValue({ kept: [], rejected: [{ label: "x", reason: "judged_generic" }], judged: true, deterministic: {} });
+
+    await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+
+    expect(profileUpsert.mock.calls[0][0].update).not.toHaveProperty("refreshedAt");
+  });
+
+  /** Companion: a person who keeps at least one axis is still stamped as freshly built,
+   *  exactly as before this fix. */
+  it("still advances refreshedAt on a rebuild that keeps at least one axis", async () => {
+    contactFindMany.mockResolvedValue([contact({ personProfile: staleProfile })]);
+    // Default gateRationales mock (see beforeEach) keeps everything.
+
+    await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+
+    expect(profileUpsert.mock.calls[0][0].update.refreshedAt).toBeInstanceOf(Date);
+  });
+});
+
 describe("the INDUSTRY net survives a wholesale gate rejection", () => {
   const employerWithIndustry = () =>
     employer({

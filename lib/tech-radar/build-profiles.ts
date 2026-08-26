@@ -294,7 +294,13 @@ export async function buildProfilesForMarked(input: {
         roleLens: draft.roleLens,
         reasoning: draft.reasoning,
         employerTrackedCompanyId: employer.id,
-        refreshedAt: new Date(),
+        // Only advance refreshedAt when the person actually got something built. gate.kept
+        // is already known here (gateRationales ran above). Without this condition a
+        // wholesale-rejected person (gate.kept.length === 0) is stamped "freshly modelled"
+        // and the staleness guard at the top of this loop silently skips them for 90 days
+        // on every non-force rebuild — no way to retry short of `force` (2026-08-26 final
+        // review, Finding 2).
+        ...(gate.kept.length > 0 ? { refreshedAt: new Date() } : {}),
         domains: draft.domains,
       },
       select: { id: true },
@@ -444,9 +450,12 @@ export async function buildProfilesForMarked(input: {
    * carrying which employers subscribe to it — the two ingredients layerQueries and
    * industryShared.savedQueries both need.
    *
-   * A muted link is not scanned (axis-store.ts) and a non-ACTIVE axis (MERGED/RETIRED/
-   * TOO_BROAD) can still be joined via a stale PersonAxis row — neither belongs in a
-   * report describing what the pool actually fetches.
+   * Excluded here as a deliberate report-side choice — muting is not honored by the scan
+   * itself today (nothing in axis-store.ts or person-scan.ts skips a muted PersonAxis
+   * link when building the query pool), so this makes the count conservative rather than
+   * accurate to what the scan will actually fetch. A non-ACTIVE axis (MERGED/RETIRED/
+   * TOO_BROAD) can still be joined via a stale PersonAxis row — that one genuinely
+   * doesn't belong in a report describing what the pool actually fetches.
    */
   const liveAxes = new Map<string, { kind: string; searchQueries: string[]; employerIds: Set<string> }>();
   for (const row of built) {
