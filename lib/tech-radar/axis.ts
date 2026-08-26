@@ -314,6 +314,19 @@ export function companyMonitorKey(trackedCompanyId: string): string {
   return `company:${trackedCompanyId}`;
 }
 
+/**
+ * INDUSTRY axes ARE shared, on purpose — that is the whole point of the layer-1 net: N
+ * employers in one industry pay for one set of queries instead of N. Sharing rides on the
+ * same token-sort as a ROLE_COMPANY key (normalizeAxisKey), so "Israeli Banking / בנקאות
+ * ישראל" and "בנקאות ישראל / Israeli banking" land on one axis. The "industry:" prefix is
+ * the only thing that is structural here — it keeps an industry's canonical string from
+ * ever colliding with a person's role-and-company subject, the way "company:<id>" keeps
+ * companyMonitorKey out of that same namespace.
+ */
+export function industryKey(canonical: string): string {
+  return `industry:${normalizeAxisKey(canonical)}`;
+}
+
 /** Any Hebrew letter. Used to check that an Israeli person's axes can reach local press. */
 export function hasHebrew(text: string): boolean {
   return typeof text === "string" && /[\u0590-\u05FF]/.test(text);

@@ -9,7 +9,7 @@
 import { prisma } from "@/lib/prisma";
 import { buildPersonProfile, type AxisProposal } from "@/lib/tech-radar/person-profile";
 import { gateRationales } from "@/lib/tech-radar/rationale-gate";
-import { attachAxes, ensureCompanyMonitorAxis } from "@/lib/tech-radar/axis-store";
+import { attachAxes, ensureCompanyMonitorAxis, ensureIndustryAxis } from "@/lib/tech-radar/axis-store";
 import { countHebrewQueries } from "@/lib/tech-radar/axis";
 import { poolQueryCount } from "@/lib/tech-radar/person-scan";
 import { prisma as db } from "@/lib/prisma";
@@ -183,7 +183,15 @@ export async function buildProfilesForMarked(input: {
     // The veto's person-specificity bar, applied to the rationale BEFORE any axis is
     // paid for. A domain-description rationale ("כי הוא בבנקאות") dies here, loudly.
     const employerFacts = employer.profile as
-      | { namedCompetitors?: string[]; customerSegments?: string[]; products?: string[] }
+      | {
+          namedCompetitors?: string[];
+          customerSegments?: string[];
+          products?: string[];
+          // Optional: profiles researched before Task 5 (research v2) don't have this.
+          // Absence is handled below by simply not calling ensureIndustryAxis — never a
+          // crash, never an empty-string industry.
+          industry?: { canonical: string; queries: string[] };
+        }
       | null;
     const gate = await gateRationales(draft.roleLens, draft.axes, {
       namedCompetitors: employerFacts?.namedCompetitors ?? [],
@@ -208,10 +216,6 @@ export async function buildProfilesForMarked(input: {
     // prompt?" is answerable from the report rather than by reading rationales.
     for (const [rule, n] of Object.entries(gate.deterministic)) {
       report.rejectedByRule[rule] = (report.rejectedByRule[rule] ?? 0) + n;
-    }
-    if (gate.kept.length === 0) {
-      report.skipped.push({ contactId: contact.id, name, reason: "all_rationales_generic" });
-      continue;
     }
 
     const profile = await prisma.personProfile.upsert({
@@ -239,6 +243,25 @@ export async function buildProfilesForMarked(input: {
       await prisma.personAxis.deleteMany({
         where: { personProfileId: profile.id, mutedAt: null },
       });
+    }
+
+    // Layer 1, the shared industry net — deliberately BEFORE the "all rejected" exit
+    // below and OUTSIDE the gate entirely. gateRationales only ever judges draft.axes
+    // (the ROLE_COMPANY proposals); an INDUSTRY axis carries no personDecision and would
+    // die on no_person_side if it were ever routed through that gate. Skipping it when
+    // gate.kept is empty would mean the one person whose subjects all died is exactly
+    // the person who loses the net too — the opposite of what a shared net is for.
+    if (employerFacts?.industry?.canonical && (employerFacts.industry.queries?.length ?? 0) > 0) {
+      await ensureIndustryAxis({
+        orgId: input.orgId,
+        personProfileId: profile.id,
+        industry: employerFacts.industry,
+      });
+    }
+
+    if (gate.kept.length === 0) {
+      report.skipped.push({ contactId: contact.id, name, reason: "all_rationales_generic" });
+      continue;
     }
 
     kept.push({ name, employerId: employer.id, axes: gate.kept });

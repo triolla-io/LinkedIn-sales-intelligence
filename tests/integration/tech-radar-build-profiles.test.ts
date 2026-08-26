@@ -46,9 +46,11 @@ vi.mock("@/lib/tech-radar/person-profile", () => ({
 
 const attachAxes = vi.fn();
 const ensureCompanyMonitorAxis = vi.fn();
+const ensureIndustryAxis = vi.fn();
 vi.mock("@/lib/tech-radar/axis-store", () => ({
   attachAxes: (...a: unknown[]) => attachAxes(...a),
   ensureCompanyMonitorAxis: (...a: unknown[]) => ensureCompanyMonitorAxis(...a),
+  ensureIndustryAxis: (...a: unknown[]) => ensureIndustryAxis(...a),
 }));
 
 /**
@@ -93,7 +95,7 @@ const employer = (over: Record<string, unknown> = {}) => ({
 });
 
 beforeEach(() => {
-  for (const m of [contactFindMany, companyFindMany, profileUpsert, profileFindMany, buildPersonProfile, attachAxes, ensureCompanyMonitorAxis, poolQueryCount, gateRationales]) m.mockReset();
+  for (const m of [contactFindMany, companyFindMany, profileUpsert, profileFindMany, buildPersonProfile, attachAxes, ensureCompanyMonitorAxis, ensureIndustryAxis, poolQueryCount, gateRationales]) m.mockReset();
   // Default: the gate keeps what it was given. A test that cares about a rejection says so.
   gateRationales.mockImplementation(async (_lens: string, axes: unknown[]) => ({
     kept: axes,
@@ -123,6 +125,7 @@ beforeEach(() => {
   // `skipped` and reported with the axis it would have joined.
   attachAxes.mockResolvedValue({ attached: 1, created: 1, merged: 0, refused: 0, skipped: [], mergeRefused: [] });
   ensureCompanyMonitorAxis.mockResolvedValue("ax-mon");
+  ensureIndustryAxis.mockResolvedValue("created");
   poolQueryCount.mockResolvedValue({ axes: 12, uniqueQueries: 34 });
 });
 
@@ -307,3 +310,62 @@ describe("the Hebrew-query invariant", () => {
     expect(out.noHebrewQuery).toEqual(["Ofir Alon"]);
   });
 })
+
+/**
+ * The rationale-gate exemption, PINNED. gateRationales judges draft.axes (the
+ * ROLE_COMPANY proposals) only — it never sees an INDUSTRY proposal, because there is no
+ * such thing: the industry net is built from the employer's own research, not from the
+ * person's draft, and ensureIndustryAxis is called independently of what the gate decided.
+ *
+ * This matters because an INDUSTRY axis carries no personDecision and would die on
+ * no_person_side if it were ever routed through gateRationales — so the net has to
+ * survive even a person whose every role axis was judged too generic to keep. Before this
+ * task, "all_rationales_generic" meant `continue` before the person even got a
+ * PersonProfile row, which would have made ensureIndustryAxis unreachable for exactly the
+ * people this exemption exists for.
+ */
+describe("the INDUSTRY net survives a wholesale gate rejection", () => {
+  const employerWithIndustry = () =>
+    employer({
+      profile: {
+        ...usableProfile,
+        industry: { canonical: "בנקאות ישראל", queries: ["ריבית בנק ישראל", "רגולציה בנקאית 2026"] },
+      },
+    });
+
+  it("subscribes the person to the INDUSTRY axis even when every role axis is rejected", async () => {
+    contactFindMany.mockResolvedValue([contact()]);
+    companyFindMany.mockResolvedValue([employerWithIndustry()]);
+    gateRationales.mockResolvedValue({
+      kept: [],
+      rejected: [{ label: "כ-VP Assets, אחראי על", reason: "judged_generic" }],
+      judged: true,
+      deterministic: {},
+    });
+
+    const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+
+    expect(out.skipped.some((s) => s.reason === "all_rationales_generic")).toBe(true);
+    expect(ensureIndustryAxis).toHaveBeenCalledWith({
+      orgId: "org1",
+      personProfileId: "pp1",
+      industry: { canonical: "בנקאות ישראל", queries: ["ריבית בנק ישראל", "רגולציה בנקאית 2026"] },
+    });
+    // The industry proposal is never among what the gate judged — it is not part of
+    // draft.axes at all, so it can never die on no_person_side.
+    expect(gateRationales.mock.calls[0][1]).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: expect.stringContaining("בנקאות") })])
+    );
+    // There was nothing left to attach — the ROLE_COMPANY path never runs.
+    expect(attachAxes).not.toHaveBeenCalled();
+  });
+
+  it("does not call ensureIndustryAxis when the employer profile has no industry field (legacy profile)", async () => {
+    contactFindMany.mockResolvedValue([contact()]);
+    // Default employer() carries `usableProfile`, which has no `industry` — every
+    // TrackedCompany researched before Task 5 looks like this.
+    gateRationales.mockResolvedValue({ kept: [], rejected: [], judged: true, deterministic: {} });
+    await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    expect(ensureIndustryAxis).not.toHaveBeenCalled();
+  });
+});

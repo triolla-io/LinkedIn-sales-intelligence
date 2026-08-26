@@ -18,9 +18,11 @@ import {
   judgeCompetitiveSetMerge,
   normalizeAxisKey,
   companyMonitorKey,
+  industryKey,
   type AxisRow,
   type CompetitiveSet,
 } from "@/lib/tech-radar/axis";
+import { MAX_INDUSTRY_QUERIES } from "@/lib/tech-radar/types";
 import type { AxisProposal } from "@/lib/tech-radar/person-profile";
 import { resolveMergeQuestions } from "@/lib/tech-radar/axis-merge";
 import { checkAxisLabel } from "@/lib/tech-radar/draft-guard";
@@ -86,7 +88,12 @@ export async function attachAxes(input: {
   });
   const existing: AxisRow[] = existingRows.map((r) => ({ id: r.id, key: r.key, label: r.label }));
   const rowKind = new Map(existingRows.map((r) => [r.id, r.kind]));
-  let orgAxisCount = existingRows.length;
+  // An industry axis is a shared net, not a subject — it must not spend the org's
+  // subject budget. Without this, a growing industry net would eventually crowd out
+  // the org's own ROLE_COMPANY axes at MAX_AXES_PER_ORG. COMPANY_MONITOR axes are
+  // deliberately NOT exempted: they still count, one per tracked company, pre-existing
+  // behaviour that is out of scope here.
+  let orgAxisCount = existingRows.filter((r) => r.kind !== "INDUSTRY").length;
 
   // ── The competitive-set gate, database half ────────────────────────────────
   const subscriberEmployerIds = [
@@ -137,8 +144,14 @@ export async function attachAxes(input: {
    * different road: the axis row owns the queries either way. Its structural key
    * ("company:<id>") cannot be hit by a label, but its LABEL can score 1.0 against
    * "מהלכים של הפניקס", so it has to be kept out of the candidate list by kind.
+   *
+   * INDUSTRY is excluded for the same reason: it is a shared net, not a subject, so a
+   * ROLE_COMPANY proposal can never merge into it either. An allowlist on ROLE_COMPANY
+   * rather than a growing denylist, so a future third kind is excluded by default
+   * instead of by remembering to add it here — the two non-mergeable kinds are nets,
+   * not subjects.
    */
-  const catalog = existing.filter((row) => rowKind.get(row.id) !== "COMPANY_MONITOR");
+  const catalog = existing.filter((row) => rowKind.get(row.id) === "ROLE_COMPANY");
   const mergeable = catalog.filter((row) => !blocked.has(row.id));
   const mergeableIds = new Set(mergeable.map((row) => row.id));
 
@@ -149,9 +162,10 @@ export async function attachAxes(input: {
     refused.add(label);
     out.refused += 1;
     const target = existing.find((e) => e.id === axisId);
+    const kind = rowKind.get(axisId);
     const why =
       blocked.get(axisId) ??
-      (rowKind.get(axisId) === "COMPANY_MONITOR" ? "company_monitor" : "not an active axis");
+      (kind === "COMPANY_MONITOR" ? "company_monitor" : kind === "INDUSTRY" ? "industry_net" : "not an active axis");
     out.mergeRefused.push({ label, reason: `merge_refused[${target?.label ?? axisId} · ${why}]` });
   };
 
@@ -350,4 +364,76 @@ export async function ensureCompanyMonitorAxis(input: {
     select: { id: true },
   });
   return axis.id;
+}
+
+/**
+ * Layer 1: the shared industry net. One RadarAxis per (org × industry canonical), NOT per
+ * person or per employer — this is what lets N employers in the same industry pay for one
+ * set of queries instead of N. Mirrors ensureCompanyMonitorAxis's structural-key upsert,
+ * but this one ALSO writes the PersonAxis link: a company monitor has no per-person
+ * subscriber to attach (it belongs to the employer), an industry net has exactly that —
+ * every marked person at every employer in the industry subscribes to the same row.
+ *
+ * Deliberately sits OUTSIDE attachAxes: it bypasses MAX_AXES_PER_PERSON by design (a
+ * broad net, not one of the person's own five subjects), and it never passes through
+ * gateRationales — an INDUSTRY proposal carries no personDecision and would die on
+ * no_person_side if it ever reached that gate.
+ */
+export async function ensureIndustryAxis(input: {
+  orgId: string;
+  personProfileId: string;
+  industry: { canonical: string; queries: string[] };
+}): Promise<"created" | "attached" | "skipped"> {
+  const canonical = (input.industry.canonical ?? "").trim();
+  if (!canonical) return "skipped";
+
+  const key = industryKey(canonical);
+  const queries = (input.industry.queries ?? [])
+    .filter((q): q is string => typeof q === "string" && q.trim().length > 0)
+    .slice(0, MAX_INDUSTRY_QUERIES);
+
+  // findUnique-then-create, not upsert: the return value has to say whether THIS call
+  // created the shared axis or merely joined it, and an upsert's result looks identical
+  // either way.
+  const found = await prisma.radarAxis.findUnique({
+    where: { orgId_key: { orgId: input.orgId, key } },
+    select: { id: true },
+  });
+  let axisId: string;
+  let outcome: "created" | "attached";
+  if (found) {
+    axisId = found.id;
+    outcome = "attached";
+  } else {
+    const created = await prisma.radarAxis.create({
+      data: {
+        orgId: input.orgId,
+        key,
+        label: `ענף: ${canonical}`,
+        kind: "INDUSTRY",
+        searchQueries: queries,
+      },
+      select: { id: true },
+    });
+    axisId = created.id;
+    outcome = "created";
+  }
+
+  // Idempotent: re-running a profile build must not double-subscribe or overwrite a
+  // weight the learning loop has already moved — same rule as attachAxes's link upsert.
+  await prisma.personAxis.upsert({
+    where: { personProfileId_axisId: { personProfileId: input.personProfileId, axisId } },
+    create: {
+      personProfileId: input.personProfileId,
+      axisId,
+      rationale: `שאילתות ענף משותפות — ${canonical}`,
+      agenda: false,
+      weight: 0.5,
+      source: "INDUSTRY",
+    },
+    update: {},
+    select: { id: true },
+  });
+
+  return outcome;
 }
