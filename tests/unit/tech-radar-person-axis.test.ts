@@ -7,6 +7,9 @@ import { normalizeAxisKey, MAX_AXES_PER_PERSON } from "@/lib/tech-radar/axis";
  * The fixture carries the declared crossing — stage, personDecision, companyFact —
  * because an axis that cannot say which staged question produced it is dropped at parse:
  * a source tag the parser defaults for the model is a tag that distinguishes nothing.
+ *
+ * Since the layer cake it also carries `domain` and `layerEvidence`: an axis must name a
+ * field of work the model actually mapped, and quote the layer-2/3 fact that field met.
  */
 const axis = (label: string, rationale = "כי הוא בנה את זה", queries = ["vector search research"]) =>
   JSON.stringify({
@@ -15,9 +18,16 @@ const axis = (label: string, rationale = "כי הוא בנה את זה", queries
     searchQueries: queries,
     agenda: false,
     stage: "decision",
+    domain: "מנוע דירוג",
+    layerEvidence: { layer: 2, quote: "לקוחות פרטיים שמחפשים מוצרים" },
     personDecision: "חתום על מנוע הדירוג",
     companyFact: "לקוחות פרטיים שמחפשים מוצרים",
   });
+
+/** The layer-4 field every fixture axis points at. */
+const DOMAINS = JSON.stringify([
+  { domain: "מנוע דירוג", kind: "found", source: "title", evidence: "Head of Ranking" },
+]);
 
 describe("PROFILE_SYSTEM", () => {
   /** v1's whole failure was answering "what does this person own?" with the company. */
@@ -73,7 +83,7 @@ describe("PROFILE_SYSTEM", () => {
 describe("parseProfileResponse", () => {
   it("parses a role lens and its axes", () => {
     const out = parseProfileResponse(
-      `{"reasoning":"חשיבה בשלבים","roleLens":"אחראי על מנוע ההמלצות","axes":[${axis("קונסולידציה של מסדי וקטורים")}]}`
+      `{"domains":${DOMAINS},"reasoning":"חשיבה בשלבים","roleLens":"אחראי על מנוע ההמלצות","axes":[${axis("קונסולידציה של מסדי וקטורים")}]}`
     );
     expect(out?.roleLens).toBe("אחראי על מנוע ההמלצות");
     expect(out?.axes[0].key).toBe(normalizeAxisKey("קונסולידציה של מסדי וקטורים"));
@@ -81,27 +91,27 @@ describe("parseProfileResponse", () => {
 
   /** A label of pure filler would create an axis every later proposal collides with. */
   it("drops an axis whose label normalises to nothing", () => {
-    expect(parseProfileResponse(`{"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("תחום")}]}`)).toBeNull();
+    expect(parseProfileResponse(`{"domains":${DOMAINS},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("תחום")}]}`)).toBeNull();
   });
 
   it("drops an axis with no queries, since it can never surface anything", () => {
-    expect(parseProfileResponse(`{"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות", "r", [])}]}`)).toBeNull();
+    expect(parseProfileResponse(`{"domains":${DOMAINS},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות", "r", [])}]}`)).toBeNull();
   });
 
   it("drops an axis with no rationale, since the veto would have nothing to read", () => {
-    expect(parseProfileResponse(`{"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות", "")}]}`)).toBeNull();
+    expect(parseProfileResponse(`{"domains":${DOMAINS},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות", "")}]}`)).toBeNull();
   });
 
   it("collapses the same subject proposed twice", () => {
     const out = parseProfileResponse(
-      `{"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות")},${axis("הונאות זיהוי")}]}`
+      `{"domains":${DOMAINS},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות")},${axis("הונאות זיהוי")}]}`
     );
     expect(out?.axes).toHaveLength(1);
   });
 
   it("caps the axes per person", () => {
     const many = Array.from({ length: 9 }, (_, i) => axis(`נושא מספר ${i} ייחודי`)).join(",");
-    expect(parseProfileResponse(`{"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${many}]}`)?.axes.length).toBe(MAX_AXES_PER_PERSON);
+    expect(parseProfileResponse(`{"domains":${DOMAINS},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${many}]}`)?.axes.length).toBe(MAX_AXES_PER_PERSON);
   });
 
   it("returns null without a role lens", () => {
