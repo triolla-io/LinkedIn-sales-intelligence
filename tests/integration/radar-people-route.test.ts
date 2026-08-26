@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { NextRequest } from "next/server";
 
 /**
@@ -9,11 +9,18 @@ import type { NextRequest } from "next/server";
  * - axis provenance reaches the screen in human words, never the enum name
  */
 
+// A mutable ctx so pilot-gate tests can swap the requesting user's email between the
+// owner (held from) and a reviewer (sees held rows too), same pattern as
+// radar-approvals-route.test.ts.
+const { ctx } = vi.hoisted(() => ({
+  ctx: { effectiveUserId: "owner1", user: { name: "יובל", email: "yuval@triolla.io" }, org: { id: "org1" } },
+}));
+
 vi.mock("@/lib/tenancy/with-tenant", () => ({
   withTenant:
     (h: (req: unknown, ctx: unknown) => unknown) =>
     (req: unknown) =>
-      h(req, { effectiveUserId: "owner1", user: { name: "יובל" }, org: { id: "org1" } }),
+      h(req, ctx),
 }));
 
 const contactFindMany = vi.fn();
@@ -91,6 +98,8 @@ function radarContact(over: Record<string, unknown> = {}) {
   };
 }
 
+let prevPilotHold: string | undefined;
+
 beforeEach(() => {
   for (const m of [
     contactFindMany, contactFindFirst, contactUpdate, companyFindMany, draftGroupBy,
@@ -103,6 +112,14 @@ beforeEach(() => {
   matchGroupBy.mockResolvedValue([]);
   sentGroupBy.mockResolvedValue([]);
   contactUpdate.mockResolvedValue({});
+  ctx.user.email = "yuval@triolla.io";
+  prevPilotHold = process.env.RADAR_PILOT_HOLD;
+  delete process.env.RADAR_PILOT_HOLD;
+});
+
+afterEach(() => {
+  if (prevPilotHold === undefined) delete process.env.RADAR_PILOT_HOLD;
+  else process.env.RADAR_PILOT_HOLD = prevPilotHold;
 });
 
 describe("GET /api/radar/people", () => {
@@ -300,5 +317,118 @@ describe("PATCH /api/radar/people/[contactId]", () => {
     const res = (await patchPerson(req({ action: "active", value: false }, "/api/radar/people/ct1"))) as Response;
     expect(res.status).toBe(200);
     expect(contactUpdate.mock.calls[0][0].data).toEqual({ radarInclude: false });
+  });
+});
+
+/**
+ * The pilot gate, finding 3c: a held draft must not inflate the "X ממתין" count this
+ * list shows for a contact. The mocked groupBy applies the same pilotHeldAt: null
+ * predicate Postgres would, so this catches a route that forgets the where clause
+ * entirely, not just one that mis-shapes the payload — same pattern as
+ * radar-approvals-route.test.ts.
+ */
+describe("GET /api/radar/people — pilot gate on the pending count", () => {
+  function mockGroupByRespectingPilotFilter(rows: { contactId: string; pilotHeldAt: Date | null }[]) {
+    draftGroupBy.mockImplementation(async (args: { where?: { pilotHeldAt?: null } }) => {
+      const kept = args?.where && "pilotHeldAt" in args.where ? rows.filter((r) => r.pilotHeldAt === null) : rows;
+      const byContact = new Map<string, number>();
+      for (const r of kept) byContact.set(r.contactId, (byContact.get(r.contactId) ?? 0) + 1);
+      return [...byContact.entries()].map(([contactId, n]) => ({ contactId, _count: { _all: n } }));
+    });
+  }
+
+  it("does not count a held draft for the owner", async () => {
+    contactFindMany.mockResolvedValueOnce([radarContact()]).mockResolvedValueOnce([]);
+    mockGroupByRespectingPilotFilter([
+      { contactId: "ct1", pilotHeldAt: null },
+      { contactId: "ct1", pilotHeldAt: new Date("2026-08-26T06:00:00Z") },
+    ]);
+    ctx.user.email = "yuval@triolla.io";
+
+    const body = await ((await listPeople(req())) as Response).json();
+    expect(body.people[0].pendingDrafts).toBe(1);
+  });
+
+  it("counts a held draft for a reviewer", async () => {
+    contactFindMany.mockResolvedValueOnce([radarContact()]).mockResolvedValueOnce([]);
+    mockGroupByRespectingPilotFilter([
+      { contactId: "ct1", pilotHeldAt: null },
+      { contactId: "ct1", pilotHeldAt: new Date("2026-08-26T06:00:00Z") },
+    ]);
+    ctx.user.email = "ariel@triolla.io";
+
+    const body = await ((await listPeople(req())) as Response).json();
+    expect(body.people[0].pendingDrafts).toBe(2);
+  });
+
+  it("with RADAR_PILOT_HOLD=off the owner sees the held draft counted too", async () => {
+    process.env.RADAR_PILOT_HOLD = "off";
+    contactFindMany.mockResolvedValueOnce([radarContact()]).mockResolvedValueOnce([]);
+    mockGroupByRespectingPilotFilter([
+      { contactId: "ct1", pilotHeldAt: null },
+      { contactId: "ct1", pilotHeldAt: new Date("2026-08-26T06:00:00Z") },
+    ]);
+    ctx.user.email = "yuval@triolla.io";
+
+    const body = await ((await listPeople(req())) as Response).json();
+    expect(body.people[0].pendingDrafts).toBe(2);
+  });
+
+  it("an unheld draft is counted the same for owner and reviewer", async () => {
+    for (const email of ["yuval@triolla.io", "ariel@triolla.io"]) {
+      contactFindMany.mockResolvedValue([radarContact()]);
+      mockGroupByRespectingPilotFilter([{ contactId: "ct1", pilotHeldAt: null }]);
+      ctx.user.email = email;
+      const body = await ((await listPeople(req())) as Response).json();
+      expect(body.people[0].pendingDrafts).toBe(1);
+    }
+  });
+});
+
+/**
+ * The pilot gate, finding 3a: the person page's history/`drafts` read-back must not
+ * leak a held draft's id/status/title to the owner's browser ahead of the approvals
+ * screen.
+ */
+describe("GET /api/radar/people/[contactId] — pilot gate on draft history", () => {
+  function heldDraft() {
+    return { id: "dHeld", status: "PENDING_REVIEW", whyHim: null, discardReason: null, createdAt: new Date("2026-08-26T06:00:00Z"), pilotHeldAt: new Date("2026-08-26T06:00:00Z"), item: { title: "held item" } };
+  }
+  function unheldDraft() {
+    return { id: "d1", status: "PENDING_REVIEW", whyHim: null, discardReason: null, createdAt: new Date("2026-08-25T06:00:00Z"), pilotHeldAt: null, item: { title: "unheld item" } };
+  }
+  function mockRowsRespectingPilotFilter(rows: ReturnType<typeof heldDraft>[]) {
+    draftFindMany.mockImplementation(async (args: { where?: { pilotHeldAt?: null } }) => {
+      if (args?.where && "pilotHeldAt" in args.where) return rows.filter((r) => r.pilotHeldAt === null);
+      return rows;
+    });
+  }
+
+  it("a held draft is absent from the owner's history", async () => {
+    contactFindFirst.mockResolvedValue(radarContact());
+    mockRowsRespectingPilotFilter([unheldDraft(), heldDraft()]);
+    ctx.user.email = "yuval@triolla.io";
+
+    const body = await ((await getPerson(req(undefined, "/api/radar/people/ct1"))) as Response).json();
+    expect(body.history.map((h: { id: string }) => h.id)).toEqual(["d1"]);
+  });
+
+  it("a held draft is present in a reviewer's history", async () => {
+    contactFindFirst.mockResolvedValue(radarContact());
+    mockRowsRespectingPilotFilter([unheldDraft(), heldDraft()]);
+    ctx.user.email = "ariel@triolla.io";
+
+    const body = await ((await getPerson(req(undefined, "/api/radar/people/ct1"))) as Response).json();
+    expect(body.history.map((h: { id: string }) => h.id).sort()).toEqual(["d1", "dHeld"]);
+  });
+
+  it("an unheld draft is unaffected in every case", async () => {
+    for (const email of ["yuval@triolla.io", "ariel@triolla.io"]) {
+      contactFindFirst.mockResolvedValue(radarContact());
+      mockRowsRespectingPilotFilter([unheldDraft()]);
+      ctx.user.email = email;
+      const body = await ((await getPerson(req(undefined, "/api/radar/people/ct1"))) as Response).json();
+      expect(body.history).toHaveLength(1);
+    }
   });
 });

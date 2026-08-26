@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { inngest } from "@/inngest/client";
 import { matchExistingCompany } from "@/lib/tech-radar/population";
 import { derivePrepStatus } from "@/lib/tech-radar/prep-status";
+import { pilotHoldEnabled, isPilotReviewer } from "@/lib/tech-radar/pilot-gate";
 
 /**
  * The people on the radar, and the contacts who could join them.
@@ -53,6 +54,11 @@ export const GET = withTenant(async (_req, ctx) => {
     }),
   ]);
 
+  // Pilot gate: a held draft must not inflate the "X ממתין" count shown for a contact on
+  // this tab — the count has to match what the owner can actually see and act on
+  // (2026-08-26 final review, Finding 3c).
+  const holdsFromThisViewer = pilotHoldEnabled() && !isPilotReviewer(ctx.user.email);
+
   const pendingByContact = new Map(
     (
       await prisma.radarDraft.groupBy({
@@ -60,6 +66,7 @@ export const GET = withTenant(async (_req, ctx) => {
         where: {
           ownerId: ctx.effectiveUserId,
           status: { in: ["PENDING_REVIEW", "PREPARING", "PREPARED"] },
+          ...(holdsFromThisViewer ? { pilotHeldAt: null } : {}),
         },
         _count: { _all: true },
       })

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
 import { deriveJourney } from "@/lib/tech-radar/journey";
 import type { AxisStat } from "@/lib/tech-radar/person-scan";
+import { pilotHoldEnabled, isPilotReviewer } from "@/lib/tech-radar/pilot-gate";
 
 /**
  * How the system decided, per article.
@@ -45,6 +46,12 @@ export const GET = withTenant(async (_req, ctx) => {
   }
   const axisIds = [...peopleByAxis.keys()];
 
+  // Pilot gate: a held draft's existence must not leak through this screen's journey
+  // funnel — deriveJourney turns a draft's status into a visible step, so a held row has
+  // to be excluded from the query itself, not merely hidden after the fact (2026-08-26
+  // final review, Finding 3b).
+  const holdsFromThisViewer = pilotHoldEnabled() && !isPilotReviewer(ctx.user.email);
+
   const [matches, drafts, run] = await Promise.all([
     axisIds.length
       ? prisma.axisMatch.findMany({
@@ -68,7 +75,11 @@ export const GET = withTenant(async (_req, ctx) => {
     prisma.radarDraft.findMany({
       // Without this a stale veto attaches itself to an item that reaches the screen
       // through a DIFFERENT live axis, and reads as this week's decision.
-      where: { ownerId: ctx.effectiveUserId, supersededAt: null },
+      where: {
+        ownerId: ctx.effectiveUserId,
+        supersededAt: null,
+        ...(holdsFromThisViewer ? { pilotHeldAt: null } : {}),
+      },
       select: {
         id: true, contactId: true, axisId: true, itemId: true, status: true,
         whyHim: true, discardReason: true,

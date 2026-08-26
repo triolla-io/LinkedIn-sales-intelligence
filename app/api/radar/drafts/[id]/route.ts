@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { checkDraftEdit } from "@/lib/tech-radar/draft-guard";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
+import { pilotHoldEnabled, isPilotReviewer } from "@/lib/tech-radar/pilot-gate";
 
 /**
  * Radar draft actions — prepare-not-send, same shape as the tech-radar route: LinkedIn
@@ -29,8 +30,19 @@ export const PATCH = withTenant(async (req: NextRequest, ctx) => {
   const id = req.nextUrl.pathname.split("/").at(-1)!;
   const body = (await req.json()) as Body;
 
+  // Pilot gate: this is the ACTUAL enforcement, not just visibility. Without this check a
+  // held draft's id (leaked nowhere else once 3a/3b/3c are fixed, but reachable by anyone
+  // who already has it) could still be prepared or marked sent by its owner, bypassing the
+  // whole review gate. A held draft 404s here for a non-reviewer, exactly like a draft that
+  // does not exist or belongs to someone else (2026-08-26 final review, Finding 3d).
+  const holdsFromThisViewer = pilotHoldEnabled() && !isPilotReviewer(ctx.user.email);
+
   const draft = await prisma.radarDraft.findFirst({
-    where: { id, ownerId: ctx.effectiveUserId },
+    where: {
+      id,
+      ownerId: ctx.effectiveUserId,
+      ...(holdsFromThisViewer ? { pilotHeldAt: null } : {}),
+    },
     select: {
       id: true,
       draftMessage: true,

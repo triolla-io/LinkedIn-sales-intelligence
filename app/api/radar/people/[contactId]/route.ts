@@ -3,6 +3,7 @@ import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 import { derivePrepStatus } from "@/lib/tech-radar/prep-status";
 import { findEmployer, NEXT_SCAN_LABEL } from "../route";
+import { pilotHoldEnabled, isPilotReviewer } from "@/lib/tech-radar/pilot-gate";
 
 /**
  * One person: what the system thinks interests them, and the ability to correct it.
@@ -77,13 +78,22 @@ export const GET = withTenant(async (req: NextRequest, ctx) => {
   const axes = contact.personProfile?.axes ?? [];
   const axisIds = axes.map((a) => a.axis.id);
 
+  // Pilot gate: a row born held (pilotHeldAt set) stays off the owner's screen until a
+  // reviewer releases it — this page must not leak a held draft's id/status/title to the
+  // owner's browser ahead of the approvals screen (2026-08-26 final review, Finding 3a).
+  const holdsFromThisViewer = pilotHoldEnabled() && !isPilotReviewer(ctx.user.email);
+
   const [employers, drafts, matches, lastMsg] = await Promise.all([
     prisma.trackedCompany.findMany({
       where: { orgId: ctx.org.id },
       select: { id: true, name: true, aliases: true, status: true, profileError: true, companyId: true, profile: true },
     }),
     prisma.radarDraft.findMany({
-      where: { contactId: contact.id, ownerId: ctx.effectiveUserId },
+      where: {
+        contactId: contact.id,
+        ownerId: ctx.effectiveUserId,
+        ...(holdsFromThisViewer ? { pilotHeldAt: null } : {}),
+      },
       orderBy: { createdAt: "desc" },
       take: 50,
       select: {

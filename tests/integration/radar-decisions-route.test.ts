@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { NextRequest } from "next/server";
 
 /**
@@ -7,11 +7,18 @@ import type { NextRequest } from "next/server";
  * one if you can only see survivors.
  */
 
+// A mutable ctx so pilot-gate tests can swap the requesting user's email between the
+// owner (held from) and a reviewer (sees held rows too), same pattern as
+// radar-approvals-route.test.ts.
+const { ctx } = vi.hoisted(() => ({
+  ctx: { effectiveUserId: "owner1", user: { name: "אריאל", email: "yuval@triolla.io" }, org: { id: "org1" } },
+}));
+
 vi.mock("@/lib/tenancy/with-tenant", () => ({
   withTenant:
     (h: (req: unknown, ctx: unknown) => unknown) =>
     (req: unknown) =>
-      h(req, { effectiveUserId: "owner1", user: { name: "אריאל" }, org: { id: "org1" } }),
+      h(req, ctx),
 }));
 
 const profileFindMany = vi.fn();
@@ -59,12 +66,22 @@ function match(over: Record<string, unknown> = {}) {
   };
 }
 
+let prevPilotHold: string | undefined;
+
 beforeEach(() => {
   for (const m of [profileFindMany, matchFindMany, draftFindMany, scanRunFindFirst]) m.mockReset();
   profileFindMany.mockResolvedValue([profile()]);
   matchFindMany.mockResolvedValue([match()]);
   draftFindMany.mockResolvedValue([]);
   scanRunFindFirst.mockResolvedValue(null);
+  ctx.user.email = "yuval@triolla.io";
+  prevPilotHold = process.env.RADAR_PILOT_HOLD;
+  delete process.env.RADAR_PILOT_HOLD;
+});
+
+afterEach(() => {
+  if (prevPilotHold === undefined) delete process.env.RADAR_PILOT_HOLD;
+  else process.env.RADAR_PILOT_HOLD = prevPilotHold;
 });
 
 describe("GET /api/radar/decisions", () => {
@@ -187,5 +204,58 @@ describe("GET /api/radar/decisions", () => {
   it("offers each person as a filter chip", async () => {
     const body = await ((await GET(req)) as Response).json();
     expect(body.people).toEqual([{ contactId: "ct1", fullName: "Avigal Soreq" }]);
+  });
+});
+
+/**
+ * The pilot gate, finding 3b: this screen turns a draft's existence and status into a
+ * visible journey step (deriveJourney) — a held draft must not leak through it. The
+ * mocked findMany applies the same pilotHeldAt: null predicate Postgres would, so this
+ * catches a route that forgets the where clause entirely, same pattern as
+ * radar-approvals-route.test.ts.
+ */
+describe("GET /api/radar/decisions — pilot gate", () => {
+  function heldDraft(over: Record<string, unknown> = {}) {
+    return {
+      id: "dHeld", contactId: "ct1", axisId: "ax1", itemId: "it1", status: "VETOED",
+      whyHim: null, discardReason: "תחזית מאקרו שנכונה לכל מנהל בענף",
+      pilotHeldAt: new Date("2026-08-26T06:00:00Z"), ...over,
+    };
+  }
+  function unheldDraft(over: Record<string, unknown> = {}) {
+    return {
+      id: "d1", contactId: "ct1", axisId: "ax1", itemId: "it1", status: "VETOED",
+      whyHim: null, discardReason: "תחזית מאקרו שנכונה לכל מנהל בענף",
+      pilotHeldAt: null, ...over,
+    };
+  }
+  function mockRowsRespectingPilotFilter(rows: ReturnType<typeof heldDraft>[]) {
+    draftFindMany.mockImplementation(async (args: { where?: { pilotHeldAt?: null } }) => {
+      if (args?.where && "pilotHeldAt" in args.where) return rows.filter((r) => r.pilotHeldAt === null);
+      return rows;
+    });
+  }
+
+  it("a held draft's existence does not leak through the journey for the owner", async () => {
+    mockRowsRespectingPilotFilter([heldDraft()]);
+    ctx.user.email = "yuval@triolla.io";
+    const body = await ((await GET(req)) as Response).json();
+    expect(body.items[0].draftId).toBeNull();
+  });
+
+  it("a reviewer sees the held draft's status reflected in the journey", async () => {
+    mockRowsRespectingPilotFilter([heldDraft()]);
+    ctx.user.email = "ariel@triolla.io";
+    const body = await ((await GET(req)) as Response).json();
+    expect(body.items[0].draftId).toBe("dHeld");
+  });
+
+  it("an unheld draft is unaffected in every case", async () => {
+    for (const email of ["yuval@triolla.io", "ariel@triolla.io"]) {
+      mockRowsRespectingPilotFilter([unheldDraft()]);
+      ctx.user.email = email;
+      const body = await ((await GET(req)) as Response).json();
+      expect(body.items[0].draftId).toBe("d1");
+    }
   });
 });
