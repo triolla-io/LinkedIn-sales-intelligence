@@ -62,11 +62,12 @@ export const V1_DRAFTS = [
 ] as const;
 
 /**
- * What the v2 register is supposed to produce for the same item. Hand-written target.
- * Models the sender's real voice, not the quiet "נתקלתי... חשבתי עליך" register: a
- * rhetorical-question opener, 2-3 sentences on what the article itself says, then one
+ * What the v2 register is supposed to produce, for a different item and recipient than
+ * V1_DRAFTS — this is not a before/after pair with any single V1 entry. Hand-written
+ * target. Models the sender's real voice, not the quiet "נתקלתי... חשבתי עליך" register:
+ * a rhetorical-question opener, 2-3 sentences on what the article itself says, then one
  * sentence anchoring why it touches THIS reader by name.
  */
 export const V2_TARGET_DRAFT = `היי אופיר, ראית את זה?
-מחקר חדש על CO2-EOR מראה שהזרקת פחמן דו-חמצני מחזירה לחיים שדות שכולם כבר הספידו — עם מספרים מהשטח. וזה נוגע ישר בשאלה כמה עוד אפשר לסחוט מהשדות הבוגרים שבתיק של דלק!
+מחקר חדש על CO2-EOR מראה שהזרקת פחמן דו-חמצני מחזירה לחיים שדות שכולם כבר הספידו. יש שם מספרים מהשטח שממש מפתיעים — קצב שאיבה שעלה בעשרות אחוזים בשדות שנחשבו גמורים. וזה נוגע ישר בשאלה כמה עוד אפשר לסחוט מהשדות הבוגרים שבתיק של דלק!
 https://example.com/co2-eor`;
