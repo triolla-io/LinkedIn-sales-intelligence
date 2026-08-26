@@ -58,6 +58,10 @@ export function checkDraft(message: string): DraftViolation[] {
   // no space at all, still ends the sentence: a run-on must not hide a later ask.
   const boundary = text.search(/\?|\n|[.!](?![0-9])/u);
   const tail = boundary === -1 ? "" : text.slice(boundary + 1);
+  // An opener is only an opener if something follows it. A message that IS one
+  // question (its "?" is the last character) has no tail at all, and without this
+  // check that lone question mark would exempt itself from ever being an ask.
+  if (text.includes("?") && !/\S/.test(tail) && !out.includes("ask")) out.push("ask");
   if (tail.includes("?") && !out.includes("ask")) out.push("ask");
   if (text.replace(/\s+/gu, " ").trim().length > MAX_DRAFT_CHARS) out.push("too_long");
   return out;

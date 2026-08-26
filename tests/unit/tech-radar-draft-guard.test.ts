@@ -15,10 +15,28 @@ describe("rhetorical opener", () => {
     expect(checkDraft("היי דנה, מחקר מעניין!\nhttps://a.com/x?utm=1&y=2")).toEqual([]);
   });
   it("does not treat a decimal point in a funding figure as a sentence end", () => {
-    expect(checkDraft("היי דנה, ראית שגייסו 3.5 מיליון דולר?")).toEqual([]);
+    // The opener itself carries the figure; content follows so this is not the
+    // bare single-question shape (see the "single-sentence ask" tests below) —
+    // it isolates the decimal-boundary behaviour from the lone-question rule.
+    expect(checkDraft("היי דנה, ראית שגייסו 3.5 מיליון דולר?\nמחקר מעניין.")).toEqual([]);
   });
   it("still flags a run-on with no space after the period hiding a later ask", () => {
     expect(checkDraft("היי דנה, ראית את המחקר.יש לך זמן לשיחה?")).toContain("ask");
+  });
+  it("flags a single-sentence meeting ask with no boundary before its '?'", () => {
+    expect(checkDraft("היי דנה, יש לך זמן השבוע?")).toContain("ask");
+  });
+  it("flags a single-sentence 'let's meet' ask with no boundary before its '?'", () => {
+    expect(checkDraft("היי דנה, נוכל להיפגש בשבוע הבא כדי לעבור על זה?")).toContain("ask");
+  });
+  it("flags a single-sentence ask even when a comma precedes it (a comma is not a boundary)", () => {
+    expect(checkDraft("היי דנה, ראיתי מחקר מעניין, נוכל לדבר עליו?")).toContain("ask");
+  });
+  it("still flags a real trailing ask after a legitimate opener", () => {
+    expect(checkDraft("היי דנה, ראית את זה?\nמחקר חדש. יש לך זמן?")).toContain("ask");
+  });
+  it("still returns [] for the legitimate opener-plus-content shape with no later ask", () => {
+    expect(checkDraft("היי דנה, ראית את זה?\nמחקר חדש על הונאות. זה נוגע ישר בביט.")).toEqual([]);
   });
 });
 
