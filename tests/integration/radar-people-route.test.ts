@@ -131,6 +131,35 @@ describe("GET /api/radar/people", () => {
     expect(body.people[0].axisCount).toBe(1);
     expect(body.people[0].prep.ready).toBe(true);
   });
+
+  /**
+   * 2026-08-26 review, Important 2. The industry net is a shared layer-1 axis, not a
+   * subject — a person subscribed to nothing but their employer's industry net has NOT
+   * been modelled, and must not read as `ready` (with "X תחומי עניין נבנו" / "ייכנס
+   * לסריקה הקרובה") the way a genuinely modelled person does. Before this fix,
+   * derivePrepStatus's `modelled = hasProfile && axisCount > 0` counted the industry
+   * axis the same as any other, so this exact fixture misread as ready.
+   */
+  it("a person modelled only by the shared industry net is not reported ready", async () => {
+    contactFindMany
+      .mockResolvedValueOnce([
+        radarContact({
+          personProfile: {
+            id: "pp1",
+            axes: [
+              { id: "pa3", mutedAt: null, source: "INDUSTRY", axis: { id: "ax3", label: "ענף: בנקאות ישראל" } },
+            ],
+          },
+        }),
+      ])
+      .mockResolvedValueOnce([]);
+    const body = await ((await listPeople(req())) as Response).json();
+    // The industry net is a real, live axis — it still counts toward the display total...
+    expect(body.people[0].axisCount).toBe(1);
+    // ...but it is not one of THIS person's own subjects, so readiness must not flip on
+    // it alone.
+    expect(body.people[0].prep.ready).toBe(false);
+  });
 });
 
 describe("POST /api/radar/people", () => {

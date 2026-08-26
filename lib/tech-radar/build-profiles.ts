@@ -237,20 +237,18 @@ export async function buildProfilesForMarked(input: {
       select: { id: true },
     });
 
-    if (input.force) {
-      // Detach the old model's un-muted subscriptions; the new axes replace them.
-      // Muted links stay — they carry learned "לא מעניין אותו" feedback.
-      await prisma.personAxis.deleteMany({
-        where: { personProfileId: profile.id, mutedAt: null },
-      });
-    }
-
     // Layer 1, the shared industry net — deliberately BEFORE the "all rejected" exit
     // below and OUTSIDE the gate entirely. gateRationales only ever judges draft.axes
     // (the ROLE_COMPANY proposals); an INDUSTRY axis carries no personDecision and would
     // die on no_person_side if it were ever routed through that gate. Skipping it when
     // gate.kept is empty would mean the one person whose subjects all died is exactly
     // the person who loses the net too — the opposite of what a shared net is for.
+    //
+    // The force-detach below is NOT moved up here with it. A wholesale-rejected draft
+    // means there is nothing to replace the person's existing axes with — deleting their
+    // un-muted links here would be pure data loss (2026-08-26 review, Important 1). Only
+    // the profile row and the industry subscription are safe to write unconditionally;
+    // the detach stays gated behind having something to detach FOR.
     if (employerFacts?.industry?.canonical && (employerFacts.industry.queries?.length ?? 0) > 0) {
       await ensureIndustryAxis({
         orgId: input.orgId,
@@ -262,6 +260,14 @@ export async function buildProfilesForMarked(input: {
     if (gate.kept.length === 0) {
       report.skipped.push({ contactId: contact.id, name, reason: "all_rationales_generic" });
       continue;
+    }
+
+    if (input.force) {
+      // Detach the old model's un-muted subscriptions; the new axes replace them.
+      // Muted links stay — they carry learned "לא מעניין אותו" feedback.
+      await prisma.personAxis.deleteMany({
+        where: { personProfileId: profile.id, mutedAt: null },
+      });
     }
 
     kept.push({ name, employerId: employer.id, axes: gate.kept });

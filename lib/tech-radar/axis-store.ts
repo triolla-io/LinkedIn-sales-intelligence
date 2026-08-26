@@ -378,54 +378,58 @@ export async function ensureCompanyMonitorAxis(input: {
  * broad net, not one of the person's own five subjects), and it never passes through
  * gateRationales — an INDUSTRY proposal carries no personDecision and would die on
  * no_person_side if it ever reached that gate.
+ *
+ * Uses prisma.radarAxis.upsert — the same atomic pattern as ensureCompanyMonitorAxis —
+ * rather than a findUnique-then-create. That earlier shape looked safe but was not:
+ * RadarAxis is unique on [orgId, key], radar.build-profiles and radar.person.prepare can
+ * both run over the same org concurrently, and a lost race between the findUnique and
+ * the create throws P2002 and crashes the WHOLE build, not just this one axis (2026-08-26
+ * review, Important 3). An upsert has no such window. It also means there is no longer a
+ * "created vs attached" distinction to report — nothing downstream read it; the only
+ * caller (buildProfilesForMarked) already ignores the return value.
  */
 export async function ensureIndustryAxis(input: {
   orgId: string;
   personProfileId: string;
   industry: { canonical: string; queries: string[] };
-}): Promise<"created" | "attached" | "skipped"> {
+}): Promise<string | null> {
   const canonical = (input.industry.canonical ?? "").trim();
-  if (!canonical) return "skipped";
+  if (!canonical) return null;
 
   const key = industryKey(canonical);
+  // An all-filler canonical (e.g. only stopwords) normalises to nothing, and
+  // "industry:" with no suffix is a real key — every such canonical, however
+  // different its source text, would collide onto the same degenerate axis.
+  if (key === "industry:") return null;
+
   const queries = (input.industry.queries ?? [])
     .filter((q): q is string => typeof q === "string" && q.trim().length > 0)
     .slice(0, MAX_INDUSTRY_QUERIES);
 
-  // findUnique-then-create, not upsert: the return value has to say whether THIS call
-  // created the shared axis or merely joined it, and an upsert's result looks identical
-  // either way.
-  const found = await prisma.radarAxis.findUnique({
+  const axis = await prisma.radarAxis.upsert({
     where: { orgId_key: { orgId: input.orgId, key } },
+    create: {
+      orgId: input.orgId,
+      key,
+      label: `ענף: ${canonical}`,
+      kind: "INDUSTRY",
+      searchQueries: queries,
+    },
+    // Refreshed on every call, unlike ensureCompanyMonitorAxis's `update: {}` — a
+    // company monitor's one query IS its label (the employer's name, stable by
+    // construction), but an industry's queries come from research and may improve
+    // between runs; the net should carry the latest set, not the first one ever seen.
+    update: { searchQueries: queries },
     select: { id: true },
   });
-  let axisId: string;
-  let outcome: "created" | "attached";
-  if (found) {
-    axisId = found.id;
-    outcome = "attached";
-  } else {
-    const created = await prisma.radarAxis.create({
-      data: {
-        orgId: input.orgId,
-        key,
-        label: `ענף: ${canonical}`,
-        kind: "INDUSTRY",
-        searchQueries: queries,
-      },
-      select: { id: true },
-    });
-    axisId = created.id;
-    outcome = "created";
-  }
 
   // Idempotent: re-running a profile build must not double-subscribe or overwrite a
   // weight the learning loop has already moved — same rule as attachAxes's link upsert.
   await prisma.personAxis.upsert({
-    where: { personProfileId_axisId: { personProfileId: input.personProfileId, axisId } },
+    where: { personProfileId_axisId: { personProfileId: input.personProfileId, axisId: axis.id } },
     create: {
       personProfileId: input.personProfileId,
-      axisId,
+      axisId: axis.id,
       rationale: `שאילתות ענף משותפות — ${canonical}`,
       agenda: false,
       weight: 0.5,
@@ -435,5 +439,5 @@ export async function ensureIndustryAxis(input: {
     select: { id: true },
   });
 
-  return outcome;
+  return axis.id;
 }

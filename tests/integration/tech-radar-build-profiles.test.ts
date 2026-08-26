@@ -125,7 +125,7 @@ beforeEach(() => {
   // `skipped` and reported with the axis it would have joined.
   attachAxes.mockResolvedValue({ attached: 1, created: 1, merged: 0, refused: 0, skipped: [], mergeRefused: [] });
   ensureCompanyMonitorAxis.mockResolvedValue("ax-mon");
-  ensureIndustryAxis.mockResolvedValue("created");
+  ensureIndustryAxis.mockResolvedValue("ax-industry");
   poolQueryCount.mockResolvedValue({ axes: 12, uniqueQueries: 34 });
 });
 
@@ -367,5 +367,42 @@ describe("the INDUSTRY net survives a wholesale gate rejection", () => {
     gateRationales.mockResolvedValue({ kept: [], rejected: [], judged: true, deterministic: {} });
     await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
     expect(ensureIndustryAxis).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * 2026-08-26 review, Important 1. The industry-net fix moved `personProfile.upsert`
+ * ahead of the "all rejected" exit so ensureIndustryAxis would have a personProfileId to
+ * subscribe to — but the force-detach was ALSO moved up in the same pass, and that is
+ * data loss: a `force: true` rebuild whose draft is wholesale-rejected has nothing to
+ * replace the person's existing axes WITH, so detaching them here would leave the person
+ * with only the new INDUSTRY link and nothing else, on disk, permanently (un-muted links
+ * are not soft-undoable from the UI). The fix keeps the detach exactly where it always
+ * was: gated behind `gate.kept.length > 0`, same as attachAxes and ensureCompanyMonitorAxis.
+ *
+ * `scripts/radar-rebuild-people.ts` runs with `force: true` against real people, which is
+ * what makes this a "tonight" bug rather than an eventual one.
+ */
+describe("force-mode data safety on a wholesale gate rejection", () => {
+  const staleProfile = { id: "pp1", refreshedAt: new Date("2026-08-20T00:00:00Z") };
+
+  it("does NOT detach existing un-muted axes when a force rebuild is wholesale-rejected", async () => {
+    contactFindMany.mockResolvedValue([contact({ personProfile: staleProfile })]);
+    gateRationales.mockResolvedValue({ kept: [], rejected: [], judged: true, deterministic: {} });
+
+    await buildProfilesForMarked({ orgId: "org1", ownerId: "u1", force: true });
+
+    expect(personAxisDeleteMany).not.toHaveBeenCalled();
+  });
+
+  /** The companion case: force still does its job when the draft actually keeps axes. */
+  it("still detaches existing un-muted axes on a force rebuild that keeps axes", async () => {
+    contactFindMany.mockResolvedValue([contact({ personProfile: staleProfile })]);
+    // Default gateRationales mock (see beforeEach) keeps everything.
+    await buildProfilesForMarked({ orgId: "org1", ownerId: "u1", force: true });
+
+    expect(personAxisDeleteMany).toHaveBeenCalledWith({
+      where: { personProfileId: "pp1", mutedAt: null },
+    });
   });
 });

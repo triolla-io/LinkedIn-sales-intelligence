@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const axisFindMany = vi.fn();
-const axisFindUnique = vi.fn();
 const axisCreate = vi.fn();
 const axisUpdate = vi.fn();
 const axisUpsert = vi.fn();
@@ -13,7 +12,6 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     radarAxis: {
       findMany: (...a: unknown[]) => axisFindMany(...a),
-      findUnique: (...a: unknown[]) => axisFindUnique(...a),
       create: (...a: unknown[]) => axisCreate(...a),
       update: (...a: unknown[]) => axisUpdate(...a),
       upsert: (...a: unknown[]) => axisUpsert(...a),
@@ -109,7 +107,7 @@ function ownedAxis(id: string, label: string, employerId: string | null, kind: s
 }
 
 beforeEach(() => {
-  for (const m of [axisFindMany, axisFindUnique, axisCreate, axisUpdate, axisUpsert, personAxisCount, personAxisUpsert, personAxisGroupBy, resolveMergeQuestions, personAxisFindMany, personAxisUpdate, trackedCompanyFindMany]) {
+  for (const m of [axisFindMany, axisCreate, axisUpdate, axisUpsert, personAxisCount, personAxisUpsert, personAxisGroupBy, resolveMergeQuestions, personAxisFindMany, personAxisUpdate, trackedCompanyFindMany]) {
     m.mockReset();
   }
   personAxisFindMany.mockResolvedValue([{ id: "pa1", agenda: true }]);
@@ -482,22 +480,25 @@ describe("attachAxes competitive-set gate", () => {
 /**
  * Layer 1: the shared industry net. One RadarAxis per (org × industry canonical), so N
  * employers in the same industry pay for one set of queries instead of N. Mirrors
- * ensureCompanyMonitorAxis's structural-key upsert, but ALSO writes the PersonAxis link —
- * a company monitor has no per-person subscriber to attach, an industry net does.
+ * ensureCompanyMonitorAxis's structural-key upsert (a real prisma.radarAxis.upsert, not a
+ * findUnique-then-create — that shape raced two concurrent Inngest functions over the
+ * same org and crashed the whole build on a lost race; 2026-08-26 review, Important 3),
+ * but this one ALSO writes the PersonAxis link — a company monitor has no per-person
+ * subscriber to attach, an industry net does.
  */
 describe("ensureIndustryAxis", () => {
-  it("creates one shared axis and subscribes the person: agenda false, weight 0.5, source INDUSTRY", async () => {
-    axisFindUnique.mockResolvedValue(null);
-    axisCreate.mockResolvedValueOnce({ id: "ax-industry", key: industryKey("בנקאות"), label: "ענף: בנקאות" });
+  it("upserts one shared axis and subscribes the person: agenda false, weight 0.5, source INDUSTRY", async () => {
+    axisUpsert.mockResolvedValueOnce({ id: "ax-industry" });
 
-    const outcome = await ensureIndustryAxis({
+    const axisId = await ensureIndustryAxis({
       orgId: "org1",
       personProfileId: "pp1",
       industry: { canonical: "בנקאות", queries: ["ריבית בנק ישראל", "רגולציה בנקאית 2026"] },
     });
 
-    expect(outcome).toBe("created");
-    expect(axisCreate.mock.calls[0][0].data).toMatchObject({
+    expect(axisId).toBe("ax-industry");
+    expect(axisUpsert.mock.calls[0][0].where.orgId_key).toEqual({ orgId: "org1", key: industryKey("בנקאות") });
+    expect(axisUpsert.mock.calls[0][0].create).toMatchObject({
       orgId: "org1",
       key: industryKey("בנקאות"),
       label: "ענף: בנקאות",
@@ -515,26 +516,26 @@ describe("ensureIndustryAxis", () => {
   });
 
   it("caps searchQueries at MAX_INDUSTRY_QUERIES", async () => {
-    axisFindUnique.mockResolvedValue(null);
+    axisUpsert.mockResolvedValueOnce({ id: "ax-industry" });
     await ensureIndustryAxis({
       orgId: "org1",
       personProfileId: "pp1",
       industry: { canonical: "בנקאות", queries: ["a", "b", "c", "d", "e", "f", "g"] },
     });
-    expect(axisCreate.mock.calls[0][0].data.searchQueries).toHaveLength(MAX_INDUSTRY_QUERIES);
+    expect(axisUpsert.mock.calls[0][0].create.searchQueries).toHaveLength(MAX_INDUSTRY_QUERIES);
   });
 
   /** The point of the net: a second employer's person joins the existing axis, not a duplicate. */
-  it("attaches to the existing axis on a second call — idempotent, no duplicate axis", async () => {
-    axisFindUnique.mockResolvedValue({ id: "ax-industry" });
+  it("joins the existing axis on a second call — one upsert, no duplicate axis", async () => {
+    axisUpsert.mockResolvedValueOnce({ id: "ax-industry" });
 
-    const outcome = await ensureIndustryAxis({
+    const axisId = await ensureIndustryAxis({
       orgId: "org1",
       personProfileId: "pp2",
       industry: { canonical: "בנקאות", queries: ["ריבית בנק ישראל"] },
     });
 
-    expect(outcome).toBe("attached");
+    expect(axisId).toBe("ax-industry");
     expect(axisCreate).not.toHaveBeenCalled();
     expect(personAxisUpsert.mock.calls[0][0].where.personProfileId_axisId).toEqual({
       personProfileId: "pp2",
@@ -542,9 +543,25 @@ describe("ensureIndustryAxis", () => {
     });
   });
 
+  /**
+   * Unlike ensureCompanyMonitorAxis's `update: {}`, an industry axis's queries ARE
+   * refreshed on every call — research can improve an industry's query set between
+   * runs, and the net should carry the latest one rather than whatever it happened to
+   * be built with first (2026-08-26 review, Minor finding).
+   */
+  it("refreshes searchQueries to the latest set even when the axis already exists", async () => {
+    axisUpsert.mockResolvedValueOnce({ id: "ax-industry" });
+    await ensureIndustryAxis({
+      orgId: "org1",
+      personProfileId: "pp2",
+      industry: { canonical: "בנקאות", queries: ["ריבית עדכנית"] },
+    });
+    expect(axisUpsert.mock.calls[0][0].update).toEqual({ searchQueries: ["ריבית עדכנית"] });
+  });
+
   /** Re-running for the same person must not clobber a weight the learning loop moved. */
   it("does not touch weight on a repeat call for the same person", async () => {
-    axisFindUnique.mockResolvedValue({ id: "ax-industry" });
+    axisUpsert.mockResolvedValueOnce({ id: "ax-industry" });
     await ensureIndustryAxis({
       orgId: "org1",
       personProfileId: "pp1",
@@ -554,17 +571,43 @@ describe("ensureIndustryAxis", () => {
   });
 
   /** Two spellings of the same industry land on the same key — the sharing mechanism. */
-  it("looks the axis up by the same canonical key industryKey() produces", async () => {
-    axisFindUnique.mockResolvedValue({ id: "ax-industry" });
+  it("upserts by the same canonical key industryKey() produces", async () => {
+    axisUpsert.mockResolvedValueOnce({ id: "ax-industry" });
     await ensureIndustryAxis({
       orgId: "org1",
       personProfileId: "pp3",
       industry: { canonical: "Israeli Banking / בנקאות ישראל", queries: ["q"] },
     });
-    expect(axisFindUnique.mock.calls[0][0].where.orgId_key).toEqual({
+    expect(axisUpsert.mock.calls[0][0].where.orgId_key).toEqual({
       orgId: "org1",
       key: industryKey("בנקאות ישראל / Israeli banking"),
     });
+  });
+
+  it("skips a blank canonical rather than minting a degenerate axis", async () => {
+    const axisId = await ensureIndustryAxis({
+      orgId: "org1",
+      personProfileId: "pp1",
+      industry: { canonical: "   ", queries: ["q"] },
+    });
+    expect(axisId).toBeNull();
+    expect(axisUpsert).not.toHaveBeenCalled();
+    expect(personAxisUpsert).not.toHaveBeenCalled();
+  });
+
+  /**
+   * An all-filler canonical normalises to an empty key ("industry:" with nothing after
+   * it) — a real, collision-prone key that every such canonical would share, however
+   * different the source text (2026-08-26 review, Minor finding).
+   */
+  it("skips a canonical that normalises to nothing (all filler words)", async () => {
+    const axisId = await ensureIndustryAxis({
+      orgId: "org1",
+      personProfileId: "pp1",
+      industry: { canonical: "the of and", queries: ["q"] },
+    });
+    expect(axisId).toBeNull();
+    expect(axisUpsert).not.toHaveBeenCalled();
   });
 });
 
