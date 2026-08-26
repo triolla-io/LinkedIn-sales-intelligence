@@ -73,7 +73,7 @@ export const GET = withTenant(async (_req, ctx) => {
       orderBy: { startedAt: "desc" },
       select: {
         scanned: true, topical: true, important: true, connected: true, drafts: true,
-        finishedAt: true, axisStats: true,
+        finishedAt: true, axisStats: true, report: true,
       },
     }),
   ]);
@@ -114,6 +114,10 @@ export const GET = withTenant(async (_req, ctx) => {
   );
 
   const stats = Array.isArray(run?.axisStats) ? (run.axisStats as unknown as AxisStat[]) : [];
+  // How many items the hard freshness gate rejected before triage ever saw them — so a
+  // week with zero results everywhere can say WHY instead of looking indistinguishable
+  // from a broken radar.
+  const report = run?.report as unknown as { staleDropped?: number; undatedDropped?: number } | null | undefined;
 
   return NextResponse.json({
     run: run
@@ -124,6 +128,8 @@ export const GET = withTenant(async (_req, ctx) => {
           connected: run.connected,
           drafts: run.drafts,
           finishedAt: run.finishedAt,
+          staleDropped: report?.staleDropped ?? 0,
+          undatedDropped: report?.undatedDropped ?? 0,
         }
       : null,
     items,

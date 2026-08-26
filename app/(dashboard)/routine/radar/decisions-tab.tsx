@@ -34,7 +34,10 @@ type Item = {
 };
 
 type Decisions = {
-  run: { scanned: number; topical: number; important: number; connected: number; drafts: number; finishedAt: string } | null;
+  run: {
+    scanned: number; topical: number; important: number; connected: number; drafts: number; finishedAt: string;
+    staleDropped: number; undatedDropped: number;
+  } | null;
   items: Item[];
   people: { contactId: string; fullName: string }[];
   quietAxes: { label: string; person: string; queries: number; results: number; hebrewNoIsraeliSource: boolean }[];
@@ -47,6 +50,23 @@ const PASS = "#5fb878";
 const FAIL = "#e07a6a";
 
 type Filter = { person: string | null; rejectedOnly: boolean; thinOnly: boolean };
+
+/**
+ * Why the axes below found nothing: the freshness gate, not a broken query. Without
+ * this a quiet week's "0 תוצאות" rows are indistinguishable from a radar that stopped
+ * working — the gate's own drop counts are what turn that bare zero into a decision.
+ */
+function staleSummary(run: NonNullable<Decisions["run"]>): string | null {
+  const { staleDropped, undatedDropped } = run;
+  if (staleDropped === 0 && undatedDropped === 0) return null;
+  if (staleDropped > 0 && undatedDropped === 0) {
+    return `נמצאו ${staleDropped} השבוע — כולן ישנות מחודש, לא עברו את חלון הרעננות.`;
+  }
+  if (undatedDropped > 0 && staleDropped === 0) {
+    return `נמצאו ${undatedDropped} השבוע — בלי תאריך פרסום שאפשר לאמת, אז לא נכנסו.`;
+  }
+  return `נמצאו ${staleDropped + undatedDropped} השבוע — ${staleDropped} ישנות מחודש, ${undatedDropped} בלי תאריך שאפשר לאמת.`;
+}
 
 function Funnel({ run }: { run: NonNullable<Decisions["run"]> }) {
   const segs = [
@@ -349,6 +369,9 @@ export function DecisionsTab() {
               <h3 className={cn("text-[13px] font-bold mb-2.5", EN_INK_3)}>
                 צירים בלי חומר השבוע — לא באג, שקט
               </h3>
+              {data.run && staleSummary(data.run) && (
+                <p className={cn("text-[12.5px] mb-2.5", EN_INK_3)}>{staleSummary(data.run)}</p>
+              )}
               {data.quietAxes.map((a, i) => (
                 <div
                   key={`${a.label}-${i}`}

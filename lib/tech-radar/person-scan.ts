@@ -56,22 +56,31 @@ const HEBREW_RE = /[֐-׿]/;
  * Attribute each query and each returned item back to the axes that asked for it. The
  * pool is deduplicated across axes, so one query can serve several — every subscriber
  * is credited, which is why this cannot be a simple per-query count.
+ *
+ * `freshItems` and `preGateItems` answer different questions. `results` is read off
+ * `freshItems` (post-freshness-gate) because that is what actually reached triage — an
+ * honest 0 there is a quiet week, not a bug. `hebrewNoIsraeliSource` is checked against
+ * `preGateItems` (defaults to `freshItems` when the caller has no separate pre-gate
+ * list): an Israeli source that merely went stale must not read as "this query never
+ * finds Israeli coverage" — that would be a false diagnosis of a different failure.
  */
 export function tallyAxisStats(
   axes: { id: string; label: string }[],
   pool: { query: string; axisIds: string[] }[],
-  items: { url: string; companyIds: string[] }[]
+  freshItems: { url: string; companyIds: string[] }[],
+  preGateItems: { url: string; companyIds: string[] }[] = freshItems
 ): AxisStat[] {
   return axes.map((axis) => {
     const mine = pool.filter((p) => p.axisIds.includes(axis.id));
-    const got = items.filter((i) => i.companyIds.includes(axis.id));
+    const got = freshItems.filter((i) => i.companyIds.includes(axis.id));
+    const everGot = preGateItems.filter((i) => i.companyIds.includes(axis.id));
     const askedInHebrew = mine.some((p) => HEBREW_RE.test(p.query));
     return {
       axisId: axis.id,
       label: axis.label,
       queries: mine.length,
       results: got.length,
-      hebrewNoIsraeliSource: askedInHebrew && !got.some((i) => isIsraeliSource(i.url)),
+      hebrewNoIsraeliSource: askedInHebrew && !everGot.some((i) => isIsraeliSource(i.url)),
     };
   });
 }
@@ -193,7 +202,8 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
   axisStats = tallyAxisStats(
     axes.map((a) => ({ id: a.id, label: a.label })),
     pool,
-    fresh
+    fresh,
+    news.items
   );
   if (fresh.length === 0) {
     return finish({
