@@ -79,8 +79,9 @@ describe("DRAFT_SYSTEM", () => {
     expect(DRAFT_SYSTEM).toMatch(/NEVER copy/);
   });
 
-  it("keeps it to one or two sentences", () => {
-    expect(DRAFT_SYSTEM).toMatch(/1-2 short sentences MAXIMUM/);
+  it("allows a short paragraph — 3-6 sentences, capped at 600 chars", () => {
+    expect(DRAFT_SYSTEM).toMatch(/3-6 short sentences TOTAL/);
+    expect(DRAFT_SYSTEM).toMatch(/600 characters/);
   });
 
   it("still forbids emojis, marketing register and flattery", () => {
@@ -92,6 +93,23 @@ describe("DRAFT_SYSTEM", () => {
   it("never sells anything on our behalf", () => {
     expect(DRAFT_SYSTEM).toMatch(/not a pitch/i);
     expect(DRAFT_SYSTEM).toMatch(/our services/);
+  });
+});
+
+describe("Yuval's voice", () => {
+  it("carries the three real samples verbatim", () => {
+    expect(DRAFT_SYSTEM).toContain("וואי איזה הזדמנות מטורפת! חייבים להשיג אותם");
+    expect(DRAFT_SYSTEM).toContain("היי, ראית את זה?");
+    expect(DRAFT_SYSTEM).toContain("הזדמנות למצב את הבנק כסופר חדשני!");
+  });
+  it("allows a rhetorical question only as the opener", () => {
+    expect(DRAFT_SYSTEM).toMatch(/question mark is allowed HERE and nowhere else/i);
+  });
+  it("bans the old polite-distant register", () => {
+    expect(DRAFT_SYSTEM).toMatch(/Never polite-distant/i);
+  });
+  it("requires a content paragraph distilled from the item text", () => {
+    expect(DRAFT_SYSTEM).toMatch(/2-3 short sentences distilled from the item's own text/i);
   });
 });
 
