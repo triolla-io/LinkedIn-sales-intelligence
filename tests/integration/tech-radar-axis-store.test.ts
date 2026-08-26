@@ -680,6 +680,80 @@ describe("attachAxes excludes INDUSTRY from the merge catalog", () => {
  * pre-existing behaviour (one axis per tracked company) and out of this task's scope;
  * flagged to the user rather than changed in passing.
  */
+/**
+ * Task 10: the evidence chain (personDecision/companyFact/domain/layerEvidence, plus the
+ * domainKind/domainSource tag build-profiles.ts reads off `draft.domains`) is assembled
+ * by the caller and threaded straight onto PersonAxis.evidence — on a brand-new link AND
+ * on a merge into an existing axis, so the receipts survive either road into the table.
+ */
+describe("attachAxes persists axis evidence", () => {
+  const evidence = {
+    personDecision: "היא חותמת על חוויית הלקוח בריטייל",
+    companyFact: "הפועלים השיקה אפליקציה חדשה",
+    domain: "בנקאות קמעונאית",
+    domainKind: "found" as const,
+    domainSource: "title" as const,
+    layerEvidence: { layer: 2 as const, quote: "מוכר בנקאות קמעונאית ללקוחות פרטיים" },
+  };
+
+  it("writes the full evidence shape when creating a brand-new axis link", async () => {
+    const out = await attachAxes({
+      orgId: "org1", personProfileId: "pp1", employer: HAPOALIM,
+      proposals: [{ ...proposal("קונסולידציה של מסדי וקטורים"), evidence }],
+    });
+    expect(out.created).toBe(1);
+    expect(personAxisUpsert.mock.calls[0][0].create.evidence).toEqual(evidence);
+  });
+
+  it("writes the full evidence shape when merging into an existing axis (level 1)", async () => {
+    axisFindMany.mockResolvedValue([
+      { id: "ax-existing", key: normalizeAxisKey("זיהוי הונאות"), label: "זיהוי הונאות", kind: "ROLE_COMPANY" },
+    ]);
+    await attachAxes({
+      orgId: "org1", personProfileId: "pp2", employer: HAPOALIM,
+      proposals: [{ ...proposal("הונאות זיהוי"), evidence }],
+    });
+    expect(personAxisUpsert.mock.calls[0][0].create.evidence).toEqual(evidence);
+  });
+
+  it("writes the full evidence shape when the model recognises an existing subject (level 3)", async () => {
+    const live = { id: "ax-live", key: normalizeAxisKey("עיכוב בהעברת נתונים חי וגודל תפוקה"), label: "עיכוב בהעברת נתונים חי וגודל תפוקה", kind: "ROLE_COMPANY" };
+    axisFindMany.mockResolvedValue([live]);
+    resolveMergeQuestions.mockResolvedValue(new Map([[0, "ax-live"]]));
+    await attachAxes({
+      orgId: "org1", personProfileId: "pp2", employer: HAPOALIM,
+      proposals: [{ ...proposal("עיבוד נתונים בזמן אמת בקנה מידה ענק"), evidence }],
+    });
+    expect(personAxisUpsert.mock.calls[0][0].create.evidence).toEqual(evidence);
+  });
+
+  /**
+   * Fix round 1 test gap: refresh-on-update (evidence written in BOTH create and update,
+   * mirroring rationale/agenda) was implemented but had zero coverage proving it actually
+   * refreshes rather than freezing at whatever the first build wrote.
+   */
+  it("refreshes evidence on a later build with a different rationale/decision — not frozen at the original", async () => {
+    axisFindMany.mockResolvedValue([
+      { id: "ax-existing", key: normalizeAxisKey("זיהוי הונאות"), label: "זיהוי הונאות", kind: "ROLE_COMPANY" },
+    ]);
+    const firstEvidence = { ...evidence, personDecision: "d1 — first build" };
+    const secondEvidence = { ...evidence, personDecision: "d2 — updated on a later build" };
+
+    await attachAxes({
+      orgId: "org1", personProfileId: "pp2", employer: HAPOALIM,
+      proposals: [{ ...proposal("הונאות זיהוי"), evidence: firstEvidence }],
+    });
+    await attachAxes({
+      orgId: "org1", personProfileId: "pp2", employer: HAPOALIM,
+      proposals: [{ ...proposal("הונאות זיהוי"), evidence: secondEvidence }],
+    });
+
+    expect(personAxisUpsert).toHaveBeenCalledTimes(2);
+    expect(personAxisUpsert.mock.calls[1][0].update.evidence).toEqual(secondEvidence);
+    expect(personAxisUpsert.mock.calls[1][0].update.evidence).not.toEqual(firstEvidence);
+  });
+});
+
 describe("attachAxes ceiling exemption for INDUSTRY", () => {
   it("creates past MAX_AXES_PER_ORG - 1 ROLE_COMPANY axes when the rest of the room is INDUSTRY nets", async () => {
     axisFindMany.mockResolvedValue([

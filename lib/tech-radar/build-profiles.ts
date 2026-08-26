@@ -11,7 +11,9 @@ import { buildPersonProfile, type AxisProposal } from "@/lib/tech-radar/person-p
 import { gateRationales } from "@/lib/tech-radar/rationale-gate";
 import { attachAxes, ensureCompanyMonitorAxis, ensureIndustryAxis } from "@/lib/tech-radar/axis-store";
 import { countHebrewQueries } from "@/lib/tech-radar/axis";
-import { poolQueryCount } from "@/lib/tech-radar/person-scan";
+import { poolQueryCount, MAX_QUERIES_PER_AXIS } from "@/lib/tech-radar/person-scan";
+import { buildAxisQueryPool } from "@/lib/tech-radar/axis-fit";
+import { normalizeQuery } from "@/lib/tech-radar/queries";
 import { prisma as db } from "@/lib/prisma";
 import { isUsableProfile } from "@/lib/tech-radar/types";
 import { markSuperseded } from "@/lib/tech-radar/superseded";
@@ -71,6 +73,32 @@ export type BuildProfilesReport = {
    * stays high means the prompt is not landing.
    */
   rejectedByRule: Record<string, number>;
+  /** Layer 4's fields of work per person, found vs. derived. Not gated by the merge gate
+   *  or by whether the person kept any axis — this is about what the model saw, not
+   *  what survived. */
+  domainsByPerson: { name: string; found: number; derived: number }[];
+  /** Yellow flags: people whose every mapped field of work was derived, none found in
+   *  their own data. Not a defect by itself — SCRAPE_PROFILE may simply be thin for them
+   *  — but a cohort where this is common is a signal the person data is too. */
+  allDerived: string[];
+  /** Unique search-query strings currently pooled per axis kind, read back from the DB
+   *  across the owner's whole modelled cohort (not just this run's rebuilds) — the same
+   *  scope as hebrewQueriesByPerson below. */
+  layerQueries: { industry: number; companyMonitor: number; person: number };
+  /**
+   * What the INDUSTRY net is actually saving. `savedQueries` is Σ over INDUSTRY axes of
+   * (distinct subscriber employers − 1) × its query count — the number of per-employer
+   * query sets the shared net made unnecessary.
+   */
+  industryShared: { industries: number; employers: number; savedQueries: number };
+  /**
+   * Free-text notes that are not a per-person skip and not a per-rule rejection count —
+   * today, only `no_industry: <employer>` when ensureIndustryAxis was skipped for lack of
+   * `employer.profile.industry` (a legacy profile researched before research v2). Task 8
+   * left this owed to Task 10: the skip itself is silent by design (never a crash), but a
+   * silent skip with no visibility anywhere is indistinguishable from a bug.
+   */
+  notes: string[];
 };
 
 export async function buildProfilesForMarked(input: {
@@ -91,6 +119,10 @@ export async function buildProfilesForMarked(input: {
     pool: { axes: 0, uniqueQueries: 0 }, thin: [], stages: {}, sameDecision: [],
     hebrewQueriesByPerson: [], noHebrewQuery: [], skipped: [], rejectedByRule: {},
     superseded: { matches: 0, drafts: 0 },
+    domainsByPerson: [], allDerived: [],
+    layerQueries: { industry: 0, companyMonitor: 0, person: 0 },
+    industryShared: { industries: 0, employers: 0, savedQueries: 0 },
+    notes: [],
   };
 
   const contacts = await prisma.contact.findMany({
@@ -181,6 +213,17 @@ export async function buildProfilesForMarked(input: {
       continue;
     }
 
+    // Layer 4's fields of work, tallied regardless of what the merge gate later keeps —
+    // this is about what the model saw in the person's own data, not what survived as an
+    // axis. A person whose every field is derived (found === 0) is flagged: not a defect
+    // by itself, but a cohort where it is common says something about the person data.
+    const foundDomains = draft.domains.filter((d) => d.kind === "found").length;
+    const derivedDomains = draft.domains.filter((d) => d.kind === "derived").length;
+    report.domainsByPerson.push({ name, found: foundDomains, derived: derivedDomains });
+    if (draft.domains.length > 0 && foundDomains === 0) {
+      report.allDerived.push(name);
+    }
+
     // The veto's person-specificity bar, applied to the rationale BEFORE any axis is
     // paid for. A domain-description rationale ("כי הוא בבנקאות") dies here, loudly.
     const employerFacts = employer.profile as
@@ -226,6 +269,7 @@ export async function buildProfilesForMarked(input: {
         roleLens: draft.roleLens,
         reasoning: draft.reasoning,
         employerTrackedCompanyId: employer.id,
+        domains: draft.domains,
       },
       // personalNotes is deliberately untouched: it is learned from feedback, and a
       // rebuild must not erase what the pilot taught us about someone.
@@ -234,6 +278,7 @@ export async function buildProfilesForMarked(input: {
         reasoning: draft.reasoning,
         employerTrackedCompanyId: employer.id,
         refreshedAt: new Date(),
+        domains: draft.domains,
       },
       select: { id: true },
     });
@@ -251,11 +296,25 @@ export async function buildProfilesForMarked(input: {
     // the profile row and the industry subscription are safe to write unconditionally;
     // the detach stays gated behind having something to detach FOR.
     if (employerFacts?.industry?.canonical && (employerFacts.industry.queries?.length ?? 0) > 0) {
-      await ensureIndustryAxis({
+      const industryAxisId = await ensureIndustryAxis({
         orgId: input.orgId,
         personProfileId: profile.id,
         industry: employerFacts.industry,
       });
+      // Task 8's all-filler-canonical guard: a canonical made only of stopwords
+      // normalises to an empty key and ensureIndustryAxis refuses to mint a degenerate
+      // axis for it, returning null. That refusal is correct — but silently discarded
+      // here would leave the person with NO industry link and no explanation why,
+      // exactly the silent-gap pattern this review exists to catch.
+      if (industryAxisId === null) {
+        report.notes.push(`industry_key_empty: ${employer.name}`);
+      }
+    } else {
+      // Task 8's own interface note: the skip itself is correct (never invent an industry
+      // for a profile researched before research v2) but it was silent — indistinguishable
+      // from a bug. Named here, once per person, rather than only once per employer, since
+      // the report is read per-run and a person is the unit everything else in it uses.
+      report.notes.push(`no_industry: ${employer.name}`);
     }
 
     if (gate.kept.length === 0) {
@@ -277,12 +336,34 @@ export async function buildProfilesForMarked(input: {
       });
     }
 
-    kept.push({ name, employerId: employer.id, axes: gate.kept });
+    // Every surviving proposal's evidence, assembled here because this is where
+    // draft.domains lives — attachAxes decides merges on the label/queries/employer alone
+    // and never sees the domains list. domainKind/domainSource come from the domains entry
+    // this axis's `domain` names; the parser already guarantees an exact match (an axis
+    // whose domain does not resolve was dropped as `no_domain`), so the fallback below is
+    // defensive only.
+    const domainByName = new Map(draft.domains.map((d) => [d.domain, d]));
+    const keptWithEvidence = gate.kept.map((proposal) => {
+      const matched = domainByName.get(proposal.domain);
+      return {
+        ...proposal,
+        evidence: {
+          personDecision: proposal.personDecision,
+          companyFact: proposal.companyFact,
+          domain: proposal.domain,
+          domainKind: matched?.kind ?? "derived",
+          domainSource: matched?.kind === "found" ? (matched.source ?? null) : null,
+          layerEvidence: proposal.layerEvidence,
+        },
+      };
+    });
+
+    kept.push({ name, employerId: employer.id, axes: keptWithEvidence });
 
     const attached = await attachAxes({
       orgId: input.orgId,
       personProfileId: profile.id,
-      proposals: gate.kept,
+      proposals: keptWithEvidence,
       // The employer, so a merge is never decided on the label alone. Gil Tamir (Phoenix)
       // created "תחרות דיגיטלית מול הראל ומגדל"; Elinor (Bank Leumi) was folded into it and
       // inherited its three insurance queries, because the axis row owns the queries and
@@ -323,24 +404,88 @@ export async function buildProfilesForMarked(input: {
 
   // Verified against the database, not against the prompt. A prompt that asks for a
   // Hebrew query and a pipeline that drops it look identical from the prompt's side.
+  // Also the source for layerQueries/industryShared below — one read-back, one pass,
+  // scoped to the owner's whole modelled cohort like the Hebrew invariant already is,
+  // not just the people this run touched.
   const built = await db.personProfile.findMany({
     where: { contact: { ownerId: input.ownerId } },
     select: {
       contact: { select: { fullName: true } },
-      axes: { select: { agenda: true, axis: { select: { searchQueries: true } } } },
+      employerTrackedCompanyId: true,
+      axes: {
+        select: {
+          agenda: true,
+          mutedAt: true,
+          axis: { select: { id: true, kind: true, status: true, searchQueries: true } },
+        },
+      },
     },
   });
+  /**
+   * Every ACTIVE, un-muted axis this cohort actually subscribes to, deduped by id (a
+   * shared INDUSTRY axis appears once per subscriber but must only be counted once) and
+   * carrying which employers subscribe to it — the two ingredients layerQueries and
+   * industryShared.savedQueries both need.
+   *
+   * A muted link is not scanned (axis-store.ts) and a non-ACTIVE axis (MERGED/RETIRED/
+   * TOO_BROAD) can still be joined via a stale PersonAxis row — neither belongs in a
+   * report describing what the pool actually fetches.
+   */
+  const liveAxes = new Map<string, { kind: string; searchQueries: string[]; employerIds: Set<string> }>();
   for (const row of built) {
     const name = row.contact.fullName ?? "?";
     const hebrew = countHebrewQueries(row.axes.map((a) => a.axis));
     const agenda = row.axes.filter((a) => a.agenda).length;
     report.hebrewQueriesByPerson.push({ name, hebrew, agenda });
     if (hebrew === 0) report.noHebrewQuery.push(name);
+
+    for (const a of row.axes) {
+      if (a.mutedAt || a.axis.status !== "ACTIVE") continue;
+      let entry = liveAxes.get(a.axis.id);
+      if (!entry) {
+        entry = { kind: a.axis.kind, searchQueries: a.axis.searchQueries ?? [], employerIds: new Set() };
+        liveAxes.set(a.axis.id, entry);
+      }
+      if (row.employerTrackedCompanyId) entry.employerIds.add(row.employerTrackedCompanyId);
+    }
   }
   if (report.noHebrewQuery.length > 0) {
     console.error(
       `[radar] INVARIANT FAILED org=${input.orgId}: no Hebrew query for ${report.noHebrewQuery.join(", ")} — these people cannot reach Israeli press`
     );
+  }
+
+  // Unique query strings per kind, capped and deduped by buildAxisQueryPool — the SAME
+  // function and the SAME effective per-axis limit (MAX_QUERIES_PER_AXIS) the real pool
+  // fetches under, so this number can never claim more recall than a scan would actually
+  // buy. Anything that is not INDUSTRY or COMPANY_MONITOR falls into "person" by default,
+  // so a future RadarAxisKind is counted rather than silently dropped.
+  const byKind: Record<"industry" | "companyMonitor" | "person", { id: string; searchQueries: string[] }[]> = {
+    industry: [], companyMonitor: [], person: [],
+  };
+  for (const [id, entry] of liveAxes) {
+    const bucket = entry.kind === "INDUSTRY" ? "industry" : entry.kind === "COMPANY_MONITOR" ? "companyMonitor" : "person";
+    byKind[bucket].push({ id, searchQueries: entry.searchQueries });
+  }
+  report.layerQueries = {
+    industry: buildAxisQueryPool(byKind.industry, normalizeQuery, MAX_QUERIES_PER_AXIS).length,
+    companyMonitor: buildAxisQueryPool(byKind.companyMonitor, normalizeQuery, MAX_QUERIES_PER_AXIS).length,
+    person: buildAxisQueryPool(byKind.person, normalizeQuery, MAX_QUERIES_PER_AXIS).length,
+  };
+  {
+    let savedQueries = 0;
+    let industries = 0;
+    const sharedEmployerIds = new Set<string>();
+    for (const [id, entry] of liveAxes) {
+      if (entry.kind !== "INDUSTRY") continue;
+      industries += 1;
+      // This axis's OWN capped query count — the same cap, applied per-axis rather than
+      // pooled across axes, since savedQueries is a per-axis sum.
+      const queryCount = buildAxisQueryPool([{ id, searchQueries: entry.searchQueries }], normalizeQuery, MAX_QUERIES_PER_AXIS).length;
+      savedQueries += Math.max(0, entry.employerIds.size - 1) * queryCount;
+      for (const employerId of entry.employerIds) sharedEmployerIds.add(employerId);
+    }
+    report.industryShared = { industries, employers: sharedEmployerIds.size, savedQueries };
   }
 
   // Built with the run's own builder, normalizer and per-axis cap, so the number in

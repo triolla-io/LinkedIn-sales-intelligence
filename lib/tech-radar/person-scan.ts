@@ -38,8 +38,13 @@ import { layer3Expired, articlesByLayer as computeArticlesByLayer, type AxisKind
  * TODO(2026-09-01): drop RADAR_MAX_QUERIES_PER_AXIS from the environment and let this go
  * back to 3. Two queries per axis is a recall cut, not a design decision — it exists only
  * because the month's quota ran out.
+ *
+ * Exported so anything reporting on the pool (build-profiles.ts's layerQueries /
+ * industryShared) mirrors the SAME effective cap the pool itself fetches under, instead
+ * of re-deriving or hardcoding it — a report number that used a different cap than the
+ * pool it describes would be a second bug wearing the first one's clothes.
  */
-const MAX_QUERIES_PER_AXIS = Number(process.env.RADAR_MAX_QUERIES_PER_AXIS) || 3;
+export const MAX_QUERIES_PER_AXIS = Number(process.env.RADAR_MAX_QUERIES_PER_AXIS) || 3;
 /**
  * Triage cost scales with this and nothing else useful. 677 items cost ~$1 for 30
  * survivors on 2026-08-23 — over half the daily budget. 200 keeps a run near $0.35.
