@@ -105,20 +105,25 @@ const OPENER_PLACEHOLDER_PATTERN = hebrewWordBoundaryPattern(
 /**
  * Hedges — "probably", "maybe" — that soften a claim instead of making one.
  *
- * Two shapes, because a plain trailing/leading boundary check is wrong for both:
- *   - "כנראה"/"אולי"/"נראה לי"/"בטח"/"כמדומני" are bounded on BOTH sides, but the
- *     leading boundary also has to tolerate a glued relative "ש-" ("שכנראה" = ש + כנראה,
- *     real Hebrew never writes that with a space) without opening the door to every
- *     Hebrew letter — the placeholder list deliberately does NOT get this exception,
- *     since "שנושא" is ambiguous with the verb "carries" ("אתה נושא בעצמו").
- *   - "יכול להיות ש" is bounded only at its START: the trailing "ש" is a bound prefix
- *     that always attaches straight to the next word, so it must never require a
- *     non-letter after it.
+ * Both shapes share the same leading-boundary exception: no Hebrew letter before it,
+ * OR a glued relative "ש-" right before it ("שכנראה" = ש + כנראה, "שיכול להיות ש" = ש +
+ * יכול להיות ש — real Hebrew never writes either with a space), without opening the
+ * door to every Hebrew letter — the placeholder list deliberately does NOT get this
+ * exception, since "שנושא" is ambiguous with the verb "carries" ("אתה נושא בעצמו").
+ *
+ * The trailing side still differs, because the two shapes are grammatically different:
+ *   - "כנראה"/"אולי"/"נראה לי"/"בטח"/"כמדומני" are bounded on the END too (no Hebrew
+ *     letter after).
+ *   - "יכול להיות ש" is NOT bounded at the end: its trailing "ש" is a bound prefix that
+ *     always attaches straight to the next word, so it must never require a non-letter
+ *     after it.
  */
 const HEDGE_STANDALONE = String.raw`כנראה|אולי|נראה\s+לי|בטח|כמדומני`;
 const HEDGE_GLUED_FORWARD = String.raw`יכול\s+להיות\s+ש`;
+const OPENER_HEDGE_LEADING_BOUNDARY = String.raw`(?:(?<![֐-׿])|(?<=(?:^|[^֐-׿])ש))`;
 const OPENER_HEDGE_PATTERN = new RegExp(
-  `(?:(?<![֐-׿])|(?<=(?:^|[^֐-׿])ש))(?:${HEDGE_STANDALONE})(?![֐-׿])` + `|(?<![֐-׿])(?:${HEDGE_GLUED_FORWARD})`,
+  `${OPENER_HEDGE_LEADING_BOUNDARY}(?:${HEDGE_STANDALONE})(?![֐-׿])` +
+    `|${OPENER_HEDGE_LEADING_BOUNDARY}(?:${HEDGE_GLUED_FORWARD})`,
   "u"
 );
 

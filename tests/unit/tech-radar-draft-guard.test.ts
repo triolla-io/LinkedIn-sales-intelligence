@@ -163,6 +163,15 @@ describe("opener_mush", () => {
   it("still flags a standalone 'נושא' used as a placeholder", () => {
     expect(checkDraft("גיל, יש נושא שכנראה קשור אליכם.\nתוכן.")).toContain("opener_mush");
   });
+
+  /**
+   * HEDGE_GLUED_FORWARD ("יכול להיות ש") never got the leading-boundary exception for a
+   * glued relative "ש-" that HEDGE_STANDALONE already has. "שיכול להיות ש" (ש + יכול...)
+   * was silently NOT recognized as a hedge, so this genuine mush opener slipped through.
+   */
+  it("flags a placeholder noun plus 'יכול להיות ש' hedge glued behind a relative ש-", () => {
+    expect(checkDraft("גיל, יש כאן משהו שיכול להיות שקשור לחברה שלך.\nתוכן.")).toContain("opener_mush");
+  });
 });
 
 /**
