@@ -193,11 +193,11 @@ async function main() {
   console.log(`  expiredLayer3 (axes dropped from THIS pool, stale layer-3 fact): ${show(report.expiredLayer3)}`);
 
   rule("QUERIES");
-  // cachedQueries lives on fetch-pool-news.ts's PoolResult, not on PersonScanReport —
-  // it never made it onto the persisted report, so this always prints "—". Left in
-  // deliberately rather than removed: the brief asked for it explicitly, and "—" here
-  // is the honest answer, not a bug in this script.
-  console.log(`  cachedQueries: ${show((report as unknown as Record<string, unknown>).cachedQueries)}`);
+  // cachedQueries now lives on PersonScanReport too (2026-08-26 final review, Finding 5) —
+  // threaded from fetch-pool-news.ts's PoolResult the same way freshness/uniqueQueries
+  // are. This is the number that tells a re-fired scan (within the query cache's
+  // EMPTY_CACHE_TTL_MINUTES window) apart from a genuinely quiet week.
+  console.log(`  cachedQueries: ${show(report.cachedQueries)}`);
   console.log(`  uniqueQueries: ${show(report.uniqueQueries)}   queriesRun: ${show(report.queriesRun)}`);
 
   rule("PROVIDER STATS");

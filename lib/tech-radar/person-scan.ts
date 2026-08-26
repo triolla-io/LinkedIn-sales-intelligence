@@ -117,6 +117,16 @@ export type PersonScanReport = {
    * which includes the broaden-retry, and cannot answer that question.
    */
   uniqueQueries: number;
+  /**
+   * Pool entries served from the query cache this run — no provider call made for them.
+   * Threaded from PoolResult.cachedQueries (fetch-pool-news.ts) the same way freshness/
+   * uniqueQueries are threaded, below. Matters specifically because the query cache
+   * caches EMPTY results for EMPTY_CACHE_TTL_MINUTES: a re-fired scan within that window
+   * shows `queriesRun: 0` and `quotaLikely: false`, which reads as "genuinely nothing
+   * this week" when the truth is "we replayed cached empties" — this is what lets a
+   * human reading the report tell the two apart.
+   */
+  cachedQueries: number;
   poolItems: number;
   worthSharing: number;
   itemsWritten: number;
@@ -174,7 +184,7 @@ export type PersonScanReport = {
 };
 
 const EMPTY: PersonScanReport = {
-  axes: 0, queriesRun: 0, uniqueQueries: 0, poolItems: 0, worthSharing: 0, itemsWritten: 0,
+  axes: 0, queriesRun: 0, uniqueQueries: 0, cachedQueries: 0, poolItems: 0, worthSharing: 0, itemsWritten: 0,
   axisFitsJudged: 0, candidates: 0, vetoed: 0, drafted: 0, poolDropped: 0, staleDropped: 0, undatedDropped: 0,
   relevantButLight: 0, snippetOnly: 0,
   acceptance: { weighty: 0, israeliSource: 0, israelRelevant: 0, met: false, shortfall: "לא נסרק" },
@@ -282,6 +292,9 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
    *  the rest. */
   let uniqueQueries = 0;
   /** Set once the pool is fetched, folded into every exit path by finish() the same way
+   *  freshness and uniqueQueries are — see PoolResult["cachedQueries"]. */
+  let cachedQueries = 0;
+  /** Set once the pool is fetched, folded into every exit path by finish() the same way
    *  freshness and uniqueQueries are — see PoolResult["providerStats"]. */
   let providerStats: PoolResult["providerStats"] = EMPTY.providerStats;
   /** Set once the axes are loaded — known before any early exit is possible, and folded
@@ -295,9 +308,9 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   // spread EMPTY. A caller must not be able to pass a stale value for a field finish()
   // owns, and must not have to invent one either.
   const finish = async (
-    raw: Omit<PersonScanReport, "freshness" | "uniqueQueries" | "providerStats" | "expiredLayer3" | "articlesByLayer">
+    raw: Omit<PersonScanReport, "freshness" | "uniqueQueries" | "cachedQueries" | "providerStats" | "expiredLayer3" | "articlesByLayer">
   ): Promise<PersonScanReport> => {
-    const report = { ...raw, freshness, uniqueQueries, providerStats, expiredLayer3, articlesByLayer };
+    const report = { ...raw, freshness, uniqueQueries, cachedQueries, providerStats, expiredLayer3, articlesByLayer };
     await prisma.radarScanRun.update({
       where: { id: run.id },
       data: {
@@ -369,6 +382,7 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   uniqueQueries = pool.length;
   const news = await fetchPoolNews(pool.map((p) => ({ query: p.query, companyIds: p.axisIds })));
   providerStats = news.providerStats;
+  cachedQueries = news.cachedQueries;
 
   // Hard gate (26.8): only items published in the last 30 days go anywhere —
   // research included, no per-kind grace. An item whose date cannot be extracted

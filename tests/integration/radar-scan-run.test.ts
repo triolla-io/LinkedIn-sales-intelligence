@@ -251,6 +251,28 @@ describe("personScan scan-run accounting", () => {
     const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
     expect((update.data.report as { uniqueQueries: number }).uniqueQueries).toBe(1);
   });
+
+  /**
+   * 2026-08-26 final review, Finding 5. PoolResult.cachedQueries (fetch-pool-news.ts) was
+   * computed correctly but never reached PersonScanReport — so a re-fired scan within the
+   * query cache's EMPTY_CACHE_TTL_MINUTES window showed `queriesRun: 0` and could not be
+   * told apart from a genuinely quiet week. Threaded the same way freshness/uniqueQueries
+   * are, via finish().
+   */
+  it("threads cachedQueries from the pool fetch into the persisted report", async () => {
+    axisFindMany.mockResolvedValue([subscribedAxis()]);
+    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 0, cachedQueries: 3, quotaLikely: false });
+    await personScan("org1");
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
+    expect((update.data.report as { cachedQueries: number }).cachedQueries).toBe(3);
+  });
+
+  it("defaults cachedQueries to 0 on the earliest exit (no subscribed axes)", async () => {
+    axisFindMany.mockResolvedValue([]);
+    await personScan("org1");
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
+    expect((update.data.report as { cachedQueries: number }).cachedQueries).toBe(0);
+  });
 });
 
 /**
