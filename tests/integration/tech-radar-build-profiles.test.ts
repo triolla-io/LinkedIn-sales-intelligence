@@ -401,8 +401,52 @@ describe("force-mode data safety on a wholesale gate rejection", () => {
     // Default gateRationales mock (see beforeEach) keeps everything.
     await buildProfilesForMarked({ orgId: "org1", ownerId: "u1", force: true });
 
+    // NOT a bare { personProfileId, mutedAt } — see the next test. The delete must
+    // exclude INDUSTRY, or it wipes out the net link ensureIndustryAxis just created.
     expect(personAxisDeleteMany).toHaveBeenCalledWith({
-      where: { personProfileId: "pp1", mutedAt: null },
+      where: { personProfileId: "pp1", mutedAt: null, source: { not: "INDUSTRY" } },
+    });
+  });
+
+  /**
+   * 2026-08-26 review round 2. The round-1 fix put the force-detach back in its correct
+   * position (gated behind gate.kept.length > 0) but left it unscoped by source — so on
+   * EVERY successful force rebuild, the delete ran right after ensureIndustryAxis had
+   * just (re)created that person's INDUSTRY link, wiping it back out moments later. Net
+   * effect: the industry net contributes zero queries for every person a force rebuild
+   * successfully processes — exactly what scripts/radar-rebuild-people.ts --write is
+   * about to run tonight.
+   *
+   * Proven here, for a person who force-rebuilds with a KEPT (non-empty) draft: the
+   * industry link is (re)created, and the detach that follows it explicitly spares
+   * INDUSTRY while still clearing the old ROLE_COMPANY/COMPANY_MONITOR subjects it
+   * exists to clear.
+   */
+  it("clears old subjects on a force rebuild without touching the INDUSTRY net link it just (re)created", async () => {
+    contactFindMany.mockResolvedValue([contact({ personProfile: staleProfile })]);
+    companyFindMany.mockResolvedValue([
+      employer({
+        profile: {
+          ...usableProfile,
+          industry: { canonical: "ספורט דיגיטלי", queries: ["חדשות ספורט דיגיטלי"] },
+        },
+      }),
+    ]);
+    // Default gateRationales mock (see beforeEach) keeps everything — the normal,
+    // successful case this bug hit on every run.
+
+    await buildProfilesForMarked({ orgId: "org1", ownerId: "u1", force: true });
+
+    // The industry net was (re)subscribed...
+    expect(ensureIndustryAxis).toHaveBeenCalledWith({
+      orgId: "org1",
+      personProfileId: "pp1",
+      industry: { canonical: "ספורט דיגיטלי", queries: ["חדשות ספורט דיגיטלי"] },
+    });
+    // ...and the detach that runs after it explicitly spares INDUSTRY while still
+    // clearing everything else un-muted.
+    expect(personAxisDeleteMany).toHaveBeenCalledWith({
+      where: { personProfileId: "pp1", mutedAt: null, source: { not: "INDUSTRY" } },
     });
   });
 });

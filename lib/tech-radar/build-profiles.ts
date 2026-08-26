@@ -263,10 +263,16 @@ export async function buildProfilesForMarked(input: {
     }
 
     if (input.force) {
-      // Detach the old model's un-muted subscriptions; the new axes replace them.
-      // Muted links stay — they carry learned "לא מעניין אותו" feedback.
+      // Detach the old model's un-muted ROLE_COMPANY/COMPANY_MONITOR subscriptions; the
+      // new axes replace them. Muted links stay — they carry learned "לא מעניין אותו"
+      // feedback. INDUSTRY is excluded too: ensureIndustryAxis already ran above and
+      // (re)created this person's net link, and an unscoped delete here would wipe it
+      // right back out on every successful force rebuild — the industry net contributing
+      // zero queries for exactly the people this pipeline is meant to feed (2026-08-26
+      // review round 2). An INDUSTRY link is a net subscription, not one of the subjects
+      // force-detach exists to clear.
       await prisma.personAxis.deleteMany({
-        where: { personProfileId: profile.id, mutedAt: null },
+        where: { personProfileId: profile.id, mutedAt: null, source: { not: "INDUSTRY" } },
       });
     }
 
