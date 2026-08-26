@@ -47,6 +47,43 @@ export type ResearchOutcome =
   | { status: "ACTIVE"; focusAreas: number; queries: number; sources: number }
   | { status: "RESEARCH_FAILED"; error: string };
 
+/**
+ * Read everything the profile call will be given: the homepage, a few inner pages, and
+ * recent coverage. Extracted so a PREVIEW can research a company in memory without
+ * overwriting the stored profile — a working employer profile is not something to
+ * destroy in order to find out whether the new prompt is better.
+ */
+export async function gatherCompanySources(company: { name: string; website: string | null }): Promise<{
+  website: string | null;
+  pages: { url: string; title: string | null; text: string }[];
+  news: { title: string; url: string; snippet: string }[];
+}> {
+  const website = normalizeWebsite(company.website);
+  const pages: { url: string; title: string | null; text: string }[] = [];
+
+  if (website) {
+    const home = await readPage(website);
+    if (home) {
+      pages.push(home);
+      // readPage returns clean EXTRACTED TEXT with no anchors, so inner links have to
+      // come from the raw markup — reading them out of the extracted text finds
+      // nothing at all (the first live run read exactly one page for this reason).
+      const html = await fetchRawHtml(website);
+      if (html) {
+        const inner = pickInnerLinks(html, website, INNER_PAGE_LIMIT);
+        pages.push(...(await readPages(inner, { limit: INNER_PAGE_LIMIT })));
+      }
+    }
+  }
+
+  const news = await fetchCompanyNews(company.name);
+  return {
+    website,
+    pages,
+    news: news.map((n) => ({ title: n.title, url: n.url, snippet: n.snippet })),
+  };
+}
+
 export async function researchTrackedCompany(trackedCompanyId: string): Promise<ResearchOutcome> {
   const company = await prisma.trackedCompany.findUniqueOrThrow({
     where: { id: trackedCompanyId },
@@ -54,30 +91,12 @@ export async function researchTrackedCompany(trackedCompanyId: string): Promise<
   });
 
   try {
-    const website = normalizeWebsite(company.website);
-    const pages: { url: string; title: string | null; text: string }[] = [];
-
-    if (website) {
-      const home = await readPage(website);
-      if (home) {
-        pages.push(home);
-        // readPage returns clean EXTRACTED TEXT with no anchors, so inner links have to
-        // come from the raw markup — reading them out of the extracted text finds
-        // nothing at all (the first live run read exactly one page for this reason).
-        const html = await fetchRawHtml(website);
-        if (html) {
-          const inner = pickInnerLinks(html, website, INNER_PAGE_LIMIT);
-          pages.push(...(await readPages(inner, { limit: INNER_PAGE_LIMIT })));
-        }
-      }
-    }
-
-    const news = await fetchCompanyNews(company.name);
+    const { website, pages, news } = await gatherCompanySources(company);
     const profile = await researchProfile({
       companyName: company.name,
       website,
       pages,
-      news: news.map((n) => ({ title: n.title, url: n.url, snippet: n.snippet })),
+      news,
     });
 
     await prisma.trackedCompany.update({
