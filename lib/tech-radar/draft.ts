@@ -1,19 +1,26 @@
 /**
  * Writes the outreach message for one (opportunity, contact) pair.
  *
- * v2 register — "saw this, thought of you". The message forwards ONE item and stops:
- * no adoption suggestion, no offer of our services, no ask of any kind. It is sent by
- * a person the recipient knows, so anything that reads like a system that found a match
+ * The sender's real voice — excited, direct, exclamation marks ("וואי איזה הזדמנות
+ * מטורפת!") — not the polite-distant "נתקלתי במשהו... חשבתי עליך" register this prompt
+ * used to write in. The message forwards ONE item and stops: no adoption suggestion, no
+ * offer of our services, no ask of any kind past the opening line. It is sent by a
+ * person the recipient knows, so anything that reads like a system that found a match
  * defeats the whole point.
  *
- * The shape is:
- *   1. "היי <שם>, נתקלתי ב..." — you came across it.
- *   2. ONE short clause: what it is, and why it made you think of THEM.
- *   3. The link, alone, on the last line.
+ * The shape is four parts, in order:
+ *   1. Opener in the sender's voice — a rhetorical question or an excited reaction.
+ *   2. 2-3 sentences distilling what the item's own text actually says.
+ *   3. ONE sentence: why THEM specifically — never the generic category it belongs to.
+ *   4. The link, alone, on the last line.
  *
  * What changed from v1: v1 closed with "אולי תוכלו לשלב את זה ב___ אצלכם" and forbade
  * links. Both are gone — the suggestion made every message a soft pitch, and the link
  * is what makes forwarding an article an actual act of forwarding an article.
+ *
+ * The sender's excitement is licensed only about what the item MEANS for the recipient
+ * — it must never turn into a claim about the item's own importance that the item does
+ * not make itself, and never into ad-copy about a vendor or product.
  *
  * `fitRationale` stays in the prompt as BACKGROUND only: it is the one thing that knows
  * why this item touches their world. It must never become a recommendation, and must
@@ -37,10 +44,11 @@ export type TechDraftInput = {
   /** The article to forward. Null when the item carries no readable source. */
   sourceUrl: string | null;
   /**
-   * The ITEM's own words — title plus summary. The only text that counts as a source
-   * when checking a figure. `fitRationale` deliberately does NOT count: it is prose we
-   * generated ourselves, and a number that entered there unverified stays unverified
-   * however many stages it passes through.
+   * The ITEM's own words — title plus summary. Two roles: the content part 2 is
+   * distilled from, and the only text that counts as a source when checking a figure.
+   * `fitRationale` deliberately does NOT count as a source: it is prose we generated
+   * ourselves, and a number that entered there unverified stays unverified however many
+   * stages it passes through.
    */
   itemText: string;
 };
@@ -74,7 +82,7 @@ Rules:
 - NO SUGGESTION to adopt, integrate, evaluate, examine or try the thing. You are not recommending it. Never say "אולי תוכלו לשלב", "כדאי לבדוק", "שווה להסתכל" or anything like them.
 - Never mention us, our company, our services, or anything we could do. This is not a pitch.
 - NEVER copy the relevance note into the message. It is background for you, not text to reuse — it is written for an analyst, not for the recipient.
-- Nothing formal or marketing-y: no ברצוני/אשמח לשתף, no flattery, no filler. The excitement is the sender's own ("מטורף", "חייבים") — never ad-copy superlatives about a vendor or product.
+- Nothing formal or marketing-y: no ברצוני/אשמח לשתף, no flattery, no filler. The excitement is the sender's own ("מטורף", "חייבים") and it is about what the news MEANS for the recipient — never ad-copy superlatives about a vendor or product, and never a claim about how important the item is that the item does not make itself.
 - ZERO emojis, icons, or decorative symbols.
 - Address the person by EXACTLY the name given under "Address them as". Copy those characters verbatim. Never re-spell, transliterate, lengthen, shorten or "correct" it — it is the name as it is recorded, and it is not yours to adjust.
 - NEVER state a quantity about the RECIPIENT or their company — how many plants, sites, people, products, markets, quarters, percent — unless that exact figure appears in the ITEM text you were given. If you have no verified figure, write the anchor WITHOUT one: "יעדי התפוקה שהצגתם", not "בשלוש המפעלות". A figure that belongs to the item itself is fine.

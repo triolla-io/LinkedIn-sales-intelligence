@@ -111,6 +111,12 @@ describe("Yuval's voice", () => {
   it("requires a content paragraph distilled from the item text", () => {
     expect(DRAFT_SYSTEM).toMatch(/2-3 short sentences distilled from the item's own text/i);
   });
+  // The excitement is licensed about what the item means for the recipient, never about
+  // the item's own importance — "this changes the whole industry" is an invented claim,
+  // not the sender's enthusiasm, unless the item itself says so.
+  it("bans inventing significance the item doesn't claim for itself", () => {
+    expect(DRAFT_SYSTEM).toMatch(/never a claim about how important the item is/i);
+  });
 });
 
 describe("parseDraftJson", () => {
