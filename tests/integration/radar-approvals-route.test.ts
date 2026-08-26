@@ -152,4 +152,15 @@ describe("GET /api/radar/approvals", () => {
     expect(body.scan).toBeNull();
     expect(body.firstName).toBe("יובל");
   });
+
+  // Pre-gate rows can still have no publishedAt. The screen must say so, not borrow
+  // the row's insert time and pass it off as the article's publication date.
+  it("sourcePublishedAt is null, never the row's createdAt, when the item has no publishedAt", async () => {
+    draftFindMany.mockResolvedValue([
+      pendingDraft({ item: { title: "EPA finalizes RVOs", summary: "EPA set targets", sources: [{ url: CANON, title: "EPA finalizes" }], publishedAt: null, createdAt: new Date("2026-08-23T10:00:00Z") } }),
+    ]);
+    const res = await GET(req);
+    const body = await (res as Response).json();
+    expect(body.drafts[0].sourcePublishedAt).toBeNull();
+  });
 });

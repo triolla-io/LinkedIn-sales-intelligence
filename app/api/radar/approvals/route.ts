@@ -116,7 +116,9 @@ export const GET = withTenant(async (_req, ctx) => {
       whyHim: d.whyHim,
       canonicalUrl,
       sourceHost: sourceHost(canonicalUrl),
-      sourcePublishedAt: d.item.publishedAt ?? d.item.createdAt,
+      // No fallback: a dateless item must never be displayed as if published on scan
+      // day. New drafts can't be dateless (freshness gate), but pre-gate rows exist.
+      sourcePublishedAt: d.item.publishedAt ?? null,
       factsVerified,
       lastMessageFromUsAt: lastByContact.get(d.contact.id) ?? null,
       overridden: overridden.has(d.id),
