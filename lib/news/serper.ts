@@ -2,9 +2,32 @@ import type { NewsResult } from "@/lib/news/types";
 import { reserveNewsCall } from "@/lib/news/budget";
 import { localeForQuery } from "@/lib/news/locale";
 
+const RELATIVE_DATE = /^(\d+)\s+(minute|hour|day|week|month)s?\s+ago$/i;
+const UNIT_MS: Record<string, number> = {
+  minute: 60_000,
+  hour: 3_600_000,
+  day: 86_400_000,
+  week: 7 * 86_400_000,
+  month: 30 * 86_400_000,
+};
+
+/**
+ * Serper reports relative dates ("2 days ago"). Normalize to ISO at fetch time,
+ * or the hard freshness gate would reject the whole provider as undated.
+ * An unrecognized string is null, never a guess.
+ */
+export function serperDateToIso(raw: unknown, now: Date): string | null {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const direct = Date.parse(raw);
+  if (!Number.isNaN(direct)) return new Date(direct).toISOString();
+  const m = raw.trim().match(RELATIVE_DATE);
+  if (!m) return null;
+  return new Date(now.getTime() - Number(m[1]) * UNIT_MS[m[2].toLowerCase()]).toISOString();
+}
+
 /** Serper.dev news search — https://serper.dev. Free credits then ~$0.001/query.
  *  Missing key, budget exhausted, or any error → [] (never throws). */
-export async function fetchSerper(query: string): Promise<NewsResult[]> {
+export async function fetchSerper(query: string, opts: { days?: number } = {}): Promise<NewsResult[]> {
   const key = (process.env.SERPER_API_KEY ?? "").trim();
   if (!key) return [];
   if (!(await reserveNewsCall("serper"))) return []; // cap monthly pay-per-query spend
@@ -18,7 +41,14 @@ export async function fetchSerper(query: string): Promise<NewsResult[]> {
       headers: { "X-API-KEY": key, "Content-Type": "application/json" },
       // Spread rather than send nulls: serper reads an explicit gl/hl as an instruction,
       // so an English query must carry no locale keys at all rather than empty ones.
-      body: JSON.stringify({ q: query, num: 10, ...(locale ? { gl: locale.gl, hl: locale.hl, location: locale.location } : {}) }),
+      // tbs=qdr:m is Google's past-month range — the only granularity that matches a
+      // 30-day window, so days is a presence flag rather than a tunable figure here.
+      body: JSON.stringify({
+        q: query,
+        num: 10,
+        ...(locale ? { gl: locale.gl, hl: locale.hl, location: locale.location } : {}),
+        ...(opts.days ? { tbs: "qdr:m" } : {}),
+      }),
     });
     clearTimeout(timeout);
     if (!res.ok) {
@@ -37,7 +67,7 @@ export async function fetchSerper(query: string): Promise<NewsResult[]> {
         url: String(o.link ?? ""),
         snippet: String(o.snippet ?? ""),
         source: "serper",
-        publishedAt: typeof o.date === "string" ? o.date : null,
+        publishedAt: serperDateToIso(o.date, new Date()),
       } satisfies NewsResult;
     }).filter((r) => r.url);
   } catch {

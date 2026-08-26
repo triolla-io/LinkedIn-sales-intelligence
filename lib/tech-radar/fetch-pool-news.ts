@@ -93,8 +93,8 @@ async function fetchOne(query: string): Promise<NewsResult[]> {
   const [a, b, c, d] = await Promise.all([
     fetchSerpapi(query, { days: SCAN_WINDOW_DAYS, max: 10 }),
     fetchTavily(query, { days: SCAN_WINDOW_DAYS, maxResults: 10 }),
-    fetchGnews(query, { max: 10 }),
-    fetchSerper(query),
+    fetchGnews(query, { max: 10, days: SCAN_WINDOW_DAYS }),
+    fetchSerper(query, { days: SCAN_WINDOW_DAYS }),
   ]);
   return [...a, ...b, ...c, ...d];
 }
