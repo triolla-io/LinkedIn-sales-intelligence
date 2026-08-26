@@ -10,6 +10,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const axisFindMany = vi.fn();
 const scanRunCreate = vi.fn();
 const scanRunUpdate = vi.fn();
+const scanRunFindUnique = vi.fn();
 const axisMatchFindUnique = vi.fn();
 const axisMatchCreate = vi.fn();
 
@@ -19,6 +20,7 @@ vi.mock("@/lib/prisma", () => ({
     radarScanRun: {
       create: (...a: unknown[]) => scanRunCreate(...a),
       update: (...a: unknown[]) => scanRunUpdate(...a),
+      findUnique: (...a: unknown[]) => scanRunFindUnique(...a),
     },
     axisMatch: {
       findUnique: (...a: unknown[]) => axisMatchFindUnique(...a),
@@ -56,7 +58,7 @@ vi.mock("@/lib/tech-radar/judge-and-draft", () => ({ judgeAndDraft: (...a: unkno
 const upsertTechItem = vi.fn();
 vi.mock("@/lib/tech-radar/persist", () => ({ upsertTechItem: (...a: unknown[]) => upsertTechItem(...a) }));
 
-const { personScan, poolQueryCount } = await import("@/lib/tech-radar/person-scan");
+const { personScan, poolQueryCount, openScanRun } = await import("@/lib/tech-radar/person-scan");
 
 function subscribedAxis() {
   return {
@@ -82,11 +84,56 @@ function subscribedAxis() {
 
 beforeEach(() => {
   for (const m of [
-    axisFindMany, scanRunCreate, scanRunUpdate, axisMatchFindUnique, axisMatchCreate,
+    axisFindMany, scanRunCreate, scanRunUpdate, scanRunFindUnique, axisMatchFindUnique, axisMatchCreate,
     fetchPoolNews, triageAll, synthesizeItem, readPage, judgeAxisFit, judgeAndDraft, upsertTechItem,
   ]) m.mockReset();
   scanRunCreate.mockResolvedValue({ id: "run1" });
   scanRunUpdate.mockResolvedValue({});
+});
+
+/**
+ * 2026-08-26 incident: an Inngest retry re-ran personScan from the top four times because
+ * the function opened a brand-new RadarScanRun row on every attempt. openScanRun is the
+ * fix's other half from lib/tech-radar/person-scan.ts: given the row id the retry is
+ * already writing, it resumes that row instead of minting a new one — but only while the
+ * row is still open. A retry that lands after the row was already closed (or whose id no
+ * longer exists) must never write into a finished run's funnel, so it opens a fresh one.
+ */
+describe("openScanRun", () => {
+  it("creates a new row when no runId is given", async () => {
+    scanRunCreate.mockResolvedValue({ id: "new-run" });
+    const run = await openScanRun("org1");
+    expect(run).toEqual({ id: "new-run" });
+    expect(scanRunCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ orgId: "org1" }) })
+    );
+    expect(scanRunFindUnique).not.toHaveBeenCalled();
+  });
+
+  it("resumes an existing, unfinished run and creates nothing", async () => {
+    scanRunFindUnique.mockResolvedValue({ id: "run-open", finishedAt: null });
+    const run = await openScanRun("org1", "run-open");
+    expect(run).toEqual({ id: "run-open" });
+    expect(scanRunCreate).not.toHaveBeenCalled();
+  });
+
+  it("opens a NEW row when the given runId already finished", async () => {
+    scanRunFindUnique.mockResolvedValue({ id: "run-done", finishedAt: new Date() });
+    scanRunCreate.mockResolvedValue({ id: "run-new" });
+    const run = await openScanRun("org1", "run-done");
+    expect(run).toEqual({ id: "run-new" });
+    expect(scanRunCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ orgId: "org1" }) })
+    );
+  });
+
+  it("opens a new row when the given runId does not exist", async () => {
+    scanRunFindUnique.mockResolvedValue(null);
+    scanRunCreate.mockResolvedValue({ id: "run-new" });
+    const run = await openScanRun("org1", "does-not-exist");
+    expect(run).toEqual({ id: "run-new" });
+    expect(scanRunCreate).toHaveBeenCalled();
+  });
 });
 
 describe("personScan scan-run accounting", () => {

@@ -181,12 +181,45 @@ export async function poolQueryCount(orgId: string): Promise<{ axes: number; uni
   return { axes: axes.length, uniqueQueries: pool.length };
 }
 
-export async function personScan(orgId: string): Promise<PersonScanReport> {
-  // ── 0. Open the run row before any work ───────────────────────────────────
+/**
+ * Open (or resume) the RadarScanRun row a scan writes into.
+ *
+ * 2026-08-26 incident: `personScan` used to open its row inline, so an Inngest retry —
+ * the function's step failed or timed out and Inngest re-executed it — created a BRAND
+ * NEW row and re-fetched every query from scratch. One approved scan became four full
+ * executions (156 provider calls instead of 39) because nothing remembered the row the
+ * first attempt was already writing.
+ *
+ * The caller (inngest/functions/tech-radar-person-scan.ts) now opens this row inside its
+ * own memoized `step.run("open-run", ...)`, BEFORE the scan step — Inngest replays a
+ * completed step's result on retry rather than re-running it, so "open-run" executes
+ * once per scan no matter how many times the scan step itself is retried, and every
+ * attempt hands the same run id back in here.
+ *
+ * `runId` is honored only while that row is still open (`finishedAt === null`): a retry
+ * that lands after the row was already closed — or whose id no longer exists — must
+ * never write into a finished run's funnel, so it opens a fresh row instead, exactly as
+ * a call with no `runId` at all would.
+ */
+export async function openScanRun(orgId: string, runId?: string): Promise<{ id: string }> {
+  if (runId) {
+    const existing = await prisma.radarScanRun.findUnique({
+      where: { id: runId },
+      select: { id: true, finishedAt: true },
+    });
+    if (existing && existing.finishedAt === null) {
+      return { id: existing.id };
+    }
+  }
+  return prisma.radarScanRun.create({ data: { orgId }, select: { id: true } });
+}
+
+export async function personScan(orgId: string, opts?: { runId?: string }): Promise<PersonScanReport> {
+  // ── 0. Open (or resume, on a retry) the run row before any work ───────────
   // A crash leaves finishedAt null, which reads as a stuck run instead of silence —
   // and EVERY exit path below must close the row, or the UI shows a scan that never
   // happened.
-  const run = await prisma.radarScanRun.create({ data: { orgId }, select: { id: true } });
+  const run = await openScanRun(orgId, opts?.runId);
   /**
    * Per-axis query accounting, filled as the run progresses. An axis with zero results
    * is the difference between "the radar is broken" and "there was nothing this week" —
