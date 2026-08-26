@@ -205,7 +205,7 @@ async function main() {
       rationale: a.rationale,
       queries: a.searchQueries,
     }));
-    const fx = runFixtures(c.linkedinUrl ?? "", axes);
+    const fx = runFixtures(c.linkedinUrl ?? "", axes, draft.domains);
     if (fx.checks.length > 0) {
       console.log(`\n  SMOKE TEST — keyword checks only, NOT proof the axes are right:`);
       for (const ch of fx.checks) {

@@ -8,6 +8,11 @@
  * Read-only. Captures the employer profiles too: re-research overwrites them, and a
  * working profile is worth being able to restore.
  *
+ * Also captures the layer-cake evidence chain: PersonProfile.domains (found/derived
+ * fields of work) and PersonAxis.evidence (the layer 2/3/4 facts an axis was built
+ * from). A rebuild regenerates both, so a restore that drops them silently loses the
+ * receipts for why each axis existed, not just the axis label.
+ *
  *   node_modules/.bin/tsx scripts/radar-backup-model.ts --owner=<userId> --out=<path>
  */
 import { prisma } from "@/lib/prisma";
@@ -35,12 +40,12 @@ async function main() {
     where: { contact: { ownerId: owner.id } },
     select: {
       id: true, contactId: true, roleLens: true, reasoning: true, personalNotes: true,
-      employerTrackedCompanyId: true, refreshedAt: true,
+      employerTrackedCompanyId: true, refreshedAt: true, domains: true,
       contact: { select: { fullName: true, linkedinUrl: true } },
       axes: {
         select: {
           id: true, axisId: true, weight: true, agenda: true, rationale: true,
-          source: true, mutedAt: true, createdAt: true,
+          source: true, mutedAt: true, createdAt: true, evidence: true,
           axis: { select: { id: true, key: true, label: true, kind: true, searchQueries: true } },
         },
       },

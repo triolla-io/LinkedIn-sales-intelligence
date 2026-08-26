@@ -22,6 +22,17 @@ export type ProposedAxis = {
   queries: string[];
 };
 
+/**
+ * One layer-4 field of work, the way `radar-rebuild-people.ts` reads it back off
+ * PersonProfile.domains. Only `kind` and `source` are load-bearing for the fixtures
+ * below — `evidence` is not needed to judge whether the RIGHT domain came out.
+ */
+export type ProposedDomain = {
+  domain: string;
+  kind: "found" | "derived";
+  source?: string | null;
+};
+
 /** One haystack per axis. The brain may name a competitor in a QUERY, not the label. */
 function hay(a: ProposedAxis): string {
   return `${a.label} ${a.rationale} ${a.queries.join(" ")}`;
@@ -40,6 +51,14 @@ type FixtureCheck = {
   /** What the feedback actually said, in the reviewer's words. */
   describe: string;
   pattern: RegExp;
+  /**
+   * When true, the pattern is judged against this person's FOUND domains
+   * (PersonProfile.domains, kind === "found") instead of the axes. A domain with no
+   * matching found entry — including because the whole list came back "derived" —
+   * fails this check exactly like a missing axis fails a `subject_present` one: same
+   * verdict, same "expected subject not found" reading.
+   */
+  domainsOnly?: boolean;
 };
 
 export type CheckResult = {
@@ -113,6 +132,15 @@ export const FIXTURES: { slug: string; person: string; checks: FixtureCheck[] }[
         describe: "סייבר בהצטלבות עם בנקאות",
         pattern: /סייבר|cyber|אבטח/i,
       },
+      {
+        name: "full title parsed as FOUND domains",
+        kind: "subject_present",
+        describe:
+          "\"Chief Information & Technology Officer\" הוא שני תפקידים, לא אחד — מידע/IT " +
+          "וטכנולוגיה צריכים לצאת כשדות found מהתואר עצמו, לא רק כ-derived מהחיתוך תפקיד×חברה",
+        domainsOnly: true,
+        pattern: /information|טכנולוגיה|technology|IT\b|מידע/i,
+      },
     ],
   },
   {
@@ -140,13 +168,23 @@ const VERDICT = {
   missing_subject: "הציר המצופה לא נמצא",
 } as const;
 
-/** Judge one person's proposed axes. Empty checks = nobody has fixtures for this slug. */
-export function runFixtures(slug: string, axes: ProposedAxis[]): FixtureResult {
+/**
+ * Judge one person's proposed axes (and, optionally, their FOUND domains). Empty checks
+ * = nobody has fixtures for this slug. `domains` defaults to empty — callers that only
+ * have axes in hand (the preview path, before any domain has been parsed) still get
+ * every axis-based check; only a `domainsOnly` check can ever be affected by the
+ * default, and it fails exactly the way a missing subject should.
+ */
+export function runFixtures(slug: string, axes: ProposedAxis[], domains: ProposedDomain[] = []): FixtureResult {
   const fixture = FIXTURES.find((f) => slug.toLowerCase().includes(f.slug));
   if (!fixture) return { slug, person: slug, checks: [] };
 
+  const foundDomains = domains.filter((d) => d.kind === "found");
+
   const checks: CheckResult[] = fixture.checks.map((c) => {
-    const matched = axes.filter((a) => c.pattern.test(hay(a))).map((a) => a.label);
+    const matched = c.domainsOnly
+      ? foundDomains.filter((d) => c.pattern.test(d.domain)).map((d) => d.domain)
+      : axes.filter((a) => c.pattern.test(hay(a))).map((a) => a.label);
     const present = matched.length > 0;
     const clean = c.kind === "mistake_absent" ? !present : present;
     const verdict =
