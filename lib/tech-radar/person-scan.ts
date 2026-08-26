@@ -25,6 +25,7 @@ import { judgeAndDraft } from "@/lib/tech-radar/judge-and-draft";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
 import { SHAREWORTHY_FLOOR, STATURE_FLOOR } from "@/lib/tech-radar/types";
 import { judgeAcceptance, isIsraeliSource, type AcceptanceReport } from "@/lib/tech-radar/acceptance";
+import { layer3Expired, articlesByLayer as computeArticlesByLayer, type AxisKindName } from "@/lib/tech-radar/layers";
 
 /**
  * Queries fetched per axis.
@@ -142,6 +143,19 @@ export type PersonScanReport = {
   freshness: FreshnessSpread;
   /** Per-provider tally for the morning report — see PoolResult["providerStats"]. */
   providerStats: PoolResult["providerStats"];
+  /**
+   * Axis-fit matches this run made, counted by the DEEPEST layer they reached (see
+   * lib/tech-radar/layers.ts `articlesByLayer`). An item matched by both an INDUSTRY and
+   * a ROLE_COMPANY axis counts once, at layer 4.
+   */
+  articlesByLayer: { layer1: number; layer3: number; layer4: number };
+  /**
+   * Labels of COMPANY_MONITOR (layer-3) axes dropped from THIS run's query pool because
+   * every subscriber's "what occupies them now" fact aged past LAYER3_QUERY_TTL_DAYS.
+   * The axis itself is untouched — a future re-research can refresh the fact and bring
+   * it back — this only says it contributed no query today.
+   */
+  expiredLayer3: string[];
 };
 
 const EMPTY: PersonScanReport = {
@@ -152,6 +166,8 @@ const EMPTY: PersonScanReport = {
   dropReasons: {}, triageByKind: [], quotaExhausted: false,
   freshness: { freshest: null, median: null, oldest: null },
   providerStats: [],
+  articlesByLayer: { layer1: 0, layer3: 0, layer4: 0 },
+  expiredLayer3: [],
 };
 
 function countBy(reasons: string[]): Record<string, number> {
@@ -237,14 +253,20 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   /** Set once the pool is fetched, folded into every exit path by finish() the same way
    *  freshness and uniqueQueries are — see PoolResult["providerStats"]. */
   let providerStats: PoolResult["providerStats"] = EMPTY.providerStats;
+  /** Set once the axes are loaded — known before any early exit is possible, and folded
+   *  into every exit path by finish() the same way. */
+  let expiredLayer3: string[] = EMPTY.expiredLayer3;
+  /** Set once the axis-fit loop runs; stays at EMPTY's all-zero value on every earlier
+   *  exit, folded in by finish() the same way as the fields above. */
+  let articlesByLayer: PersonScanReport["articlesByLayer"] = EMPTY.articlesByLayer;
   // The folded-in fields are Omit-ed from the argument on purpose: the last exit path
   // built its report without `freshness` and type-checked only because every other call
   // spread EMPTY. A caller must not be able to pass a stale value for a field finish()
   // owns, and must not have to invent one either.
   const finish = async (
-    raw: Omit<PersonScanReport, "freshness" | "uniqueQueries" | "providerStats">
+    raw: Omit<PersonScanReport, "freshness" | "uniqueQueries" | "providerStats" | "expiredLayer3" | "articlesByLayer">
   ): Promise<PersonScanReport> => {
-    const report = { ...raw, freshness, uniqueQueries, providerStats };
+    const report = { ...raw, freshness, uniqueQueries, providerStats, expiredLayer3, articlesByLayer };
     await prisma.radarScanRun.update({
       where: { id: run.id },
       data: {
@@ -268,10 +290,10 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   const axes = await prisma.radarAxis.findMany({
     where: { orgId, status: "ACTIVE", people: { some: {} } },
     select: {
-      id: true, label: true, searchQueries: true, weight: true,
+      id: true, label: true, kind: true, searchQueries: true, weight: true,
       people: {
         select: {
-          weight: true, rationale: true,
+          weight: true, rationale: true, evidence: true,
           personProfile: {
             select: {
               contactId: true, roleLens: true, personalNotes: true, employerTrackedCompanyId: true,
@@ -284,9 +306,27 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   });
   if (axes.length === 0) return finish(EMPTY);
 
+  // Layer-3 query TTL (layers.ts LAYER3_QUERY_TTL_DAYS): a COMPANY_MONITOR axis was
+  // built from a dated "what occupies them now" fact, and that fact was time-bound —
+  // once EVERY subscriber's copy of it has gone stale, the axis stops asking for
+  // queries this run. One subscriber whose fact is still fresh (or who was never linked
+  // by a layer-3 fact at all — layer3Expired returns false on anything that isn't a
+  // genuinely expired layer-3 date) is enough to keep the axis in the pool.
+  const scanStart = new Date();
+  const expiredLayer3Labels: string[] = [];
+  const poolEligibleAxes = axes.filter((a) => {
+    const allExpired = a.people.length > 0 && a.people.every((p) => layer3Expired(p.evidence, scanStart));
+    if (allExpired) {
+      expiredLayer3Labels.push(a.label);
+      return false;
+    }
+    return true;
+  });
+  expiredLayer3 = expiredLayer3Labels;
+
   // ── 2. Queries from axes, not from company profiles ───────────────────────
   const pool = buildAxisQueryPool(
-    axes.map((a) => ({ id: a.id, searchQueries: a.searchQueries })),
+    poolEligibleAxes.map((a) => ({ id: a.id, searchQueries: a.searchQueries })),
     normalizeQuery,
     MAX_QUERIES_PER_AXIS
   );
@@ -424,6 +464,9 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   const axisById = new Map(axes.map((a) => [a.id, a]));
   let axisFitsJudged = 0;
   let matchesAboveFloor = 0;
+  // Which layer each surviving axis-fit match reached, so articlesByLayer (layers.ts)
+  // can report the deepest layer per item rather than a bare match count.
+  const layerRows: { itemId: string; kind: AxisKindName }[] = [];
 
   for (const item of written) {
     for (const axisId of item.axisIds) {
@@ -448,9 +491,13 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
         });
         score = fit.score;
       }
-      if (score >= AXIS_FIT_FLOOR) matchesAboveFloor += 1;
+      if (score >= AXIS_FIT_FLOOR) {
+        matchesAboveFloor += 1;
+        layerRows.push({ itemId: item.itemId, kind: axis.kind as AxisKindName });
+      }
     }
   }
+  articlesByLayer = computeArticlesByLayer(layerRows);
   if (matchesAboveFloor === 0) {
     return finish({
       ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length,
