@@ -157,6 +157,33 @@ describe("GET /api/radar/decisions", () => {
     expect(body.run.undatedDropped).toBe(0);
   });
 
+  it("surfaces articlesByLayer/expiredLayer3 from the run's persisted report when present", async () => {
+    scanRunFindFirst.mockResolvedValue({
+      scanned: 40, topical: 3, important: 2, connected: 1, drafts: 1,
+      finishedAt: new Date("2026-08-26T06:00:00Z"),
+      axisStats: [],
+      report: {
+        articlesByLayer: { layer1: 1, layer3: 2, layer4: 4 },
+        expiredLayer3: ["חבות RIN"],
+      },
+    });
+    const body = await ((await GET(req)) as Response).json();
+    expect(body.run.articlesByLayer).toEqual({ layer1: 1, layer3: 2, layer4: 4 });
+    expect(body.run.expiredLayer3).toEqual(["חבות RIN"]);
+  });
+
+  it("omits articlesByLayer/expiredLayer3 gracefully when the run predates the layer-cake report fields", async () => {
+    scanRunFindFirst.mockResolvedValue({
+      scanned: 5, topical: 1, important: 1, connected: 1, drafts: 1,
+      finishedAt: new Date("2026-08-24T06:00:00Z"),
+      axisStats: [],
+      report: { staleDropped: 2, undatedDropped: 1 },
+    });
+    const body = await ((await GET(req)) as Response).json();
+    expect(body.run).not.toHaveProperty("articlesByLayer");
+    expect(body.run).not.toHaveProperty("expiredLayer3");
+  });
+
   it("offers each person as a filter chip", async () => {
     const body = await ((await GET(req)) as Response).json();
     expect(body.people).toEqual([{ contactId: "ct1", fullName: "Avigal Soreq" }]);

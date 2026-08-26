@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { runFixtures, FIXTURES, type ProposedAxis } from "@/lib/tech-radar/rebuild-fixtures";
+import { runFixtures, FIXTURES, type ProposedAxis, type ProposedDomain } from "@/lib/tech-radar/rebuild-fixtures";
 
 /**
  * These fixtures come from the 2026-08-26 feedback on the first message the system ever
@@ -51,6 +51,33 @@ describe("runFixtures", () => {
 
   it("returns nothing for a person with no fixtures", () => {
     expect(runFixtures("someone-else", [axis("x")]).checks).toEqual([]);
+  });
+
+  it("erez rachmil: names the missing subject when his title produced no FOUND domain at all", () => {
+    // Erez's slug fixture set is the one this task adds a domainsOnly check to. With no
+    // domains passed (the default), the check must fail exactly like a missing axis
+    // fails — not silently pass because nobody looked.
+    const res = runFixtures("erezrachmil", [axis("ניהול נתונים ותשתית ענן")]);
+    const titleDomains = res.checks.find((c) => c.name === "full title parsed as FOUND domains");
+    expect(titleDomains?.clean).toBe(false);
+    expect(titleDomains?.verdict).toBe("הציר המצופה לא נמצא");
+  });
+
+  it("erez rachmil: a FOUND domain from his title satisfies the check; a DERIVED one does not", () => {
+    const derivedOnly: ProposedDomain[] = [
+      { domain: "אבטחת מידע ארגונית", kind: "derived", source: null },
+    ];
+    const derivedRes = runFixtures("erezrachmil", [axis("x")], derivedOnly);
+    expect(derivedRes.checks.find((c) => c.name === "full title parsed as FOUND domains")?.clean).toBe(false);
+
+    const foundOne: ProposedDomain[] = [
+      { domain: "Chief Information Officer", kind: "found", source: "title" },
+      { domain: "אבטחת מידע ארגונית", kind: "derived", source: null },
+    ];
+    const foundRes = runFixtures("erezrachmil", [axis("x")], foundOne);
+    const check = foundRes.checks.find((c) => c.name === "full title parsed as FOUND domains");
+    expect(check?.clean).toBe(true);
+    expect(check?.matched).toEqual(["Chief Information Officer"]);
   });
 
   it("covers exactly the four people from the feedback session", () => {

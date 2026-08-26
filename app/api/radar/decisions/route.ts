@@ -123,7 +123,15 @@ export const GET = withTenant(async (_req, ctx) => {
   // How many items the hard freshness gate rejected before triage ever saw them — so a
   // week with zero results everywhere can say WHY instead of looking indistinguishable
   // from a broken radar.
-  const report = run?.report as unknown as { staleDropped?: number; undatedDropped?: number } | null | undefined;
+  const report = run?.report as unknown as
+    | {
+        staleDropped?: number;
+        undatedDropped?: number;
+        articlesByLayer?: { layer1: number; layer3: number; layer4: number };
+        expiredLayer3?: string[];
+      }
+    | null
+    | undefined;
 
   return NextResponse.json({
     run: run
@@ -136,6 +144,13 @@ export const GET = withTenant(async (_req, ctx) => {
           finishedAt: run.finishedAt,
           staleDropped: report?.staleDropped ?? 0,
           undatedDropped: report?.undatedDropped ?? 0,
+          // Unlike staleDropped/undatedDropped above, these do NOT default — a run from
+          // before the layer cake landed has no notion of layers at all, and a silent 0
+          // would read as "nothing reached layer 1/3/4" rather than "this run predates
+          // the concept". `undefined` here is dropped by JSON.stringify, so an old run's
+          // payload simply omits the keys.
+          articlesByLayer: report?.articlesByLayer,
+          expiredLayer3: report?.expiredLayer3,
         }
       : null,
     items,

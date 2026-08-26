@@ -22,7 +22,7 @@ import { prisma } from "@/lib/prisma";
 import { researchTrackedCompany } from "@/lib/tech-radar/research-company";
 import { buildProfilesForMarked } from "@/lib/tech-radar/build-profiles";
 import { markedEmployers, upsertEmployers } from "@/lib/tech-radar/population";
-import { runFixtures, type ProposedAxis } from "@/lib/tech-radar/rebuild-fixtures";
+import { runFixtures, type ProposedAxis, type ProposedDomain } from "@/lib/tech-radar/rebuild-fixtures";
 import { newsQuotaStatus } from "@/lib/news/budget";
 import { existsSync, readFileSync } from "node:fs";
 
@@ -37,11 +37,19 @@ function rule(s: string) {
 
 type AxisRow = { label: string; rationale: string; queries: string[]; muted: boolean };
 
-async function readModel(ownerId: string): Promise<Map<string, { name: string; slug: string; axes: AxisRow[] }>> {
+/**
+ * `PersonProfile.domains` read back as the layer-4 fields of work, tagged found/derived
+ * (Task 9). Read alongside the axes so the BEFORE/AFTER comparison can show the layer
+ * cake's own output, not just what it produced axes from — a rebuild that raises the
+ * axis count on a wholly-derived domain list is not the improvement it looks like.
+ */
+async function readModel(
+  ownerId: string
+): Promise<Map<string, { name: string; slug: string; axes: AxisRow[]; domains: ProposedDomain[] }>> {
   const profiles = await prisma.personProfile.findMany({
     where: { contact: { ownerId } },
     select: {
-      contactId: true,
+      contactId: true, domains: true,
       contact: { select: { fullName: true, linkedinUrl: true } },
       axes: {
         select: {
@@ -63,6 +71,7 @@ async function readModel(ownerId: string): Promise<Map<string, { name: string; s
           queries: a.axis.searchQueries,
           muted: a.mutedAt != null,
         })),
+        domains: Array.isArray(p.domains) ? (p.domains as unknown as ProposedDomain[]) : [],
       },
     ])
   );
@@ -166,10 +175,20 @@ async function main() {
     }
     for (const a of prev.axes.filter((x) => x.muted)) console.log(`  · muted, preserved: ${a.label}`);
 
+    // Layer 4's own output, not just what it produced axes from — see readModel's
+    // comment. `found` came from the person's own data (title/headline/about/
+    // experience/post); `derived` is an inference from role × company. A rebuild that
+    // produced zero found domains modelled this person entirely from a guess.
+    const domains: ProposedDomain[] = next?.domains ?? [];
+    const foundCount = domains.filter((d) => d.kind === "found").length;
+    const derivedCount = domains.filter((d) => d.kind === "derived").length;
+    console.log(`\n  domains: ${foundCount} found / ${derivedCount} derived`);
+    if (foundCount === 0) console.log(`  ⚠ כולו נגזר`);
+
     const axes: ProposedAxis[] = (next?.axes ?? [])
       .filter((a) => !a.muted)
       .map((a) => ({ label: a.label, rationale: a.rationale, queries: a.queries }));
-    const fx = runFixtures(next?.slug ?? prev.slug, axes);
+    const fx = runFixtures(next?.slug ?? prev.slug, axes, domains);
     if (fx.checks.length) {
       console.log(`\n  SMOKE TEST — keyword checks, NOT proof the axes are right:`);
       for (const ch of fx.checks) console.log(`    ${ch.clean ? "○" : "●"} ${ch.verdict} — ${ch.describe}`);
