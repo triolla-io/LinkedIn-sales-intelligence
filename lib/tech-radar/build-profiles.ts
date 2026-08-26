@@ -171,7 +171,8 @@ export async function buildProfilesForMarked(input: {
       headline: contact.headline,
       companyName: employer.name,
       employerProfile: employer.profile,
-      // Threading only for now — the prompt starts reading these in Task 9.
+      // Layer-4 FOUND sources: the prompt reads the About paragraph and the past roles
+      // and must quote them verbatim to claim a field was found there.
       about: contact.about,
       experience: contact.experience,
     });

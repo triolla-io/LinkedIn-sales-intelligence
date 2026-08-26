@@ -65,6 +65,9 @@ async function main() {
     select: {
       id: true, fullName: true, currentTitle: true, headline: true, currentCompany: true,
       companyId: true, linkedinUrl: true,
+      // Layer-4 FOUND sources. Without them the preview shows a layer 4 built from the
+      // title alone, which is not the brain that runs in the pipeline.
+      about: true, experience: true,
     },
   });
 
@@ -143,6 +146,8 @@ async function main() {
       headline: c.headline,
       companyName: employer.name,
       employerProfile: freshProfiles.get(employer.id),
+      about: c.about,
+      experience: c.experience,
     });
     if (!draft) {
       console.log("  brain call failed or returned no reasoning");
@@ -150,9 +155,18 @@ async function main() {
     }
 
     console.log(`\n  roleLens: ${draft.roleLens}`);
-    console.log(`\n  REASONING (the staged thinking):`);
-    for (const line of draft.reasoning.split(/(?=\([אבגדה]\))/)) {
+    console.log(`\n  REASONING (the four layers):`);
+    for (const line of draft.reasoning.split("\n")) {
       if (line.trim()) console.log(`    ${line.trim()}`);
+    }
+
+    // Layer 4 itself, before any axis: which fields were FOUND with a quote and which
+    // were DERIVED by crossing. A cohort where everything is derived means the person
+    // data never arrived, and that is invisible in the axis list alone.
+    console.log(`\n  FIELDS OF WORK (${draft.domains.length}):`);
+    for (const d of draft.domains) {
+      const tag = d.kind === "found" ? `found/${d.source}` : "derived";
+      console.log(`    · ${d.domain}   [${tag}]  "${d.evidence}"`);
     }
 
     const facts = freshProfiles.get(employer.id) as
@@ -173,6 +187,9 @@ async function main() {
       // a rationale naming one side is an admission that no crossing happened.
       console.log(`    · ${a.label}${a.agenda ? "   [agenda]" : ""}   [${a.stage}]`);
       console.log(`      crossing: ${a.personDecision}  ×  ${a.companyFact}`);
+      console.log(
+        `      layer ${a.layerEvidence.layer}${a.layerEvidence.dateIso ? ` (${a.layerEvidence.dateIso})` : ""}: "${a.layerEvidence.quote}"   field: ${a.domain}`
+      );
       console.log(`      why him: ${a.rationale}`);
       console.log(`      queries: ${a.searchQueries.join(" | ")}`);
     }
