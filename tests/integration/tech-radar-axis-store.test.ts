@@ -796,3 +796,43 @@ describe("attachAxes ceiling exemption for INDUSTRY", () => {
     expect(out.skipped[0].reason).toBe("org_ceiling");
   });
 });
+
+/**
+ * The person-ceiling mirror of the INDUSTRY exemption above (2026-08-26 final review,
+ * Finding 1). `attachAxes` counted EVERY PersonAxis row — including the INDUSTRY net
+ * link — toward MAX_AXES_PER_PERSON, so a person subscribed to an industry net lost
+ * their 5th own-subject axis to a forced low-similarity merge, contradicting the exact
+ * comment (ensureIndustryAxis, axis-store.ts) that says INDUSTRY "bypasses
+ * MAX_AXES_PER_PERSON by design". Mirrors the ORG ceiling's existing exemption
+ * (`orgAxisCount = existingRows.filter(r => r.kind !== "INDUSTRY").length`).
+ */
+describe("attachAxes person ceiling exempts INDUSTRY", () => {
+  it("counts held axes with an explicit source-not-INDUSTRY filter, not every PersonAxis row", async () => {
+    await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [proposal("זיהוי הונאות")] });
+    expect(personAxisCount.mock.calls[0][0]).toEqual({
+      where: { personProfileId: "pp1", source: { not: "INDUSTRY" } },
+    });
+  });
+
+  /**
+   * A person with an INDUSTRY link and MAX_AXES_PER_PERSON - 1 own-subject axes still
+   * has room for a 6th own-subject axis — the DB count (with INDUSTRY excluded) is what
+   * the ceiling judges, not the raw row count that would include the net link.
+   */
+  it("still creates a 6th own-subject axis when the non-INDUSTRY held count is MAX_AXES_PER_PERSON - 1", async () => {
+    personAxisCount.mockResolvedValue(MAX_AXES_PER_PERSON - 1);
+    const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [proposal("אנרגיה מתחדשת")] });
+    expect(axisCreate).toHaveBeenCalled();
+    expect(out.created).toBe(1);
+    expect(out.skipped).toHaveLength(0);
+  });
+
+  /** Companion: at MAX_AXES_PER_PERSON own-subject axes (INDUSTRY excluded), the ceiling
+   *  still hits normally — the exemption does not change the ceiling itself. */
+  it("still hits the person ceiling at MAX_AXES_PER_PERSON own-subject axes", async () => {
+    personAxisCount.mockResolvedValue(MAX_AXES_PER_PERSON);
+    const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [proposal("אנרגיה מתחדשת")] });
+    expect(axisCreate).not.toHaveBeenCalled();
+    expect(out.skipped).toEqual([{ label: "אנרגיה מתחדשת", reason: "person_ceiling" }]);
+  });
+});

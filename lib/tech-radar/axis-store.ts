@@ -187,7 +187,14 @@ export async function attachAxes(input: {
     out.mergeRefused.push({ label, reason: `merge_refused[${target?.label ?? axisId} · ${why}]` });
   };
 
-  const held = await prisma.personAxis.count({ where: { personProfileId: input.personProfileId } });
+  // An industry link must not spend the person's own 5-axis budget either — same
+  // reasoning as orgAxisCount above, and the same exemption ensureIndustryAxis's own
+  // comment already promises ("bypasses MAX_AXES_PER_PERSON by design"). Without this,
+  // a person subscribed to an industry net loses their 5th own-subject axis to a forced
+  // low-similarity merge (2026-08-26 final review, Finding 1).
+  const held = await prisma.personAxis.count({
+    where: { personProfileId: input.personProfileId, source: { not: "INDUSTRY" } },
+  });
   let personAxisCount = held;
 
   // Level 3, batched: everything the free levels did not settle is asked in one call.
