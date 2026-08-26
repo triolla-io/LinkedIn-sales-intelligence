@@ -389,7 +389,7 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
       if (!page) pageReadFailures += 1;
       // Store where the read LANDED, not where the search pointed — a redirect wrapper
       // the ingest could not unwrap statically resolves here or never.
-      const storedUrl = page?.finalUrl ? canonicalizeSourceUrl(page.finalUrl) : source.url;
+      const storedUrl = canonicalizeSourceUrl(page?.finalUrl ? page.finalUrl : source.url);
       const draft = await synthesizeItem({
         triage: verdict,
         articles: [{ url: storedUrl, title: source.title, snippet: source.snippet, publishedAt: source.publishedAt }],

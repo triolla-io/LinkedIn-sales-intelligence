@@ -228,4 +228,127 @@ describe("judgeAndDraft draft-call failures", () => {
     await expect(judgeAndDraft("org1")).rejects.toBeInstanceOf(OpenRouterBlockedError);
     expect(draftUpsert).not.toHaveBeenCalled();
   });
+
+  /**
+   * 2026-08-26, Gil Tamir: streamlinefeed.co.ke, a content farm. draftTechMessage
+   * rejects a non-gift-worthy source outright (draft.ts, beside the search-engine-host
+   * rejection) — this is a SOURCE problem, not a generic draft failure, so it gets its
+   * own dropReasons bucket rather than being folded into draft_failed.
+   */
+  it("a non-gift-worthy source is counted as source_not_publisher, not draft_failed", async () => {
+    const freshAt = new Date(Date.now() - 3 * 86_400_000);
+    const axis = axisWithMatches([{ itemId: "fresh1", publishedAt: freshAt, title: "current news" }]);
+    axisFindMany.mockImplementation(async (args: { select: unknown }) => [applyMatchesFilter(axis, args.select)]);
+    selectRecipientsForItem.mockResolvedValue(passingDecision());
+    draftTechMessage.mockRejectedValue(
+      new Error("tech-radar draft rejected — source is not a gift-worthy publisher (aggregator): streamlinefeed.co.ke")
+    );
+
+    const report = await judgeAndDraft("org1");
+
+    expect(report.drafted).toBe(0);
+    expect(report.dropReasons.source_not_publisher).toBe(1);
+    expect(report.dropReasons.draft_failed).toBeUndefined();
+    expect(draftUpsert).not.toHaveBeenCalled();
+  });
+});
+
+describe("judgeAndDraft unknown source hosts", () => {
+  function passingDecision() {
+    return [
+      {
+        candidate: { contact: { contactId: "c1" }, axisId: "a1" },
+        verdict: { outcome: "judged", whyHim: "why", adjustment: 0 },
+        passed: true,
+      },
+    ];
+  }
+
+  /**
+   * `rejectsAsGift` PASSES an unknown host (the controller's ruling: never reject an
+   * unrecognized host outright). judgeAndDraft collects which unknown hosts it actually
+   * drafted from, so the allowlist in source-quality.ts can grow from evidence.
+   */
+  it("collects the unknown-host names it successfully drafted from, deduped", async () => {
+    const freshAt = new Date(Date.now() - 3 * 86_400_000);
+    const axis = {
+      id: "a1",
+      label: "ציר",
+      people: [
+        {
+          weight: 1,
+          rationale: "r",
+          personProfile: {
+            roleLens: null,
+            personalNotes: null,
+            employerTrackedCompanyId: null,
+            contact: contact("c1"),
+          },
+        },
+      ],
+      matches: [
+        {
+          score: 0.9,
+          item: {
+            id: "item1",
+            title: "t",
+            summary: "s",
+            technology: "tech",
+            kind: "research",
+            sources: [{ url: "https://a-fintech-startup-blog.example.com/post/1" }],
+            publishedAt: freshAt,
+          },
+        },
+      ],
+    };
+    axisFindMany.mockImplementation(async (args: { select: unknown }) => [applyMatchesFilter(axis, args.select)]);
+    selectRecipientsForItem.mockResolvedValue(passingDecision());
+    draftTechMessage.mockResolvedValue("היי, ראית את זה?\nתוכן.\nhttps://a-fintech-startup-blog.example.com/post/1");
+
+    const report = await judgeAndDraft("org1");
+
+    expect(report.drafted).toBe(1);
+    expect(report.unknownSourceHosts).toContain("a-fintech-startup-blog.example.com");
+  });
+
+  it("does not collect a recognized publisher's host", async () => {
+    const freshAt = new Date(Date.now() - 3 * 86_400_000);
+    const axis = {
+      id: "a1",
+      label: "ציר",
+      people: [
+        {
+          weight: 1,
+          rationale: "r",
+          personProfile: {
+            roleLens: null,
+            personalNotes: null,
+            employerTrackedCompanyId: null,
+            contact: contact("c1"),
+          },
+        },
+      ],
+      matches: [
+        {
+          score: 0.9,
+          item: {
+            id: "item1",
+            title: "t",
+            summary: "s",
+            technology: "tech",
+            kind: "research",
+            sources: [{ url: "https://www.globes.co.il/news/article.aspx?did=1" }],
+            publishedAt: freshAt,
+          },
+        },
+      ],
+    };
+    axisFindMany.mockImplementation(async (args: { select: unknown }) => [applyMatchesFilter(axis, args.select)]);
+    selectRecipientsForItem.mockResolvedValue(passingDecision());
+    draftTechMessage.mockResolvedValue("היי, ראית את זה?\nתוכן.\nhttps://www.globes.co.il/news/article.aspx?did=1");
+
+    const report = await judgeAndDraft("org1");
+
+    expect(report.unknownSourceHosts).toEqual([]);
+  });
 });

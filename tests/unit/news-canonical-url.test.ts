@@ -56,6 +56,50 @@ describe("canonicalizeSourceUrl", () => {
   });
 });
 
+/**
+ * The query-param unwrap above only fires when a param SPELLS the target URL out. Two
+ * live shapes never do that: Google News RSS links carry the target inside a base64url
+ * path segment, not a query param, and a "goto"-style redirect can do the same. Both
+ * used to survive canonicalization unchanged, reach draft.ts's search-engine-host check,
+ * and kill the whole draft at the last moment instead of the source being dropped
+ * earlier. This is additive — it only runs once the query-param unwrap above found
+ * nothing — so every case above (including the opaque CAESvQEB0xy token, whose query
+ * value is not a path segment at all) is unaffected.
+ */
+describe("canonicalizeSourceUrl — path-segment unwrap", () => {
+  it("unwraps a base64url-encoded path segment (Google News RSS article link)", () => {
+    const target = "https://real.com/gil-tamir-insurance-pricing-story";
+    const token = Buffer.from(target).toString("base64url");
+    expect(canonicalizeSourceUrl(`https://news.google.com/rss/articles/${token}?oc=5`)).toBe(target);
+  });
+
+  it("unwraps a base64url-encoded path segment on a goto-style redirect", () => {
+    const target = "https://real.com/story";
+    const token = Buffer.from(target).toString("base64url");
+    expect(canonicalizeSourceUrl(`https://google.com/goto/${token}`)).toBe(target);
+  });
+
+  it("ignores path segments too short to be a meaningful token", () => {
+    const short = Buffer.from("hi").toString("base64url");
+    const wrapped = `https://news.google.com/rss/${short}`;
+    expect(canonicalizeSourceUrl(wrapped)).toBe(wrapped);
+  });
+
+  it("still leaves the genuinely opaque protobuf-style token alone (existing guarantee)", () => {
+    const opaque = "https://google.com/goto?url=CAESvQEB0xy";
+    expect(canonicalizeSourceUrl(opaque)).toBe(opaque);
+  });
+
+  it("does not unwrap URL-shaped query params on a normal publisher host — pinned", () => {
+    const legit = "https://real.com/share?target=https://other.com/b";
+    expect(canonicalizeSourceUrl(legit)).toBe(legit);
+  });
+
+  it("preserves byte-for-byte identity for a URL with nothing to change", () => {
+    expect(canonicalizeSourceUrl("https://real.com/a?x=1&y=2")).toBe("https://real.com/a?x=1&y=2");
+  });
+});
+
 describe("isSearchEngineHost", () => {
   it("recognises search engines by host or by full URL", () => {
     expect(isSearchEngineHost("google.com")).toBe(true);

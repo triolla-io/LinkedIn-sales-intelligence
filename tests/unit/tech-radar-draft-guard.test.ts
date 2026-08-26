@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { checkDraft, MAX_DRAFT_CHARS, SOFT_DRAFT_CHARS } from "@/lib/tech-radar/draft-guard";
+import {
+  checkDraft,
+  MAX_DRAFT_CHARS,
+  SOFT_DRAFT_CHARS,
+  whyHimCopied,
+  hebrewAgreementErrors,
+} from "@/lib/tech-radar/draft-guard";
 
 describe("rhetorical opener", () => {
   it("allows a question mark in the opening sentence — Yuval's voice", () => {
@@ -98,5 +104,156 @@ describe("unchanged hard rules", () => {
     expect(checkDraft("כדאי לבדוק את הכלי")).toContain("adoption_suggestion");
     expect(checkDraft("החברה שלנו עושה בדיוק את זה")).toContain("self_pitch");
     expect(checkDraft("מחקר מטורף 🚀")).toContain("emoji");
+  });
+});
+
+/**
+ * The real 2026-08-26 draft to Gil Tamir opened "נתקלתי במחקר על משהו שכנראה קשור
+ * ישירות לבחירות שלך" — a placeholder noun ("משהו") plus a hedge ("שכנראה") that
+ * together name nothing. The opener must name the subject.
+ */
+describe("opener_mush", () => {
+  it("flags the shipped opener — placeholder noun plus hedge, names nothing", () => {
+    expect(
+      checkDraft(
+        "גיל, נתקלתי במחקר על משהו שכנראה קשור ישירות לבחירות שלך.\nחברות ביטוח משתמשות בנתונים לא מסורתיים."
+      )
+    ).toContain("opener_mush");
+  });
+
+  it("does not flag an opener that names the subject", () => {
+    expect(
+      checkDraft("גיל, ראיתי שרגולטורים בבריטניה מחמירים על תמחור אלגוריתמי.\nזה נוגע ישר בתמחור שלכם.")
+    ).not.toContain("opener_mush");
+  });
+
+  it("flags a placeholder noun with no concrete noun at all, even without a hedge", () => {
+    // No Latin token, no quoted phrase, and no word over 3 Hebrew letters outside the
+    // hedge/placeholder/function-word lists — "יש" and "כאן" are both too short to count.
+    expect(checkDraft("גיל, יש כאן משהו.\nחברות ביטוח משתמשות בנתונים.")).toContain("opener_mush");
+  });
+
+  it("does not flag a hedge with no placeholder noun", () => {
+    expect(checkDraft("גיל, כנראה שרגולטורים מחמירים על תמחור אלגוריתמי.")).not.toContain("opener_mush");
+  });
+
+  /**
+   * Fix round 1: the placeholder/hedge lists were plain substring matches — JS regex
+   * has no Hebrew-aware `\b` — so they fired inside unrelated longer words. A fully
+   * concrete opener with none of these words at all must never be flagged.
+   */
+  it("does not flag 'נושא' sitting inside 'הנושא'/'נושאים', not standing alone", () => {
+    expect(
+      checkDraft("גיל, ראיתי שהנושא של תמחור אלגוריתמי בבריטניה אולי מגיע גם לישראל.\nזה נוגע ישר בכם.")
+    ).not.toContain("opener_mush");
+  });
+
+  it("does not flag 'עניין' sitting inside 'בעניין'", () => {
+    expect(
+      checkDraft("גיל, ראיתי כתבה בעניין הרגולציה החדשה בבריטניה על תמחור אלגוריתמי.\nזה נוגע ישר בכם.")
+    ).not.toContain("opener_mush");
+  });
+
+  it("does not flag 'בטח' sitting inside 'בטחונות' (a live fintech word)", () => {
+    expect(
+      checkDraft("גיל, ראיתי שדרישות הבטחונות בבנקים באירופה מחמירות.\nזה נוגע ישר בכם.")
+    ).not.toContain("opener_mush");
+  });
+
+  it("still flags a standalone 'נושא' used as a placeholder", () => {
+    expect(checkDraft("גיל, יש נושא שכנראה קשור אליכם.\nתוכן.")).toContain("opener_mush");
+  });
+});
+
+/**
+ * whyHim (the veto's sentence) is INPUT to the drafting prompt, which already says
+ * "rephrased in your own everyday words". The shipped draft's closer just swapped the
+ * pronouns from third to second person — this makes that rule enforceable.
+ */
+describe("whyHimCopied", () => {
+  const WHY_HIM =
+    "תמיר הוא זה שחותם בפועל על בחירת מודלי ה-ML לתמחור בפניקס, ולכן שאלת המשתנים הפרוקסי והאפליה העקיפה " +
+    "היא סיכון שהוא נושא בעצמו בהחלטה — לא נושא כללי של תעשיית הביטוח.";
+
+  it("is true for the shipped draft's closer against the real whyHim", () => {
+    const message =
+      "גיל, נתקלתי במחקר.\nחברות ביטוח משתמשות בנתונים.\n" +
+      "בגלל שאתה זה שמחליט בפועל על המודלים של ML לתמחור בפניקס, הסיכון של משתנים פרוקסי והאפליה העקיפה " +
+      "היא בעצם סיכון שאתה נושא בעצמו בהחלטה.\n" +
+      "https://streamlinefeed.co.ke/news/unconventional-data-exposes-consumers-to-algorithmic-pricing-discrimination";
+    expect(whyHimCopied(message, WHY_HIM)).toBe(true);
+  });
+
+  it("is false for a genuinely rephrased closer", () => {
+    const message =
+      "גיל, נתקלתי במחקר.\nחברות ביטוח משתמשות בנתונים.\n" +
+      "אתה זה שבוחר את המודלים, אז ההטיה הזאת נופלת עליך ולא על התעשייה.\n" +
+      "https://example.com/story";
+    expect(whyHimCopied(message, WHY_HIM)).toBe(false);
+  });
+
+  it("is false when whyHim is empty or absent", () => {
+    expect(whyHimCopied("כל הודעה", "")).toBe(false);
+    expect(whyHimCopied("כל הודעה", null)).toBe(false);
+    expect(whyHimCopied("כל הודעה", undefined)).toBe(false);
+  });
+
+  it("checkDraft raises whyhim_copied when ctx.whyHim is passed and the closer is copied", () => {
+    const message =
+      "גיל, נתקלתי במחקר.\nחברות ביטוח משתמשות בנתונים.\n" +
+      "בגלל שאתה זה שמחליט בפועל על המודלים של ML לתמחור בפניקס, הסיכון של משתנים פרוקסי והאפליה העקיפה " +
+      "היא בעצם סיכון שאתה נושא בעצמו בהחלטה.";
+    expect(checkDraft(message, { whyHim: WHY_HIM })).toContain("whyhim_copied");
+  });
+
+  it("checkDraft without ctx never raises whyhim_copied — existing call sites keep working", () => {
+    const message =
+      "בגלל שאתה זה שמחליט בפועל על המודלים של ML לתמחור בפניקס, הסיכון של משתנים פרוקסי והאפליה העקיפה " +
+      "היא בעצם סיכון שאתה נושא בעצמו בהחלטה.";
+    expect(checkDraft(message)).not.toContain("whyhim_copied");
+  });
+
+  /**
+   * Fix round 1: the em-dash strip that gets the real pair over 0.6 was applied to
+   * BOTH inputs — but the drafting prompt's own rule 3 actively encourages exactly this
+   * shape for an honest closer ("anchor it in their world by naming ONE concrete thing
+   * of theirs"). An honest closer using an em-dash must not lose its own anchor before
+   * comparison; only whyHim's trailing scope caveat gets dropped.
+   */
+  it("does not flag an honest closer that uses an em-dash of its own", () => {
+    const whyHim = "הוא מנהל את הסיכונים הרגולטוריים בפניקס.";
+    const message =
+      "גיל, ראיתי משהו.\nתוכן.\n" +
+      "הסיכונים הרגולטוריים בפניקס — זה נופל עליך ולא על מישהו אחר בשוק, וזה בדיוק מה שמעניין כאן.\n" +
+      "https://example.com/story";
+    expect(whyHimCopied(message, whyHim)).toBe(false);
+    expect(checkDraft(message, { whyHim })).not.toContain("whyhim_copied");
+  });
+});
+
+/**
+ * Two real errors from the same draft: "אלגוריתמים האלה" (demonstrative needs the
+ * definite article) and "והאפליה העקיפה היא" (a coordinated subject taking a singular
+ * feminine copula). Soft only — a false positive must never kill a good draft.
+ */
+describe("hebrewAgreementErrors", () => {
+  it("finds the definite_demonstrative error", () => {
+    const errs = hebrewAgreementErrors("אלגוריתמים האלה מזהים משתנים קורלטיביים שיוצרים אפליה עקיפה");
+    expect(errs.map((e) => e.kind)).toContain("definite_demonstrative");
+  });
+
+  it("finds the compound_subject_singular_copula error", () => {
+    const errs = hebrewAgreementErrors(
+      "הסיכון של משתנים פרוקסי והאפליה העקיפה היא בעצם סיכון שאתה נושא בעצמו בהחלטה"
+    );
+    expect(errs.map((e) => e.kind)).toContain("compound_subject_singular_copula");
+  });
+
+  it("returns [] for a correctly-formed definite demonstrative", () => {
+    expect(hebrewAgreementErrors("האלגוריתמים האלה מזהים")).toEqual([]);
+  });
+
+  it("returns [] for a correctly-agreeing compound subject", () => {
+    expect(hebrewAgreementErrors("הסיכון והאפליה הם")).toEqual([]);
   });
 });

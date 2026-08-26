@@ -79,6 +79,24 @@ describe("DRAFT_SYSTEM", () => {
     expect(DRAFT_SYSTEM).toMatch(/NEVER copy/);
   });
 
+  /**
+   * 2026-08-26, Gil Tamir: "נתקלתי במחקר על משהו שכנראה קשור ישירות לבחירות שלך" — the
+   * opener named nothing. Paired with the opener_mush guard in draft-guard.ts.
+   */
+  it("requires the opener to name the thing it saw, not just announce it exists", () => {
+    expect(DRAFT_SYSTEM).toMatch(/opener NAMES the thing it saw/);
+    expect(DRAFT_SYSTEM).toMatch(/נתקלתי במשהו ש/);
+  });
+
+  /**
+   * Same draft, two real agreement errors: "אלגוריתמים האלה" and "והאפליה...היא".
+   * Paired with the (soft) hebrewAgreementErrors guard in draft-guard.ts.
+   */
+  it("requires demonstrative agreement and plural-copula agreement", () => {
+    expect(DRAFT_SYSTEM).toMatch(/Hebrew agreement/);
+    expect(DRAFT_SYSTEM).toMatch(/האלגוריתמים האלה/);
+  });
+
   it("allows a short paragraph — 3-6 sentences, capped at 600 chars", () => {
     expect(DRAFT_SYSTEM).toMatch(/3-6 short sentences TOTAL/);
     expect(DRAFT_SYSTEM).toMatch(/600 characters/);
@@ -335,6 +353,50 @@ describe("draftTechMessage and the redirect source", () => {
       draftTechMessage(input({ sourceUrl: "https://google.com/goto?url=CAES" }))
     ).rejects.toThrow(/search-engine/);
     expect(chat).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * 2026-08-26, Gil Tamir: the link was streamlinefeed.co.ke, a content farm reprint —
+ * not a search-engine redirect (isSearchEngineHost passes it), but not a gift-worthy
+ * source either. rejectsAsGift catches what the search-engine check does not.
+ */
+describe("the link must be a gift-worthy source", () => {
+  it("rejects outright — not retryably — when the source is an aggregator", () => {
+    const i = input({ sourceUrl: "https://streamlinefeed.co.ke/news/some-story" });
+    const r = enforceDraftRules(
+      "היי דנה, ראיתי משהו.\nhttps://streamlinefeed.co.ke/news/some-story",
+      i
+    );
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.reason).toContain("streamlinefeed.co.ke");
+      expect(r.reason).toContain("aggregator");
+      expect(r.retryable).toBe(false);
+    }
+  });
+
+  it("does not pay for a retry the model cannot win, on an aggregator source", async () => {
+    chat.mockResolvedValue(ok('{"draftMessage":"היי דנה, ראיתי משהו."}'));
+    await expect(
+      draftTechMessage(input({ sourceUrl: "https://streamlinefeed.co.ke/news/some-story" }))
+    ).rejects.toThrow(/gift-worthy publisher/);
+    expect(chat).toHaveBeenCalledTimes(1);
+  });
+
+  it("passes a recognized publisher through untouched", () => {
+    const i = input({ sourceUrl: "https://www.globes.co.il/news/article.aspx?did=1" });
+    const r = enforceDraftRules("היי דנה, ראיתי משהו.\nhttps://www.globes.co.il/news/article.aspx?did=1", i);
+    expect(r.ok).toBe(true);
+  });
+
+  it("passes an unknown host through — unknown is never a rejection", () => {
+    const i = input({ sourceUrl: "https://a-fintech-startup-blog.example.com/post/1" });
+    const r = enforceDraftRules(
+      "היי דנה, ראיתי משהו.\nhttps://a-fintech-startup-blog.example.com/post/1",
+      i
+    );
+    expect(r.ok).toBe(true);
   });
 });
 

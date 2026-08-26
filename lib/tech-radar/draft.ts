@@ -28,6 +28,7 @@
  */
 import { openrouterChat } from "@/lib/openrouter/client";
 import { isSearchEngineHost } from "@/lib/news/canonical-url";
+import { classifySource, rejectsAsGift } from "@/lib/tech-radar/source-quality";
 import { checkDraft, MAX_DRAFT_CHARS } from "@/lib/tech-radar/draft-guard";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
 import { OR_FEATURE } from "@/lib/tech-radar/types";
@@ -97,7 +98,7 @@ TONE SCALES TO THE ITEM. You are given the item's kind and its stature (0-1). Lo
 - vendor_launch, promotion, other, or anything with low stature: plainest possible. State it and stop.
 
 Follow this shape, in this order:
-1. Open with the person's name, in the sender's voice: a rhetorical question — "היי דנה, ראית את זה?" — or an excited reaction — "דנה, נתקלתי במחקר מטורף!". A question mark is allowed HERE and nowhere else.
+1. Open with the person's name, in the sender's voice: a rhetorical question — "היי דנה, ראית את זה?" — or an excited reaction — "דנה, נתקלתי במחקר מטורף!". A question mark is allowed HERE and nowhere else. The opener NAMES the thing it saw — "ראיתי ש-<X>" naming <X> — and never just announces that something exists: never "נתקלתי במשהו ש...", never "יש כתבה מעניינת ש...".
 2. What the item says: 2-3 short sentences distilled from the item's own text — the concrete finding, move or number that makes it worth two minutes. ONLY facts that appear in the item text you were given. Do NOT add context, background or explanation from your own knowledge, however certain you are: an item about a lawsuit against a company is not an opportunity to explain what that company does. If the item text does not say it, it does not go in the message.
 3. Why THEM: the LAST sentence before the link carries the SPECIFIC reason from the "why it touches them" note, rephrased in your own everyday words — the concrete mechanism or stake for THEM, never the generic category it belongs to. Anchor it in their world by naming ONE concrete thing of theirs — a product, business line, market or process.
    - The test: delete the item's subject from your message — it must STILL be clear why THIS person received it and not a colleague.
@@ -122,6 +123,7 @@ Rules:
 - Address the person by EXACTLY the name given under "Address them as". Copy those characters verbatim. Never re-spell, transliterate, lengthen, shorten or "correct" it — it is the name as it is recorded, and it is not yours to adjust.
 - NEVER state a quantity about the RECIPIENT or their company — how many plants, sites, people, products, markets, quarters, percent — unless that exact figure appears in the ITEM text you were given. If you have no verified figure, write the anchor WITHOUT one: "יעדי התפוקה שהצגתם", not "בשלוש המפעלות". A figure that belongs to the item itself is fine.
 - Reproduce the link EXACTLY as given, once, as the last line. Never invent, shorten or alter a URL. If no link is provided, end after the sentence and include no URL at all.
+- Hebrew agreement: a demonstrative takes the definite article ("האלגוריתמים האלה", never "אלגוריתמים האלה"), and a compound subject ("הסיכון והאפליה") takes a plural copula ("הם"), never a singular one ("היא"/"הוא").
 
 Return strict JSON only — no prose, no markdown fences:
 {"draftMessage": string}`;
@@ -272,6 +274,17 @@ export function enforceDraftRules(message: string, input: TechDraftInput): Draft
       retryable: false,
     };
   }
+  // A link handed to a senior exec is a gift; a farm reprint (2026-08-26, Gil Tamir:
+  // streamlinefeed.co.ke) is not. An unknown host still PASSES — see source-quality.ts.
+  if (sourceUrl && rejectsAsGift(sourceUrl)) {
+    const { cls, host } = classifySource(sourceUrl);
+    return {
+      ok: false,
+      reason: `source is not a gift-worthy publisher (${cls}): ${host}`,
+      instruction: "",
+      retryable: false,
+    };
+  }
   const urls = out.match(/https?:\/\/\S+/gu) ?? [];
   if (sourceUrl) {
     if (urls.length !== 1 || urls[0] !== sourceUrl) {
@@ -291,12 +304,12 @@ export function enforceDraftRules(message: string, input: TechDraftInput): Draft
   // The rest of draft-guard, at drafting time. These rules were written from real
   // failures but only ran in tests — and a prompt rule with no runtime check is a
   // suggestion, which is how the glued script above reached a stored draft.
-  const violations = checkDraft(out).filter((v) => v !== "glued_script");
+  const violations = checkDraft(out, { whyHim: input.fitRationale }).filter((v) => v !== "glued_script");
   if (violations.length > 0) {
     return {
       ok: false,
       reason: `draft-guard: ${violations.join(", ")}`,
-      instruction: `Your previous attempt broke these rules: ${violations.join(", ")}. Rewrite it — a question mark only in the opening sentence, no ask of any kind, no suggestion to adopt or evaluate, nothing about us or our services, no emoji, no doubled possessive, and at most ${MAX_DRAFT_CHARS} characters before the link.`,
+      instruction: `Your previous attempt broke these rules: ${violations.join(", ")}. Rewrite it — a question mark only in the opening sentence, no ask of any kind, no suggestion to adopt or evaluate, nothing about us or our services, no emoji, no doubled possessive, and at most ${MAX_DRAFT_CHARS} characters before the link. If "opener_mush" is listed: your opener named nothing — say what you actually saw ("ראיתי ש-<X>"), not that something exists ("נתקלתי במשהו ש..."). If "whyhim_copied" is listed: your last sentence is the "why it touches them" note with the pronouns swapped — write the reason in genuinely different words, not a re-inflected copy.`,
       retryable: true,
     };
   }
