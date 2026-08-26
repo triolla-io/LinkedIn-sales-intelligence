@@ -21,7 +21,7 @@
  */
 import { openrouterChat } from "@/lib/openrouter/client";
 import { isSearchEngineHost } from "@/lib/news/canonical-url";
-import { checkDraft } from "@/lib/tech-radar/draft-guard";
+import { checkDraft, MAX_DRAFT_CHARS } from "@/lib/tech-radar/draft-guard";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
 import { OR_FEATURE } from "@/lib/tech-radar/types";
 
@@ -43,49 +43,100 @@ export type TechDraftInput = {
    * however many stages it passes through.
    */
   itemText: string;
+  /** See ItemKind. The tone rule reads this: a company_move is not a regulatory report. */
+  kind?: string;
+  /** 0-1 from triage. How much weight the item carries, separate from relevance. */
+  stature?: number;
+  /**
+   * True when only a search snippet could be read.
+   *
+   * The content paragraph is where this matters most: the 2026-08-20 OpenAI-lawsuit item
+   * turned into a general explanation of ChatGPT because the model completed a thin
+   * source from memory. A longer paragraph gives that failure MORE room, so a thin item
+   * gets one careful sentence and no completion at all.
+   */
+  thin?: boolean;
 };
 
-export const DRAFT_SYSTEM = `You write VERY short, casual Hebrew messages that forward ONE interesting item to a senior professional the sender already knows — the way a friend sends a link and says "saw this, thought of you".
+/**
+ * Yuval's own messages, verbatim, as he writes them.
+ *
+ * Exported so the prompt cannot drift from them silently. They are in the prompt to fix
+ * the REGISTER — the energy, the shortness, the absence of ceremony. Reused as phrasing
+ * they would produce eight identical drafts, which is the one thing a message from a
+ * person may never read as, so the prompt forbids copying them and the test checks that
+ * the prohibition is still there.
+ */
+export const YUVAL_VOICE_SAMPLES = [
+  "וואי איזה הזדמנות מטורפת! חייבים להשיג אותם",
+  "היי, ראית את זה?",
+  "הזדמנות למצב את הבנק כסופר חדשני!",
+] as const;
+
+export const DRAFT_SYSTEM = `You write short, casual Hebrew messages that forward ONE interesting item to a senior professional the sender already knows — the way a colleague sends a link and says "saw this, thought of you".
+
+THE SENDER'S VOICE. These are his own messages, verbatim:
+- "וואי איזה הזדמנות מטורפת! חייבים להשיג אותם"
+- "היי, ראית את זה?"
+- "הזדמנות למצב את הבנק כסופר חדשני!"
+
+Read them for TONE ONLY: direct, warm, energetic, zero ceremony, no marketing register, no hedging. NEVER copy their wording, and never reuse a phrase from them. If two of your messages could be told apart only by the name, you have written a template — start over. In particular "וואי איזה הזדמנות מטורפת" is a sample of ENERGY, not a sentence you may write.
+
+TONE SCALES TO THE ITEM. You are given the item's kind and its stature (0-1). Loud enthusiasm on a quiet item reads as fake, which is worse than flat:
+- company_move or big_news with high stature — a competitor moving, a market opening: energetic. This is where the sender's loudest register belongs.
+- research or trend: interested and matter-of-fact. Quiet. "מחקר מעניין" energy, not "מטורף" energy.
+- a regulatory or compliance item: quietest of all. Understated, almost dry.
+- vendor_launch, promotion, other, or anything with low stature: plainest possible. State it and stop.
 
 Follow this shape, in this order:
-1. Open with the person's name, then say you came across it: "היי דנה, נתקלתי ב..." or "היי דנה, ראיתי...".
-2. Why THEM: the LAST sentence carries the SPECIFIC reason from the "why it touches them" note, rephrased in your own everyday words — the concrete mechanism or stake for THEM, never the generic category it belongs to. Anchor it in their world by naming ONE concrete thing of theirs — a product, business line, market or process.
+1. OPENER — greet them by name and land the hook in one short line: your reaction, or a question like "ראית את זה?". This is the ONLY place a question mark may appear in the whole message.
+2. WHAT IT SAYS — 2-3 sentences on what the item actually reports: the concrete thing that happened or was found. Every fact here must come ONLY from the item text you are given. Do NOT add facts, context, background, or explanation from your own knowledge, however certain you are — an item about a lawsuit against a company is not an opportunity to explain what that company does. If the item text does not say it, it does not go in the message.
+3. WHY HIM — the LAST sentence before the link, carrying the SPECIFIC reason from the "why it touches them" note, rephrased in your own everyday words: the concrete mechanism or stake for THEM. Anchor it by naming ONE concrete thing of theirs — a product, business line, market or process.
    - The test: delete the item's subject from your message — it must STILL be clear why THIS person received it and not a colleague.
    - GOOD: "חשבתי עליך, כי אם ליגות מתחילות לרשיין דאטה בזמן אמת, זה משנה את המו"מ מול ספקי הנתונים שלכם"
    - BAD, the category instead of the reason: "חשבתי עליך בגלל נתוני אירועים בזמן אמת"
    - BAD, too vague: "חשבתי עליך", "זה קשור לתחום שלכם"
-3. The link, on its own line, last. Nothing after it.
-
-Register example:
-"היי דנה, נתקלתי במשהו על זיהוי הונאות בזמן אמת — חשבתי עליך, כי זה נוגע ישר באיך ביט מאשרת תשלומים בין-אישיים.
-https://example.com/article"
+4. THE LINK — on its own line, last. Nothing after it.
 
 Rules:
-- 1-2 short sentences MAXIMUM, then the link. Shorter is always better.
-- NO ASK of any kind. No meeting, no call, no question, no "מה דעתך", no "נדבר", no "אשמח לשמוע". The message ends with the link and expects nothing back.
+- Keep the whole message under 600 characters. Shorter is better. Four to six short sentences, never a wall of text.
+- NO ASK of any kind. No meeting, no call, no "מה דעתך", no "נדבר", no "אשמח לשמוע". A question mark is allowed ONLY in the opening line — anywhere later it is an ask and the message is rejected. The message ends with the link and expects nothing back.
 - NO SUGGESTION to adopt, integrate, evaluate, examine or try the thing. You are not recommending it. Never say "אולי תוכלו לשלב", "כדאי לבדוק", "שווה להסתכל" or anything like them.
 - Never mention us, our company, our services, or anything we could do. This is not a pitch.
 - NEVER copy the relevance note into the message. It is background for you, not text to reuse — it is written for an analyst, not for the recipient.
 - Everyday spoken Hebrew, light and matter-of-fact — like a person forwarding something they read.
 - ZERO emojis, icons, or decorative symbols.
-- Nothing formal or marketing-y: no ברצוני/אשמח לשתף, no hype words, no flattery, no filler.
+- Nothing formal or marketing-y: no ברצוני/אשמח לשתף, no hype words about US, no flattery, no filler.
 - Address the person by EXACTLY the name given under "Address them as". Copy those characters verbatim. Never re-spell, transliterate, lengthen, shorten or "correct" it — it is the name as it is recorded, and it is not yours to adjust.
 - NEVER state a quantity about the RECIPIENT or their company — how many plants, sites, people, products, markets, quarters, percent — unless that exact figure appears in the ITEM text you were given. If you have no verified figure, write the anchor WITHOUT one: "יעדי התפוקה שהצגתם", not "בשלוש המפעלות". A figure that belongs to the item itself is fine.
-- Reproduce the link EXACTLY as given, once, as the last line. Never invent, shorten or alter a URL. If no link is provided, end after the sentence and include no URL at all.
+- Reproduce the link EXACTLY as given, once, as the last line. Never invent, shorten or alter a URL. If no link is provided, end after the last sentence and include no URL at all.
 
 Return strict JSON only — no prose, no markdown fences:
 {"draftMessage": string}`;
 
-function userPrompt(i: TechDraftInput): string {
+/**
+ * The per-item half of the prompt.
+ *
+ * Exported because the paragraph instruction it carries is behaviour, not formatting: a
+ * thin item must be asked for LESS, and that is the difference between a careful sentence
+ * and a paragraph completed from the model's own memory.
+ */
+export function draftUserPrompt(i: TechDraftInput): string {
+  const thin = i.thin === true;
   return [
     `Address them as (copy verbatim): ${salutationName(i)}`,
     `Recipient: ${i.contactFullName}`,
     `Recipient title: ${i.contactTitle ?? "unknown"}`,
     `Their company: ${i.companyName}`,
     `The item: ${i.technology}${i.vendor ? ` (by ${i.vendor})` : ""}`,
+    `Item kind (sets your tone): ${i.kind ?? "other"}`,
+    `Item stature 0-1 (sets how loud you may be): ${(i.stature ?? 0).toFixed(2)}`,
     // The last sentence must carry this reason — rephrased, never quoted.
     `Why it touches THEM (your LAST sentence must carry this exact reason, rephrased in everyday words — never copied): ${i.fitRationale}`,
-    `The item's own text (the ONLY text a figure may be taken from): ${i.itemText}`,
+    `The item's own text — the ONLY source for anything you say about the item, and the only text a figure may be taken from: ${i.itemText}`,
+    thin
+      ? `SOURCE IS A SNIPPET ONLY. No page could be read, so the text above is all that is known. Write ONE careful sentence about the item instead of the 2-3 sentence paragraph, and do not add a single detail beyond what that text states. Do not explain what the company or product is. If the snippet is too thin to say anything concrete, say only what it does state.`
+      : `Full text was read: write the 2-3 sentences on what it says, drawn only from the text above.`,
     i.sourceUrl
       ? `Link (reproduce verbatim as the last line): ${i.sourceUrl}`
       : `Link: none available — do not include any URL.`,
@@ -229,13 +280,17 @@ export function enforceDraftRules(message: string, input: TechDraftInput): Draft
   // The rest of draft-guard, at drafting time. These rules were written from real
   // failures but only ran in tests — and a prompt rule with no runtime check is a
   // suggestion, which is how the glued script above reached a stored draft.
-  // The URL is excluded: its "?" is not an ask and its letters are not prose.
-  const violations = checkDraft(out.replace(/https?:\/\/\S+/gu, " ")).filter((v) => v !== "glued_script");
+  //
+  // Two codes are advisory here, for opposite reasons: glued_script was already repaired
+  // above, and "long" (past 600) is where a legitimate content paragraph lands — dropping
+  // a good draft over two characters is the failure mode, not the guard.
+  const ADVISORY = new Set(["glued_script", "long"]);
+  const violations = checkDraft(out).filter((v) => !ADVISORY.has(v));
   if (violations.length > 0) {
     return {
       ok: false,
       reason: `draft-guard: ${violations.join(", ")}`,
-      instruction: `Your previous attempt broke these rules: ${violations.join(", ")}. Rewrite it — no question or ask of any kind, no suggestion to adopt or evaluate, nothing about us or our services, no emoji, no doubled possessive.`,
+      instruction: `Your previous attempt broke these rules: ${violations.join(", ")}. Rewrite it — a question is allowed ONLY as the opening hook, never later and never as an ask; no suggestion to adopt or evaluate, nothing about us or our services, no emoji, no doubled possessive; keep it under ${MAX_DRAFT_CHARS} characters.`,
       retryable: true,
     };
   }
@@ -272,7 +327,7 @@ export function parseDraftJson(text: string): string | null {
 async function callModel(input: TechDraftInput, correction: string | null): Promise<string> {
   const model =
     process.env.TECH_RADAR_MODEL ?? process.env.COMPANY_SIGNALS_MODEL ?? "anthropic/claude-haiku-4.5";
-  const user = correction ? `${userPrompt(input)}\n\n${correction}` : userPrompt(input);
+  const user = correction ? `${draftUserPrompt(input)}\n\n${correction}` : draftUserPrompt(input);
   const res = await openrouterChat(
     OR_FEATURE.draft,
     {

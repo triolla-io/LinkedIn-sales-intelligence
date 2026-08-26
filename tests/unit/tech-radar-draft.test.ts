@@ -32,10 +32,18 @@ beforeEach(() => chat.mockReset());
  * pitch from a system, which is exactly what this feature must not sound like.
  */
 describe("DRAFT_SYSTEM", () => {
-  it("lays out the shape: came across it, why them, then the link", () => {
-    expect(DRAFT_SYSTEM).toMatch(/נתקלתי|ראיתי/);
+  /**
+   * The shape gained a part on 2026-08-26. A message that says "saw this, thought of you"
+   * and never says WHAT was seen makes the recipient click to find out — so the four
+   * parts are now opener, what it says, why him, link, in that order.
+   */
+  it("lays out the four parts in order", () => {
+    expect(DRAFT_SYSTEM).toMatch(/1\. OPENER/);
+    expect(DRAFT_SYSTEM).toMatch(/2\. WHAT IT SAYS/);
+    expect(DRAFT_SYSTEM).toMatch(/3\. WHY HIM/);
+    expect(DRAFT_SYSTEM).toMatch(/4\. THE LINK/);
     expect(DRAFT_SYSTEM).toMatch(/thought of you/i);
-    expect(DRAFT_SYSTEM).toMatch(/last line/i);
+    expect(DRAFT_SYSTEM).toMatch(/own line, last/i);
   });
 
   /**
@@ -79,8 +87,14 @@ describe("DRAFT_SYSTEM", () => {
     expect(DRAFT_SYSTEM).toMatch(/NEVER copy/);
   });
 
-  it("keeps it to one or two sentences", () => {
-    expect(DRAFT_SYSTEM).toMatch(/1-2 short sentences MAXIMUM/);
+  /**
+   * Still bounded, just at the new shape's size. The number matters because the guard
+   * blocks at 900 and advises at 600 — a prompt that asks for more than the guard allows
+   * spends retries arguing with itself.
+   */
+  it("bounds the length in both sentences and characters", () => {
+    expect(DRAFT_SYSTEM).toMatch(/under 600 characters/);
+    expect(DRAFT_SYSTEM).toMatch(/never a wall of text/i);
   });
 
   it("still forbids emojis, marketing register and flattery", () => {

@@ -21,7 +21,11 @@ export type DraftViolation =
   | "duplicate_possessive"
   /** A Hebrew letter touching a Latin one with no separator: "שProtoPie", "לprototyping". */
   | "glued_script"
-  | "emoji";
+  | "emoji"
+  /** Past SOFT_DRAFT_CHARS. ADVISORY — a content paragraph legitimately lands here. */
+  | "long"
+  /** Past MAX_DRAFT_CHARS. Blocking: this has stopped being a message. */
+  | "too_long";
 
 /**
  * Phrases, not vibes. Each pattern is anchored on wording that actually appeared, so a
@@ -29,7 +33,7 @@ export type DraftViolation =
  */
 const RULES: { code: DraftViolation; pattern: RegExp }[] = [
   { code: "adoption_suggestion", pattern: /אולי\s+תוכל(?:ו|י)?\s+לשלב|כדאי\s+ל(?:בדוק|שקול|הסתכל)|שווה\s+ל(?:בדוק|הסתכל)|ממליץ\s+ל/u },
-  { code: "ask", pattern: /מה\s+דעת(?:ך|כם)|א?שמח\s+לשמוע|נשמח\s+לשמוע|בוא(?:י)?\s+נ(?:דבר|קבע)|שיחה\s+קצרה|מעניין\s+אות(?:ך|כם)|\?/u },
+  { code: "ask", pattern: /מה\s+דעת(?:ך|כם)|א?שמח\s+לשמוע|נשמח\s+לשמוע|בוא(?:י)?\s+נ(?:דבר|קבע)|שיחה\s+קצרה|מעניין\s+אות(?:ך|כם)/u },
   { code: "self_pitch", pattern: /אנחנו\s+(?:יכולים|עושים)|נוכל\s+לעזור|השירות\s+שלנו|החברה\s+שלנו|אצלנו\s+ב/u },
   { code: "duplicate_possessive", pattern: /של(?:כם|כן|ך|ו|ה)\s+אצל(?:כם|כן|ך|ו|ה)/u },
   // Direct adjacency of the two scripts is always a typography failure in Hebrew —
@@ -38,10 +42,54 @@ const RULES: { code: DraftViolation; pattern: RegExp }[] = [
   { code: "emoji", pattern: /\p{Extended_Pictographic}/u },
 ];
 
-/** Every rule the message breaks, in a stable order. Empty means it passed. */
+const URL_RE = /https?:\/\/[^\s<>"')]+/gu;
+
+/**
+ * Where the prose stops being a forward and starts being a document. Two tiers on
+ * purpose: with an opener, a 2-3 sentence content paragraph and a "why him" line, a good
+ * draft lands right around 600 — so 600 can only ADVISE. Blocking there would reject
+ * good drafts over two characters. 900 is the real ceiling.
+ */
+export const SOFT_DRAFT_CHARS = 600;
+export const MAX_DRAFT_CHARS = 900;
+
+/**
+ * A greeting is not the opening sentence, it precedes it — and a model that puts
+ * "היי דנה," on its own line must not lose the draft to a positional rule.
+ */
+const GREETING = /^\s*(?:היי|הי|שלום|אהלן|בוקר\s+טוב|צהריים\s+טובים)[^\n?.!]{0,24}?[,\n]/u;
+
+/**
+ * Everything after the first sentence.
+ *
+ * Yuval's signature opener IS a question — "היי, ראית את זה?" — so a bare "?" cannot be
+ * banned outright. What must never exist is a question that functions as a CTA, and that
+ * one always sits past the opener.
+ */
+function tailAfterOpener(prose: string): string {
+  const body = prose.replace(GREETING, "").replace(/^\s+/u, "");
+  const end = body.search(/[?.!\n]/u);
+  return end === -1 ? "" : body.slice(end + 1);
+}
+
+/**
+ * Every rule the message breaks, in a stable order. Empty means it passed.
+ *
+ * The URL is removed before any rule runs: its "?" is not an ask, its letters are not
+ * prose, and a tracking-heavy link must not push a legitimate message over a length tier.
+ */
 export function checkDraft(message: string): DraftViolation[] {
   const text = typeof message === "string" ? message : "";
-  return RULES.filter((r) => r.pattern.test(text)).map((r) => r.code);
+  const prose = text.replace(URL_RE, " ");
+  const out = RULES.filter((r) => r.pattern.test(prose)).map((r) => r.code);
+
+  if (!out.includes("ask") && /\?/u.test(tailAfterOpener(prose))) out.push("ask");
+
+  const len = prose.trim().length;
+  if (len > MAX_DRAFT_CHARS) out.push("too_long");
+  else if (len > SOFT_DRAFT_CHARS) out.push("long");
+
+  return out;
 }
 
 export type AxisLabelViolation =
@@ -92,8 +140,6 @@ export type HardEditViolation =
   | "unsourced_figure";
 
 export type EditCheck = { hard: HardEditViolation[]; soft: DraftViolation[] };
-
-const URL_RE = /https?:\/\/[^\s<>"')]+/g;
 
 /**
  * Every digit-group in the prose appears in the source's own words. Digits inside the

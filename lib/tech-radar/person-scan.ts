@@ -34,7 +34,8 @@ const MAX_POOL_ITEMS = 200;
 const MAX_SYNTHESIS_PER_RUN = 12;
 const MAX_AXIS_FIT_PER_RUN = 40;
 /** Pilot: one small batch a day, read by a human before anything is sent. */
-const MAX_DRAFTS_PER_DAY = 10;
+/** See judge-and-draft: the same env override, so the two cannot disagree mid-run. */
+const MAX_DRAFTS_PER_DAY = Number(process.env.RADAR_MAX_DRAFTS_PER_DAY) || 10;
 /** MUST equal QUIET_COOLDOWN_DAYS in lib/tech-radar/quiet.ts, which stays prisma-free
  *  and therefore cannot import this. */
 export const MIN_DAYS_BETWEEN_MESSAGES = 7;

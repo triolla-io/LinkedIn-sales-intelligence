@@ -16,7 +16,14 @@ import { rankForPeople, pairKey, type RankCandidate } from "@/lib/tech-radar/per
 import { draftTechMessage } from "@/lib/tech-radar/draft";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
 
-const MAX_DRAFTS_PER_DAY = 10;
+/**
+ * Drafts one org may produce in a day.
+ *
+ * Overridable by env for a single deliberate run: the 2026-08-26 pilot wants volume at a
+ * low threshold, on the explicit decision that Ariel filters what reaches Yuval. A code
+ * change would have to be reverted; an env var expires with the container.
+ */
+const MAX_DRAFTS_PER_DAY = Number(process.env.RADAR_MAX_DRAFTS_PER_DAY) || 10;
 const MIN_DAYS_BETWEEN_MESSAGES = 7;
 
 export type JudgeReport = {
@@ -62,7 +69,7 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
         select: {
           score: true,
           item: {
-            select: { id: true, title: true, summary: true, technology: true, kind: true, sources: true },
+            select: { id: true, title: true, summary: true, technology: true, kind: true, stature: true, thin: true, sources: true },
           },
         },
         orderBy: { score: "desc" },
@@ -201,6 +208,11 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
         fitRationale: verdict.whyHim,
         sourceUrl: firstSourceUrl(item.sources),
         itemText: `${item.title}\n${item.summary ?? ""}`,
+        // The tone rule and the thin-source clamp read these. Without them every item
+        // gets the loudest register, and a snippet gets a paragraph completed from memory.
+        kind: item.kind,
+        stature: item.stature,
+        thin: item.thin,
       });
 
       await prisma.radarDraft.upsert({
