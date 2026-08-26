@@ -1,8 +1,19 @@
 import { describe, it, expect, vi } from "vitest";
 import { buildAxisQueryPool } from "@/lib/tech-radar/axis-fit";
 import { normalizeQuery } from "@/lib/tech-radar/queries";
-import { fetchPoolNews } from "@/lib/tech-radar/fetch-pool-news";
 import type { NewsResult } from "@/lib/news/types";
+
+// This file is about the pool's dedup accounting, not the query cache — force every
+// entry to a cache miss so it isn't possible for one `it` block's fetch to be served
+// from a real cache row written by another block that happens to reuse the same string
+// (e.g. both "fetches one query once..." and "charges only for..." below ask for
+// "בנקאות פתוחה ישראל").
+vi.mock("@/lib/news/query-cache", () => ({
+  getCachedQuery: async () => null,
+  putCachedQuery: async () => {},
+}));
+
+const { fetchPoolNews } = await import("@/lib/tech-radar/fetch-pool-news");
 
 /**
  * THE reason not merging axes is affordable.

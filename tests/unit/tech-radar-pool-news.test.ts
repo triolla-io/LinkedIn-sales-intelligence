@@ -1,6 +1,26 @@
-import { describe, it, expect, vi } from "vitest";
-import { fetchPoolNews, broadenQuery, SCAN_WINDOW_DAYS } from "@/lib/tech-radar/fetch-pool-news";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const getCachedQuery = vi.fn();
+const putCachedQuery = vi.fn();
+vi.mock("@/lib/news/query-cache", () => ({
+  getCachedQuery: (...a: unknown[]) => getCachedQuery(...a),
+  putCachedQuery: (...a: unknown[]) => putCachedQuery(...a),
+  CACHE_TTL_HOURS: 24,
+  EMPTY_CACHE_TTL_MINUTES: 90,
+}));
+
+const { fetchPoolNews, broadenQuery, SCAN_WINDOW_DAYS } = await import("@/lib/tech-radar/fetch-pool-news");
 import type { NewsResult } from "@/lib/news/types";
+
+// Every existing test in this file predates the query cache, so it must behave as a
+// pure miss unless a test stubs it — that keeps the file's original assertions valid
+// without touching them.
+beforeEach(() => {
+  getCachedQuery.mockReset();
+  putCachedQuery.mockReset();
+  getCachedQuery.mockResolvedValue(null);
+  putCachedQuery.mockResolvedValue(undefined);
+});
 
 /**
  * Dated inside the window by default. The freshness gate rejects an item whose date it
@@ -137,7 +157,7 @@ describe("fetchPoolNews", () => {
     const out = await fetchPoolNews([], async () => []);
     // The freshness fields are all-null rather than zero: zeros would read as "nothing
     // was stale and everything was fresh", which is a claim an empty run cannot make.
-    expect(out).toEqual({ items: [], queriesRun: 0, quotaLikely: false, providerStats: [] });
+    expect(out).toEqual({ items: [], queriesRun: 0, cachedQueries: 0, quotaLikely: false, providerStats: [] });
   });
 
   // GNews rate-limits a burst: firing 10 pooled queries back to back returned
@@ -285,5 +305,116 @@ describe("fetchPoolNews providerStats", () => {
       sleep: async () => {},
     });
     expect(out.providerStats).toEqual([]);
+  });
+});
+
+/**
+ * The 2026-08-26 incident: an Inngest retry re-ran a whole scan from the top and
+ * re-bought every one of its 39 queries — 156 provider calls for one approved run. A
+ * pool entry the query cache already answered must cost nothing here: no provider call,
+ * no QUERY_GAP_MS pace (there is nothing to be polite to), no broaden-retry.
+ */
+describe("fetchPoolNews consults the query cache", () => {
+  it("calls the fetcher once for a pool of 3 where 2 are cached", async () => {
+    getCachedQuery.mockImplementation(async (q: string) =>
+      q === "cached-a" ? [result("https://a.com/cached-a")] : q === "cached-b" ? [] : null
+    );
+    const fetcher = vi.fn(async () => [result("https://a.com/missed")]);
+    const out = await fetchPoolNews(
+      [
+        { query: "cached-a", companyIds: ["c1"] },
+        { query: "cached-b", companyIds: ["c2"] },
+        { query: "missed", companyIds: ["c3"] },
+      ],
+      fetcher,
+      { sleep: async () => {} }
+    );
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(fetcher).toHaveBeenCalledWith("missed");
+    expect(out.cachedQueries).toBe(2);
+    expect(out.queriesRun).toBe(1);
+  });
+
+  it("does not sleep for cache hits, only between actual fetcher calls", async () => {
+    getCachedQuery.mockImplementation(async (q: string) => (q === "cached" ? [] : null));
+    const sleeps: number[] = [];
+    const fetcher = vi.fn(async () => [result("https://a.com/1")]);
+    await fetchPoolNews(
+      [
+        { query: "cached", companyIds: ["c1"] },
+        { query: "miss-a", companyIds: ["c2"] },
+        { query: "miss-b", companyIds: ["c3"] },
+      ],
+      fetcher,
+      { sleep: async (ms: number) => { sleeps.push(ms); } }
+    );
+    // Two actual fetcher calls -> one gap between them; the cache hit contributes none.
+    expect(sleeps).toHaveLength(1);
+  });
+
+  it("does not trigger the broaden-retry for a cached empty result", async () => {
+    getCachedQuery.mockImplementation(async (q: string) => (q === "long enough query here" ? [] : null));
+    const fetcher = vi.fn(async () => [] as never[]);
+    await fetchPoolNews(
+      [{ query: "long enough query here", companyIds: ["c1"] }],
+      fetcher,
+      { sleep: async () => {} }
+    );
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("quotaLikely is false when the only empty entries came from cache", async () => {
+    getCachedQuery.mockImplementation(async (q: string) => (q === "cached-empty" ? [] : null));
+    const fetcher = vi.fn(async () => [result("https://a.com/1")]);
+    const out = await fetchPoolNews(
+      [
+        { query: "cached-empty", companyIds: ["c1"] },
+        { query: "fetched", companyIds: ["c2"] },
+      ],
+      fetcher,
+      { sleep: async () => {} }
+    );
+    expect(out.quotaLikely).toBe(false);
+  });
+
+  it("writes a fetched (miss) query into the cache under its original key", async () => {
+    getCachedQuery.mockResolvedValue(null);
+    const fetcher = vi.fn(async () => [result("https://a.com/1")]);
+    await fetchPoolNews([{ query: "brand new query", companyIds: ["c1"] }], fetcher, { sleep: async () => {} });
+    expect(putCachedQuery).toHaveBeenCalledWith("brand new query", [result("https://a.com/1")]);
+  });
+
+  it("does not write a cache hit back to the cache", async () => {
+    getCachedQuery.mockResolvedValue([result("https://a.com/1")]);
+    const fetcher = vi.fn(async () => [] as never[]);
+    await fetchPoolNews([{ query: "already cached", companyIds: ["c1"] }], fetcher, { sleep: async () => {} });
+    expect(putCachedQuery).not.toHaveBeenCalled();
+  });
+
+  it("attributes cache-hit results to a synthetic provider:'cache' row", async () => {
+    getCachedQuery.mockResolvedValue([
+      { title: "a", url: "https://www.globes.co.il/1", snippet: "", source: "serper", publishedAt: "1 day ago" },
+      { title: "b", url: "https://a.com/2", snippet: "", source: "serper", publishedAt: "1 day ago" },
+    ]);
+    const fetcher = vi.fn(async () => [] as never[]);
+    const out = await fetchPoolNews([{ query: "cached query", companyIds: ["c1"] }], fetcher, { sleep: async () => {} });
+    const byProvider = Object.fromEntries(out.providerStats.map((s) => [s.provider, s]));
+    expect(byProvider.cache).toEqual({ provider: "cache", results: 2, israeliSources: 1 });
+    expect(byProvider.serper).toBeUndefined();
+  });
+
+  it("still dedupes and unions companyIds for a cache-hit item sharing a url with a fresh one", async () => {
+    getCachedQuery.mockImplementation(async (q: string) => (q === "cached" ? [result("https://a.com/shared")] : null));
+    const fetcher = vi.fn(async () => [result("https://a.com/shared")]);
+    const out = await fetchPoolNews(
+      [
+        { query: "cached", companyIds: ["c1"] },
+        { query: "fresh", companyIds: ["c2"] },
+      ],
+      fetcher,
+      { sleep: async () => {} }
+    );
+    expect(out.items).toHaveLength(1);
+    expect(out.items[0].companyIds.sort()).toEqual(["c1", "c2"]);
   });
 });

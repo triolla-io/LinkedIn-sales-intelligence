@@ -22,6 +22,7 @@ import { fetchGoogleNewsRss } from "@/lib/news/google-news-rss";
 import { normalizeUrl } from "@/lib/fintech-radar/fetch-topic-news";
 import { canonicalizeSourceUrl } from "@/lib/news/canonical-url";
 import { isIsraeliSource } from "@/lib/tech-radar/acceptance";
+import { getCachedQuery, putCachedQuery } from "@/lib/news/query-cache";
 
 /** Recency window for "new technology" — the user's decision: the last month. */
 export const SCAN_WINDOW_DAYS = 30;
@@ -79,10 +80,15 @@ export type PoolQuery = { query: string; companyIds: string[] };
 export type PoolResult = {
   /** Deduped results, each tagged with the companies whose query produced it. */
   items: (NewsResult & { companyIds: string[] })[];
-  /** Distinct queries actually executed. */
+  /** Distinct queries actually executed — the fetcher was called. Excludes cache hits,
+   *  and therefore falls to 0 on a pure retry, which is the number the 2026-08-26
+   *  incident is judged against. */
   queriesRun: number;
-  /** True when every provider returned nothing for at least one query — the
-   *  signature of an exhausted quota rather than a genuinely empty result. */
+  /** Pool entries served from the query cache — no provider call made. */
+  cachedQueries: number;
+  /** True when every EXECUTED query came back empty — the signature of an exhausted
+   *  quota rather than a genuinely empty result. Cache hits are excluded from both
+   *  sides of that comparison: a cached "nothing" says nothing about today's quota. */
   quotaLikely: boolean;
   /**
    * Per-provider tally for the morning report: how many results each NewsResult.source
@@ -130,41 +136,71 @@ export async function fetchPoolNews(
   const providerStats = new Map<string, { provider: string; results: number; israeliSources: number }>();
   let emptyQueries = 0;
   let queriesRun = 0;
+  let cachedQueries = 0;
 
   for (const entry of pool) {
     if (!entry.query.trim()) continue;
-    // Pace BETWEEN queries, never before the first one.
-    if (queriesRun > 0) await sleep(QUERY_GAP_MS);
-    queriesRun += 1;
-    let results = await fetcher(entry.query);
 
-    // Nothing at all usually means the query was too specific rather than that the
-    // subject has no news — retry once, broader, before writing the topic off.
-    //
-    // TEMPORARY (see CLAUDE.md): POOL_RETRY=off makes the cost per pooled query exactly
-    // one provider call. The 2026-08-26 pilot has 28 queries against 31 remaining serper
-    // calls, and the 30-day filter makes an empty result MORE likely — a live probe
-    // returned 2 rows where the untimed query returned 10 — so an unbounded second call
-    // per empty query could take the run past its quota mid-scan. Switched off by
-    // environment rather than deleted: in a normal month a narrow query finding nothing
-    // is a recall problem, which is exactly what this fixes.
-    if (results.length === 0 && (process.env.POOL_RETRY ?? "").trim().toLowerCase() !== "off") {
-      const broader = broadenQuery(entry.query);
-      if (broader) {
-        await sleep(QUERY_GAP_MS);
-        results = await fetcher(broader);
+    // 2026-08-26 incident: an Inngest retry re-ran a whole person-scan from the top and
+    // spent 156 provider calls on 39 queries. A query the cache already answered costs
+    // NOTHING here: no provider call, no QUERY_GAP_MS pace (there is nothing to be
+    // polite to about a call we never make), and no broaden-retry — the cached answer
+    // already reflects whatever a broadened retry would have found the first time.
+    const cached = await getCachedQuery(entry.query);
+    let results: NewsResult[];
+
+    if (cached !== null) {
+      cachedQueries += 1;
+      results = cached;
+
+      // Attributed to a synthetic "cache" row, not the original provider, so the
+      // morning report's provider-call counts stay honest — nothing was called this run.
+      for (const r of results) {
+        const stat = providerStats.get("cache") ?? { provider: "cache", results: 0, israeliSources: 0 };
+        stat.results += 1;
+        if (isIsraeliSource(r.url)) stat.israeliSources += 1;
+        providerStats.set("cache", stat);
       }
-    }
-    if (results.length === 0) emptyQueries += 1;
+    } else {
+      // Pace BETWEEN queries, never before the first one.
+      if (queriesRun > 0) await sleep(QUERY_GAP_MS);
+      queriesRun += 1;
+      results = await fetcher(entry.query);
 
-    // Tallied over every result the fetcher returned, BEFORE the url dedupe below — a
-    // provider gets credit for what it found even when another provider (or an earlier
-    // pooled query) turned up the same story first.
-    for (const r of results) {
-      const stat = providerStats.get(r.source) ?? { provider: r.source, results: 0, israeliSources: 0 };
-      stat.results += 1;
-      if (isIsraeliSource(r.url)) stat.israeliSources += 1;
-      providerStats.set(r.source, stat);
+      // Nothing at all usually means the query was too specific rather than that the
+      // subject has no news — retry once, broader, before writing the topic off.
+      //
+      // TEMPORARY (see CLAUDE.md): POOL_RETRY=off makes the cost per pooled query exactly
+      // one provider call. The 2026-08-26 pilot has 28 queries against 31 remaining serper
+      // calls, and the 30-day filter makes an empty result MORE likely — a live probe
+      // returned 2 rows where the untimed query returned 10 — so an unbounded second call
+      // per empty query could take the run past its quota mid-scan. Switched off by
+      // environment rather than deleted: in a normal month a narrow query finding nothing
+      // is a recall problem, which is exactly what this fixes.
+      if (results.length === 0 && (process.env.POOL_RETRY ?? "").trim().toLowerCase() !== "off") {
+        const broader = broadenQuery(entry.query);
+        if (broader) {
+          await sleep(QUERY_GAP_MS);
+          results = await fetcher(broader);
+        }
+      }
+      if (results.length === 0) emptyQueries += 1;
+
+      // Tallied over every result the fetcher returned, BEFORE the url dedupe below — a
+      // provider gets credit for what it found even when another provider (or an earlier
+      // pooled query) turned up the same story first.
+      for (const r of results) {
+        const stat = providerStats.get(r.source) ?? { provider: r.source, results: 0, israeliSources: 0 };
+        stat.results += 1;
+        if (isIsraeliSource(r.url)) stat.israeliSources += 1;
+        providerStats.set(r.source, stat);
+      }
+
+      // Stored under the ORIGINAL query's key — a retry re-asks the original string, so
+      // that is the key that must hit. Exactly what the fetcher returned, unchanged:
+      // canonicalization is applied below, on the way into byUrl, so a cached and a
+      // fresh path produce byte-identical downstream behaviour.
+      await putCachedQuery(entry.query, results);
     }
 
     for (const r of results) {
@@ -188,8 +224,11 @@ export async function fetchPoolNews(
   return {
     items: [...byUrl.values()],
     queriesRun,
-    // Every single query coming back empty is not a plausible real-world
-    // outcome for 30-day fintech technology queries; it means budgets are gone.
+    cachedQueries,
+    // Every single EXECUTED query coming back empty is not a plausible real-world
+    // outcome for 30-day fintech technology queries; it means budgets are gone. Built
+    // from emptyQueries/queriesRun alone, both of which only ever count entries that
+    // actually hit a provider this run, so a cache hit affects neither side.
     quotaLikely: queriesRun > 0 && emptyQueries === queriesRun,
     providerStats: [...providerStats.values()],
   };

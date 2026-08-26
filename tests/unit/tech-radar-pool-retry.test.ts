@@ -1,6 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
-import { fetchPoolNews } from "@/lib/tech-radar/fetch-pool-news";
 import type { NewsResult } from "@/lib/news/types";
+
+// This file is about the broaden-retry's provider-call accounting, not the query
+// cache — force every entry to a cache miss so two tests that happen to reuse the same
+// literal query string (a normal thing to do across `it` blocks) never see each other's
+// results through a shared row in the real cache table.
+vi.mock("@/lib/news/query-cache", () => ({
+  getCachedQuery: async () => null,
+  putCachedQuery: async () => {},
+}));
+
+const { fetchPoolNews } = await import("@/lib/tech-radar/fetch-pool-news");
 
 /**
  * The broaden-retry fires a SECOND provider call whenever a query comes back empty, and
