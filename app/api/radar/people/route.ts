@@ -20,9 +20,6 @@ import { derivePrepStatus } from "@/lib/tech-radar/prep-status";
  */
 export const NEXT_SCAN_LABEL = "בסריקה הבאה שתריצי";
 
-/** Contacts offered in the add picker. Enough to search, bounded so the payload stays sane. */
-const CANDIDATE_LIMIT = 500;
-
 const PROFILE_SELECT = {
   id: true,
   axes: {
@@ -38,7 +35,9 @@ const PROFILE_SELECT = {
 export const GET = withTenant(async (_req, ctx) => {
   const now = new Date();
 
-  const [people, candidates, employers] = await Promise.all([
+  // Candidates live at ./candidates and are searched in the database — this list polls
+  // while someone is being prepared, and must not carry an address book behind it.
+  const [people, employers] = await Promise.all([
     prisma.contact.findMany({
       where: { ownerId: ctx.effectiveUserId, removedAt: null, radarInclude: true },
       orderBy: { fullName: "asc" },
@@ -47,16 +46,6 @@ export const GET = withTenant(async (_req, ctx) => {
         radarInclude: true, radarAddedAt: true,
         personProfile: { select: PROFILE_SELECT },
       },
-    }),
-    prisma.contact.findMany({
-      where: {
-        ownerId: ctx.effectiveUserId,
-        removedAt: null,
-        OR: [{ radarInclude: false }, { radarInclude: null }],
-      },
-      orderBy: { fullName: "asc" },
-      take: CANDIDATE_LIMIT,
-      select: { id: true, fullName: true, currentTitle: true, currentCompany: true },
     }),
     prisma.trackedCompany.findMany({
       where: { orgId: ctx.org.id },
@@ -102,7 +91,6 @@ export const GET = withTenant(async (_req, ctx) => {
         }),
       };
     }),
-    candidates,
   });
 });
 

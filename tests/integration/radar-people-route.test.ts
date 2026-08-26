@@ -106,18 +106,23 @@ beforeEach(() => {
 });
 
 describe("GET /api/radar/people", () => {
-  it("lists this owner's radar people and offers the rest as candidates", async () => {
-    contactFindMany
-      .mockResolvedValueOnce([radarContact()])
-      .mockResolvedValueOnce([{ id: "ct9", fullName: "Ofir Alon", currentTitle: "CFO", currentCompany: "Delek" }]);
+  it("lists this owner's radar people", async () => {
+    contactFindMany.mockResolvedValueOnce([radarContact()]);
     const body = await ((await listPeople(req())) as Response).json();
     expect(body.people).toHaveLength(1);
     expect(body.people[0].contactId).toBe("ct1");
-    expect(body.candidates[0].id).toBe("ct9");
-    // Both queries must be scoped to the owner.
     for (const call of contactFindMany.mock.calls) {
       expect(call[0].where.ownerId).toBe("owner1");
     }
+  });
+
+  // Candidates moved to ./candidates so they can be searched in the database. This list
+  // polls while someone is being prepared and must not carry an address book with it.
+  it("does not ship the address book with the polled list", async () => {
+    contactFindMany.mockResolvedValueOnce([radarContact()]);
+    const body = await ((await listPeople(req())) as Response).json();
+    expect(body.candidates).toBeUndefined();
+    expect(contactFindMany).toHaveBeenCalledTimes(1);
   });
 
   it("counts only non-muted axes — a muted one is not something he is watched for", async () => {

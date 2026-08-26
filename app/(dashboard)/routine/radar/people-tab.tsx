@@ -7,6 +7,7 @@ import { Button } from "@heroui/react";
 import { Loader2, AlertTriangle, Search, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { fetcher, fetchErrorMessage } from "@/lib/fetcher";
+import { useDebounced } from "@/lib/hooks/use-debounced";
 
 /**
  * The people on the radar. Adding one is a single click; what happens next is shown as
@@ -30,7 +31,16 @@ type Person = {
 
 type Candidate = { id: string; fullName: string; currentTitle: string | null; currentCompany: string | null };
 
-type PeopleResponse = { people: Person[]; candidates: Candidate[] };
+type CandidateResult = {
+  candidates: Candidate[];
+  total: number;
+  /** True when more matched than were returned — said out loud in the picker. */
+  truncated: boolean;
+  /** True before anything is typed: the address book is too big to browse. */
+  needsQuery: boolean;
+};
+
+type PeopleResponse = { people: Person[] };
 
 const INK_2 = "text-[rgba(28,36,48,0.72)]";
 const INK_3 = "text-[rgba(28,36,48,0.5)]";
@@ -162,20 +172,22 @@ function ReadyCard({ person, index }: { person: Person; index: number }) {
   );
 }
 
-function AddPicker({ candidates, onPick, onClose, busyId }: {
-  candidates: Candidate[];
+function AddPicker({ onPick, onClose, busyId }: {
   onPick: (id: string) => void;
   onClose: () => void;
   busyId: string | null;
 }) {
   const [q, setQ] = useState("");
-  const needle = q.trim().toLowerCase();
-  const shown = (needle
-    ? candidates.filter((c) =>
-        `${c.fullName} ${c.currentTitle ?? ""} ${c.currentCompany ?? ""}`.toLowerCase().includes(needle)
-      )
-    : candidates
-  ).slice(0, 40);
+  const debounced = useDebounced(q.trim(), 250);
+
+  // Searched in the database: with tens of thousands of contacts, filtering a page of
+  // them in the browser means most people simply cannot be found.
+  const { data, isLoading } = useSWR<CandidateResult>(
+    `/api/radar/people/candidates?q=${encodeURIComponent(debounced)}`,
+    fetcher,
+    { keepPreviousData: true }
+  );
+  const shown = data?.candidates ?? [];
 
   return (
     <div className="bg-white border border-[rgba(28,36,48,0.1)] rounded-[16px] p-4 mt-4">
@@ -197,9 +209,11 @@ function AddPicker({ candidates, onPick, onClose, busyId }: {
       <div className="mt-3 max-h-[320px] overflow-y-auto">
         {shown.length === 0 ? (
           <p className={cn("text-[13px] py-3", INK_3)}>
-            {candidates.length === 0
-              ? "כל אנשי הקשר שלך כבר במעקב."
-              : "אין איש קשר שמתאים לחיפוש הזה."}
+            {data?.needsQuery
+              ? "הקלידי שם, תפקיד או חברה כדי לחפש באנשי הקשר שלך."
+              : isLoading
+                ? "מחפש…"
+                : "אין איש קשר שמתאים לחיפוש הזה."}
           </p>
         ) : (
           shown.map((c) => (
@@ -220,6 +234,15 @@ function AddPicker({ candidates, onPick, onClose, busyId }: {
           ))
         )}
       </div>
+
+      {/* A cut list is said out loud: a missing name must read as "narrow the search",
+          never as "this person is not in the system". */}
+      {data?.truncated && (
+        <p className={cn("text-[12px] pt-2 border-t border-[rgba(28,36,48,0.06)] mt-1", INK_3)}>
+          מציג <span className="tabular-nums">{shown.length}</span> מתוך{" "}
+          <span className="tabular-nums">{data.total}</span> התאמות — כדאי לצמצם את החיפוש.
+        </p>
+      )}
     </div>
   );
 }
@@ -313,7 +336,6 @@ export function PeopleTab() {
 
       {picking && (
         <AddPicker
-          candidates={data.candidates}
           onPick={(id) => void add(id)}
           onClose={() => setPicking(false)}
           busyId={busyId}
