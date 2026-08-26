@@ -308,6 +308,20 @@ describe("PROFILE_SYSTEM four-layer cake", () => {
     expect(PROFILE_SYSTEM).toMatch(/dateIso/);
     expect(PROFILE_SYSTEM).toMatch(/"kind":"found"\|"derived"/);
   });
+
+  /**
+   * The skeleton is the thing a model copies. Shipping a layer-2 example that carries a
+   * date contradicts the instruction twenty lines above it ("Omit dateIso for layer 2"),
+   * and the parser passes any dateIso through untouched — so a fabricated date would ride
+   * a layer-2 axis with nothing downstream to catch it. The skeleton must show the field
+   * as it actually varies.
+   */
+  it("never shows a dated layer-2 example in the JSON skeleton", () => {
+    expect(PROFILE_SYSTEM).toContain('"layerEvidence":{"layer":2|3');
+    expect(PROFILE_SYSTEM).not.toMatch(/"layer":2,"quote":"\.\.\.","dateIso"/);
+    expect(PROFILE_SYSTEM).toMatch(/layer 3 ONLY, omitted on layer 2/);
+    expect(PROFILE_SYSTEM).toMatch(/Omit dateIso for layer 2/);
+  });
 });
 
 /**
@@ -428,6 +442,20 @@ describe("parseProfileResponse domains", () => {
     );
     expect(draft?.domains).toHaveLength(1);
     expect(draft?.axes[0].domain).toBe("חוויית לקוח דיגיטלית");
+  });
+
+  it("stores the domain as the domains list spells it, not as the axis spelled it", () => {
+    // Matching is case/space-insensitive, so this axis is kept — but a later exact-string
+    // join between PersonAxis.domain and PersonProfile.domains[].domain would miss the
+    // variant, so the canonical form is what gets persisted.
+    const draft = parseProfileResponse(
+      JSON.stringify({
+        ...base,
+        domains: validDomains,
+        axes: [{ ...validAxes[0], domain: "  ההיצע   הקמעונאי " }],
+      })
+    );
+    expect(draft?.axes[0].domain).toBe("ההיצע הקמעונאי");
   });
 
   it("drops an axis whose domain names no mapped field", () => {

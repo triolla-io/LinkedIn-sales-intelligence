@@ -135,7 +135,8 @@ export type AxisProposal = {
   /** Which staged question this axis came from. Required — an axis without one is dropped. */
   stage: AxisStage;
   /**
-   * Which layer-4 field this axis is about. MUST name one of the parsed `domains` —
+   * Which layer-4 field this axis is about, in the CANONICAL spelling from `domains`
+   * (matching is case/space-insensitive, storage is not). MUST name one of them —
    * an axis about a field the model never showed a source or a crossing for is precisely
    * the guess the layer cake exists to prevent, so it is dropped as `no_domain`.
    */
@@ -261,7 +262,7 @@ Then return:
      * For a report-hunting query, name the kind of thing: "outlook report", "industry survey", "regulatory ruling", "market outlook".
 
 Return strict JSON only — no prose, no fences:
-{"reasoning":"...","roleLens":"...","domains":[{"domain":"...","kind":"found"|"derived","source":"title"|"headline"|"about"|"experience"|"post"|null,"evidence":"..."}],"axes":[{"label":"...","stage":"decision"|"competitor"|"stop_and_read"|"adopt","domain":"...","layerEvidence":{"layer":2,"quote":"...","dateIso":"YYYY-MM-DD"},"personDecision":"...","companyFact":"...","externalExample":"...","agenda":true,"searchQueries":["..."],"rationale":"..."}]}`;
+{"reasoning":"...","roleLens":"...","domains":[{"domain":"...","kind":"found"|"derived","source":"title"|"headline"|"about"|"experience"|"post"|null,"evidence":"..."}],"axes":[{"label":"...","stage":"decision"|"competitor"|"stop_and_read"|"adopt","domain":"...","layerEvidence":{"layer":2|3,"quote":"...","dateIso":"YYYY-MM-DD" — layer 3 ONLY, omitted on layer 2},"personDecision":"...","companyFact":"...","externalExample":"...","agenda":true,"searchQueries":["..."],"rationale":"..."}]}`;
 
 export type PersonProfileInput = {
   fullName: string;
@@ -447,7 +448,13 @@ export function parseProfileResponseWithReason(
   // Layer 4 first: the fields of work are what the axes point at, so an unusable field
   // takes its axes with it rather than leaving an axis pointing at nothing.
   const domains: PersonDomain[] = [];
-  const domainKeys = new Set<string>();
+  /**
+   * Canonical form per matching key, so an axis stores the domain as the domains list
+   * spells it rather than as that axis happened to spell it. Matching is already
+   * case/space-insensitive; persisting the variant would let a later exact-string join
+   * between PersonAxis.domain and PersonProfile.domains[].domain miss.
+   */
+  const domainKeys = new Map<string, string>();
   for (const row of Array.isArray(parsed?.domains) ? parsed.domains : []) {
     const o = (row ?? {}) as Record<string, unknown>;
     const domain = str(o.domain);
@@ -481,7 +488,7 @@ export function parseProfileResponseWithReason(
       drop("duplicate_domain");
       continue;
     }
-    domainKeys.add(dk);
+    domainKeys.set(dk, domain);
     // Source is forced to null on a derived field: if the person's data showed it, the
     // field was found, and the two kinds must not blur at the edges.
     domains.push({ domain, kind, source: kind === "found" ? source : null, evidence });
@@ -520,7 +527,8 @@ export function parseProfileResponseWithReason(
     // AND quote the layer-2/3 fact that field met. Either one missing means the chain was
     // asserted rather than walked, and the axis carries no evidence anyone can check.
     const domain = str(o.domain);
-    if (!domain || !domainKeys.has(domainKey(domain))) {
+    const canonicalDomain = domain ? domainKeys.get(domainKey(domain)) : undefined;
+    if (canonicalDomain === undefined) {
       drop("no_domain");
       continue;
     }
@@ -559,7 +567,7 @@ export function parseProfileResponseWithReason(
       companyFact: str(o.companyFact),
       externalExample: str(o.externalExample),
       stage: stage as AxisStage,
-      domain,
+      domain: canonicalDomain,
       layerEvidence: dateIso ? { layer, quote, dateIso } : { layer, quote },
       agenda: o.agenda === true,
     });
