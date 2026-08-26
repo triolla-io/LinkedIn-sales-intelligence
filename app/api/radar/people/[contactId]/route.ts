@@ -131,7 +131,10 @@ export const GET = withTenant(async (req: NextRequest, ctx) => {
       hasEmployer: employer != null,
       employerStatus: employer?.status ?? null,
       employerError: employer?.profileError ?? null,
-      axisCount: live.length,
+      // The shared industry net (layer 1) is not one of THIS person's own axes for the
+      // purpose of "was this person modelled" — see the comment on derivePrepStatus's
+      // axisCount param.
+      axisCount: live.filter((a) => a.source !== "INDUSTRY").length,
       hasProfile: contact.personProfile != null,
       nextScanLabel: NEXT_SCAN_LABEL,
       now: new Date(),

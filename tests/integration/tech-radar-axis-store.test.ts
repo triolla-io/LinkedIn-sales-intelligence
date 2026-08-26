@@ -37,8 +37,9 @@ vi.mock("@/lib/tech-radar/axis-merge", () => ({
   resolveMergeQuestions: (...a: unknown[]) => resolveMergeQuestions(...a),
 }));
 
-const { attachAxes, ensureCompanyMonitorAxis } = await import("@/lib/tech-radar/axis-store");
-const { normalizeAxisKey, MAX_AXES_PER_ORG, MAX_AXES_PER_PERSON } = await import("@/lib/tech-radar/axis");
+const { attachAxes, ensureCompanyMonitorAxis, ensureIndustryAxis } = await import("@/lib/tech-radar/axis-store");
+const { normalizeAxisKey, industryKey, MAX_AXES_PER_ORG, MAX_AXES_PER_PERSON } = await import("@/lib/tech-radar/axis");
+const { MAX_INDUSTRY_QUERIES } = await import("@/lib/tech-radar/types");
 
 const proposal = (label: string, rationale = "כי הוא בנה את זה") => ({
   label,
@@ -90,12 +91,17 @@ const HAPOALIM_ROW = {
   profile: { namedCompetitors: HAPOALIM.namedCompetitors },
 };
 
-/** An existing axis and the employer its subscribers work at. */
-function ownedAxis(id: string, label: string, employerId: string | null) {
+/**
+ * An existing axis and the employer its subscribers work at. Defaults to ROLE_COMPANY —
+ * every fixture in this file predates the `kind` field the layer-cake schema added, and
+ * these rows are, in reality, ordinary subject axes.
+ */
+function ownedAxis(id: string, label: string, employerId: string | null, kind: string = "ROLE_COMPANY") {
   return {
     id,
     key: normalizeAxisKey(label),
     label,
+    kind,
     people: [{ personProfile: { employerTrackedCompanyId: employerId } }],
   };
 }
@@ -128,7 +134,7 @@ describe("attachAxes", () => {
   /** The point of the gate: a second person proposing the same subject joins, not mints. */
   it("attaches to an existing axis instead of creating a synonym", async () => {
     axisFindMany.mockResolvedValue([
-      { id: "ax-existing", key: normalizeAxisKey("זיהוי הונאות"), label: "זיהוי הונאות" },
+      { id: "ax-existing", key: normalizeAxisKey("זיהוי הונאות"), label: "זיהוי הונאות", kind: "ROLE_COMPANY" },
     ]);
     const out = await attachAxes({ orgId: "org1", personProfileId: "pp2", employer: HAPOALIM, proposals: [proposal("הונאות זיהוי")] });
     expect(out).toMatchObject({ created: 0, merged: 1, attached: 1 });
@@ -157,7 +163,7 @@ describe("attachAxes", () => {
 
   it("stops creating at the org ceiling, and says so when nothing is near", async () => {
     axisFindMany.mockResolvedValue(
-      Array.from({ length: MAX_AXES_PER_ORG }, (_, i) => ({ id: `a${i}`, key: `k${i}`, label: `נושא ייחודי מספר ${i}` }))
+      Array.from({ length: MAX_AXES_PER_ORG }, (_, i) => ({ id: `a${i}`, key: `k${i}`, label: `נושא ייחודי מספר ${i}`, kind: "ROLE_COMPANY" }))
     );
     const out = await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [proposal("אנרגיה מתחדשת")] });
     expect(axisCreate).not.toHaveBeenCalled();
@@ -172,8 +178,8 @@ describe("attachAxes", () => {
    */
   it("folds a ceiling-hit proposal into a genuinely near axis", async () => {
     axisFindMany.mockResolvedValue([
-      { id: "ax-fraud", key: normalizeAxisKey("זיהוי הונאות בתשלומים"), label: "זיהוי הונאות בתשלומים" },
-      ...Array.from({ length: MAX_AXES_PER_ORG - 1 }, (_, i) => ({ id: `a${i}`, key: `k${i}`, label: `נושא ייחודי ${i}` })),
+      { id: "ax-fraud", key: normalizeAxisKey("זיהוי הונאות בתשלומים"), label: "זיהוי הונאות בתשלומים", kind: "ROLE_COMPANY" },
+      ...Array.from({ length: MAX_AXES_PER_ORG - 1 }, (_, i) => ({ id: `a${i}`, key: `k${i}`, label: `נושא ייחודי ${i}`, kind: "ROLE_COMPANY" })),
     ]);
     const out = await attachAxes({
       orgId: "org1",
@@ -236,7 +242,7 @@ describe("ensureCompanyMonitorAxis", () => {
  * subject at one company; these pin that it is now consulted and obeyed.
  */
 describe("attachAxes level-3 merge", () => {
-  const live = { id: "ax-live", key: normalizeAxisKey("עיכוב בהעברת נתונים חי וגודל תפוקה"), label: "עיכוב בהעברת נתונים חי וגודל תפוקה" };
+  const live = { id: "ax-live", key: normalizeAxisKey("עיכוב בהעברת נתונים חי וגודל תפוקה"), label: "עיכוב בהעברת נתונים חי וגודל תפוקה", kind: "ROLE_COMPANY" };
 
   it("attaches to the axis the model named, instead of creating a duplicate", async () => {
     axisFindMany.mockResolvedValue([live]);
@@ -272,7 +278,7 @@ describe("attachAxes level-3 merge", () => {
   /** A free exact-key hit must not spend a call. */
   it("does not ask about a proposal the free levels already settled", async () => {
     axisFindMany.mockResolvedValue([
-      { id: "ax-fraud", key: normalizeAxisKey("זיהוי הונאות"), label: "זיהוי הונאות" },
+      { id: "ax-fraud", key: normalizeAxisKey("זיהוי הונאות"), label: "זיהוי הונאות", kind: "ROLE_COMPANY" },
     ]);
     await attachAxes({ orgId: "org1", personProfileId: "pp2", employer: HAPOALIM, proposals: [proposal("הונאות זיהוי")] });
     expect(resolveMergeQuestions).not.toHaveBeenCalled();
@@ -468,5 +474,251 @@ describe("attachAxes competitive-set gate", () => {
       proposals: [proposal("נושא חדש לגמרי")],
     });
     expect(resolveMergeQuestions.mock.calls[0][0].map((e: { id: string }) => e.id)).toEqual(["ax-role"]);
+  });
+});
+
+/**
+ * Layer 1: the shared industry net. One RadarAxis per (org × industry canonical), so N
+ * employers in the same industry pay for one set of queries instead of N. Mirrors
+ * ensureCompanyMonitorAxis's structural-key upsert (a real prisma.radarAxis.upsert, not a
+ * findUnique-then-create — that shape raced two concurrent Inngest functions over the
+ * same org and crashed the whole build on a lost race; 2026-08-26 review, Important 3),
+ * but this one ALSO writes the PersonAxis link — a company monitor has no per-person
+ * subscriber to attach, an industry net does.
+ */
+describe("ensureIndustryAxis", () => {
+  it("upserts one shared axis and subscribes the person: agenda false, weight 0.5, source INDUSTRY", async () => {
+    axisUpsert.mockResolvedValueOnce({ id: "ax-industry" });
+
+    const axisId = await ensureIndustryAxis({
+      orgId: "org1",
+      personProfileId: "pp1",
+      industry: { canonical: "בנקאות", queries: ["ריבית בנק ישראל", "רגולציה בנקאית 2026"] },
+    });
+
+    expect(axisId).toBe("ax-industry");
+    expect(axisUpsert.mock.calls[0][0].where.orgId_key).toEqual({ orgId: "org1", key: industryKey("בנקאות") });
+    expect(axisUpsert.mock.calls[0][0].create).toMatchObject({
+      orgId: "org1",
+      key: industryKey("בנקאות"),
+      label: "ענף: בנקאות",
+      kind: "INDUSTRY",
+      searchQueries: ["ריבית בנק ישראל", "רגולציה בנקאית 2026"],
+    });
+    expect(personAxisUpsert.mock.calls[0][0].create).toMatchObject({
+      personProfileId: "pp1",
+      axisId: "ax-industry",
+      source: "INDUSTRY",
+      agenda: false,
+      weight: 0.5,
+      rationale: "שאילתות ענף משותפות — בנקאות",
+    });
+  });
+
+  it("caps searchQueries at MAX_INDUSTRY_QUERIES", async () => {
+    axisUpsert.mockResolvedValueOnce({ id: "ax-industry" });
+    await ensureIndustryAxis({
+      orgId: "org1",
+      personProfileId: "pp1",
+      industry: { canonical: "בנקאות", queries: ["a", "b", "c", "d", "e", "f", "g"] },
+    });
+    expect(axisUpsert.mock.calls[0][0].create.searchQueries).toHaveLength(MAX_INDUSTRY_QUERIES);
+  });
+
+  /** The point of the net: a second employer's person joins the existing axis, not a duplicate. */
+  it("joins the existing axis on a second call — one upsert, no duplicate axis", async () => {
+    axisUpsert.mockResolvedValueOnce({ id: "ax-industry" });
+
+    const axisId = await ensureIndustryAxis({
+      orgId: "org1",
+      personProfileId: "pp2",
+      industry: { canonical: "בנקאות", queries: ["ריבית בנק ישראל"] },
+    });
+
+    expect(axisId).toBe("ax-industry");
+    expect(axisCreate).not.toHaveBeenCalled();
+    expect(personAxisUpsert.mock.calls[0][0].where.personProfileId_axisId).toEqual({
+      personProfileId: "pp2",
+      axisId: "ax-industry",
+    });
+  });
+
+  /**
+   * Unlike ensureCompanyMonitorAxis's `update: {}`, an industry axis's queries ARE
+   * refreshed on every call — research can improve an industry's query set between
+   * runs, and the net should carry the latest one rather than whatever it happened to
+   * be built with first (2026-08-26 review, Minor finding).
+   */
+  it("refreshes searchQueries to the latest set even when the axis already exists", async () => {
+    axisUpsert.mockResolvedValueOnce({ id: "ax-industry" });
+    await ensureIndustryAxis({
+      orgId: "org1",
+      personProfileId: "pp2",
+      industry: { canonical: "בנקאות", queries: ["ריבית עדכנית"] },
+    });
+    expect(axisUpsert.mock.calls[0][0].update).toEqual({ searchQueries: ["ריבית עדכנית"] });
+  });
+
+  /** Re-running for the same person must not clobber a weight the learning loop moved. */
+  it("does not touch weight on a repeat call for the same person", async () => {
+    axisUpsert.mockResolvedValueOnce({ id: "ax-industry" });
+    await ensureIndustryAxis({
+      orgId: "org1",
+      personProfileId: "pp1",
+      industry: { canonical: "בנקאות", queries: ["ריבית בנק ישראל"] },
+    });
+    expect(personAxisUpsert.mock.calls[0][0].update).toEqual({});
+  });
+
+  /** Two spellings of the same industry land on the same key — the sharing mechanism. */
+  it("upserts by the same canonical key industryKey() produces", async () => {
+    axisUpsert.mockResolvedValueOnce({ id: "ax-industry" });
+    await ensureIndustryAxis({
+      orgId: "org1",
+      personProfileId: "pp3",
+      industry: { canonical: "Israeli Banking / בנקאות ישראל", queries: ["q"] },
+    });
+    expect(axisUpsert.mock.calls[0][0].where.orgId_key).toEqual({
+      orgId: "org1",
+      key: industryKey("בנקאות ישראל / Israeli banking"),
+    });
+  });
+
+  it("skips a blank canonical rather than minting a degenerate axis", async () => {
+    const axisId = await ensureIndustryAxis({
+      orgId: "org1",
+      personProfileId: "pp1",
+      industry: { canonical: "   ", queries: ["q"] },
+    });
+    expect(axisId).toBeNull();
+    expect(axisUpsert).not.toHaveBeenCalled();
+    expect(personAxisUpsert).not.toHaveBeenCalled();
+  });
+
+  /**
+   * An all-filler canonical normalises to an empty key ("industry:" with nothing after
+   * it) — a real, collision-prone key that every such canonical would share, however
+   * different the source text (2026-08-26 review, Minor finding).
+   */
+  it("skips a canonical that normalises to nothing (all filler words)", async () => {
+    const axisId = await ensureIndustryAxis({
+      orgId: "org1",
+      personProfileId: "pp1",
+      industry: { canonical: "the of and", queries: ["q"] },
+    });
+    expect(axisId).toBeNull();
+    expect(axisUpsert).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * The merge catalog excludes INDUSTRY exactly as it excludes COMPANY_MONITOR: a net is
+ * not a subject, and a ROLE_COMPANY proposal can never merge into it, however alike the
+ * labels look. Same failure mode as the COMPANY_MONITOR tests above, on the other kind.
+ */
+describe("attachAxes excludes INDUSTRY from the merge catalog", () => {
+  it("never folds a proposal into an INDUSTRY axis, however alike the labels", async () => {
+    axisFindMany.mockResolvedValue([
+      { id: "ax-ind", key: industryKey("בנקאות"), label: "ענף: בנקאות", kind: "INDUSTRY", people: [] },
+    ]);
+    resolveMergeQuestions.mockResolvedValue(new Map([[0, "ax-ind"]]));
+
+    const out = await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp1",
+      employer: HAPOALIM,
+      proposals: [proposal("בנקאות")],
+    });
+
+    expect(out).toMatchObject({ created: 1, merged: 0, refused: 1 });
+    expect(out.mergeRefused[0].reason).toContain("industry_net");
+  });
+
+  /** The model must not even be offered an INDUSTRY axis as a merge target. */
+  it("keeps INDUSTRY axes out of the question the model is asked, same as COMPANY_MONITOR", async () => {
+    axisFindMany.mockResolvedValue([
+      { id: "ax-ind", key: industryKey("בנקאות"), label: "ענף: בנקאות", kind: "INDUSTRY", people: [] },
+      ownedAxis("ax-role", "אימוץ מוצרי B2C מענפים אחרים", "tc-hapoalim"),
+    ]);
+    trackedCompanyFindMany.mockResolvedValue([HAPOALIM_ROW]);
+
+    await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp-erez",
+      employer: HAPOALIM,
+      proposals: [proposal("נושא חדש לגמרי")],
+    });
+
+    expect(resolveMergeQuestions.mock.calls[0][0].map((e: { id: string }) => e.id)).toEqual(["ax-role"]);
+  });
+
+  it("exact-key hit still exempt: an identical INDUSTRY key label still cannot become a merge target", async () => {
+    // RadarAxis is unique on [orgId, key] — but a ROLE_COMPANY proposal normalises to a
+    // DIFFERENT key ("בנקאות") than the industry axis's namespaced key
+    // ("industry:בנקאות"), so the two can never collide at level 1 either.
+    axisFindMany.mockResolvedValue([
+      { id: "ax-ind", key: industryKey("בנקאות"), label: "ענף: בנקאות", kind: "INDUSTRY", people: [] },
+    ]);
+    const out = await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp1",
+      employer: HAPOALIM,
+      proposals: [proposal("בנקאות")],
+    });
+    expect(axisCreate).toHaveBeenCalled();
+    expect(out.created).toBe(1);
+  });
+});
+
+/**
+ * The ceiling exemption: an INDUSTRY axis is a shared net, not a subject, so it must not
+ * spend the org's MAX_AXES_PER_ORG budget. Verified in code on 2026-08-26: `attachAxes`
+ * counted ALL active axes regardless of kind, so a growing industry net would eventually
+ * crowd out the org's own subject axes.
+ *
+ * COMPANY_MONITOR is deliberately NOT exempted here — it still counts. That is
+ * pre-existing behaviour (one axis per tracked company) and out of this task's scope;
+ * flagged to the user rather than changed in passing.
+ */
+describe("attachAxes ceiling exemption for INDUSTRY", () => {
+  it("creates past MAX_AXES_PER_ORG - 1 ROLE_COMPANY axes when the rest of the room is INDUSTRY nets", async () => {
+    axisFindMany.mockResolvedValue([
+      ...Array.from({ length: MAX_AXES_PER_ORG - 1 }, (_, i) => ({
+        id: `r${i}`, key: `k${i}`, label: `נושא ייחודי ${i}`, kind: "ROLE_COMPANY",
+      })),
+      ...Array.from({ length: 5 }, (_, i) => ({
+        id: `ind${i}`, key: `industry:k${i}`, label: `ענף ${i}`, kind: "INDUSTRY", people: [],
+      })),
+    ]);
+
+    const out = await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp1",
+      employer: HAPOALIM,
+      proposals: [proposal("אנרגיה מתחדשת")],
+    });
+
+    expect(axisCreate).toHaveBeenCalled();
+    expect(out.skipped).toHaveLength(0);
+  });
+
+  /** The companion case: MAX_AXES_PER_ORG ROLE_COMPANY axes still refuses, INDUSTRY rows or not. */
+  it("still refuses at MAX_AXES_PER_ORG ROLE_COMPANY axes, regardless of how many INDUSTRY axes exist", async () => {
+    axisFindMany.mockResolvedValue([
+      ...Array.from({ length: MAX_AXES_PER_ORG }, (_, i) => ({
+        id: `r${i}`, key: `k${i}`, label: `נושא ייחודי ${i}`, kind: "ROLE_COMPANY",
+      })),
+      { id: "ind0", key: "industry:k0", label: "ענף 0", kind: "INDUSTRY", people: [] },
+    ]);
+
+    const out = await attachAxes({
+      orgId: "org1",
+      personProfileId: "pp1",
+      employer: HAPOALIM,
+      proposals: [proposal("אנרגיה מתחדשת")],
+    });
+
+    expect(axisCreate).not.toHaveBeenCalled();
+    expect(out.skipped[0].reason).toBe("org_ceiling");
   });
 });

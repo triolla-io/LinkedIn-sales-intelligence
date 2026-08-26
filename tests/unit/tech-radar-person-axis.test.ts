@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { parseProfileResponse, clampPersonalNotes, PROFILE_SYSTEM, MAX_PERSONAL_NOTES } from "@/lib/tech-radar/person-profile";
 import { parseAxisFit, buildAxisQueryPool, AXIS_FIT_SYSTEM } from "@/lib/tech-radar/axis-fit";
-import { normalizeAxisKey, MAX_AXES_PER_PERSON } from "@/lib/tech-radar/axis";
+import { normalizeAxisKey, industryKey, MAX_AXES_PER_PERSON } from "@/lib/tech-radar/axis";
 
 /**
  * The fixture carries the declared crossing — stage, personDecision, companyFact —
@@ -28,6 +28,26 @@ const axis = (label: string, rationale = "כי הוא בנה את זה", queries
 const DOMAINS = JSON.stringify([
   { domain: "מנוע דירוג", kind: "found", source: "title", evidence: "Head of Ranking" },
 ]);
+
+/**
+ * INDUSTRY is layer 1: one shared axis per (org × industry), so N employers in the same
+ * industry pay for one set of queries instead of N. The sharing mechanism is the SAME
+ * token-sort that already merges "זיהוי הונאות" and "הונאות זיהוי" for ROLE_COMPANY axes
+ * — industryKey just namespaces it so a company's canonical industry string can never
+ * collide with a role-and-company subject's key.
+ */
+describe("industryKey", () => {
+  it("shares one net across both word orders — the normalizeAxisKey token-sort IS the mechanism", () => {
+    expect(industryKey("בנקאות ישראל / Israeli banking")).toBe(
+      industryKey("Israeli Banking / בנקאות ישראל")
+    );
+  });
+
+  it("is the normalized canonical form, namespaced so it cannot collide with a ROLE_COMPANY key", () => {
+    expect(industryKey("בנקאות")).toBe(`industry:${normalizeAxisKey("בנקאות")}`);
+    expect(industryKey("בנקאות")).not.toBe(normalizeAxisKey("בנקאות"));
+  });
+});
 
 describe("PROFILE_SYSTEM", () => {
   /** v1's whole failure was answering "what does this person own?" with the company. */

@@ -37,6 +37,13 @@ export function derivePrepStatus(input: {
   hasEmployer: boolean;
   employerStatus: EmployerStatus | null;
   employerError: string | null;
+  /**
+   * The person's OWN axes — callers MUST exclude INDUSTRY. An industry axis is a
+   * shared net, not a subject (same principle as the MAX_AXES_PER_ORG ceiling
+   * exemption in lib/tech-radar/axis-store.ts): a person subscribed to nothing but
+   * their industry's shared net has not actually been modelled, and reporting them
+   * `ready` would hide that their own axis-building stalled or produced nothing.
+   */
   axisCount: number;
   hasProfile: boolean;
   nextScanLabel: string;
