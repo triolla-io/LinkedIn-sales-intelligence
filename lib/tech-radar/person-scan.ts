@@ -150,8 +150,18 @@ export type PersonScanReport = {
    */
   articlesByLayer: { layer1: number; layer3: number; layer4: number };
   /**
-   * Labels of COMPANY_MONITOR (layer-3) axes dropped from THIS run's query pool because
-   * every subscriber's "what occupies them now" fact aged past LAYER3_QUERY_TTL_DAYS.
+   * Labels of axes dropped from THIS run's query pool because every subscriber's
+   * layer-3 "what occupies them now" fact (`PersonAxis.evidence.layerEvidence`) aged
+   * past LAYER3_QUERY_TTL_DAYS.
+   *
+   * In practice this only ever fires on ROLE_COMPANY axes, never on COMPANY_MONITOR
+   * ones: `ensureCompanyMonitorAxis` (axis-store.ts) attaches no per-person link at all
+   * — a company monitor belongs to the employer, not a subscriber — so a COMPANY_MONITOR
+   * axis can never even reach this check, despite COMPANY_MONITOR being the axis KIND
+   * `layers.ts` calls "layer 3". This is a genuine naming quirk, not a bug: the same
+   * ROLE_COMPANY axis is "layer 3" here (its evidence quoted a dated fact) but "layer 4"
+   * for `passesLayerFloor`/`articlesByLayer` purposes (its axis KIND is ROLE_COMPANY).
+   *
    * The axis itself is untouched — a future re-research can refresh the fact and bring
    * it back — this only says it contributed no query today.
    */
@@ -177,10 +187,24 @@ function countBy(reasons: string[]): Record<string, number> {
 }
 
 /**
+ * True unless EVERY one of an axis's subscribers has an expired layer-3 fact
+ * (`layer3Expired`, layers.ts). Shared by `personScan` and `poolQueryCount` so the two
+ * cannot drift — see the "Layer-3 query TTL" comment at the personScan call site for why
+ * this only ever excludes ROLE_COMPANY axes in practice.
+ */
+function isPoolEligible(people: { evidence: unknown }[], now: Date): boolean {
+  return !(people.length > 0 && people.every((p) => layer3Expired(p.evidence, now)));
+}
+
+/**
  * What the NEXT scan would ask the providers for, without asking them.
  *
  * The same builder, normalizer and per-axis cap the run itself uses — a second
  * implementation would drift and the number would stop being the one that gets billed.
+ * That now includes the layer-3 query TTL: an axis the scan would exclude from the pool
+ * (every subscriber's dated fact gone stale) must be excluded here too, or this number
+ * overstates what the run actually spends — which defeats the reason this function
+ * exists, since a human budgets a nearly-exhausted news quota against it.
  *
  * This exists because the competitive-set gate (2026-08-26) stopped merging axes between
  * companies that do not share competitors, and the whole bet is that the saving was never
@@ -191,9 +215,11 @@ export async function poolQueryCount(orgId: string): Promise<{ axes: number; uni
   const axes = await prisma.radarAxis.findMany({
     // Subscriber-less axes contribute no query, exactly as in the run below.
     where: { orgId, status: "ACTIVE", people: { some: {} } },
-    select: { id: true, searchQueries: true },
+    select: { id: true, searchQueries: true, people: { select: { evidence: true } } },
   });
-  const pool = buildAxisQueryPool(axes, normalizeQuery, MAX_QUERIES_PER_AXIS);
+  const now = new Date();
+  const poolEligibleAxes = axes.filter((a) => isPoolEligible(a.people, now));
+  const pool = buildAxisQueryPool(poolEligibleAxes, normalizeQuery, MAX_QUERIES_PER_AXIS);
   return { axes: axes.length, uniqueQueries: pool.length };
 }
 
@@ -306,17 +332,22 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   });
   if (axes.length === 0) return finish(EMPTY);
 
-  // Layer-3 query TTL (layers.ts LAYER3_QUERY_TTL_DAYS): a COMPANY_MONITOR axis was
-  // built from a dated "what occupies them now" fact, and that fact was time-bound —
-  // once EVERY subscriber's copy of it has gone stale, the axis stops asking for
-  // queries this run. One subscriber whose fact is still fresh (or who was never linked
-  // by a layer-3 fact at all — layer3Expired returns false on anything that isn't a
-  // genuinely expired layer-3 date) is enough to keep the axis in the pool.
+  // Layer-3 query TTL (layers.ts LAYER3_QUERY_TTL_DAYS): an axis whose evidence named a
+  // dated "what occupies them now" fact was built from something time-bound — once EVERY
+  // subscriber's copy of that fact has gone stale, the axis stops asking for queries this
+  // run. In practice this only ever fires on ROLE_COMPANY axes: a COMPANY_MONITOR axis
+  // never gets a PersonAxis subscriber at all (`ensureCompanyMonitorAxis` attaches no
+  // per-person link — axis-store.ts), so it can never reach this check, despite
+  // COMPANY_MONITOR being the axis KIND `layers.ts` calls "layer 3". The naming is a real
+  // quirk, not a bug: the same ROLE_COMPANY axis is "layer 3" here (its evidence quoted a
+  // dated fact) but "layer 4" for `passesLayerFloor`/`articlesByLayer` purposes (its axis
+  // KIND is ROLE_COMPANY). One subscriber whose fact is still fresh (or who was never
+  // linked by a layer-3 fact at all — layer3Expired returns false on anything that isn't
+  // a genuinely expired layer-3 date) is enough to keep the axis in the pool.
   const scanStart = new Date();
   const expiredLayer3Labels: string[] = [];
   const poolEligibleAxes = axes.filter((a) => {
-    const allExpired = a.people.length > 0 && a.people.every((p) => layer3Expired(p.evidence, scanStart));
-    if (allExpired) {
+    if (!isPoolEligible(a.people, scanStart)) {
       expiredLayer3Labels.push(a.label);
       return false;
     }

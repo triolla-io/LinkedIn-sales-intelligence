@@ -64,12 +64,18 @@ function subscribedAxis() {
   return {
     id: "a1",
     label: "חבות RIN",
+    // ROLE_COMPANY: mirrors the real select (which now includes `kind`) and the
+    // production-realistic case — a layer-4 axis, so passesLayerFloor never gates it.
+    kind: "ROLE_COMPANY",
     searchQueries: ["RIN obligations refiners"],
     weight: 1,
     people: [
       {
         weight: 1,
         rationale: "הוא מחזיק בהחלטת התפוקה",
+        // No layer-3 evidence by default — mirrors the real select (which now includes
+        // `evidence`) without implying a stale (or any) dated fact.
+        evidence: null,
         personProfile: {
           contactId: "ct1",
           roleLens: "CEO",
@@ -379,9 +385,9 @@ describe("poolQueryCount", () => {
   it("counts distinct query strings, not axes", async () => {
     const shared = subscribedAxis();
     axisFindMany.mockResolvedValue([
-      { id: "a1", searchQueries: shared.searchQueries },
-      { id: "a2", searchQueries: shared.searchQueries },
-      { id: "a3", searchQueries: ["בנקאות פתוחה ישראל", "open banking Israel"] },
+      { id: "a1", searchQueries: shared.searchQueries, people: [] },
+      { id: "a2", searchQueries: shared.searchQueries, people: [] },
+      { id: "a3", searchQueries: ["בנקאות פתוחה ישראל", "open banking Israel"], people: [] },
     ]);
     expect(await poolQueryCount("org1")).toEqual({ axes: 3, uniqueQueries: 3 });
   });
@@ -394,5 +400,28 @@ describe("poolQueryCount", () => {
       status: "ACTIVE",
       people: { some: {} },
     });
+  });
+
+  /**
+   * Fix round 1 (2026-08-27): poolQueryCount originally did not mirror personScan's
+   * layer-3 query TTL filter, so it overstated what the run would actually spend —
+   * exactly the number a human budgets a nearly-exhausted news quota against. Same
+   * fixture shape as the "personScan layer-3 query TTL" describe block above.
+   */
+  it("excludes an axis whose every subscriber's layer-3 fact is expired, exactly as personScan would", async () => {
+    const staleDateIso = new Date(Date.now() - 50 * 86_400_000).toISOString();
+    axisFindMany.mockResolvedValue([
+      {
+        id: "a1",
+        searchQueries: ["RIN obligations refiners"],
+        people: [{ evidence: { layerEvidence: { layer: 3, quote: "q", dateIso: staleDateIso } } }],
+      },
+      {
+        id: "a2",
+        searchQueries: ["open banking Israel"],
+        people: [{ evidence: null }],
+      },
+    ]);
+    expect(await poolQueryCount("org1")).toEqual({ axes: 2, uniqueQueries: 1 });
   });
 });

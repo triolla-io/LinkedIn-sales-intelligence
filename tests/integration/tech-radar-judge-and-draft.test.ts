@@ -51,7 +51,10 @@ function axisWithMatches(
   return {
     id: opts.axisId ?? "a1",
     label: "ציר",
-    kind: opts.kind,
+    // ROLE_COMPANY by default: the production-realistic case, and the one value that
+    // makes deepestLayer -> 4 so passesLayerFloor never gates these tests unless a test
+    // deliberately overrides kind to exercise the industry floor.
+    kind: opts.kind ?? "ROLE_COMPANY",
     people: [
       {
         weight: 1,
@@ -355,6 +358,7 @@ describe("judgeAndDraft unknown source hosts", () => {
     const axis = {
       id: "a1",
       label: "ציר",
+      kind: "ROLE_COMPANY",
       people: [
         {
           weight: 1,
@@ -376,6 +380,7 @@ describe("judgeAndDraft unknown source hosts", () => {
             summary: "s",
             technology: "tech",
             kind: "research",
+            stature: 0.9,
             sources: [{ url: "https://a-fintech-startup-blog.example.com/post/1" }],
             publishedAt: freshAt,
           },
@@ -397,6 +402,7 @@ describe("judgeAndDraft unknown source hosts", () => {
     const axis = {
       id: "a1",
       label: "ציר",
+      kind: "ROLE_COMPANY",
       people: [
         {
           weight: 1,
@@ -418,6 +424,7 @@ describe("judgeAndDraft unknown source hosts", () => {
             summary: "s",
             technology: "tech",
             kind: "research",
+            stature: 0.9,
             sources: [{ url: "https://www.globes.co.il/news/article.aspx?did=1" }],
             publishedAt: freshAt,
           },
