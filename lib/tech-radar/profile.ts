@@ -13,6 +13,7 @@
 import { openrouterChat } from "@/lib/openrouter/client";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
 import {
+  MAX_INDUSTRY_QUERIES,
   MAX_QUERIES_PER_COMPANY,
   OR_FEATURE,
   isUsableProfile,
@@ -92,11 +93,13 @@ export function pickInnerLinks(html: string, baseUrl: string, limit = 5): string
 
 const SYSTEM = `You are a B2B technology researcher. Given raw text from a company's own website plus recent coverage, produce a structured profile of what the company actually does.
 
-Three fields are REQUIRED and the research is rejected without them:
+Five fields are REQUIRED and the research is rejected without them:
 
 - whatTheySell: one plain sentence — what does this company sell, and to whom? Not the mission statement; the actual product and the actual buyer.
 - customerSegments: B2C / B2B / B2G, and who the customers actually are. Every company has an answer.
 - namedCompetitors: competitors BY NAME — the companies trying to take these customers (for an Israeli insurer that includes insurtech challengers like Lemonade; for one big Israeli bank it is the other big Israeli banks). Give EVERY name in BOTH SCRIPTS where both are used, separated by " / ", including the short form people actually say: "Bank Leumi / בנק לאומי / לאומי", "Israel Discount Bank / בנק דיסקונט / דיסקונט", "Lemonade". Downstream code checks the names in a drafted rationale against this list, and a competitor listed only in English is read as a hallucination when the draft calls it by its Hebrew name. If, after genuinely looking, there is no direct competitor, return an empty list AND set noClearCompetitors: true with noCompetitorsReason — one sentence saying why (e.g. a state monopoly in its field). That is an active finding, never a default.
+- industry: the industry this company is in, as a canonical name in BOTH scripts where both are used ("בנקאות ישראל / Israeli banking"), plus 3-5 BROAD industry-level search queries — the net every company in this industry shares. Phrase them the way the industry's press writes, at least one in Hebrew for an Israeli company. These are deliberately WIDE: regulation, market reports, sector moves — not this company's name.
+- recentMoves: what is occupying this company RIGHT NOW — launches, regulation that landed on them, competitor moves against them — extracted ONLY from the dated news you were given. Each move carries the fact, its date as dateIso (YYYY-MM-DD), and the source url. A move you cannot date DOES NOT go in this list. If the news shows no verified move, return an empty list AND quietNow: true — that is an active finding ("שקט"), never a default.
 
 The profile's purpose is to drive web searches for NEW technologies, products and launches that this company could adopt. Two fields carry that weight:
 
@@ -125,7 +128,10 @@ Return strict JSON only — no prose, no fences:
   "techStack": [string],
   "digitalInitiatives": [string],
   "focusAreas": [{"area": string, "why": string}],
-  "searchQueries": [string]
+  "searchQueries": [string],
+  "industry": {"canonical": string, "queries": [string]},
+  "recentMoves": [{"fact": string, "dateIso": string, "sourceUrl": string}],
+  "quietNow": boolean
 }
 
 techStack: technologies, vendors or platforms the company is stated to already use — used later to avoid offering them what they already run. Leave empty rather than guessing.`;
@@ -182,6 +188,29 @@ export function parseProfileResponse(text: string): TechRadarProfile | null {
     })
     .filter((f) => f.area);
 
+  // Layer 1: the broad shared industry net. Always present (empty when the model
+  // omitted it) so `missingResearchFields` can name it as missing rather than the
+  // field silently being undefined.
+  const industryRaw = parsed.industry as Record<string, unknown> | undefined;
+  const industry = {
+    canonical: String(industryRaw?.canonical ?? "").trim(),
+    queries: stringList(industryRaw?.queries, MAX_INDUSTRY_QUERIES),
+  };
+
+  // Layer 3: dated facts only. A move whose date does not parse is dropped rather
+  // than kept undated — an undated "move" is a rumor, not a finding.
+  const recentMoves = (Array.isArray(parsed.recentMoves) ? parsed.recentMoves : [])
+    .map((m) => {
+      const o = m as Record<string, unknown>;
+      const sourceUrl = String(o?.sourceUrl ?? "").trim();
+      return {
+        fact: String(o?.fact ?? "").trim(),
+        dateIso: String(o?.dateIso ?? "").trim(),
+        ...(sourceUrl ? { sourceUrl } : {}),
+      };
+    })
+    .filter((m) => m.fact && !Number.isNaN(Date.parse(m.dateIso)));
+
   return {
     businessLines,
     products: stringList(parsed.products),
@@ -195,6 +224,9 @@ export function parseProfileResponse(text: string): TechRadarProfile | null {
     focusAreas,
     searchQueries: stringList(parsed.searchQueries, MAX_QUERIES_PER_COMPANY),
     sources: [],
+    industry,
+    recentMoves,
+    quietNow: parsed.quietNow === true,
   };
 }
 
@@ -204,6 +236,12 @@ export function parseProfileResponse(text: string): TechRadarProfile | null {
  * research). namedCompetitors may be empty only behind an explicit, reasoned
  * noClearCompetitors finding — a declaration without its reason is a checkbox, not a
  * finding, and does not count.
+ *
+ * Layer cake task 5 adds two more: industry (layer 1) always needs a canonical name
+ * and at least 3 broad queries. recentMoves (layer 3) may be empty only behind an
+ * explicit quietNow: true — the same "declaration, not a default" shape as
+ * noClearCompetitors, just without a reason field (silence needs no justification,
+ * only an admission that it was checked for).
  */
 export function missingResearchFields(p: {
   whatTheySell: string;
@@ -211,6 +249,9 @@ export function missingResearchFields(p: {
   namedCompetitors: string[];
   noClearCompetitors: boolean;
   noCompetitorsReason: string;
+  industry?: { canonical: string; queries: string[] };
+  recentMoves?: { fact: string; dateIso: string; sourceUrl?: string }[];
+  quietNow?: boolean;
 }): string[] {
   const missing: string[] = [];
   if (!p.whatTheySell.trim()) missing.push("whatTheySell");
@@ -219,6 +260,8 @@ export function missingResearchFields(p: {
     if (!p.noClearCompetitors) missing.push("namedCompetitors");
     else if (!p.noCompetitorsReason.trim()) missing.push("noCompetitorsReason");
   }
+  if (!p.industry?.canonical.trim() || (p.industry.queries.length ?? 0) < 3) missing.push("industry");
+  if ((p.recentMoves?.length ?? 0) === 0 && p.quietNow !== true) missing.push("recentMoves");
   return missing;
 }
 
