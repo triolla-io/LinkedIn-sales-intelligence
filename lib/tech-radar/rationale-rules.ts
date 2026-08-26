@@ -77,7 +77,7 @@ function candidatesFromEnumeration(rationale: string): string[] {
   const out: string[] = [];
   for (const m of rationale.matchAll(RIVAL_LEAD)) {
     const list = m[1];
-    for (const raw of list.split(/,|\sו-|\bו(?=[א-ת])/)) {
+    for (const raw of list.split(/,|\sו-|\s(?:ו?מול|ו?מפני|ו?לעומת|ו?נגד|ו?מצד)\s|\bו(?=[א-ת])/)) {
       const cleaned = raw.replace(/^[\s\-–ו]+/, "").trim();
       if (!cleaned) continue;
       // A rival mention is at most a few words; longer means the sentence moved on.
@@ -127,6 +127,105 @@ function namesNothing(candidate: string): boolean {
 
 /** Hebrew possessives that trail a name and are not part of it. */
 const POSSESSIVES = new Set(["שלה", "שלו", "שלהם", "שלכם", "שלנו"]);
+
+/**
+ * Plural category nouns and generic modifiers. A phrase built only from these DESCRIBES a
+ * category; it does not NAME a company.
+ *
+ * "מפני זרימה לבנקים אחרים" was flagged as an invented rival in the 2026-08-26 preview —
+ * every word of it is ordinary Hebrew, and the rival-preposition scan cannot tell a
+ * described category from a named company by position alone. The fix belongs here, in what
+ * counts as a name, and not in a list of forbidden phrases: the next phrase would differ.
+ */
+const CATEGORY_WORDS = new Set([
+  "בנקים", "חברות", "ספקים", "גופים", "שחקנים", "מתחרים", "מתחרות", "קמעונאים",
+  "פינטקים", "מוסדות", "תאגידים", "לקוחות", "שווקים", "פלטפורמות", "זרימה", "יריבים",
+  "banks", "companies", "vendors", "players", "competitors", "institutions",
+]);
+/**
+ * Locatives that trail a category noun. "חברות אחרות בשוק" is still a category; the
+ * "בשוק" adds a place, not an identity.
+ */
+const GENERIC_FILLER = new Set([
+  "בשוק", "שוק", "בתחום", "תחום", "בענף", "ענף", "בזירה", "במגזר", "מגזר", "בסקטור",
+  "market", "sector", "industry", "space",
+]);
+
+const GENERIC_MODIFIERS = new Set([
+  "אחרים", "אחרות", "אחר", "אחרת", "נוספים", "נוספות", "שונים", "שונות", "זרים", "זרות",
+  "מקומיים", "מקומיות", "גדולים", "גדולות", "קטנים", "קטנות", "בינלאומיים", "מובילים",
+  "other", "others", "additional", "various", "foreign", "local", "leading",
+]);
+
+/**
+ * A candidate whose every significant word is a generic category or modifier.
+ *
+ * Deliberately requires ALL of them to be generic: "בנקים אחרים" names nobody, while
+ * "בנקים כמו Revolut" still carries a name that must be checked.
+ */
+function describesCategory(candidate: string): boolean {
+  const words = candidate.split(/\s+/).map(norm).filter(Boolean);
+  if (words.length === 0) return false;
+  // BOTH forms are tested, never the stripped form alone: "בנקים" begins with ב, which is
+  // also the preposition prefix, so stripping it yields "נקים" and the word stops matching.
+  // Hebrew prefixes cannot be removed without a lexicon; testing both costs nothing.
+  const inAny = (w: string) =>
+    CATEGORY_WORDS.has(w) || GENERIC_MODIFIERS.has(w) || GENERIC_FILLER.has(w);
+  const generic = (w: string) => inAny(w) || inAny(w.replace(/^[הולבמ]-?/u, ""));
+  // At least one CATEGORY word, and nothing that is not generic: "בנקים אחרים" names
+  // nobody, while "ראשון לציון" has no category word at all and stays a name candidate.
+  const isCategory = (w: string) => CATEGORY_WORDS.has(w) || CATEGORY_WORDS.has(w.replace(/^[הולבמ]-?/u, ""));
+  return words.some(isCategory) && words.every(generic);
+}
+
+/**
+ * What a company name is DOING in a rationale. Only one of the three is a claim the
+ * research can contradict.
+ *
+ *   self     — the employer, or one of its own products.
+ *   exemplar — someone to learn from, on a stage=adopt axis.
+ *   rival    — "this company competes with us". The only claim namedCompetitors verifies.
+ *
+ * The 2026-08-26 preview knew only the third role, and lost four axes for it: Gil Tamir's
+ * own employer "Phoenix" was called an unknown competitor, so were Bank Hapoalim's own
+ * products "Poalim UP" and "Poalim Young" in Pazit Garfinkel's axes, and so were "Grab"
+ * and "Gojek" — named in an adopt axis as super-app examples to copy, which is the
+ * opposite of a competitive claim. Three of Pazit's five axes died to this, which is the
+ * whole reason her profile came back thin.
+ */
+export type NameRole = "self" | "rival" | "exemplar";
+
+export function nameRole(
+  name: string,
+  ctx: { employer: { names: string[]; products: string[] }; stage: string }
+): NameRole {
+  const n = norm(name);
+  const mine = [...(ctx.employer.names ?? []), ...(ctx.employer.products ?? [])].map(norm).filter(Boolean);
+  // Containment both ways: the research says "Phoenix Holdings" and the brain writes
+  // "Phoenix"; it says "Poalim UP" and the brain writes it verbatim.
+  if (mine.some((m) => m === n || m.includes(n) || n.includes(m))) return "self";
+  // An adopt axis is BY DEFINITION about someone outside the competitive set. Verifying its
+  // names against namedCompetitors asks the wrong question and can only ever reject.
+  if (ctx.stage === "adopt") return "exemplar";
+  return "rival";
+}
+
+/**
+ * Names CLAIMED AS RIVALS that the employer's research never named.
+ *
+ * Replaces the role-blind unknownNames for gate use: an invented rival in a message to a
+ * board member cannot be taken back, but the employer's own brand and a foreign exemplar
+ * are not that failure and must not be punished as it.
+ */
+export function unverifiedRivals(
+  text: string,
+  ctx: { employer: { names: string[]; products: string[] }; stage: string; gazetteer: string[] }
+): string[] {
+  if (ctx.stage === "adopt") return [];
+  return unknownNames(text, ctx.gazetteer).filter(
+    (n) => !describesCategory(n) && nameRole(n, { employer: ctx.employer, stage: ctx.stage }) === "rival"
+  );
+}
 
 /**
  * Names that appear in the rationale but not in the employer's researched competitors.

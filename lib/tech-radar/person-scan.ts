@@ -26,7 +26,19 @@ import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
 import { SHAREWORTHY_FLOOR, STATURE_FLOOR } from "@/lib/tech-radar/types";
 import { judgeAcceptance, isIsraeliSource, type AcceptanceReport } from "@/lib/tech-radar/acceptance";
 
-const MAX_QUERIES_PER_AXIS = 3;
+/**
+ * Queries fetched per axis.
+ *
+ * TEMPORARY: env-overridable so the 2026-08-26 pilot can run at 2 and fit inside the 34
+ * serper calls left in the month. serpapi, gnews and tavily are all at zero, so serper is
+ * the whole budget until the counters reset on 1 September 2026 (the Redis key is keyed by
+ * calendar month).
+ *
+ * TODO(2026-09-01): drop RADAR_MAX_QUERIES_PER_AXIS from the environment and let this go
+ * back to 3. Two queries per axis is a recall cut, not a design decision — it exists only
+ * because the month's quota ran out.
+ */
+const MAX_QUERIES_PER_AXIS = Number(process.env.RADAR_MAX_QUERIES_PER_AXIS) || 3;
 /**
  * Triage cost scales with this and nothing else useful. 677 items cost ~$1 for 30
  * survivors on 2026-08-23 — over half the daily budget. 200 keeps a run near $0.35.

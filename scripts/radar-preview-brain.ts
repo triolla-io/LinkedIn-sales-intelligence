@@ -156,11 +156,12 @@ async function main() {
     }
 
     const facts = freshProfiles.get(employer.id) as
-      | { namedCompetitors?: string[]; customerSegments?: string[] }
+      | { namedCompetitors?: string[]; customerSegments?: string[]; products?: string[] }
       | undefined;
     const gate = await gateRationales(draft.roleLens, draft.axes, {
       namedCompetitors: facts?.namedCompetitors ?? [],
       customerSegments: facts?.customerSegments ?? [],
+      employer: { names: [employer.name, ...employer.aliases], products: facts?.products ?? [] },
       reasoning: draft.reasoning,
     });
     if (!gate.judged) console.log(`\n  ⚠ rationale gate call failed — nothing was filtered`);

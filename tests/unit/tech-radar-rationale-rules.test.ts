@@ -3,6 +3,8 @@ import { describe, it, expect } from "vitest";
 import {
   opensWithTitle,
   unknownNames,
+  nameRole,
+  unverifiedRivals,
   disclaimedSubjects,
   contradictsReasoning,
   competitorGazetteer,
@@ -229,5 +231,90 @@ describe("declaresCompanySide", () => {
 
   it("rejects a rival name the research never found, rather than trusting the declaration", () => {
     expect(declaresCompanySide("Revolut נכנסת לשוק הישראלי", gazetteer)).toBe(false);
+  });
+});
+
+/**
+ * A company name in a rationale plays ONE OF THREE ROLES, and only one of them is a claim
+ * that has to be verified against the research:
+ *
+ *   self      — the employer or one of its own products. Never a competition claim.
+ *   rival     — "who is attacking me". THIS is what namedCompetitors verifies.
+ *   exemplar  — "who I could learn from", on a stage=adopt axis. Not a rival by definition.
+ *
+ * The 2026-08-26 preview lost four axes because the rule knew only one role. Gil Tamir's
+ * own employer, "Phoenix", was flagged as an unknown competitor. So were "Poalim UP" and
+ * "Poalim Young" — Bank Hapoalim's own products, in Pazit Garfinkel's axes. And "Grab,
+ * Gojek" were flagged in an adopt axis where they were named as examples to copy, not as
+ * anyone's rivals. Three of Pazit's five axes died this way, which is the entire reason her
+ * profile came back thin.
+ */
+describe("nameRole", () => {
+  const employer = {
+    names: ["Phoenix Holdings", "קבוצת הפניקס", "הפניקס"],
+    products: ["Poalim UP", "Poalim Young", "ביטוח רכב"],
+  };
+
+  it("reads the employer's own name as self, in either script", () => {
+    expect(nameRole("Phoenix", { employer, stage: "competitor" })).toBe("self");
+    expect(nameRole("הפניקס", { employer, stage: "competitor" })).toBe("self");
+  });
+
+  it("reads the employer's own product as self — a brand is not a rival", () => {
+    expect(nameRole("Poalim UP", { employer, stage: "decision" })).toBe("self");
+  });
+
+  it("reads any name on an adopt axis as an exemplar", () => {
+    expect(nameRole("Grab", { employer, stage: "adopt" })).toBe("exemplar");
+    expect(nameRole("Gojek", { employer, stage: "adopt" })).toBe("exemplar");
+  });
+
+  it("reads everything else as a rival claim — that is what gets verified", () => {
+    expect(nameRole("Revolut", { employer, stage: "competitor" })).toBe("rival");
+  });
+});
+
+describe("unverifiedRivals", () => {
+  const gazetteer = competitorGazetteer(["Harel Insurance / ביטוח הראל", "Migdal / מיגדל"]);
+  const employer = { names: ["Phoenix Holdings", "הפניקס"], products: ["Poalim UP"] };
+
+  it("flags a rival the research never named", () => {
+    expect(
+      unverifiedRivals("כי היא מתמודדת מול הראל ומול Revolut", { employer, stage: "competitor", gazetteer })
+    ).toEqual(["Revolut"]);
+  });
+
+  it("says nothing about the employer's own name or product", () => {
+    expect(
+      unverifiedRivals("כי מערכות הליבה של Phoenix מגבילות את Poalim UP", { employer, stage: "competitor", gazetteer })
+    ).toEqual([]);
+  });
+
+  it("says nothing at all on an adopt axis", () => {
+    expect(
+      unverifiedRivals("כי בנקים כמו Grab ו-Gojek בנו סופר-אפליקציה", { employer, stage: "adopt", gazetteer })
+    ).toEqual([]);
+  });
+
+  /**
+   * "מפני זרימה לבנקים אחרים" is a category being described, not a company being named,
+   * and it was flagged as an invented rival. The fix is in what counts as a NAME — a
+   * phrase built from a generic plural noun and a generic modifier names nobody.
+   */
+  it("does not read a described category as a company name", () => {
+    for (const phrase of [
+      "כי ניוד חשבונות שומר על לקוחות מפני זרימה לבנקים אחרים",
+      "כי היא מתמודדת מול חברות אחרות בשוק",
+      "כי הוא מתחרה מול ספקים זרים",
+      "כי הבנק מתמודד מול שחקנים נוספים",
+    ]) {
+      expect(unverifiedRivals(phrase, { employer, stage: "competitor", gazetteer })).toEqual([]);
+    }
+  });
+
+  it("still catches a real invented name sitting next to a generic word", () => {
+    expect(
+      unverifiedRivals("כי היא מתמודדת מול בנקים אחרים ומול Revolut", { employer, stage: "competitor", gazetteer })
+    ).toEqual(["Revolut"]);
   });
 });

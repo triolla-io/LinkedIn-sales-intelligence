@@ -225,3 +225,43 @@ describe("PROFILE_SYSTEM swap test", () => {
     expect(PROFILE_SYSTEM).toMatch(/"stage":"decision"\|"competitor"\|"stop_and_read"\|"adopt"/);
   });
 });
+
+/**
+ * Erez Rachmil's adopt axis was rejected `no_company_side` because he wrote the external
+ * exemplar INTO the company side: "banks in advanced markets proved you can offer a modern
+ * digital experience inside a legacy system". That is a fact about someone else.
+ *
+ * The two are now separate fields. companyFact stays what it always was — a fact about
+ * THEIR company, here the gap — and the exemplar gets its own place, which is also what
+ * keeps it out of the competitor check.
+ */
+describe("the adopt axis carries its exemplar separately", () => {
+  it("keeps externalExample apart from companyFact", () => {
+    const parsed = parseProfileResponse(
+      JSON.stringify({
+        reasoning: "ה) שרד",
+        roleLens: "חתום על ארכיטקטורת הליבה",
+        axes: [
+          {
+            label: "פתיחת חשבון מיידית",
+            stage: "adopt",
+            personDecision: "חתום על תכנית ההשקעה בטכנולוגיה",
+            companyFact: "פתיחת חשבון בבנק הפועלים עדיין דורשת מסמכים וימי עסקים",
+            externalExample: "בנקים בסינגפור פותחים חשבון בדקות ללא מסמכים",
+            agenda: false,
+            searchQueries: ["instant account opening"],
+            rationale: "כי הוא חתום על ארכיטקטורת הזיהוי, ופתיחת חשבון בבנק עדיין דורשת מסמכים",
+          },
+        ],
+      })
+    );
+    expect(parsed?.axes[0].companyFact).toContain("בנק הפועלים");
+    expect(parsed?.axes[0].externalExample).toContain("סינגפור");
+  });
+
+  it("the prompt tells an adopt axis where the exemplar goes", () => {
+    expect(PROFILE_SYSTEM).toMatch(/externalExample/);
+    // The instruction that was missing: the company side of an adopt axis is the GAP.
+    expect(PROFILE_SYSTEM).toMatch(/gap/i);
+  });
+});

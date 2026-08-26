@@ -64,6 +64,13 @@ Use HeroUI (`@heroui/react`) for all React components.
 | `radar.person-scan` | manual (pilot) — person-outward run: marked people → their axes → queries from axes → per-axis fit → veto → one draft | `inngest/functions/tech-radar-person-scan.ts` |
 | `tech-radar.run-marked` | person-first run: employers of hand-marked contacts → research → wait → scan. No manual company entry. | `inngest/functions/tech-radar-run-marked.ts` |
 
+## Temporary env overrides (remove on the stated date)
+
+| Env var | Value | Why | Remove |
+|---|---|---|---|
+| `RADAR_MAX_QUERIES_PER_AXIS` | `2` | serper is the only news provider with quota left (34 calls); serpapi/gnews/tavily are at zero. Two queries per axis is a recall cut forced by the month's budget, not a design decision. | **2026-09-01**, when the monthly counters reset — then delete the var and let the default (3) apply |
+| `RADAR_MAX_DRAFTS_PER_DAY` | raised, per-run only | The 2026-08-26 pilot wanted volume at a low threshold on the explicit decision that Ariel filters what reaches Yuval. Passed on the command that runs the scan, never set on the container. | expires with the process |
+
 ## Next.js version
 
 Read `node_modules/next/dist/docs/` before writing any Next.js code.

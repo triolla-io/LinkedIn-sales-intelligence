@@ -16,7 +16,7 @@ import { OR_FEATURE } from "@/lib/tech-radar/types";
 import type { AxisProposal } from "@/lib/tech-radar/person-profile";
 import {
   opensWithTitle,
-  unknownNames,
+  unverifiedRivals,
   contradictsReasoning,
   competitorGazetteer,
   declaresPersonSide,
@@ -88,6 +88,14 @@ export type GateContext = {
   customerSegments?: string[];
   /** The brain's own staged answers, for the self-contradiction check. */
   reasoning?: string;
+  /**
+   * The employer's own identity: its names, aliases and product names.
+   *
+   * Without it the rule has no way to tell "my own company" from "a company I invented".
+   * Gil Tamir's axis was rejected for naming "Phoenix" — his own employer — and two of
+   * Pazit Garfinkel's for naming "Poalim UP", Bank Hapoalim's own product.
+   */
+  employer?: { names: string[]; products: string[] };
 };
 
 export async function gateRationales(
@@ -120,7 +128,16 @@ export async function gateRationales(
       // rival names live — and an invented rival in a message to a board member cannot
       // be taken back. Checked BEFORE the two side rules so a hallucination is reported
       // as a hallucination rather than as an unrecognised company side.
-      const unknown = unknownNames(`${p.rationale} ${p.companyFact}`, allowedNames);
+      //
+      // Role-aware, not a flat allow-list: verification applies ONLY to a name CLAIMED AS
+      // A RIVAL. The employer's own brands are not a competitive claim, and an adopt axis
+      // names someone to learn from by definition — asking whether they are on the
+      // competitor list is the wrong question and can only ever reject a correct axis.
+      const unknown = unverifiedRivals(`${p.rationale} ${p.companyFact}`, {
+        employer: ctx.employer ?? { names: [], products: [] },
+        stage: p.stage,
+        gazetteer: allowedNames,
+      });
       if (unknown.length > 0) reason = `unknown_competitor:${unknown.join(",")}`;
     }
     // Both sides of the crossing, declared. The 2026-08-26 run produced axes that were

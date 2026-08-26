@@ -28,6 +28,20 @@ export const MAX_PERSONAL_NOTES = 400;
  * asks the fourth question and a run whose fourth-question axes were all killed look
  * identical in the report.
  */
+/**
+ * OPEN QUESTION (2026-08-26): `stop_and_read` produced ZERO axes for all four people in
+ * the first run with the swap test, having produced some before it.
+ *
+ * The working hypothesis is that the swap test eats it by construction: "what would they
+ * stop everything to read" is a subject, and a subject is exactly what survives the
+ * company swap — another executive with the same title would stop for the same piece.
+ * Stages (א)/(ב)/(ד) each name a party (a decision, a rival, an exemplar) and so break
+ * under both swaps; (ג) names only a topic.
+ *
+ * Deliberately NOT changed. If the hypothesis holds, this stage is redundant rather than
+ * broken — the other three already cover what a person reads — and the honest way to find
+ * out is to watch the number over the next few runs rather than to patch the prompt now.
+ */
 export const AXIS_STAGES = ["decision", "competitor", "stop_and_read", "adopt"] as const;
 export type AxisStage = (typeof AXIS_STAGES)[number];
 const STAGE_SET: ReadonlySet<string> = new Set<string>(AXIS_STAGES);
@@ -53,6 +67,15 @@ export type AxisProposal = {
    */
   personDecision: string;
   companyFact: string;
+  /**
+   * For a stage=adopt axis: WHO does it well elsewhere. Kept apart from companyFact on
+   * purpose — Erez Rachmil's adopt axis was rejected `no_company_side` because he wrote
+   * the exemplar INTO the company side ("banks in advanced markets proved you can offer a
+   * modern digital experience inside a legacy system"), which is a fact about someone
+   * else. Separating them also keeps the exemplar out of the competitor check, where it
+   * could only ever be read as an invented rival.
+   */
+  externalExample: string;
   /** Which staged question this axis came from. Required — an axis without one is dropped. */
   stage: AxisStage;
   /**
@@ -114,7 +137,9 @@ Then return:
    For every axis:
    - stage: which staged question this axis came from — "decision" for (א), "competitor" for (ב), "stop_and_read" for (ג), "adopt" for (ד). Exactly one of those four words. "נגזר מהתפקיד ומהחברה" is not a stage: it distinguishes nothing, and an axis that cannot name its stage is deleted.
    - personDecision: the person side of the crossing, in Hebrew — the decision they sign, the budget they hold, the asset they carry. Say what they HOLD, never what they are CALLED: "חתום על ארכיטקטורת הליבה ועל תקציב הסייבר" is a decision; "ראש בנקאות קמעונאית" is a chair, and the axis is deleted.
-   - companyFact: the company side, in Hebrew — either the customer segment this decision met ("לקוחות פרטיים שנוטלים הלוואות וחוסכים", "מבוטחי הביטוח הסיעודי", "עסקים קטנים") or a competitor BY NAME from the list you were given. A technology is not a fact about the company: "ארכיטקטורת API פתוחה" and "תקני KYC" delete the axis. So does a rival whose name is not in that list.
+   - companyFact: the company side, in Hebrew — a fact about THIS company and no other. Either the customer segment this decision met ("לקוחות פרטיים שנוטלים הלוואות וחוסכים", "מבוטחי הביטוח הסיעודי", "עסקים קטנים") or a competitor BY NAME from the list you were given. A technology is not a fact about the company: "ארכיטקטורת API פתוחה" and "תקני KYC" delete the axis. So does a rival whose name is not in that list.
+   - On a stage=adopt axis the company side is THE GAP AT THEIR OWN COMPANY — what their customers do not get today: "פתיחת חשבון בבנק עדיין דורשת מסמכים וימי עסקים", "תמחור ביטוח הרכב שלהם עדיין סטטי". NEVER write the outside example here; a fact about a bank in Singapore is not a fact about this company, and an adopt axis whose companyFact describes someone else is deleted.
+   - externalExample: on a stage=adopt axis ONLY, who does it well elsewhere and what they do — "בנקים בסינגפור פותחים חשבון בדקות ללא מסמכים". Empty string on every other stage. This is the one place an outside company may be named, and it is not checked against the competitor list, because someone you learn from is not someone you compete with.
    - label: 2-5 Hebrew words naming the subject. Rich enough to be distinguishable — "זיהוי הונאות בתשלומים", not "הונאות". Never a single generic word like "פינטק": a subject most of an industry shares will be discarded.
      This label is shown to the user as it is written. Proofread it before returning: correct Hebrew spelling and grammar, no truncated or invented words (write "והגנה", never "וגנת"), single spaces, no trailing full stop, and a hyphen or space between Hebrew and any Latin name ("אדריכלות API", never "אדריכלותAPI").
    - rationale: one Hebrew sentence saying why this subject is THIS PERSON'S. It must point at a decision they make, a project they run, an asset they are responsible for, or a problem they personally carry — NOT at their job title. A sentence that begins "כ-VP Assets, אחראי על…" is a restatement of the title and will be rejected downstream. A sentence that names a specific field, product, facility, market or decision will not.
@@ -126,7 +151,7 @@ Then return:
      * For a report-hunting query, name the kind of thing: "outlook report", "industry survey", "regulatory ruling", "market outlook".
 
 Return strict JSON only — no prose, no fences:
-{"reasoning":"...","roleLens":"...","axes":[{"label":"...","stage":"decision"|"competitor"|"stop_and_read"|"adopt","personDecision":"...","companyFact":"...","agenda":true,"searchQueries":["..."],"rationale":"..."}]}`;
+{"reasoning":"...","roleLens":"...","axes":[{"label":"...","stage":"decision"|"competitor"|"stop_and_read"|"adopt","personDecision":"...","companyFact":"...","externalExample":"...","agenda":true,"searchQueries":["..."],"rationale":"..."}]}`;
 
 export type PersonProfileInput = {
   fullName: string;
@@ -266,6 +291,7 @@ export function parseProfileResponseWithReason(
       // say WHICH side the brain failed to declare instead of an anonymous shortfall.
       personDecision: str(o.personDecision),
       companyFact: str(o.companyFact),
+      externalExample: str(o.externalExample),
       stage: stage as AxisStage,
       agenda: o.agenda === true,
     });

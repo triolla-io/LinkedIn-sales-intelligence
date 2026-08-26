@@ -170,7 +170,7 @@ export async function buildProfilesForMarked(input: {
     // The veto's person-specificity bar, applied to the rationale BEFORE any axis is
     // paid for. A domain-description rationale ("כי הוא בבנקאות") dies here, loudly.
     const employerFacts = employer.profile as
-      | { namedCompetitors?: string[]; customerSegments?: string[] }
+      | { namedCompetitors?: string[]; customerSegments?: string[]; products?: string[] }
       | null;
     const gate = await gateRationales(draft.roleLens, draft.axes, {
       namedCompetitors: employerFacts?.namedCompetitors ?? [],
@@ -179,6 +179,13 @@ export async function buildProfilesForMarked(input: {
       // verbatim ("B2C: Individual consumers") is not read as an invented rival — the
       // capitalised "Individual" would otherwise trip the unknown-name scan.
       customerSegments: employerFacts?.customerSegments ?? [],
+      // The employer's own identity, so a name in a rationale can be told apart by ROLE.
+      // Without it "Phoenix" in Gil Tamir's own axis reads as an invented competitor, and
+      // so do "Poalim UP" and "Poalim Young" — Bank Hapoalim's own products — in Pazit's.
+      employer: {
+        names: [employer.name, ...employer.aliases],
+        products: employerFacts?.products ?? [],
+      },
       reasoning: draft.reasoning,
     });
     for (const r of gate.rejected) {
