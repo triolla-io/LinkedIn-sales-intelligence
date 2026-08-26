@@ -10,6 +10,7 @@
  * path rather than two that drift.
  */
 import { prisma } from "@/lib/prisma";
+import { OpenRouterBlockedError } from "@/lib/openrouter/client";
 import { AXIS_FIT_FLOOR } from "@/lib/tech-radar/axis-fit";
 import { FRESHNESS_WINDOW_DAYS } from "@/lib/tech-radar/freshness";
 import { selectRecipientsForItem, type RecipientCandidate } from "@/lib/tech-radar/veto";
@@ -219,6 +220,13 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
           itemText: `${item.title}\n${item.summary ?? ""}`,
         });
       } catch (err) {
+        // The kill-switch and the daily budget cap throw BEFORE the HTTP call, and every
+        // remaining candidate would hit the same block — swallowing it here would finish
+        // the run reporting drafted:0 with a dropReasons count nothing on the decisions
+        // screen renders, which is a scan that silently produced nothing. That defeats
+        // the guard, whose whole purpose is to fail loudly. Only a genuine per-draft
+        // failure (a truncated response, a rejected retry) is worth continuing past.
+        if (err instanceof OpenRouterBlockedError) throw err;
         console.warn(`[radar] draft failed for contact=${contact.id} item=${itemId}: ${(err as Error).message}`);
         draftFailed += 1;
         continue;

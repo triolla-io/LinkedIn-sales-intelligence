@@ -38,6 +38,7 @@ vi.mock("@/lib/tech-radar/draft", () => ({
 
 const { judgeAndDraft } = await import("@/lib/tech-radar/judge-and-draft");
 const { FRESHNESS_WINDOW_DAYS } = await import("@/lib/tech-radar/freshness");
+const { OpenRouterBlockedError } = await import("@/lib/openrouter/client");
 
 function contact(id: string) {
   return { id, ownerId: "owner1", fullName: `Person ${id}`, hebrewFirstName: null, currentTitle: "CEO", currentCompany: "Acme" };
@@ -137,5 +138,42 @@ describe("judgeAndDraft freshness predicate on AxisMatch", () => {
     const expectedFloor = Date.now() - FRESHNESS_WINDOW_DAYS * 86_400_000;
     // Within a few seconds of the expected window edge — not brittle to exact millisecond timing.
     expect(Math.abs(gte.getTime() - expectedFloor)).toBeLessThan(5000);
+  });
+});
+
+describe("judgeAndDraft draft-call failures", () => {
+  function passingDecision() {
+    return [
+      {
+        candidate: { contact: { contactId: "c1" }, axisId: "a1" },
+        verdict: { outcome: "judged", whyHim: "why", adjustment: 0 },
+        passed: true,
+      },
+    ];
+  }
+
+  it("a genuine draft failure is counted and the run continues, not aborted", async () => {
+    const freshAt = new Date(Date.now() - 3 * 86_400_000);
+    const axis = axisWithMatches([{ itemId: "fresh1", publishedAt: freshAt, title: "current news" }]);
+    axisFindMany.mockImplementation(async (args: { select: unknown }) => [applyMatchesFilter(axis, args.select)]);
+    selectRecipientsForItem.mockResolvedValue(passingDecision());
+    draftTechMessage.mockRejectedValue(new Error("tech-radar draft returned unparseable output"));
+
+    const report = await judgeAndDraft("org1");
+
+    expect(report.drafted).toBe(0);
+    expect(report.dropReasons.draft_failed).toBe(1);
+    expect(draftUpsert).not.toHaveBeenCalled();
+  });
+
+  it("a kill-switch/budget block (OpenRouterBlockedError) propagates instead of being counted", async () => {
+    const freshAt = new Date(Date.now() - 3 * 86_400_000);
+    const axis = axisWithMatches([{ itemId: "fresh1", publishedAt: freshAt, title: "current news" }]);
+    axisFindMany.mockImplementation(async (args: { select: unknown }) => [applyMatchesFilter(axis, args.select)]);
+    selectRecipientsForItem.mockResolvedValue(passingDecision());
+    draftTechMessage.mockRejectedValue(new OpenRouterBlockedError("OpenRouter call blocked (tech-radar-draft): OPENROUTER_ENABLED=false (kill-switch)"));
+
+    await expect(judgeAndDraft("org1")).rejects.toBeInstanceOf(OpenRouterBlockedError);
+    expect(draftUpsert).not.toHaveBeenCalled();
   });
 });

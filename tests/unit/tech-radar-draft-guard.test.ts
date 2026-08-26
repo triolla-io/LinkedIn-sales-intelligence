@@ -40,6 +40,28 @@ describe("rhetorical opener", () => {
   });
 });
 
+describe("meeting-ask phrases, caught by wording — not by position", () => {
+  /**
+   * The positional rule only fires when the tail after the opener's "?" is empty. Once
+   * the model writes the 3-6 sentence body the prompt requires, the tail is never empty
+   * again, so a meeting ask phrased in the opening sentence must be caught by wording.
+   * "No meeting request, ever" is a hard rule, so it cannot depend on the message
+   * happening to stop right after the question.
+   */
+  it("flags 'יש לך זמן' in the opening sentence of a message with a body", () => {
+    expect(checkDraft("היי דנה, יש לך זמן השבוע? מחקר חדש על הונאות מראה דברים מעניינים.")).toContain("ask");
+  });
+  it("flags the 'יש לכם זמן' inflection in the opening sentence of a message with a body", () => {
+    expect(checkDraft("היי דנה, יש לכם זמן השבוע? מחקר חדש על הונאות מראה דברים מעניינים.")).toContain("ask");
+  });
+  it("flags 'נוכל להיפגש' in the opening sentence of a message with a body", () => {
+    expect(checkDraft("היי דנה, נוכל להיפגש השבוע? מחקר חדש על הונאות מראה דברים מעניינים.")).toContain("ask");
+  });
+  it("flags the 'נוכל לדבר' inflection in the opening sentence of a message with a body", () => {
+    expect(checkDraft("היי דנה, נוכל לדבר על זה? מחקר חדש על הונאות מראה דברים מעניינים.")).toContain("ask");
+  });
+});
+
 describe("length cap", () => {
   it("exports the cap as 600", () => {
     expect(MAX_DRAFT_CHARS).toBe(600);

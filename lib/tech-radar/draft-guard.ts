@@ -31,7 +31,11 @@ export type DraftViolation =
  */
 const RULES: { code: DraftViolation; pattern: RegExp }[] = [
   { code: "adoption_suggestion", pattern: /אולי\s+תוכל(?:ו|י)?\s+לשלב|כדאי\s+ל(?:בדוק|שקול|הסתכל)|שווה\s+ל(?:בדוק|הסתכל)|ממליץ\s+ל/u },
-  { code: "ask", pattern: /מה\s+דעת(?:ך|כם)|א?שמח\s+לשמוע|נשמח\s+לשמוע|בוא(?:י)?\s+נ(?:דבר|קבע)|שיחה\s+קצרה|מעניין\s+אות(?:ך|כם)/u },
+  // The last two alternatives cover "no meeting request, ever": the positional rule
+  // below only catches a question with a boundary before it, and once the model writes
+  // the 3-6 sentence body the prompt now requires, that boundary always exists — so a
+  // meeting ask phrased this way must be caught here, by wording, not by position.
+  { code: "ask", pattern: /מה\s+דעת(?:ך|כם)|א?שמח\s+לשמוע|נשמח\s+לשמוע|בוא(?:י)?\s+נ(?:דבר|קבע)|שיחה\s+קצרה|מעניין\s+אות(?:ך|כם)|יש\s+ל(?:ך|כם)\s+זמן|נוכל\s+ל(?:היפגש|דבר)/u },
   { code: "self_pitch", pattern: /אנחנו\s+(?:יכולים|עושים)|נוכל\s+לעזור|השירות\s+שלנו|החברה\s+שלנו|אצלנו\s+ב/u },
   { code: "duplicate_possessive", pattern: /של(?:כם|כן|ך|ו|ה)\s+אצל(?:כם|כן|ך|ו|ה)/u },
   // Direct adjacency of the two scripts is always a typography failure in Hebrew —
