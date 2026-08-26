@@ -44,10 +44,17 @@ function contact(id: string) {
   return { id, ownerId: "owner1", fullName: `Person ${id}`, hebrewFirstName: null, currentTitle: "CEO", currentCompany: "Acme" };
 }
 
-function axisWithMatches(matches: { itemId: string; publishedAt: Date | null; title: string }[]) {
+function axisWithMatches(
+  matches: { itemId: string; publishedAt: Date | null; title: string; stature?: number }[],
+  opts: { axisId?: string; kind?: string } = {}
+) {
   return {
-    id: "a1",
+    id: opts.axisId ?? "a1",
     label: "ציר",
+    // ROLE_COMPANY by default: the production-realistic case, and the one value that
+    // makes deepestLayer -> 4 so passesLayerFloor never gates these tests unless a test
+    // deliberately overrides kind to exercise the industry floor.
+    kind: opts.kind ?? "ROLE_COMPANY",
     people: [
       {
         weight: 1,
@@ -68,6 +75,7 @@ function axisWithMatches(matches: { itemId: string; publishedAt: Date | null; ti
         summary: "s",
         technology: "tech",
         kind: "research",
+        stature: m.stature ?? 0.9,
         sources: [{ url: `https://news.com/${m.itemId}` }],
         publishedAt: m.publishedAt,
       },
@@ -138,6 +146,82 @@ describe("judgeAndDraft freshness predicate on AxisMatch", () => {
     const expectedFloor = Date.now() - FRESHNESS_WINDOW_DAYS * 86_400_000;
     // Within a few seconds of the expected window edge — not brittle to exact millisecond timing.
     expect(Math.abs(gte.getTime() - expectedFloor)).toBeLessThan(5000);
+  });
+});
+
+/**
+ * Task 12: an item caught ONLY by the broad layer-1 INDUSTRY net needs a much higher
+ * importance bar (INDUSTRY_ONLY_STATURE_FLOOR, layers.ts) before it reaches a real
+ * person — the industry net is deliberately wide and cheap, and the point of the
+ * narrower layers is to keep drafts specific. An item that ALSO reaches layer 3 or 4
+ * (a COMPANY_MONITOR or ROLE_COMPANY axis matched it too) needs no floor at all.
+ */
+describe("judgeAndDraft industry floor", () => {
+  it("drops an item whose only matched axis is INDUSTRY when stature is below the floor", async () => {
+    const freshAt = new Date(Date.now() - 3 * 86_400_000);
+    const axis = axisWithMatches(
+      [{ itemId: "ind1", publishedAt: freshAt, title: "n", stature: 0.7 }],
+      { kind: "INDUSTRY" }
+    );
+    axisFindMany.mockImplementation(async (args: { select: unknown }) => [applyMatchesFilter(axis, args.select)]);
+
+    const report = await judgeAndDraft("org1");
+
+    expect(report.candidates).toBe(0);
+    expect(report.drafted).toBe(0);
+    expect(report.dropReasons.industry_floor).toBe(1);
+    expect(selectRecipientsForItem).not.toHaveBeenCalled();
+    expect(draftTechMessage).not.toHaveBeenCalled();
+  });
+
+  it("proceeds when the same INDUSTRY-only item clears the stature floor", async () => {
+    const freshAt = new Date(Date.now() - 3 * 86_400_000);
+    const axis = axisWithMatches(
+      [{ itemId: "ind2", publishedAt: freshAt, title: "n", stature: 0.85 }],
+      { kind: "INDUSTRY" }
+    );
+    axisFindMany.mockImplementation(async (args: { select: unknown }) => [applyMatchesFilter(axis, args.select)]);
+    selectRecipientsForItem.mockResolvedValue([
+      {
+        candidate: { contact: { contactId: "c1" }, axisId: "a1" },
+        verdict: { outcome: "judged", whyHim: "why", adjustment: 0 },
+        passed: true,
+      },
+    ]);
+
+    const report = await judgeAndDraft("org1");
+
+    expect(report.candidates).toBe(1);
+    expect(report.drafted).toBe(1);
+    expect(report.dropReasons.industry_floor).toBeUndefined();
+  });
+
+  it("an item matched by both INDUSTRY and ROLE_COMPANY axes is layer 4 and needs no floor", async () => {
+    const freshAt = new Date(Date.now() - 3 * 86_400_000);
+    const industryAxis = axisWithMatches(
+      [{ itemId: "mixed1", publishedAt: freshAt, title: "n", stature: 0.1 }],
+      { axisId: "a1", kind: "INDUSTRY" }
+    );
+    const roleAxis = axisWithMatches(
+      [{ itemId: "mixed1", publishedAt: freshAt, title: "n", stature: 0.1 }],
+      { axisId: "a2", kind: "ROLE_COMPANY" }
+    );
+    axisFindMany.mockImplementation(async (args: { select: unknown }) => [
+      applyMatchesFilter(industryAxis, args.select),
+      applyMatchesFilter(roleAxis, args.select),
+    ]);
+    selectRecipientsForItem.mockResolvedValue([
+      {
+        candidate: { contact: { contactId: "c1" }, axisId: "a1" },
+        verdict: { outcome: "judged", whyHim: "why", adjustment: 0 },
+        passed: true,
+      },
+    ]);
+
+    const report = await judgeAndDraft("org1");
+
+    expect(report.dropReasons.industry_floor).toBeUndefined();
+    expect(report.drafted).toBe(1);
   });
 });
 
@@ -274,6 +358,7 @@ describe("judgeAndDraft unknown source hosts", () => {
     const axis = {
       id: "a1",
       label: "ציר",
+      kind: "ROLE_COMPANY",
       people: [
         {
           weight: 1,
@@ -295,6 +380,7 @@ describe("judgeAndDraft unknown source hosts", () => {
             summary: "s",
             technology: "tech",
             kind: "research",
+            stature: 0.9,
             sources: [{ url: "https://a-fintech-startup-blog.example.com/post/1" }],
             publishedAt: freshAt,
           },
@@ -316,6 +402,7 @@ describe("judgeAndDraft unknown source hosts", () => {
     const axis = {
       id: "a1",
       label: "ציר",
+      kind: "ROLE_COMPANY",
       people: [
         {
           weight: 1,
@@ -337,6 +424,7 @@ describe("judgeAndDraft unknown source hosts", () => {
             summary: "s",
             technology: "tech",
             kind: "research",
+            stature: 0.9,
             sources: [{ url: "https://www.globes.co.il/news/article.aspx?did=1" }],
             publishedAt: freshAt,
           },

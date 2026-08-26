@@ -64,12 +64,18 @@ function subscribedAxis() {
   return {
     id: "a1",
     label: "חבות RIN",
+    // ROLE_COMPANY: mirrors the real select (which now includes `kind`) and the
+    // production-realistic case — a layer-4 axis, so passesLayerFloor never gates it.
+    kind: "ROLE_COMPANY",
     searchQueries: ["RIN obligations refiners"],
     weight: 1,
     people: [
       {
         weight: 1,
         rationale: "הוא מחזיק בהחלטת התפוקה",
+        // No layer-3 evidence by default — mirrors the real select (which now includes
+        // `evidence`) without implying a stale (or any) dated fact.
+        evidence: null,
         personProfile: {
           contactId: "ct1",
           roleLens: "CEO",
@@ -248,6 +254,129 @@ describe("personScan scan-run accounting", () => {
 });
 
 /**
+ * Task 12: a layer-3 axis (COMPANY_MONITOR, built from a dated "what occupies them now"
+ * fact) stops contributing search queries once that fact's TTL (layers.ts,
+ * LAYER3_QUERY_TTL_DAYS) has elapsed. The fact was time-bound; the query should not
+ * outlive it. Checked per PersonAxis subscriber, not per axis: one subscriber whose
+ * layer-3 fact is still fresh is enough to keep the whole axis's queries in the pool.
+ */
+describe("personScan layer-3 query TTL", () => {
+  function withEvidence(axis: ReturnType<typeof subscribedAxis>, evidence: unknown[]) {
+    return {
+      ...axis,
+      people: axis.people.map((p, i) => ({ ...p, evidence: evidence[i] })),
+    };
+  }
+
+  it("drops an axis from the pool when every subscriber's layer-3 fact is expired, and names it in expiredLayer3", async () => {
+    const staleDateIso = new Date(Date.now() - 50 * 86_400_000).toISOString();
+    const axis = withEvidence(subscribedAxis(), [
+      { layerEvidence: { layer: 3, quote: "q", dateIso: staleDateIso } },
+    ]);
+    axisFindMany.mockResolvedValue([axis]);
+    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 0, quotaLikely: false });
+
+    await personScan("org1");
+
+    const pool = fetchPoolNews.mock.calls[0][0] as { query: string; companyIds: string[] }[];
+    expect(pool).toHaveLength(0);
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
+    const report = update.data.report as { expiredLayer3: string[]; uniqueQueries: number };
+    expect(report.expiredLayer3).toEqual(["חבות RIN"]);
+    expect(report.uniqueQueries).toBe(0);
+  });
+
+  it("keeps the axis in the pool when at least one subscriber's layer-3 fact is not expired", async () => {
+    const staleDateIso = new Date(Date.now() - 50 * 86_400_000).toISOString();
+    const freshDateIso = new Date(Date.now() - 5 * 86_400_000).toISOString();
+    const base = subscribedAxis();
+    const axis = {
+      ...base,
+      people: [
+        { ...base.people[0], evidence: { layerEvidence: { layer: 3, quote: "old", dateIso: staleDateIso } } },
+        {
+          ...base.people[0],
+          personProfile: {
+            ...base.people[0].personProfile,
+            contactId: "ct2",
+            contact: { ...base.people[0].personProfile.contact, id: "ct2" },
+          },
+          evidence: { layerEvidence: { layer: 3, quote: "new", dateIso: freshDateIso } },
+        },
+      ],
+    };
+    axisFindMany.mockResolvedValue([axis]);
+    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 0, quotaLikely: false });
+
+    await personScan("org1");
+
+    const pool = fetchPoolNews.mock.calls[0][0] as { query: string; companyIds: string[] }[];
+    expect(pool.length).toBeGreaterThan(0);
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
+    const report = update.data.report as { expiredLayer3: string[] };
+    expect(report.expiredLayer3).toEqual([]);
+  });
+
+  it("keeps an axis whose subscriber has no layer-3 evidence at all (layer 4 / missing)", async () => {
+    const axis = withEvidence(subscribedAxis(), [null]);
+    axisFindMany.mockResolvedValue([axis]);
+    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 0, quotaLikely: false });
+
+    await personScan("org1");
+
+    const pool = fetchPoolNews.mock.calls[0][0] as { query: string; companyIds: string[] }[];
+    expect(pool.length).toBeGreaterThan(0);
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
+    const report = update.data.report as { expiredLayer3: string[] };
+    expect(report.expiredLayer3).toEqual([]);
+  });
+});
+
+/**
+ * Task 12: `articlesByLayer` (layers.ts) counts, per item, the DEEPEST layer its matched
+ * axes reached — an item matched by both an INDUSTRY (layer 1) and a ROLE_COMPANY (layer
+ * 4) axis counts once, at layer 4. The count must survive into the persisted
+ * RadarScanRun.report, which is what the decisions screen and the morning report read.
+ */
+describe("personScan articlesByLayer", () => {
+  it("counts axis-fit matches by the deepest layer reached and persists it in the report", async () => {
+    const freshDate = new Date(Date.now() - 3 * 86_400_000).toISOString();
+    const industryAxis = { ...subscribedAxis(), id: "aInd", label: "Fintech", kind: "INDUSTRY" };
+    const roleAxis = { ...subscribedAxis(), id: "aRole", label: "RIN", kind: "ROLE_COMPANY" };
+    axisFindMany.mockResolvedValue([industryAxis, roleAxis]);
+    fetchPoolNews.mockResolvedValue({
+      items: [{ title: "t", url: "https://news.com/1", snippet: "s", source: "tavily", publishedAt: freshDate, companyIds: ["aInd", "aRole"] }],
+      queriesRun: 1,
+      quotaLikely: false,
+    });
+    triageAll.mockResolvedValue([
+      { url: "https://news.com/1", shareworthy: 0.9, stature: 0.9, kind: "research", staleness: false, categories: [], vendor: null, technology: null },
+    ]);
+    readPage.mockResolvedValue(null);
+    synthesizeItem.mockResolvedValue({ title: "t", summary: "s", technology: null, sources: [{ url: "https://news.com/1" }] });
+    upsertTechItem.mockResolvedValue("item1");
+    axisMatchFindUnique.mockResolvedValue(null);
+    axisMatchCreate.mockResolvedValue({});
+    judgeAxisFit.mockResolvedValue({ score: 0.9, rationale: "r" });
+    judgeAndDraft.mockResolvedValue({ candidates: 1, ranked: 1, vetoed: 0, vetoFaults: 0, drafted: 1, dropReasons: {}, unknownSourceHosts: [] });
+
+    await personScan("org1");
+
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
+    const report = update.data.report as { articlesByLayer: { layer1: number; layer3: number; layer4: number } };
+    expect(report.articlesByLayer).toEqual({ layer1: 0, layer3: 0, layer4: 1 });
+  });
+
+  it("defaults articlesByLayer to all-zero on an early exit (no subscribed axes)", async () => {
+    axisFindMany.mockResolvedValue([]);
+    await personScan("org1");
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
+    const report = update.data.report as { articlesByLayer: { layer1: number; layer3: number; layer4: number } };
+    expect(report.articlesByLayer).toEqual({ layer1: 0, layer3: 0, layer4: 0 });
+  });
+});
+
+/**
  * The rebuild report reads this to say what the competitive-set gate cost. It must build
  * the pool exactly as the run does — same normalizer, same 3-per-axis cap — or the number
  * a human budgets against is not the number that gets billed.
@@ -256,9 +385,9 @@ describe("poolQueryCount", () => {
   it("counts distinct query strings, not axes", async () => {
     const shared = subscribedAxis();
     axisFindMany.mockResolvedValue([
-      { id: "a1", searchQueries: shared.searchQueries },
-      { id: "a2", searchQueries: shared.searchQueries },
-      { id: "a3", searchQueries: ["בנקאות פתוחה ישראל", "open banking Israel"] },
+      { id: "a1", searchQueries: shared.searchQueries, people: [] },
+      { id: "a2", searchQueries: shared.searchQueries, people: [] },
+      { id: "a3", searchQueries: ["בנקאות פתוחה ישראל", "open banking Israel"], people: [] },
     ]);
     expect(await poolQueryCount("org1")).toEqual({ axes: 3, uniqueQueries: 3 });
   });
@@ -271,5 +400,28 @@ describe("poolQueryCount", () => {
       status: "ACTIVE",
       people: { some: {} },
     });
+  });
+
+  /**
+   * Fix round 1 (2026-08-27): poolQueryCount originally did not mirror personScan's
+   * layer-3 query TTL filter, so it overstated what the run would actually spend —
+   * exactly the number a human budgets a nearly-exhausted news quota against. Same
+   * fixture shape as the "personScan layer-3 query TTL" describe block above.
+   */
+  it("excludes an axis whose every subscriber's layer-3 fact is expired, exactly as personScan would", async () => {
+    const staleDateIso = new Date(Date.now() - 50 * 86_400_000).toISOString();
+    axisFindMany.mockResolvedValue([
+      {
+        id: "a1",
+        searchQueries: ["RIN obligations refiners"],
+        people: [{ evidence: { layerEvidence: { layer: 3, quote: "q", dateIso: staleDateIso } } }],
+      },
+      {
+        id: "a2",
+        searchQueries: ["open banking Israel"],
+        people: [{ evidence: null }],
+      },
+    ]);
+    expect(await poolQueryCount("org1")).toEqual({ axes: 2, uniqueQueries: 1 });
   });
 });

@@ -25,6 +25,7 @@ import { judgeAndDraft } from "@/lib/tech-radar/judge-and-draft";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
 import { SHAREWORTHY_FLOOR, STATURE_FLOOR } from "@/lib/tech-radar/types";
 import { judgeAcceptance, isIsraeliSource, type AcceptanceReport } from "@/lib/tech-radar/acceptance";
+import { layer3Expired, articlesByLayer as computeArticlesByLayer, type AxisKindName } from "@/lib/tech-radar/layers";
 
 /**
  * Queries fetched per axis.
@@ -142,6 +143,29 @@ export type PersonScanReport = {
   freshness: FreshnessSpread;
   /** Per-provider tally for the morning report — see PoolResult["providerStats"]. */
   providerStats: PoolResult["providerStats"];
+  /**
+   * Axis-fit matches this run made, counted by the DEEPEST layer they reached (see
+   * lib/tech-radar/layers.ts `articlesByLayer`). An item matched by both an INDUSTRY and
+   * a ROLE_COMPANY axis counts once, at layer 4.
+   */
+  articlesByLayer: { layer1: number; layer3: number; layer4: number };
+  /**
+   * Labels of axes dropped from THIS run's query pool because every subscriber's
+   * layer-3 "what occupies them now" fact (`PersonAxis.evidence.layerEvidence`) aged
+   * past LAYER3_QUERY_TTL_DAYS.
+   *
+   * In practice this only ever fires on ROLE_COMPANY axes, never on COMPANY_MONITOR
+   * ones: `ensureCompanyMonitorAxis` (axis-store.ts) attaches no per-person link at all
+   * — a company monitor belongs to the employer, not a subscriber — so a COMPANY_MONITOR
+   * axis can never even reach this check, despite COMPANY_MONITOR being the axis KIND
+   * `layers.ts` calls "layer 3". This is a genuine naming quirk, not a bug: the same
+   * ROLE_COMPANY axis is "layer 3" here (its evidence quoted a dated fact) but "layer 4"
+   * for `passesLayerFloor`/`articlesByLayer` purposes (its axis KIND is ROLE_COMPANY).
+   *
+   * The axis itself is untouched — a future re-research can refresh the fact and bring
+   * it back — this only says it contributed no query today.
+   */
+  expiredLayer3: string[];
 };
 
 const EMPTY: PersonScanReport = {
@@ -152,6 +176,8 @@ const EMPTY: PersonScanReport = {
   dropReasons: {}, triageByKind: [], quotaExhausted: false,
   freshness: { freshest: null, median: null, oldest: null },
   providerStats: [],
+  articlesByLayer: { layer1: 0, layer3: 0, layer4: 0 },
+  expiredLayer3: [],
 };
 
 function countBy(reasons: string[]): Record<string, number> {
@@ -161,10 +187,24 @@ function countBy(reasons: string[]): Record<string, number> {
 }
 
 /**
+ * True unless EVERY one of an axis's subscribers has an expired layer-3 fact
+ * (`layer3Expired`, layers.ts). Shared by `personScan` and `poolQueryCount` so the two
+ * cannot drift — see the "Layer-3 query TTL" comment at the personScan call site for why
+ * this only ever excludes ROLE_COMPANY axes in practice.
+ */
+function isPoolEligible(people: { evidence: unknown }[], now: Date): boolean {
+  return !(people.length > 0 && people.every((p) => layer3Expired(p.evidence, now)));
+}
+
+/**
  * What the NEXT scan would ask the providers for, without asking them.
  *
  * The same builder, normalizer and per-axis cap the run itself uses — a second
  * implementation would drift and the number would stop being the one that gets billed.
+ * That now includes the layer-3 query TTL: an axis the scan would exclude from the pool
+ * (every subscriber's dated fact gone stale) must be excluded here too, or this number
+ * overstates what the run actually spends — which defeats the reason this function
+ * exists, since a human budgets a nearly-exhausted news quota against it.
  *
  * This exists because the competitive-set gate (2026-08-26) stopped merging axes between
  * companies that do not share competitors, and the whole bet is that the saving was never
@@ -175,9 +215,11 @@ export async function poolQueryCount(orgId: string): Promise<{ axes: number; uni
   const axes = await prisma.radarAxis.findMany({
     // Subscriber-less axes contribute no query, exactly as in the run below.
     where: { orgId, status: "ACTIVE", people: { some: {} } },
-    select: { id: true, searchQueries: true },
+    select: { id: true, searchQueries: true, people: { select: { evidence: true } } },
   });
-  const pool = buildAxisQueryPool(axes, normalizeQuery, MAX_QUERIES_PER_AXIS);
+  const now = new Date();
+  const poolEligibleAxes = axes.filter((a) => isPoolEligible(a.people, now));
+  const pool = buildAxisQueryPool(poolEligibleAxes, normalizeQuery, MAX_QUERIES_PER_AXIS);
   return { axes: axes.length, uniqueQueries: pool.length };
 }
 
@@ -237,14 +279,20 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   /** Set once the pool is fetched, folded into every exit path by finish() the same way
    *  freshness and uniqueQueries are — see PoolResult["providerStats"]. */
   let providerStats: PoolResult["providerStats"] = EMPTY.providerStats;
+  /** Set once the axes are loaded — known before any early exit is possible, and folded
+   *  into every exit path by finish() the same way. */
+  let expiredLayer3: string[] = EMPTY.expiredLayer3;
+  /** Set once the axis-fit loop runs; stays at EMPTY's all-zero value on every earlier
+   *  exit, folded in by finish() the same way as the fields above. */
+  let articlesByLayer: PersonScanReport["articlesByLayer"] = EMPTY.articlesByLayer;
   // The folded-in fields are Omit-ed from the argument on purpose: the last exit path
   // built its report without `freshness` and type-checked only because every other call
   // spread EMPTY. A caller must not be able to pass a stale value for a field finish()
   // owns, and must not have to invent one either.
   const finish = async (
-    raw: Omit<PersonScanReport, "freshness" | "uniqueQueries" | "providerStats">
+    raw: Omit<PersonScanReport, "freshness" | "uniqueQueries" | "providerStats" | "expiredLayer3" | "articlesByLayer">
   ): Promise<PersonScanReport> => {
-    const report = { ...raw, freshness, uniqueQueries, providerStats };
+    const report = { ...raw, freshness, uniqueQueries, providerStats, expiredLayer3, articlesByLayer };
     await prisma.radarScanRun.update({
       where: { id: run.id },
       data: {
@@ -268,10 +316,10 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   const axes = await prisma.radarAxis.findMany({
     where: { orgId, status: "ACTIVE", people: { some: {} } },
     select: {
-      id: true, label: true, searchQueries: true, weight: true,
+      id: true, label: true, kind: true, searchQueries: true, weight: true,
       people: {
         select: {
-          weight: true, rationale: true,
+          weight: true, rationale: true, evidence: true,
           personProfile: {
             select: {
               contactId: true, roleLens: true, personalNotes: true, employerTrackedCompanyId: true,
@@ -284,9 +332,32 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   });
   if (axes.length === 0) return finish(EMPTY);
 
+  // Layer-3 query TTL (layers.ts LAYER3_QUERY_TTL_DAYS): an axis whose evidence named a
+  // dated "what occupies them now" fact was built from something time-bound — once EVERY
+  // subscriber's copy of that fact has gone stale, the axis stops asking for queries this
+  // run. In practice this only ever fires on ROLE_COMPANY axes: a COMPANY_MONITOR axis
+  // never gets a PersonAxis subscriber at all (`ensureCompanyMonitorAxis` attaches no
+  // per-person link — axis-store.ts), so it can never reach this check, despite
+  // COMPANY_MONITOR being the axis KIND `layers.ts` calls "layer 3". The naming is a real
+  // quirk, not a bug: the same ROLE_COMPANY axis is "layer 3" here (its evidence quoted a
+  // dated fact) but "layer 4" for `passesLayerFloor`/`articlesByLayer` purposes (its axis
+  // KIND is ROLE_COMPANY). One subscriber whose fact is still fresh (or who was never
+  // linked by a layer-3 fact at all — layer3Expired returns false on anything that isn't
+  // a genuinely expired layer-3 date) is enough to keep the axis in the pool.
+  const scanStart = new Date();
+  const expiredLayer3Labels: string[] = [];
+  const poolEligibleAxes = axes.filter((a) => {
+    if (!isPoolEligible(a.people, scanStart)) {
+      expiredLayer3Labels.push(a.label);
+      return false;
+    }
+    return true;
+  });
+  expiredLayer3 = expiredLayer3Labels;
+
   // ── 2. Queries from axes, not from company profiles ───────────────────────
   const pool = buildAxisQueryPool(
-    axes.map((a) => ({ id: a.id, searchQueries: a.searchQueries })),
+    poolEligibleAxes.map((a) => ({ id: a.id, searchQueries: a.searchQueries })),
     normalizeQuery,
     MAX_QUERIES_PER_AXIS
   );
@@ -424,6 +495,9 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   const axisById = new Map(axes.map((a) => [a.id, a]));
   let axisFitsJudged = 0;
   let matchesAboveFloor = 0;
+  // Which layer each surviving axis-fit match reached, so articlesByLayer (layers.ts)
+  // can report the deepest layer per item rather than a bare match count.
+  const layerRows: { itemId: string; kind: AxisKindName }[] = [];
 
   for (const item of written) {
     for (const axisId of item.axisIds) {
@@ -448,9 +522,13 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
         });
         score = fit.score;
       }
-      if (score >= AXIS_FIT_FLOOR) matchesAboveFloor += 1;
+      if (score >= AXIS_FIT_FLOOR) {
+        matchesAboveFloor += 1;
+        layerRows.push({ itemId: item.itemId, kind: axis.kind as AxisKindName });
+      }
     }
   }
+  articlesByLayer = computeArticlesByLayer(layerRows);
   if (matchesAboveFloor === 0) {
     return finish({
       ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length,

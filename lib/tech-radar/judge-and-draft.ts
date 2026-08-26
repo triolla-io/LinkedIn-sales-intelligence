@@ -19,6 +19,7 @@ import { draftTechMessage } from "@/lib/tech-radar/draft";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
 import { pilotHoldEnabled } from "@/lib/tech-radar/pilot-gate";
 import { classifySource } from "@/lib/tech-radar/source-quality";
+import { deepestLayer, passesLayerFloor, type AxisKindName } from "@/lib/tech-radar/layers";
 
 /**
  * Drafts one org may produce in a day.
@@ -68,6 +69,7 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
     select: {
       id: true,
       label: true,
+      kind: true,
       people: {
         select: {
           weight: true,
@@ -109,13 +111,37 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
   });
   if (axes.length === 0) return empty;
 
-  const candidates: RankCandidate[] = [];
   const itemById = new Map<string, (typeof axes)[number]["matches"][number]["item"]>();
   const axisById = new Map(axes.map((a) => [a.id, a]));
 
+  // Per item, which axis kinds matched it — across ALL axes, not per (axis, item) pair.
+  // deepestLayer wants the whole set: an item caught by an INDUSTRY axis here and a
+  // ROLE_COMPANY axis there is layer 4 for the floor's purposes, not two separate
+  // layer-1 sightings.
+  const kindsByItem = new Map<string, AxisKindName[]>();
   for (const axis of axes) {
     for (const match of axis.matches) {
       itemById.set(match.item.id, match.item);
+      const kinds = kindsByItem.get(match.item.id);
+      if (kinds) kinds.push(axis.kind as AxisKindName);
+      else kindsByItem.set(match.item.id, [axis.kind as AxisKindName]);
+    }
+  }
+
+  // The industry floor: an item caught ONLY by the broad, cheap layer-1 net needs a much
+  // higher `stature` before it reaches a real person (INDUSTRY_ONLY_STATURE_FLOOR,
+  // layers.ts) — the narrower layers exist to keep drafts specific, and a layer-1-only
+  // match hasn't crossed anything specific to this person or their employer.
+  const itemsBelowIndustryFloor = new Set<string>();
+  for (const [itemId, item] of itemById) {
+    const deepest = deepestLayer(kindsByItem.get(itemId) ?? []);
+    if (!passesLayerFloor(deepest, item.stature)) itemsBelowIndustryFloor.add(itemId);
+  }
+
+  const candidates: RankCandidate[] = [];
+  for (const axis of axes) {
+    for (const match of axis.matches) {
+      if (itemsBelowIndustryFloor.has(match.item.id)) continue;
       for (const link of axis.people) {
         const contact = link.personProfile.contact;
         candidates.push({
@@ -131,7 +157,11 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
       }
     }
   }
-  if (candidates.length === 0) return empty;
+  if (candidates.length === 0) {
+    return itemsBelowIndustryFloor.size > 0
+      ? { ...empty, dropReasons: { industry_floor: itemsBelowIndustryFloor.size } }
+      : empty;
+  }
 
   const contactIds = [...new Set(candidates.map((c) => c.contactId))];
   const prior = await prisma.radarDraft.findMany({
@@ -302,6 +332,7 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
 
   const dropReasons: Record<string, number> = {};
   for (const d of dropped) dropReasons[d.reason] = (dropReasons[d.reason] ?? 0) + 1;
+  if (itemsBelowIndustryFloor.size > 0) dropReasons.industry_floor = itemsBelowIndustryFloor.size;
   if (draftFailed > 0) dropReasons.draft_failed = draftFailed;
   if (sourceRejected > 0) dropReasons.source_not_publisher = sourceRejected;
 
