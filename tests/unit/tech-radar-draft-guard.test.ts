@@ -136,6 +136,33 @@ describe("opener_mush", () => {
   it("does not flag a hedge with no placeholder noun", () => {
     expect(checkDraft("גיל, כנראה שרגולטורים מחמירים על תמחור אלגוריתמי.")).not.toContain("opener_mush");
   });
+
+  /**
+   * Fix round 1: the placeholder/hedge lists were plain substring matches — JS regex
+   * has no Hebrew-aware `\b` — so they fired inside unrelated longer words. A fully
+   * concrete opener with none of these words at all must never be flagged.
+   */
+  it("does not flag 'נושא' sitting inside 'הנושא'/'נושאים', not standing alone", () => {
+    expect(
+      checkDraft("גיל, ראיתי שהנושא של תמחור אלגוריתמי בבריטניה אולי מגיע גם לישראל.\nזה נוגע ישר בכם.")
+    ).not.toContain("opener_mush");
+  });
+
+  it("does not flag 'עניין' sitting inside 'בעניין'", () => {
+    expect(
+      checkDraft("גיל, ראיתי כתבה בעניין הרגולציה החדשה בבריטניה על תמחור אלגוריתמי.\nזה נוגע ישר בכם.")
+    ).not.toContain("opener_mush");
+  });
+
+  it("does not flag 'בטח' sitting inside 'בטחונות' (a live fintech word)", () => {
+    expect(
+      checkDraft("גיל, ראיתי שדרישות הבטחונות בבנקים באירופה מחמירות.\nזה נוגע ישר בכם.")
+    ).not.toContain("opener_mush");
+  });
+
+  it("still flags a standalone 'נושא' used as a placeholder", () => {
+    expect(checkDraft("גיל, יש נושא שכנראה קשור אליכם.\nתוכן.")).toContain("opener_mush");
+  });
 });
 
 /**
@@ -184,6 +211,23 @@ describe("whyHimCopied", () => {
       "בגלל שאתה זה שמחליט בפועל על המודלים של ML לתמחור בפניקס, הסיכון של משתנים פרוקסי והאפליה העקיפה " +
       "היא בעצם סיכון שאתה נושא בעצמו בהחלטה.";
     expect(checkDraft(message)).not.toContain("whyhim_copied");
+  });
+
+  /**
+   * Fix round 1: the em-dash strip that gets the real pair over 0.6 was applied to
+   * BOTH inputs — but the drafting prompt's own rule 3 actively encourages exactly this
+   * shape for an honest closer ("anchor it in their world by naming ONE concrete thing
+   * of theirs"). An honest closer using an em-dash must not lose its own anchor before
+   * comparison; only whyHim's trailing scope caveat gets dropped.
+   */
+  it("does not flag an honest closer that uses an em-dash of its own", () => {
+    const whyHim = "הוא מנהל את הסיכונים הרגולטוריים בפניקס.";
+    const message =
+      "גיל, ראיתי משהו.\nתוכן.\n" +
+      "הסיכונים הרגולטוריים בפניקס — זה נופל עליך ולא על מישהו אחר בשוק, וזה בדיוק מה שמעניין כאן.\n" +
+      "https://example.com/story";
+    expect(whyHimCopied(message, whyHim)).toBe(false);
+    expect(checkDraft(message, { whyHim })).not.toContain("whyhim_copied");
   });
 });
 

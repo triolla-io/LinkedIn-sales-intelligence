@@ -85,10 +85,42 @@ const GREETING = /^\s*(?:היי|הי|שלום|אהלן|בוקר\s+טוב|צהר�
  */
 const HEBREW_FUNCTION_WORDS = ["של", "את", "על", "זה", "היא", "הוא", "ש", "ו", "כי", "לכן", "בגלל", "בפועל", "בעצם", "לא", "גם"];
 
+/**
+ * JS regex has no Hebrew-aware `\b` — `\b` is defined on `\w` ([A-Za-z0-9_]) only, so
+ * it does nothing useful around Hebrew letters. A negative lookbehind/lookahead for
+ * "another Hebrew letter" is the word-boundary substitute: it rejects a match sitting
+ * inside a longer word (`נושא` inside `הנושא` or `נושאים`, `עניין` inside `בעניין`,
+ * `בטח` inside `בטחונות` — a live fintech word) while still matching the same phrase
+ * standing on its own.
+ */
+function hebrewWordBoundaryPattern(alternatives: string): RegExp {
+  return new RegExp(`(?<![֐-׿])(?:${alternatives})(?![֐-׿])`, "u");
+}
+
 /** Nouns that stand in for the subject instead of naming it. */
-const OPENER_PLACEHOLDER_PATTERN = /משהו|דבר\s+מה|נושא|עניין|כתבה\s+מעניינת|דבר\s+מעניין/u;
-/** Hedges — "probably", "maybe" — that soften a claim instead of making one. */
-const OPENER_HEDGE_PATTERN = /כנראה|אולי|נראה\s+לי|יכול\s+להיות\s+ש|בטח|כמדומני/u;
+const OPENER_PLACEHOLDER_PATTERN = hebrewWordBoundaryPattern(
+  String.raw`משהו|דבר\s+מה|נושא|עניין|כתבה\s+מעניינת|דבר\s+מעניין`
+);
+
+/**
+ * Hedges — "probably", "maybe" — that soften a claim instead of making one.
+ *
+ * Two shapes, because a plain trailing/leading boundary check is wrong for both:
+ *   - "כנראה"/"אולי"/"נראה לי"/"בטח"/"כמדומני" are bounded on BOTH sides, but the
+ *     leading boundary also has to tolerate a glued relative "ש-" ("שכנראה" = ש + כנראה,
+ *     real Hebrew never writes that with a space) without opening the door to every
+ *     Hebrew letter — the placeholder list deliberately does NOT get this exception,
+ *     since "שנושא" is ambiguous with the verb "carries" ("אתה נושא בעצמו").
+ *   - "יכול להיות ש" is bounded only at its START: the trailing "ש" is a bound prefix
+ *     that always attaches straight to the next word, so it must never require a
+ *     non-letter after it.
+ */
+const HEDGE_STANDALONE = String.raw`כנראה|אולי|נראה\s+לי|בטח|כמדומני`;
+const HEDGE_GLUED_FORWARD = String.raw`יכול\s+להיות\s+ש`;
+const OPENER_HEDGE_PATTERN = new RegExp(
+  `(?:(?<![֐-׿])|(?<=(?:^|[^֐-׿])ש))(?:${HEDGE_STANDALONE})(?![֐-׿])` + `|(?<![֐-׿])(?:${HEDGE_GLUED_FORWARD})`,
+  "u"
+);
 
 /**
  * True once the placeholder is stripped and nothing longer than 3 Hebrew letters is
@@ -188,14 +220,19 @@ function normalizeHebrewWord(raw: string): string {
 }
 
 /**
- * Hebrew content tokens: punctuation and niqqud stripped, a trailing em-dash aside
- * dropped (a veto sentence like "...הוא נושא בעצמו בהחלטה — לא נושא כללי של תעשיית
- * הביטוח" ends on a scope caveat for the JUDGE, not part of the reason a rephrased
- * closer would ever echo), function words dropped, pronouns normalized, light noun
- * stemming applied.
+ * Hebrew content tokens: punctuation and niqqud stripped, function words dropped,
+ * pronouns normalized, light noun stemming applied.
+ *
+ * `dropEmDashAside` strips a trailing em-dash clause before tokenizing — for whyHim
+ * ONLY. A veto sentence like "...הוא נושא בעצמו בהחלטה — לא נושא כללי של תעשיית הביטוח"
+ * ends on a scope caveat for the JUDGE, not part of the reason a rephrased closer would
+ * ever echo. The message's own closer must NOT get this treatment: the drafting
+ * prompt's own rule 3 encourages anchoring the reason in the recipient's world with an
+ * em-dash aside ("...בפניקס — זה נופל עליך ולא על מישהו אחר"), and a honest closer that
+ * does exactly that must not have its own anchor silently discarded before comparison.
  */
-function whyHimContentTokens(text: string): Set<string> {
-  const core = (text ?? "").split("—")[0];
+function whyHimContentTokens(text: string, opts?: { dropEmDashAside?: boolean }): Set<string> {
+  const core = opts?.dropEmDashAside ? (text ?? "").split("—")[0] : (text ?? "");
   const noNiqqud = core.replace(/[֑-ׇ]/gu, "");
   const words = noNiqqud.match(/[֐-׿]+/gu) ?? [];
   const mapped = words.map(normalizeHebrewWord);
@@ -225,7 +262,7 @@ export function whyHimCopied(message: string, whyHim: string | null | undefined)
   const closer = sentences[sentences.length - 1];
   if (!closer) return false;
   const a = whyHimContentTokens(closer);
-  const b = whyHimContentTokens(whyHim);
+  const b = whyHimContentTokens(whyHim, { dropEmDashAside: true });
   return jaccard(a, b) >= WHYHIM_JACCARD_THRESHOLD;
 }
 

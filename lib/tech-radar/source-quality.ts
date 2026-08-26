@@ -70,10 +70,19 @@ const PUBLISHER_HOSTS = [
 ];
 
 function hostOf(url: string): string {
+  const trimmed = (url ?? "").trim();
   try {
-    return new URL(url).hostname.toLowerCase();
+    return new URL(trimmed).hostname.toLowerCase();
   } catch {
-    return (url ?? "").trim().toLowerCase();
+    // No scheme — retry as if it had one, so a bare "www.example.com/rss/article"
+    // still gets read as a HOST. Only if that also fails (not URL-shaped at all) do we
+    // fall back to a best-effort split, which at least drops the path/query rather
+    // than matching farm-shape words against them.
+    try {
+      return new URL(`https://${trimmed}`).hostname.toLowerCase();
+    } catch {
+      return trimmed.split(/[/?#]/)[0]?.toLowerCase() ?? "";
+    }
   }
 }
 
@@ -87,6 +96,33 @@ function hostMatchesAny(host: string, registrableNames: string[]): boolean {
   return registrableNames.some((d) => bare === d || bare.endsWith(`.${d}`));
 }
 
+/** Generic second-level labels that precede a two-letter country code, e.g. "co.il". */
+const GENERIC_SLD_LABELS = new Set(["ac", "co", "com", "gov", "net", "or", "org"]);
+
+function isTwoLetterCountryCode(label: string): boolean {
+  return /^[a-z]{2}$/.test(label);
+}
+
+/**
+ * The registrable domain's OWN label — "streamlinefeed" out of "streamlinefeed.co.ke",
+ * "reuters" out of "feeds.reuters.com" — never a subdomain. Without this, the
+ * farm-shape check below would classify a publisher's own "feeds." or "rss." subdomain
+ * (real shapes: feeds.reuters.com, rss.calcalist.co.il) as an aggregator by matching
+ * the subdomain label instead of the registrable name. No public-suffix list here —
+ * just the "co"/generic + two-letter-country pattern our own publisher list actually
+ * uses (co.il, co.ke, ...), falling back to the standard second-from-last label.
+ */
+function registrableLabel(bareHost: string): string {
+  const labels = bareHost.split(".").filter(Boolean);
+  if (labels.length < 2) return labels[0] ?? "";
+  const last = labels[labels.length - 1];
+  const secondLast = labels[labels.length - 2];
+  if (labels.length >= 3 && isTwoLetterCountryCode(last) && GENERIC_SLD_LABELS.has(secondLast)) {
+    return labels[labels.length - 3];
+  }
+  return secondLast;
+}
+
 export function classifySource(url: string): { cls: SourceClass; host: string; reason: string } {
   const host = hostOf(url);
   const bare = stripWww(host);
@@ -94,15 +130,18 @@ export function classifySource(url: string): { cls: SourceClass; host: string; r
   if (hostMatchesAny(host, AGGREGATOR_HOSTS) || AGGREGATOR_HOST_SUFFIXES.some((s) => host.endsWith(s))) {
     return { cls: "aggregator", host, reason: `blocklisted aggregator: ${bare}` };
   }
-  const shape = AGGREGATOR_NAME_SHAPES.find((s) => bare.includes(s));
+  // The allowlist runs BEFORE the farm-shape heuristic: a recognized outlet's own
+  // subdomain (feeds.reuters.com, rss.calcalist.co.il) must never reach a substring
+  // check that only exists to catch hosts we do NOT already trust.
+  if (hostMatchesAny(host, PUBLISHER_HOSTS)) {
+    return { cls: "publisher", host, reason: `recognized publisher: ${bare}` };
+  }
+  const shape = AGGREGATOR_NAME_SHAPES.find((s) => registrableLabel(bare).includes(s));
   if (shape) {
     return { cls: "aggregator", host, reason: `aggregator-shaped host (contains "${shape}"): ${bare}` };
   }
   if (isSearchEngineHost(host)) {
     return { cls: "search_wrapper", host, reason: `search-engine host: ${bare}` };
-  }
-  if (hostMatchesAny(host, PUBLISHER_HOSTS)) {
-    return { cls: "publisher", host, reason: `recognized publisher: ${bare}` };
   }
   return { cls: "unknown", host, reason: `unrecognized host: ${bare}` };
 }

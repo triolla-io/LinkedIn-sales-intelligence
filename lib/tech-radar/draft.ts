@@ -309,7 +309,7 @@ export function enforceDraftRules(message: string, input: TechDraftInput): Draft
     return {
       ok: false,
       reason: `draft-guard: ${violations.join(", ")}`,
-      instruction: `Your previous attempt broke these rules: ${violations.join(", ")}. Rewrite it — a question mark only in the opening sentence, no ask of any kind, no suggestion to adopt or evaluate, nothing about us or our services, no emoji, no doubled possessive, and at most ${MAX_DRAFT_CHARS} characters before the link.`,
+      instruction: `Your previous attempt broke these rules: ${violations.join(", ")}. Rewrite it — a question mark only in the opening sentence, no ask of any kind, no suggestion to adopt or evaluate, nothing about us or our services, no emoji, no doubled possessive, and at most ${MAX_DRAFT_CHARS} characters before the link. If "opener_mush" is listed: your opener named nothing — say what you actually saw ("ראיתי ש-<X>"), not that something exists ("נתקלתי במשהו ש..."). If "whyhim_copied" is listed: your last sentence is the "why it touches them" note with the pronouns swapped — write the reason in genuinely different words, not a re-inflected copy.`,
       retryable: true,
     };
   }

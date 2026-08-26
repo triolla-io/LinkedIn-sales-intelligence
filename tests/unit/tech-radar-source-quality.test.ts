@@ -25,6 +25,17 @@ describe("classifySource", () => {
     expect(classifySource("https://www.ft.com/content/x").cls).toBe("publisher");
   });
 
+  /**
+   * Fix round 1: the farm-shape substring check ran against the WHOLE host, so a real
+   * publisher's own "feeds." or "rss." subdomain — a completely normal RSS-feed
+   * hostname pattern — classified as an aggregator with no repair path. The allowlist
+   * now runs first, and the farm-shape check only ever looks at the registrable label.
+   */
+  it("classifies a publisher's own feeds./rss. subdomain as publisher, not aggregator", () => {
+    expect(classifySource("https://feeds.reuters.com/reuters/businessNews").cls).toBe("publisher");
+    expect(classifySource("https://rss.calcalist.co.il/section/1").cls).toBe("publisher");
+  });
+
   it("classifies a named aggregator host", () => {
     expect(classifySource("https://news.google.com/rss/articles/x").cls).toBe("aggregator");
     expect(classifySource("https://www.msn.com/en-us/news/x").cls).toBe("aggregator");

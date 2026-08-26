@@ -63,6 +63,9 @@ const SOFT_HE: Record<string, string> = {
   duplicate_possessive: "כפל שייכות (״שלכם אצלכם״)",
   glued_script: "עברית ואנגלית צמודות — מפרידים במקף או רווח",
   emoji: "בלי אימוג׳ים בהודעות",
+  opener_mush: "הפתיחה לא אומרת על מה מדובר — נסחו מה בדיוק ראיתם",
+  whyhim_copied: "המשפט האחרון הוא הנימוק של הוטו עם החלפת גוף — לא ניסוח עצמאי",
+  hebrew_agreement: "התאם דקדוקי (יידוע/מין־מספר) שכדאי לבדוק",
 };
 
 /** "לפני 3 שבועות" a human would say, not an ISO stamp. */
