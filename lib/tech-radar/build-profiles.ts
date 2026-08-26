@@ -7,7 +7,7 @@
  * with news.
  */
 import { prisma } from "@/lib/prisma";
-import { buildPersonProfile } from "@/lib/tech-radar/person-profile";
+import { buildPersonProfile, type AxisProposal } from "@/lib/tech-radar/person-profile";
 import { gateRationales } from "@/lib/tech-radar/rationale-gate";
 import { attachAxes, ensureCompanyMonitorAxis } from "@/lib/tech-radar/axis-store";
 import { countHebrewQueries } from "@/lib/tech-radar/axis";
@@ -15,6 +15,10 @@ import { poolQueryCount } from "@/lib/tech-radar/person-scan";
 import { prisma as db } from "@/lib/prisma";
 import { isUsableProfile } from "@/lib/tech-radar/types";
 import { markSuperseded } from "@/lib/tech-radar/superseded";
+import {
+  thinProfiles, stageDistribution, sameDecisionCollisions,
+  type ThinProfile, type DecisionCollision,
+} from "@/lib/tech-radar/profile-quality";
 
 /** Rebuilt only when older than this — a role does not change weekly. */
 const STALE_AFTER_DAYS = 90;
@@ -37,6 +41,22 @@ export type BuildProfilesReport = {
    * used 34 unique queries — that is the number to compare against.
    */
   pool: { axes: number; uniqueQueries: number };
+  /**
+   * Anyone the gate left under MIN_AXES_PER_PERSON. Elinor Levinson Gafni came back from
+   * the 2026-08-26 rebuild with two axes, one of which was not even hers, and the run
+   * finished quietly — a thin profile has to declare itself thin.
+   */
+  thin: ThinProfile[];
+  /**
+   * Axes per staged question. `adopt: 0` across the cohort is the signal that stage (ד)
+   * did not land; it produced nothing for all four people and nothing counted it.
+   */
+  stages: Record<string, number>;
+  /**
+   * Two executives at the SAME employer handed the same decision — the
+   * union-instead-of-intersection failure in its purest form.
+   */
+  sameDecision: DecisionCollision[];
   /** Hebrew search queries per person, from the DATABASE. Zero for anyone is a defect. */
   hebrewQueriesByPerson: { name: string; hebrew: number; agenda: number }[];
   /** People with no Hebrew query at all. Must be empty. */
@@ -68,7 +88,7 @@ export async function buildProfilesForMarked(input: {
 }): Promise<BuildProfilesReport> {
   const report: BuildProfilesReport = {
     considered: 0, built: 0, refreshed: 0, axesCreated: 0, axesMerged: 0, axesRefused: 0,
-    pool: { axes: 0, uniqueQueries: 0 },
+    pool: { axes: 0, uniqueQueries: 0 }, thin: [], stages: {}, sameDecision: [],
     hebrewQueriesByPerson: [], noHebrewQuery: [], skipped: [], rejectedByRule: {},
     superseded: { matches: 0, drafts: 0 },
   };
@@ -98,6 +118,9 @@ export async function buildProfilesForMarked(input: {
   /** Contacts whose model this run actually replaced — the only ones whose old
    *  judgements are stale. Someone skipped or unchanged must not have history rewritten. */
   const rebuilt: string[] = [];
+  // Collected per person so the four quality numbers are computed over the cohort rather
+  // than per call — a collision is only visible across two people.
+  const kept: { name: string; employerId: string; axes: AxisProposal[] }[] = [];
 
   for (const contact of contacts) {
     const name = contact.fullName ?? contact.id;
@@ -198,6 +221,8 @@ export async function buildProfilesForMarked(input: {
       });
     }
 
+    kept.push({ name, employerId: employer.id, axes: gate.kept });
+
     const attached = await attachAxes({
       orgId: input.orgId,
       personProfileId: profile.id,
@@ -266,6 +291,12 @@ export async function buildProfilesForMarked(input: {
   // the report is the number that gets billed. Refusing a merge raises the axis count;
   // this is where it becomes visible whether it raised the bill.
   report.pool = await poolQueryCount(input.orgId);
+  report.thin = thinProfiles(kept);
+  report.stages = stageDistribution(kept.flatMap((k) => k.axes));
+  report.sameDecision = sameDecisionCollisions(kept);
+  for (const t of report.thin) {
+    console.warn(`[radar] THIN PROFILE ${t.name}: ${t.axes} axes, floor is ${t.floor}`);
+  }
 
   return report;
 }

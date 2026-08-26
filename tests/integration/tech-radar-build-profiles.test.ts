@@ -39,6 +39,9 @@ const draftUpdateMany = vi.fn(async (..._a: unknown[]) => ({ count: 0 }));
 const buildPersonProfile = vi.fn();
 vi.mock("@/lib/tech-radar/person-profile", () => ({
   buildPersonProfile: (...a: unknown[]) => buildPersonProfile(...a),
+  // The real list, not a stand-in: profile-quality reads it to tally the four stages, and
+  // a short mock list would silently drop a stage from the report this file asserts on.
+  AXIS_STAGES: ["decision", "competitor", "stop_and_read", "adopt"] as const,
 }));
 
 const attachAxes = vi.fn();

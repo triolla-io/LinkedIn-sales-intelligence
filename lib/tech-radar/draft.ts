@@ -1,19 +1,26 @@
 /**
  * Writes the outreach message for one (opportunity, contact) pair.
  *
- * v2 register — "saw this, thought of you". The message forwards ONE item and stops:
- * no adoption suggestion, no offer of our services, no ask of any kind. It is sent by
- * a person the recipient knows, so anything that reads like a system that found a match
+ * The sender's real voice — excited, direct, exclamation marks ("וואי איזה הזדמנות
+ * מטורפת!") — not the polite-distant "נתקלתי במשהו... חשבתי עליך" register this prompt
+ * used to write in. The message forwards ONE item and stops: no adoption suggestion, no
+ * offer of our services, no ask of any kind past the opening line. It is sent by a
+ * person the recipient knows, so anything that reads like a system that found a match
  * defeats the whole point.
  *
- * The shape is:
- *   1. "היי <שם>, נתקלתי ב..." — you came across it.
- *   2. ONE short clause: what it is, and why it made you think of THEM.
- *   3. The link, alone, on the last line.
+ * The shape is four parts, in order:
+ *   1. Opener in the sender's voice — a rhetorical question or an excited reaction.
+ *   2. 2-3 sentences distilling what the item's own text actually says.
+ *   3. ONE sentence: why THEM specifically — never the generic category it belongs to.
+ *   4. The link, alone, on the last line.
  *
  * What changed from v1: v1 closed with "אולי תוכלו לשלב את זה ב___ אצלכם" and forbade
  * links. Both are gone — the suggestion made every message a soft pitch, and the link
  * is what makes forwarding an article an actual act of forwarding an article.
+ *
+ * The sender's excitement is licensed only about what the item MEANS for the recipient
+ * — it must never turn into a claim about the item's own importance that the item does
+ * not make itself, and never into ad-copy about a vendor or product.
  *
  * `fitRationale` stays in the prompt as BACKGROUND only: it is the one thing that knows
  * why this item touches their world. It must never become a recommendation, and must
@@ -37,10 +44,11 @@ export type TechDraftInput = {
   /** The article to forward. Null when the item carries no readable source. */
   sourceUrl: string | null;
   /**
-   * The ITEM's own words — title plus summary. The only text that counts as a source
-   * when checking a figure. `fitRationale` deliberately does NOT count: it is prose we
-   * generated ourselves, and a number that entered there unverified stays unverified
-   * however many stages it passes through.
+   * The ITEM's own words — title plus summary. Two roles: the content part 2 is
+   * distilled from, and the only text that counts as a source when checking a figure.
+   * `fitRationale` deliberately does NOT count as a source: it is prose we generated
+   * ourselves, and a number that entered there unverified stays unverified however many
+   * stages it passes through.
    */
   itemText: string;
   /** See ItemKind. The tone rule reads this: a company_move is not a regulatory report. */
@@ -50,22 +58,21 @@ export type TechDraftInput = {
   /**
    * True when only a search snippet could be read.
    *
-   * The content paragraph is where this matters most: the 2026-08-20 OpenAI-lawsuit item
-   * turned into a general explanation of ChatGPT because the model completed a thin
-   * source from memory. A longer paragraph gives that failure MORE room, so a thin item
-   * gets one careful sentence and no completion at all.
+   * This is where it matters most: the 2026-08-20 OpenAI-lawsuit item turned into a
+   * general explanation of ChatGPT because the model completed a thin source from memory.
+   * A 2-3 sentence paragraph gives that failure MORE room, so a thin item gets one
+   * careful sentence and no completion at all.
    */
   thin?: boolean;
 };
 
 /**
- * Yuval's own messages, verbatim, as he writes them.
+ * The sender's own messages, verbatim, as he writes them.
  *
- * Exported so the prompt cannot drift from them silently. They are in the prompt to fix
- * the REGISTER — the energy, the shortness, the absence of ceremony. Reused as phrasing
- * they would produce eight identical drafts, which is the one thing a message from a
- * person may never read as, so the prompt forbids copying them and the test checks that
- * the prohibition is still there.
+ * Exported so a test can assert the prompt still carries them — a prompt edit that
+ * paraphrases the samples loses the register they exist to fix, and nothing else would
+ * catch it. They are in the prompt for TONE, never as phrasing: reused as wording they
+ * produce drafts distinguishable only by the name.
  */
 export const YUVAL_VOICE_SAMPLES = [
   "וואי איזה הזדמנות מטורפת! חייבים להשיג אותם",
@@ -73,43 +80,48 @@ export const YUVAL_VOICE_SAMPLES = [
   "הזדמנות למצב את הבנק כסופר חדשני!",
 ] as const;
 
-export const DRAFT_SYSTEM = `You write short, casual Hebrew messages that forward ONE interesting item to a senior professional the sender already knows — the way a colleague sends a link and says "saw this, thought of you".
+export const DRAFT_SYSTEM = `You write short, energetic, casual Hebrew messages that forward ONE interesting item to a senior professional the sender already knows — a friend saw something, thought of you, and fired off a link with genuine excitement.
 
-THE SENDER'S VOICE. These are his own messages, verbatim:
+VOICE — real samples of how the sender actually writes (match this register):
 - "וואי איזה הזדמנות מטורפת! חייבים להשיג אותם"
 - "היי, ראית את זה?"
 - "הזדמנות למצב את הבנק כסופר חדשני!"
+Enthusiastic, direct, spoken Hebrew: exclamation marks, "חייבים", "מטורף", a rhetorical question to open. Never polite-distant ("חשבתי לשתף", "מקווה שזה יעניין אותך") and never formal.
 
-Read them for TONE ONLY: direct, warm, energetic, zero ceremony, no marketing register, no hedging. NEVER copy their wording, and never reuse a phrase from them. If two of your messages could be told apart only by the name, you have written a template — start over. In particular "וואי איזה הזדמנות מטורפת" is a sample of ENERGY, not a sentence you may write.
+Read the samples for TONE ONLY. NEVER copy their wording, and never reuse a phrase from them — "וואי איזה הזדמנות מטורפת" is a sample of ENERGY, not a sentence you may write. If two of your messages could be told apart only by the name, you have written a template, which is the one thing a message from a person may never read as. Start over.
 
 TONE SCALES TO THE ITEM. You are given the item's kind and its stature (0-1). Loud enthusiasm on a quiet item reads as fake, which is worse than flat:
-- company_move or big_news with high stature — a competitor moving, a market opening: energetic. This is where the sender's loudest register belongs.
-- research or trend: interested and matter-of-fact. Quiet. "מחקר מעניין" energy, not "מטורף" energy.
+- company_move or big_news with high stature — a rival moving, a market opening: the sender's loudest register belongs here.
+- research or trend: interested and matter-of-fact. "מחקר מעניין" energy, not "מטורף" energy.
 - a regulatory or compliance item: quietest of all. Understated, almost dry.
 - vendor_launch, promotion, other, or anything with low stature: plainest possible. State it and stop.
 
 Follow this shape, in this order:
-1. OPENER — greet them by name and land the hook in one short line: your reaction, or a question like "ראית את זה?". This is the ONLY place a question mark may appear in the whole message.
-2. WHAT IT SAYS — 2-3 sentences on what the item actually reports: the concrete thing that happened or was found. Every fact here must come ONLY from the item text you are given. Do NOT add facts, context, background, or explanation from your own knowledge, however certain you are — an item about a lawsuit against a company is not an opportunity to explain what that company does. If the item text does not say it, it does not go in the message.
-3. WHY HIM — the LAST sentence before the link, carrying the SPECIFIC reason from the "why it touches them" note, rephrased in your own everyday words: the concrete mechanism or stake for THEM. Anchor it by naming ONE concrete thing of theirs — a product, business line, market or process.
+1. Open with the person's name, in the sender's voice: a rhetorical question — "היי דנה, ראית את זה?" — or an excited reaction — "דנה, נתקלתי במחקר מטורף!". A question mark is allowed HERE and nowhere else.
+2. What the item says: 2-3 short sentences distilled from the item's own text — the concrete finding, move or number that makes it worth two minutes. ONLY facts that appear in the item text you were given. Do NOT add context, background or explanation from your own knowledge, however certain you are: an item about a lawsuit against a company is not an opportunity to explain what that company does. If the item text does not say it, it does not go in the message.
+3. Why THEM: the LAST sentence before the link carries the SPECIFIC reason from the "why it touches them" note, rephrased in your own everyday words — the concrete mechanism or stake for THEM, never the generic category it belongs to. Anchor it in their world by naming ONE concrete thing of theirs — a product, business line, market or process.
    - The test: delete the item's subject from your message — it must STILL be clear why THIS person received it and not a colleague.
-   - GOOD: "חשבתי עליך, כי אם ליגות מתחילות לרשיין דאטה בזמן אמת, זה משנה את המו"מ מול ספקי הנתונים שלכם"
+   - GOOD: "וזה בדיוק משנה את המו"מ מול ספקי הדאטה שלכם!"
    - BAD, the category instead of the reason: "חשבתי עליך בגלל נתוני אירועים בזמן אמת"
    - BAD, too vague: "חשבתי עליך", "זה קשור לתחום שלכם"
-4. THE LINK — on its own line, last. Nothing after it.
+4. The link, on its own line, last. Nothing after it.
+
+Register example:
+"היי דנה, ראית את זה?
+JPMorgan פרסמו מחקר חדש על זיהוי הונאות בזמן אמת. הם עברו ממנוע כללים קבוע למודל התנהגותי שלומד את הדפוסים של כל משתמש, וזה חתך להם 40% מחסימות השווא בלי להוסיף חיכוך ללקוחות אמיתיים. וזה בדיוק הקרב של ביט על אישור תשלומים בין-אישיים בלי לעצבן לקוחות!
+https://example.com/article"
 
 Rules:
-- Keep the whole message under 600 characters. Shorter is better. Four to six short sentences, never a wall of text.
-- NO ASK of any kind. No meeting, no call, no "מה דעתך", no "נדבר", no "אשמח לשמוע". A question mark is allowed ONLY in the opening line — anywhere later it is an ask and the message is rejected. The message ends with the link and expects nothing back.
+- 3-6 short sentences TOTAL, then the link. At most 600 characters before the link. Punchy beats complete.
+- NO ASK of any kind past the opening sentence. No meeting, no call, no question, no "מה דעתך", no "נדבר", no "אשמח לשמוע". The message ends with the link and expects nothing back.
 - NO SUGGESTION to adopt, integrate, evaluate, examine or try the thing. You are not recommending it. Never say "אולי תוכלו לשלב", "כדאי לבדוק", "שווה להסתכל" or anything like them.
 - Never mention us, our company, our services, or anything we could do. This is not a pitch.
 - NEVER copy the relevance note into the message. It is background for you, not text to reuse — it is written for an analyst, not for the recipient.
-- Everyday spoken Hebrew, light and matter-of-fact — like a person forwarding something they read.
+- Nothing formal or marketing-y: no ברצוני/אשמח לשתף, no flattery, no filler. The excitement is the sender's own ("מטורף", "חייבים") and it is about what the news MEANS for the recipient — never ad-copy superlatives about a vendor or product, and never a claim about how important the item is that the item does not make itself.
 - ZERO emojis, icons, or decorative symbols.
-- Nothing formal or marketing-y: no ברצוני/אשמח לשתף, no hype words about US, no flattery, no filler.
 - Address the person by EXACTLY the name given under "Address them as". Copy those characters verbatim. Never re-spell, transliterate, lengthen, shorten or "correct" it — it is the name as it is recorded, and it is not yours to adjust.
 - NEVER state a quantity about the RECIPIENT or their company — how many plants, sites, people, products, markets, quarters, percent — unless that exact figure appears in the ITEM text you were given. If you have no verified figure, write the anchor WITHOUT one: "יעדי התפוקה שהצגתם", not "בשלוש המפעלות". A figure that belongs to the item itself is fine.
-- Reproduce the link EXACTLY as given, once, as the last line. Never invent, shorten or alter a URL. If no link is provided, end after the last sentence and include no URL at all.
+- Reproduce the link EXACTLY as given, once, as the last line. Never invent, shorten or alter a URL. If no link is provided, end after the sentence and include no URL at all.
 
 Return strict JSON only — no prose, no markdown fences:
 {"draftMessage": string}`;
@@ -118,25 +130,24 @@ Return strict JSON only — no prose, no markdown fences:
  * The per-item half of the prompt.
  *
  * Exported because the paragraph instruction it carries is behaviour, not formatting: a
- * thin item must be asked for LESS, and that is the difference between a careful sentence
- * and a paragraph completed from the model's own memory.
+ * thin item must be asked for LESS, and that is the difference between one careful
+ * sentence and a paragraph completed from the model's own memory.
  */
 export function draftUserPrompt(i: TechDraftInput): string {
-  const thin = i.thin === true;
   return [
     `Address them as (copy verbatim): ${salutationName(i)}`,
     `Recipient: ${i.contactFullName}`,
     `Recipient title: ${i.contactTitle ?? "unknown"}`,
     `Their company: ${i.companyName}`,
     `The item: ${i.technology}${i.vendor ? ` (by ${i.vendor})` : ""}`,
-    `Item kind (sets your tone): ${i.kind ?? "other"}`,
-    `Item stature 0-1 (sets how loud you may be): ${(i.stature ?? 0).toFixed(2)}`,
     // The last sentence must carry this reason — rephrased, never quoted.
     `Why it touches THEM (your LAST sentence must carry this exact reason, rephrased in everyday words — never copied): ${i.fitRationale}`,
-    `The item's own text — the ONLY source for anything you say about the item, and the only text a figure may be taken from: ${i.itemText}`,
-    thin
-      ? `SOURCE IS A SNIPPET ONLY. No page could be read, so the text above is all that is known. Write ONE careful sentence about the item instead of the 2-3 sentence paragraph, and do not add a single detail beyond what that text states. Do not explain what the company or product is. If the snippet is too thin to say anything concrete, say only what it does state.`
-      : `Full text was read: write the 2-3 sentences on what it says, drawn only from the text above.`,
+    `Item kind (sets your tone): ${i.kind ?? "other"}`,
+    `Item stature 0-1 (sets how loud you may be): ${(i.stature ?? 0).toFixed(2)}`,
+    `The item's own text (distill part 2 from it; also the ONLY text a figure may be taken from): ${i.itemText}`,
+    i.thin === true
+      ? `SOURCE IS A SNIPPET ONLY. No page could be read, so the text above is all that is known. Write ONE careful sentence for part 2 instead of the 2-3 sentence paragraph, and do not add a single detail beyond what that text states. Do not explain what the company or product is.`
+      : `Full text was read: write the 2-3 sentences for part 2, drawn only from the text above.`,
     i.sourceUrl
       ? `Link (reproduce verbatim as the last line): ${i.sourceUrl}`
       : `Link: none available — do not include any URL.`,
@@ -280,17 +291,12 @@ export function enforceDraftRules(message: string, input: TechDraftInput): Draft
   // The rest of draft-guard, at drafting time. These rules were written from real
   // failures but only ran in tests — and a prompt rule with no runtime check is a
   // suggestion, which is how the glued script above reached a stored draft.
-  //
-  // Two codes are advisory here, for opposite reasons: glued_script was already repaired
-  // above, and "long" (past 600) is where a legitimate content paragraph lands — dropping
-  // a good draft over two characters is the failure mode, not the guard.
-  const ADVISORY = new Set(["glued_script", "long"]);
-  const violations = checkDraft(out).filter((v) => !ADVISORY.has(v));
+  const violations = checkDraft(out).filter((v) => v !== "glued_script");
   if (violations.length > 0) {
     return {
       ok: false,
       reason: `draft-guard: ${violations.join(", ")}`,
-      instruction: `Your previous attempt broke these rules: ${violations.join(", ")}. Rewrite it — a question is allowed ONLY as the opening hook, never later and never as an ask; no suggestion to adopt or evaluate, nothing about us or our services, no emoji, no doubled possessive; keep it under ${MAX_DRAFT_CHARS} characters.`,
+      instruction: `Your previous attempt broke these rules: ${violations.join(", ")}. Rewrite it — a question mark only in the opening sentence, no ask of any kind, no suggestion to adopt or evaluate, nothing about us or our services, no emoji, no doubled possessive, and at most ${MAX_DRAFT_CHARS} characters before the link.`,
       retryable: true,
     };
   }
@@ -337,7 +343,10 @@ async function callModel(input: TechDraftInput, correction: string | null): Prom
         { role: "user", content: user },
       ],
       temperature: 0.5,
-      max_tokens: 400,
+      // A ceiling-length 600-char Hebrew draft needs ~330-500 output tokens once
+      // JSON-wrapped; 400 truncated a full-length draft. Output tokens bill on what
+      // is produced, so the headroom above that is free.
+      max_tokens: 900,
       response_format: { type: "json_object" },
     },
     { timeoutMs: 20_000 }

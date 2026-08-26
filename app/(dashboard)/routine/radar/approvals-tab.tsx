@@ -238,8 +238,7 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
         {draft.lastMessageFromUsAt && <Chip>הודעה אחרונה מכאן: {relativeHe(draft.lastMessageFromUsAt)}</Chip>}
         {draft.sourceHost && (
           <Chip>
-            מקור: {draft.sourceHost}
-            {relativeHe(draft.sourcePublishedAt) ? ` · ${relativeHe(draft.sourcePublishedAt)}` : ""}
+            מקור: {draft.sourceHost} · {relativeHe(draft.sourcePublishedAt) ?? "תאריך לא ידוע"}
           </Chip>
         )}
       </div>

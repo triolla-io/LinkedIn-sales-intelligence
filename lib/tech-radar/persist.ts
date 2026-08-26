@@ -6,7 +6,7 @@
  * reuse an item another company already paid to write up.
  */
 import { prisma } from "@/lib/prisma";
-import { parsePublishedAt } from "@/lib/news/published-at";
+import { publishedMs } from "@/lib/tech-radar/freshness";
 import { isSearchEngineHost } from "@/lib/news/canonical-url";
 import type { CappedCandidate, TechItemDraft } from "@/lib/tech-radar/types";
 import { makeItemDedupeKey, isSameLaunch } from "@/lib/tech-radar/item";
@@ -103,10 +103,11 @@ export async function upsertTechItem(draft: TechItemDraft): Promise<string> {
       summary: draft.summary,
       categories: draft.categories,
       sources: draft.sources,
-      // parsePublishedAt, not new Date(): serper reports "2 months ago", and an Invalid
-      // Date handed to Prisma is what lost an item in the 2026-08-26 scan. One reader,
-      // shared with the freshness gate, so the two cannot disagree about a date.
-      publishedAt: parsePublishedAt(draft.publishedAt),
+      // Via publishedMs, not new Date(): an Invalid Date handed to Prisma is what lost an
+      // item in the 2026-08-26 scan ("2 months ago" from serper). The same reader the
+      // freshness gate uses, so the two can never disagree about what a date means, and 0
+      // — its answer for "unparseable" — becomes null rather than 1970.
+      publishedAt: publishedMs(draft.publishedAt) ? new Date(publishedMs(draft.publishedAt)) : null,
       thin: draft.thin,
       shareworthy: draft.shareworthy,
       stature: draft.stature,

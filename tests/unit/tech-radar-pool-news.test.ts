@@ -137,14 +137,7 @@ describe("fetchPoolNews", () => {
     const out = await fetchPoolNews([], async () => []);
     // The freshness fields are all-null rather than zero: zeros would read as "nothing
     // was stale and everything was fresh", which is a claim an empty run cannot make.
-    expect(out).toEqual({
-      items: [],
-      queriesRun: 0,
-      quotaLikely: false,
-      staleDropped: 0,
-      undatedDropped: 0,
-      freshness: { freshest: null, median: null, oldest: null, unknown: 0, counted: 0 },
-    });
+    expect(out).toEqual({ items: [], queriesRun: 0, quotaLikely: false });
   });
 
   // GNews rate-limits a burst: firing 10 pooled queries back to back returned

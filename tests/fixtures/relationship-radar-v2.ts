@@ -61,6 +61,13 @@ export const V1_DRAFTS = [
   "היי אופיר, ראיתי מערכת ג'ל חדשה של Halliburton שמנקה צינורות תת-ימיים בלי להשפיע על הייצור בשדות סמוכים. אולי תוכלו לשלב את זה בניקוי צינורות בשדות הצפון אצלכם.",
 ] as const;
 
-/** What the v2 register is supposed to produce for the same item. Hand-written target. */
-export const V2_TARGET_DRAFT =
-  "היי אורי, נתקלתי בכתבה על חיפוש וקטורי בזמן אמת — חשבתי עליך בגלל מנוע ההמלצות.\nhttps://aws.amazon.com/blogs/aws/amazon-dynamodb-now-supports-real-time-vector-search-at-any-scale/";
+/**
+ * What the v2 register is supposed to produce, for a different item and recipient than
+ * V1_DRAFTS — this is not a before/after pair with any single V1 entry. Hand-written
+ * target. Models the sender's real voice, not the quiet "נתקלתי... חשבתי עליך" register:
+ * a rhetorical-question opener, 2-3 sentences on what the article itself says, then one
+ * sentence anchoring why it touches THIS reader by name.
+ */
+export const V2_TARGET_DRAFT = `היי אופיר, ראית את זה?
+מחקר חדש מראה שהזרקת פחמן דו-חמצני מחזירה לחיים שדות שכולם כבר הספידו. יש שם נתונים מהשטח שממש מפתיעים — קצב השאיבה קפץ בשדות שכבר נחשבו גמורים. וזה נוגע ישר בשאלה כמה עוד אפשר לסחוט מהשדות הבוגרים שבתיק של דלק!
+https://example.com/co2-eor`;

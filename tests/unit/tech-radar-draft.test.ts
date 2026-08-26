@@ -32,18 +32,10 @@ beforeEach(() => chat.mockReset());
  * pitch from a system, which is exactly what this feature must not sound like.
  */
 describe("DRAFT_SYSTEM", () => {
-  /**
-   * The shape gained a part on 2026-08-26. A message that says "saw this, thought of you"
-   * and never says WHAT was seen makes the recipient click to find out — so the four
-   * parts are now opener, what it says, why him, link, in that order.
-   */
-  it("lays out the four parts in order", () => {
-    expect(DRAFT_SYSTEM).toMatch(/1\. OPENER/);
-    expect(DRAFT_SYSTEM).toMatch(/2\. WHAT IT SAYS/);
-    expect(DRAFT_SYSTEM).toMatch(/3\. WHY HIM/);
-    expect(DRAFT_SYSTEM).toMatch(/4\. THE LINK/);
+  it("lays out the shape: came across it, why them, then the link", () => {
+    expect(DRAFT_SYSTEM).toMatch(/נתקלתי|ראיתי/);
     expect(DRAFT_SYSTEM).toMatch(/thought of you/i);
-    expect(DRAFT_SYSTEM).toMatch(/own line, last/i);
+    expect(DRAFT_SYSTEM).toMatch(/last line/i);
   });
 
   /**
@@ -87,14 +79,9 @@ describe("DRAFT_SYSTEM", () => {
     expect(DRAFT_SYSTEM).toMatch(/NEVER copy/);
   });
 
-  /**
-   * Still bounded, just at the new shape's size. The number matters because the guard
-   * blocks at 900 and advises at 600 — a prompt that asks for more than the guard allows
-   * spends retries arguing with itself.
-   */
-  it("bounds the length in both sentences and characters", () => {
-    expect(DRAFT_SYSTEM).toMatch(/under 600 characters/);
-    expect(DRAFT_SYSTEM).toMatch(/never a wall of text/i);
+  it("allows a short paragraph — 3-6 sentences, capped at 600 chars", () => {
+    expect(DRAFT_SYSTEM).toMatch(/3-6 short sentences TOTAL/);
+    expect(DRAFT_SYSTEM).toMatch(/600 characters/);
   });
 
   it("still forbids emojis, marketing register and flattery", () => {
@@ -106,6 +93,29 @@ describe("DRAFT_SYSTEM", () => {
   it("never sells anything on our behalf", () => {
     expect(DRAFT_SYSTEM).toMatch(/not a pitch/i);
     expect(DRAFT_SYSTEM).toMatch(/our services/);
+  });
+});
+
+describe("Yuval's voice", () => {
+  it("carries the three real samples verbatim", () => {
+    expect(DRAFT_SYSTEM).toContain("וואי איזה הזדמנות מטורפת! חייבים להשיג אותם");
+    expect(DRAFT_SYSTEM).toContain("היי, ראית את זה?");
+    expect(DRAFT_SYSTEM).toContain("הזדמנות למצב את הבנק כסופר חדשני!");
+  });
+  it("allows a rhetorical question only as the opener", () => {
+    expect(DRAFT_SYSTEM).toMatch(/question mark is allowed HERE and nowhere else/i);
+  });
+  it("bans the old polite-distant register", () => {
+    expect(DRAFT_SYSTEM).toMatch(/Never polite-distant/i);
+  });
+  it("requires a content paragraph distilled from the item text", () => {
+    expect(DRAFT_SYSTEM).toMatch(/2-3 short sentences distilled from the item's own text/i);
+  });
+  // The excitement is licensed about what the item means for the recipient, never about
+  // the item's own importance — "this changes the whole industry" is an invented claim,
+  // not the sender's enthusiasm, unless the item itself says so.
+  it("bans inventing significance the item doesn't claim for itself", () => {
+    expect(DRAFT_SYSTEM).toMatch(/never a claim about how important the item is/i);
   });
 });
 

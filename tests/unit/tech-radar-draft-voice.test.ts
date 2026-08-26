@@ -49,8 +49,9 @@ describe("DRAFT_SYSTEM — voice calibration", () => {
   });
 
   it("requires a content paragraph drawn only from the item's own text", () => {
-    expect(DRAFT_SYSTEM).toMatch(/2-3 sentences|two to three sentences/i);
-    expect(DRAFT_SYSTEM).toMatch(/ONLY from the item text|never add facts|no outside knowledge/i);
+    expect(DRAFT_SYSTEM).toMatch(/2-3 short sentences/i);
+    expect(DRAFT_SYSTEM).toMatch(/ONLY facts that appear in the item text/i);
+    expect(DRAFT_SYSTEM).toMatch(/Do NOT add context, background or explanation from your own knowledge/i);
   });
 
   it("keeps every v2 prohibition that was earned by a real failure", () => {

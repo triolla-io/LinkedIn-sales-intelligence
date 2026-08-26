@@ -67,8 +67,10 @@ const profile = {
   sources: [{ url: "https://bank.co.il", title: "home" }],
 };
 
-function poolItem(url: string) {
-  return { title: `Launch at ${url}`, url, snippet: "s", source: "tavily", publishedAt: null, companyIds: ["c1"] };
+// Fresh by default — computed relative to now, never hardcoded, so the suite does not
+// rot when the freshness gate's window passes a fixed date.
+function poolItem(url: string, publishedAt: string | null = new Date(Date.now() - 3 * 86_400_000).toISOString()) {
+  return { title: `Launch at ${url}`, url, snippet: "s", source: "tavily", publishedAt, companyIds: ["c1"] };
 }
 
 beforeEach(() => {
@@ -146,6 +148,42 @@ describe("scanOrg", () => {
     expect(report.quotaExhausted).toBe(true);
     expect(report.queriesRun).toBe(4);
     expect(triageAll).not.toHaveBeenCalled();
+  });
+
+  it("gates the pool by freshness before triage, and counts what it dropped", async () => {
+    oneCompany();
+    const staleDate = new Date(Date.now() - 45 * 86_400_000).toISOString();
+    fetchPoolNews.mockResolvedValue({
+      items: [
+        poolItem("https://news.com/fresh"),
+        poolItem("https://news.com/undated", null),
+        poolItem("https://news.com/stale", staleDate),
+      ],
+      queriesRun: 1,
+      quotaLikely: false,
+    });
+    triageAll.mockResolvedValue([
+      { url: "https://news.com/fresh", shareworthy: 0.2, kind: "vendor_launch", publisher: null, staleness: false, categories: [], vendor: null, technology: null },
+    ]);
+    const report = await scanOrg("org1");
+    expect(report.staleDropped).toBe(1);
+    expect(report.undatedDropped).toBe(1);
+    const seenUrls = (triageAll.mock.calls[0][0] as { url: string }[]).map((i) => i.url);
+    expect(seenUrls).toEqual(["https://news.com/fresh"]);
+  });
+
+  it("finishes as an explained silence when every item is stale or undated", async () => {
+    oneCompany();
+    const staleDate = new Date(Date.now() - 45 * 86_400_000).toISOString();
+    fetchPoolNews.mockResolvedValue({
+      items: [poolItem("https://news.com/undated", null), poolItem("https://news.com/stale", staleDate)],
+      queriesRun: 2,
+      quotaLikely: false,
+    });
+    const report = await scanOrg("org1");
+    expect(triageAll).not.toHaveBeenCalled();
+    expect(report.staleDropped).toBe(1);
+    expect(report.undatedDropped).toBe(1);
   });
 
   it("stops before any write-up when triage finds no launches", async () => {

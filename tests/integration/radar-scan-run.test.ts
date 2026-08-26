@@ -29,16 +29,6 @@ vi.mock("@/lib/prisma", () => ({
 
 const fetchPoolNews = vi.fn();
 
-/**
- * The freshness half of a PoolResult. fetchPoolNews now reports what the 30-day window
- * rejected and how old what survived was, and personScan reads those on every path — a
- * mock missing them throws rather than defaulting.
- */
-const POOL_FRESHNESS = {
-  staleDropped: 0,
-  undatedDropped: 0,
-  freshness: { freshest: 1, median: 1, oldest: 1, unknown: 0, counted: 1 },
-};
 vi.mock("@/lib/tech-radar/fetch-pool-news", () => ({
   fetchPoolNews: (...a: unknown[]) => fetchPoolNews(...a),
   SCAN_WINDOW_DAYS: 30,
@@ -113,7 +103,7 @@ describe("personScan scan-run accounting", () => {
 
   it("closes an exhausted-quota run with its counters, not silence", async () => {
     axisFindMany.mockResolvedValue([subscribedAxis()]);
-    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 4, quotaLikely: true, ...POOL_FRESHNESS });
+    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 4, quotaLikely: true });
     await personScan("org1");
     const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
     expect(update.data).toMatchObject({ scanned: 0, drafts: 0 });
@@ -121,10 +111,10 @@ describe("personScan scan-run accounting", () => {
   });
 
   it("records the funnel: seen items that triage rejected count as scanned, not topical", async () => {
+    const freshDate = new Date(Date.now() - 3 * 86_400_000).toISOString();
     axisFindMany.mockResolvedValue([subscribedAxis()]);
     fetchPoolNews.mockResolvedValue({
-      ...POOL_FRESHNESS,
-      items: [{ title: "t", url: "https://news.com/1", snippet: "s", source: "tavily", publishedAt: "1 day ago", companyIds: ["a1"] }],
+      items: [{ title: "t", url: "https://news.com/1", snippet: "s", source: "tavily", publishedAt: freshDate, companyIds: ["a1"] }],
       queriesRun: 1,
       quotaLikely: false,
     });
@@ -136,6 +126,60 @@ describe("personScan scan-run accounting", () => {
     expect(update.data).toMatchObject({ scanned: 1, topical: 0, important: 0, connected: 0, drafts: 0 });
     expect(update.data.finishedAt).toBeInstanceOf(Date);
   });
+
+  it("gates the pool by freshness before anything reaches triage, and names both drop reasons", async () => {
+    const freshDate = new Date(Date.now() - 3 * 86_400_000).toISOString();
+    const staleDate = new Date(Date.now() - 45 * 86_400_000).toISOString();
+    axisFindMany.mockResolvedValue([subscribedAxis()]);
+    fetchPoolNews.mockResolvedValue({
+      items: [
+        { title: "fresh", url: "https://news.com/fresh", snippet: "s", source: "tavily", publishedAt: freshDate, companyIds: ["a1"] },
+        { title: "undated", url: "https://news.com/undated", snippet: "s", source: "tavily", publishedAt: null, companyIds: ["a1"] },
+        { title: "stale", url: "https://news.com/stale", snippet: "s", source: "tavily", publishedAt: staleDate, companyIds: ["a1"] },
+      ],
+      queriesRun: 1,
+      quotaLikely: false,
+    });
+    triageAll.mockResolvedValue([
+      { url: "https://news.com/fresh", shareworthy: 0.2, stature: 0.1, kind: "other", staleness: false, categories: [], vendor: null, technology: null },
+    ]);
+    await personScan("org1");
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
+    const report = update.data.report as {
+      staleDropped: number;
+      undatedDropped: number;
+      dropReasons: Record<string, number>;
+    };
+    expect(report.undatedDropped).toBe(1);
+    expect(report.staleDropped).toBe(1);
+    // The journal names the reason — a bare count is not auditable.
+    expect(report.dropReasons.no_extractable_date).toBe(1);
+    expect(report.dropReasons.older_than_window).toBe(1);
+    // and the surviving triage input must not contain the dropped URLs
+    const seenUrls = (triageAll.mock.calls[0][0] as { url: string }[]).map((i) => i.url);
+    expect(seenUrls).toEqual(["https://news.com/fresh"]);
+  });
+
+  it("finishes as an explained silence when every item is stale or undated", async () => {
+    const staleDate = new Date(Date.now() - 45 * 86_400_000).toISOString();
+    axisFindMany.mockResolvedValue([subscribedAxis()]);
+    fetchPoolNews.mockResolvedValue({
+      items: [
+        { title: "undated", url: "https://news.com/undated", snippet: "s", source: "tavily", publishedAt: null, companyIds: ["a1"] },
+        { title: "stale", url: "https://news.com/stale", snippet: "s", source: "tavily", publishedAt: staleDate, companyIds: ["a1"] },
+      ],
+      queriesRun: 2,
+      quotaLikely: false,
+    });
+    await personScan("org1");
+    expect(triageAll).not.toHaveBeenCalled();
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
+    const report = update.data.report as { staleDropped: number; undatedDropped: number; dropReasons: Record<string, number> };
+    expect(report.staleDropped).toBe(1);
+    expect(report.undatedDropped).toBe(1);
+    expect(report.dropReasons).toEqual({ no_extractable_date: 1, older_than_window: 1 });
+  });
+
   /**
    * The pool's UNIQUE query count, which is the number the axis-merge decision has to be
    * judged on. Two axes asking the same string are one fetched query — that dedup is what
@@ -145,7 +189,7 @@ describe("personScan scan-run accounting", () => {
   it("reports the pool's distinct query count, not the number of axes that asked", async () => {
     const shared = subscribedAxis();
     axisFindMany.mockResolvedValue([shared, { ...shared, id: "a2", label: "מרווחי זיקוק" }]);
-    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 1, quotaLikely: false, ...POOL_FRESHNESS });
+    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 1, quotaLikely: false });
     await personScan("org1");
     // One pooled query, both axes subscribed to it.
     const pool = fetchPoolNews.mock.calls[0][0] as { query: string; companyIds: string[] }[];

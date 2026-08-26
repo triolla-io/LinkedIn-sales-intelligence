@@ -66,10 +66,7 @@ export function shortenForGnews(query: string): string {
 
 /** GNews API — https://gnews.io. Free tier 100 req/day.
  *  Missing key, budget exhausted, or any error → [] (never throws). */
-export async function fetchGnews(
-  query: string,
-  opts: { max?: number; days?: number } = {}
-): Promise<NewsResult[]> {
+export async function fetchGnews(query: string, opts: { max?: number; days?: number } = {}): Promise<NewsResult[]> {
   const key = (process.env.GNEWS_API_KEY ?? "").trim();
   if (!key) return [];
   const q = shortenForGnews(sanitizeGnewsQuery(query));
@@ -86,9 +83,13 @@ export async function fetchGnews(
     url.searchParams.set("lang", locale?.lang ?? "en");
     if (locale) url.searchParams.set("country", locale.country);
     url.searchParams.set("max", String(opts.max ?? 10));
-    // GNews takes an absolute lower bound rather than a relative window.
-    if (opts.days && opts.days > 0) {
-      url.searchParams.set("from", new Date(Date.now() - opts.days * 864e5).toISOString());
+    // The /search endpoint (unlike top-headlines) supports `from`; without it this
+    // client had no window at all and could return articles of any age. GNews documents
+    // `from` as YYYY-MM-DDThh:mm:ssZ — second precision, no milliseconds — so the
+    // millisecond suffix ISO gives by default is stripped before sending it.
+    if (opts.days) {
+      const from = new Date(Date.now() - opts.days * 86_400_000).toISOString().replace(/\.\d{3}Z$/, "Z");
+      url.searchParams.set("from", from);
     }
     url.searchParams.set("apikey", key);
     const res = await fetch(url, { signal: controller.signal });

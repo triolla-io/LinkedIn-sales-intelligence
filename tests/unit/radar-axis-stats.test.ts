@@ -64,4 +64,25 @@ describe("tallyAxisStats", () => {
     );
     expect(stats[0].hebrewNoIsraeliSource).toBe(false);
   });
+
+  /**
+   * The freshness gate can remove an Israeli source while leaving a non-Israeli one
+   * fresh. `results` still reads off the post-gate list (an honest "found less this
+   * week"), but the Hebrew-source warning must be checked against what the query
+   * actually returned before the gate — otherwise a merely-stale Israeli hit reads as
+   * "this query never finds Israeli coverage", which is a different, false diagnosis.
+   */
+  it("does not flag a Hebrew query whose Israeli source only went stale, not missing", () => {
+    const stats = tallyAxisStats(
+      [axes[0]],
+      [{ query: "זיקוק דלקים בישראל", axisIds: ["a1"] }],
+      [{ url: "https://reuters.com/x", companyIds: ["a1"] }], // post-gate: survivors only
+      [
+        { url: "https://reuters.com/x", companyIds: ["a1"] },
+        { url: "https://www.calcalist.co.il/stale", companyIds: ["a1"] }, // pre-gate: the Israeli hit that went stale
+      ]
+    );
+    expect(stats[0].results).toBe(1); // the honest post-gate count
+    expect(stats[0].hebrewNoIsraeliSource).toBe(false); // the query DID reach Israeli coverage
+  });
 });

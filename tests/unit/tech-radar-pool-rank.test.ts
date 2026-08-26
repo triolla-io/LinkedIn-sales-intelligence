@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 
 import { capPoolByAxis } from "@/lib/tech-radar/axis-fit";
+import { isFresh } from "@/lib/tech-radar/freshness";
 
 /**
  * The 2026-08-26 run fetched 413 items and threw 213 away to stay under MAX_POOL_ITEMS.
@@ -45,13 +46,12 @@ describe("capPoolByAxis ranking", () => {
     expect(kept.map((k) => k.url)).toEqual(["https://reuters.com/newer"]);
   });
 
-  it("treats a missing date as oldest rather than newest", () => {
-    // An unknown date must not outrank a known recent one, or items from the provider
-    // that reports no date would win every tie.
-    const dated = item("https://reuters.com/dated", ["a"], "2026-08-20T00:00:00Z");
+  it("never sees an undated item — the freshness gate rejects those upstream", () => {
+    // poolRank keeps its date tie-break for items that PASSED the gate. Undated
+    // items no longer reach it at all, so the demote-vs-reject question is settled
+    // in freshness.ts, not here.
     const undated = item("https://reuters.com/undated", ["a"], null);
-    const { kept } = capPoolByAxis([undated, dated], 1);
-    expect(kept.map((k) => k.url)).toEqual(["https://reuters.com/dated"]);
+    expect(isFresh(undated.publishedAt, new Date())).toBe(false);
   });
 
   it("still spreads the cut across axes rather than letting one axis take the whole cap", () => {
@@ -69,9 +69,9 @@ describe("capPoolByAxis ranking", () => {
 
   it("is deterministic for an identical pool", () => {
     const pool = [
-      item("https://reuters.com/x", ["a"]),
-      item("https://reuters.com/y", ["a"]),
-      item("https://reuters.com/z", ["a"]),
+      item("https://reuters.com/x", ["a"], "2026-08-20T00:00:00Z"),
+      item("https://reuters.com/y", ["a"], "2026-08-20T00:00:00Z"),
+      item("https://reuters.com/z", ["a"], "2026-08-20T00:00:00Z"),
     ];
     const first = capPoolByAxis(pool, 2).kept.map((k) => k.url);
     const second = capPoolByAxis([...pool].reverse(), 2).kept.map((k) => k.url);

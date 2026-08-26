@@ -18,7 +18,6 @@ import { fetchSerper } from "@/lib/news/serper";
 import { fetchSerpapi } from "@/lib/news/serpapi";
 import { normalizeUrl } from "@/lib/fintech-radar/fetch-topic-news";
 import { canonicalizeSourceUrl } from "@/lib/news/canonical-url";
-import { ageInDays, freshnessSpread, parsePublishedAt, type FreshnessSpread } from "@/lib/news/published-at";
 
 /** Recency window for "new technology" — the user's decision: the last month. */
 export const SCAN_WINDOW_DAYS = 30;
@@ -81,12 +80,6 @@ export type PoolResult = {
   /** True when every provider returned nothing for at least one query — the
    *  signature of an exhausted quota rather than a genuinely empty result. */
   quotaLikely: boolean;
-  /** Items rejected for being older than the window. */
-  staleDropped: number;
-  /** Items rejected because their date could not be read at all. */
-  undatedDropped: number;
-  /** Age profile of what SURVIVED, so a stale pool cannot hide behind a count. */
-  freshness: FreshnessSpread;
 };
 
 /**
@@ -114,15 +107,12 @@ async function fetchOne(query: string): Promise<NewsResult[]> {
 export async function fetchPoolNews(
   pool: PoolQuery[],
   fetcher: (query: string) => Promise<NewsResult[]> = fetchOne,
-  opts: { sleep?: (ms: number) => Promise<void>; now?: Date } = {}
+  opts: { sleep?: (ms: number) => Promise<void> } = {}
 ): Promise<PoolResult> {
   const sleep = opts.sleep ?? wait;
-  const now = opts.now ?? new Date();
   const byUrl = new Map<string, NewsResult & { companyIds: string[] }>();
   let emptyQueries = 0;
   let queriesRun = 0;
-  let staleDropped = 0;
-  let undatedDropped = 0;
 
   for (const entry of pool) {
     if (!entry.query.trim()) continue;
@@ -140,29 +130,10 @@ export async function fetchPoolNews(
         results = await fetcher(broader);
       }
     }
-    // Counted on what the PROVIDERS returned, before the freshness gate. A query whose
-    // results were all stale did find news; treating that as empty would send it to the
-    // broaden-retry and would read as an exhausted quota.
     if (results.length === 0) emptyQueries += 1;
 
     for (const r of results) {
       if (!r.url) continue;
-      // THE window, as opposed to the window we ask providers for. Only serpapi and
-      // tavily take a days parameter, and in August 2026 both were at zero quota while
-      // serper served the whole run untimed — so every item written was stale and the
-      // count alone could not show it. Asking is not enforcing; this is enforcing.
-      //
-      // An unreadable date is rejected too. It is not evidence of freshness, and it is
-      // the exact shape the next silent provider failure will take.
-      const age = ageInDays(parsePublishedAt(r.publishedAt, now), now);
-      if (age === null) {
-        undatedDropped += 1;
-        continue;
-      }
-      if (age > SCAN_WINDOW_DAYS) {
-        staleDropped += 1;
-        continue;
-      }
       // Canonicalized at the door: providers hand back search-engine redirect wrappers
       // (google.com/url?q=…), and the 2026-08-24 run forwarded one to a real person.
       // Everything downstream — dedupe, stored sources, the message — sees only this.
@@ -179,13 +150,9 @@ export async function fetchPoolNews(
     }
   }
 
-  const items = [...byUrl.values()];
   return {
-    items,
+    items: [...byUrl.values()],
     queriesRun,
-    staleDropped,
-    undatedDropped,
-    freshness: freshnessSpread(items.map((i) => i.publishedAt), now),
     // Every single query coming back empty is not a plausible real-world
     // outcome for 30-day fintech technology queries; it means budgets are gone.
     quotaLikely: queriesRun > 0 && emptyQueries === queriesRun,

@@ -2,27 +2,36 @@ import type { NewsResult } from "@/lib/news/types";
 import { reserveNewsCall } from "@/lib/news/budget";
 import { localeForQuery } from "@/lib/news/locale";
 
+const RELATIVE_DATE = /^(\d+)\s+(minute|hour|day|week|month)s?\s+ago$/i;
+const UNIT_MS: Record<string, number> = {
+  minute: 60_000,
+  hour: 3_600_000,
+  day: 86_400_000,
+  week: 7 * 86_400_000,
+  // Flat 30 days: a serper item reported as "1 month ago" is stamped at fetch time and
+  // the freshness gate compares it slightly later, so it lands just outside the 30-day
+  // window and is deterministically dropped. Acceptable — an item this vague about its
+  // own age is borderline by definition.
+  month: 30 * 86_400_000,
+};
+
 /**
- * Google's recency operator for a day count: qdr:d / qdr:w / qdr:m / qdr:y.
- *
- * Rounded UP to the coarser bucket — asking for less than the window would drop news the
- * window allows, and the exact cut is made after the fetch anyway.
+ * Serper reports relative dates ("2 days ago"). Normalize to ISO at fetch time,
+ * or the hard freshness gate would reject the whole provider as undated.
+ * An unrecognized string is null, never a guess.
  */
-export function recencyTbs(days: number | undefined): string | null {
-  if (!days || days <= 0) return null;
-  if (days <= 1) return "qdr:d";
-  if (days <= 7) return "qdr:w";
-  if (days <= 31) return "qdr:m";
-  if (days <= 366) return "qdr:y";
-  return null;
+export function serperDateToIso(raw: unknown, now: Date): string | null {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const direct = Date.parse(raw);
+  if (!Number.isNaN(direct)) return new Date(direct).toISOString();
+  const m = raw.trim().match(RELATIVE_DATE);
+  if (!m) return null;
+  return new Date(now.getTime() - Number(m[1]) * UNIT_MS[m[2].toLowerCase()]).toISOString();
 }
 
 /** Serper.dev news search — https://serper.dev. Free credits then ~$0.001/query.
  *  Missing key, budget exhausted, or any error → [] (never throws). */
-export async function fetchSerper(
-  query: string,
-  opts: { days?: number } = {}
-): Promise<NewsResult[]> {
+export async function fetchSerper(query: string, opts: { days?: number } = {}): Promise<NewsResult[]> {
   const key = (process.env.SERPER_API_KEY ?? "").trim();
   if (!key) return [];
   if (!(await reserveNewsCall("serper"))) return []; // cap monthly pay-per-query spend
@@ -36,16 +45,13 @@ export async function fetchSerper(
       headers: { "X-API-KEY": key, "Content-Type": "application/json" },
       // Spread rather than send nulls: serper reads an explicit gl/hl as an instruction,
       // so an English query must carry no locale keys at all rather than empty ones.
-      // tbs is Google's recency filter, which serper passes through. Without it every
-      // result is untimed, and in August 2026 serper served an entire scan alone — so
-      // "the last 30 days" silently became "any time", and a 66-day-old story reached a
-      // bank executive. The post-fetch gate is what actually enforces the window; this
-      // just stops us paying for results we are about to throw away.
+      // tbs=qdr:m is Google's past-month range — the only granularity that matches a
+      // 30-day window, so days is a presence flag rather than a tunable figure here.
       body: JSON.stringify({
         q: query,
         num: 10,
-        ...(recencyTbs(opts.days) ? { tbs: recencyTbs(opts.days) } : {}),
         ...(locale ? { gl: locale.gl, hl: locale.hl, location: locale.location } : {}),
+        ...(opts.days ? { tbs: "qdr:m" } : {}),
       }),
     });
     clearTimeout(timeout);
@@ -65,7 +71,7 @@ export async function fetchSerper(
         url: String(o.link ?? ""),
         snippet: String(o.snippet ?? ""),
         source: "serper",
-        publishedAt: typeof o.date === "string" ? o.date : null,
+        publishedAt: serperDateToIso(o.date, new Date()),
       } satisfies NewsResult;
     }).filter((r) => r.url);
   } catch {

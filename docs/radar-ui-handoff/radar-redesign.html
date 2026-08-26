@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ראדאר קשרים — הצעת מסך</title>
+<style>
+  /* ============ tokens ============ */
+  :root{
+    /* חדר הבוקר — נייר חם */
+    --paper:#faf8f4; --paper-card:#ffffff; --ink:#1c2430; --ink-2:rgba(28,36,48,.72);
+    --ink-3:rgba(28,36,48,.5); --ink-4:rgba(28,36,48,.34);
+    --line:rgba(28,36,48,.1); --line-soft:rgba(28,36,48,.06);
+    --accent:#0a66c2;            /* לינקדאין — הפעולה הראשית */
+    --verified:#3d7a45; --verified-bg:rgba(61,122,69,.09);
+    --amber:#a8742a;
+    /* חדר המכונות — גרפיט קר */
+    --eng-bg:#171b22; --eng-card:#1e242e; --eng-card-2:#232a36;
+    --eng-ink:#e8ecf2; --eng-ink-2:rgba(232,236,242,.66); --eng-ink-3:rgba(232,236,242,.42);
+    --eng-line:rgba(232,236,242,.09);
+    --pass:#5fb878; --fail:#e07a6a; --wait:rgba(232,236,242,.28);
+    --radius-s:8px; --radius-m:14px; --radius-l:20px;
+  }
+  *{box-sizing:border-box; margin:0}
+  body{background:var(--paper); color:var(--ink);
+    font:15px/1.65 -apple-system,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* ============ shell ============ */
+  .shell{max-width:880px; margin:0 auto; padding:28px 24px 80px}
+  header.top{display:flex; align-items:center; justify-content:space-between; margin-bottom:34px}
+  .brand{display:flex; align-items:baseline; gap:12px}
+  .brand h1{font-size:19px; font-weight:700; letter-spacing:-.01em}
+  .brand .date{font-size:13px; color:var(--ink-3)}
+  .tabs{display:flex; background:rgba(28,36,48,.05); border-radius:999px; padding:3px}
+  .tab{border:0; background:transparent; font:inherit; font-size:13.5px; font-weight:600;
+    color:var(--ink-3); padding:7px 18px; border-radius:999px; cursor:pointer; transition:all .15s}
+  .tab.on{background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(28,36,48,.12)}
+
+  /* ============ חדר הבוקר ============ */
+  .brief-lede{font-size:21px; font-weight:650; letter-spacing:-.01em; line-height:1.45; max-width:34em}
+  .brief-lede .quiet{color:var(--ink-3); font-weight:450; font-size:16px; display:block; margin-top:6px}
+
+  .draft{background:var(--paper-card); border:1px solid var(--line-soft); border-radius:var(--radius-l);
+    padding:26px 28px; margin-top:26px; box-shadow:0 1px 2px rgba(28,36,48,.04),0 8px 28px -18px rgba(28,36,48,.14)}
+  .who{display:flex; align-items:center; gap:14px}
+  .avatar{width:46px; height:46px; border-radius:50%; flex:none; display:grid; place-items:center;
+    font-weight:700; font-size:16px; color:#fff}
+  .av-a{background:#5b7a9d}.av-b{background:#8a6d54}
+  .who .nm{font-weight:700; font-size:16px}
+  .who .rl{font-size:13px; color:var(--ink-3)}
+  .who a{color:var(--accent); text-decoration:none; font-size:12.5px; margin-inline-start:auto;
+    border:1px solid rgba(10,102,194,.25); padding:4px 12px; border-radius:999px}
+
+  /* בועת ההודעה — מה שיישלח בפועל, אחד-לאחד */
+  .bubble{margin:20px 0 6px; background:#eef3f8; border-radius:4px 18px 18px 18px;
+    padding:16px 18px; font-size:15.5px; line-height:1.7; position:relative}
+  .bubble .lnk{display:block; margin-top:8px; font-size:13.5px; color:var(--accent);
+    text-decoration:none; direction:ltr; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .bubble .edit-hint{position:absolute; top:10px; left:12px; font-size:11.5px; color:var(--ink-4)}
+
+  .why{display:flex; gap:10px; align-items:flex-start; margin:16px 2px 0; font-size:13.5px; color:var(--ink-2)}
+  .why b{color:var(--ink); font-weight:650}
+  .why .dot{flex:none; width:6px; height:6px; border-radius:50%; background:var(--amber); margin-top:8px}
+
+  .meta{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+  .chip{font-size:12px; border:1px solid var(--line); color:var(--ink-2);
+    padding:3.5px 11px; border-radius:999px; background:#fff}
+  .chip.ok{color:var(--verified); background:var(--verified-bg); border-color:transparent; font-weight:600}
+
+  .actions{display:flex; gap:10px; margin-top:20px; padding-top:18px; border-top:1px solid var(--line-soft); align-items:center}
+  .btn{font:inherit; font-size:14px; font-weight:650; border-radius:10px; padding:10px 20px; cursor:pointer; transition:transform .1s}
+  .btn:active{transform:scale(.97)}
+  .btn-send{background:var(--accent); color:#fff; border:0}
+  .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--ink-2)}
+  .btn-skip{background:transparent; border:0; color:var(--ink-3); margin-inline-start:auto; font-weight:500}
+
+  .quiet-block{margin-top:38px; padding-top:26px; border-top:1px solid var(--line)}
+  .quiet-block h3{font-size:13px; font-weight:700; color:var(--ink-3); text-transform:none; letter-spacing:.02em; margin-bottom:12px}
+  .quiet-row{display:flex; justify-content:space-between; padding:9px 2px; font-size:13.5px; color:var(--ink-2);
+    border-bottom:1px dashed var(--line-soft)}
+  .quiet-row span:last-child{color:var(--ink-4); font-size:12.5px}
+
+  /* ============ חדר המכונות ============ */
+  .engine{display:none; background:var(--eng-bg); margin:0 -24px; padding:30px 24px 60px; border-radius:var(--radius-l)}
+  .engine.on{display:block}
+  .morning.off{display:none}
+  .engine, .engine *{color:var(--eng-ink)}
+
+  .funnel{display:flex; align-items:stretch; gap:0; margin-bottom:30px; direction:rtl}
+  .f-seg{flex:1; text-align:center; padding:12px 6px; background:var(--eng-card); border-inline-start:1px solid var(--eng-line)}
+  .f-seg:first-child{border-radius:0 12px 12px 0; border-inline-start:0}
+  .f-seg:last-child{border-radius:12px 0 0 12px}
+  .f-seg .v{font-size:22px; font-weight:750; letter-spacing:-.02em}
+  .f-seg .l{font-size:11.5px; color:var(--eng-ink-3); margin-top:2px}
+  .f-seg.final .v{color:var(--pass)}
+
+  .filters{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
+  .f-chip{font-size:12.5px; padding:5px 14px; border-radius:999px; border:1px solid var(--eng-line);
+    color:var(--eng-ink-2); background:transparent; cursor:pointer; font-weight:550}
+  .f-chip.on{background:var(--eng-card-2); color:var(--eng-ink); border-color:rgba(232,236,242,.22)}
+
+  .item{background:var(--eng-card); border:1px solid var(--eng-line); border-radius:var(--radius-m);
+    padding:18px 20px 16px; margin-bottom:14px}
+  .item .head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+  .item .t{font-weight:700; font-size:14.5px}
+  .item .src{font-size:12px; color:var(--eng-ink-3); direction:ltr}
+  .item .person-tag{margin-inline-start:auto; font-size:12px; color:var(--eng-ink-2);
+    background:var(--eng-card-2); padding:3px 11px; border-radius:999px}
+
+  /* המסע — ה-stepper של אריאל */
+  .journey{display:flex; align-items:flex-start; margin-top:16px; direction:rtl}
+  .step{flex:1; position:relative; text-align:center; padding-top:4px}
+  .step::before{content:""; position:absolute; top:11px; right:50%; width:100%; height:2px; background:var(--eng-line)}
+  .step:first-child::before{display:none}
+  .step .mark{position:relative; z-index:1; width:16px; height:16px; border-radius:50%; margin:0 auto;
+    background:var(--eng-bg); border:2px solid var(--wait); display:grid; place-items:center; font-size:9px}
+  .step.pass .mark{border-color:var(--pass); background:var(--pass); color:#10151c}
+  .step.pass::before{background:var(--pass); opacity:.4}
+  .step.fail .mark{border-color:var(--fail); background:var(--fail); color:#10151c}
+  .step .nm{font-size:11px; color:var(--eng-ink-3); margin-top:7px; font-weight:600}
+  .step .val{font-size:11px; color:var(--eng-ink-2); margin-top:1px}
+  .step.pass .val{color:var(--pass)}
+  .step.fail .nm,.step.fail .val{color:var(--fail)}
+
+  .verdict{margin-top:14px; font-size:13px; line-height:1.6; border-radius:10px; padding:11px 14px}
+  .verdict.bad{background:rgba(224,122,106,.08); color:#eda99e; border-inline-start:3px solid var(--fail)}
+  .verdict.good{background:rgba(95,184,120,.08); color:#a9d8b6; border-inline-start:3px solid var(--pass)}
+  .verdict b{color:inherit}
+
+  .axes-note{margin-top:26px; border-top:1px solid var(--eng-line); padding-top:18px}
+  .axes-note h3{font-size:13px; color:var(--eng-ink-3); font-weight:700; margin-bottom:10px}
+  .ax-row{display:flex; justify-content:space-between; font-size:13px; padding:7px 2px; border-bottom:1px dashed var(--eng-line)}
+  .ax-row .a{color:var(--eng-ink-2)} .ax-row .b{color:var(--eng-ink-3); font-size:12px}
+
+  @media (max-width:640px){
+    .shell{padding:18px 14px 60px}
+    .funnel{flex-wrap:wrap} .f-seg{min-width:32%}
+    .journey{flex-wrap:wrap} .step{min-width:33%}
+    .actions{flex-wrap:wrap}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="top">
+    <div class="brand">
+      <h1>ראדאר קשרים</h1>
+      <span class="date num">יום ראשון · 24.8</span>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab on" id="tab-m" onclick="show('m')">לאישור שלך</button>
+      <button class="tab" id="tab-p" onclick="show('p')">אנשים</button>
+      <button class="tab" id="tab-e" onclick="show('e')">מסלול ההחלטות</button>
+    </nav>
+  </header>
+
+  <!-- ================= שולחן הבוקר — יובל ================= -->
+  <section class="morning" id="view-m">
+
+    <p class="brief-lede">
+      בוקר טוב, יובל. שתי הודעות שוות את הזמן שלך היום.
+      <span class="quiet">נסרקו 677 כתבות · 4 מועמדות נפסלו כי לא היו מספיק אישיות · אצל 4 אנשים — שקט, אין חומר שווה השבוע.</span>
+    </p>
+
+    <!-- כרטיס 1 -->
+    <article class="draft">
+      <div class="who">
+        <div class="avatar av-a">AS</div>
+        <div>
+          <div class="nm">Avigal Soreq</div>
+          <div class="rl">President &amp; CEO · Delek US Holdings</div>
+        </div>
+        <a href="#">הפרופיל שלו ↗</a>
+      </div>
+
+      <div class="bubble" contenteditable="true">
+        <span class="edit-hint">לחיצה עורכת ✎</span>
+        היי אביגל, נתקלתי במשהו על חובות ה-RIN ל-2026–2027 — חשבתי עליך בגלל יעדי התפוקה שהצגתם לרבעון השלישי בארבעת בתי הזיקוק.
+        <a class="lnk" href="#">ethanolproducer.com · EPA finalizes 2026-2027 RFS RVOs</a>
+      </div>
+
+      <div class="why">
+        <span class="dot"></span>
+        <span><b>למה עכשיו:</b> ה-EPA קבעה יעדי דלקים מתחדשים גבוהים ל-2026–27 — זה מגדיל ישירות את חבות ה-RIN על כל חבית נוספת שהוא מייצר, בדיוק ההחלטה שהוא מחזיק בה כרגע.</span>
+      </div>
+
+      <div class="meta">
+        <span class="chip ok">✓ העובדות אומתו מול שיחת הרווחים 5.8</span>
+        <span class="chip">דיברתם לאחרונה לפני 3 שבועות</span>
+        <span class="chip">מקור: Ethanol Producer · אתמול</span>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-send">פתח בלינקדאין לשליחה</button>
+        <button class="btn btn-ghost">שלח במייל</button>
+        <button class="btn btn-skip">לא מתאים ›</button>
+      </div>
+    </article>
+
+    <!-- כרטיס 2 -->
+    <article class="draft">
+      <div class="who">
+        <div class="avatar av-b">OB</div>
+        <div>
+          <div class="nm">Ori Bar-Shavit</div>
+          <div class="rl">COO · 365Scores</div>
+        </div>
+        <a href="#">הפרופיל שלו ↗</a>
+      </div>
+
+      <div class="bubble" contenteditable="true">
+        <span class="edit-hint">לחיצה עורכת ✎</span>
+        היי אורי, ראיתי ש-MLB חתמה עם Polymarket על שוקי ניבוי — חשבתי עליך, כי אם ליגות מתחילות לרשיין דאטה בזמן אמת גם לשחקני ניבוי, זה משנה את שולחן המו״מ מול ספקי הנתונים שלכם.
+        <a class="lnk" href="#">sportico.com · MLB signs prediction-market deal with Polymarket</a>
+      </div>
+
+      <div class="why">
+        <span class="dot"></span>
+        <span><b>למה עכשיו:</b> אורי יושב מול הליגות וספקי הדאטה בחידושי חוזים — הסכם כזה משנה תמחור, בלעדיות ודרישות לטנציה על השולחן שלו.</span>
+      </div>
+
+      <div class="meta">
+        <span class="chip ok">✓ המקור נקרא במלואו</span>
+        <span class="chip">מקור: Sportico · לפני יומיים</span>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-send">פתח בלינקדאין לשליחה</button>
+        <button class="btn btn-ghost">שלח במייל</button>
+        <button class="btn btn-skip">לא מתאים ›</button>
+      </div>
+    </article>
+
+    <!-- שקט מוסבר -->
+    <div class="quiet-block">
+      <h3>שקט השבוע — ולמה</h3>
+      <div class="quiet-row"><span>Ofir Alon · Delek</span><span>4 מועמדות נפסלו בשער האישי</span></div>
+      <div class="quiet-row"><span>Ami Serkis · 365Scores</span><span>אין חומר בתחומים שלו השבוע</span></div>
+      <div class="quiet-row"><span>Roy Hayumi · 365Scores</span><span>אין חומר בתחומים שלו השבוע</span></div>
+      <div class="quiet-row"><span>Asaf Bar-Or · Triolla</span><span>קיבל הודעה לפני 5 ימים — בהמתנה</span></div>
+    </div>
+  </section>
+
+  <!-- ================= האנשים — דף אדם ================= -->
+  <section class="morning off" id="view-p">
+
+    <p class="brief-lede" style="font-size:17px">אנשים במעקב בראדאר
+      <span class="quiet">לחיצה על אדם בכל מקום במערכת מגיעה לכאן. זה הדף שעונה על: מה המערכת מבינה עליו, מה נשלח לו, ולמה.</span>
+    </p>
+
+    <div style="display:flex; gap:10px; margin-top:18px; align-items:center">
+      <button class="btn btn-send" style="background:var(--ink)">+ הוספת איש קשר למעקב</button>
+      <span style="font-size:12.5px; color:var(--ink-3)">בוחרים מרשימת אנשי הקשר — והמערכת עושה את השאר לבד</span>
+    </div>
+
+    <!-- איש קשר שהתווסף הרגע — המערכת מכינה אותו -->
+    <article class="draft" style="margin-top:20px; border-style:dashed; border-color:var(--line)">
+      <div class="who">
+        <div class="avatar" style="background:#7d8b9a">RH</div>
+        <div>
+          <div class="nm">Roy Hayumi <span style="font-size:11.5px; font-weight:600; color:var(--amber); background:rgba(168,116,42,.1); padding:2px 9px; border-radius:999px; margin-inline-start:8px">נוסף הרגע — בהכנה</span></div>
+          <div class="rl">Co-Founder &amp; VP R&amp;D · 365Scores</div>
+        </div>
+      </div>
+      <div class="quiet-block" style="margin-top:18px; padding-top:14px; border-top:1px dashed var(--line)">
+        <div class="quiet-row"><span>✓ נוסף למעקב</span><span>עכשיו</span></div>
+        <div class="quiet-row"><span>✓ המערכת קוראת על 365Scores — מה החברה עושה ומה מעסיק אותה</span><span>הושלם</span></div>
+        <div class="quiet-row"><span>◌ נבנים תחומי העניין שלו — יוצגו כאן לאישור שלך</span><span>~2 דק׳</span></div>
+        <div class="quiet-row" style="border-bottom:0"><span>◌ ייכנס לסריקה הקרובה</span><span>ראשון בבוקר</span></div>
+      </div>
+    </article>
+
+    <article class="draft" style="margin-top:20px">
+      <div class="who">
+        <div class="avatar av-a">AS</div>
+        <div>
+          <div class="nm">Avigal Soreq</div>
+          <div class="rl">President &amp; CEO · Delek US Holdings · שפת הודעות: עברית</div>
+        </div>
+        <a href="#">לינקדאין ↗</a>
+      </div>
+
+      <div class="meta" style="margin-top:16px">
+        <span class="chip ok">בראדאר · פעיל</span>
+        <span class="chip">שיחה אחרונה איתו: לפני 3 שבועות</span>
+        <span class="chip">הודעה אחרונה מאיתנו: אף פעם</span>
+      </div>
+
+      <div class="quiet-block" style="margin-top:22px; padding-top:18px">
+        <h3>מה לדעת המערכת מעניין אותו — ואפשר לתקן אותה</h3>
+        <div class="quiet-row">
+          <span><b>הנחיות ה-EPA לדלק ביולוגי וחבות ה-RIN</b> · נגזר ממה שהחברה מתמודדת איתו עכשיו</span>
+          <span>3 ידיעות נמצאו · <a href="#" style="color:var(--ink-3)">לא מעניין אותו ✕</a></span>
+        </div>
+        <div class="quiet-row">
+          <span><b>מרווחי זיקוק ומה מזיז אותם</b> · נגזר מהתפקיד</span>
+          <span>שקט השבוע · <a href="#" style="color:var(--ink-3)">לא מעניין אותו ✕</a></span>
+        </div>
+        <div class="quiet-row">
+          <span><b>שולי זיקוק וגיאופוליטיקה של מחירי נפט</b> · נגזר מהתפקיד</span>
+          <span>שקט השבוע · <a href="#" style="color:var(--ink-3)">לא מעניין אותו ✕</a></span>
+        </div>
+        <div class="quiet-row" style="border-bottom:0">
+          <span style="color:var(--ink-3)">+ הוסיפי תחום שאת יודעת שמעניין אותו (למשל: רחפנים, ריצות בוקר…)</span>
+          <span><a href="#" style="color:var(--accent)">הוספה</a></span>
+        </div>
+      </div>
+
+      <div class="quiet-block" style="margin-top:24px; padding-top:18px">
+        <h3>ההיסטוריה איתו</h3>
+        <div class="quiet-row"><span><b>ממתינה לאישור:</b> הודעת ה-RIN על יעדי התפוקה</span><span>היום</span></div>
+        <div class="quiet-row"><span><b>לא נשלח אליו:</b> תחזית מרווחי זיקוק — הסיבה הייתה כללית מדי לענף</span><span>אתמול</span></div>
+        <div class="quiet-row" style="border-bottom:0"><span style="color:var(--ink-3)">עוד לא נשלחה אליו אף הודעה מהראדאר</span><span></span></div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ================= מאחורי הקלעים — אריאל ================= -->
+  <section class="engine" id="view-e">
+
+    <p style="font-size:14px;color:var(--eng-ink-2);margin-bottom:18px">כך המערכת מחליטה: כל כתבה עוברת ארבע החלטות בדרך לטיוטה. מה שנעצר — הסיבה כתובה בדיוק בנקודת העצירה.</p>
+    <div class="funnel num">
+      <div class="f-seg"><div class="v">677</div><div class="l">נסרקו</div></div>
+      <div class="f-seg"><div class="v">54</div><div class="l">תוכן ענייני</div></div>
+      <div class="f-seg"><div class="v">12</div><div class="l">חשובות מספיק</div></div>
+      <div class="f-seg"><div class="v">6</div><div class="l">עם חיבור אישי</div></div>
+      <div class="f-seg final"><div class="v">2</div><div class="l">טיוטות</div></div>
+    </div>
+
+    <div class="filters">
+      <button class="f-chip on">כולם</button>
+      <button class="f-chip">Avigal</button>
+      <button class="f-chip">Ofir</button>
+      <button class="f-chip">Ori</button>
+      <button class="f-chip">רק נפסלו</button>
+      <button class="f-chip">כתבות שלא נקראו עד הסוף</button>
+    </div>
+
+    <!-- פריט שהפך לטיוטה -->
+    <div class="item">
+      <div class="head">
+        <span class="t">EPA קבעה יעדי חובה לדלקים מתחדשים 2026–27</span>
+        <span class="src">ethanolproducer.com</span>
+        <span class="person-tag">→ Avigal Soreq</span>
+      </div>
+      <div class="journey">
+        <div class="step pass"><div class="mark">✓</div><div class="nm">נקראה</div><div class="val">המקור נקרא במלואו</div></div>
+        <div class="step pass"><div class="mark">✓</div><div class="nm">חשיבות</div><div class="val">גבוהה — מהלך רגולטורי</div></div>
+        <div class="step pass"><div class="mark">✓</div><div class="nm">החיבור אליו</div><div class="val">EPA ↔ יעדי התפוקה שהציג</div></div>
+        <div class="step pass"><div class="mark">✓</div><div class="nm">אישי מספיק?</div><div class="val">כן — החלטה שלו</div></div>
+        <div class="step pass"><div class="mark">✓</div><div class="nm">טיוטה</div><div class="val">ממתינה לאישור</div></div>
+      </div>
+      <div class="verdict good"><b>ההחלטה:</b> קביעת RVO גבוהים מגדילה ישירות את חבות ה-RIN — מתחבר להחלטת יעדי התפוקה שהציג ברבעון. נימוק ברמת אדם, לא תפקיד.</div>
+    </div>
+
+    <!-- פריט שנפסל בשער -->
+    <div class="item">
+      <div class="head">
+        <span class="t">מרווחי זיקוק יישארו חזקים בחצי השני</span>
+        <span class="src">Kpler</span>
+        <span class="person-tag">→ Ofir Alon</span>
+      </div>
+      <div class="journey">
+        <div class="step pass"><div class="mark">✓</div><div class="nm">נקראה</div><div class="val">המקור נקרא במלואו</div></div>
+        <div class="step pass"><div class="mark">✓</div><div class="nm">חשיבות</div><div class="val">בינונית — תחזית ענף</div></div>
+        <div class="step pass"><div class="mark">✓</div><div class="nm">החיבור אליו</div><div class="val">תחום הזיקוק — כללי</div></div>
+        <div class="step fail"><div class="mark">✕</div><div class="nm">אישי מספיק?</div><div class="val">לא</div></div>
+        <div class="step"><div class="mark"></div><div class="nm">טיוטה</div><div class="val">—</div></div>
+      </div>
+      <div class="verdict bad"><b>נעצר — הסיבה לא אישית מספיק:</b> תחזית מאקרו שנכונה לכל מנהל בענף — לא נמצא חיבור להחלטה או בעיה ספציפית של אופיר. <u>דרוס ידנית ↗</u></div>
+    </div>
+
+    <!-- פריט שנפסל במשקל -->
+    <div class="item">
+      <div class="head">
+        <span class="t">FIFA משלבת מערכות AI בגביע העולם 2026</span>
+        <span class="src">fifa.com</span>
+        <span class="person-tag">→ Ori Bar-Shavit</span>
+      </div>
+      <div class="journey">
+        <div class="step pass"><div class="mark">✓</div><div class="nm">נקראה</div><div class="val">המקור נקרא במלואו</div></div>
+        <div class="step fail"><div class="mark">✕</div><div class="nm">חשיבות</div><div class="val">נמוכה — שימוש פנימי</div></div>
+        <div class="step"><div class="mark"></div><div class="nm">החיבור אליו</div><div class="val">—</div></div>
+        <div class="step"><div class="mark"></div><div class="nm">אישי מספיק?</div><div class="val">—</div></div>
+        <div class="step"><div class="mark"></div><div class="nm">טיוטה</div><div class="val">—</div></div>
+      </div>
+      <div class="verdict bad"><b>נעצר — זו לא מתנה:</b> הפריט מתאר שימוש פנימי של FIFA בטורניר — לא רישוי, לא שותפות, אין ״מתנה״.</div>
+    </div>
+
+    <div class="axes-note">
+      <h3>צירים בלי חומר השבוע — לא באג, שקט</h3>
+      <div class="ax-row"><span class="a">מונטיזציה וביצועים עסקיים · Ori (משותף ×2)</span><span class="b">0 תוצאות ב-6 שאילתות</span></div>
+      <div class="ax-row"><span class="a">מרווחי זיקוק וגורמי ביקוש · Avigal</span><span class="b">0 תוצאות · שאילתת עברית לא החזירה מקור ישראלי ⚠</span></div>
+      <div class="ax-row"><span class="a">הרחבת כיסוי ליגות וספורטים · Ori (משותף ×3)</span><span class="b">0 תוצאות ב-4 שאילתות</span></div>
+    </div>
+  </section>
+</div>
+
+<script>
+  function show(which){
+    document.getElementById('view-m').classList.toggle('off', which!=='m');
+    document.getElementById('view-p').classList.toggle('off', which!=='p');
+    document.getElementById('view-e').classList.toggle('on', which==='e');
+    for (const t of ['m','p','e'])
+      document.getElementById('tab-'+t).classList.toggle('on', which===t);
+  }
+</script>
+</body>
+</html>

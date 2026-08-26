@@ -10,7 +10,9 @@
  * path rather than two that drift.
  */
 import { prisma } from "@/lib/prisma";
+import { OpenRouterBlockedError } from "@/lib/openrouter/client";
 import { AXIS_FIT_FLOOR } from "@/lib/tech-radar/axis-fit";
+import { FRESHNESS_WINDOW_DAYS } from "@/lib/tech-radar/freshness";
 import { selectRecipientsForItem, type RecipientCandidate } from "@/lib/tech-radar/veto";
 import { rankForPeople, pairKey, type RankCandidate } from "@/lib/tech-radar/person-rank";
 import { draftTechMessage } from "@/lib/tech-radar/draft";
@@ -65,7 +67,15 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
         },
       },
       matches: {
-        where: { score: { gte: AXIS_FIT_FLOOR } },
+        // AxisMatch rows are created and never deleted, so without a date predicate an
+        // item that was fresh weeks ago — or whose axis only gained a subscriber later —
+        // stays a first-class candidate forever. Same window and same null-excludes-it
+        // decision as the ingest gate in freshness.ts; a match on an undated item never
+        // proved it was fresh in the first place.
+        where: {
+          score: { gte: AXIS_FIT_FLOOR },
+          item: { publishedAt: { gte: new Date(Date.now() - FRESHNESS_WINDOW_DAYS * 86_400_000) } },
+        },
         select: {
           score: true,
           item: {
@@ -143,6 +153,7 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
   let vetoed = 0;
   let vetoFaults = 0;
   let drafted = 0;
+  let draftFailed = 0;
 
   for (const [itemId, group] of byItem) {
     const item = itemById.get(itemId);
@@ -196,24 +207,42 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
         continue;
       }
 
-      const message = await draftTechMessage({
-        contactFullName: contact.fullName,
-        hebrewFirstName: contact.hebrewFirstName,
-        contactTitle: contact.currentTitle,
-        companyName: contact.currentCompany ?? "",
-        technology: item.technology ?? item.title,
-        vendor: null,
-        // The VETO's person-specific sentence, not the company's fit rationale. That one
-        // argument is what made three founders receive byte-identical drafts in v1.
-        fitRationale: verdict.whyHim,
-        sourceUrl: firstSourceUrl(item.sources),
-        itemText: `${item.title}\n${item.summary ?? ""}`,
-        // The tone rule and the thin-source clamp read these. Without them every item
-        // gets the loudest register, and a snippet gets a paragraph completed from memory.
-        kind: item.kind,
-        stature: item.stature,
-        thin: item.thin,
-      });
+      // One bad draft (e.g. a truncated model response) must not cost the whole run:
+      // this call is outside draftTechMessage's own retry, and judgeAndDraft has no
+      // other guard around it — an uncaught throw here would abort every candidate
+      // still waiting behind this one.
+      let message: string;
+      try {
+        message = await draftTechMessage({
+          contactFullName: contact.fullName,
+          hebrewFirstName: contact.hebrewFirstName,
+          contactTitle: contact.currentTitle,
+          companyName: contact.currentCompany ?? "",
+          technology: item.technology ?? item.title,
+          vendor: null,
+          // The VETO's person-specific sentence, not the company's fit rationale. That one
+          // argument is what made three founders receive byte-identical drafts in v1.
+          fitRationale: verdict.whyHim,
+          sourceUrl: firstSourceUrl(item.sources),
+          itemText: `${item.title}\n${item.summary ?? ""}`,
+          // The tone rule and the thin-source clamp read these. Without them every item
+          // gets the loudest register, and a snippet gets a paragraph completed from memory.
+          kind: item.kind,
+          stature: item.stature,
+          thin: item.thin,
+        });
+      } catch (err) {
+        // The kill-switch and the daily budget cap throw BEFORE the HTTP call, and every
+        // remaining candidate would hit the same block — swallowing it here would finish
+        // the run reporting drafted:0 with a dropReasons count nothing on the decisions
+        // screen renders, which is a scan that silently produced nothing. That defeats
+        // the guard, whose whole purpose is to fail loudly. Only a genuine per-draft
+        // failure (a truncated response, a rejected retry) is worth continuing past.
+        if (err instanceof OpenRouterBlockedError) throw err;
+        console.warn(`[radar] draft failed for contact=${contact.id} item=${itemId}: ${(err as Error).message}`);
+        draftFailed += 1;
+        continue;
+      }
 
       await prisma.radarDraft.upsert({
         where: { contactId_itemId: { contactId: contact.id, itemId } },
@@ -231,6 +260,7 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
 
   const dropReasons: Record<string, number> = {};
   for (const d of dropped) dropReasons[d.reason] = (dropReasons[d.reason] ?? 0) + 1;
+  if (draftFailed > 0) dropReasons.draft_failed = draftFailed;
 
   return { candidates: candidates.length, ranked: ranked.length, vetoed, vetoFaults, drafted, dropReasons };
 }

@@ -20,10 +20,13 @@
 import { prisma } from "@/lib/prisma";
 import { gatherCompanySources } from "@/lib/tech-radar/research-company";
 import { researchProfile, missingResearchFields } from "@/lib/tech-radar/profile";
-import { buildPersonProfile } from "@/lib/tech-radar/person-profile";
+import { buildPersonProfile, type AxisProposal } from "@/lib/tech-radar/person-profile";
 import { gateRationales } from "@/lib/tech-radar/rationale-gate";
 import { runFixtures, type ProposedAxis } from "@/lib/tech-radar/rebuild-fixtures";
 import { newsQuotaStatus } from "@/lib/news/budget";
+import {
+  MIN_AXES_PER_PERSON, thinProfiles, stageDistribution, sameDecisionCollisions, uniqueQueryCount,
+} from "@/lib/tech-radar/profile-quality";
 import { writeFileSync } from "node:fs";
 
 function arg(name: string): string | undefined {
@@ -120,6 +123,8 @@ async function main() {
   // ── 2. The brain, per person, on the fresh research ───────────────────────
   rule("2. PROPOSED PERSON MODEL — read this against what Yuval actually said");
   const dump: unknown[] = [];
+  // Collected across people: a same-decision collision is only visible between two of them.
+  const cohort: { name: string; employerId: string; axes: AxisProposal[] }[] = [];
 
   for (const c of contacts) {
     const employer = employerFor(c);
@@ -191,8 +196,47 @@ async function main() {
       }
     }
 
+    if (gate.kept.length < MIN_AXES_PER_PERSON) {
+      console.log(
+        `\n  ⚠ THIN PROFILE — ${gate.kept.length} axes, floor is ${MIN_AXES_PER_PERSON}. Elinor came back from` +
+          ` the 2026-08-26 rebuild with two axes, one of them not even hers, and the run said "done".`
+      );
+    }
+
+    cohort.push({ name: c.fullName, employerId: employer.id, axes: gate.kept });
     dump.push({ contactId: c.id, fullName: c.fullName, draft, gate, fixtures: fx });
   }
+
+  // ── 2b. The four numbers ─────────────────────────────────────────────────
+  rule("THE FOUR NUMBERS");
+  const allAxes = cohort.flatMap((k) => k.axes);
+  const stages = stageDistribution(allAxes);
+  console.log(`  stage distribution (${allAxes.length} axes over ${cohort.length} people):`);
+  for (const [stage, n] of Object.entries(stages)) {
+    // adopt at 0 across the whole cohort is the signal that stage (ד) did not land.
+    const flag = stage === "adopt" && n === 0 ? "   ← stage (ד) produced nothing" : "";
+    console.log(`    ${stage.padEnd(14)} ${n}${flag}`);
+  }
+
+  const thin = thinProfiles(cohort);
+  console.log(`\n  thin profiles (under ${MIN_AXES_PER_PERSON} axes): ${thin.length === 0 ? "none" : ""}`);
+  for (const t of thin) console.log(`    ⚠ ${t.name}: ${t.axes} axes`);
+
+  const collisions = sameDecisionCollisions(cohort);
+  console.log(`\n  same decision handed to two people at ONE employer: ${collisions.length === 0 ? "none" : ""}`);
+  for (const c2 of collisions) {
+    console.log(`    ⚠ ${c2.people.join(" + ")} — "${c2.decision}"`);
+  }
+
+  // Distinct query strings, which is what actually gets billed: two axes asking the same
+  // string are one fetched query. 34 is what the 2026-08-26 scan ran.
+  const unique = uniqueQueryCount(allAxes);
+  const delta = unique - 34;
+  console.log(
+    `\n  unique queries: ${unique} vs 34 in the 2026-08-26 run  (${delta >= 0 ? "+" : ""}${delta}` +
+      `${delta === 0 ? "" : `, ${((delta / 34) * 100).toFixed(0)}%`})`
+  );
+  console.log(`  axesRefused: only the WRITING rebuild can report it — no axis is attached here.`);
 
   // ── 3. What the run cost in provider quota ───────────────────────────────
   rule("3. NEWS QUOTA AFTER THIS PREVIEW");

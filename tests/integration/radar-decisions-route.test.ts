@@ -133,6 +133,30 @@ describe("GET /api/radar/decisions", () => {
     expect(body.quietAxes.map((a: { label: string }) => a.label)).toEqual(["מונטיזציה"]);
   });
 
+  it("surfaces staleDropped/undatedDropped from the run's persisted report, so a stale week can say so", async () => {
+    scanRunFindFirst.mockResolvedValue({
+      scanned: 40, topical: 0, important: 0, connected: 0, drafts: 0,
+      finishedAt: new Date("2026-08-24T06:00:00Z"),
+      axisStats: [{ axisId: "ax1", label: "חבות RIN", queries: 3, results: 0, hebrewNoIsraeliSource: false }],
+      report: { staleDropped: 12, undatedDropped: 5 },
+    });
+    const body = await ((await GET(req)) as Response).json();
+    expect(body.run.staleDropped).toBe(12);
+    expect(body.run.undatedDropped).toBe(5);
+  });
+
+  it("defaults staleDropped/undatedDropped to 0 when the run predates the freshness report fields", async () => {
+    scanRunFindFirst.mockResolvedValue({
+      scanned: 5, topical: 1, important: 1, connected: 1, drafts: 1,
+      finishedAt: new Date("2026-08-24T06:00:00Z"),
+      axisStats: [],
+      report: { someOtherField: true },
+    });
+    const body = await ((await GET(req)) as Response).json();
+    expect(body.run.staleDropped).toBe(0);
+    expect(body.run.undatedDropped).toBe(0);
+  });
+
   it("offers each person as a filter chip", async () => {
     const body = await ((await GET(req)) as Response).json();
     expect(body.people).toEqual([{ contactId: "ct1", fullName: "Avigal Soreq" }]);
