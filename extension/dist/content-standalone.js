@@ -403,8 +403,8 @@
       const titleIdx = lines.findIndex((l) => l.bold);
       const title = (_b = titleIdx >= 0 ? lines[titleIdx] : lines[0]) == null ? void 0 : _b.text;
       if (!title) continue;
-      const rest = lines.filter((_, i) => i !== (titleIdx >= 0 ? titleIdx : 0));
-      const rawCompany = ((_c = rest[0]) == null ? void 0 : _c.text) ?? null;
+      const after = lines.slice((titleIdx >= 0 ? titleIdx : 0) + 1);
+      const rawCompany = ((_c = after.find((l) => !/\d{4}/.test(l.text))) == null ? void 0 : _c.text) ?? null;
       const company = rawCompany ? rawCompany.replace(EMPLOYMENT_SUFFIX, "").trim() || null : null;
       const dateLine = lines.find((l) => /\d{4}/.test(l.text)) ?? null;
       results.push({ title, company, dateRange: (dateLine == null ? void 0 : dateLine.text) ?? null });

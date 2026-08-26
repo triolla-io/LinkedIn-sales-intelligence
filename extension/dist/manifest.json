@@ -23,7 +23,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/content.ts-loader-OSZGmIia.js"
+        "assets/content.ts-loader-C8k4fYzb.js"
       ],
       "matches": [
         "https://www.linkedin.com/*"
@@ -41,7 +41,7 @@
       ],
       "resources": [
         "assets/resolve-company-L53-Bghy.js",
-        "assets/content.ts-F6lkbZNm.js"
+        "assets/content.ts-ROJe4U7L.js"
       ],
       "use_dynamic_url": false
     }

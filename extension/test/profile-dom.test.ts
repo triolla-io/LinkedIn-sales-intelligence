@@ -90,6 +90,27 @@ describe("readProfileExperience", () => {
     ]);
   });
 
+  it("reads the company from the line AFTER the title, even when a non-title line precedes the bold title", () => {
+    document.body.innerHTML = `
+      <section>
+        <h2>Experience</h2>
+        <ul>
+          <li>
+            <div>
+              <span>Tel Aviv, Israel</span>
+              <h3>Senior Engineer</h3>
+              <span>Acme Inc</span>
+              <span>Jan 2020 - Present</span>
+            </div>
+          </li>
+        </ul>
+      </section>
+    `;
+    expect(readProfileExperience()).toEqual([
+      { title: "Senior Engineer", company: "Acme Inc", dateRange: "Jan 2020 - Present" },
+    ]);
+  });
+
   it("matches the Hebrew header 'ניסיון'", () => {
     document.body.innerHTML = `
       <section>

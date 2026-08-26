@@ -114,8 +114,13 @@ export function readProfileExperience(): ExperienceItem[] {
     const titleIdx = lines.findIndex((l) => l.bold);
     const title = (titleIdx >= 0 ? lines[titleIdx] : lines[0])?.text;
     if (!title) continue;
-    const rest = lines.filter((_, i) => i !== (titleIdx >= 0 ? titleIdx : 0));
-    const rawCompany = rest[0]?.text ?? null;
+    // Company is whatever comes AFTER the title, not merely "any other line" — a badge,
+    // location, or duration line can precede the bold title in the leaf order, and taking
+    // rest[0] from a title-excluding filter would grab that preceding line instead. Also
+    // skip a line that's actually the date range (some layouts put it immediately after
+    // the title, before the company).
+    const after = lines.slice((titleIdx >= 0 ? titleIdx : 0) + 1);
+    const rawCompany = after.find((l) => !/\d{4}/.test(l.text))?.text ?? null;
     const company = rawCompany ? rawCompany.replace(EMPLOYMENT_SUFFIX, "").trim() || null : null;
     const dateLine = lines.find((l) => /\d{4}/.test(l.text)) ?? null;
     results.push({ title, company, dateRange: dateLine?.text ?? null });
