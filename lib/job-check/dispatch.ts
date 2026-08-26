@@ -6,6 +6,7 @@ const DAILY_CAP = 25; // conservative profile-visit budget per owner per dispatc
 // profile every 20-25 min (humanized) instead of back-to-back. The extension's
 // tasks/next only claims tasks whose scheduledFor <= now, so future-dated tasks wait.
 const SPREAD_WINDOW_MS = 9 * 60 * 60 * 1000;
+export const PENDING_EXPIRY_DAYS = 7;
 
 /**
  * Select contacts due for a job-change scrape and enqueue SCRAPE_PROFILE extension tasks
@@ -18,6 +19,20 @@ const SPREAD_WINDOW_MS = 9 * 60 * 60 * 1000;
  * Shared by the daily cron (job-check-tick) and the on-enable trigger (job-check-dispatch).
  */
 export async function dispatchJobChecks(scope?: { orgId?: string }): Promise<number> {
+  const now = Date.now();
+
+  // A PENDING task the extension never claimed blocks its contact from every
+  // future dispatch (the dedup below) while advancing nothing. After 7 days it
+  // is a corpse, not a queue entry.
+  await prisma.extensionTask.updateMany({
+    where: {
+      kind: "SCRAPE_PROFILE",
+      status: "PENDING",
+      createdAt: { lt: new Date(now - PENDING_EXPIRY_DAYS * 86_400_000) },
+    },
+    data: { status: "CANCELLED", errorCode: "expired_unclaimed" },
+  });
+
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 28);
 
@@ -43,10 +58,10 @@ export async function dispatchJobChecks(scope?: { orgId?: string }): Promise<num
   const chosen = [...byOwner.values()].flatMap((rows) => selectDueContacts(rows, DAILY_CAP));
   if (chosen.length === 0) return 0;
 
-  // Skip contacts that already have a pending scrape queued (e.g. cron + on-enable overlap,
-  // or the extension has been offline) so tasks don't pile up.
+  // Skip contacts that already have a scrape queued or claimed (e.g. cron + on-enable
+  // overlap, or a CLAIMED task the extension hasn't finished yet) so tasks don't pile up.
   const pending = await prisma.extensionTask.findMany({
-    where: { kind: "SCRAPE_PROFILE", status: "PENDING" },
+    where: { kind: "SCRAPE_PROFILE", status: { in: ["PENDING", "CLAIMED"] } },
     select: { payload: true },
   });
   const alreadyQueued = new Set(
@@ -55,7 +70,6 @@ export async function dispatchJobChecks(scope?: { orgId?: string }): Promise<num
   const toCreate = chosen.filter((c) => !alreadyQueued.has(c.id));
   if (toCreate.length === 0) return 0;
 
-  const now = Date.now();
   await prisma.extensionTask.createMany({
     data: toCreate.map((c) => ({
       userId: c.ownerId,
