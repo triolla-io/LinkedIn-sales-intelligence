@@ -13,7 +13,7 @@
  */
 import { prisma } from "@/lib/prisma";
 import { normalizeQuery } from "@/lib/tech-radar/queries";
-import { fetchPoolNews } from "@/lib/tech-radar/fetch-pool-news";
+import { fetchPoolNews, type PoolResult } from "@/lib/tech-radar/fetch-pool-news";
 import { triageAll, type PoolItem } from "@/lib/tech-radar/triage";
 import { synthesizeItem } from "@/lib/tech-radar/item";
 import { readPage } from "@/lib/research/read-page";
@@ -140,6 +140,8 @@ export type PersonScanReport = {
    * question and the one the 2026-08-26 report could not answer.
    */
   freshness: FreshnessSpread;
+  /** Per-provider tally for the morning report — see PoolResult["providerStats"]. */
+  providerStats: PoolResult["providerStats"];
 };
 
 const EMPTY: PersonScanReport = {
@@ -149,6 +151,7 @@ const EMPTY: PersonScanReport = {
   acceptance: { weighty: 0, israeliSource: 0, israelRelevant: 0, met: false, shortfall: "לא נסרק" },
   dropReasons: {}, triageByKind: [], quotaExhausted: false,
   freshness: { freshest: null, median: null, oldest: null },
+  providerStats: [],
 };
 
 function countBy(reasons: string[]): Record<string, number> {
@@ -198,14 +201,17 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
    *  early returns are exactly how a field ends up present on some of them and zero on
    *  the rest. */
   let uniqueQueries = 0;
-  // The two folded-in fields are Omit-ed from the argument on purpose: the last exit path
+  /** Set once the pool is fetched, folded into every exit path by finish() the same way
+   *  freshness and uniqueQueries are — see PoolResult["providerStats"]. */
+  let providerStats: PoolResult["providerStats"] = EMPTY.providerStats;
+  // The folded-in fields are Omit-ed from the argument on purpose: the last exit path
   // built its report without `freshness` and type-checked only because every other call
   // spread EMPTY. A caller must not be able to pass a stale value for a field finish()
   // owns, and must not have to invent one either.
   const finish = async (
-    raw: Omit<PersonScanReport, "freshness" | "uniqueQueries">
+    raw: Omit<PersonScanReport, "freshness" | "uniqueQueries" | "providerStats">
   ): Promise<PersonScanReport> => {
-    const report = { ...raw, freshness, uniqueQueries };
+    const report = { ...raw, freshness, uniqueQueries, providerStats };
     await prisma.radarScanRun.update({
       where: { id: run.id },
       data: {
@@ -253,6 +259,7 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
   );
   uniqueQueries = pool.length;
   const news = await fetchPoolNews(pool.map((p) => ({ query: p.query, companyIds: p.axisIds })));
+  providerStats = news.providerStats;
 
   // Hard gate (26.8): only items published in the last 30 days go anywhere —
   // research included, no per-kind grace. An item whose date cannot be extracted

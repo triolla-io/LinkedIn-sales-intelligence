@@ -26,6 +26,16 @@ export type QueryLocale = {
   country: string;
   /** Serper takes a human-readable place rather than a code. */
   location: string;
+  /** GDELT's own sourcelang: query operator spelling (three-letter). */
+  gdeltSourceLang: string;
+  /** GDELT's own sourcecountry: query operator spelling (FIPS two-letter). */
+  gdeltSourceCountry: string;
+  /** Google News RSS `hl` param. */
+  rssHl: string;
+  /** Google News RSS `gl` param. */
+  rssGl: string;
+  /** Google News RSS `ceid` param — the two above, joined, in ITS spelling. */
+  rssCeid: string;
 };
 
 export const ISRAEL_LOCALE: QueryLocale = {
@@ -34,6 +44,11 @@ export const ISRAEL_LOCALE: QueryLocale = {
   lang: "he",
   country: "il",
   location: "Israel",
+  gdeltSourceLang: "heb",
+  gdeltSourceCountry: "IS",
+  rssHl: "he",
+  rssGl: "IL",
+  rssCeid: "IL:he",
 };
 
 /**

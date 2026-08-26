@@ -6,18 +6,22 @@
  * run and its results are handed to every company that asked for it. That
  * sharing is the feature's main cost lever — see the design doc.
  *
- * Every provider call is already gated by reserveNewsCall() inside the provider
+ * Every metered provider call is gated by reserveNewsCall() inside the provider
  * modules, so a run can be silently cut short when a free-tier quota is
  * exhausted. `quotaLikely` reports that upward so the UI can say "quota ran
  * out" instead of the indistinguishable-looking "no opportunities found".
+ * GDELT and Google News RSS are free/keyless and carry no such gate (2026-08-26).
  */
 import type { NewsResult } from "@/lib/news/types";
 import { fetchTavily } from "@/lib/news/tavily";
 import { fetchGnews } from "@/lib/news/gnews";
 import { fetchSerper } from "@/lib/news/serper";
 import { fetchSerpapi } from "@/lib/news/serpapi";
+import { fetchGdelt } from "@/lib/news/gdelt";
+import { fetchGoogleNewsRss } from "@/lib/news/google-news-rss";
 import { normalizeUrl } from "@/lib/fintech-radar/fetch-topic-news";
 import { canonicalizeSourceUrl } from "@/lib/news/canonical-url";
+import { isIsraeliSource } from "@/lib/tech-radar/acceptance";
 
 /** Recency window for "new technology" — the user's decision: the last month. */
 export const SCAN_WINDOW_DAYS = 30;
@@ -80,23 +84,35 @@ export type PoolResult = {
   /** True when every provider returned nothing for at least one query — the
    *  signature of an exhausted quota rather than a genuinely empty result. */
   quotaLikely: boolean;
+  /**
+   * Per-provider tally for the morning report: how many results each NewsResult.source
+   * returned, and how many of those were Israeli sources. Counted BEFORE the url dedupe
+   * below, so a provider gets credit for what it found even when another provider (or an
+   * earlier pooled query) turned up the same story first — the dedupe map is a display
+   * concern, not a provider-performance one.
+   */
+  providerStats: { provider: string; results: number; israeliSources: number }[];
 };
 
 /**
- * Fetch one query across all three providers. Providers never throw (they
+ * Fetch one query across all six providers. Providers never throw (they
  * return [] on error or exhausted budget), so neither does this.
  */
 async function fetchOne(query: string): Promise<NewsResult[]> {
   // SerpApi leads: it is the only provider that takes these long, profile-derived
   // queries as written. Tavily needs plan quota, GNews has to have the query cut
   // down to a few words, and both are kept as breadth rather than the backbone.
-  const [a, b, c, d] = await Promise.all([
+  // GDELT and Google News RSS are free/keyless recall added beside the four paid
+  // providers (2026-08-26, all four out of monthly quota) — see lib/news/gdelt.ts.
+  const [a, b, c, d, e, f] = await Promise.all([
     fetchSerpapi(query, { days: SCAN_WINDOW_DAYS, max: 10 }),
     fetchTavily(query, { days: SCAN_WINDOW_DAYS, maxResults: 10 }),
     fetchGnews(query, { max: 10, days: SCAN_WINDOW_DAYS }),
     fetchSerper(query, { days: SCAN_WINDOW_DAYS }),
+    fetchGdelt(query, { days: SCAN_WINDOW_DAYS, max: 25 }),
+    fetchGoogleNewsRss(query, { days: SCAN_WINDOW_DAYS, max: 25 }),
   ]);
-  return [...a, ...b, ...c, ...d];
+  return [...a, ...b, ...c, ...d, ...e, ...f];
 }
 
 /**
@@ -111,6 +127,7 @@ export async function fetchPoolNews(
 ): Promise<PoolResult> {
   const sleep = opts.sleep ?? wait;
   const byUrl = new Map<string, NewsResult & { companyIds: string[] }>();
+  const providerStats = new Map<string, { provider: string; results: number; israeliSources: number }>();
   let emptyQueries = 0;
   let queriesRun = 0;
 
@@ -140,6 +157,16 @@ export async function fetchPoolNews(
     }
     if (results.length === 0) emptyQueries += 1;
 
+    // Tallied over every result the fetcher returned, BEFORE the url dedupe below — a
+    // provider gets credit for what it found even when another provider (or an earlier
+    // pooled query) turned up the same story first.
+    for (const r of results) {
+      const stat = providerStats.get(r.source) ?? { provider: r.source, results: 0, israeliSources: 0 };
+      stat.results += 1;
+      if (isIsraeliSource(r.url)) stat.israeliSources += 1;
+      providerStats.set(r.source, stat);
+    }
+
     for (const r of results) {
       if (!r.url) continue;
       // Canonicalized at the door: providers hand back search-engine redirect wrappers
@@ -164,5 +191,6 @@ export async function fetchPoolNews(
     // Every single query coming back empty is not a plausible real-world
     // outcome for 30-day fintech technology queries; it means budgets are gone.
     quotaLikely: queriesRun > 0 && emptyQueries === queriesRun,
+    providerStats: [...providerStats.values()],
   };
 }

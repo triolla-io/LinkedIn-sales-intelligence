@@ -137,7 +137,7 @@ describe("fetchPoolNews", () => {
     const out = await fetchPoolNews([], async () => []);
     // The freshness fields are all-null rather than zero: zeros would read as "nothing
     // was stale and everything was fresh", which is a claim an empty run cannot make.
-    expect(out).toEqual({ items: [], queriesRun: 0, quotaLikely: false });
+    expect(out).toEqual({ items: [], queriesRun: 0, quotaLikely: false, providerStats: [] });
   });
 
   // GNews rate-limits a burst: firing 10 pooled queries back to back returned
@@ -245,5 +245,45 @@ describe("fetchPoolNews canonicalizes result urls", () => {
     ]);
     const out = await fetchPoolNews([{ query: "q", companyIds: ["c1"] }], fetcher, { sleep: async () => {} });
     expect(out.items).toHaveLength(1);
+  });
+});
+
+/**
+ * Task A / A4: the morning report needs to know which provider found what, and whether
+ * what it found was Israeli. Counted BEFORE the url dedupe below, so a provider gets
+ * credit for what it found even when another provider (or an earlier pooled query)
+ * turned up the same story first — the dedupe map is a display concern, not a
+ * provider-performance one.
+ */
+describe("fetchPoolNews providerStats", () => {
+  it("tallies results and Israeli sources per NewsResult.source, before dedupe", async () => {
+    const fetcher = vi.fn(async (q: string) =>
+      q === "q1"
+        ? [
+            { title: "a", url: "https://www.globes.co.il/1", snippet: "", source: "serper", publishedAt: "1 day ago" },
+            { title: "b", url: "https://a.com/2", snippet: "", source: "serper", publishedAt: "1 day ago" },
+          ]
+        : [{ title: "c", url: "https://www.globes.co.il/1", snippet: "", source: "gdelt", publishedAt: "1 day ago" }]
+    );
+    const out = await fetchPoolNews(
+      [
+        { query: "q1", companyIds: ["c1"] },
+        { query: "q2", companyIds: ["c2"] },
+      ],
+      fetcher,
+      { sleep: async () => {} }
+    );
+    const byProvider = Object.fromEntries(out.providerStats.map((s) => [s.provider, s]));
+    expect(byProvider.serper).toEqual({ provider: "serper", results: 2, israeliSources: 1 });
+    expect(byProvider.gdelt).toEqual({ provider: "gdelt", results: 1, israeliSources: 1 });
+    // Same URL from two different providers still dedupes to one item in `items`.
+    expect(out.items).toHaveLength(2);
+  });
+
+  it("is empty when every fetcher call returns nothing", async () => {
+    const out = await fetchPoolNews([{ query: "q", companyIds: ["c1"] }], async () => [], {
+      sleep: async () => {},
+    });
+    expect(out.providerStats).toEqual([]);
   });
 });

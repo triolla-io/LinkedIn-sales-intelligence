@@ -34,7 +34,7 @@ describe("localeForQuery", () => {
   });
 
   it("carries the parameter names each provider actually takes", () => {
-    // One object, because the four providers spell the same intent differently and a
+    // One object, because the six providers spell the same intent differently and a
     // per-provider guess at call time is how one of them silently keeps sending gl=us.
     expect(ISRAEL_LOCALE).toEqual({
       gl: "il",
@@ -42,6 +42,11 @@ describe("localeForQuery", () => {
       lang: "he",
       country: "il",
       location: "Israel",
+      gdeltSourceLang: "heb",
+      gdeltSourceCountry: "IS",
+      rssHl: "he",
+      rssGl: "IL",
+      rssCeid: "IL:he",
     });
   });
 });
