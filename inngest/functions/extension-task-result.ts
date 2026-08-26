@@ -2,6 +2,7 @@ import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { recordJobChangeIfAny } from "@/lib/job-check/detect-change";
+import { RADAR_SCRAPE_STALE_DAYS } from "@/lib/job-check/dispatch";
 import { maybeCompleteEnrollment } from "@/lib/sequences/gating";
 import { persistCandidates } from "@/lib/prospecting/candidates";
 import { queueNextConnect, releaseConnectSlot, stampWarmupStart, SEARCH_FAIL_CAP } from "@/lib/prospecting/connect-scheduler";
@@ -934,6 +935,18 @@ export async function handleScrapeProfile(task: TaskRow) {
         : {}),
     },
   });
+  // A DONE result that carried no About and no Experience is almost certainly a parser
+  // miss, not a genuinely empty profile — and it is indistinguishable from success
+  // everywhere else: profileScrapedAt was just stamped (above, deliberately), which is
+  // exactly the clock the radar's dispatch source reads as "fresh". Left silent, a DOM
+  // drift on live LinkedIn parks the person for a month with nobody the wiser. Say it.
+  const gotExperience = Array.isArray(result.experience) && result.experience.length > 0;
+  if (!result.about && !gotExperience) {
+    console.warn(
+      `[job-check] SCRAPE_PROFILE returned no about and no experience for contact=${payload.contactId} — profileScrapedAt was still stamped, so the radar will not retry this person for ${RADAR_SCRAPE_STALE_DAYS} days (check the LinkedIn DOM anchors)`
+    );
+  }
+
   const freshTitle = result.title ?? null;
   const freshCompany = result.company ?? null;
   // First run: no snapshot yet — seed the baseline and do NOT detect a change. Seeded
@@ -955,7 +968,24 @@ export async function handleScrapeProfile(task: TaskRow) {
   // the module off. Until the radar became a second SCRAPE_PROFILE producer, this was
   // safe by accident: the only producer required jobCheckEnabled at dispatch time. The
   // radar producer doesn't, so the gate has to live here too.
-  if (!contact.owner.org.jobCheckEnabled) return;
+  if (!contact.owner.org.jobCheckEnabled) {
+    // Refresh the baseline on the way out. With the module OFF nothing else advances the
+    // snapshot — recordJobChangeIfAny is where that normally happens — so the stored
+    // title/company would keep ageing while the radar goes on scraping this person. The
+    // day the org switches "Job Changes" ON, that stale baseline is what the first
+    // comparison runs against, and a move made months ago reads as brand new: a
+    // congratulation that arrives embarrassingly late. Snapshot only — no judgement, no
+    // ContactJobChange, and NOT lastJobCheckAt, which is the disabled module's own
+    // counter (lib/job-check/stats.ts).
+    await prisma.contact.update({
+      where: { id: payload.contactId },
+      data: {
+        jobSnapshotTitle: freshTitle ?? contact.jobSnapshotTitle,
+        jobSnapshotCompany: freshCompany ?? contact.jobSnapshotCompany,
+      },
+    });
+    return;
+  }
   await recordJobChangeIfAny({
     contactId: payload.contactId,
     ownerId: contact.ownerId,
@@ -969,6 +999,15 @@ export async function handleScrapeProfile(task: TaskRow) {
 export async function markScrapeProfileChecked(task: TaskRow) {
   const payload = (task.payload ?? {}) as { contactId?: string };
   if (!payload.contactId) return;
+  // The same org gate the DONE path applies, for the same reason: the radar produces
+  // SCRAPE_PROFILE tasks for orgs with "Job Changes" OFF, and lastJobCheckAt is that
+  // module's private counter — lib/job-check/stats.ts reads it as "scanned". A radar
+  // failure must not show up in the numbers of a module the org switched off.
+  const contact = await prisma.contact.findUnique({
+    where: { id: payload.contactId },
+    select: { owner: { select: { org: { select: { jobCheckEnabled: true } } } } },
+  });
+  if (!contact?.owner.org.jobCheckEnabled) return;
   await prisma.contact.update({
     where: { id: payload.contactId },
     data: { lastJobCheckAt: new Date() },
