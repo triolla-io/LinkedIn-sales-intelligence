@@ -102,6 +102,7 @@ export async function buildProfilesForMarked(input: {
     },
     select: {
       id: true, fullName: true, currentTitle: true, headline: true, currentCompany: true, companyId: true,
+      about: true, experience: true, profileScrapedAt: true,
       personProfile: { select: { id: true, refreshedAt: true } },
     },
   });
@@ -155,12 +156,24 @@ export async function buildProfilesForMarked(input: {
       continue;
     }
 
+    // No title, no headline, no about paragraph: SCRAPE_PROFILE never landed (or landed
+    // on an old extension build) and there is nothing for the model to read a role out
+    // of. Modelling anyway produces a profile indistinguishable from a blank contact —
+    // skip and say so, rather than pay for an LLM call that models nobody in particular.
+    if (!contact.currentTitle && !contact.headline && !contact.about) {
+      report.skipped.push({ contactId: contact.id, name, reason: "person_data_missing" });
+      continue;
+    }
+
     const draft = await buildPersonProfile({
       fullName: name,
       currentTitle: contact.currentTitle,
       headline: contact.headline,
       companyName: employer.name,
       employerProfile: employer.profile,
+      // Threading only for now — the prompt starts reading these in Task 9.
+      about: contact.about,
+      experience: contact.experience,
     });
     if (!draft) {
       report.skipped.push({ contactId: contact.id, name, reason: "profile_call_failed" });

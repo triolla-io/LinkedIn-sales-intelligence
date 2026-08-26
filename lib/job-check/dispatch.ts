@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { selectDueContacts } from "@/lib/job-check/select-due-contacts";
+import { selectDueContacts, type DueRow } from "@/lib/job-check/select-due-contacts";
 
 const DAILY_CAP = 25; // conservative profile-visit budget per owner per dispatch
 // Spread the scheduled scrapes across ~9 hours so the extension visits roughly one
@@ -7,6 +7,9 @@ const DAILY_CAP = 25; // conservative profile-visit budget per owner per dispatc
 // tasks/next only claims tasks whose scheduledFor <= now, so future-dated tasks wait.
 const SPREAD_WINDOW_MS = 9 * 60 * 60 * 1000;
 export const PENDING_EXPIRY_DAYS = 7;
+// A radar-marked person's profile counts as stale after this long — the same clock
+// radar-person-prepare uses when it force-refreshes one contact on demand.
+export const RADAR_SCRAPE_STALE_DAYS = 30;
 
 /**
  * Select contacts due for a job-change scrape and enqueue SCRAPE_PROFILE extension tasks
@@ -49,12 +52,42 @@ export async function dispatchJobChecks(scope?: { orgId?: string }): Promise<num
     take: 500,
   });
 
-  const byOwner = new Map<string, typeof due>();
-  for (const c of due) {
-    const arr = byOwner.get(c.ownerId) ?? [];
-    arr.push(c);
-    byOwner.set(c.ownerId, arr);
+  // Second source: people hand-marked for the radar, regardless of Org.jobCheckEnabled.
+  // This scrape runs through the customer's own extension session — no Apollo/Bright Data
+  // spend — so it doesn't need the job-check module's money gate, only the radar flag.
+  const radarStaleCutoff = new Date(now - RADAR_SCRAPE_STALE_DAYS * 86_400_000);
+  const radarDue = await prisma.contact.findMany({
+    where: {
+      linkedinUrl: { not: "" },
+      removedAt: null,
+      radarInclude: true,
+      ...(scope?.orgId ? { owner: { org: { id: scope.orgId } } } : {}),
+      OR: [{ profileScrapedAt: null }, { profileScrapedAt: { lt: radarStaleCutoff } }],
+    },
+    select: { id: true, ownerId: true, linkedinUrl: true, profileScrapedAt: true },
+    orderBy: { profileScrapedAt: { sort: "asc", nulls: "first" } }, // never-scraped-first
+    take: 500,
+  });
+
+  // Union BEFORE the per-owner cap runs, deduped by contact id, so a marked person
+  // DISPLACES a job-check candidate instead of adding to the visit budget — the
+  // extension's LinkedIn session must never see more profile visits per owner per
+  // dispatch than a job-check-only world would produce. Job-check rows go in first so a
+  // contact due on both counts keeps its lastJobCheckAt-based sort slot.
+  const byOwner = new Map<string, DueRow[]>();
+  const seen = new Set<string>();
+  const addRow = (r: DueRow) => {
+    if (seen.has(r.id)) return;
+    seen.add(r.id);
+    const arr = byOwner.get(r.ownerId) ?? [];
+    arr.push(r);
+    byOwner.set(r.ownerId, arr);
+  };
+  for (const c of due) addRow(c);
+  for (const c of radarDue) {
+    addRow({ id: c.id, ownerId: c.ownerId, linkedinUrl: c.linkedinUrl, lastJobCheckAt: c.profileScrapedAt });
   }
+
   const chosen = [...byOwner.values()].flatMap((rows) => selectDueContacts(rows, DAILY_CAP));
   if (chosen.length === 0) return 0;
 

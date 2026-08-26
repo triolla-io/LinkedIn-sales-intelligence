@@ -20,8 +20,14 @@ vi.mock("@/lib/tech-radar/build-profiles", () => ({
 }));
 
 const companyCount = vi.fn();
+const contactFindUnique = vi.fn();
+const extensionTaskCreate = vi.fn();
 vi.mock("@/lib/prisma", () => ({
-  prisma: { trackedCompany: { count: (...a: unknown[]) => companyCount(...a) } },
+  prisma: {
+    trackedCompany: { count: (...a: unknown[]) => companyCount(...a) },
+    contact: { findUnique: (...a: unknown[]) => contactFindUnique(...a) },
+    extensionTask: { create: (...a: unknown[]) => extensionTaskCreate(...a) },
+  },
 }));
 
 vi.mock("@/inngest/client", () => ({
@@ -33,24 +39,41 @@ const handler = (radarPersonPrepare as unknown as { handler: (a: unknown) => Pro
   .handler;
 
 const sendEvent = vi.fn();
+const sleep = vi.fn(async (_id: string, _duration: string) => {});
+/** The step ids the handler slept on this run, in order — how the tests tell the two
+ *  round-numbered wait loops (scrape vs employer research) apart without colliding. */
+function sleepIds(): string[] {
+  return sleep.mock.calls.map(([id]) => id as string);
+}
 function run() {
   return handler({
     event: { data: { orgId: "org1", ownerId: "owner1", contactId: "ct1" } },
     step: {
       run: (_name: string, fn: () => unknown) => fn(),
       sendEvent,
-      sleep: async () => {},
+      sleep,
     },
   });
 }
 
 beforeEach(() => {
-  for (const m of [markedEmployers, upsertEmployers, buildProfilesForMarked, companyCount, sendEvent])
+  for (const m of [
+    markedEmployers, upsertEmployers, buildProfilesForMarked, companyCount, sendEvent,
+    contactFindUnique, extensionTaskCreate, sleep,
+  ])
     m.mockReset();
+  sleep.mockResolvedValue(undefined);
   markedEmployers.mockResolvedValue([{ name: "Delek US Holdings" }]);
   upsertEmployers.mockResolvedValue({ created: 1, matched: 0, pendingResearch: ["tc1"], alreadyPending: [] });
   buildProfilesForMarked.mockResolvedValue({ built: 1, axesCreated: 3 });
   companyCount.mockResolvedValue(0);
+  // Default: this contact was scraped moments ago — fresh, no scrape task queued. Tests
+  // that care about the stale/missing path override this explicitly.
+  contactFindUnique.mockResolvedValue({
+    linkedinUrl: "https://linkedin.com/in/ct1",
+    profileScrapedAt: new Date(),
+  });
+  extensionTaskCreate.mockResolvedValue({ id: "task1" });
 });
 
 describe("radar.person.prepare", () => {
@@ -90,6 +113,58 @@ describe("radar.person.prepare", () => {
     expect(upsertEmployers).not.toHaveBeenCalled();
     expect(buildProfilesForMarked).not.toHaveBeenCalled();
     expect(sendEvent).not.toHaveBeenCalled();
+  });
+
+  it("does not queue a scrape when the profile was scraped recently", async () => {
+    await run();
+    expect(extensionTaskCreate).not.toHaveBeenCalled();
+  });
+
+  it("queues a SCRAPE_PROFILE task when the profile has never been scraped", async () => {
+    contactFindUnique.mockResolvedValueOnce({ linkedinUrl: "https://linkedin.com/in/ct1", profileScrapedAt: null });
+    // Poll checks after the initial fetch — keep returning null so timeout is exercised.
+    contactFindUnique.mockResolvedValue({ profileScrapedAt: null });
+    await run();
+    expect(extensionTaskCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: "owner1",
+        kind: "SCRAPE_PROFILE",
+        payload: { contactId: "ct1", linkedinUrl: "https://linkedin.com/in/ct1" },
+      }),
+    });
+  });
+
+  it("queues a SCRAPE_PROFILE task when the last scrape is older than RADAR_SCRAPE_STALE_DAYS", async () => {
+    contactFindUnique.mockResolvedValueOnce({
+      linkedinUrl: "https://linkedin.com/in/ct1",
+      profileScrapedAt: new Date(Date.now() - 40 * 86_400_000), // 40 days — past the 30-day window
+    });
+    contactFindUnique.mockResolvedValue({ profileScrapedAt: null });
+    await run();
+    expect(extensionTaskCreate).toHaveBeenCalled();
+  });
+
+  it("polls up to MAX_WAIT_ROUNDS and proceeds (does not fail) when the scrape never lands", async () => {
+    contactFindUnique.mockResolvedValueOnce({ linkedinUrl: "https://linkedin.com/in/ct1", profileScrapedAt: null });
+    contactFindUnique.mockResolvedValue({ profileScrapedAt: null }); // never lands
+    const out = (await run()) as { profileWaitedOut: boolean };
+    // Distinct step-id prefix from the employer-research wait loop, so the two cannot
+    // collide in Inngest's step memoisation.
+    const scrapeSleeps = sleepIds().filter((id) => id.startsWith("scrape-wait-"));
+    expect(scrapeSleeps).toHaveLength(15); // MAX_WAIT_ROUNDS
+    expect(out.profileWaitedOut).toBe(true);
+    // Proceeds anyway — the person model still gets built.
+    expect(buildProfilesForMarked).toHaveBeenCalled();
+  });
+
+  it("stops polling as soon as the scrape lands, using the same wait-loop pattern as employer research", async () => {
+    contactFindUnique.mockResolvedValueOnce({ linkedinUrl: "https://linkedin.com/in/ct1", profileScrapedAt: null });
+    contactFindUnique.mockResolvedValueOnce({ profileScrapedAt: null }); // round 0: not yet
+    contactFindUnique.mockResolvedValue({ profileScrapedAt: new Date() }); // round 1+: landed
+    const out = (await run()) as { profileWaitedOut: boolean };
+    expect(out.profileWaitedOut).toBe(false);
+    const scrapeSleeps = sleepIds().filter((id) => id.startsWith("scrape-wait-"));
+    expect(scrapeSleeps.length).toBeLessThan(15);
   });
 
   it("skips the research dispatch when the employer is already researched", async () => {

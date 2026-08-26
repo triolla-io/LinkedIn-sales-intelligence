@@ -163,6 +163,33 @@ describe("buildProfilesForMarked", () => {
     expect(out.skipped[0].reason).toBe("employer_research_failed");
   });
 
+  /**
+   * SCRAPE_PROFILE either never ran for this contact or landed on an old extension build
+   * that captured neither headline nor about. Without any of the three, the model has
+   * nothing to read a role out of — modelling anyway produces a profile that fits any
+   * blank contact equally well, which is worse than admitting there's nothing to model.
+   */
+  it("skips a contact with no currentTitle, headline or about — no LLM call", async () => {
+    contactFindMany.mockResolvedValue([
+      contact({ currentTitle: null, headline: null, about: null }),
+    ]);
+    const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    expect(out.built).toBe(0);
+    expect(out.skipped).toEqual([{ contactId: "c1", name: "Roy Hayumi", reason: "person_data_missing" }]);
+    expect(buildPersonProfile).not.toHaveBeenCalled();
+  });
+
+  it("threads about and experience through to buildPersonProfile (Task 9 reads them)", async () => {
+    contactFindMany.mockResolvedValue([
+      contact({ about: "Builds recommendation engines.", experience: [{ title: "VP R&D", company: "365Scores", dateRange: "2020-present" }] }),
+    ]);
+    await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
+    expect(buildPersonProfile.mock.calls[0][0]).toMatchObject({
+      about: "Builds recommendation engines.",
+      experience: [{ title: "VP R&D", company: "365Scores", dateRange: "2020-present" }],
+    });
+  });
+
   it("skips, rather than silently dropping, a person with no tracked employer", async () => {
     contactFindMany.mockResolvedValue([contact({ currentCompany: "Nowhere Ltd" })]);
     const out = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
