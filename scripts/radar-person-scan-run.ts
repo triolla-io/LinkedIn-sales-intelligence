@@ -117,6 +117,17 @@ async function main() {
   rule("QUERY POOL");
   console.log(`  ${poolEligibleAxes.length}/${axes.length} axes pool-eligible (layer-3 query TTL applied)`);
   console.log(`  ${pool.length} DISTINCT query strings the pool would ask providers for`);
+  // POOL_RETRY (see CLAUDE.md "Temporary env overrides"): the pool count above is per
+  // QUERY, not per PROVIDER CALL. An empty result retries once, broader, UNLESS
+  // POOL_RETRY=off — so real spend can reach up to 2x the query count above, not the
+  // query count itself. Deliberately NOT computed as a worst-case doubled number here:
+  // most queries do not come back empty, so a flat 2x would overstate spend as often as
+  // the raw count understates it. Printing the setting plainly is the honest version —
+  // it lets whoever reads this before --write reason about the real risk themselves.
+  const poolRetryOff = (process.env.POOL_RETRY ?? "").trim().toLowerCase() === "off";
+  console.log(
+    `  POOL_RETRY: ${poolRetryOff ? "off — one provider call per query, no retry" : "on (default) — an empty query retries once broader: real spend can reach up to 2x the count above"}`
+  );
 
   rule("NEWS PROVIDER QUOTA");
   for (const p of ["serper", "serpapi", "gnews", "tavily"] as const) {
