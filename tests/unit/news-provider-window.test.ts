@@ -22,10 +22,14 @@ afterEach(() => {
 });
 
 describe("the 30-day window reaches every provider that supports one", () => {
-  it("gnews receives a from= date", async () => {
+  it("gnews receives a from= date at exact second precision, no milliseconds", async () => {
     const { fetchGnews } = await import("@/lib/news/gnews");
     await fetchGnews("fraud detection", { max: 10, days: 30 });
-    expect(calls.join()).toMatch(/[?&]from=\d{4}-\d{2}-\d{2}/);
+    const joined = calls.join();
+    // GNews documents `from` as YYYY-MM-DDThh:mm:ssZ; a stricter parser 400s on the
+    // millisecond suffix a plain toISOString() would send.
+    expect(joined).toMatch(/[?&]from=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}Z(?:&|$)/);
+    expect(joined).not.toMatch(/from=[^&]*\.\d{3}/);
   });
 
   it("serper receives a past-month time range", async () => {

@@ -84,8 +84,13 @@ export async function fetchGnews(query: string, opts: { max?: number; days?: num
     if (locale) url.searchParams.set("country", locale.country);
     url.searchParams.set("max", String(opts.max ?? 10));
     // The /search endpoint (unlike top-headlines) supports `from`; without it this
-    // client had no window at all and could return articles of any age.
-    if (opts.days) url.searchParams.set("from", new Date(Date.now() - opts.days * 86_400_000).toISOString());
+    // client had no window at all and could return articles of any age. GNews documents
+    // `from` as YYYY-MM-DDThh:mm:ssZ — second precision, no milliseconds — so the
+    // millisecond suffix ISO gives by default is stripped before sending it.
+    if (opts.days) {
+      const from = new Date(Date.now() - opts.days * 86_400_000).toISOString().replace(/\.\d{3}Z$/, "Z");
+      url.searchParams.set("from", from);
+    }
     url.searchParams.set("apikey", key);
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeout);
