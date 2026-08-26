@@ -53,13 +53,21 @@ THINK IN STAGES, in writing, BEFORE deriving a single axis. Answer three questio
 
 (ג) What would they stop everything to read, and forward to a colleague?
 
-Return these answers as "reasoning", at most THREE SENTENCES PER STAGE. Brevity is not cosmetic: the reasoning and the axes share one output budget, and an essay here leaves no room for the axes themselves. It is saved next to the profile so a human can see how you reached the axes — reasoning that could have been written without reading the title is a failed answer.
+(ד) What is being done WELL SOMEWHERE ELSE — in another market, or in a different industry entirely — that this person could adopt? This is a different appetite from (ב): (ב) is "who is attacking me", this is "show me what is possible". A CIO wants consumer-grade products from other industries he could bring into his own; a head of retail banking wants what consumer lending, savings and investing look like in banks abroad. An axis from this stage is about opportunity, not threat.
+
+Return these answers as "reasoning", IN HEBREW, at most THREE SENTENCES PER STAGE. Brevity is not cosmetic: the reasoning and the axes share one output budget, and an essay here leaves no room for the axes themselves. It is saved next to the profile so a human can see how you reached the axes — reasoning that could have been written without reading the title is a failed answer.
 
 Then return:
 
 1. roleLens — one Hebrew sentence: what decisions or problems does THIS person own? Be concrete about the job, not the company. "אחראי על מנוע ההמלצות ועל איכות הדירוג" is a role lens. "עובד בחברת ספורט" is not.
 
-2. axes — 3 to 5 subjects DERIVED FROM YOUR STAGED ANSWERS, that this person would read about. EXACTLY ONE of them must have "agenda": true, and the rest "agenda": false. Every rationale must point at one of your staged answers — "כי הוא מחזיק את החלטת X", "כי Y מתחרה על הלקוחות שלו". A rationale that describes a domain — "כי הוא בבנקאות" — fails a downstream gate and the axis is discarded.
+2. axes — 3 to 5 subjects DERIVED FROM YOUR STAGED ANSWERS, that this person would read about. EXACTLY ONE of them must have "agenda": true, and the rest "agenda": false. Cover stage (ד) with at least one axis: an adoption axis is not optional.
+
+   RATIONALE RULES. These are enforced by code, not judgement — a rationale that breaks one does not get softened, the AXIS IS DELETED. So spend the effort here even on the axes that feel obvious:
+   - It must point at one of your staged answers: "כי הוא מחזיק את החלטת X", "כי Y מתחרה על הלקוחות שלו". A rationale that describes a domain — "כי הוא בבנקאות" — is discarded.
+   - NEVER open with the job title. "כ-CITO של בנק גדול, רחמיל חתום על…" and "כראש בנקאות קמעונאית, פזית…" are both DELETED on sight. Say what the person holds, not what they are called. Start with "כי".
+   - Every company name you write MUST come from the employer's named competitors given to you. A name that is not in that list deletes the axis. Do not reach for a plausible-sounding Israeli company; "ראשון לציון" is a city, and an invented rival in a message to a board member cannot be taken back.
+   - Do not build an axis on a subject your own reasoning said is NOT this person's. If you wrote that core-systems modernization belongs to the CTO, an axis about core-systems modernization is deleted.
 
    The AGENDA axis is derived from what the company is DOING NOW — a project, an expansion, an acquisition, a regulatory exposure, a market they just entered, a facility they announced. Take it from the employer profile. It must be something a colleague with a different title at the same company would ALSO care about, but that a person with the same title at a DIFFERENT company would not.
    - AGENDA: "הרחבת קיבולת הזיקוק שהוכרזה ברבעון האחרון", "כניסה לשוק ההודי", "עסקת הרכישה שממתינה לאישור רגולטורי"

@@ -73,7 +73,9 @@ export const FIXTURES: { slug: string; person: string; checks: FixtureCheck[] }[
         name: "competitor-products-in-retail axis",
         kind: "subject_present",
         describe: "מוצרי מתחרים בריטייל הבנקאי — מה שלוחץ על מי שמחזיקה את המוצר",
-        pattern: /מתחר|competitor|הפועלים|דיסקונט|מזרחי|one zero|וואן זירו/i,
+        // Widened after a false negative: "תחרות" does not contain "מתחר", and the
+        // brain writes rivals in Latin ("Poalim Digital") as readily as in Hebrew.
+        pattern: /תחר|מתחר|competit|rival|הפועלים|poalim|דיסקונט|discount|מזרחי|mizrahi|pepper|one zero|וואן זירו/i,
       },
     ],
   },
@@ -120,8 +122,12 @@ export const FIXTURES: { slug: string; person: string; checks: FixtureCheck[] }[
       {
         name: "global consumer retail-banking innovations axis",
         kind: "subject_present",
-        describe: "חידושים עולמיים בבנקאות קמעונאית לצרכן: הלוואות, חיסכון, השקעות",
-        pattern: /הלוואות|חיסכון|השקעות|consumer lending|consumer banking|קמעונ|ריטייל|retail/i,
+        describe: "חידושים עולמיים בבנקאות קמעונאית לצרכן: הלוואות, חיסכון, השקעות — הזדמנות לאמץ, לא איום",
+        // Narrowed after a false positive: an axis about Israeli rivals attacking her
+        // segment matched on "קמעונ" and was reported clean. Yuval asked for the other
+        // appetite — what consumer lending/savings/investing look like ELSEWHERE — so the
+        // product itself, or an adoption/global framing, has to appear.
+        pattern: /הלוואות|חיסכון|השקעות|consumer lending|consumer savings|consumer investing|בעולם|עולמי|גלובלי|לאמץ|אימוץ|ענפים אחרים|abroad|global/i,
       },
     ],
   },

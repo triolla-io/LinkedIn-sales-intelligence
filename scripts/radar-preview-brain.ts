@@ -150,7 +150,11 @@ async function main() {
       if (line.trim()) console.log(`    ${line.trim()}`);
     }
 
-    const gate = await gateRationales(draft.roleLens, draft.axes);
+    const facts = freshProfiles.get(employer.id) as { namedCompetitors?: string[] } | undefined;
+    const gate = await gateRationales(draft.roleLens, draft.axes, {
+      namedCompetitors: facts?.namedCompetitors ?? [],
+      reasoning: draft.reasoning,
+    });
     if (!gate.judged) console.log(`\n  ⚠ rationale gate call failed — nothing was filtered`);
 
     console.log(`\n  PROPOSED AXES (${gate.kept.length} kept, ${gate.rejected.length} rejected by the gate):`);
@@ -160,7 +164,10 @@ async function main() {
       console.log(`      queries: ${a.searchQueries.join(" | ")}`);
     }
     for (const r of gate.rejected) {
-      console.log(`    ✗ ${r.label} — rejected as generic: "${r.rationale}"`);
+      console.log(`    ✗ ${r.label} — REJECTED [${r.reason}]: "${r.rationale}"`);
+    }
+    if (Object.keys(gate.deterministic).length > 0) {
+      console.log(`\n  deterministic rejections: ${JSON.stringify(gate.deterministic)}`);
     }
 
     const axes: ProposedAxis[] = gate.kept.map((a) => ({

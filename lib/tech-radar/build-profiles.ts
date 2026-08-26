@@ -29,6 +29,12 @@ export type BuildProfilesReport = {
   noHebrewQuery: string[];
   /** Every person who did NOT get a profile, and why. Never a silent shortfall. */
   skipped: { contactId: string; name: string; reason: string }[];
+  /**
+   * Axes killed by each DETERMINISTIC rule. `title_pattern` is the compliance meter for
+   * the prompt's prohibition on opening a rationale with the job title: a number that
+   * stays high means the prompt is not landing.
+   */
+  rejectedByRule: Record<string, number>;
 };
 
 export async function buildProfilesForMarked(input: {
@@ -46,7 +52,7 @@ export async function buildProfilesForMarked(input: {
 }): Promise<BuildProfilesReport> {
   const report: BuildProfilesReport = {
     considered: 0, built: 0, refreshed: 0, axesCreated: 0, axesMerged: 0,
-    hebrewQueriesByPerson: [], noHebrewQuery: [], skipped: [],
+    hebrewQueriesByPerson: [], noHebrewQuery: [], skipped: [], rejectedByRule: {},
   };
 
   const contacts = await prisma.contact.findMany({
@@ -118,9 +124,18 @@ export async function buildProfilesForMarked(input: {
 
     // The veto's person-specificity bar, applied to the rationale BEFORE any axis is
     // paid for. A domain-description rationale ("כי הוא בבנקאות") dies here, loudly.
-    const gate = await gateRationales(draft.roleLens, draft.axes);
+    const employerFacts = employer.profile as { namedCompetitors?: string[] } | null;
+    const gate = await gateRationales(draft.roleLens, draft.axes, {
+      namedCompetitors: employerFacts?.namedCompetitors ?? [],
+      reasoning: draft.reasoning,
+    });
     for (const r of gate.rejected) {
-      report.skipped.push({ contactId: contact.id, name, reason: `rationale_generic: ${r.label}` });
+      report.skipped.push({ contactId: contact.id, name, reason: `axis_rejected[${r.reason}]: ${r.label}` });
+    }
+    // Deterministic rejections are counted per rule so "is the brain obeying the
+    // prompt?" is answerable from the report rather than by reading rationales.
+    for (const [rule, n] of Object.entries(gate.deterministic)) {
+      report.rejectedByRule[rule] = (report.rejectedByRule[rule] ?? 0) + n;
     }
     if (gate.kept.length === 0) {
       report.skipped.push({ contactId: contact.id, name, reason: "all_rationales_generic" });

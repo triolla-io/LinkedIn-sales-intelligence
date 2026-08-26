@@ -14,6 +14,12 @@ import { openrouterChat } from "@/lib/openrouter/client";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
 import { OR_FEATURE } from "@/lib/tech-radar/types";
 import type { AxisProposal } from "@/lib/tech-radar/person-profile";
+import {
+  opensWithTitle,
+  unknownNames,
+  contradictsReasoning,
+  competitorGazetteer,
+} from "@/lib/tech-radar/rationale-rules";
 
 const MODEL = process.env.TECH_RADAR_MODEL ?? "anthropic/claude-haiku-4.5";
 
@@ -43,13 +49,66 @@ export function parseRationaleVerdicts(text: string, count: number): boolean[] {
 
 export type GateResult = {
   kept: AxisProposal[];
-  rejected: { label: string; rationale: string }[];
+  rejected: { label: string; rationale: string; reason: string }[];
   /** False when the judge call failed and everything was kept unjudged. */
   judged: boolean;
+  /**
+   * How many axes the DETERMINISTIC rules killed, by rule. `title_pattern` is the one to
+   * watch: it measures whether the brain is obeying the prompt's prohibition, and a
+   * number that stays high means the prompt is not landing — not that the rule is wrong.
+   */
+  deterministic: Record<string, number>;
 };
 
-export async function gateRationales(roleLens: string, proposals: AxisProposal[]): Promise<GateResult> {
-  if (proposals.length === 0) return { kept: [], rejected: [], judged: true };
+/** The employer facts the deterministic rules need. */
+export type GateContext = {
+  /** From the employer research. Both scripts per competitor. */
+  namedCompetitors?: string[];
+  /** The brain's own staged answers, for the self-contradiction check. */
+  reasoning?: string;
+};
+
+export async function gateRationales(
+  roleLens: string,
+  proposals: AxisProposal[],
+  ctx: GateContext = {}
+): Promise<GateResult> {
+  if (proposals.length === 0) {
+    return { kept: [], rejected: [], judged: true, deterministic: {} };
+  }
+
+  // ── Deterministic rules FIRST, so the judge never gets a say on them ──────
+  const gazetteer = competitorGazetteer(ctx.namedCompetitors ?? []);
+  const deterministic: Record<string, number> = {};
+  const hardRejected: { label: string; rationale: string; reason: string }[] = [];
+  const survivors: AxisProposal[] = [];
+
+  for (const p of proposals) {
+    let reason: string | null = null;
+
+    if (opensWithTitle(p.rationale)) {
+      reason = "title_pattern";
+    } else if (gazetteer.length > 0) {
+      const unknown = unknownNames(p.rationale, gazetteer);
+      if (unknown.length > 0) reason = `unknown_competitor:${unknown.join(",")}`;
+    }
+    if (!reason && ctx.reasoning && contradictsReasoning(p, ctx.reasoning)) {
+      reason = "contradicts_reasoning";
+    }
+
+    if (reason) {
+      const key = reason.split(":")[0];
+      deterministic[key] = (deterministic[key] ?? 0) + 1;
+      hardRejected.push({ label: p.label, rationale: p.rationale, reason });
+    } else {
+      survivors.push(p);
+    }
+  }
+
+  if (survivors.length === 0) {
+    return { kept: [], rejected: hardRejected, judged: true, deterministic };
+  }
+  proposals = survivors;
 
   const user = [
     `Person's role lens: ${roleLens}`,
@@ -70,17 +129,20 @@ export async function gateRationales(roleLens: string, proposals: AxisProposal[]
     },
     { timeoutMs: 20_000 }
   );
-  if (!res.ok) return { kept: proposals, rejected: [], judged: false };
+  if (!res.ok) return { kept: proposals, rejected: hardRejected, judged: false, deterministic };
 
   const generic = parseRationaleVerdicts(res.data.choices?.[0]?.message?.content ?? "", proposals.length);
   const kept = proposals.filter((_, i) => !generic[i]);
-  const rejected = proposals
-    .filter((_, i) => generic[i])
-    .map((p) => ({ label: p.label, rationale: p.rationale }));
+  const rejected = [
+    ...hardRejected,
+    ...proposals
+      .filter((_, i) => generic[i])
+      .map((p) => ({ label: p.label, rationale: p.rationale, reason: "judged_generic" })),
+  ];
 
   // The parser guarantees exactly one agenda axis; if the gate killed it, promote the
   // first survivor rather than leaving the person with role axes only.
   if (kept.length > 0 && !kept.some((a) => a.agenda)) kept[0] = { ...kept[0], agenda: true };
 
-  return { kept, rejected, judged: true };
+  return { kept, rejected, judged: true, deterministic };
 }

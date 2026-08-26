@@ -26,6 +26,20 @@ export function availableChannels(c: ContactChannels): Channel[] {
   return out;
 }
 
+/**
+ * Whether a radar card offers WhatsApp, and if not, whether that is worth saying.
+ *
+ * "no_phone" is a state rather than a silent hide: a missing button cannot be told apart
+ * from a channel nobody enabled, and the card should name the thing that is blocking it.
+ * A phone with no digits counts as missing — channelHref would otherwise produce
+ * `wa.me/?text=…`, which opens WhatsApp with no recipient and looks like it worked.
+ */
+export function whatsappState(c: { channels: string[]; phone: string | null }): "hidden" | "ready" | "no_phone" {
+  if (!c.channels.includes("whatsapp")) return "hidden";
+  const digits = (c.phone ?? "").replace(/\D/g, "");
+  return digits ? "ready" : "no_phone";
+}
+
 export function channelHref(channel: Channel, c: ContactChannels, message: string): string {
   if (channel === "email") return gmailComposeHref(c.email ?? "", message);
   if (channel === "whatsapp") {

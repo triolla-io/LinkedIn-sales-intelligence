@@ -6,7 +6,7 @@ import { Button } from "@heroui/react";
 import { Loader2, AlertTriangle, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { fetcher, fetchErrorMessage } from "@/lib/fetcher";
-import { channelHref } from "@/lib/tech-radar/channels";
+import { channelHref, whatsappState } from "@/lib/tech-radar/channels";
 
 /**
  * Yuval's morning: 2-3 message bubbles, each an editable one-to-one preview of what
@@ -121,8 +121,7 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
   // confirm button — the draft status machine is untouched.
   const [waOpened, setWaOpened] = useState(false);
   const dirty = text !== draft.message;
-  const whatsapp =
-    draft.contact.channels.includes("whatsapp") && (draft.contact.phone ?? "").trim() !== "";
+  const whatsapp = whatsappState(draft.contact);
 
   async function patch(body: Record<string, unknown>, kind: NonNullable<typeof busy>) {
     setBusy(kind);
@@ -259,7 +258,7 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
               {busy === "prepare" ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
               פתח בלינקדאין לשליחה
             </Button>
-            {whatsapp && (
+            {whatsapp === "ready" && (
               <a
                 href={channelHref("whatsapp", { email: null, phone: draft.contact.phone, linkedinUrl: null }, text)}
                 target="_blank"
@@ -269,6 +268,20 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
               >
                 שלח בוואטסאפ
               </a>
+            )}
+            {/* Shown, disabled, with the reason. A hidden button is indistinguishable
+                from a channel nobody turned on, and the blocker is worth naming. */}
+            {whatsapp === "no_phone" && (
+              <span
+                aria-disabled="true"
+                title="אין מספר טלפון לאיש הקשר הזה"
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border border-[rgba(28,36,48,0.12)] bg-[#f6f4f0] text-sm px-4 py-1.5 cursor-not-allowed",
+                  INK_3
+                )}
+              >
+                שלח בוואטסאפ · אין מספר טלפון
+              </span>
             )}
             {waOpened && (
               <Button size="sm" variant="secondary" isDisabled={busy !== null} onPress={() => patch({ action: "sent" }, "sent")}>
