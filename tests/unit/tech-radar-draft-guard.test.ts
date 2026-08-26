@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkDraft, MAX_DRAFT_CHARS, SOFT_DRAFT_CHARS } from "@/lib/tech-radar/draft-guard";
+import { checkDraft, MAX_DRAFT_CHARS, SOFT_DRAFT_CHARS, whyHimCopied } from "@/lib/tech-radar/draft-guard";
 
 describe("rhetorical opener", () => {
   it("allows a question mark in the opening sentence — Yuval's voice", () => {
@@ -98,5 +98,85 @@ describe("unchanged hard rules", () => {
     expect(checkDraft("כדאי לבדוק את הכלי")).toContain("adoption_suggestion");
     expect(checkDraft("החברה שלנו עושה בדיוק את זה")).toContain("self_pitch");
     expect(checkDraft("מחקר מטורף 🚀")).toContain("emoji");
+  });
+});
+
+/**
+ * The real 2026-08-26 draft to Gil Tamir opened "נתקלתי במחקר על משהו שכנראה קשור
+ * ישירות לבחירות שלך" — a placeholder noun ("משהו") plus a hedge ("שכנראה") that
+ * together name nothing. The opener must name the subject.
+ */
+describe("opener_mush", () => {
+  it("flags the shipped opener — placeholder noun plus hedge, names nothing", () => {
+    expect(
+      checkDraft(
+        "גיל, נתקלתי במחקר על משהו שכנראה קשור ישירות לבחירות שלך.\nחברות ביטוח משתמשות בנתונים לא מסורתיים."
+      )
+    ).toContain("opener_mush");
+  });
+
+  it("does not flag an opener that names the subject", () => {
+    expect(
+      checkDraft("גיל, ראיתי שרגולטורים בבריטניה מחמירים על תמחור אלגוריתמי.\nזה נוגע ישר בתמחור שלכם.")
+    ).not.toContain("opener_mush");
+  });
+
+  it("flags a placeholder noun with no concrete noun at all, even without a hedge", () => {
+    // No Latin token, no quoted phrase, and no word over 3 Hebrew letters outside the
+    // hedge/placeholder/function-word lists — "יש" and "כאן" are both too short to count.
+    expect(checkDraft("גיל, יש כאן משהו.\nחברות ביטוח משתמשות בנתונים.")).toContain("opener_mush");
+  });
+
+  it("does not flag a hedge with no placeholder noun", () => {
+    expect(checkDraft("גיל, כנראה שרגולטורים מחמירים על תמחור אלגוריתמי.")).not.toContain("opener_mush");
+  });
+});
+
+/**
+ * whyHim (the veto's sentence) is INPUT to the drafting prompt, which already says
+ * "rephrased in your own everyday words". The shipped draft's closer just swapped the
+ * pronouns from third to second person — this makes that rule enforceable.
+ */
+describe("whyHimCopied", () => {
+  const WHY_HIM =
+    "תמיר הוא זה שחותם בפועל על בחירת מודלי ה-ML לתמחור בפניקס, ולכן שאלת המשתנים הפרוקסי והאפליה העקיפה " +
+    "היא סיכון שהוא נושא בעצמו בהחלטה — לא נושא כללי של תעשיית הביטוח.";
+
+  it("is true for the shipped draft's closer against the real whyHim", () => {
+    const message =
+      "גיל, נתקלתי במחקר.\nחברות ביטוח משתמשות בנתונים.\n" +
+      "בגלל שאתה זה שמחליט בפועל על המודלים של ML לתמחור בפניקס, הסיכון של משתנים פרוקסי והאפליה העקיפה " +
+      "היא בעצם סיכון שאתה נושא בעצמו בהחלטה.\n" +
+      "https://streamlinefeed.co.ke/news/unconventional-data-exposes-consumers-to-algorithmic-pricing-discrimination";
+    expect(whyHimCopied(message, WHY_HIM)).toBe(true);
+  });
+
+  it("is false for a genuinely rephrased closer", () => {
+    const message =
+      "גיל, נתקלתי במחקר.\nחברות ביטוח משתמשות בנתונים.\n" +
+      "אתה זה שבוחר את המודלים, אז ההטיה הזאת נופלת עליך ולא על התעשייה.\n" +
+      "https://example.com/story";
+    expect(whyHimCopied(message, WHY_HIM)).toBe(false);
+  });
+
+  it("is false when whyHim is empty or absent", () => {
+    expect(whyHimCopied("כל הודעה", "")).toBe(false);
+    expect(whyHimCopied("כל הודעה", null)).toBe(false);
+    expect(whyHimCopied("כל הודעה", undefined)).toBe(false);
+  });
+
+  it("checkDraft raises whyhim_copied when ctx.whyHim is passed and the closer is copied", () => {
+    const message =
+      "גיל, נתקלתי במחקר.\nחברות ביטוח משתמשות בנתונים.\n" +
+      "בגלל שאתה זה שמחליט בפועל על המודלים של ML לתמחור בפניקס, הסיכון של משתנים פרוקסי והאפליה העקיפה " +
+      "היא בעצם סיכון שאתה נושא בעצמו בהחלטה.";
+    expect(checkDraft(message, { whyHim: WHY_HIM })).toContain("whyhim_copied");
+  });
+
+  it("checkDraft without ctx never raises whyhim_copied — existing call sites keep working", () => {
+    const message =
+      "בגלל שאתה זה שמחליט בפועל על המודלים של ML לתמחור בפניקס, הסיכון של משתנים פרוקסי והאפליה העקיפה " +
+      "היא בעצם סיכון שאתה נושא בעצמו בהחלטה.";
+    expect(checkDraft(message)).not.toContain("whyhim_copied");
   });
 });

@@ -97,7 +97,7 @@ TONE SCALES TO THE ITEM. You are given the item's kind and its stature (0-1). Lo
 - vendor_launch, promotion, other, or anything with low stature: plainest possible. State it and stop.
 
 Follow this shape, in this order:
-1. Open with the person's name, in the sender's voice: a rhetorical question — "היי דנה, ראית את זה?" — or an excited reaction — "דנה, נתקלתי במחקר מטורף!". A question mark is allowed HERE and nowhere else.
+1. Open with the person's name, in the sender's voice: a rhetorical question — "היי דנה, ראית את זה?" — or an excited reaction — "דנה, נתקלתי במחקר מטורף!". A question mark is allowed HERE and nowhere else. The opener NAMES the thing it saw — "ראיתי ש-<X>" naming <X> — and never just announces that something exists: never "נתקלתי במשהו ש...", never "יש כתבה מעניינת ש...".
 2. What the item says: 2-3 short sentences distilled from the item's own text — the concrete finding, move or number that makes it worth two minutes. ONLY facts that appear in the item text you were given. Do NOT add context, background or explanation from your own knowledge, however certain you are: an item about a lawsuit against a company is not an opportunity to explain what that company does. If the item text does not say it, it does not go in the message.
 3. Why THEM: the LAST sentence before the link carries the SPECIFIC reason from the "why it touches them" note, rephrased in your own everyday words — the concrete mechanism or stake for THEM, never the generic category it belongs to. Anchor it in their world by naming ONE concrete thing of theirs — a product, business line, market or process.
    - The test: delete the item's subject from your message — it must STILL be clear why THIS person received it and not a colleague.
@@ -291,7 +291,7 @@ export function enforceDraftRules(message: string, input: TechDraftInput): Draft
   // The rest of draft-guard, at drafting time. These rules were written from real
   // failures but only ran in tests — and a prompt rule with no runtime check is a
   // suggestion, which is how the glued script above reached a stored draft.
-  const violations = checkDraft(out).filter((v) => v !== "glued_script");
+  const violations = checkDraft(out, { whyHim: input.fitRationale }).filter((v) => v !== "glued_script");
   if (violations.length > 0) {
     return {
       ok: false,

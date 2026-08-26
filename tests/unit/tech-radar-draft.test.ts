@@ -79,6 +79,15 @@ describe("DRAFT_SYSTEM", () => {
     expect(DRAFT_SYSTEM).toMatch(/NEVER copy/);
   });
 
+  /**
+   * 2026-08-26, Gil Tamir: "נתקלתי במחקר על משהו שכנראה קשור ישירות לבחירות שלך" — the
+   * opener named nothing. Paired with the opener_mush guard in draft-guard.ts.
+   */
+  it("requires the opener to name the thing it saw, not just announce it exists", () => {
+    expect(DRAFT_SYSTEM).toMatch(/opener NAMES the thing it saw/);
+    expect(DRAFT_SYSTEM).toMatch(/נתקלתי במשהו ש/);
+  });
+
   it("allows a short paragraph — 3-6 sentences, capped at 600 chars", () => {
     expect(DRAFT_SYSTEM).toMatch(/3-6 short sentences TOTAL/);
     expect(DRAFT_SYSTEM).toMatch(/600 characters/);
