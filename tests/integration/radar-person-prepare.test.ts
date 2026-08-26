@@ -120,6 +120,20 @@ describe("radar.person.prepare", () => {
     expect(extensionTaskCreate).not.toHaveBeenCalled();
   });
 
+  /**
+   * A contact hand-marked from the "אנשים" tab can have no LinkedIn URL at all. Without
+   * this guard, a task would be queued that the extension can never claim/act on, and
+   * the poll below would burn its full MAX_WAIT_ROUNDS × WAIT_SECONDS (~11 min) before
+   * falling through to buildProfilesForMarked's person_data_missing backstop anyway.
+   */
+  it("skips the scrape task and the wait entirely when the contact has no linkedinUrl", async () => {
+    contactFindUnique.mockResolvedValue({ linkedinUrl: "", profileScrapedAt: null });
+    await run();
+    expect(extensionTaskCreate).not.toHaveBeenCalled();
+    expect(sleepIds().filter((id) => id.startsWith("scrape-wait-"))).toHaveLength(0);
+    expect(buildProfilesForMarked).toHaveBeenCalled();
+  });
+
   it("queues a SCRAPE_PROFILE task when the profile has never been scraped", async () => {
     contactFindUnique.mockResolvedValueOnce({ linkedinUrl: "https://linkedin.com/in/ct1", profileScrapedAt: null });
     // Poll checks after the initial fetch — keep returning null so timeout is exercised.

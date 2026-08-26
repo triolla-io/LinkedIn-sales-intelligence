@@ -60,6 +60,12 @@ export const radarPersonPrepare = inngest.createFunction(
         select: { linkedinUrl: true, profileScrapedAt: true },
       });
       if (!contact) return { needsScrape: false, requestedAt: 0 };
+      // No LinkedIn URL — same gate dispatch.ts's own radar query applies
+      // (`linkedinUrl: { not: "" }`). Without it, a task would be queued that the
+      // extension can never act on, and the wait loop below would burn its full
+      // MAX_WAIT_ROUNDS × WAIT_SECONDS (~11 min) before buildProfilesForMarked's
+      // person_data_missing skip ever got a chance to say why. Skip straight there.
+      if (!contact.linkedinUrl) return { needsScrape: false, requestedAt: 0 };
       const staleBefore = Date.now() - RADAR_SCRAPE_STALE_DAYS * 86_400_000;
       const stale = !contact.profileScrapedAt || contact.profileScrapedAt.getTime() < staleBefore;
       if (!stale) return { needsScrape: false, requestedAt: 0 };

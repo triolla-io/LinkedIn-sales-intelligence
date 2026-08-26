@@ -15,7 +15,7 @@ import { handleScrapeProfile } from "@/inngest/functions/extension-task-result";
 beforeEach(() => { mockRecord.mockReset(); mockFindContact.mockReset(); mockUpdate.mockReset(); });
 describe("handleScrapeProfile", () => {
   it("feeds scraped title/company + stored snapshot into recordJobChangeIfAny", async () => {
-    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old" });
+    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old", owner: { org: { jobCheckEnabled: true } } });
     const task = { userId: "o1", payload: { contactId: "c1" }, result: { title: "CTO", company: "New" } };
     await handleScrapeProfile(task as never);
     expect(mockRecord).toHaveBeenCalledWith({
@@ -47,7 +47,7 @@ describe("handleScrapeProfile", () => {
   });
 
   it("writes headline/about/experience + profileScrapedAt from a richer scrape, and still runs the unchanged jobSnapshot logic", async () => {
-    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old" });
+    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old", owner: { org: { jobCheckEnabled: true } } });
     const experience = [{ title: "CTO", company: "New", dateRange: "2024-Present" }];
     const task = {
       userId: "o1",
@@ -71,8 +71,31 @@ describe("handleScrapeProfile", () => {
     });
   });
 
+  /**
+   * The radar's SCRAPE_PROFILE source (dispatch.ts) is gated on radarInclude alone, not
+   * Org.jobCheckEnabled — so this function can now run for an org that switched "Job
+   * Changes" off. The profile-fields write must still happen (that's the radar's own
+   * data and costs nothing); recordJobChangeIfAny (which wraps the paid judgeJobChange
+   * call) must not. The real LLM boundary is asserted directly in
+   * extension-scrape-profile-org-gate.test.ts, which doesn't mock recordJobChangeIfAny
+   * away — this test just pins the shape of the call this file already mocks.
+   */
+  it("writes the profile fields but skips recordJobChangeIfAny when the org has jobCheckEnabled: false", async () => {
+    mockFindContact.mockResolvedValue({
+      ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old",
+      owner: { org: { jobCheckEnabled: false } },
+    });
+    const task = { userId: "o1", payload: { contactId: "c1" }, result: { title: "CTO", company: "New" } };
+    await handleScrapeProfile(task as never);
+    expect(mockUpdate).toHaveBeenCalledWith({
+      where: { id: "c1" },
+      data: { profileScrapedAt: expect.any(Date) },
+    });
+    expect(mockRecord).not.toHaveBeenCalled();
+  });
+
   it("old extension result with only title/company still stamps profileScrapedAt but leaves about/experience/headline untouched", async () => {
-    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old" });
+    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old", owner: { org: { jobCheckEnabled: true } } });
     const task = { userId: "o1", payload: { contactId: "c1" }, result: { title: "CTO", company: "New" } };
     await handleScrapeProfile(task as never);
     expect(mockUpdate).toHaveBeenCalledWith({
@@ -82,7 +105,7 @@ describe("handleScrapeProfile", () => {
   });
 
   it("truncates an oversized about to exactly 2000 chars", async () => {
-    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old" });
+    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old", owner: { org: { jobCheckEnabled: true } } });
     const longAbout = "a".repeat(2500);
     const task = { userId: "o1", payload: { contactId: "c1" }, result: { title: "CTO", company: "New", about: longAbout } };
     await handleScrapeProfile(task as never);
@@ -93,7 +116,7 @@ describe("handleScrapeProfile", () => {
   });
 
   it("truncates an oversized experience array to exactly 5 entries", async () => {
-    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old" });
+    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old", owner: { org: { jobCheckEnabled: true } } });
     const experience = Array.from({ length: 7 }, (_, i) => ({
       title: `Role ${i}`, company: `Co ${i}`, dateRange: `20${10 + i}-20${11 + i}`,
     }));

@@ -905,7 +905,18 @@ export async function handleScrapeProfile(task: TaskRow) {
   if (!payload.contactId) return;
   const contact = await prisma.contact.findUnique({
     where: { id: payload.contactId },
-    select: { ownerId: true, jobSnapshotTitle: true, jobSnapshotCompany: true },
+    select: {
+      ownerId: true,
+      jobSnapshotTitle: true,
+      jobSnapshotCompany: true,
+      // Fetched here, not a second round trip: this is the gate for the paid half of
+      // this function (below). The radar source (dispatch.ts) can now produce a
+      // SCRAPE_PROFILE task for an org that has "Job Changes" OFF — the scrape itself
+      // is free (customer's own extension), but judging it is a real openrouterChat
+      // call, and an org that turned the module off must not be billed for it, nor get
+      // a ContactJobChange row / "Job Changes" list entry it never asked for.
+      owner: { select: { org: { select: { jobCheckEnabled: true } } } },
+    },
   });
   if (!contact) return;
   // Raw profile fields for the radar's layer 4. jobSnapshot* stays the job-change
@@ -925,7 +936,12 @@ export async function handleScrapeProfile(task: TaskRow) {
   });
   const freshTitle = result.title ?? null;
   const freshCompany = result.company ?? null;
-  // First run: no snapshot yet — seed the baseline and do NOT detect a change.
+  // First run: no snapshot yet — seed the baseline and do NOT detect a change. Seeded
+  // unconditionally (even with Job Changes OFF): it costs nothing, touches only this
+  // contact's own private snapshot fields, and gives a correct baseline for the day the
+  // org turns the module on — without it, enabling later would compare against a stale
+  // or missing snapshot and could misfire a "change" that is really just the gap in time
+  // the module sat off.
   if (contact.jobSnapshotTitle === null && contact.jobSnapshotCompany === null) {
     await prisma.contact.update({
       where: { id: payload.contactId },
@@ -933,6 +949,13 @@ export async function handleScrapeProfile(task: TaskRow) {
     });
     return;
   }
+  // The paid half. judgeJobChange (called inside recordJobChangeIfAny) is a real
+  // openrouterChat call, and a real hit can create a ContactJobChange row and add the
+  // contact to the "Job Changes" list — none of that belongs to an org that switched
+  // the module off. Until the radar became a second SCRAPE_PROFILE producer, this was
+  // safe by accident: the only producer required jobCheckEnabled at dispatch time. The
+  // radar producer doesn't, so the gate has to live here too.
+  if (!contact.owner.org.jobCheckEnabled) return;
   await recordJobChangeIfAny({
     contactId: payload.contactId,
     ownerId: contact.ownerId,
