@@ -26,7 +26,8 @@ import { RADAR_SCRAPE_STALE_DAYS } from "@/lib/job-check/dispatch";
  * (`person_data_missing`). Someone hand-added from the "אנשים" tab may never have been
  * through a SCRAPE_PROFILE pass, so this queues one — through the OWNER's own extension
  * session, no Apollo/Bright Data spend — and waits for it before building the model,
- * the same way it waits for employer research.
+ * the same way it waits for employer research. If the nightly dispatch already has one
+ * queued for this contact it waits on that instead of paying for a second profile visit.
  */
 
 /** Research is async and paced by its own concurrency; poll rather than guess. */
@@ -71,14 +72,30 @@ export const radarPersonPrepare = inngest.createFunction(
       if (!stale) return { needsScrape: false, requestedAt: 0 };
 
       const requestedAt = Date.now();
-      await prisma.extensionTask.create({
-        data: {
-          userId: ownerId,
+      // The nightly dispatch (lib/job-check/dispatch.ts) may already have this contact
+      // queued — it dedups against live PENDING/CLAIMED tasks for exactly this reason. A
+      // profile visit is a scarce, human-paced budget, not an API quota, so a second
+      // visit to the same profile is a real cost for nothing. Wait on the one in flight
+      // instead: it stamps profileScrapedAt when it lands, which is the only thing the
+      // poll below is watching for.
+      const inFlight = await prisma.extensionTask.findFirst({
+        where: {
           kind: "SCRAPE_PROFILE",
-          payload: { contactId, linkedinUrl: contact.linkedinUrl },
-          scheduledFor: new Date(requestedAt),
+          status: { in: ["PENDING", "CLAIMED"] },
+          payload: { path: ["contactId"], equals: contactId },
         },
+        select: { id: true },
       });
+      if (!inFlight) {
+        await prisma.extensionTask.create({
+          data: {
+            userId: ownerId,
+            kind: "SCRAPE_PROFILE",
+            payload: { contactId, linkedinUrl: contact.linkedinUrl },
+            scheduledFor: new Date(requestedAt),
+          },
+        });
+      }
       return { needsScrape: true, requestedAt };
     });
 

@@ -22,11 +22,15 @@ vi.mock("@/lib/tech-radar/build-profiles", () => ({
 const companyCount = vi.fn();
 const contactFindUnique = vi.fn();
 const extensionTaskCreate = vi.fn();
+const extensionTaskFindFirst = vi.fn();
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     trackedCompany: { count: (...a: unknown[]) => companyCount(...a) },
     contact: { findUnique: (...a: unknown[]) => contactFindUnique(...a) },
-    extensionTask: { create: (...a: unknown[]) => extensionTaskCreate(...a) },
+    extensionTask: {
+      create: (...a: unknown[]) => extensionTaskCreate(...a),
+      findFirst: (...a: unknown[]) => extensionTaskFindFirst(...a),
+    },
   },
 }));
 
@@ -59,7 +63,7 @@ function run() {
 beforeEach(() => {
   for (const m of [
     markedEmployers, upsertEmployers, buildProfilesForMarked, companyCount, sendEvent,
-    contactFindUnique, extensionTaskCreate, sleep,
+    contactFindUnique, extensionTaskCreate, extensionTaskFindFirst, sleep,
   ])
     m.mockReset();
   sleep.mockResolvedValue(undefined);
@@ -74,6 +78,8 @@ beforeEach(() => {
     profileScrapedAt: new Date(),
   });
   extensionTaskCreate.mockResolvedValue({ id: "task1" });
+  // Default: nothing already queued for this contact.
+  extensionTaskFindFirst.mockResolvedValue(null);
 });
 
 describe("radar.person.prepare", () => {
@@ -179,6 +185,34 @@ describe("radar.person.prepare", () => {
     expect(out.profileWaitedOut).toBe(false);
     const scrapeSleeps = sleepIds().filter((id) => id.startsWith("scrape-wait-"));
     expect(scrapeSleeps.length).toBeLessThan(15);
+  });
+
+  /**
+   * A profile visit is a scarce, human-paced budget, not an API quota — that is why the
+   * nightly dispatch dedups against live PENDING/CLAIMED SCRAPE_PROFILE tasks. Adding a
+   * person whom the nightly run already queued must not buy a second visit to the same
+   * profile; waiting on the task already in flight gets this run the same thing it needs.
+   */
+  it("does not queue a second scrape when one is already in flight, and still waits for it", async () => {
+    contactFindUnique.mockResolvedValueOnce({ linkedinUrl: "https://linkedin.com/in/ct1", profileScrapedAt: null });
+    contactFindUnique.mockResolvedValue({ profileScrapedAt: null }); // never lands within the wait
+    extensionTaskFindFirst.mockResolvedValue({ id: "already-queued" });
+
+    const out = (await run()) as { profileWaitedOut: boolean };
+
+    expect(extensionTaskCreate).not.toHaveBeenCalled();
+    expect(extensionTaskFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          kind: "SCRAPE_PROFILE",
+          status: { in: ["PENDING", "CLAIMED"] },
+          payload: { path: ["contactId"], equals: "ct1" },
+        }),
+      })
+    );
+    // It waits on the in-flight task exactly as it would on one it created itself.
+    expect(sleepIds().filter((id) => id.startsWith("scrape-wait-"))).toHaveLength(15);
+    expect(out.profileWaitedOut).toBe(true);
   });
 
   it("skips the research dispatch when the employer is already researched", async () => {
