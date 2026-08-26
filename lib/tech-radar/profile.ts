@@ -281,7 +281,14 @@ export async function researchProfile(input: ProfileResearchInput): Promise<Tech
         { role: "user", content: userPrompt(input) },
       ],
       temperature: 0.2,
-      max_tokens: 2500,
+      // Raised from 2500 (2026-08-26 final review, Finding 4) after `industry` (canonical
+      // name in both scripts + 3-5 broad queries, at least one Hebrew) and `recentMoves`
+      // (fact + dateIso + sourceUrl per move) were added on top of everything this prompt
+      // already required. Hebrew tokenizes badly and URLs are expensive — the same reason
+      // person-profile.ts's sibling prompt was raised from 5000 to 6000 tonight. A
+      // truncated response fails parseProfileResponse loudly (RESEARCH_FAILED) rather than
+      // silently leaving an old profile on disk missing `industry`.
+      max_tokens: 4000,
       response_format: { type: "json_object" },
     },
     { timeoutMs: 40_000 }
