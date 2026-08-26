@@ -44,6 +44,27 @@ export type TechRadarProfile = {
   searchQueries: string[];
   /** What was actually read. Few sources = weak profile; the UI shows this. */
   sources: ProfileSource[];
+  /**
+   * Layer 1 of the 2026-08-26 four-layer person model: the industry this company is
+   * in, as a canonical name in both scripts where both are used, plus the BROAD
+   * industry-level queries every company in that industry shares. Required by
+   * `missingResearchFields` on fresh research. Optional here (not on
+   * `whatTheySell`'s footing) only because profiles researched before this task have
+   * no `industry` at all — see the refresh-compat note in profile.ts.
+   */
+  industry?: { canonical: string; queries: string[] };
+  /**
+   * Layer 3: what is occupying this company RIGHT NOW, extracted ONLY from dated
+   * news. A move without a parseable `dateIso` is dropped by the parser rather than
+   * kept undated. Optional for the same legacy-profile reason as `industry`.
+   */
+  recentMoves?: { fact: string; dateIso: string; sourceUrl?: string }[];
+  /**
+   * An ACTIVE "quiet" finding — true when the news showed no verified move, so an
+   * empty `recentMoves` is a finding rather than a default. Required alongside
+   * `recentMoves` by `missingResearchFields`.
+   */
+  quietNow?: boolean;
 };
 
 /** A profile is only usable if it can drive a scan. */

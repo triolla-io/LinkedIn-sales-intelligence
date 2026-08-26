@@ -19,6 +19,8 @@ const goodProfile = JSON.stringify({
   digitalInitiatives: ["mobile app rebuild"],
   focusAreas: [{ area: "payment fraud scoring", why: "high card volume" }],
   searchQueries: ["real-time payment fraud scoring launch"],
+  industry: { canonical: "בנקאות ישראל / Israeli banking", queries: ["q1", "q2", "q3"] },
+  quietNow: true,
 });
 
 beforeEach(() => chat.mockReset());
