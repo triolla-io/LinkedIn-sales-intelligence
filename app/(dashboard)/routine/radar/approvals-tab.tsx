@@ -6,6 +6,7 @@ import { Button } from "@heroui/react";
 import { Loader2, AlertTriangle, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { fetcher, fetchErrorMessage } from "@/lib/fetcher";
+import { channelHref } from "@/lib/tech-radar/channels";
 
 /**
  * Yuval's morning: 2-3 message bubbles, each an editable one-to-one preview of what
@@ -20,7 +21,16 @@ import { fetcher, fetchErrorMessage } from "@/lib/fetcher";
 type Draft = {
   id: string;
   status: "PENDING_REVIEW" | "PREPARING" | "PREPARED";
-  contact: { id: string; fullName: string; currentTitle: string | null; currentCompany: string | null; linkedinUrl: string | null };
+  contact: {
+    id: string;
+    fullName: string;
+    currentTitle: string | null;
+    currentCompany: string | null;
+    linkedinUrl: string | null;
+    phone: string | null;
+    /** Extra send channels for THIS relationship, e.g. ["whatsapp"]. Empty = LinkedIn only. */
+    channels: string[];
+  };
   message: string;
   whyHim: string | null;
   canonicalUrl: string | null;
@@ -106,7 +116,13 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
   const [hard, setHard] = useState<string[]>([]);
   const [soft, setSoft] = useState<string[]>([]);
   const [showDismiss, setShowDismiss] = useState(false);
+  // WhatsApp is prepare-not-send like everything else: opening wa.me types the message
+  // into the chat, the human sends, then confirms here. Local state only reveals the
+  // confirm button — the draft status machine is untouched.
+  const [waOpened, setWaOpened] = useState(false);
   const dirty = text !== draft.message;
+  const whatsapp =
+    draft.contact.channels.includes("whatsapp") && (draft.contact.phone ?? "").trim() !== "";
 
   async function patch(body: Record<string, unknown>, kind: NonNullable<typeof busy>) {
     setBusy(kind);
@@ -243,6 +259,23 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
               {busy === "prepare" ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
               פתח בלינקדאין לשליחה
             </Button>
+            {whatsapp && (
+              <a
+                href={channelHref("whatsapp", { email: null, phone: draft.contact.phone, linkedinUrl: null }, text)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setWaOpened(true)}
+                className="inline-flex items-center rounded-full bg-[#25d366] text-white text-sm font-medium px-4 py-1.5 hover:opacity-90"
+              >
+                שלח בוואטסאפ
+              </a>
+            )}
+            {waOpened && (
+              <Button size="sm" variant="secondary" isDisabled={busy !== null} onPress={() => patch({ action: "sent" }, "sent")}>
+                {busy === "sent" ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+                נשלח ✓
+              </Button>
+            )}
             {dirty && (
               <Button
                 size="sm"

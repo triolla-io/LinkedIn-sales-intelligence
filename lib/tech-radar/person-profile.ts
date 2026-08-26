@@ -35,19 +35,31 @@ export type AxisProposal = {
 };
 
 export type PersonProfileDraft = {
+  /** The staged thinking that produced the axes. Saved so a human can audit the path. */
+  reasoning: string;
   roleLens: string;
   axes: AxisProposal[];
 };
 
 export const PROFILE_SYSTEM = `You describe what ONE person owns at work, and which subjects would make them stop and read.
 
-You are given a person's title and headline, and a research profile of their employer. The employer profile is CONTEXT for understanding what this person's job actually involves, AND the source of what their company is doing right now. A description of the company as an answer to "what does this person own" is a failed answer.
+You are given the person's full title and headline, and the commercial picture of their employer: what the company sells and to whom, its competitors BY NAME, and what it is doing right now. The employer picture is CONTEXT for understanding what this person's job actually involves. A description of the company as an answer to "what does this person own" is a failed answer.
 
-Return two things.
+THINK IN STAGES, in writing, BEFORE deriving a single axis. Answer three questions, in Hebrew:
+
+(א) Which decisions does this person actually hold — what do they sign? Read the FULL title. A VP Product signs product and customer-experience decisions; a Head of Retail Banking signs the retail offering; a Director of Innovation signs what the company adopts next; only a CIO/CTO signs infrastructure. Core-systems modernization is the CIO's subject — giving it to a product or retail executive is the failure this stage exists to prevent.
+
+(ב) Who is trying to eat their customers, and what would stress this person if it happened tomorrow morning? Use the named competitors — a rival launching into exactly this person's territory is the strongest signal there is.
+
+(ג) What would they stop everything to read, and forward to a colleague?
+
+Return these answers as "reasoning". It is saved next to the profile so a human can see how you reached the axes — reasoning that could have been written without reading the title is a failed answer.
+
+Then return:
 
 1. roleLens — one Hebrew sentence: what decisions or problems does THIS person own? Be concrete about the job, not the company. "אחראי על מנוע ההמלצות ועל איכות הדירוג" is a role lens. "עובד בחברת ספורט" is not.
 
-2. axes — 3 to 5 subjects this person would read about. EXACTLY ONE of them must have "agenda": true, and the rest "agenda": false.
+2. axes — 3 to 5 subjects DERIVED FROM YOUR STAGED ANSWERS, that this person would read about. EXACTLY ONE of them must have "agenda": true, and the rest "agenda": false. Every rationale must point at one of your staged answers — "כי הוא מחזיק את החלטת X", "כי Y מתחרה על הלקוחות שלו". A rationale that describes a domain — "כי הוא בבנקאות" — fails a downstream gate and the axis is discarded.
 
    The AGENDA axis is derived from what the company is DOING NOW — a project, an expansion, an acquisition, a regulatory exposure, a market they just entered, a facility they announced. Take it from the employer profile. It must be something a colleague with a different title at the same company would ALSO care about, but that a person with the same title at a DIFFERENT company would not.
    - AGENDA: "הרחבת קיבולת הזיקוק שהוכרזה ברבעון האחרון", "כניסה לשוק ההודי", "עסקת הרכישה שממתינה לאישור רגולטורי"
@@ -55,15 +67,17 @@ Return two things.
 
    For every axis:
    - label: 2-5 Hebrew words naming the subject. Rich enough to be distinguishable — "זיהוי הונאות בתשלומים", not "הונאות". Never a single generic word like "פינטק": a subject most of an industry shares will be discarded.
+     This label is shown to the user as it is written. Proofread it before returning: correct Hebrew spelling and grammar, no truncated or invented words (write "והגנה", never "וגנת"), single spaces, no trailing full stop, and a hyphen or space between Hebrew and any Latin name ("אדריכלות API", never "אדריכלותAPI").
    - rationale: one Hebrew sentence saying why this subject is THIS PERSON'S. It must point at a decision they make, a project they run, an asset they are responsible for, or a problem they personally carry — NOT at their job title. A sentence that begins "כ-VP Assets, אחראי על…" is a restatement of the title and will be rejected downstream. A sentence that names a specific field, product, facility, market or decision will not.
    - searchQueries: 2-4 web-search queries. They decide what this person actually receives, so aim them at material with WEIGHT:
      * Aim at flagship reports, industry studies, regulatory moves, market moves and serious business news. NOT at product launches, vendor announcements, or write-ups of individual tools — those are filtered out later, so a query that finds them wastes the run.
+     * When an axis is about competitor or market moves, its queries MUST carry the competitors' actual names from the employer picture ("Lemonade new insurance products", "לאומי דיגיטל השקה"). The names are the monitoring mechanism — a generic "competitors" query finds nothing.
      * If the person or the company is Israeli, AT LEAST ONE query per axis must be IN HEBREW, phrased the way Israeli business press writes — that is what surfaces Globes, Calcalist, TheMarker and Bizportal, and local news is the most forwardable material there is. Do NOT use "site:" operators; plain Hebrew works better.
      * Other queries in English, two to four words at the core.
      * For a report-hunting query, name the kind of thing: "outlook report", "industry survey", "regulatory ruling", "market outlook".
 
 Return strict JSON only — no prose, no fences:
-{"roleLens":"...","axes":[{"label":"...","agenda":true,"searchQueries":["..."],"rationale":"..."}]}`;
+{"reasoning":"...","roleLens":"...","axes":[{"label":"...","agenda":true,"searchQueries":["..."],"rationale":"..."}]}`;
 
 export type PersonProfileInput = {
   fullName: string;
@@ -74,13 +88,44 @@ export type PersonProfileInput = {
   employerProfile: unknown;
 };
 
-function userPrompt(i: PersonProfileInput): string {
+/** A string[] out of an unknown, for reading legacy profiles defensively. */
+function strList(v: unknown): string[] {
+  return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && x.trim() !== "") : [];
+}
+
+/**
+ * The commercial picture as FIRST-CLASS lines, not buried in a JSON slice. The staged
+ * thinking is only as good as what it can see: a 2500-char JSON.stringify routinely cut
+ * exactly the fields the stages need. Legacy profiles (researched before the required
+ * fields existed) simply contribute fewer lines — never a crash.
+ */
+export function personPromptInput(i: PersonProfileInput): string {
+  const p = (i.employerProfile ?? {}) as Record<string, unknown>;
+  const whatTheySell = typeof p.whatTheySell === "string" ? p.whatTheySell.trim() : "";
+  const segments = strList(p.customerSegments);
+  const competitors = strList(p.namedCompetitors);
+  const noClear = p.noClearCompetitors === true;
+  const noClearReason = typeof p.noCompetitorsReason === "string" ? p.noCompetitorsReason.trim() : "";
+  const initiatives = strList(p.digitalInitiatives);
+  const focusAreas = Array.isArray(p.focusAreas)
+    ? p.focusAreas
+        .map((f) => (f as Record<string, unknown>)?.area)
+        .filter((a): a is string => typeof a === "string" && a.trim() !== "")
+    : [];
+
   return [
     `Person: ${i.fullName}`,
     `Title: ${i.currentTitle ?? "unknown"}`,
     i.headline ? `Headline: ${i.headline}` : null,
     `Employer: ${i.companyName}`,
-    `Employer research profile (context only): ${JSON.stringify(i.employerProfile).slice(0, 2500)}`,
+    whatTheySell ? `What the employer sells, and to whom: ${whatTheySell}` : null,
+    segments.length ? `Customer segments: ${segments.join(", ")}` : null,
+    competitors.length ? `Named competitors: ${competitors.join(", ")}` : null,
+    noClear ? `Competitors: none found — explicit finding: ${noClearReason || "(no reason recorded)"}` : null,
+    initiatives.length || focusAreas.length
+      ? `What occupies the employer now: ${[...initiatives, ...focusAreas].join("; ")}`
+      : null,
+    `Full employer research profile (context only): ${JSON.stringify(i.employerProfile).slice(0, 2500)}`,
   ]
     .filter((l) => l !== null)
     .join("\n");
@@ -96,9 +141,13 @@ function str(v: unknown): string {
  * every future proposal collides with.
  */
 export function parseProfileResponse(text: string): PersonProfileDraft | null {
-  const parsed = parseJsonLoose<{ roleLens?: unknown; axes?: unknown }>(text);
+  const parsed = parseJsonLoose<{ reasoning?: unknown; roleLens?: unknown; axes?: unknown }>(text);
   const roleLens = str(parsed?.roleLens);
   if (!roleLens) return null;
+  // No reasoning, no profile: a model that skipped the stages is the old brain with a
+  // new name, and the caller records profile_call_failed rather than building blind.
+  const reasoning = str(parsed?.reasoning);
+  if (!reasoning) return null;
 
   const rows = Array.isArray(parsed?.axes) ? parsed.axes : [];
   const axes: AxisProposal[] = [];
@@ -134,7 +183,7 @@ export function parseProfileResponse(text: string): PersonProfileDraft | null {
     else a.agenda = false;
   }
   if (!seenAgenda) axes[0].agenda = true;
-  return { roleLens, axes };
+  return { reasoning, roleLens, axes };
 }
 
 export async function buildPersonProfile(input: PersonProfileInput): Promise<PersonProfileDraft | null> {
@@ -144,10 +193,10 @@ export async function buildPersonProfile(input: PersonProfileInput): Promise<Per
       model: MODEL,
       messages: [
         { role: "system", content: PROFILE_SYSTEM },
-        { role: "user", content: userPrompt(input) },
+        { role: "user", content: personPromptInput(input) },
       ],
       temperature: 0.3,
-      max_tokens: 1200,
+      max_tokens: 2000, // the staged reasoning is part of the output now
       response_format: { type: "json_object" },
     },
     { timeoutMs: 30_000 }

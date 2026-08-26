@@ -1,5 +1,6 @@
 import type { NewsResult } from "@/lib/news/types";
 import { reserveNewsCall } from "@/lib/news/budget";
+import { localeForQuery } from "@/lib/news/locale";
 
 /**
  * SerpApi Google News — https://serpapi.com.
@@ -61,8 +62,11 @@ export async function fetchSerpapi(
     const url = new URL("https://serpapi.com/search.json");
     url.searchParams.set("engine", "google_news");
     url.searchParams.set("q", `${query} when:${days}d`);
-    url.searchParams.set("gl", "us");
-    url.searchParams.set("hl", "en");
+    // A Hebrew query is asking about the Israeli market; gl=us&hl=en was why one came
+    // back with Greek and Indian coverage. English queries stay global.
+    const locale = localeForQuery(query);
+    url.searchParams.set("gl", locale?.gl ?? "us");
+    url.searchParams.set("hl", locale?.hl ?? "en");
     url.searchParams.set("api_key", key);
 
     const res = await fetch(url, { signal: controller.signal });

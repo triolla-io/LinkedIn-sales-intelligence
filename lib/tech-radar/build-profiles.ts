@@ -8,6 +8,7 @@
  */
 import { prisma } from "@/lib/prisma";
 import { buildPersonProfile } from "@/lib/tech-radar/person-profile";
+import { gateRationales } from "@/lib/tech-radar/rationale-gate";
 import { attachAxes, ensureCompanyMonitorAxis } from "@/lib/tech-radar/axis-store";
 import { countHebrewQueries } from "@/lib/tech-radar/axis";
 import { prisma as db } from "@/lib/prisma";
@@ -35,6 +36,13 @@ export async function buildProfilesForMarked(input: {
   ownerId: string;
   /** Restrict to these contacts. Omitted = the whole marked cohort; empty = nobody. */
   contactIds?: string[];
+  /**
+   * Rebuild even a fresh profile, and DETACH the person's existing un-muted axes first.
+   * This is how a brain upgrade reaches people already modelled: without the detach,
+   * Elinor keeps her stale core-systems subscription no matter how good the new axes
+   * are. Muted links survive — the mute is learned feedback, and the learning stays.
+   */
+  force?: boolean;
 }): Promise<BuildProfilesReport> {
   const report: BuildProfilesReport = {
     considered: 0, built: 0, refreshed: 0, axesCreated: 0, axesMerged: 0,
@@ -66,7 +74,7 @@ export async function buildProfilesForMarked(input: {
   for (const contact of contacts) {
     const name = contact.fullName ?? contact.id;
 
-    if (contact.personProfile && contact.personProfile.refreshedAt > staleBefore) {
+    if (!input.force && contact.personProfile && contact.personProfile.refreshedAt > staleBefore) {
       // Already modelled and still current. Its axes are already attached.
       continue;
     }
@@ -108,23 +116,48 @@ export async function buildProfilesForMarked(input: {
       continue;
     }
 
+    // The veto's person-specificity bar, applied to the rationale BEFORE any axis is
+    // paid for. A domain-description rationale ("כי הוא בבנקאות") dies here, loudly.
+    const gate = await gateRationales(draft.roleLens, draft.axes);
+    for (const r of gate.rejected) {
+      report.skipped.push({ contactId: contact.id, name, reason: `rationale_generic: ${r.label}` });
+    }
+    if (gate.kept.length === 0) {
+      report.skipped.push({ contactId: contact.id, name, reason: "all_rationales_generic" });
+      continue;
+    }
+
     const profile = await prisma.personProfile.upsert({
       where: { contactId: contact.id },
       create: {
         contactId: contact.id,
         roleLens: draft.roleLens,
+        reasoning: draft.reasoning,
         employerTrackedCompanyId: employer.id,
       },
       // personalNotes is deliberately untouched: it is learned from feedback, and a
       // rebuild must not erase what the pilot taught us about someone.
-      update: { roleLens: draft.roleLens, employerTrackedCompanyId: employer.id, refreshedAt: new Date() },
+      update: {
+        roleLens: draft.roleLens,
+        reasoning: draft.reasoning,
+        employerTrackedCompanyId: employer.id,
+        refreshedAt: new Date(),
+      },
       select: { id: true },
     });
+
+    if (input.force) {
+      // Detach the old model's un-muted subscriptions; the new axes replace them.
+      // Muted links stay — they carry learned "לא מעניין אותו" feedback.
+      await prisma.personAxis.deleteMany({
+        where: { personProfileId: profile.id, mutedAt: null },
+      });
+    }
 
     const attached = await attachAxes({
       orgId: input.orgId,
       personProfileId: profile.id,
-      proposals: draft.axes,
+      proposals: gate.kept,
     });
     report.axesCreated += attached.created;
     report.axesMerged += attached.merged;

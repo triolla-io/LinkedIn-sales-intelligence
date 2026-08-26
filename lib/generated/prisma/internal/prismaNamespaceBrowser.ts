@@ -229,6 +229,7 @@ export const ContactScalarFieldEnum = {
   radarInclude: 'radarInclude',
   messageLanguage: 'messageLanguage',
   radarAddedAt: 'radarAddedAt',
+  channels: 'channels',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   companyId: 'companyId'
@@ -902,6 +903,7 @@ export const PersonProfileScalarFieldEnum = {
   roleLens: 'roleLens',
   employerTrackedCompanyId: 'employerTrackedCompanyId',
   personalNotes: 'personalNotes',
+  reasoning: 'reasoning',
   refreshedAt: 'refreshedAt',
   createdAt: 'createdAt'
 } as const

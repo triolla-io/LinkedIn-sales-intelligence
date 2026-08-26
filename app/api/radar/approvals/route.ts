@@ -55,7 +55,7 @@ export const GET = withTenant(async (_req, ctx) => {
         whyHim: true,
         createdAt: true,
         contact: {
-          select: { id: true, fullName: true, currentTitle: true, currentCompany: true, linkedinUrl: true },
+          select: { id: true, fullName: true, currentTitle: true, currentCompany: true, linkedinUrl: true, phone: true, channels: true },
         },
         item: {
           select: { title: true, summary: true, sources: true, publishedAt: true, createdAt: true },

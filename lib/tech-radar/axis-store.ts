@@ -16,6 +16,7 @@ import {
 } from "@/lib/tech-radar/axis";
 import type { AxisProposal } from "@/lib/tech-radar/person-profile";
 import { resolveMergeQuestions } from "@/lib/tech-radar/axis-merge";
+import { checkAxisLabel } from "@/lib/tech-radar/draft-guard";
 
 /**
  * How related the nearest axis must be before a ceiling-hit proposal is folded into it.
@@ -82,6 +83,15 @@ export async function attachAxes(input: {
   for (const { proposal, verdict } of verdicts) {
     if (verdict.decision === "reject") {
       out.skipped.push({ label: proposal.label, reason: "empty_key" });
+      continue;
+    }
+
+    // A label is copy on the people and decisions screens. Checked BEFORE the merge
+    // branch too: merging a malformed proposal into a good axis is fine, but letting one
+    // through to `create` puts the model's typography in front of the user.
+    const labelViolations = checkAxisLabel(proposal.label);
+    if (labelViolations.length > 0 && verdict.decision !== "merge") {
+      out.skipped.push({ label: proposal.label, reason: `bad_label:${labelViolations.join(",")}` });
       continue;
     }
 

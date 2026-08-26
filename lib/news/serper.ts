@@ -1,5 +1,6 @@
 import type { NewsResult } from "@/lib/news/types";
 import { reserveNewsCall } from "@/lib/news/budget";
+import { localeForQuery } from "@/lib/news/locale";
 
 /** Serper.dev news search — https://serper.dev. Free credits then ~$0.001/query.
  *  Missing key, budget exhausted, or any error → [] (never throws). */
@@ -7,6 +8,7 @@ export async function fetchSerper(query: string): Promise<NewsResult[]> {
   const key = (process.env.SERPER_API_KEY ?? "").trim();
   if (!key) return [];
   if (!(await reserveNewsCall("serper"))) return []; // cap monthly pay-per-query spend
+  const locale = localeForQuery(query);
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
@@ -14,7 +16,9 @@ export async function fetchSerper(query: string): Promise<NewsResult[]> {
       signal: controller.signal,
       method: "POST",
       headers: { "X-API-KEY": key, "Content-Type": "application/json" },
-      body: JSON.stringify({ q: query, num: 10 }),
+      // Spread rather than send nulls: serper reads an explicit gl/hl as an instruction,
+      // so an English query must carry no locale keys at all rather than empty ones.
+      body: JSON.stringify({ q: query, num: 10, ...(locale ? { gl: locale.gl, hl: locale.hl, location: locale.location } : {}) }),
     });
     clearTimeout(timeout);
     if (!res.ok) {

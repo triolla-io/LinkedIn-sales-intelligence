@@ -18,7 +18,24 @@ export type ProfileSource = { url: string; title: string };
 export type TechRadarProfile = {
   businessLines: BusinessLine[];
   products: string[];
+  /** B2C/B2B/B2G and who actually pays. Required — research without it is not done. */
   customerSegments: string[];
+  /** What they sell and to whom, one plain sentence. Required. */
+  whatTheySell: string;
+  /**
+   * Competitors by NAME (Lemonade for Phoenix, Leumi⇄Hapoalim). Feeds dedicated
+   * competitor-monitoring queries in the person model. May be empty ONLY when the
+   * model explicitly finds there are none — see noClearCompetitors.
+   */
+  namedCompetitors: string[];
+  /**
+   * An ACTIVE finding that no direct competitor exists, with its reason — never a
+   * default. An empty competitor list without this is a field the model forgot,
+   * and the research fails loudly instead of completing blind. Shown on the person
+   * page so a human can correct a wrong finding.
+   */
+  noClearCompetitors: boolean;
+  noCompetitorsReason: string;
   techStack: string[];
   digitalInitiatives: string[];
   /** The search anchors. A profile without these is not usable. */
@@ -114,6 +131,13 @@ export type TriageVerdict = {
   publisher: string | null;
   /** True when everyone in the field has already seen it — forwarding it says "I don't follow your field". */
   staleness: boolean;
+  /**
+   * True when the item is ABOUT the Israeli market or an Israeli company, whoever
+   * published it. Separate from the publisher's host: decrypt.co covering Bank Leumi is
+   * the case that host-matching alone gets wrong, and it was the one usable gift of the
+   * 2026-08-26 run. See lib/tech-radar/acceptance.ts.
+   */
+  israelRelevant: boolean;
   /** Coarse tags used to prefilter items against a company's focus areas. */
   categories: string[];
   /** Short vendor/technology guess; the write-up stage refines it. */
@@ -203,4 +227,6 @@ export const OR_FEATURE = {
   axisFit: "tech-radar-axis-fit",
   axisMerge: "tech-radar-axis-merge",
   veto: "tech-radar-veto",
+  /** The veto's person-specificity bar, moved to profile build time. */
+  rationaleGate: "tech-radar-rationale-gate",
 } as const;

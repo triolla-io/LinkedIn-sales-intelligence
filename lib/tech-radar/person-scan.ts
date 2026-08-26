@@ -102,7 +102,7 @@ export type PersonScanReport = {
 const EMPTY: PersonScanReport = {
   axes: 0, queriesRun: 0, poolItems: 0, worthSharing: 0, itemsWritten: 0,
   axisFitsJudged: 0, candidates: 0, vetoed: 0, drafted: 0, poolDropped: 0, relevantButLight: 0, snippetOnly: 0,
-  acceptance: { weighty: 0, israeli: 0, met: false, shortfall: "לא נסרק" },
+  acceptance: { weighty: 0, israeliSource: 0, israelRelevant: 0, met: false, shortfall: "לא נסרק" },
   dropReasons: {}, triageByKind: [], quotaExhausted: false,
 };
 
@@ -213,12 +213,18 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
   // Judged on what CLEARED the filter, so the report says whether the run found gifts —
   // and when it did not, says that rather than being padded with the best of a weak pool.
   const acceptance = judgeAcceptance(
-    worthSharing.map((v) => ({ kind: v.kind, stature: v.stature, url: v.url }))
+    worthSharing.map((v) => ({
+      kind: v.kind,
+      stature: v.stature,
+      url: v.url,
+      israelRelevant: v.israelRelevant,
+    }))
   );
   if (!acceptance.met) console.warn(`[radar] acceptance org=${orgId} ${acceptance.shortfall}`);
   console.log(
     `[radar] triage org=${orgId} ${triageByKind.map((k) => `${k.kind}=${k.passed}/${k.seen}`).join(" ")}` +
-      ` relevant_but_light=${relevantButLight} weighty=${acceptance.weighty} israeli=${acceptance.israeli}`
+      ` relevant_but_light=${relevantButLight} weighty=${acceptance.weighty}` +
+      ` israel_relevant=${acceptance.israelRelevant} israeli_source=${acceptance.israeliSource}`
   );
   if (worthSharing.length === 0) {
     return finish({ ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, triageByKind, quotaExhausted: news.quotaLikely });

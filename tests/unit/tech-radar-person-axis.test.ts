@@ -60,7 +60,7 @@ describe("PROFILE_SYSTEM", () => {
 describe("parseProfileResponse", () => {
   it("parses a role lens and its axes", () => {
     const out = parseProfileResponse(
-      `{"roleLens":"אחראי על מנוע ההמלצות","axes":[${axis("קונסולידציה של מסדי וקטורים")}]}`
+      `{"reasoning":"חשיבה בשלבים","roleLens":"אחראי על מנוע ההמלצות","axes":[${axis("קונסולידציה של מסדי וקטורים")}]}`
     );
     expect(out?.roleLens).toBe("אחראי על מנוע ההמלצות");
     expect(out?.axes[0].key).toBe(normalizeAxisKey("קונסולידציה של מסדי וקטורים"));
@@ -68,31 +68,31 @@ describe("parseProfileResponse", () => {
 
   /** A label of pure filler would create an axis every later proposal collides with. */
   it("drops an axis whose label normalises to nothing", () => {
-    expect(parseProfileResponse(`{"roleLens":"x","axes":[${axis("תחום")}]}`)).toBeNull();
+    expect(parseProfileResponse(`{"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("תחום")}]}`)).toBeNull();
   });
 
   it("drops an axis with no queries, since it can never surface anything", () => {
-    expect(parseProfileResponse(`{"roleLens":"x","axes":[${axis("זיהוי הונאות", "r", [])}]}`)).toBeNull();
+    expect(parseProfileResponse(`{"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות", "r", [])}]}`)).toBeNull();
   });
 
   it("drops an axis with no rationale, since the veto would have nothing to read", () => {
-    expect(parseProfileResponse(`{"roleLens":"x","axes":[${axis("זיהוי הונאות", "")}]}`)).toBeNull();
+    expect(parseProfileResponse(`{"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות", "")}]}`)).toBeNull();
   });
 
   it("collapses the same subject proposed twice", () => {
     const out = parseProfileResponse(
-      `{"roleLens":"x","axes":[${axis("זיהוי הונאות")},${axis("הונאות זיהוי")}]}`
+      `{"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות")},${axis("הונאות זיהוי")}]}`
     );
     expect(out?.axes).toHaveLength(1);
   });
 
   it("caps the axes per person", () => {
     const many = Array.from({ length: 9 }, (_, i) => axis(`נושא מספר ${i} ייחודי`)).join(",");
-    expect(parseProfileResponse(`{"roleLens":"x","axes":[${many}]}`)?.axes.length).toBe(MAX_AXES_PER_PERSON);
+    expect(parseProfileResponse(`{"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${many}]}`)?.axes.length).toBe(MAX_AXES_PER_PERSON);
   });
 
   it("returns null without a role lens", () => {
-    expect(parseProfileResponse(`{"axes":[${axis("זיהוי הונאות")}]}`)).toBeNull();
+    expect(parseProfileResponse(`{"reasoning":"חשיבה","axes":[${axis("זיהוי הונאות")}]}`)).toBeNull();
     expect(parseProfileResponse("not json")).toBeNull();
   });
 });

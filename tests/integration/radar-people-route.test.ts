@@ -191,6 +191,41 @@ describe("GET /api/radar/people/[contactId]", () => {
     const res = (await getPerson(req(undefined, "/api/radar/people/nope"))) as Response;
     expect(res.status).toBe(404);
   });
+
+  /**
+   * The research may actively find there are no direct competitors (a state monopoly).
+   * That finding is shown on the person page WITH its reason, so a human can correct
+   * the model when it is wrong — a silent empty list is indistinguishable from a
+   * forgotten field.
+   */
+  it("surfaces the employer's explicit no-competitors finding with its reason", async () => {
+    contactFindFirst.mockResolvedValue(radarContact());
+    companyFindMany.mockResolvedValue([
+      {
+        id: "tc1", name: "Delek US Holdings", aliases: [], status: "ACTIVE", profileError: null,
+        companyId: null,
+        profile: { noClearCompetitors: true, noCompetitorsReason: "מונופול ממשלתי בתחומו" },
+      },
+    ]);
+    const body = await ((await getPerson(req(undefined, "/api/radar/people/ct1"))) as Response).json();
+    expect(body.employerFinding).toEqual({
+      noClearCompetitors: true,
+      reason: "מונופול ממשלתי בתחומו",
+    });
+  });
+
+  it("returns no employer finding when competitors were found", async () => {
+    contactFindFirst.mockResolvedValue(radarContact());
+    companyFindMany.mockResolvedValue([
+      {
+        id: "tc1", name: "Delek US Holdings", aliases: [], status: "ACTIVE", profileError: null,
+        companyId: null,
+        profile: { noClearCompetitors: false, namedCompetitors: ["Valero"] },
+      },
+    ]);
+    const body = await ((await getPerson(req(undefined, "/api/radar/people/ct1"))) as Response).json();
+    expect(body.employerFinding).toBeNull();
+  });
 });
 
 describe("PATCH /api/radar/people/[contactId]", () => {

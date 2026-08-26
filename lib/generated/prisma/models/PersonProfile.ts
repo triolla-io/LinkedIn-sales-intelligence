@@ -30,6 +30,7 @@ export type PersonProfileMinAggregateOutputType = {
   roleLens: string | null
   employerTrackedCompanyId: string | null
   personalNotes: string | null
+  reasoning: string | null
   refreshedAt: Date | null
   createdAt: Date | null
 }
@@ -40,6 +41,7 @@ export type PersonProfileMaxAggregateOutputType = {
   roleLens: string | null
   employerTrackedCompanyId: string | null
   personalNotes: string | null
+  reasoning: string | null
   refreshedAt: Date | null
   createdAt: Date | null
 }
@@ -50,6 +52,7 @@ export type PersonProfileCountAggregateOutputType = {
   roleLens: number
   employerTrackedCompanyId: number
   personalNotes: number
+  reasoning: number
   refreshedAt: number
   createdAt: number
   _all: number
@@ -62,6 +65,7 @@ export type PersonProfileMinAggregateInputType = {
   roleLens?: true
   employerTrackedCompanyId?: true
   personalNotes?: true
+  reasoning?: true
   refreshedAt?: true
   createdAt?: true
 }
@@ -72,6 +76,7 @@ export type PersonProfileMaxAggregateInputType = {
   roleLens?: true
   employerTrackedCompanyId?: true
   personalNotes?: true
+  reasoning?: true
   refreshedAt?: true
   createdAt?: true
 }
@@ -82,6 +87,7 @@ export type PersonProfileCountAggregateInputType = {
   roleLens?: true
   employerTrackedCompanyId?: true
   personalNotes?: true
+  reasoning?: true
   refreshedAt?: true
   createdAt?: true
   _all?: true
@@ -165,6 +171,7 @@ export type PersonProfileGroupByOutputType = {
   roleLens: string
   employerTrackedCompanyId: string | null
   personalNotes: string | null
+  reasoning: string | null
   refreshedAt: Date
   createdAt: Date
   _count: PersonProfileCountAggregateOutputType | null
@@ -196,6 +203,7 @@ export type PersonProfileWhereInput = {
   roleLens?: Prisma.StringFilter<"PersonProfile"> | string
   employerTrackedCompanyId?: Prisma.StringNullableFilter<"PersonProfile"> | string | null
   personalNotes?: Prisma.StringNullableFilter<"PersonProfile"> | string | null
+  reasoning?: Prisma.StringNullableFilter<"PersonProfile"> | string | null
   refreshedAt?: Prisma.DateTimeFilter<"PersonProfile"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"PersonProfile"> | Date | string
   contact?: Prisma.XOR<Prisma.ContactScalarRelationFilter, Prisma.ContactWhereInput>
@@ -208,6 +216,7 @@ export type PersonProfileOrderByWithRelationInput = {
   roleLens?: Prisma.SortOrder
   employerTrackedCompanyId?: Prisma.SortOrderInput | Prisma.SortOrder
   personalNotes?: Prisma.SortOrderInput | Prisma.SortOrder
+  reasoning?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   contact?: Prisma.ContactOrderByWithRelationInput
@@ -223,6 +232,7 @@ export type PersonProfileWhereUniqueInput = Prisma.AtLeast<{
   roleLens?: Prisma.StringFilter<"PersonProfile"> | string
   employerTrackedCompanyId?: Prisma.StringNullableFilter<"PersonProfile"> | string | null
   personalNotes?: Prisma.StringNullableFilter<"PersonProfile"> | string | null
+  reasoning?: Prisma.StringNullableFilter<"PersonProfile"> | string | null
   refreshedAt?: Prisma.DateTimeFilter<"PersonProfile"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"PersonProfile"> | Date | string
   contact?: Prisma.XOR<Prisma.ContactScalarRelationFilter, Prisma.ContactWhereInput>
@@ -235,6 +245,7 @@ export type PersonProfileOrderByWithAggregationInput = {
   roleLens?: Prisma.SortOrder
   employerTrackedCompanyId?: Prisma.SortOrderInput | Prisma.SortOrder
   personalNotes?: Prisma.SortOrderInput | Prisma.SortOrder
+  reasoning?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.PersonProfileCountOrderByAggregateInput
@@ -251,6 +262,7 @@ export type PersonProfileScalarWhereWithAggregatesInput = {
   roleLens?: Prisma.StringWithAggregatesFilter<"PersonProfile"> | string
   employerTrackedCompanyId?: Prisma.StringNullableWithAggregatesFilter<"PersonProfile"> | string | null
   personalNotes?: Prisma.StringNullableWithAggregatesFilter<"PersonProfile"> | string | null
+  reasoning?: Prisma.StringNullableWithAggregatesFilter<"PersonProfile"> | string | null
   refreshedAt?: Prisma.DateTimeWithAggregatesFilter<"PersonProfile"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PersonProfile"> | Date | string
 }
@@ -260,6 +272,7 @@ export type PersonProfileCreateInput = {
   roleLens: string
   employerTrackedCompanyId?: string | null
   personalNotes?: string | null
+  reasoning?: string | null
   refreshedAt?: Date | string
   createdAt?: Date | string
   contact: Prisma.ContactCreateNestedOneWithoutPersonProfileInput
@@ -272,6 +285,7 @@ export type PersonProfileUncheckedCreateInput = {
   roleLens: string
   employerTrackedCompanyId?: string | null
   personalNotes?: string | null
+  reasoning?: string | null
   refreshedAt?: Date | string
   createdAt?: Date | string
   axes?: Prisma.PersonAxisUncheckedCreateNestedManyWithoutPersonProfileInput
@@ -282,6 +296,7 @@ export type PersonProfileUpdateInput = {
   roleLens?: Prisma.StringFieldUpdateOperationsInput | string
   employerTrackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contact?: Prisma.ContactUpdateOneRequiredWithoutPersonProfileNestedInput
@@ -294,6 +309,7 @@ export type PersonProfileUncheckedUpdateInput = {
   roleLens?: Prisma.StringFieldUpdateOperationsInput | string
   employerTrackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   axes?: Prisma.PersonAxisUncheckedUpdateManyWithoutPersonProfileNestedInput
@@ -305,6 +321,7 @@ export type PersonProfileCreateManyInput = {
   roleLens: string
   employerTrackedCompanyId?: string | null
   personalNotes?: string | null
+  reasoning?: string | null
   refreshedAt?: Date | string
   createdAt?: Date | string
 }
@@ -314,6 +331,7 @@ export type PersonProfileUpdateManyMutationInput = {
   roleLens?: Prisma.StringFieldUpdateOperationsInput | string
   employerTrackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -324,6 +342,7 @@ export type PersonProfileUncheckedUpdateManyInput = {
   roleLens?: Prisma.StringFieldUpdateOperationsInput | string
   employerTrackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -339,6 +358,7 @@ export type PersonProfileCountOrderByAggregateInput = {
   roleLens?: Prisma.SortOrder
   employerTrackedCompanyId?: Prisma.SortOrder
   personalNotes?: Prisma.SortOrder
+  reasoning?: Prisma.SortOrder
   refreshedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -349,6 +369,7 @@ export type PersonProfileMaxOrderByAggregateInput = {
   roleLens?: Prisma.SortOrder
   employerTrackedCompanyId?: Prisma.SortOrder
   personalNotes?: Prisma.SortOrder
+  reasoning?: Prisma.SortOrder
   refreshedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -359,6 +380,7 @@ export type PersonProfileMinOrderByAggregateInput = {
   roleLens?: Prisma.SortOrder
   employerTrackedCompanyId?: Prisma.SortOrder
   personalNotes?: Prisma.SortOrder
+  reasoning?: Prisma.SortOrder
   refreshedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -419,6 +441,7 @@ export type PersonProfileCreateWithoutContactInput = {
   roleLens: string
   employerTrackedCompanyId?: string | null
   personalNotes?: string | null
+  reasoning?: string | null
   refreshedAt?: Date | string
   createdAt?: Date | string
   axes?: Prisma.PersonAxisCreateNestedManyWithoutPersonProfileInput
@@ -429,6 +452,7 @@ export type PersonProfileUncheckedCreateWithoutContactInput = {
   roleLens: string
   employerTrackedCompanyId?: string | null
   personalNotes?: string | null
+  reasoning?: string | null
   refreshedAt?: Date | string
   createdAt?: Date | string
   axes?: Prisma.PersonAxisUncheckedCreateNestedManyWithoutPersonProfileInput
@@ -455,6 +479,7 @@ export type PersonProfileUpdateWithoutContactInput = {
   roleLens?: Prisma.StringFieldUpdateOperationsInput | string
   employerTrackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   axes?: Prisma.PersonAxisUpdateManyWithoutPersonProfileNestedInput
@@ -465,6 +490,7 @@ export type PersonProfileUncheckedUpdateWithoutContactInput = {
   roleLens?: Prisma.StringFieldUpdateOperationsInput | string
   employerTrackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   axes?: Prisma.PersonAxisUncheckedUpdateManyWithoutPersonProfileNestedInput
@@ -475,6 +501,7 @@ export type PersonProfileCreateWithoutAxesInput = {
   roleLens: string
   employerTrackedCompanyId?: string | null
   personalNotes?: string | null
+  reasoning?: string | null
   refreshedAt?: Date | string
   createdAt?: Date | string
   contact: Prisma.ContactCreateNestedOneWithoutPersonProfileInput
@@ -486,6 +513,7 @@ export type PersonProfileUncheckedCreateWithoutAxesInput = {
   roleLens: string
   employerTrackedCompanyId?: string | null
   personalNotes?: string | null
+  reasoning?: string | null
   refreshedAt?: Date | string
   createdAt?: Date | string
 }
@@ -511,6 +539,7 @@ export type PersonProfileUpdateWithoutAxesInput = {
   roleLens?: Prisma.StringFieldUpdateOperationsInput | string
   employerTrackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contact?: Prisma.ContactUpdateOneRequiredWithoutPersonProfileNestedInput
@@ -522,6 +551,7 @@ export type PersonProfileUncheckedUpdateWithoutAxesInput = {
   roleLens?: Prisma.StringFieldUpdateOperationsInput | string
   employerTrackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -563,6 +593,7 @@ export type PersonProfileSelect<ExtArgs extends runtime.Types.Extensions.Interna
   roleLens?: boolean
   employerTrackedCompanyId?: boolean
   personalNotes?: boolean
+  reasoning?: boolean
   refreshedAt?: boolean
   createdAt?: boolean
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
@@ -576,6 +607,7 @@ export type PersonProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   roleLens?: boolean
   employerTrackedCompanyId?: boolean
   personalNotes?: boolean
+  reasoning?: boolean
   refreshedAt?: boolean
   createdAt?: boolean
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
@@ -587,6 +619,7 @@ export type PersonProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   roleLens?: boolean
   employerTrackedCompanyId?: boolean
   personalNotes?: boolean
+  reasoning?: boolean
   refreshedAt?: boolean
   createdAt?: boolean
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
@@ -598,11 +631,12 @@ export type PersonProfileSelectScalar = {
   roleLens?: boolean
   employerTrackedCompanyId?: boolean
   personalNotes?: boolean
+  reasoning?: boolean
   refreshedAt?: boolean
   createdAt?: boolean
 }
 
-export type PersonProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contactId" | "roleLens" | "employerTrackedCompanyId" | "personalNotes" | "refreshedAt" | "createdAt", ExtArgs["result"]["personProfile"]>
+export type PersonProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contactId" | "roleLens" | "employerTrackedCompanyId" | "personalNotes" | "reasoning" | "refreshedAt" | "createdAt", ExtArgs["result"]["personProfile"]>
 export type PersonProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
   axes?: boolean | Prisma.PersonProfile$axesArgs<ExtArgs>
@@ -633,6 +667,11 @@ export type $PersonProfilePayload<ExtArgs extends runtime.Types.Extensions.Inter
      * Learned from feedback. Capped at 400 chars so it stays a note, not a dossier.
      */
     personalNotes: string | null
+    /**
+     * The staged thinking (החלטות/מתחרים/מה-יעצור-הכול) that produced the axes.
+     * Saved so a human can audit how the brain reached them.
+     */
+    reasoning: string | null
     refreshedAt: Date
     createdAt: Date
   }, ExtArgs["result"]["personProfile"]>
@@ -1065,6 +1104,7 @@ export interface PersonProfileFieldRefs {
   readonly roleLens: Prisma.FieldRef<"PersonProfile", 'String'>
   readonly employerTrackedCompanyId: Prisma.FieldRef<"PersonProfile", 'String'>
   readonly personalNotes: Prisma.FieldRef<"PersonProfile", 'String'>
+  readonly reasoning: Prisma.FieldRef<"PersonProfile", 'String'>
   readonly refreshedAt: Prisma.FieldRef<"PersonProfile", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"PersonProfile", 'DateTime'>
 }

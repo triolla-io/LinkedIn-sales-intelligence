@@ -80,7 +80,7 @@ export const GET = withTenant(async (req: NextRequest, ctx) => {
   const [employers, drafts, matches, lastMsg] = await Promise.all([
     prisma.trackedCompany.findMany({
       where: { orgId: ctx.org.id },
-      select: { id: true, name: true, aliases: true, status: true, profileError: true, companyId: true },
+      select: { id: true, name: true, aliases: true, status: true, profileError: true, companyId: true, profile: true },
     }),
     prisma.radarDraft.findMany({
       where: { contactId: contact.id, ownerId: ctx.effectiveUserId },
@@ -118,6 +118,14 @@ export const GET = withTenant(async (req: NextRequest, ctx) => {
     messageLanguage: contact.messageLanguage === "en" ? "en" : "he",
     active: contact.radarInclude === true,
     lastMessageFromUsAt: lastMsg[0]?._max.sentAt ?? null,
+    // The research's explicit "no direct competitors" finding, with its reason — shown
+    // so a human can correct the model when it is wrong. Null when competitors exist.
+    employerFinding: (() => {
+      const p = employer?.profile as { noClearCompetitors?: unknown; noCompetitorsReason?: unknown } | null;
+      return p?.noClearCompetitors === true
+        ? { noClearCompetitors: true, reason: typeof p.noCompetitorsReason === "string" ? p.noCompetitorsReason : "" }
+        : null;
+    })(),
     prep: derivePrepStatus({
       radarAddedAt: contact.radarAddedAt,
       hasEmployer: employer != null,

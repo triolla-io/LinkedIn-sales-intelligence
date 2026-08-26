@@ -13,6 +13,8 @@ const goodProfile = JSON.stringify({
   businessLines: [{ name: "Retail banking", description: "current accounts and cards" }],
   products: ["Bit"],
   customerSegments: ["consumers"],
+  whatTheySell: "retail banking services to Israeli consumers",
+  namedCompetitors: ["Bank Leumi"],
   techStack: ["Temenos"],
   digitalInitiatives: ["mobile app rebuild"],
   focusAreas: [{ area: "payment fraud scoring", why: "high card volume" }],

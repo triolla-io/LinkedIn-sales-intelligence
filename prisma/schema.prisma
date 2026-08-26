@@ -224,6 +224,11 @@ model Contact {
   /// When this person was put on the radar. The clock the "בהכנה" stall rule measures:
   /// without it a stuck preparation is indistinguishable from a slow one.
   radarAddedAt DateTime?
+  /// Extra send channels offered on radar cards, e.g. ["whatsapp"]. Empty = the default
+  /// (LinkedIn only). Per-contact because the channel is a fact about the RELATIONSHIP —
+  /// Erez is a close friend of his owner and WhatsApp is natural; for a cold contact it
+  /// would be intrusive.
+  channels String[] @default([])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1310,6 +1315,9 @@ model PersonProfile {
   employerTrackedCompanyId  String?
   /// Learned from feedback. Capped at 400 chars so it stays a note, not a dossier.
   personalNotes             String?
+  /// The staged thinking (החלטות/מתחרים/מה-יעצור-הכול) that produced the axes.
+  /// Saved so a human can audit how the brain reached them.
+  reasoning                 String?
   refreshedAt               DateTime @default(now())
   createdAt                 DateTime @default(now())
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { judgeAcceptance, isIsraeliSource, MIN_WEIGHTY, MIN_ISRAELI } from "@/lib/tech-radar/acceptance";
+import { judgeAcceptance, isIsraeliSource, MIN_WEIGHTY, MIN_ISRAEL_RELEVANT } from "@/lib/tech-radar/acceptance";
 
 describe("isIsraeliSource", () => {
   it("recognises the Israeli business press", () => {
@@ -46,7 +46,7 @@ describe("judgeAcceptance", () => {
       weighty(),
       { kind: "big_news" as const, stature: 0.9, url: "https://www.globes.co.il/a" },
     ]);
-    expect(r).toMatchObject({ weighty: MIN_WEIGHTY, israeli: MIN_ISRAELI, met: true, shortfall: "" });
+    expect(r).toMatchObject({ weighty: MIN_WEIGHTY, israeliSource: MIN_ISRAEL_RELEVANT, israelRelevant: MIN_ISRAEL_RELEVANT, met: true, shortfall: "" });
   });
 
   /**
@@ -59,7 +59,7 @@ describe("judgeAcceptance", () => {
       { kind: "research", stature: 0.2, url: "https://mckinsey.com/b" },
     ]);
     expect(r.weighty).toBe(0);
-    expect(r.israeli).toBe(1);
+    expect(r.israeliSource).toBe(1);
     expect(r.met).toBe(false);
   });
 
@@ -71,7 +71,7 @@ describe("judgeAcceptance", () => {
   it("names each missing half separately", () => {
     const noIsraeli = judgeAcceptance([weighty(), weighty("https://bcg.com/b")]);
     expect(noIsraeli.met).toBe(false);
-    expect(noIsraeli.shortfall).toMatch(/ממקור ישראלי: 0/);
+    expect(noIsraeli.shortfall).toMatch(/בנוגע לשוק הישראלי: 0/);
     expect(noIsraeli.shortfall).not.toMatch(/דוח-דגל/);
 
     const noWeight = judgeAcceptance([light("https://www.globes.co.il/a")]);

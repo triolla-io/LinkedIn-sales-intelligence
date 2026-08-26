@@ -44,6 +44,7 @@ describe("parseTriageResponse", () => {
         kind: "research",
         publisher: "report.org",
         staleness: false,
+        israelRelevant: false,
         categories: ["fraud detection"],
         vendor: "Acme",
         technology: "Shield",

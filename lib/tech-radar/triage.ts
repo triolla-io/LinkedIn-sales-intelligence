@@ -96,12 +96,13 @@ Return for each item:
 - kind: exactly one of "research", "trend", "big_news", "company_move", "vendor_launch", "promotion", "other"
 - publisher: the site or organisation that published it, or null
 - staleness: true or false
+- israelRelevant: true when the item is ABOUT the Israeli market, Israeli regulation, or an Israeli company — regardless of who published it. An international outlet reporting that an Israeli bank will offer crypto trading IS israelRelevant. A story about Greek banks or Indian securities regulation is NOT, even if the subject matter is identical.
 - categories: 2-5 short lowercase topical tags naming the capability or subject area (e.g. "fraud detection", "payments", "core banking", "identity verification", "data infrastructure"). Plain descriptive nouns, not marketing words — they are matched against a person's interests later.
 - vendor: the organisation the item is ABOUT, or null
 - technology: the concrete name of the thing, or null
 
 Return strict JSON only — no prose, no fences. Include EVERY input url exactly once:
-{"verdicts":[{"url":"<the url>","shareworthy":0.2,"stature":0.2,"kind":"vendor_launch","publisher":"aws.amazon.com","staleness":false,"categories":["..."],"vendor":"Amazon","technology":"..."}]}`;
+{"verdicts":[{"url":"<the url>","shareworthy":0.2,"stature":0.2,"kind":"vendor_launch","publisher":"aws.amazon.com","staleness":false,"israelRelevant":false,"categories":["..."],"vendor":"Amazon","technology":"..."}]}`;
 
 function userPrompt(items: PoolItem[]): string {
   return items
@@ -165,6 +166,9 @@ export function parseTriageResponse(text: string, validUrls: Set<string>): Triag
       kind: asKind(o.kind),
       publisher: str(o.publisher),
       staleness: o.staleness === true,
+      // Absent means false: a missing field must never be read as "yes, Israel-relevant",
+      // or a model that forgets the key would silently satisfy the acceptance bar.
+      israelRelevant: o.israelRelevant === true,
       categories,
       technology: str(o.technology),
       vendor: str(o.vendor),

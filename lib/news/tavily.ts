@@ -1,5 +1,6 @@
 import type { NewsResult } from "@/lib/news/types";
 import { reserveNewsCall } from "@/lib/news/budget";
+import { localeForQuery } from "@/lib/news/locale";
 
 /** Tavily Search API — https://docs.tavily.com. Free tier ~1,000 searches/mo.
  *  Missing key, budget exhausted, or any error → [] (never throws). */
@@ -10,6 +11,7 @@ export async function fetchTavily(
   const key = (process.env.TAVILY_API_KEY ?? "").trim();
   if (!key) return [];
   if (!(await reserveNewsCall("tavily"))) return []; // stay inside the free monthly quota
+  const locale = localeForQuery(query);
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
@@ -24,6 +26,8 @@ export async function fetchTavily(
         search_depth: "basic",
         max_results: opts.maxResults ?? 8,
         days: opts.days ?? 30,
+        // Tavily takes a country NAME, not the two-letter code the Google family uses.
+        ...(locale ? { country: locale.location.toLowerCase() } : {}),
       }),
     });
     clearTimeout(timeout);

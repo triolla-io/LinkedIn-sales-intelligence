@@ -96,6 +96,32 @@ describe("GET /api/radar/approvals", () => {
     expect(body.drafts[0].factsVerified).toBe(false);
   });
 
+  /**
+   * A contact's extra channels ride along on the card, so the client can offer "שלח
+   * בוואטסאפ" for the people whose relationship supports it (channels=["whatsapp"]).
+   * The default — empty channels — keeps the card LinkedIn-only.
+   */
+  it("carries the contact's phone and channels for the WhatsApp button", async () => {
+    draftFindMany.mockResolvedValue([
+      pendingDraft({
+        contact: {
+          id: "ct1", fullName: "Erez Rachmil", currentTitle: "CITO", currentCompany: "Bank Hapoalim",
+          linkedinUrl: "https://linkedin.com/in/erezrachmil",
+          phone: "+972501234567", channels: ["whatsapp"],
+        },
+      }),
+    ]);
+    const res = await GET(req);
+    const body = await (res as Response).json();
+    expect(body.drafts[0].contact.phone).toBe("+972501234567");
+    expect(body.drafts[0].contact.channels).toEqual(["whatsapp"]);
+    // The response maps the contact through verbatim, so the proof that these fields
+    // actually arrive is the SELECT itself — not the mock echoing them back.
+    const select = draftFindMany.mock.calls[0][0].select.contact.select;
+    expect(select.phone).toBe(true);
+    expect(select.channels).toBe(true);
+  });
+
   it("quiet people carry a Hebrew reason in priority order", async () => {
     profileFindMany.mockResolvedValue([
       { contact: { id: "q1", fullName: "Ofir Alon", currentCompany: "Delek" } },

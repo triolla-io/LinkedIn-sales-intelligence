@@ -13,6 +13,7 @@
 import { openrouterChat } from "@/lib/openrouter/client";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
 import { OR_FEATURE } from "@/lib/tech-radar/types";
+import { isIsraeliSource } from "@/lib/tech-radar/acceptance";
 
 const MODEL = process.env.TECH_RADAR_MODEL ?? "anthropic/claude-haiku-4.5";
 
@@ -143,7 +144,46 @@ export function buildAxisQueryPool(
  *
  * Pure and deterministic, so an Inngest step replay produces the same pool.
  */
-export function capPoolByAxis<T extends { url: string; companyIds: string[] }>(
+/**
+ * Order inside one axis bucket, best first. Cheap and deterministic — no LLM, no network.
+ *
+ * The 2026-08-26 run dropped 213 of 413 items by ARRIVAL order, so provider response
+ * order decided which half a person ever saw. These three signals are all available for
+ * free at this point in the pipeline:
+ *   demand  — an item several axes asked for pays for its triage several times over
+ *   source  — Israeli press is exactly what the pool was found to be missing
+ *   recency — later beats earlier
+ * The url tie-break is what makes the same pool always cut the same way.
+ */
+function poolRank(a: PoolRankable, b: PoolRankable): number {
+  const demand = b.companyIds.length - a.companyIds.length;
+  if (demand !== 0) return demand;
+
+  const tier = Number(isIsraeliSource(b.url)) - Number(isIsraeliSource(a.url));
+  if (tier !== 0) return tier;
+
+  // An unknown date sorts LAST, not first: providers that report no date must not win
+  // every tie by default.
+  const fresh = publishedMs(b.publishedAt) - publishedMs(a.publishedAt);
+  if (fresh !== 0) return fresh;
+
+  return a.url < b.url ? -1 : a.url > b.url ? 1 : 0;
+}
+
+type PoolRankable = { url: string; companyIds: string[]; publishedAt?: string | null };
+
+/**
+ * Zero, not -Infinity, for an unknown date. Every real publication date parses to a
+ * positive epoch, so 0 still sorts last — and it cannot produce the NaN that
+ * (-Infinity - -Infinity) yields, which a comparator returns as an unpredictable order.
+ */
+function publishedMs(raw: string | null | undefined): number {
+  if (typeof raw !== "string" || !raw) return 0;
+  const ms = Date.parse(raw);
+  return Number.isNaN(ms) ? 0 : ms;
+}
+
+export function capPoolByAxis<T extends PoolRankable>(
   items: T[],
   limit: number
 ): { kept: T[]; dropped: number } {
@@ -159,6 +199,10 @@ export function capPoolByAxis<T extends { url: string; companyIds: string[] }>(
     if (list) list.push(item);
     else byAxis.set(key, [item]);
   }
+
+  // Rank WITHIN each bucket, never across them: the round-robin below is what stops one
+  // interest from taking the whole cap, and sorting globally would undo it.
+  for (const list of byAxis.values()) list.sort(poolRank);
 
   const axes = [...byAxis.keys()].sort();
   const kept: T[] = [];

@@ -44,6 +44,47 @@ export function checkDraft(message: string): DraftViolation[] {
   return RULES.filter((r) => r.pattern.test(text)).map((r) => r.code);
 }
 
+export type AxisLabelViolation =
+  | "empty"
+  /** Hebrew touching Latin with no separator — the same typography failure as in a draft. */
+  | "glued_script"
+  | "emoji"
+  /** Two spaces where one belongs. Arrives from LinkedIn company names and survives into labels. */
+  | "double_space"
+  /** A sentence, not a topic. */
+  | "too_long"
+  /** A label is a noun phrase; it does not end in a full stop or start with a comma. */
+  | "stray_punctuation";
+
+/** Beyond this a label has stopped naming a subject and started describing it. */
+const MAX_LABEL_CHARS = 60;
+
+/**
+ * Mechanical checks on a model-written axis LABEL, which is copy shown on the people and
+ * decisions screens.
+ *
+ * Only the rules that survive the change of context: script, pictographs, structure.
+ * `checkDraft`'s ask/self-pitch/adoption rules judge the semantics of a MESSAGE and would
+ * reject legitimate topics ("ממליץ לבדוק תשתיות ענן" is odd phrasing, not a violation).
+ *
+ * Deliberately does NOT catch misspellings — "אבטחה סייבר וגנת" reads clean to every rule
+ * here. Spelling needs the axis-merge prompt to proofread its own output.
+ */
+export function checkAxisLabel(label: string): AxisLabelViolation[] {
+  const raw = typeof label === "string" ? label : "";
+  const out: AxisLabelViolation[] = [];
+
+  if (!raw.trim()) return ["empty"];
+
+  if (/[֐-׿][A-Za-z]|[A-Za-z][֐-׿]/u.test(raw)) out.push("glued_script");
+  if (/\p{Extended_Pictographic}/u.test(raw)) out.push("emoji");
+  if (/\S {2,}\S/.test(raw)) out.push("double_space");
+  if (raw.trim().length > MAX_LABEL_CHARS) out.push("too_long");
+  if (/[.,;:!]$/.test(raw.trim()) || /^[.,;:!]/.test(raw.trim())) out.push("stray_punctuation");
+
+  return out;
+}
+
 export type HardEditViolation =
   /** A URL that is not the article's own address. Tracking wrappers included. */
   | "foreign_link"

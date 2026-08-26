@@ -92,6 +92,12 @@ export function pickInnerLinks(html: string, baseUrl: string, limit = 5): string
 
 const SYSTEM = `You are a B2B technology researcher. Given raw text from a company's own website plus recent coverage, produce a structured profile of what the company actually does.
 
+Three fields are REQUIRED and the research is rejected without them:
+
+- whatTheySell: one plain sentence — what does this company sell, and to whom? Not the mission statement; the actual product and the actual buyer.
+- customerSegments: B2C / B2B / B2G, and who the customers actually are. Every company has an answer.
+- namedCompetitors: competitors BY NAME — the companies trying to take these customers (for an Israeli insurer that includes insurtech challengers like Lemonade; for one big Israeli bank it is the other big Israeli banks). If, after genuinely looking, there is no direct competitor, return an empty list AND set noClearCompetitors: true with noCompetitorsReason — one sentence saying why (e.g. a state monopoly in its field). That is an active finding, never a default.
+
 The profile's purpose is to drive web searches for NEW technologies, products and launches that this company could adopt. Two fields carry that weight:
 
 - focusAreas: 4-8 concrete capability areas where new technology would matter to THIS company, each with a one-line reason grounded in their business. Not generic industry themes.
@@ -112,6 +118,10 @@ Return strict JSON only — no prose, no fences:
   "businessLines": [{"name": string, "description": string}],
   "products": [string],
   "customerSegments": [string],
+  "whatTheySell": string,
+  "namedCompetitors": [string],
+  "noClearCompetitors": boolean,
+  "noCompetitorsReason": string,
   "techStack": [string],
   "digitalInitiatives": [string],
   "focusAreas": [{"area": string, "why": string}],
@@ -176,12 +186,40 @@ export function parseProfileResponse(text: string): TechRadarProfile | null {
     businessLines,
     products: stringList(parsed.products),
     customerSegments: stringList(parsed.customerSegments),
+    whatTheySell: String(parsed.whatTheySell ?? "").trim(),
+    namedCompetitors: stringList(parsed.namedCompetitors),
+    noClearCompetitors: parsed.noClearCompetitors === true,
+    noCompetitorsReason: String(parsed.noCompetitorsReason ?? "").trim(),
     techStack: stringList(parsed.techStack),
     digitalInitiatives: stringList(parsed.digitalInitiatives),
     focusAreas,
     searchQueries: stringList(parsed.searchQueries, MAX_QUERIES_PER_COMPANY),
     sources: [],
   };
+}
+
+/**
+ * Which required research fields are missing, by the 2026-08-26 rules: whatTheySell and
+ * customerSegments always required (every company has an answer; empty = failed
+ * research). namedCompetitors may be empty only behind an explicit, reasoned
+ * noClearCompetitors finding — a declaration without its reason is a checkbox, not a
+ * finding, and does not count.
+ */
+export function missingResearchFields(p: {
+  whatTheySell: string;
+  customerSegments: string[];
+  namedCompetitors: string[];
+  noClearCompetitors: boolean;
+  noCompetitorsReason: string;
+}): string[] {
+  const missing: string[] = [];
+  if (!p.whatTheySell.trim()) missing.push("whatTheySell");
+  if (p.customerSegments.length === 0) missing.push("customerSegments");
+  if (p.namedCompetitors.length === 0) {
+    if (!p.noClearCompetitors) missing.push("namedCompetitors");
+    else if (!p.noCompetitorsReason.trim()) missing.push("noCompetitorsReason");
+  }
+  return missing;
 }
 
 export async function researchProfile(input: ProfileResearchInput): Promise<TechRadarProfile> {
@@ -220,6 +258,14 @@ export async function researchProfile(input: ProfileResearchInput): Promise<Tech
 
   if (!isUsableProfile(profile)) {
     throw new Error("tech-radar research produced no focus areas or search queries — refusing to activate");
+  }
+
+  // Research without the commercial picture is not done: every axis built on top of it
+  // regresses to the CTO lens, which is the 2026-08-26 systematic failure. Fails loudly
+  // with the field names so the screen says what is missing, not just "failed".
+  const missing = missingResearchFields(profile);
+  if (missing.length > 0) {
+    throw new Error(`tech-radar research incomplete — missing: ${missing.join(", ")}`);
   }
   return profile;
 }

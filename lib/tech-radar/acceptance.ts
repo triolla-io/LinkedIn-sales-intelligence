@@ -44,20 +44,28 @@ export type AcceptanceInput = {
   kind: ItemKind;
   stature: number;
   url: string | null;
+  /** From triage: the item is ABOUT Israel, whoever published it. */
+  israelRelevant?: boolean;
 };
 
 export type AcceptanceReport = {
   /** Items of flagship/regulatory/market-move weight. Target: 2. */
   weighty: number;
-  /** Items from an Israeli source. Target: 1. */
-  israeli: number;
+  /**
+   * Items published BY an Israeli outlet. Not a bar — a health check on whether the
+   * per-query locale (lib/news/locale.ts) is actually reaching Israeli press. Zero here
+   * with a healthy israelRelevant count means the locale is still not landing.
+   */
+  israeliSource: number;
+  /** Items ABOUT the Israeli market. This is the bar. Target: 1. */
+  israelRelevant: number;
   met: boolean;
   /** What to say when it was not met. Empty when it was. */
   shortfall: string;
 };
 
 export const MIN_WEIGHTY = 2;
-export const MIN_ISRAELI = 1;
+export const MIN_ISRAEL_RELEVANT = 1;
 
 export function judgeAcceptance(items: AcceptanceInput[]): AcceptanceReport {
   // Weight AND kind: a flagship kind with low stature is the exact item that passed the
@@ -65,19 +73,26 @@ export function judgeAcceptance(items: AcceptanceInput[]): AcceptanceReport {
   const weighty = items.filter(
     (i) => i.stature >= STATURE_FLOOR && (FLAGSHIP_KINDS as readonly string[]).includes(i.kind)
   ).length;
-  const israeli = items.filter((i) => isIsraeliSource(i.url)).length;
+  const israeliSource = items.filter((i) => isIsraeliSource(i.url)).length;
+  // An Israeli publisher writing about the Israeli market cannot be anything else, so the
+  // host is sufficient evidence on its own. The bar must not depend on the triage model
+  // remembering to set a flag for globes.co.il.
+  const israelRelevant = items.filter(
+    (i) => i.israelRelevant === true || isIsraeliSource(i.url)
+  ).length;
 
   const missing: string[] = [];
   if (weighty < MIN_WEIGHTY) {
     missing.push(`\u05e4\u05e8\u05d9\u05d8\u05d9\u05dd \u05d1\u05de\u05e9\u05e7\u05dc \u05d3\u05d5\u05d7-\u05d3\u05d2\u05dc/\u05e8\u05d2\u05d5\u05dc\u05e6\u05d9\u05d4/\u05de\u05d4\u05dc\u05da-\u05e9\u05d5\u05e7: ${weighty} \u05de\u05ea\u05d5\u05da ${MIN_WEIGHTY}`);
   }
-  if (israeli < MIN_ISRAELI) {
-    missing.push(`\u05e4\u05e8\u05d9\u05d8 \u05de\u05de\u05e7\u05d5\u05e8 \u05d9\u05e9\u05e8\u05d0\u05dc\u05d9: ${israeli} \u05de\u05ea\u05d5\u05da ${MIN_ISRAELI}`);
+  if (israelRelevant < MIN_ISRAEL_RELEVANT) {
+    missing.push(`\u05e4\u05e8\u05d9\u05d8 \u05d1\u05e0\u05d5\u05d2\u05e2 \u05dc\u05e9\u05d5\u05e7 \u05d4\u05d9\u05e9\u05e8\u05d0\u05dc\u05d9: ${israelRelevant} \u05de\u05ea\u05d5\u05da ${MIN_ISRAEL_RELEVANT}`);
   }
 
   return {
     weighty,
-    israeli,
+    israeliSource,
+    israelRelevant,
     met: missing.length === 0,
     shortfall: missing.length === 0 ? "" : `\u05e0\u05e1\u05e8\u05e7 \u05d5\u05dc\u05d0 \u05e0\u05de\u05e6\u05d0 \u2014 ${missing.join("; ")}`,
   };

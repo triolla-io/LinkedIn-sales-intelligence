@@ -1,5 +1,6 @@
 import type { NewsResult } from "@/lib/news/types";
 import { reserveNewsCall } from "@/lib/news/budget";
+import { localeForQuery } from "@/lib/news/locale";
 
 /**
  * GNews treats `-`, `+` and `/` as query operators, so an ordinary phrase like
@@ -76,7 +77,11 @@ export async function fetchGnews(query: string, opts: { max?: number } = {}): Pr
     const timeout = setTimeout(() => controller.abort(), 10_000);
     const url = new URL("https://gnews.io/api/v4/search");
     url.searchParams.set("q", q);
-    url.searchParams.set("lang", "en");
+    // Read from the ORIGINAL query, not the shortened one: shortenForGnews can cut a
+    // Hebrew query down to terms that no longer reveal which market was being asked about.
+    const locale = localeForQuery(query);
+    url.searchParams.set("lang", locale?.lang ?? "en");
+    if (locale) url.searchParams.set("country", locale.country);
     url.searchParams.set("max", String(opts.max ?? 10));
     url.searchParams.set("apikey", key);
     const res = await fetch(url, { signal: controller.signal });

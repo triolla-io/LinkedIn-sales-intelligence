@@ -26,6 +26,7 @@ type Person = {
   active: boolean;
   lastMessageFromUsAt: string | null;
   prep: { ready: boolean; failed: boolean; stages: PrepStage[] };
+  employerFinding: { noClearCompetitors: boolean; reason: string } | null;
   axes: { id: string; label: string; source: "role" | "company"; muted: boolean; itemsFound: number }[];
   history: { id: string; status: string; statusText: string; itemTitle: string; at: string }[];
 };
@@ -167,6 +168,14 @@ export function PersonPage({ contactId }: { contactId: string }) {
         {/* what the system thinks interests him */}
         <div className="bg-white border border-[rgba(28,36,48,0.06)] rounded-[20px] p-5 sm:p-7 mt-5">
           <h2 className="text-[15px] font-bold">מה לדעת המערכת מעניין אותו — ואפשר לתקן אותה</h2>
+
+          {/* The research's active "no competitors" finding — shown with its reason so a
+              human can spot when the model got it wrong and fix the company by hand. */}
+          {data.employerFinding?.noClearCompetitors && (
+            <p className={cn("text-[12.5px] mt-1.5", INK_3)}>
+              לא זוהו מתחרים ישירים{data.employerFinding.reason ? ` — ${data.employerFinding.reason}` : ""}
+            </p>
+          )}
 
           {data.axes.length === 0 ? (
             <div className="mt-3">

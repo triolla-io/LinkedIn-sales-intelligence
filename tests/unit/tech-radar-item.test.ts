@@ -10,6 +10,8 @@ const { makeItemDedupeKey, isSameTechnology, isSameLaunch, parseItemResponse, sy
 const triage: TriageVerdict = {
   url: "https://news.com/a",
   shareworthy: 0.8,
+  stature: 0.8,
+  israelRelevant: false,
   kind: "research",
   publisher: "news.com",
   staleness: false,
