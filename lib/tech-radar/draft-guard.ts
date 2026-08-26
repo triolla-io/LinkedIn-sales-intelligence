@@ -36,7 +36,12 @@ export type DraftViolation =
    * The last sentence before the link is the veto's whyHim sentence with the pronouns
    * swapped from third to second person, not a genuine rephrasing.
    */
-  | "whyhim_copied";
+  | "whyhim_copied"
+  /**
+   * A demonstrative missing its definite article, or a coordinated subject taking a
+   * singular copula. SOFT ONLY — see hebrewAgreementErrors below for why.
+   */
+  | "hebrew_agreement";
 
 /**
  * Phrases, not vibes. Each pattern is anchored on wording that actually appeared, so a
@@ -224,6 +229,76 @@ export function whyHimCopied(message: string, whyHim: string | null | undefined)
   return jaccard(a, b) >= WHYHIM_JACCARD_THRESHOLD;
 }
 
+export type AgreementError = {
+  kind: "definite_demonstrative" | "compound_subject_singular_copula" | "plural_noun_singular_copula";
+  text: string;
+};
+
+const DEMONSTRATIVE_WORDS = new Set(["האלה", "האלו", "הזה", "הזאת", "הזו"]);
+const SINGULAR_COPULAS = new Set(["הוא", "היא"]);
+
+function startsWithHe(word: string): boolean {
+  return word.startsWith("ה");
+}
+
+function endsPlural(word: string): boolean {
+  return /(ים|ות|יים)$/u.test(word);
+}
+
+/**
+ * Deterministic patterns only, no dictionary and no LLM — see the header comment for
+ * why this is SOFT: a demonstrative or copula rule with no exceptions will eventually
+ * false-positive on a name or a borrowed word, and a false positive must never cost a
+ * good draft. Callers surface this as a warning, never a rejection.
+ */
+export function hebrewAgreementErrors(message: string): AgreementError[] {
+  const text = typeof message === "string" ? message : "";
+  const out: AgreementError[] = [];
+  const tokens: { word: string; index: number }[] = [];
+  const re = /[֐-׿]+/gu;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) tokens.push({ word: m[0], index: m.index });
+
+  const span = (from: number, to: number) => {
+    const start = tokens[from].index;
+    const end = tokens[to].index + tokens[to].word.length;
+    return text.slice(start, end);
+  };
+
+  for (let i = 0; i < tokens.length; i += 1) {
+    if (!DEMONSTRATIVE_WORDS.has(tokens[i].word)) continue;
+    if (i >= 1 && !startsWithHe(tokens[i - 1].word)) {
+      out.push({ kind: "definite_demonstrative", text: span(i - 1, i) });
+    } else if (i >= 2 && startsWithHe(tokens[i - 1].word) && !startsWithHe(tokens[i - 2].word)) {
+      // The intervening adjective correctly took the article; the noun before it didn't.
+      out.push({ kind: "definite_demonstrative", text: span(i - 2, i) });
+    }
+  }
+
+  for (let i = 0; i < tokens.length; i += 1) {
+    const w = tokens[i].word;
+    if (w.length < 2 || !w.startsWith("ו")) continue;
+    for (let j = i + 1; j <= Math.min(i + 3, tokens.length - 1); j += 1) {
+      if (SINGULAR_COPULAS.has(tokens[j].word)) {
+        out.push({ kind: "compound_subject_singular_copula", text: span(i, j) });
+        break;
+      }
+    }
+  }
+
+  for (let i = 0; i < tokens.length; i += 1) {
+    if (!endsPlural(tokens[i].word)) continue;
+    for (let j = i + 1; j <= Math.min(i + 2, tokens.length - 1); j += 1) {
+      if (SINGULAR_COPULAS.has(tokens[j].word)) {
+        out.push({ kind: "plural_noun_singular_copula", text: span(i, j) });
+        break;
+      }
+    }
+  }
+
+  return out;
+}
+
 export type AxisLabelViolation =
   | "empty"
   /** Hebrew touching Latin with no separator — the same typography failure as in a draft. */
@@ -292,6 +367,12 @@ export function figuresSourced(message: string, sourceText: string, canonicalUrl
  * figure must exist in the source. Everything checkDraft flags becomes a SOFT warning:
  * the message is the user's, and an edit blocked over taste teaches them to abandon the
  * screen, not to write better.
+ *
+ * hebrewAgreementErrors is folded in here too, and ONLY here — never into checkDraft's
+ * own return, which also feeds the machine's hard retry/reject gate in draft.ts. The
+ * demonstrative and copula patterns are deterministic but unproven at scale; a false
+ * positive there must warn a human, never throw away a model's draft or force a retry
+ * it cannot win.
  */
 export function checkDraftEdit(
   message: string,
@@ -301,5 +382,7 @@ export function checkDraftEdit(
   const urls = message.match(URL_RE) ?? [];
   if (urls.some((u) => u !== opts.canonicalUrl)) hard.push("foreign_link");
   if (!figuresSourced(message, opts.sourceText, opts.canonicalUrl)) hard.push("unsourced_figure");
-  return { hard, soft: checkDraft(message) };
+  const soft = checkDraft(message);
+  if (hebrewAgreementErrors(message).length > 0) soft.push("hebrew_agreement");
+  return { hard, soft };
 }

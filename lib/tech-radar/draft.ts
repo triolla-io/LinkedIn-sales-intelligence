@@ -122,6 +122,7 @@ Rules:
 - Address the person by EXACTLY the name given under "Address them as". Copy those characters verbatim. Never re-spell, transliterate, lengthen, shorten or "correct" it — it is the name as it is recorded, and it is not yours to adjust.
 - NEVER state a quantity about the RECIPIENT or their company — how many plants, sites, people, products, markets, quarters, percent — unless that exact figure appears in the ITEM text you were given. If you have no verified figure, write the anchor WITHOUT one: "יעדי התפוקה שהצגתם", not "בשלוש המפעלות". A figure that belongs to the item itself is fine.
 - Reproduce the link EXACTLY as given, once, as the last line. Never invent, shorten or alter a URL. If no link is provided, end after the sentence and include no URL at all.
+- Hebrew agreement: a demonstrative takes the definite article ("האלגוריתמים האלה", never "אלגוריתמים האלה"), and a compound subject ("הסיכון והאפליה") takes a plural copula ("הם"), never a singular one ("היא"/"הוא").
 
 Return strict JSON only — no prose, no markdown fences:
 {"draftMessage": string}`;

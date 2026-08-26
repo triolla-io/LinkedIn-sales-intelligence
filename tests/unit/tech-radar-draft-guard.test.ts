@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { checkDraft, MAX_DRAFT_CHARS, SOFT_DRAFT_CHARS, whyHimCopied } from "@/lib/tech-radar/draft-guard";
+import {
+  checkDraft,
+  MAX_DRAFT_CHARS,
+  SOFT_DRAFT_CHARS,
+  whyHimCopied,
+  hebrewAgreementErrors,
+} from "@/lib/tech-radar/draft-guard";
 
 describe("rhetorical opener", () => {
   it("allows a question mark in the opening sentence — Yuval's voice", () => {
@@ -178,5 +184,32 @@ describe("whyHimCopied", () => {
       "בגלל שאתה זה שמחליט בפועל על המודלים של ML לתמחור בפניקס, הסיכון של משתנים פרוקסי והאפליה העקיפה " +
       "היא בעצם סיכון שאתה נושא בעצמו בהחלטה.";
     expect(checkDraft(message)).not.toContain("whyhim_copied");
+  });
+});
+
+/**
+ * Two real errors from the same draft: "אלגוריתמים האלה" (demonstrative needs the
+ * definite article) and "והאפליה העקיפה היא" (a coordinated subject taking a singular
+ * feminine copula). Soft only — a false positive must never kill a good draft.
+ */
+describe("hebrewAgreementErrors", () => {
+  it("finds the definite_demonstrative error", () => {
+    const errs = hebrewAgreementErrors("אלגוריתמים האלה מזהים משתנים קורלטיביים שיוצרים אפליה עקיפה");
+    expect(errs.map((e) => e.kind)).toContain("definite_demonstrative");
+  });
+
+  it("finds the compound_subject_singular_copula error", () => {
+    const errs = hebrewAgreementErrors(
+      "הסיכון של משתנים פרוקסי והאפליה העקיפה היא בעצם סיכון שאתה נושא בעצמו בהחלטה"
+    );
+    expect(errs.map((e) => e.kind)).toContain("compound_subject_singular_copula");
+  });
+
+  it("returns [] for a correctly-formed definite demonstrative", () => {
+    expect(hebrewAgreementErrors("האלגוריתמים האלה מזהים")).toEqual([]);
+  });
+
+  it("returns [] for a correctly-agreeing compound subject", () => {
+    expect(hebrewAgreementErrors("הסיכון והאפליה הם")).toEqual([]);
   });
 });

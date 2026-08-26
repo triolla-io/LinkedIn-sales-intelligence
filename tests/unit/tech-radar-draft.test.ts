@@ -88,6 +88,15 @@ describe("DRAFT_SYSTEM", () => {
     expect(DRAFT_SYSTEM).toMatch(/נתקלתי במשהו ש/);
   });
 
+  /**
+   * Same draft, two real agreement errors: "אלגוריתמים האלה" and "והאפליה...היא".
+   * Paired with the (soft) hebrewAgreementErrors guard in draft-guard.ts.
+   */
+  it("requires demonstrative agreement and plural-copula agreement", () => {
+    expect(DRAFT_SYSTEM).toMatch(/Hebrew agreement/);
+    expect(DRAFT_SYSTEM).toMatch(/האלגוריתמים האלה/);
+  });
+
   it("allows a short paragraph — 3-6 sentences, capped at 600 chars", () => {
     expect(DRAFT_SYSTEM).toMatch(/3-6 short sentences TOTAL/);
     expect(DRAFT_SYSTEM).toMatch(/600 characters/);

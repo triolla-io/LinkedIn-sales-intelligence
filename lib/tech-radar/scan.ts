@@ -221,7 +221,7 @@ export async function scanOrg(orgId: string): Promise<ScanReport> {
     try {
       // Store where the read LANDED, not where the search pointed — a redirect wrapper
       // the ingest could not unwrap statically resolves here or never.
-      const storedUrl = pages[0]?.finalUrl ? canonicalizeSourceUrl(pages[0].finalUrl) : source.url;
+      const storedUrl = canonicalizeSourceUrl(pages[0]?.finalUrl ? pages[0].finalUrl : source.url);
       const draft = await synthesizeItem({
         triage: verdict,
         articles: [
