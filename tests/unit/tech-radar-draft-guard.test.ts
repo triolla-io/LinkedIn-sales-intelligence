@@ -14,6 +14,9 @@ describe("rhetorical opener", () => {
   it("does not treat a URL query string as an ask", () => {
     expect(checkDraft("היי דנה, מחקר מעניין!\nhttps://a.com/x?utm=1&y=2")).toEqual([]);
   });
+  it("does not treat a decimal point in a funding figure as a sentence end", () => {
+    expect(checkDraft("היי דנה, ראית שגייסו 3.5 מיליון דולר?")).toEqual([]);
+  });
 });
 
 describe("length cap", () => {
@@ -27,6 +30,10 @@ describe("length cap", () => {
   it("does not count the URL toward the cap", () => {
     const ok = "מ".repeat(590) + "\nhttps://a.com/" + "x".repeat(200);
     expect(checkDraft(ok)).not.toContain("too_long");
+  });
+  it("does not flag exactly 600 chars — the boundary is inclusive", () => {
+    const exact = "מ".repeat(600) + "\nhttps://a.com/x";
+    expect(checkDraft(exact)).not.toContain("too_long");
   });
 });
 

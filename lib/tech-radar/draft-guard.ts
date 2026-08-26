@@ -53,7 +53,10 @@ export function checkDraft(message: string): DraftViolation[] {
   // A rhetorical question may OPEN the message (the sender's real voice); a
   // question anywhere later is an ask — the no-CTA guarantee lives on the tail
   // of the message, not on its opener.
-  const boundary = text.search(/[.!?\n]/u);
+  // A "." between digits is a decimal point, not a sentence end — funding figures
+  // and version numbers are ordinary content here, and treating them as terminators
+  // would reject the very opener this rule exists to permit.
+  const boundary = text.search(/\?|\n|[.!](?=\s|$)/u);
   const tail = boundary === -1 ? "" : text.slice(boundary + 1);
   if (tail.includes("?") && !out.includes("ask")) out.push("ask");
   if (text.replace(/\s+/gu, " ").trim().length > MAX_DRAFT_CHARS) out.push("too_long");
