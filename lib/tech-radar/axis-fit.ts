@@ -14,6 +14,7 @@ import { openrouterChat } from "@/lib/openrouter/client";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
 import { OR_FEATURE } from "@/lib/tech-radar/types";
 import { isIsraeliSource } from "@/lib/tech-radar/acceptance";
+import { publishedMs } from "./freshness";
 
 const MODEL = process.env.TECH_RADAR_MODEL ?? "anthropic/claude-haiku-4.5";
 
@@ -172,16 +173,6 @@ function poolRank(a: PoolRankable, b: PoolRankable): number {
 
 type PoolRankable = { url: string; companyIds: string[]; publishedAt?: string | null };
 
-/**
- * Zero, not -Infinity, for an unknown date. Every real publication date parses to a
- * positive epoch, so 0 still sorts last — and it cannot produce the NaN that
- * (-Infinity - -Infinity) yields, which a comparator returns as an unpredictable order.
- */
-function publishedMs(raw: string | null | undefined): number {
-  if (typeof raw !== "string" || !raw) return 0;
-  const ms = Date.parse(raw);
-  return Number.isNaN(ms) ? 0 : ms;
-}
 
 export function capPoolByAxis<T extends PoolRankable>(
   items: T[],
