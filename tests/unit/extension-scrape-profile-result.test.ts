@@ -80,4 +80,28 @@ describe("handleScrapeProfile", () => {
       data: { profileScrapedAt: expect.any(Date) },
     });
   });
+
+  it("truncates an oversized about to exactly 2000 chars", async () => {
+    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old" });
+    const longAbout = "a".repeat(2500);
+    const task = { userId: "o1", payload: { contactId: "c1" }, result: { title: "CTO", company: "New", about: longAbout } };
+    await handleScrapeProfile(task as never);
+    const call = mockUpdate.mock.calls.find((c) => c[0]?.data?.about !== undefined);
+    expect(call).toBeDefined();
+    expect(call![0].data.about).toHaveLength(2000);
+    expect(call![0].data.about).toBe(longAbout.slice(0, 2000));
+  });
+
+  it("truncates an oversized experience array to exactly 5 entries", async () => {
+    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old" });
+    const experience = Array.from({ length: 7 }, (_, i) => ({
+      title: `Role ${i}`, company: `Co ${i}`, dateRange: `20${10 + i}-20${11 + i}`,
+    }));
+    const task = { userId: "o1", payload: { contactId: "c1" }, result: { title: "CTO", company: "New", experience } };
+    await handleScrapeProfile(task as never);
+    const call = mockUpdate.mock.calls.find((c) => c[0]?.data?.experience !== undefined);
+    expect(call).toBeDefined();
+    expect(call![0].data.experience).toHaveLength(5);
+    expect(call![0].data.experience).toEqual(experience.slice(0, 5));
+  });
 });
