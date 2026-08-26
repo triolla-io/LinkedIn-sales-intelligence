@@ -20,6 +20,7 @@ import { readPage } from "@/lib/research/read-page";
 import { canonicalizeSourceUrl } from "@/lib/news/canonical-url";
 import { upsertTechItem } from "@/lib/tech-radar/persist";
 import { buildAxisQueryPool, judgeAxisFit, capPoolByAxis, AXIS_FIT_FLOOR } from "@/lib/tech-radar/axis-fit";
+import { splitFresh } from "@/lib/tech-radar/freshness";
 import { judgeAndDraft } from "@/lib/tech-radar/judge-and-draft";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
 import { SHAREWORTHY_FLOOR, STATURE_FLOOR } from "@/lib/tech-radar/types";
@@ -87,6 +88,10 @@ export type PersonScanReport = {
   drafted: number;
   /** How many pool items the cap discarded, so a truncated run says so. */
   poolDropped: number;
+  /** Published outside the 30-day window. Research gets no grace. */
+  staleDropped: number;
+  /** No date could be extracted, so the item could not be proven fresh. */
+  undatedDropped: number;
   /** On-topic but weightless. The failure mode `stature` was added to name. */
   relevantButLight: number;
   /** Items whose page could not be read, so their summary is snippet-only. */
@@ -101,7 +106,8 @@ export type PersonScanReport = {
 
 const EMPTY: PersonScanReport = {
   axes: 0, queriesRun: 0, poolItems: 0, worthSharing: 0, itemsWritten: 0,
-  axisFitsJudged: 0, candidates: 0, vetoed: 0, drafted: 0, poolDropped: 0, relevantButLight: 0, snippetOnly: 0,
+  axisFitsJudged: 0, candidates: 0, vetoed: 0, drafted: 0, poolDropped: 0, staleDropped: 0, undatedDropped: 0,
+  relevantButLight: 0, snippetOnly: 0,
   acceptance: { weighty: 0, israeliSource: 0, israelRelevant: 0, met: false, shortfall: "לא נסרק" },
   dropReasons: {}, triageByKind: [], quotaExhausted: false,
 };
@@ -171,21 +177,35 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     MAX_QUERIES_PER_AXIS
   );
   const news = await fetchPoolNews(pool.map((p) => ({ query: p.query, companyIds: p.axisIds })));
-  // Recorded before any filtering: this answers "did the axis get anything at all",
-  // which is a different question from "did anything survive triage".
+
+  // Hard gate (26.8): only items published in the last 30 days go anywhere —
+  // research included, no per-kind grace. An item whose date cannot be extracted
+  // is rejected rather than demoted: an undated item shown to Yuval as if it were
+  // this week's is worse than one we never sent.
+  const { fresh, stale, undated } = splitFresh(news.items, new Date());
+  const freshnessDrops: Record<string, number> = {};
+  if (undated.length > 0) freshnessDrops.no_extractable_date = undated.length;
+  if (stale.length > 0) freshnessDrops.older_than_window = stale.length;
+
+  // Recorded before any filtering below this point: this answers "did the axis get
+  // anything at all", which is a different question from "did anything survive triage" —
+  // but recorded AFTER the freshness gate, so a stale-only axis does not look productive.
   axisStats = tallyAxisStats(
     axes.map((a) => ({ id: a.id, label: a.label })),
     pool,
-    news.items
+    fresh
   );
-  if (news.items.length === 0) {
-    return finish({ ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, quotaExhausted: news.quotaLikely });
+  if (fresh.length === 0) {
+    return finish({
+      ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, quotaExhausted: news.quotaLikely,
+      staleDropped: stale.length, undatedDropped: undated.length, dropReasons: freshnessDrops,
+    });
   }
 
   // ── 3. Shareworthiness triage, once per item, company- and person-agnostic ─
   // Capped before triage, round-robin across axes, so the cut never starves one
   // interest and the bill stays predictable.
-  const capped = capPoolByAxis(news.items, MAX_POOL_ITEMS);
+  const capped = capPoolByAxis(fresh, MAX_POOL_ITEMS);
   if (capped.dropped > 0) {
     console.log(`[radar] pool capped org=${orgId} kept=${capped.kept.length} dropped=${capped.dropped}`);
   }
@@ -227,7 +247,10 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
       ` israel_relevant=${acceptance.israelRelevant} israeli_source=${acceptance.israeliSource}`
   );
   if (worthSharing.length === 0) {
-    return finish({ ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, triageByKind, quotaExhausted: news.quotaLikely });
+    return finish({
+      ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, triageByKind, quotaExhausted: news.quotaLikely,
+      staleDropped: stale.length, undatedDropped: undated.length, dropReasons: freshnessDrops,
+    });
   }
 
   // ── 4. Write each surviving item up once ──────────────────────────────────
@@ -268,7 +291,11 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     }
   }
   if (written.length === 0) {
-    return finish({ ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, poolDropped: capped.dropped, relevantButLight, snippetOnly: pageReadFailures, acceptance, triageByKind, quotaExhausted: news.quotaLikely });
+    return finish({
+      ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length,
+      poolDropped: capped.dropped, relevantButLight, snippetOnly: pageReadFailures, acceptance, triageByKind, quotaExhausted: news.quotaLikely,
+      staleDropped: stale.length, undatedDropped: undated.length, dropReasons: freshnessDrops,
+    });
   }
 
   // ── 5. Per-AXIS fit, judged once and shared by every subscriber ───────────
@@ -306,7 +333,12 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     }
   }
   if (matchesAboveFloor === 0) {
-    return finish({ ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length, itemsWritten: written.length, axisFitsJudged, poolDropped: capped.dropped, relevantButLight, snippetOnly: pageReadFailures, acceptance, triageByKind, quotaExhausted: news.quotaLikely });
+    return finish({
+      ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: poolItems.length, worthSharing: worthSharing.length,
+      itemsWritten: written.length, axisFitsJudged, poolDropped: capped.dropped, relevantButLight, snippetOnly: pageReadFailures,
+      acceptance, triageByKind, quotaExhausted: news.quotaLikely,
+      staleDropped: stale.length, undatedDropped: undated.length, dropReasons: freshnessDrops,
+    });
   }
 
   // ── 6-7. Rank, veto, draft — the ONE implementation, shared with radar.judge ──
@@ -323,10 +355,14 @@ export async function personScan(orgId: string): Promise<PersonScanReport> {
     vetoed: judged.vetoed,
     drafted: judged.drafted,
     poolDropped: capped.dropped,
+    staleDropped: stale.length,
+    undatedDropped: undated.length,
     relevantButLight,
     snippetOnly: pageReadFailures,
     acceptance,
-    dropReasons: judged.dropReasons,
+    // Merged, not overwritten: freshness reasons are counted before triage, veto
+    // reasons after — losing either half would misreport the funnel.
+    dropReasons: { ...freshnessDrops, ...judged.dropReasons },
     triageByKind,
     quotaExhausted: news.quotaLikely,
   });

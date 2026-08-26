@@ -13,6 +13,7 @@ import { readPage } from "@/lib/research/read-page";
 import { canonicalizeSourceUrl } from "@/lib/news/canonical-url";
 import { buildQueryPool } from "@/lib/tech-radar/queries";
 import { fetchPoolNews } from "@/lib/tech-radar/fetch-pool-news";
+import { splitFresh } from "@/lib/tech-radar/freshness";
 import { triageAll, type PoolItem } from "@/lib/tech-radar/triage";
 import { synthesizeItem } from "@/lib/tech-radar/item";
 import { prefilterItems, judgeFit, profileTerms, type FitItem } from "@/lib/tech-radar/fit";
@@ -40,6 +41,10 @@ export type ScanReport = {
   opportunitiesCreated: number;
   /** True when providers returned nothing at all — a quota wall, not an empty week. */
   quotaExhausted: boolean;
+  /** Published outside the 30-day window. Research gets no grace. */
+  staleDropped: number;
+  /** No date could be extracted, so the item could not be proven fresh. */
+  undatedDropped: number;
 };
 
 type ActiveCompany = {
@@ -131,18 +136,28 @@ export async function scanOrg(orgId: string): Promise<ScanReport> {
     itemsWritten: 0,
     opportunitiesCreated: 0,
     quotaExhausted: false,
+    staleDropped: 0,
+    undatedDropped: 0,
   };
   if (companies.length === 0) return empty;
 
   // ── Stage 1: one canonical pool for the whole org ──────────────────────────
   const pool = buildQueryPool(companies.map((c) => ({ id: c.id, searchQueries: c.profile.searchQueries })));
   const news = await fetchPoolNews(pool);
-  if (news.items.length === 0) {
-    return { ...empty, queriesRun: news.queriesRun, quotaExhausted: news.quotaLikely };
+
+  // Hard gate (26.8): only items published in the last 30 days go anywhere — research
+  // included, no per-kind grace. An item whose date cannot be extracted is rejected
+  // rather than demoted: an undated item shown as this week's is worse than one never sent.
+  const { fresh, stale, undated } = splitFresh(news.items, new Date());
+  if (fresh.length === 0) {
+    return {
+      ...empty, queriesRun: news.queriesRun, quotaExhausted: news.quotaLikely,
+      staleDropped: stale.length, undatedDropped: undated.length,
+    };
   }
 
   // ── Stage 2: shared shareworthiness triage, once per pool item ────────────
-  const poolItems: PoolItem[] = news.items.map((i) => ({
+  const poolItems: PoolItem[] = fresh.map((i) => ({
     title: i.title,
     url: i.url,
     snippet: i.snippet,
@@ -168,11 +183,13 @@ export async function scanOrg(orgId: string): Promise<ScanReport> {
       poolItems: poolItems.length,
       triageByKind,
       quotaExhausted: news.quotaLikely,
+      staleDropped: stale.length,
+      undatedDropped: undated.length,
     };
   }
 
   // ── Stage 3: read the real pages and write each item up once ──────────────
-  const byUrl = new Map(news.items.map((i) => [i.url, i]));
+  const byUrl = new Map(fresh.map((i) => [i.url, i]));
   const itemIdByUrl = new Map<string, string>();
   const itemsById = new Map<string, FitItem>();
   const subscribersByItemId = new Map<string, Set<string>>();
@@ -242,6 +259,8 @@ export async function scanOrg(orgId: string): Promise<ScanReport> {
       poolItems: poolItems.length,
       worthSharing: worthSharing.length,
       triageByKind,
+      staleDropped: stale.length,
+      undatedDropped: undated.length,
     };
   }
 
@@ -298,5 +317,7 @@ export async function scanOrg(orgId: string): Promise<ScanReport> {
     itemsWritten: itemsById.size,
     opportunitiesCreated: created,
     quotaExhausted: news.quotaLikely,
+    staleDropped: stale.length,
+    undatedDropped: undated.length,
   };
 }
