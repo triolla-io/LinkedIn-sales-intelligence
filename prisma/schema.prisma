@@ -215,6 +215,11 @@ model Contact {
   lastJobCheckAt     DateTime?
   jobChanges         ContactJobChange[]
 
+  // Contact — layer-4 person data captured by SCRAPE_PROFILE (topcard + about + experience).
+  about            String?   @db.Text
+  experience       Json?     // [{ title, company, dateRange }] newest first, max 5
+  profileScrapedAt DateTime? // last successful full-profile scrape; radar staleness clock
+
   /// Radar cohort override. null = follow the cohort rule (C-level at a 50-200
   /// person company); true = always include, even outside the cohort (this is how
   /// a handful of people at giants get cultivated); false = never include.

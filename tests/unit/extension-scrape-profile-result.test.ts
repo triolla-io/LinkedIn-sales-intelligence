@@ -45,4 +45,39 @@ describe("handleScrapeProfile", () => {
       data: expect.objectContaining({ lastJobCheckAt: expect.any(Date) }),
     }));
   });
+
+  it("writes headline/about/experience + profileScrapedAt from a richer scrape, and still runs the unchanged jobSnapshot logic", async () => {
+    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old" });
+    const experience = [{ title: "CTO", company: "New", dateRange: "2024-Present" }];
+    const task = {
+      userId: "o1",
+      payload: { contactId: "c1" },
+      result: { title: "CTO", company: "New", headline: "CTO @ New", about: "Builds things.", experience },
+    };
+    await handleScrapeProfile(task as never);
+    // Layer-4 write: raw profile fields land regardless of the job-change branch below.
+    expect(mockUpdate).toHaveBeenCalledWith({
+      where: { id: "c1" },
+      data: {
+        profileScrapedAt: expect.any(Date),
+        headline: "CTO @ New",
+        about: "Builds things.",
+        experience,
+      },
+    });
+    // jobSnapshot logic is untouched: same snapshot present -> recordJobChangeIfAny still runs.
+    expect(mockRecord).toHaveBeenCalledWith({
+      contactId: "c1", ownerId: "o1", snapshotTitle: "Dev", snapshotCompany: "Old", freshTitle: "CTO", freshCompany: "New",
+    });
+  });
+
+  it("old extension result with only title/company still stamps profileScrapedAt but leaves about/experience/headline untouched", async () => {
+    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "Dev", jobSnapshotCompany: "Old" });
+    const task = { userId: "o1", payload: { contactId: "c1" }, result: { title: "CTO", company: "New" } };
+    await handleScrapeProfile(task as never);
+    expect(mockUpdate).toHaveBeenCalledWith({
+      where: { id: "c1" },
+      data: { profileScrapedAt: expect.any(Date) },
+    });
+  });
 });

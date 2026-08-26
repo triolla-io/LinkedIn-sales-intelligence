@@ -897,13 +897,32 @@ async function handleConnectFailure(task: TaskRow) {
 
 export async function handleScrapeProfile(task: TaskRow) {
   const payload = (task.payload ?? {}) as { contactId?: string };
-  const result = (task.result ?? {}) as { title?: string | null; company?: string | null };
+  const result = (task.result ?? {}) as {
+    title?: string | null; company?: string | null;
+    headline?: string | null; about?: string | null;
+    experience?: { title: string; company: string | null; dateRange: string | null }[];
+  };
   if (!payload.contactId) return;
   const contact = await prisma.contact.findUnique({
     where: { id: payload.contactId },
     select: { ownerId: true, jobSnapshotTitle: true, jobSnapshotCompany: true },
   });
   if (!contact) return;
+  // Raw profile fields for the radar's layer 4. jobSnapshot* stays the job-change
+  // module's private state — these are the fields everything else reads. Stamped on
+  // EVERY successful scrape, even an old-extension one with no new fields, because
+  // profileScrapedAt is the staleness clock a later poll loop depends on terminating.
+  await prisma.contact.update({
+    where: { id: payload.contactId },
+    data: {
+      profileScrapedAt: new Date(),
+      ...(result.headline ? { headline: result.headline } : {}),
+      ...(result.about ? { about: result.about.slice(0, 2000) } : {}),
+      ...(Array.isArray(result.experience) && result.experience.length
+        ? { experience: result.experience.slice(0, 5) }
+        : {}),
+    },
+  });
   const freshTitle = result.title ?? null;
   const freshCompany = result.company ?? null;
   // First run: no snapshot yet — seed the baseline and do NOT detect a change.
