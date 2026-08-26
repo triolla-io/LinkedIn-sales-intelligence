@@ -13,6 +13,7 @@
 import { openrouterChat } from "@/lib/openrouter/client";
 import { parseJsonLoose } from "@/lib/tech-radar/parse";
 import {
+  MAX_INDUSTRY_QUERIES,
   MAX_QUERIES_PER_COMPANY,
   OR_FEATURE,
   isUsableProfile,
@@ -92,7 +93,7 @@ export function pickInnerLinks(html: string, baseUrl: string, limit = 5): string
 
 const SYSTEM = `You are a B2B technology researcher. Given raw text from a company's own website plus recent coverage, produce a structured profile of what the company actually does.
 
-Three fields are REQUIRED and the research is rejected without them:
+Five fields are REQUIRED and the research is rejected without them:
 
 - whatTheySell: one plain sentence — what does this company sell, and to whom? Not the mission statement; the actual product and the actual buyer.
 - customerSegments: B2C / B2B / B2G, and who the customers actually are. Every company has an answer.
@@ -193,7 +194,7 @@ export function parseProfileResponse(text: string): TechRadarProfile | null {
   const industryRaw = parsed.industry as Record<string, unknown> | undefined;
   const industry = {
     canonical: String(industryRaw?.canonical ?? "").trim(),
-    queries: stringList(industryRaw?.queries, 5),
+    queries: stringList(industryRaw?.queries, MAX_INDUSTRY_QUERIES),
   };
 
   // Layer 3: dated facts only. A move whose date does not parse is dropped rather

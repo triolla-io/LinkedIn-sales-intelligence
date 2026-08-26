@@ -223,6 +223,8 @@ export type RankedRecipient = {
 // ─── Pipeline ceilings (spec: step budget) ───────────────────────────────────
 
 export const MAX_QUERIES_PER_COMPANY = 10;
+/** Caps `industry.queries` — the prompt asks the model for "3-5 BROAD industry-level search queries". */
+export const MAX_INDUSTRY_QUERIES = 5;
 export const MAX_PAGE_READS_PER_RUN = 8;
 export const MAX_SYNTHESIS_PER_RUN = 8;
 export const MAX_OPPORTUNITIES_PER_COMPANY = 5;
