@@ -17,6 +17,7 @@ import { selectRecipientsForItem, type RecipientCandidate } from "@/lib/tech-rad
 import { rankForPeople, pairKey, type RankCandidate } from "@/lib/tech-radar/person-rank";
 import { draftTechMessage } from "@/lib/tech-radar/draft";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
+import { pilotHoldEnabled } from "@/lib/tech-radar/pilot-gate";
 
 /**
  * Drafts one org may produce in a day.
@@ -251,6 +252,9 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
           draftMessage: message, whyHim: verdict.whyHim,
           confidence: Math.max(0, Math.min(1, rank.axisScore * rank.personWeight + verdict.adjustment)),
           confidenceParts: { axisScore: rank.axisScore, personWeight: rank.personWeight, vetoAdjustment: verdict.adjustment },
+          // Born held: invisible to the owner until a reviewer releases it. See
+          // lib/tech-radar/pilot-gate.ts for why the gate defaults ON.
+          pilotHeldAt: pilotHoldEnabled() ? new Date() : null,
         },
         update: {},
       });
