@@ -82,7 +82,9 @@ async function spentTodayUsd(apiKey: string): Promise<number> {
 }
 
 export type OpenRouterChatData = {
-  choices?: Array<{ message?: { content?: string } }>;
+  /** finish_reason "length" means the model was CUT OFF, not that it finished briefly —
+   *  a truncated JSON body parses to fewer items and looks like a thin answer. */
+  choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
   usage?: { cost?: number; prompt_tokens?: number; completion_tokens?: number };
 } & Record<string, unknown>;
 

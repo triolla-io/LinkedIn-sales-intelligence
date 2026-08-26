@@ -53,7 +53,7 @@ THINK IN STAGES, in writing, BEFORE deriving a single axis. Answer three questio
 
 (ג) What would they stop everything to read, and forward to a colleague?
 
-Return these answers as "reasoning". It is saved next to the profile so a human can see how you reached the axes — reasoning that could have been written without reading the title is a failed answer.
+Return these answers as "reasoning", at most THREE SENTENCES PER STAGE. Brevity is not cosmetic: the reasoning and the axes share one output budget, and an essay here leaves no room for the axes themselves. It is saved next to the profile so a human can see how you reached the axes — reasoning that could have been written without reading the title is a failed answer.
 
 Then return:
 
@@ -196,12 +196,26 @@ export async function buildPersonProfile(input: PersonProfileInput): Promise<Per
         { role: "user", content: personPromptInput(input) },
       ],
       temperature: 0.3,
-      max_tokens: 2000, // the staged reasoning is part of the output now
+      // The staged reasoning and the axes share this budget. At 2000 the first live run
+      // came back truncated at exactly the cap, and Erez Rachmil got 2 axes instead of
+      // 3-5 — the reasoning had eaten the room. The prompt also caps each stage at three
+      // sentences; both levers are needed.
+      max_tokens: 4000,
       response_format: { type: "json_object" },
     },
     { timeoutMs: 30_000 }
   );
   if (!res.ok) return null;
+
+  // A truncated response is the failure mode that produced 2 axes instead of 3-5 on the
+  // first live run, and it looks exactly like a model that had little to say. Say it
+  // instead of leaving it to be noticed in a token count.
+  const finish = res.data.choices?.[0]?.finish_reason;
+  if (finish === "length") {
+    console.warn(
+      `[radar] person-profile TRUNCATED for ${input.fullName} — raise max_tokens or shorten the reasoning`
+    );
+  }
   return parseProfileResponse(res.data.choices?.[0]?.message?.content ?? "");
 }
 
