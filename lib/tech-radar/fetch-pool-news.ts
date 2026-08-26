@@ -123,7 +123,15 @@ export async function fetchPoolNews(
 
     // Nothing at all usually means the query was too specific rather than that the
     // subject has no news — retry once, broader, before writing the topic off.
-    if (results.length === 0) {
+    //
+    // TEMPORARY (see CLAUDE.md): POOL_RETRY=off makes the cost per pooled query exactly
+    // one provider call. The 2026-08-26 pilot has 28 queries against 31 remaining serper
+    // calls, and the 30-day filter makes an empty result MORE likely — a live probe
+    // returned 2 rows where the untimed query returned 10 — so an unbounded second call
+    // per empty query could take the run past its quota mid-scan. Switched off by
+    // environment rather than deleted: in a normal month a narrow query finding nothing
+    // is a recall problem, which is exactly what this fixes.
+    if (results.length === 0 && (process.env.POOL_RETRY ?? "").trim().toLowerCase() !== "off") {
       const broader = broadenQuery(entry.query);
       if (broader) {
         await sleep(QUERY_GAP_MS);

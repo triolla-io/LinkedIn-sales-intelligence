@@ -68,7 +68,8 @@ Use HeroUI (`@heroui/react`) for all React components.
 
 | Env var | Value | Why | Remove |
 |---|---|---|---|
-| `RADAR_MAX_QUERIES_PER_AXIS` | `2` | serper is the only news provider with quota left (34 calls); serpapi/gnews/tavily are at zero. Two queries per axis is a recall cut forced by the month's budget, not a design decision. | **2026-09-01**, when the monthly counters reset — then delete the var and let the default (3) apply |
+| `RADAR_MAX_QUERIES_PER_AXIS` | `2` | serper is the only news provider with quota left; serpapi/gnews/tavily are at zero. Two queries per axis is a recall cut forced by the month's budget, not a design decision. | **2026-09-01**, when the monthly counters reset — then delete the var and let the default (3) apply |
+| `POOL_RETRY` | `off` | The broaden-retry fires a second provider call per empty query. With 28 pooled queries against 31 remaining serper calls there is room for three, and the 30-day filter makes an empty result more likely. Off makes the cost exactly one call per query. | **2026-09-01** — delete the var; the retry is a real recall fix in a normal month |
 | `RADAR_MAX_DRAFTS_PER_DAY` | raised, per-run only | The 2026-08-26 pilot wanted volume at a low threshold on the explicit decision that Ariel filters what reaches Yuval. Passed on the command that runs the scan, never set on the container. | expires with the process |
 
 ## Next.js version
