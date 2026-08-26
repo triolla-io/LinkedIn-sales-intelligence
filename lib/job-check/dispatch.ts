@@ -10,6 +10,13 @@ export const PENDING_EXPIRY_DAYS = 7;
 // A radar-marked person's profile counts as stale after this long — the same clock
 // radar-person-prepare uses when it force-refreshes one contact on demand.
 export const RADAR_SCRAPE_STALE_DAYS = 30;
+// Slots inside DAILY_CAP that belong to radar-marked people before job-check gets a look.
+// Both sources sort never-touched rows to the same -Infinity, so without a reservation an
+// owner with a bottomless never-checked job-check pool (the pilot owner has ~16k) takes
+// every slot every night and a hand-marked person is never scraped at all. This is a
+// floor, not a ceiling: whatever radar doesn't claim goes back to job-check, and whatever
+// job-check doesn't claim goes to radar. The per-owner total is still DAILY_CAP.
+export const RADAR_RESERVED_SLOTS = 10;
 
 /**
  * Select contacts due for a job-change scrape and enqueue SCRAPE_PROFILE extension tasks
@@ -24,13 +31,15 @@ export const RADAR_SCRAPE_STALE_DAYS = 30;
 export async function dispatchJobChecks(scope?: { orgId?: string }): Promise<number> {
   const now = Date.now();
 
-  // A PENDING task the extension never claimed blocks its contact from every
-  // future dispatch (the dedup below) while advancing nothing. After 7 days it
-  // is a corpse, not a queue entry.
+  // A live SCRAPE_PROFILE task blocks its contact from every future dispatch (the dedup
+  // below) while advancing nothing. Both blocking statuses are swept, not just PENDING:
+  // a task leaves CLAIMED only when the extension POSTs a result, so one claimed by a
+  // browser that was closed mid-scrape never reports — and tasks/next stops re-claiming
+  // it after MAX_ATTEMPTS. After 7 days either status is a corpse, not a queue entry.
   await prisma.extensionTask.updateMany({
     where: {
       kind: "SCRAPE_PROFILE",
-      status: "PENDING",
+      status: { in: ["PENDING", "CLAIMED"] },
       createdAt: { lt: new Date(now - PENDING_EXPIRY_DAYS * 86_400_000) },
     },
     data: { status: "CANCELLED", errorCode: "expired_unclaimed" },
@@ -69,26 +78,45 @@ export async function dispatchJobChecks(scope?: { orgId?: string }): Promise<num
     take: 500,
   });
 
-  // Union BEFORE the per-owner cap runs, deduped by contact id, so a marked person
-  // DISPLACES a job-check candidate instead of adding to the visit budget — the
-  // extension's LinkedIn session must never see more profile visits per owner per
-  // dispatch than a job-check-only world would produce. Job-check rows go in first so a
-  // contact due on both counts keeps its lastJobCheckAt-based sort slot.
-  const byOwner = new Map<string, DueRow[]>();
+  // The two sources are kept apart per owner, deduped by contact id across both, so the
+  // split below can reserve slots for radar. A contact due on both counts is counted once
+  // as a job-check row (added first) and keeps its lastJobCheckAt-based sort slot.
+  const jobByOwner = new Map<string, DueRow[]>();
+  const radarByOwner = new Map<string, DueRow[]>();
   const seen = new Set<string>();
-  const addRow = (r: DueRow) => {
+  const addRow = (into: Map<string, DueRow[]>, r: DueRow) => {
     if (seen.has(r.id)) return;
     seen.add(r.id);
-    const arr = byOwner.get(r.ownerId) ?? [];
+    const arr = into.get(r.ownerId) ?? [];
     arr.push(r);
-    byOwner.set(r.ownerId, arr);
+    into.set(r.ownerId, arr);
   };
-  for (const c of due) addRow(c);
+  for (const c of due) addRow(jobByOwner, c);
   for (const c of radarDue) {
-    addRow({ id: c.id, ownerId: c.ownerId, linkedinUrl: c.linkedinUrl, lastJobCheckAt: c.profileScrapedAt });
+    addRow(radarByOwner, {
+      id: c.id,
+      ownerId: c.ownerId,
+      linkedinUrl: c.linkedinUrl,
+      lastJobCheckAt: c.profileScrapedAt,
+    });
   }
 
-  const chosen = [...byOwner.values()].flatMap((rows) => selectDueContacts(rows, DAILY_CAP));
+  // One shared per-owner budget, split rather than merged. Merging starved radar to zero:
+  // both sources sort never-touched rows to -Infinity and a stable sort keeps job-check —
+  // which never runs dry — ahead of every radar row forever. So radar is handed a floor of
+  // RADAR_RESERVED_SLOTS first, job-check fills what's left, and whichever source has
+  // fewer rows than its share leaves the remainder to the other. The extension's LinkedIn
+  // session still never sees more than DAILY_CAP visits per owner per dispatch.
+  const owners = new Set([...jobByOwner.keys(), ...radarByOwner.keys()]);
+  const chosen: DueRow[] = [];
+  for (const ownerId of owners) {
+    const jobRows = jobByOwner.get(ownerId) ?? [];
+    const radarRows = radarByOwner.get(ownerId) ?? [];
+    const radarFloor = Math.min(radarRows.length, RADAR_RESERVED_SLOTS);
+    const jobTake = Math.min(jobRows.length, DAILY_CAP - radarFloor);
+    chosen.push(...selectDueContacts(jobRows, jobTake));
+    chosen.push(...selectDueContacts(radarRows, DAILY_CAP - jobTake));
+  }
   if (chosen.length === 0) return 0;
 
   // Skip contacts that already have a scrape queued or claimed (e.g. cron + on-enable

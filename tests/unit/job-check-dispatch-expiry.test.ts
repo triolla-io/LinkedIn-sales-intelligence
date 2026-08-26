@@ -23,6 +23,12 @@ const contactRow = (id: string, ownerId = "o1") => ({
   lastJobCheckAt: null,
 });
 
+/** The contact ids of the tasks the dispatch actually created, in creation order. */
+const createdIds = (): string[] =>
+  (mockExtensionTaskCreateMany.mock.calls[0][0].data as { payload: { contactId: string } }[]).map(
+    (d) => d.payload.contactId
+  );
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockExtensionTaskUpdateMany.mockResolvedValue({ count: 0 });
@@ -31,7 +37,14 @@ beforeEach(() => {
 });
 
 describe("dispatchJobChecks backlog expiry", () => {
-  it("cancels PENDING SCRAPE_PROFILE tasks older than PENDING_EXPIRY_DAYS before deduping", async () => {
+  /**
+   * Both blocking statuses, not just PENDING. The dedup below excludes a contact that
+   * has a PENDING *or* CLAIMED task, and a CLAIMED task only ever leaves that state when
+   * the extension POSTs a result — which a browser closed mid-scrape never does, and
+   * tasks/next stops re-claiming after MAX_ATTEMPTS. Sweeping only PENDING would leave
+   * exactly the corpse this sweep exists to bury.
+   */
+  it("cancels PENDING *and* CLAIMED SCRAPE_PROFILE tasks older than PENDING_EXPIRY_DAYS before deduping", async () => {
     mockContactFindMany.mockResolvedValue([]);
     const { dispatchJobChecks, PENDING_EXPIRY_DAYS } = await import("@/lib/job-check/dispatch");
 
@@ -41,7 +54,7 @@ describe("dispatchJobChecks backlog expiry", () => {
     expect(mockExtensionTaskUpdateMany).toHaveBeenCalledWith({
       where: {
         kind: "SCRAPE_PROFILE",
-        status: "PENDING",
+        status: { in: ["PENDING", "CLAIMED"] },
         createdAt: { lt: expect.any(Date) },
       },
       data: { status: "CANCELLED", errorCode: "expired_unclaimed" },
@@ -129,12 +142,46 @@ describe("dispatchJobChecks radar source", () => {
     expect(before - cutoff.getTime()).toBeLessThan(expectedMs + 5_000);
   });
 
-  it("a radar contact scraped 10 days ago does not get a fresh task (DB-level: excluded from the returned rows)", async () => {
-    // The where clause's OR excludes a contact scraped within the window — simulated here
-    // by the source returning nothing, as a real WHERE would for a 10-day-old scrape.
-    mockContactFindMany.mockResolvedValue([]);
+  /**
+   * Driven through a mock that EVALUATES the where clause the code builds, rather than
+   * one that answers []. Answering [] would pass against an implementation with the
+   * staleness gate torn out — it supplies its own conclusion. Here the row is real and
+   * only the OR clause can exclude it, so dropping the gate turns 0 into 1.
+   */
+  function honourStaleness(rows: ReturnType<typeof radarRow>[]) {
+    return (args: { where: Record<string, unknown> }) => {
+      if (!args.where.radarInclude) return Promise.resolve([]);
+      const or = args.where.OR as
+        | Array<{ profileScrapedAt: null | { lt: Date } }>
+        | undefined;
+      if (!or) return Promise.resolve(rows); // gate dropped — Postgres would return everything
+      return Promise.resolve(
+        rows.filter((r) =>
+          or.some((clause) =>
+            clause.profileScrapedAt === null
+              ? r.profileScrapedAt === null
+              : r.profileScrapedAt !== null && r.profileScrapedAt < clause.profileScrapedAt.lt
+          )
+        )
+      );
+    };
+  }
+
+  it("a radar contact scraped 10 days ago does not get a fresh task — the staleness clause is what excludes it", async () => {
+    const fresh = radarRow("r1", "o1", new Date(Date.now() - 10 * 86_400_000));
+    mockContactFindMany.mockImplementation(honourStaleness([fresh]));
+
     const { dispatchJobChecks } = await import("@/lib/job-check/dispatch");
     expect(await dispatchJobChecks()).toBe(0);
+    expect(mockExtensionTaskCreateMany).not.toHaveBeenCalled();
+  });
+
+  it("...while a contact scraped 40 days ago DOES, through the very same harness", async () => {
+    const stale = radarRow("r1", "o1", new Date(Date.now() - 40 * 86_400_000));
+    mockContactFindMany.mockImplementation(honourStaleness([stale]));
+
+    const { dispatchJobChecks } = await import("@/lib/job-check/dispatch");
+    expect(await dispatchJobChecks()).toBe(1);
   });
 
   /**
@@ -157,9 +204,83 @@ describe("dispatchJobChecks radar source", () => {
     const created = await dispatchJobChecks();
 
     expect(created).toBe(25);
-    const createdIds = mockExtensionTaskCreateMany.mock.calls[0][0].data.map(
-      (d: { payload: { contactId: string } }) => d.payload.contactId
+    expect(new Set(createdIds()).size).toBe(25); // no contact double-booked
+  });
+
+  /**
+   * Sharing one cap is not enough on its own. Both sources sort never-touched rows to
+   * -Infinity, and a stable sort keeps whichever was pushed first — so an owner with a
+   * bottomless never-checked job-check pool (the pilot owner has ~16k) took all 25 slots
+   * every single night and a hand-marked radar person waited forever. RADAR_RESERVED_SLOTS
+   * is the floor that stops the starvation; the reservation is never a waste, because any
+   * slot radar doesn't claim goes straight back to job-check.
+   */
+  it("reserves RADAR_RESERVED_SLOTS for radar when job-check alone could fill the cap", async () => {
+    const jobRows = Array.from({ length: 40 }, (_, i) => contactRow(`jc${i}`, "o1"));
+    const radarRows = Array.from({ length: 15 }, (_, i) => radarRow(`rd${i}`, "o1"));
+    mockContactFindMany.mockImplementation((args: { where: Record<string, unknown> }) =>
+      Promise.resolve(args.where.radarInclude ? radarRows : jobRows)
     );
-    expect(new Set(createdIds).size).toBe(25); // no contact double-booked
+
+    const { dispatchJobChecks, RADAR_RESERVED_SLOTS } = await import("@/lib/job-check/dispatch");
+    const created = await dispatchJobChecks();
+
+    const ids = createdIds();
+    expect(created).toBe(25);
+    expect(ids.filter((id) => id.startsWith("rd"))).toHaveLength(RADAR_RESERVED_SLOTS);
+    expect(ids.filter((id) => id.startsWith("jc"))).toHaveLength(25 - RADAR_RESERVED_SLOTS);
+  });
+
+  it("hands the reserved slots radar does not use back to job-check", async () => {
+    const jobRows = Array.from({ length: 40 }, (_, i) => contactRow(`jc${i}`, "o1"));
+    const radarRows = Array.from({ length: 3 }, (_, i) => radarRow(`rd${i}`, "o1"));
+    mockContactFindMany.mockImplementation((args: { where: Record<string, unknown> }) =>
+      Promise.resolve(args.where.radarInclude ? radarRows : jobRows)
+    );
+
+    const { dispatchJobChecks } = await import("@/lib/job-check/dispatch");
+    const created = await dispatchJobChecks();
+
+    const ids = createdIds();
+    expect(created).toBe(25);
+    expect(ids.filter((id) => id.startsWith("rd"))).toHaveLength(3);
+    expect(ids.filter((id) => id.startsWith("jc"))).toHaveLength(22);
+  });
+
+  /**
+   * The reservation is a floor, not a ceiling — the live pilot org has jobCheckEnabled:
+   * false, so its job-check source returns nothing and radar must still be allowed the
+   * whole per-owner budget. Capping radar at 10 here would be a fresh regression on the
+   * one configuration running today.
+   */
+  it("lets radar use the whole cap when the job-check source has nothing due", async () => {
+    const radarRows = Array.from({ length: 40 }, (_, i) => radarRow(`rd${i}`, "o1"));
+    mockContactFindMany.mockImplementation((args: { where: Record<string, unknown> }) =>
+      Promise.resolve(args.where.radarInclude ? radarRows : [])
+    );
+
+    const { dispatchJobChecks } = await import("@/lib/job-check/dispatch");
+    const created = await dispatchJobChecks();
+
+    expect(created).toBe(25);
+    expect(createdIds().every((id) => id.startsWith("rd"))).toBe(true);
+  });
+
+  it("never exceeds DAILY_CAP per owner, and caps each owner independently", async () => {
+    const jobRows = Array.from({ length: 40 }, (_, i) => contactRow(`jc${i}`, "o1"));
+    const radarRows = [
+      ...Array.from({ length: 15 }, (_, i) => radarRow(`rd${i}`, "o1")),
+      ...Array.from({ length: 4 }, (_, i) => radarRow(`rd2-${i}`, "o2")),
+    ];
+    mockContactFindMany.mockImplementation((args: { where: Record<string, unknown> }) =>
+      Promise.resolve(args.where.radarInclude ? radarRows : jobRows)
+    );
+
+    const { dispatchJobChecks } = await import("@/lib/job-check/dispatch");
+    const created = await dispatchJobChecks();
+
+    expect(created).toBe(29); // 25 for o1 + 4 for o2
+    const ids = createdIds();
+    expect(ids.filter((id) => id.startsWith("rd2-"))).toHaveLength(4);
   });
 });
