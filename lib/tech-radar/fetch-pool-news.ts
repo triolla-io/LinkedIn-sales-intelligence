@@ -18,7 +18,7 @@ import { fetchGnews } from "@/lib/news/gnews";
 import { fetchSerper } from "@/lib/news/serper";
 import { fetchSerpapi } from "@/lib/news/serpapi";
 import { fetchGdelt } from "@/lib/news/gdelt";
-import { fetchGoogleNewsRss } from "@/lib/news/google-news-rss";
+import { fetchGoogleNewsRssWithStats } from "@/lib/news/google-news-rss";
 import { normalizeUrl } from "@/lib/fintech-radar/fetch-topic-news";
 import { canonicalizeSourceUrl } from "@/lib/news/canonical-url";
 import { isIsraeliSource } from "@/lib/tech-radar/acceptance";
@@ -97,28 +97,56 @@ export type PoolResult = {
    * earlier pooled query) turned up the same story first — the dedupe map is a display
    * concern, not a provider-performance one.
    */
-  providerStats: { provider: string; results: number; israeliSources: number }[];
+  providerStats: {
+    provider: string;
+    results: number;
+    israeliSources: number;
+    /**
+     * google-news-rss only. <item> blocks the feed actually returned (itemsSeen) vs how
+     * many resolved to a usable publisher URL (itemsResolved), summed across every
+     * EXECUTED query this run. 2026-08-27 incident: Google changed the wrapper-token
+     * format and this provider silently dropped 100% of results — itemsSeen > 0 with
+     * itemsResolved near 0 is that failure mode; the caller must not read it as "no news
+     * this week". See lib/news/google-news-rss.ts's module doc comment for the mechanism
+     * and GoogleNewsRssStats for the per-query shape this is summed from.
+     */
+    itemsSeen?: number;
+    itemsResolved?: number;
+    /** Count of executed queries whose resolved fraction tripped the mass-drop threshold
+     *  (see MASS_DROP_MAX_RESOLVED_FRACTION in lib/news/google-news-rss.ts). */
+    massDropQueries?: number;
+  }[];
 };
+
+/** Accumulates the google-news-rss loud-failure signal across one fetchPoolNews() run.
+ *  Built fresh per call (see fetchPoolNews) — never module-level — so two concurrent
+ *  runs in the same process never share counters. */
+type GoogleNewsRssDiag = { itemsSeen: number; itemsResolved: number; massDropQueries: number };
 
 /**
  * Fetch one query across all six providers. Providers never throw (they
  * return [] on error or exhausted budget), so neither does this.
  */
-async function fetchOne(query: string): Promise<NewsResult[]> {
+async function fetchOne(query: string, googleNewsRssDiag?: GoogleNewsRssDiag): Promise<NewsResult[]> {
   // SerpApi leads: it is the only provider that takes these long, profile-derived
   // queries as written. Tavily needs plan quota, GNews has to have the query cut
   // down to a few words, and both are kept as breadth rather than the backbone.
   // GDELT and Google News RSS are free/keyless recall added beside the four paid
   // providers (2026-08-26, all four out of monthly quota) — see lib/news/gdelt.ts.
-  const [a, b, c, d, e, f] = await Promise.all([
+  const [a, b, c, d, e, google] = await Promise.all([
     fetchSerpapi(query, { days: SCAN_WINDOW_DAYS, max: 10 }),
     fetchTavily(query, { days: SCAN_WINDOW_DAYS, maxResults: 10 }),
     fetchGnews(query, { max: 10, days: SCAN_WINDOW_DAYS }),
     fetchSerper(query, { days: SCAN_WINDOW_DAYS }),
     fetchGdelt(query, { days: SCAN_WINDOW_DAYS, max: 25 }),
-    fetchGoogleNewsRss(query, { days: SCAN_WINDOW_DAYS, max: 25 }),
+    fetchGoogleNewsRssWithStats(query, { days: SCAN_WINDOW_DAYS, max: 25 }),
   ]);
-  return [...a, ...b, ...c, ...d, ...e, ...f];
+  if (googleNewsRssDiag) {
+    googleNewsRssDiag.itemsSeen += google.itemsSeen;
+    googleNewsRssDiag.itemsResolved += google.itemsResolved;
+    if (google.massDrop) googleNewsRssDiag.massDropQueries += 1;
+  }
+  return [...a, ...b, ...c, ...d, ...e, ...google.items];
 }
 
 /**
@@ -128,7 +156,7 @@ async function fetchOne(query: string): Promise<NewsResult[]> {
  */
 export async function fetchPoolNews(
   pool: PoolQuery[],
-  fetcher: (query: string) => Promise<NewsResult[]> = fetchOne,
+  fetcher?: (query: string) => Promise<NewsResult[]>,
   opts: { sleep?: (ms: number) => Promise<void> } = {}
 ): Promise<PoolResult> {
   const sleep = opts.sleep ?? wait;
@@ -137,6 +165,13 @@ export async function fetchPoolNews(
   let emptyQueries = 0;
   let queriesRun = 0;
   let cachedQueries = 0;
+
+  // Diagnostics are only meaningful for the DEFAULT fetcher (fetchOne) — a custom test
+  // fetcher never calls fetchGoogleNewsRssWithStats, so this stays at zero for those
+  // runs and no diagnostic row is added below. Built fresh per call, never module-level,
+  // so two concurrent fetchPoolNews() runs in the same process never share counters.
+  const googleNewsRssDiag: GoogleNewsRssDiag = { itemsSeen: 0, itemsResolved: 0, massDropQueries: 0 };
+  const activeFetcher = fetcher ?? ((query: string) => fetchOne(query, googleNewsRssDiag));
 
   for (const entry of pool) {
     if (!entry.query.trim()) continue;
@@ -165,7 +200,7 @@ export async function fetchPoolNews(
       // Pace BETWEEN queries, never before the first one.
       if (queriesRun > 0) await sleep(QUERY_GAP_MS);
       queriesRun += 1;
-      results = await fetcher(entry.query);
+      results = await activeFetcher(entry.query);
 
       // Nothing at all usually means the query was too specific rather than that the
       // subject has no news — retry once, broader, before writing the topic off.
@@ -181,7 +216,7 @@ export async function fetchPoolNews(
         const broader = broadenQuery(entry.query);
         if (broader) {
           await sleep(QUERY_GAP_MS);
-          results = await fetcher(broader);
+          results = await activeFetcher(broader);
         }
       }
       if (results.length === 0) emptyQueries += 1;
@@ -221,6 +256,22 @@ export async function fetchPoolNews(
     }
   }
 
+  // google-news-rss's mass-drop signal, merged into its providerStats row — added even
+  // when itemsSeen > 0 but the provider produced ZERO NewsResult rows (the exact failure
+  // mode of the 2026-08-27 incident), a case the tally loop above would otherwise never
+  // create an entry for at all, because that loop only runs over actual results.
+  const providerStatsList = [...providerStats.values()];
+  if (googleNewsRssDiag.itemsSeen > 0) {
+    const extra = {
+      itemsSeen: googleNewsRssDiag.itemsSeen,
+      itemsResolved: googleNewsRssDiag.itemsResolved,
+      massDropQueries: googleNewsRssDiag.massDropQueries,
+    };
+    const existing = providerStatsList.find((s) => s.provider === "google-news-rss");
+    if (existing) Object.assign(existing, extra);
+    else providerStatsList.push({ provider: "google-news-rss", results: 0, israeliSources: 0, ...extra });
+  }
+
   return {
     items: [...byUrl.values()],
     queriesRun,
@@ -230,6 +281,6 @@ export async function fetchPoolNews(
     // from emptyQueries/queriesRun alone, both of which only ever count entries that
     // actually hit a provider this run, so a cache hit affects neither side.
     quotaLikely: queriesRun > 0 && emptyQueries === queriesRun,
-    providerStats: [...providerStats.values()],
+    providerStats: providerStatsList,
   };
 }
