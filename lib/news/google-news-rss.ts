@@ -68,11 +68,19 @@ const RESOLVE_CONCURRENCY = 5;
  * Hard ceiling on how many items get a resolution ATTEMPT per fetchGoogleNewsRss call,
  * independent of opts.max. A feed can carry up to ~100 <item> blocks; resolving all of
  * them would turn one "free" provider call into up to 200 requests per query, which does
- * not scale across a pool of dozens of queries. Set above the common opts.max (25) so the
- * downstream day-filter still has slack to find `max` fresh items after some attempts
- * fail or land outside the window.
+ * not scale across a pool of dozens of queries.
  */
 const RESOLVE_CAP = 40;
+/**
+ * Extra candidates resolved beyond `max`, to absorb individual resolution failures
+ * (a dead token, a timeout) without the final count coming up short. Date-window
+ * rejects no longer need slack of their own — pubDateRaw is checked BEFORE resolving
+ * (see fetchGoogleNewsRssWithStats), so a stale item is never attempted at all rather
+ * than being resolved and then discarded. Reviewer-measured before this change: 8/40
+ * resolved items (20%) were outside the window and wasted; this constant now covers
+ * only the (empirically much smaller) resolution-failure rate.
+ */
+const RESOLVE_SLACK = 10;
 
 /** Below this many attempted items, a low resolved-fraction is not a meaningful sample —
  *  a single genuinely-quiet query should not trip the mass-drop alarm. */
@@ -353,7 +361,23 @@ export async function fetchGoogleNewsRssWithStats(
     const now = new Date();
 
     const rawItems = extractItems(xml);
-    const toResolve = rawItems.slice(0, RESOLVE_CAP);
+
+    // Date-filter BEFORE resolving, using pubDateRaw straight off the feed — a stale (or,
+    // when a window is requested, undated) item is never given a resolution attempt at
+    // all, rather than being resolved and then discarded. Reviewer-measured before this
+    // change: only 32/40 resolved items were actually in-window, so ~20% of resolution
+    // requests (2 HTTP calls each) were pure waste, and stale items already scanned could
+    // crowd out fresher ones further down the feed before RESOLVE_CAP was reached. This
+    // scans the WHOLE feed for in-window candidates first, so that no longer happens.
+    const cutoffMs = opts.days != null ? now.getTime() - opts.days * 86_400_000 : null;
+    const candidates = rawItems.filter((raw) => {
+      if (cutoffMs == null) return true;
+      const ms = Date.parse(raw.pubDateRaw);
+      return !Number.isNaN(ms) && ms >= cutoffMs;
+    });
+    // RESOLVE_SLACK covers individual resolution failures only now — date rejects are
+    // already excluded above and cost nothing.
+    const toResolve = candidates.slice(0, Math.min(RESOLVE_CAP, max + RESOLVE_SLACK));
 
     const resolved = await mapWithConcurrency(toResolve, RESOLVE_CONCURRENCY, async (raw): Promise<NewsResult | null> => {
       if (!raw.token) return null;
@@ -369,13 +393,10 @@ export async function fetchGoogleNewsRssWithStats(
       };
     });
 
+    // Every candidate here already passed the date filter above, so nothing further to
+    // exclude on that basis — just trim the RESOLVE_SLACK overshoot down to `max`.
     let items = resolved.filter((r): r is NewsResult => r !== null);
     const itemsResolved = items.length;
-
-    if (opts.days != null) {
-      const cutoff = now.getTime() - opts.days * 86_400_000;
-      items = items.filter((r) => r.publishedAt != null && Date.parse(r.publishedAt) >= cutoff);
-    }
     items = items.slice(0, max);
 
     const itemsSeen = rawItems.length;
