@@ -40,13 +40,25 @@ export const GET = withTenant(async (req: NextRequest, ctx) => {
           ownerId: ctx.effectiveUserId,
           removedAt: null,
           linkedinUrl: { not: "" },
-          // Prisma's `NOT` excludes NULLs here: measured against the dev DB, `NOT:
-          // { postWatchEnabled: true }` matched 0 of 16,250 contacts while this OR form
-          // matched all 16,250. postWatchEnabled is Boolean? with no default, so every
-          // never-toggled contact is null — it MUST be included or the picker is empty
-          // forever. Do not "simplify" this back to NOT.
-          OR: [{ postWatchEnabled: false }, { postWatchEnabled: null }],
-          fullName: { contains: q, mode: "insensitive" },
+          // Two independent OR groups, nested under an explicit AND so neither
+          // overwrites the other (a second top-level `OR` key would clobber the first).
+          AND: [
+            // Prisma's `NOT` excludes NULLs here: measured against the dev DB, `NOT:
+            // { postWatchEnabled: true }` matched 0 of 16,250 contacts while this OR form
+            // matched all 16,250. postWatchEnabled is Boolean? with no default, so every
+            // never-toggled contact is null — it MUST be included or the picker is empty
+            // forever. Do not "simplify" this back to NOT.
+            { OR: [{ postWatchEnabled: false }, { postWatchEnabled: null }] },
+            // "Who do I know at company X" is as natural an entry point as a name, and
+            // currentTitle/currentCompany are already fetched + shown on each result row.
+            {
+              OR: [
+                { fullName: { contains: q, mode: "insensitive" } },
+                { currentTitle: { contains: q, mode: "insensitive" } },
+                { currentCompany: { contains: q, mode: "insensitive" } },
+              ],
+            },
+          ],
         },
         select: PERSON_SELECT,
         orderBy: { fullName: "asc" },
@@ -73,7 +85,11 @@ export const PATCH = withTenant(async (req: NextRequest, ctx) => {
   }
 
   const updated = await prisma.contact.updateMany({
-    where: { id: contactId, ownerId: ctx.effectiveUserId, removedAt: null },
+    // linkedinUrl: { not: "" } — a contact with no LinkedIn URL can never be scraped
+    // (dispatchPostScrapes filters it out), so watching one via the API would silently
+    // create a chip that does nothing forever. Reject it the same way a foreign or
+    // removed contact is rejected: count 0 -> 404.
+    where: { id: contactId, ownerId: ctx.effectiveUserId, removedAt: null, linkedinUrl: { not: "" } },
     data: {
       postWatchEnabled: body.value,
       postWatchAddedAt: body.value ? new Date() : null,

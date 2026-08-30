@@ -131,16 +131,34 @@ describe("PATCH /api/post-comments/[id]", () => {
     });
   });
 
-  it("dismisses regardless of current status and records the reason", async () => {
+  it("dismisses a not-yet-sent draft (guarded updateMany excluding SENT) and records the reason", async () => {
     mockDraftFindFirst.mockResolvedValue(DRAFT);
+    mockDraftUpdateMany.mockResolvedValue({ count: 1 });
 
     const { PATCH } = await import("@/app/api/post-comments/[id]/route");
     const res = await PATCH(patchReq("draft1", { action: "dismiss", reason: "not_relevant" }));
 
     expect(res.status).toBe(200);
-    expect(mockDraftUpdate).toHaveBeenCalledWith({
-      where: { id: "draft1" },
+    expect(mockDraftUpdateMany).toHaveBeenCalledWith({
+      where: { id: "draft1", status: { not: "SENT" } },
       data: { status: "DISMISSED", dismissReason: "not_relevant" },
     });
+  });
+
+  // 2026-08-30 fix wave #1: dismiss must never overwrite a SENT draft — that would erase
+  // the record that a comment was actually sent. Not reachable from the UI, but reachable
+  // via the API directly.
+  it("409s on dismiss when the draft is already SENT, and leaves it untouched", async () => {
+    mockDraftFindFirst.mockResolvedValue(DRAFT);
+    // Simulates the real DB behavior: the guarded WHERE (status: { not: "SENT" })
+    // matches zero rows for an already-sent draft.
+    mockDraftUpdateMany.mockResolvedValue({ count: 0 });
+
+    const { PATCH } = await import("@/app/api/post-comments/[id]/route");
+    const res = await PATCH(patchReq("draft1", { action: "dismiss", reason: "not_relevant" }));
+
+    expect(res.status).toBe(409);
+    const json = await res.json();
+    expect(json.error).toBe("already_sent");
   });
 });

@@ -56,7 +56,9 @@ describe("GET /api/post-comments/people", () => {
   // Boolean? with no default — every never-toggled contact is null. That silently made
   // the picker's search return nothing, forever. This pins the query shape so a future
   // "simplification" back to NOT fails loudly here instead of shipping silently broken.
-  it("scopes the `matches` search query to this owner AND includes null postWatchEnabled via OR, not NOT", async () => {
+  // The postWatchEnabled OR pair now lives nested inside an explicit top-level `AND`
+  // (2026-08-30 fix wave #1) alongside the search OR, so both groups are pinned together.
+  it("scopes the `matches` search query to this owner AND includes null postWatchEnabled via a nested OR, not NOT", async () => {
     const { GET } = await import("@/app/api/post-comments/people/route");
     await GET(getReq("dana"));
 
@@ -64,8 +66,28 @@ describe("GET /api/post-comments/people", () => {
     expect(mockContactFindMany).toHaveBeenCalledTimes(2);
     const matchesCall = mockContactFindMany.mock.calls[1][0];
     expect(matchesCall.where.ownerId).toBe("user1");
-    expect(matchesCall.where.OR).toEqual([{ postWatchEnabled: false }, { postWatchEnabled: null }]);
     expect(matchesCall.where.NOT).toBeUndefined();
+    expect(matchesCall.where.OR).toBeUndefined(); // must not sit at the top level — see nested AND
+    expect(matchesCall.where.AND).toContainEqual({
+      OR: [{ postWatchEnabled: false }, { postWatchEnabled: null }],
+    });
+  });
+
+  // 2026-08-30 fix wave #1: the UI's placeholder promises "name, title, or company" but
+  // the query only matched fullName, so a company-name search dead-ended at "no results"
+  // for a person who could in fact be followed. Pins that the search OR covers all three.
+  it("matches the search term against fullName, currentTitle, and currentCompany", async () => {
+    const { GET } = await import("@/app/api/post-comments/people/route");
+    await GET(getReq("fintech"));
+
+    const matchesCall = mockContactFindMany.mock.calls[1][0];
+    expect(matchesCall.where.AND).toContainEqual({
+      OR: [
+        { fullName: { contains: "fintech", mode: "insensitive" } },
+        { currentTitle: { contains: "fintech", mode: "insensitive" } },
+        { currentCompany: { contains: "fintech", mode: "insensitive" } },
+      ],
+    });
   });
 
   it("does not run the matches query at all when q is empty", async () => {
@@ -92,9 +114,26 @@ describe("PATCH /api/post-comments/people", () => {
 
     expect(res.status).toBe(404);
     expect(mockContactUpdateMany).toHaveBeenCalledWith({
-      where: { id: "someone-elses-contact", ownerId: "user1", removedAt: null },
+      where: { id: "someone-elses-contact", ownerId: "user1", removedAt: null, linkedinUrl: { not: "" } },
       data: expect.objectContaining({ postWatchEnabled: true }),
     });
+    expect(mockDispatchPostScrapes).not.toHaveBeenCalled();
+  });
+
+  // 2026-08-30 fix wave #1: a contact with no LinkedIn URL can never be scraped
+  // (dispatchPostScrapes filters it out), so the API must not let one be watched.
+  it("404s when the contact has no linkedinUrl, without dispatching a scrape", async () => {
+    // Simulates the real DB behavior: the updateMany's WHERE now requires a non-empty
+    // linkedinUrl, so a contact with "" matches zero rows.
+    mockContactUpdateMany.mockResolvedValue({ count: 0 });
+
+    const { PATCH } = await import("@/app/api/post-comments/people/route");
+    const res = await PATCH(patchReq({ contactId: "no-linkedin-contact", value: true }));
+
+    expect(res.status).toBe(404);
+    expect(mockContactUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ linkedinUrl: { not: "" } }) })
+    );
     expect(mockDispatchPostScrapes).not.toHaveBeenCalled();
   });
 

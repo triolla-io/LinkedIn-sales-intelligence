@@ -77,10 +77,16 @@ export const PATCH = withTenant(async (req: NextRequest, ctx) => {
   }
 
   if (body.action === "dismiss") {
-    await prisma.postCommentDraft.update({
-      where: { id: draft.id },
+    // Guarded like every other transition: a draft already SENT must never be
+    // overwritten to DISMISSED — that would erase the record that a comment was
+    // actually sent.
+    const flipped = await prisma.postCommentDraft.updateMany({
+      where: { id: draft.id, status: { not: "SENT" } },
       data: { status: "DISMISSED", dismissReason: body.reason ?? null },
     });
+    if (flipped.count === 0) {
+      return NextResponse.json({ error: "already_sent" }, { status: 409 });
+    }
     return NextResponse.json({ ok: true });
   }
 
