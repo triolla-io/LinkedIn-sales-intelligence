@@ -40,7 +40,12 @@ export const GET = withTenant(async (req: NextRequest, ctx) => {
           ownerId: ctx.effectiveUserId,
           removedAt: null,
           linkedinUrl: { not: "" },
-          NOT: { postWatchEnabled: true },
+          // Prisma's `NOT` excludes NULLs here: measured against the dev DB, `NOT:
+          // { postWatchEnabled: true }` matched 0 of 16,250 contacts while this OR form
+          // matched all 16,250. postWatchEnabled is Boolean? with no default, so every
+          // never-toggled contact is null — it MUST be included or the picker is empty
+          // forever. Do not "simplify" this back to NOT.
+          OR: [{ postWatchEnabled: false }, { postWatchEnabled: null }],
           fullName: { contains: q, mode: "insensitive" },
         },
         select: PERSON_SELECT,
