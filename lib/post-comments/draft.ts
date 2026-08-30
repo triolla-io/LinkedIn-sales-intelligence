@@ -25,7 +25,9 @@ export const COMMENT_SYSTEM = `אתה כותב תגובה קצרה לפוסט ב
 
 החזר JSON בלבד: {"comment": "..."}`;
 
-const BANNED_WORDS = ["ברצוני", "לרגל", "אנו ", "מרגש", "מדהים", "פנטסטי", "גאים"];
+const BANNED_WORDS = ["ברצוני", "לרגל", "אנו", "מרגש", "מדהים", "פנטסטי", "גאים"];
+// JS \b is useless for Hebrew (Hebrew letters are not \w), so bound on "not a letter".
+const BANNED_RE = new RegExp(`(?<!\\p{L})(?:${BANNED_WORDS.join("|")})(?!\\p{L})`, "u");
 const EMOJI_RE = /\p{Extended_Pictographic}/u;
 
 export function enforceCommentRules(comment: string): string[] {
@@ -34,7 +36,7 @@ export function enforceCommentRules(comment: string): string[] {
   if (EMOJI_RE.test(comment)) violations.push("emoji");
   if ((comment.match(/!/g) ?? []).length > 1) violations.push("exclamations");
   if (/https?:\/\/|www\./i.test(comment)) violations.push("url");
-  if (BANNED_WORDS.some((w) => comment.includes(w))) violations.push("banned_word");
+  if (BANNED_RE.test(comment)) violations.push("banned_word");
   if (!comment.trim()) violations.push("empty");
   return violations;
 }

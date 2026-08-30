@@ -23,6 +23,16 @@ describe("enforceCommentRules", () => {
   it("rejects urls and pitches", () => {
     expect(enforceCommentRules("מזכיר את מה שעשינו ב https://triolla.io")).toContain("url");
   });
+  it("does not flag a banned word inside an unrelated word (substring false positive)", () => {
+    expect(enforceCommentRules("כואב לי לרגליים אחרי הריצה")).not.toContain("banned_word");
+  });
+  it("still catches the real idiom as a whole word", () => {
+    expect(enforceCommentRules("לרגל השקת המוצר")).toContain("banned_word");
+  });
+  it("catches a banned word at end of string with punctuation or nothing after it", () => {
+    expect(enforceCommentRules("אנו.")).toContain("banned_word");
+    expect(enforceCommentRules("אנו")).toContain("banned_word");
+  });
 });
 
 describe("parseCommentJson", () => {
