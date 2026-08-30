@@ -137,6 +137,32 @@ describe("PATCH /api/post-comments/people", () => {
     expect(mockDispatchPostScrapes).not.toHaveBeenCalled();
   });
 
+  // 2026-08-30 correction: the linkedinUrl guard is asymmetric on purpose. Following a
+  // contact with no URL creates a watch that can never be scraped — reject it. But
+  // unfollowing must NEVER be blocked by it, or a contact that reached
+  // postWatchEnabled: true with an empty linkedinUrl (data drift, an import, a URL
+  // cleared later) becomes a watch the user can see but can never turn off, and the API
+  // would 404 as if the contact didn't exist. This test fails if the guard is ever made
+  // symmetric again (e.g. applied unconditionally regardless of body.value).
+  it("blocks following a contact with no linkedinUrl, but always allows unfollowing it", async () => {
+    const { PATCH } = await import("@/app/api/post-comments/people/route");
+
+    // Follow: the guarded WHERE includes linkedinUrl, and the DB reports 0 rows for an
+    // empty-URL contact — refused.
+    mockContactUpdateMany.mockResolvedValueOnce({ count: 0 });
+    const followRes = await PATCH(patchReq({ contactId: "no-linkedin-contact", value: true }));
+    expect(followRes.status).toBe(404);
+    expect(mockContactUpdateMany.mock.calls[0][0].where).toHaveProperty("linkedinUrl");
+
+    // Unfollow: the WHERE must NOT filter on linkedinUrl at all, so the same contact's
+    // existing (removedAt: null, ownerId-owned) row still matches and the toggle succeeds.
+    mockContactUpdateMany.mockResolvedValueOnce({ count: 1 });
+    const unfollowRes = await PATCH(patchReq({ contactId: "no-linkedin-contact", value: false }));
+    expect(unfollowRes.status).toBe(200);
+    expect(mockContactUpdateMany.mock.calls[1][0].where).not.toHaveProperty("linkedinUrl");
+    expect(mockDispatchPostScrapes).not.toHaveBeenCalled();
+  });
+
   it("rejects a non-boolean value at 400 without touching the database", async () => {
     const { PATCH } = await import("@/app/api/post-comments/people/route");
     const res = await PATCH(patchReq({ contactId: "c1", value: "yes" }));

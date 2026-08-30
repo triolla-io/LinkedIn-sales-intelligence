@@ -85,11 +85,18 @@ export const PATCH = withTenant(async (req: NextRequest, ctx) => {
   }
 
   const updated = await prisma.contact.updateMany({
-    // linkedinUrl: { not: "" } — a contact with no LinkedIn URL can never be scraped
-    // (dispatchPostScrapes filters it out), so watching one via the API would silently
-    // create a chip that does nothing forever. Reject it the same way a foreign or
-    // removed contact is rejected: count 0 -> 404.
-    where: { id: contactId, ownerId: ctx.effectiveUserId, removedAt: null, linkedinUrl: { not: "" } },
+    where: {
+      id: contactId,
+      ownerId: ctx.effectiveUserId,
+      removedAt: null,
+      // Following a contact with no LinkedIn URL creates a watch the dispatch will
+      // always filter out — a chip that does nothing forever, so that path is rejected
+      // (count 0 -> 404) the same way a foreign or removed contact is. Unfollowing must
+      // NEVER be blocked by this: a contact whose watch is already on has to be
+      // removable no matter what its linkedinUrl looks like now, or a stuck watch
+      // (data drift, an import, a URL cleared later) becomes permanently un-removable.
+      ...(body.value ? { linkedinUrl: { not: "" } } : {}),
+    },
     data: {
       postWatchEnabled: body.value,
       postWatchAddedAt: body.value ? new Date() : null,
