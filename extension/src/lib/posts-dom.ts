@@ -28,8 +28,11 @@ const TIME_SELECTORS = [
 export function readRecentPosts(limit: number): {
   posts: Array<{ urn: string; text: string; postedAgoText: string | null }>;
 } {
-  const containers = deepQueryAll(
-    '[data-urn*="urn:li:activity"], [data-id*="urn:li:activity"]'
+  const matches = deepQueryAll('[data-urn*="urn:li:activity"], [data-id*="urn:li:activity"]');
+  // A repost nests the embedded original (its own activity urn) inside the reposter's
+  // container. Only the outermost container is the tracked person's own post.
+  const containers = matches.filter(
+    (el) => !matches.some((other) => other !== el && other.contains(el)),
   );
   const seen = new Set<string>();
   const posts: Array<{ urn: string; text: string; postedAgoText: string | null }> = [];
