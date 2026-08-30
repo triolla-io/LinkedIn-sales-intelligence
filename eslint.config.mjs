@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Committed build artifact, not our source — see vendor/pmbridge-react/README.md.
+    "vendor/**",
   ]),
 ]);
 
