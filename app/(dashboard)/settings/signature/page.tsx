@@ -51,12 +51,12 @@ export default function SignatureSettingsPage() {
 
   return (
     <div className="p-8 max-w-3xl">
-      <h1 className="text-2xl font-semibold text-[#111110] tracking-tight">חתימת אימייל</h1>
-      <p className="text-sm text-[#6b6866] mt-1 mb-6">
+      <h1 className="text-2xl font-semibold text-[var(--foreground)] tracking-tight">חתימת אימייל</h1>
+      <p className="text-sm text-[var(--muted)] mt-1 mb-6">
         העתק את החתימה שלך מ-Gmail (כולל לוגו ואייקונים) והדבק אותה כאן. החתימה תתווסף אוטומטית לכל אימייל פנייה.
       </p>
 
-      <label htmlFor="signature-editor" className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
+      <label htmlFor="signature-editor" className="block text-[11px] font-semibold text-[var(--faint)] uppercase tracking-widest mb-2">
         החתימה שלך
       </label>
       <div
@@ -66,14 +66,14 @@ export default function SignatureSettingsPage() {
         suppressContentEditableWarning
         onInput={onInput}
         dir="auto"
-        className="min-h-32 w-full bg-white border border-[#e5e3df] rounded-lg px-4 py-3 focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+        className="min-h-32 w-full bg-surface border border-[var(--line)] rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/20 transition-colors"
         style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: "14px", lineHeight: 1.5, color: "#222222" }}
       />
 
-      <label htmlFor="signature-preview" className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mt-6 mb-2">
+      <label htmlFor="signature-preview" className="block text-[11px] font-semibold text-[var(--faint)] uppercase tracking-widest mt-6 mb-2">
         תצוגה מקדימה
       </label>
-      <div id="signature-preview" className="border border-[#e5e3df] rounded-lg px-4 py-3 bg-[#fafaf9]">
+      <div id="signature-preview" className="border border-[var(--line)] rounded-lg px-4 py-3 bg-[var(--surface-secondary)]">
         <div
           dir="auto"
           style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: "14px", lineHeight: 1.5, color: "#222222" }}
@@ -82,7 +82,7 @@ export default function SignatureSettingsPage() {
       </div>
 
       {state.error && (
-        <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg border border-red-200 mt-4">{state.error}</p>
+        <p className="text-xs text-[var(--danger)] bg-[var(--danger-soft)] px-3 py-2 rounded-lg border border-[var(--danger)]/30 mt-4">{state.error}</p>
       )}
 
       <div className="flex items-center gap-3 mt-5">
@@ -90,12 +90,12 @@ export default function SignatureSettingsPage() {
           type="button"
           onClick={save}
           disabled={state.saving || state.loading}
-          className="flex items-center gap-2 px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0a70e0] disabled:opacity-60 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white text-sm font-medium rounded-lg hover:bg-[var(--accent-strong)] disabled:opacity-60 transition-colors"
         >
           {state.saving ? <RefreshCw className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
           שמור חתימה
         </button>
-        {state.saved && <span className="text-xs text-green-600">נשמר ✓</span>}
+        {state.saved && <span className="text-xs text-[var(--success)]">נשמר ✓</span>}
       </div>
     </div>
   );

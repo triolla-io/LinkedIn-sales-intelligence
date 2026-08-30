@@ -91,9 +91,9 @@ const STATUS_LABEL: Record<CompanyStatus, string> = {
   RESEARCH_FAILED: "המחקר נכשל",
 };
 const STATUS_CLASS: Record<CompanyStatus, string> = {
-  PENDING_RESEARCH: "bg-[#fffbeb] text-[#b45309] border-[#fde68a]",
-  ACTIVE: "bg-[#ecfdf5] text-[#059669] border-[#a7f3d0]",
-  RESEARCH_FAILED: "bg-[#fef2f2] text-[#b91c1c] border-[#fecaca]",
+  PENDING_RESEARCH: "bg-[var(--warning-soft)] text-[var(--warning)] border-[var(--warning-soft)]",
+  ACTIVE: "bg-[var(--success-soft)] text-[var(--success)] border-[var(--success-soft)]",
+  RESEARCH_FAILED: "bg-[var(--danger-soft)] text-[var(--danger)] border-[var(--danger-soft)]",
 };
 
 /**
@@ -126,7 +126,7 @@ export function TechRadarModuleSwitch() {
   const on = modules.techRadarEnabled ?? false;
   return (
     <div className="flex items-center gap-2" dir="rtl">
-      <span className={cn("text-xs font-medium", on ? "text-[#059669]" : "text-[#b45309]")}>
+      <span className={cn("text-xs font-medium", on ? "text-[var(--success)]" : "text-[var(--warning)]")}>
         {on ? "המודול פעיל" : "המודול כבוי"}
       </span>
       <Switch
@@ -158,7 +158,7 @@ export function TechRadarClient() {
   return (
     <div className="flex-1 p-5 flex flex-col gap-5" dir="rtl">
       {modules && !radarOn && (
-        <div className="px-4 py-2.5 rounded-lg bg-[#fffbeb] border border-[#fde68a] text-xs text-[#b45309]">
+        <div className="px-4 py-2.5 rounded-lg bg-[var(--warning-soft)] border border-[var(--warning-soft)] text-xs text-[var(--warning)]">
           הסריקה השבועית מושבתת. אפשר להוסיף חברות ולערוך את הרשימה — הן ייסרקו כשהמודול יופעל.
         </div>
       )}
@@ -173,19 +173,19 @@ export function TechRadarClient() {
           30s, so a transient failure would otherwise quietly rewrite the screen into a
           statement about the data that happens to be false. */}
       {error && !data ? (
-        <p className="text-sm text-[#b42318] flex items-center gap-1.5" role="alert">
+        <p className="text-sm text-[var(--danger)] flex items-center gap-1.5" role="alert">
           <AlertTriangle className="size-4 shrink-0" aria-hidden />
           {fetchErrorMessage(error)}
         </p>
       ) : isLoading ? (
-        <div className="flex items-center gap-2 text-[#9b9895]">
+        <div className="flex items-center gap-2 text-[var(--faint)]">
           <Loader2 className="size-4 animate-spin" /> טוען…
         </div>
       ) : companies.length === 0 ? (
-        <p className="text-[#9b9895] text-sm">אין חברות במעקב. הוסף חברה כדי להתחיל.</p>
+        <p className="text-[var(--faint)] text-sm">אין חברות במעקב. הוסף חברה כדי להתחיל.</p>
       ) : (
         <>
-          <div className="text-xs text-[#9b9895]">
+          <div className="text-xs text-[var(--faint)]">
             {companies.length} חברות · {totalOpportunities} הזדמנויות
           </div>
           <ul className="flex flex-col gap-4">
@@ -350,14 +350,14 @@ function CompanyCard({ company, onChanged }: { company: Company; onChanged: () =
   return (
     <li className={cn(ui.card, "overflow-hidden")}>
       {/* ── Company header ─────────────────────────────────────────── */}
-      <div className="p-4 border-b border-[#f0efec] flex items-center gap-3 flex-wrap">
-        <h3 className="text-base font-semibold text-[#1a1917]">{company.name}</h3>
+      <div className="p-4 border-b border-[var(--separator)] flex items-center gap-3 flex-wrap">
+        <h3 className="text-base font-semibold text-[var(--ink-strong)]">{company.name}</h3>
 
         <span className={cn("px-2 py-0.5 rounded-full text-[11px] font-medium border", STATUS_CLASS[company.status])}>
           {STATUS_LABEL[company.status]}
         </span>
 
-        <span className="text-xs text-[#9b9895]">
+        <span className="text-xs text-[var(--faint)]">
           {company.opportunities.length} הזדמנויות
         </span>
 
@@ -368,7 +368,7 @@ function CompanyCard({ company, onChanged }: { company: Company; onChanged: () =
         )}
 
         {company.lastScanAt && (
-          <span className="text-xs text-[#9b9895]">נסרק {dateLabel(company.lastScanAt)}</span>
+          <span className="text-xs text-[var(--faint)]">נסרק {dateLabel(company.lastScanAt)}</span>
         )}
 
         <div className="ms-auto flex items-center gap-1">
@@ -404,7 +404,7 @@ function CompanyCard({ company, onChanged }: { company: Company; onChanged: () =
       </div>
 
       {company.status === "RESEARCH_FAILED" && company.profileError && (
-        <div className="mx-4 mt-3 px-3 py-2 rounded-lg bg-[#fef2f2] border border-[#fecaca] text-xs text-[#b91c1c] flex items-start gap-1.5">
+        <div className="mx-4 mt-3 px-3 py-2 rounded-lg bg-[var(--danger-soft)] border border-[var(--danger-soft)] text-xs text-[var(--danger)] flex items-start gap-1.5">
           <AlertTriangle className="size-3.5 shrink-0 mt-0.5" />
           <span>{company.profileError}</span>
         </div>
@@ -419,7 +419,7 @@ function CompanyCard({ company, onChanged }: { company: Company; onChanged: () =
       {/* ── This company's opportunities ───────────────────────────── */}
       <div className="p-4">
         {company.opportunities.length === 0 ? (
-          <p className="text-sm text-[#9b9895]">
+          <p className="text-sm text-[var(--faint)]">
             {company.status === "ACTIVE"
               ? "אין הזדמנויות לחברה הזאת כרגע. הסריקה רצה פעם בשבוע."
               : "אין הזדמנויות עד שהמחקר יסתיים."}
@@ -445,38 +445,38 @@ function ProfilePanel({ company }: { company: Company }) {
   const p = company.profile;
   if (!p) {
     return (
-      <div className="rounded-lg border border-[#e7e4dd] bg-[#faf9f7] p-3 text-xs text-[#9b9895]">
+      <div className="rounded-lg border border-[var(--line)] bg-[var(--surface-secondary)] p-3 text-xs text-[var(--faint)]">
         אין עדיין פרופיל לחברה הזאת.
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border border-[#e7e4dd] bg-[#faf9f7] p-3 flex flex-col gap-3 text-sm">
+    <div className="rounded-lg border border-[var(--line)] bg-[var(--surface-secondary)] p-3 flex flex-col gap-3 text-sm">
       <div className="flex items-center gap-2 flex-wrap text-xs">
         <span
           className={cn(
             "px-2 py-0.5 rounded-full font-medium border",
             p.sources.length >= 4
-              ? "bg-[#ecfdf5] text-[#059669] border-[#a7f3d0]"
-              : "bg-[#fffbeb] text-[#b45309] border-[#fde68a]"
+              ? "bg-[var(--success-soft)] text-[var(--success)] border-[var(--success-soft)]"
+              : "bg-[var(--warning-soft)] text-[var(--warning)] border-[var(--warning-soft)]"
           )}
         >
           נבנה מ-{p.sources.length} מקורות
         </span>
         {company.researchedAt && (
-          <span className="text-[#9b9895]">נחקר ב-{dateLabel(company.researchedAt)}</span>
+          <span className="text-[var(--faint)]">נחקר ב-{dateLabel(company.researchedAt)}</span>
         )}
       </div>
 
       {p.businessLines.length > 0 && (
         <div>
-          <h4 className="text-xs font-medium text-[#6b6866] mb-1">קווי עסקים</h4>
+          <h4 className="text-xs font-medium text-[var(--muted)] mb-1">קווי עסקים</h4>
           <ul className="flex flex-col gap-0.5">
             {p.businessLines.map((b) => (
-              <li key={b.name} className="text-[#1a1917]">
+              <li key={b.name} className="text-[var(--ink-strong)]">
                 <span className="font-medium">{b.name}</span>
-                {b.description && <span className="text-[#6b6866]"> — {b.description}</span>}
+                {b.description && <span className="text-[var(--muted)]"> — {b.description}</span>}
               </li>
             ))}
           </ul>
@@ -485,12 +485,12 @@ function ProfilePanel({ company }: { company: Company }) {
 
       {p.focusAreas.length > 0 && (
         <div>
-          <h4 className="text-xs font-medium text-[#6b6866] mb-1">תחומי מיקוד</h4>
+          <h4 className="text-xs font-medium text-[var(--muted)] mb-1">תחומי מיקוד</h4>
           <ul className="flex flex-col gap-0.5">
             {p.focusAreas.map((f) => (
-              <li key={f.area} className="text-[#1a1917]">
+              <li key={f.area} className="text-[var(--ink-strong)]">
                 <span className="font-medium">{f.area}</span>
-                {f.why && <span className="text-[#6b6866]"> — {f.why}</span>}
+                {f.why && <span className="text-[var(--muted)]"> — {f.why}</span>}
               </li>
             ))}
           </ul>
@@ -501,13 +501,13 @@ function ProfilePanel({ company }: { company: Company }) {
         <div className="flex flex-col gap-2">
           {p.products.length > 0 && (
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs font-medium text-[#6b6866]">מוצרים:</span>
+              <span className="text-xs font-medium text-[var(--muted)]">מוצרים:</span>
               {p.products.map((x) => <span key={x} className={ui.chip}>{x}</span>)}
             </div>
           )}
           {p.techStack.length > 0 && (
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs font-medium text-[#6b6866]">סטאק קיים:</span>
+              <span className="text-xs font-medium text-[var(--muted)]">סטאק קיים:</span>
               {p.techStack.map((x) => <span key={x} className={ui.chip}>{x}</span>)}
             </div>
           )}
@@ -516,8 +516,8 @@ function ProfilePanel({ company }: { company: Company }) {
 
       {p.searchQueries.length > 0 && (
         <div>
-          <h4 className="text-xs font-medium text-[#6b6866] mb-1">שאילתות החיפוש שנגזרו</h4>
-          <ul className="flex flex-col gap-0.5 font-mono text-xs text-[#6b6866]" dir="ltr">
+          <h4 className="text-xs font-medium text-[var(--muted)] mb-1">שאילתות החיפוש שנגזרו</h4>
+          <ul className="flex flex-col gap-0.5 font-mono text-xs text-[var(--muted)]" dir="ltr">
             {p.searchQueries.map((q) => <li key={q}>{q}</li>)}
           </ul>
         </div>
@@ -525,12 +525,12 @@ function ProfilePanel({ company }: { company: Company }) {
 
       {p.sources.length > 0 && (
         <div>
-          <h4 className="text-xs font-medium text-[#6b6866] mb-1">מה נקרא בפועל</h4>
+          <h4 className="text-xs font-medium text-[var(--muted)] mb-1">מה נקרא בפועל</h4>
           <ul className="flex flex-col gap-0.5 text-xs">
             {p.sources.map((s) => (
               <li key={s.url}>
                 <a href={s.url} target="_blank" rel="noreferrer"
-                  className="text-[#1585ff] hover:underline inline-flex items-center gap-1">
+                  className="text-[var(--accent)] hover:underline inline-flex items-center gap-1">
                   {s.title || hostLabel(s.url)}
                   <ExternalLink className="size-3 shrink-0" />
                 </a>
@@ -548,43 +548,43 @@ function OpportunityRow({ opportunity, onChanged }: { opportunity: Opportunity; 
   const sources = (item.sources ?? []).filter((s): s is { url: string; title?: string } => !!s?.url);
 
   return (
-    <li className="rounded-lg border border-[#e7e4dd] bg-white p-3 flex flex-col gap-2">
+    <li className="rounded-lg border border-[var(--line)] bg-surface p-3 flex flex-col gap-2">
       <div className="flex items-start gap-2 flex-wrap">
-        <Radar className="size-4 text-[#1585ff] shrink-0 mt-0.5" />
+        <Radar className="size-4 text-[var(--accent)] shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-[#1a1917]">
+          <h4 className="font-semibold text-[var(--ink-strong)]">
             {item.technology}
-            {item.vendor && <span className="text-[#6b6866] font-normal"> · {item.vendor}</span>}
+            {item.vendor && <span className="text-[var(--muted)] font-normal"> · {item.vendor}</span>}
           </h4>
-          <p className="text-xs text-[#9b9895] mt-0.5">{item.title}</p>
+          <p className="text-xs text-[var(--faint)] mt-0.5">{item.title}</p>
         </div>
       </div>
 
-      <p className="text-sm text-[#6b6866]">{item.summary}</p>
+      <p className="text-sm text-[var(--muted)]">{item.summary}</p>
 
       {/* The rationale is what justifies the outreach, so it is the visual anchor —
           and it is exactly what the drafted message is built from. */}
-      <div className="rounded-lg border-s-[3px] border-s-[#1585ff] bg-[#1585ff]/[0.04] px-3 py-2">
-        <span className="block text-[11px] font-medium text-[#1585ff] mb-0.5">למה זה מתאים להם</span>
-        <p className="text-sm font-medium text-[#1a1917]">{opportunity.fitRationale}</p>
+      <div className="rounded-lg border-s-[3px] border-s-[var(--accent)] bg-[var(--accent)]/[0.04] px-3 py-2">
+        <span className="block text-[11px] font-medium text-[var(--accent)] mb-0.5">למה זה מתאים להם</span>
+        <p className="text-sm font-medium text-[var(--ink-strong)]">{opportunity.fitRationale}</p>
       </div>
 
       <div className="flex items-center gap-1.5 flex-wrap">
         {opportunity.businessLine && (
-          <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#1585ff]/10 text-[#1585ff] font-medium">
+          <span className="text-[11px] px-2 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] font-medium">
             {opportunity.businessLine}
           </span>
         )}
         {item.categories.map((c) => <span key={c} className={ui.chip} dir="ltr">{c}</span>)}
         {item.thin && (
-          <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
+          <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-[var(--warning-soft)] text-[var(--warning)] border border-[var(--warning-soft)]">
             <AlertTriangle className="size-3" />
             מבוסס תקציר בלבד
           </span>
         )}
         {sources.map((s) => (
           <a key={s.url} href={s.url} target="_blank" rel="noreferrer"
-            className="inline-flex items-center gap-1 text-[11px] text-[#1585ff] hover:underline">
+            className="inline-flex items-center gap-1 text-[11px] text-[var(--accent)] hover:underline">
             {s.title || hostLabel(s.url)}
             <ExternalLink className="size-3 shrink-0" />
           </a>
@@ -594,14 +594,14 @@ function OpportunityRow({ opportunity, onChanged }: { opportunity: Opportunity; 
       {opportunity.drafts.length === 0 ? (
         /* A gap is more useful as the next action than as a dead end, so it carries a
            recommendation of which role to go after. */
-        <div className="text-xs text-[#b45309] bg-[#fffbeb] border border-[#fde68a] rounded-lg px-3 py-2 flex flex-col gap-1">
+        <div className="text-xs text-[var(--warning)] bg-[var(--warning-soft)] border border-[var(--warning-soft)] rounded-lg px-3 py-2 flex flex-col gap-1">
           <span className="flex items-center gap-1.5 font-medium">
             <UserX className="size-3.5 shrink-0" />
             אין למי לפנות
             {opportunity.blockReason ? ` — ${BLOCK_LABEL[opportunity.blockReason]}` : ""}
           </span>
           {opportunity.contactSuggestion && (
-            <span className="text-[#8a5a1a]">{opportunity.contactSuggestion}</span>
+            <span className="text-[var(--warning)]">{opportunity.contactSuggestion}</span>
           )}
         </div>
       ) : (
@@ -685,12 +685,12 @@ function DraftPanel({ draft, onChanged }: { draft: Draft; onChanged: () => void 
   const channels = availableChannels(draft.contact);
 
   return (
-    <div className="rounded-lg border border-[#e7e4dd] bg-[#faf9f7] p-3 flex flex-col gap-2">
-      <div className="text-sm text-[#1a1917]">
+    <div className="rounded-lg border border-[var(--line)] bg-[var(--surface-secondary)] p-3 flex flex-col gap-2">
+      <div className="text-sm text-[var(--ink-strong)]">
         אל:{" "}
         {draft.contact.linkedinUrl ? (
           <a href={draft.contact.linkedinUrl} target="_blank" rel="noreferrer"
-            className="font-medium text-[#1585ff] hover:underline">
+            className="font-medium text-[var(--accent)] hover:underline">
             {draft.contact.fullName}
           </a>
         ) : (
@@ -701,16 +701,16 @@ function DraftPanel({ draft, onChanged }: { draft: Draft; onChanged: () => void 
 
       {draft.status !== "PENDING_REVIEW" ? (
         <>
-          <div className="rounded-md border border-[#e7e4dd] bg-white p-3">
-            <p className="text-sm text-[#1a1917] whitespace-pre-wrap">{draft.draftMessage}</p>
+          <div className="rounded-md border border-[var(--line)] bg-surface p-3">
+            <p className="text-sm text-[var(--ink-strong)] whitespace-pre-wrap">{draft.draftMessage}</p>
           </div>
           {draft.status === "PREPARING" ? (
-            <div className="flex items-center gap-2 text-sm text-[#b45309]">
+            <div className="flex items-center gap-2 text-sm text-[var(--warning)]">
               <Loader2 className="size-4 animate-spin" />
               ההודעה בהכנה — טאב לינקדאין עם ההודעה מוקלדת ייפתח אצלך עוד רגע (ודא שהתוסף פעיל)
             </div>
           ) : (
-            <div className="text-sm text-[#059669]">הטיוטה מוכנה — לחץ שליחה שם וחזור לאשר כאן</div>
+            <div className="text-sm text-[var(--success)]">הטיוטה מוכנה — לחץ שליחה שם וחזור לאשר כאן</div>
           )}
           <div className="flex items-center gap-2 flex-wrap">
             <Button className={ui.btnPrimary} isDisabled={busy !== null}
@@ -731,7 +731,7 @@ function DraftPanel({ draft, onChanged }: { draft: Draft; onChanged: () => void 
 
           <div className="flex items-center gap-2 flex-wrap">
             {channels.length === 0 ? (
-              <span className="text-xs text-[#b45309]">אין ערוץ פנוי לאיש הקשר הזה</span>
+              <span className="text-xs text-[var(--warning)]">אין ערוץ פנוי לאיש הקשר הזה</span>
             ) : (
               channels.map((ch) => {
                 const Icon = CHANNEL_ICON[ch];

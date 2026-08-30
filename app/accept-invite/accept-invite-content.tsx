@@ -98,8 +98,8 @@ function InviteContentInner() {
   if (flowState.phase === "loading" || flowState.phase === "accepting") {
     return (
       <div className="flex flex-col items-center gap-3">
-        <RefreshCw className="size-8 text-[#1585ff] animate-spin" />
-        <p className="text-sm text-[#6b6866]">{flowState.phase === "accepting" ? "Setting up your account…" : "Loading…"}</p>
+        <RefreshCw className="size-8 text-[var(--accent)] animate-spin" />
+        <p className="text-sm text-[var(--muted)]">{flowState.phase === "accepting" ? "Setting up your account…" : "Loading…"}</p>
       </div>
     );
   }
@@ -107,8 +107,8 @@ function InviteContentInner() {
   if (flowState.phase === "error") {
     return (
       <div className="flex flex-col items-center gap-3 text-center">
-        <AlertCircle className="size-8 text-red-500" />
-        <p className="text-sm text-red-500">{flowState.errorMsg}</p>
+        <AlertCircle className="size-8 text-[var(--danger)]" />
+        <p className="text-sm text-[var(--danger)]">{flowState.errorMsg}</p>
       </div>
     );
   }
@@ -116,8 +116,8 @@ function InviteContentInner() {
   if (flowState.phase === "done") {
     return (
       <div className="flex flex-col items-center gap-3 text-center">
-        <CheckCircle className="size-8 text-emerald-500" />
-        <p className="text-sm text-emerald-600 font-medium">You&apos;re in! Redirecting…</p>
+        <CheckCircle className="size-8 text-[var(--success)]" />
+        <p className="text-sm text-[var(--success)] font-medium">You&apos;re in! Redirecting…</p>
       </div>
     );
   }
@@ -125,16 +125,16 @@ function InviteContentInner() {
   return (
     <div className="flex flex-col items-center gap-5 text-center">
       <div>
-        <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-1">Invitation</p>
-        <h1 className="text-xl font-semibold text-[#111110] mb-2">You&apos;ve been invited</h1>
-        <p className="text-sm text-[#6b6866]">
-          Sign in with <span className="text-[#1585ff] font-medium">{flowState.inviteEmail}</span> to accept.
+        <p className="text-xs font-mono text-[var(--faint)] uppercase tracking-widest mb-1">Invitation</p>
+        <h1 className="text-xl font-semibold text-[var(--foreground)] mb-2">You&apos;ve been invited</h1>
+        <p className="text-sm text-[var(--muted)]">
+          Sign in with <span className="text-[var(--accent)] font-medium">{flowState.inviteEmail}</span> to accept.
         </p>
       </div>
       <button
         type="button"
         onClick={() => signIn("google", { callbackUrl: `/accept-invite?token=${token}` })}
-        className="flex items-center gap-2.5 px-5 py-2.5 rounded-lg bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-all shadow border border-[#e5e3df]"
+        className="flex items-center gap-2.5 px-5 py-2.5 rounded-lg bg-surface text-[var(--muted)] text-sm font-medium hover:bg-[var(--surface-secondary)] transition-all shadow border border-[var(--line)]"
       >
         <svg className="size-4" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -144,7 +144,7 @@ function InviteContentInner() {
         </svg>
         Continue with Google
       </button>
-      <p className="text-xs text-[#9b9895]">Make sure to sign in with the email address that received this invite.</p>
+      <p className="text-xs text-[var(--faint)]">Make sure to sign in with the email address that received this invite.</p>
     </div>
   );
 }

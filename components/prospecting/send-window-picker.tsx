@@ -70,7 +70,7 @@ export function SendWindowPicker({
   if (compact) {
     return (
       <div dir="rtl" className="flex flex-col gap-1.5">
-        <span className="block text-xs font-medium text-[#6b6866]">ימי שליחה</span>
+        <span className="block text-xs font-medium text-[var(--muted)]">ימי שליחה</span>
         <div className="flex items-center gap-1.5 flex-wrap">
           <div className="flex gap-1" role="group" aria-label="ימי שליחה">
             {DAY_LETTERS_HE.map((letter, day) => {
@@ -85,8 +85,8 @@ export function SendWindowPicker({
                   onClick={() => toggleDay(day)}
                   className={`size-7 rounded-full text-[11px] font-medium transition-all ${
                     active
-                      ? `bg-[#1585ff] text-white shadow-sm ${isLast ? "cursor-default" : "hover:bg-[#0a70e0]"}`
-                      : "bg-[#f3f2ef] text-[#6b6866] hover:bg-[#e9e7e3] hover:text-[#111110]"
+                      ? `bg-[var(--accent)] text-white shadow-sm ${isLast ? "cursor-default" : "hover:bg-[var(--accent-strong)]"}`
+                      : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:bg-[var(--line)] hover:text-[var(--foreground)]"
                   }`}
                 >
                   {letter}
@@ -94,23 +94,23 @@ export function SendWindowPicker({
               );
             })}
           </div>
-          <span className="text-xs text-[#9b9895] mx-0.5">·</span>
+          <span className="text-xs text-[var(--faint)] mx-0.5">·</span>
           <select
             aria-label="שעת התחלה"
             value={start}
             onChange={(e) => onStartChange(Number(e.target.value))}
-            className="bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-1.5 py-1 text-xs text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+            className="bg-[var(--surface-secondary)] border border-[var(--line)] rounded-md px-1.5 py-1 text-xs text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)]/60 focus:bg-surface transition-colors"
           >
             {startOptions.map((mod) => (
               <option key={mod} value={mod}>{fmtMod(mod)}</option>
             ))}
           </select>
-          <span className="text-xs text-[#9b9895]">—</span>
+          <span className="text-xs text-[var(--faint)]">—</span>
           <select
             aria-label="שעת סיום"
             value={end}
             onChange={(e) => onEndChange(Number(e.target.value))}
-            className="bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-1.5 py-1 text-xs text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+            className="bg-[var(--surface-secondary)] border border-[var(--line)] rounded-md px-1.5 py-1 text-xs text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)]/60 focus:bg-surface transition-colors"
           >
             {endOptions.map((mod) => (
               <option key={mod} value={mod}>{fmtMod(mod)}</option>
@@ -124,7 +124,7 @@ export function SendWindowPicker({
   return (
     <div dir="rtl" className="space-y-2.5">
       <div>
-        <span className="block text-xs font-medium text-[#6b6866] mb-1.5">ימי שליחה</span>
+        <span className="block text-xs font-medium text-[var(--muted)] mb-1.5">ימי שליחה</span>
         <div className="flex gap-1.5" role="group" aria-label="ימי שליחה">
           {DAY_LETTERS_HE.map((letter, day) => {
             const active = sendDays.includes(day);
@@ -138,8 +138,8 @@ export function SendWindowPicker({
                 onClick={() => toggleDay(day)}
                 className={`size-8 rounded-full text-xs font-medium transition-all ${
                   active
-                    ? `bg-[#1585ff] text-white shadow-sm ${isLast ? "cursor-default" : "hover:bg-[#0a70e0]"}`
-                    : "bg-[#f3f2ef] text-[#6b6866] hover:bg-[#e9e7e3] hover:text-[#111110]"
+                    ? `bg-[var(--accent)] text-white shadow-sm ${isLast ? "cursor-default" : "hover:bg-[var(--accent-strong)]"}`
+                    : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:bg-[var(--line)] hover:text-[var(--foreground)]"
                 }`}
               >
                 {letter}
@@ -150,12 +150,12 @@ export function SendWindowPicker({
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium text-[#6b6866]">בין השעות</span>
+        <span className="text-xs font-medium text-[var(--muted)]">בין השעות</span>
         <select
           aria-label="שעת התחלה"
           value={start}
           onChange={(e) => onStartChange(Number(e.target.value))}
-          className="bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-2 py-1.5 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+          className="bg-[var(--surface-secondary)] border border-[var(--line)] rounded-md px-2 py-1.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)]/60 focus:bg-surface transition-colors"
         >
           {startOptions.map((mod) => (
             <option key={mod} value={mod}>
@@ -163,12 +163,12 @@ export function SendWindowPicker({
             </option>
           ))}
         </select>
-        <span className="text-xs text-[#9b9895]">—</span>
+        <span className="text-xs text-[var(--faint)]">—</span>
         <select
           aria-label="שעת סיום"
           value={end}
           onChange={(e) => onEndChange(Number(e.target.value))}
-          className="bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-2 py-1.5 text-sm text-[#111110] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+          className="bg-[var(--surface-secondary)] border border-[var(--line)] rounded-md px-2 py-1.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)]/60 focus:bg-surface transition-colors"
         >
           {endOptions.map((mod) => (
             <option key={mod} value={mod}>
@@ -178,7 +178,7 @@ export function SendWindowPicker({
         </select>
       </div>
 
-      <p className="text-xs text-[#9b9895]">
+      <p className="text-xs text-[var(--faint)]">
         {formatSendWindowHe(sendDays, value.sendHoursStart, value.sendHoursEnd, value.sendMinutesStart, value.sendMinutesEnd)}
       </p>
     </div>

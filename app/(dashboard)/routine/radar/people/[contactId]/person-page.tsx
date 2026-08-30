@@ -31,8 +31,8 @@ type Person = {
   history: { id: string; status: string; statusText: string; itemTitle: string; at: string }[];
 };
 
-const INK_2 = "text-[rgba(28,36,48,0.72)]";
-const INK_3 = "text-[rgba(28,36,48,0.5)]";
+const INK_2 = "text-[var(--muted)]";
+const INK_3 = "text-[var(--faint)]";
 
 const SOURCE_HE: Record<Person["axes"][number]["source"], string> = {
   role: "נגזר מהתפקיד ומהחברה",
@@ -52,7 +52,7 @@ function relativeHe(iso: string | null): string | null {
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span className={cn("text-xs rounded-full px-[11px] py-[3.5px] border bg-white border-[rgba(28,36,48,0.1)]", INK_2)}>
+    <span className={cn("text-xs rounded-full px-[11px] py-[3.5px] border bg-surface border-[var(--line)]", INK_2)}>
       {children}
     </span>
   );
@@ -82,8 +82,8 @@ export function PersonPage({ contactId }: { contactId: string }) {
 
   if (error && !data) {
     return (
-      <div dir="rtl" className="flex-1 bg-[#faf8f4] p-6">
-        <p className="text-sm text-[#b42318] flex items-center gap-1.5" role="alert">
+      <div dir="rtl" className="flex-1 bg-[var(--surface-secondary)] p-6">
+        <p className="text-sm text-[var(--danger)] flex items-center gap-1.5" role="alert">
           <AlertTriangle className="size-4 shrink-0" aria-hidden />
           {fetchErrorMessage(error)}
         </p>
@@ -92,7 +92,7 @@ export function PersonPage({ contactId }: { contactId: string }) {
   }
   if (isLoading || !data) {
     return (
-      <div dir="rtl" className={cn("flex-1 bg-[#faf8f4] p-6 flex items-center gap-2", INK_3)}>
+      <div dir="rtl" className={cn("flex-1 bg-[var(--surface-secondary)] p-6 flex items-center gap-2", INK_3)}>
         <Loader2 className="size-4 animate-spin" aria-hidden /> טוען…
       </div>
     );
@@ -101,7 +101,7 @@ export function PersonPage({ contactId }: { contactId: string }) {
   const live = data.axes.filter((a) => !a.muted);
 
   return (
-    <div dir="rtl" className="flex-1 min-h-full bg-[#faf8f4] text-[#1c2430]">
+    <div dir="rtl" className="flex-1 min-h-full bg-[var(--background)] text-[var(--foreground)]">
       <div className="max-w-[880px] mx-auto px-4 sm:px-6 pt-6 pb-20">
         <Link
           href="/routine/radar?tab=people"
@@ -112,7 +112,7 @@ export function PersonPage({ contactId }: { contactId: string }) {
         </Link>
 
         {/* who */}
-        <div className="bg-white border border-[rgba(28,36,48,0.06)] rounded-[20px] p-5 sm:p-7">
+        <div className="bg-surface border border-[var(--separator)] rounded-[20px] p-5 sm:p-7">
           <div className="flex items-start gap-3 flex-wrap">
             <div className="min-w-0">
               <h1 className="text-[20px] font-bold tracking-tight">{data.fullName}</h1>
@@ -125,7 +125,7 @@ export function PersonPage({ contactId }: { contactId: string }) {
                 href={data.linkedinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ms-auto text-[12.5px] text-[#0a66c2] border border-[rgba(10,102,194,0.25)] rounded-full px-3 py-1"
+                className="ms-auto text-[12.5px] text-[var(--brand-linkedin)] border border-[var(--brand-linkedin)]/25 rounded-full px-3 py-1"
               >
                 לינקדאין ↗
               </a>
@@ -140,7 +140,7 @@ export function PersonPage({ contactId }: { contactId: string }) {
               הודעה אחרונה מכאן: {relativeHe(data.lastMessageFromUsAt) ?? "אף פעם"}
             </Chip>
             <span className={cn("text-xs ms-2", INK_3)}>שפת הודעות:</span>
-            <div className="flex bg-[rgba(28,36,48,0.05)] rounded-full p-[3px]">
+            <div className="flex bg-[var(--surface-secondary)] rounded-full p-[3px]">
               {(["he", "en"] as const).map((lang) => (
                 <button
                   key={lang}
@@ -148,7 +148,7 @@ export function PersonPage({ contactId }: { contactId: string }) {
                   onClick={() => void patch({ action: "language", value: lang }, `lang-${lang}`)}
                   className={cn(
                     "text-[12px] font-semibold px-3 py-1 rounded-full transition-all disabled:opacity-60",
-                    data.messageLanguage === lang ? "bg-white shadow-[0_1px_3px_rgba(28,36,48,0.12)]" : INK_3
+                    data.messageLanguage === lang ? "bg-surface shadow-[0_1px_3px_rgba(28,36,48,0.12)]" : INK_3
                   )}
                 >
                   {lang === "he" ? "עברית" : "אנגלית"}
@@ -166,7 +166,7 @@ export function PersonPage({ contactId }: { contactId: string }) {
         </div>
 
         {/* what the system thinks interests him */}
-        <div className="bg-white border border-[rgba(28,36,48,0.06)] rounded-[20px] p-5 sm:p-7 mt-5">
+        <div className="bg-surface border border-[var(--separator)] rounded-[20px] p-5 sm:p-7 mt-5">
           <h2 className="text-[15px] font-bold">מה לדעת המערכת מעניין אותו — ואפשר לתקן אותה</h2>
 
           {/* The research's active "no competitors" finding — shown with its reason so a
@@ -181,7 +181,7 @@ export function PersonPage({ contactId }: { contactId: string }) {
             <div className="mt-3">
               {data.prep.failed ? (
                 <>
-                  <p className="text-[13.5px] text-[#b42318]">
+                  <p className="text-[13.5px] text-[var(--danger)]">
                     {data.prep.stages.find((s) => s.state === "failed")?.detail ?? "ההכנה נעצרה"}
                   </p>
                   <p className={cn("text-[12.5px] mt-1", INK_3)}>
@@ -201,7 +201,7 @@ export function PersonPage({ contactId }: { contactId: string }) {
                   key={a.id}
                   className={cn(
                     "flex justify-between gap-3 py-2.5 flex-wrap",
-                    i < data.axes.length - 1 && "border-b border-dashed border-[rgba(28,36,48,0.06)]"
+                    i < data.axes.length - 1 && "border-b border-dashed border-[var(--separator)]"
                   )}
                 >
                   <span className={cn("text-[13.5px] min-w-0", a.muted && "opacity-45")}>
@@ -241,7 +241,7 @@ export function PersonPage({ contactId }: { contactId: string }) {
         </div>
 
         {/* history */}
-        <div className="bg-white border border-[rgba(28,36,48,0.06)] rounded-[20px] p-5 sm:p-7 mt-5">
+        <div className="bg-surface border border-[var(--separator)] rounded-[20px] p-5 sm:p-7 mt-5">
           <h2 className="text-[15px] font-bold">ההיסטוריה איתו</h2>
           {data.history.length === 0 ? (
             <p className={cn("text-[13.5px] mt-2", INK_3)}>
@@ -254,11 +254,11 @@ export function PersonPage({ contactId }: { contactId: string }) {
                   key={h.id}
                   className={cn(
                     "flex justify-between gap-3 py-2.5 flex-wrap",
-                    i < data.history.length - 1 && "border-b border-dashed border-[rgba(28,36,48,0.06)]"
+                    i < data.history.length - 1 && "border-b border-dashed border-[var(--separator)]"
                   )}
                 >
                   <span className={cn("text-[13.5px] min-w-0", INK_2)}>
-                    <b className="font-semibold text-[#1c2430]">{h.statusText}</b> · {h.itemTitle}
+                    <b className="font-semibold text-[var(--foreground)]">{h.statusText}</b> · {h.itemTitle}
                   </span>
                   <span className={cn("text-[12.5px] shrink-0", INK_3)}>{relativeHe(h.at)}</span>
                 </div>

@@ -92,10 +92,10 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
       aria-hidden="true"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl border border-[#e5e3df] mx-4">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e3df]">
-          <h3 className="text-sm font-semibold text-[#111110]">ערוך איש קשר</h3>
-          <button type="button" onClick={onClose} aria-label="סגור" className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
+      <div className="w-full max-w-sm bg-surface rounded-xl shadow-2xl border border-[var(--line)] mx-4">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--line)]">
+          <h3 className="text-sm font-semibold text-[var(--foreground)]">ערוך איש קשר</h3>
+          <button type="button" onClick={onClose} aria-label="סגור" className="text-[var(--faint)] hover:text-[var(--muted)] transition-colors">
             <X className="size-4" />
           </button>
         </div>
@@ -104,11 +104,11 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
           {FIELDS.map(({ key, label, type, dir }, i) => (
             <div key={key}>
               <div className="flex items-center gap-1.5 mb-1">
-                <label htmlFor={`edit-${key}`} className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">
+                <label htmlFor={`edit-${key}`} className="text-[10px] font-mono text-[var(--faint)] uppercase tracking-widest">
                   {label}
                 </label>
                 {manualSet.has(key) && (
-                  <span className="text-[9px] font-mono px-1 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200">
+                  <span className="text-[9px] tabular-nums px-1 py-0.5 rounded bg-[var(--warning-soft)] text-[var(--warning)] border border-[var(--warning)]/30">
                     ידני
                   </span>
                 )}
@@ -121,16 +121,16 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
                 dir={dir}
                 value={form[key]}
                 onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
-                className="w-full px-3 py-2 text-sm border border-[#d1cfcb] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] text-[#111110] placeholder:text-[#c4c2be]"
+                className="w-full px-3 py-2 text-sm border border-[var(--faint)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30 focus:border-[var(--accent)] text-[var(--foreground)] placeholder:text-[var(--faint)]"
                 placeholder={`הוסף ${label}...`}
               />
             </div>
           ))}
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {error && <p className="text-xs text-[var(--danger)]">{error}</p>}
         </div>
 
-        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[#e5e3df]">
-          <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] transition-colors">
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[var(--line)]">
+          <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
             ביטול
           </button>
           <button
@@ -138,8 +138,8 @@ export default function EditContactModal({ contact, onClose, onSaved }: EditCont
             onClick={handleSave}
             disabled={saving || !isDirty}
             className={cn(
-              "px-4 py-2 text-sm font-medium text-white bg-[#1585ff] rounded-lg transition-colors",
-              saving || !isDirty ? "opacity-60 cursor-not-allowed" : "hover:bg-[#0a70e0]"
+              "px-4 py-2 text-sm font-medium text-white bg-[var(--accent)] rounded-lg transition-colors",
+              saving || !isDirty ? "opacity-60 cursor-not-allowed" : "hover:bg-[var(--accent-strong)]"
             )}
           >
             {saving ? "שומר…" : "שמור"}

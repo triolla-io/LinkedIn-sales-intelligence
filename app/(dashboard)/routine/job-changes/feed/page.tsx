@@ -70,10 +70,10 @@ function JobChangesFeed() {
   const rest = visible.filter((c) => c.status !== "PENDING_REVIEW");
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]" dir="rtl">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
+    <div className="flex flex-col h-full min-h-screen bg-[var(--background)]" dir="rtl">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--line)] bg-surface sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <PartyPopper className="w-5 h-5 text-[#c2410c]" />
+          <PartyPopper className="w-5 h-5 text-[var(--warning)]" />
           <h1 className="text-lg font-semibold">{FILTER_LABEL[filter]}</h1>
           {pending.length > 0 && (
             <Chip size="sm" color="warning">{pending.length} ממתינים לאישור</Chip>
@@ -81,7 +81,7 @@ function JobChangesFeed() {
         </div>
         {modules && (
           <div className="flex items-center gap-2">
-            <span className={`text-xs font-medium ${jobChecksOn ? "text-[#059669]" : "text-[#b45309]"}`}>
+            <span className={`text-xs font-medium ${jobChecksOn ? "text-[var(--success)]" : "text-[var(--warning)]"}`}>
               {jobChecksOn ? "המודול פעיל" : "המודול כבוי"}
             </span>
             <button
@@ -91,10 +91,10 @@ function JobChangesFeed() {
               aria-label="הפעלת מודול עדכוני משתמשים"
               onClick={() => setModule("jobChecks", !jobChecksOn)}
               dir="ltr"
-              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${jobChecksOn ? "bg-[#059669]" : "bg-gray-300"}`}
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${jobChecksOn ? "bg-[var(--success)]" : "bg-[var(--faint)]"}`}
             >
               <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${jobChecksOn ? "translate-x-[22px]" : "translate-x-[2px]"}`}
+                className={`inline-block h-5 w-5 transform rounded-full bg-surface shadow transition-transform ${jobChecksOn ? "translate-x-[22px]" : "translate-x-[2px]"}`}
               />
             </button>
           </div>
@@ -102,18 +102,18 @@ function JobChangesFeed() {
       </div>
 
       {modules && !jobChecksOn && (
-        <div className="px-5 py-2.5 bg-[#fffbeb] border-b border-[#fde68a] text-xs text-[#b45309]">
+        <div className="px-5 py-2.5 bg-[var(--warning-soft)] border-b border-[var(--warning-soft)] text-xs text-[var(--warning)]">
           הבדיקה האוטומטית מושבתת זמנית לתחזוקה. ההעדפה נשמרת ותוחל כשהבדיקות יחזרו לפעול.
         </div>
       )}
 
       <div className="flex-1 p-5">
         {state.loading ? (
-          <div className="flex items-center gap-2 text-gray-500">
+          <div className="flex items-center gap-2 text-[var(--muted)]">
             <Loader2 className="w-4 h-4 animate-spin" /> טוען…
           </div>
         ) : visible.length === 0 ? (
-          <p className="text-gray-500">אין עדכוני משתמשים חדשים. נבדוק שוב בקרוב.</p>
+          <p className="text-[var(--muted)]">אין עדכוני משתמשים חדשים. נבדוק שוב בקרוב.</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {[...pending, ...rest].map((c) => (
@@ -162,14 +162,14 @@ function ChangeCard({ change: c, onDone }: { change: Change; onDone: () => void 
   }
 
   return (
-    <li className="bg-white rounded-lg border border-[#e5e3df] p-4">
+    <li className="bg-surface rounded-lg border border-[var(--line)] p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <a
             href={c.linkedinUrl}
             target="_blank"
             rel="noreferrer"
-            className="font-medium text-[#0a66c2] inline-flex items-center gap-1"
+            className="font-medium text-[var(--brand-linkedin)] inline-flex items-center gap-1"
           >
             {c.fullName} <ExternalLink className="w-3 h-3" />
           </a>
@@ -185,21 +185,21 @@ function ChangeCard({ change: c, onDone }: { change: Change; onDone: () => void 
             </Chip>
           )}
         </div>
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-[var(--faint)]">
           {new Date(c.detectedAt).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" })}
         </span>
       </div>
 
-      <div className="mt-1 text-sm text-gray-700">
+      <div className="mt-1 text-sm text-[var(--muted)]">
         {c.prevTitle !== c.newTitle && (
           <div>
-            תפקיד: <span className="line-through text-gray-400">{c.prevTitle ?? "—"}</span> ←{" "}
+            תפקיד: <span className="line-through text-[var(--faint)]">{c.prevTitle ?? "—"}</span> ←{" "}
             <span className="font-medium">{c.newTitle ?? "—"}</span>
           </div>
         )}
         {c.prevCompany !== c.newCompany && (
           <div>
-            חברה: <span className="line-through text-gray-400">{c.prevCompany ?? "—"}</span> ←{" "}
+            חברה: <span className="line-through text-[var(--faint)]">{c.prevCompany ?? "—"}</span> ←{" "}
             <span className="font-medium">{c.newCompany ?? "—"}</span>
           </div>
         )}
@@ -208,10 +208,10 @@ function ChangeCard({ change: c, onDone }: { change: Change; onDone: () => void 
       {c.status === "PENDING_REVIEW" && (
         <div className="mt-3 flex flex-col gap-2">
           {c.lastSendError && (
-            <p className="text-xs text-red-600">השליחה הקודמת נכשלה: {c.lastSendError}</p>
+            <p className="text-xs text-[var(--danger)]">השליחה הקודמת נכשלה: {c.lastSendError}</p>
           )}
           {actionError && (
-            <p className="text-xs text-red-600">{actionError}</p>
+            <p className="text-xs text-[var(--danger)]">{actionError}</p>
           )}
           <TextArea
             aria-label="הודעת ברכה"
@@ -246,7 +246,7 @@ function ChangeCard({ change: c, onDone }: { change: Change; onDone: () => void 
         </div>
       )}
       {c.status !== "PENDING_REVIEW" && c.draftMessage && (
-        <p className="mt-3 text-sm bg-[#f6f5f3] rounded p-2 whitespace-pre-wrap">{c.draftMessage}</p>
+        <p className="mt-3 text-sm bg-[var(--background)] rounded p-2 whitespace-pre-wrap">{c.draftMessage}</p>
       )}
     </li>
   );

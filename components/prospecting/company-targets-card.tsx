@@ -45,21 +45,21 @@ const TARGET_STATUS: Record<
   CompanyTargetRow["status"],
   { label: string; cls: string; pulse?: boolean }
 > = {
-  PENDING: { label: "ממתין", cls: "bg-[#f3f2ef] text-[#6b6866]" },
+  PENDING: { label: "ממתין", cls: "bg-[var(--surface-secondary)] text-[var(--muted)]" },
   RESOLVING: {
     label: "מזהה חברה",
-    cls: "bg-[#e6f4ff] text-[#1585ff]",
+    cls: "bg-[var(--accent-soft)] text-[var(--accent)]",
     pulse: true,
   },
-  READY: { label: "זוהתה", cls: "bg-[#e6f4ff] text-[#1585ff]" },
+  READY: { label: "זוהתה", cls: "bg-[var(--accent-soft)] text-[var(--accent)]" },
   SEARCHING: {
     label: "מחפש אנשים",
-    cls: "bg-[#fff8e6] text-[#b45309]",
+    cls: "bg-[var(--warning-soft)] text-[var(--warning)]",
     pulse: true,
   },
-  DONE: { label: "הושלם", cls: "bg-[#e6faf0] text-[#059669]" },
-  FAILED: { label: "נכשל", cls: "bg-[#fff3f3] text-[#dc2626]" },
-  REMOVED: { label: "הוסר", cls: "bg-[#f3f2ef] text-[#9b9895]" },
+  DONE: { label: "הושלם", cls: "bg-[var(--success-soft)] text-[var(--success)]" },
+  FAILED: { label: "נכשל", cls: "bg-[var(--danger-soft)] text-[var(--danger)]" },
+  REMOVED: { label: "הוסר", cls: "bg-[var(--surface-secondary)] text-[var(--faint)]" },
 };
 
 const TERMINAL: CompanyTargetRow["status"][] = ["DONE", "FAILED", "REMOVED"];
@@ -75,10 +75,10 @@ function statusGroup(status: CompanyTargetRow["status"]): StatusGroup {
 }
 
 const GROUP_CHIPS: { key: StatusGroup; label: string; cls: string }[] = [
-  { key: "DONE", label: "הושלמו", cls: "bg-[#e6faf0] text-[#059669]" },
-  { key: "FAILED", label: "נכשלו", cls: "bg-[#fff3f3] text-[#dc2626]" },
-  { key: "ACTIVE", label: "בתהליך", cls: "bg-[#e6f4ff] text-[#1585ff]" },
-  { key: "REMOVED", label: "הוסרו", cls: "bg-[#f3f2ef] text-[#9b9895]" },
+  { key: "DONE", label: "הושלמו", cls: "bg-[var(--success-soft)] text-[var(--success)]" },
+  { key: "FAILED", label: "נכשלו", cls: "bg-[var(--danger-soft)] text-[var(--danger)]" },
+  { key: "ACTIVE", label: "בתהליך", cls: "bg-[var(--accent-soft)] text-[var(--accent)]" },
+  { key: "REMOVED", label: "הוסרו", cls: "bg-[var(--surface-secondary)] text-[var(--faint)]" },
 ];
 
 function matchUrl(t: CompanyTargetRow): string | null {
@@ -205,13 +205,13 @@ export function CompanyTargetsCard({
 
   return (
     <div
-      className="bg-white border border-[#e5e3df] rounded-xl overflow-hidden"
+      className="bg-surface border border-[var(--line)] rounded-xl overflow-hidden"
       dir="rtl"
     >
-      <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-[#f3f2ef]">
-        <Building2 className="w-4 h-4 text-[#6b6866] shrink-0" />
-        <h2 className="text-sm font-medium text-[#111110]">חברות</h2>
-        <span className="text-xs text-[#9b9895] tabular-nums">
+      <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-[var(--surface-secondary)]">
+        <Building2 className="w-4 h-4 text-[var(--muted)] shrink-0" />
+        <h2 className="text-sm font-medium text-[var(--foreground)]">חברות</h2>
+        <span className="text-xs text-[var(--faint)] tabular-nums">
           עובדו {processed}/{targets.length}
         </span>
         {/* Truthful breakdown — each chip filters the table below. */}
@@ -227,8 +227,8 @@ export function CompanyTargetsCard({
                 "text-xs px-2.5 py-1 rounded-full transition-shadow cursor-pointer tabular-nums",
                 c.cls,
                 groupFilter === c.key
-                  ? "ring-2 ring-[#1585ff] ring-offset-1"
-                  : "hover:ring-1 hover:ring-[#c8c5c2]",
+                  ? "ring-2 ring-[var(--accent)] ring-offset-1"
+                  : "hover:ring-1 hover:ring-[var(--faint)]",
               )}
             >
               {c.label} {groupCounts[c.key]}
@@ -238,28 +238,28 @@ export function CompanyTargetsCard({
             <button
               type="button"
               onClick={() => setGroupFilter(null)}
-              className="text-xs text-[#1585ff] hover:underline cursor-pointer px-1"
+              className="text-xs text-[var(--accent)] hover:underline cursor-pointer px-1"
             >
               הצג הכל
             </button>
           )}
         </div>
         <div
-          className="flex-1 min-w-24 h-1.5 bg-[#f3f2ef] rounded-full overflow-hidden"
+          className="flex-1 min-w-24 h-1.5 bg-[var(--surface-secondary)] rounded-full overflow-hidden"
           role="progressbar"
           aria-valuenow={pct}
           aria-valuemin={0}
           aria-valuemax={100}
         >
           <div
-            className="h-full bg-[#1585ff] rounded-full transition-[width] duration-500 ease-out"
+            className="h-full bg-[var(--accent)] rounded-full transition-[width] duration-500 ease-out"
             style={{ width: `${pct}%` }}
           />
         </div>
         <button
           type="button"
           onClick={() => setAddOpen(true)}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-[#1585ff] hover:text-[#0a70e0] px-2.5 py-2 rounded-md hover:bg-[#e6f4ff] transition-colors shrink-0"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--accent)] hover:text-[var(--accent-strong)] px-2.5 py-2 rounded-md hover:bg-[var(--accent-soft)] transition-colors shrink-0"
         >
           <Plus className="w-3.5 h-3.5" />
           הוסף חברות
@@ -269,7 +269,7 @@ export function CompanyTargetsCard({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-right text-xs text-[#9b9895] border-b border-[#f3f2ef]">
+            <tr className="text-right text-xs text-[var(--faint)] border-b border-[var(--surface-secondary)]">
               <th className="px-4 py-2 font-medium">חברה</th>
               <th className="px-4 py-2 font-medium">התאמה בלינקדאין</th>
               <th className="px-4 py-2 font-medium">סטטוס</th>
@@ -278,7 +278,7 @@ export function CompanyTargetsCard({
               <th className="px-4 py-2" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#f3f2ef]">
+          <tbody className="divide-y divide-[var(--surface-secondary)]">
             {visibleTargets.map((t, i) => {
               const st = TARGET_STATUS[t.status];
               const url = matchUrl(t);
@@ -295,14 +295,14 @@ export function CompanyTargetsCard({
                   <td className="px-4 py-2.5">
                     <div
                       className={cn(
-                        "text-[#111110]",
+                        "text-[var(--foreground)]",
                         removed && "line-through",
                       )}
                     >
                       {t.name}
                     </div>
                     {t.nameHebrew && t.nameHebrew !== t.name && (
-                      <div className="text-xs text-[#9b9895]">
+                      <div className="text-xs text-[var(--faint)]">
                         {t.nameHebrew}
                       </div>
                     )}
@@ -313,14 +313,14 @@ export function CompanyTargetsCard({
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[#1585ff] hover:underline"
+                        className="inline-flex items-center gap-1 text-[var(--accent)] hover:underline"
                         dir="ltr"
                       >
                         {t.resolvedName ?? t.linkedinSlug ?? "לינקדאין"}
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     ) : (
-                      <span className="text-[#c8c5c2]">—</span>
+                      <span className="text-[var(--faint)]">—</span>
                     )}
                   </td>
                   <td className="px-4 py-2.5">
@@ -339,21 +339,21 @@ export function CompanyTargetsCard({
                       {st.label}
                     </span>
                     {t.status === "FAILED" && t.error && (
-                      <div className="text-[10px] text-[#dc2626] mt-0.5">
+                      <div className="text-[10px] text-[var(--danger)] mt-0.5">
                         {ERROR_CODE_LABELS[t.error] ?? t.error}
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 tabular-nums text-[#111110]">
+                  <td className="px-4 py-2.5 tabular-nums text-[var(--foreground)]">
                     {t.discoveredCount}
                     {/* A bare "0" hid the real story: people WERE returned, none held the role. */}
                     {t.discoveredCount === 0 && t.scannedCount > 0 && (
-                      <div className="text-[10px] text-[#9b9895]">
+                      <div className="text-[10px] text-[var(--faint)]">
                         {t.scannedCount} נסרקו
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 tabular-nums text-[#111110]">
+                  <td className="px-4 py-2.5 tabular-nums text-[var(--foreground)]">
                     {t.sentCount}
                   </td>
                   <td className="px-4 py-2.5 text-left">
@@ -362,7 +362,7 @@ export function CompanyTargetsCard({
                         type="button"
                         aria-label={`הסר את ${t.name}`}
                         onClick={() => setRemoving(t)}
-                        className="p-2 rounded-md text-[#9b9895] hover:text-[#dc2626] hover:bg-[#fff3f3] transition-colors"
+                        className="p-2 rounded-md text-[var(--faint)] hover:text-[var(--danger)] hover:bg-[var(--danger-soft)] transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -375,7 +375,7 @@ export function CompanyTargetsCard({
               <tr>
                 <td
                   colSpan={6}
-                  className="px-4 py-6 text-center text-sm text-[#9b9895]"
+                  className="px-4 py-6 text-center text-sm text-[var(--faint)]"
                 >
                   {targets.length === 0
                     ? "אין חברות עדיין — הוסף חברות כדי להתחיל"

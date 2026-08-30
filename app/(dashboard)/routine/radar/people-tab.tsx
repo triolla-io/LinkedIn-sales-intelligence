@@ -42,8 +42,8 @@ type CandidateResult = {
 
 type PeopleResponse = { people: Person[] };
 
-const INK_2 = "text-[rgba(28,36,48,0.72)]";
-const INK_3 = "text-[rgba(28,36,48,0.5)]";
+const INK_2 = "text-[var(--muted)]";
+const INK_3 = "text-[var(--faint)]";
 
 const AVATAR_BG = ["#5b7a9d", "#8a6d54", "#7d8b9a", "#6d8a70"];
 
@@ -80,8 +80,8 @@ function PreparingCard({ person, index, onRetry, busy }: {
   return (
     <article
       className={cn(
-        "bg-white rounded-[20px] p-5 sm:p-6 mt-5 border border-dashed",
-        person.prep.failed ? "border-[#d9a49a]" : "border-[rgba(28,36,48,0.18)]"
+        "bg-surface rounded-[20px] p-5 sm:p-6 mt-5 border border-dashed",
+        person.prep.failed ? "border-[var(--danger-soft)]" : "border-[var(--line)]"
       )}
     >
       <div className="flex items-center gap-3.5">
@@ -93,8 +93,8 @@ function PreparingCard({ person, index, onRetry, busy }: {
               className={cn(
                 "text-[11px] font-semibold rounded-full px-2 py-0.5",
                 person.prep.failed
-                  ? "text-[#b42318] bg-[rgba(180,35,24,0.08)]"
-                  : "text-[#a8742a] bg-[rgba(168,116,42,0.1)]"
+                  ? "text-[var(--danger)] bg-[var(--danger-soft)]"
+                  : "text-[var(--warning)] bg-[var(--warning-soft)]"
               )}
             >
               {person.prep.failed ? "ההכנה נעצרה" : "נוסף הרגע — בהכנה"}
@@ -106,16 +106,16 @@ function PreparingCard({ person, index, onRetry, busy }: {
         </div>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-dashed border-[rgba(28,36,48,0.1)]">
+      <div className="mt-4 pt-3 border-t border-dashed border-[var(--line)]">
         {person.prep.stages.map((s, i) => (
           <div
             key={s.key}
             className={cn(
               "flex justify-between gap-3 py-[7px] text-[13.5px]",
-              i < person.prep.stages.length - 1 && "border-b border-dashed border-[rgba(28,36,48,0.06)]"
+              i < person.prep.stages.length - 1 && "border-b border-dashed border-[var(--separator)]"
             )}
           >
-            <span className={s.state === "failed" ? "text-[#b42318]" : INK_2}>
+            <span className={s.state === "failed" ? "text-[var(--danger)]" : INK_2}>
               <span className="inline-block w-4">{MARK[s.state]}</span> {s.detail}
             </span>
             {s.state === "running" && (
@@ -142,7 +142,7 @@ function ReadyCard({ person, index }: { person: Person; index: number }) {
   return (
     <Link
       href={`/routine/radar/people/${person.contactId}`}
-      className="block bg-white border border-[rgba(28,36,48,0.06)] rounded-[20px] p-5 sm:p-6 mt-5 shadow-[0_1px_2px_rgba(28,36,48,0.04),0_8px_28px_-18px_rgba(28,36,48,0.14)] hover:border-[rgba(28,36,48,0.14)] transition-colors"
+      className="block bg-surface border border-[var(--separator)] rounded-[20px] p-5 sm:p-6 mt-5 shadow-[0_1px_2px_rgba(28,36,48,0.04),0_8px_28px_-18px_rgba(28,36,48,0.14)] hover:border-[var(--line)] transition-colors"
     >
       <div className="flex items-center gap-3.5">
         <Avatar name={person.fullName} index={index} />
@@ -150,7 +150,7 @@ function ReadyCard({ person, index }: { person: Person; index: number }) {
           <div className="font-bold text-[16px] flex items-center gap-2 flex-wrap">
             {person.fullName}
             {!person.active && (
-              <span className={cn("text-[11px] rounded-full px-2 py-0.5 bg-[#f3f2ef]", INK_3)}>
+              <span className={cn("text-[11px] rounded-full px-2 py-0.5 bg-[var(--surface-secondary)]", INK_3)}>
                 כבוי בראדאר
               </span>
             )}
@@ -162,7 +162,7 @@ function ReadyCard({ person, index }: { person: Person; index: number }) {
         <span className={cn("ms-auto text-[12.5px] text-left shrink-0", INK_3)}>
           <span className="tabular-nums">{person.axisCount}</span> תחומי עניין
           {person.pendingDrafts > 0 && (
-            <span className="block text-[#0a66c2]">
+            <span className="block text-[var(--brand-linkedin)]">
               <span className="tabular-nums">{person.pendingDrafts}</span> ממתינות לאישור
             </span>
           )}
@@ -190,7 +190,7 @@ function AddPicker({ onPick, onClose, busyId }: {
   const shown = data?.candidates ?? [];
 
   return (
-    <div className="bg-white border border-[rgba(28,36,48,0.1)] rounded-[16px] p-4 mt-4">
+    <div className="bg-surface border border-[var(--line)] rounded-[16px] p-4 mt-4">
       <div className="flex items-center gap-2">
         <Search className={cn("size-4 shrink-0", INK_3)} aria-hidden />
         <input
@@ -221,7 +221,7 @@ function AddPicker({ onPick, onClose, busyId }: {
               key={c.id}
               disabled={busyId !== null}
               onClick={() => onPick(c.id)}
-              className="w-full text-right flex items-center gap-3 py-2 px-1 rounded-lg hover:bg-[#f6f4f0] disabled:opacity-50"
+              className="w-full text-right flex items-center gap-3 py-2 px-1 rounded-lg hover:bg-[var(--surface-secondary)] disabled:opacity-50"
             >
               <span className="min-w-0">
                 <span className="block text-[14px] font-semibold truncate">{c.fullName}</span>
@@ -238,7 +238,7 @@ function AddPicker({ onPick, onClose, busyId }: {
       {/* A cut list is said out loud: a missing name must read as "narrow the search",
           never as "this person is not in the system". */}
       {data?.truncated && (
-        <p className={cn("text-[12px] pt-2 border-t border-[rgba(28,36,48,0.06)] mt-1", INK_3)}>
+        <p className={cn("text-[12px] pt-2 border-t border-[var(--separator)] mt-1", INK_3)}>
           מציג <span className="tabular-nums">{shown.length}</span> מתוך{" "}
           <span className="tabular-nums">{data.total}</span> התאמות — כדאי לצמצם את החיפוש.
         </p>
@@ -290,7 +290,7 @@ export function PeopleTab() {
 
   if (loadError && !data) {
     return (
-      <p className="text-sm text-[#b42318] flex items-center gap-1.5 mt-6" role="alert">
+      <p className="text-sm text-[var(--danger)] flex items-center gap-1.5 mt-6" role="alert">
         <AlertTriangle className="size-4 shrink-0" aria-hidden />
         {fetchErrorMessage(loadError)}
       </p>
@@ -317,7 +317,6 @@ export function PeopleTab() {
         <Button
           size="sm"
           variant="primary"
-          className="bg-[#1c2430]"
           isDisabled={picking}
           onPress={() => setPicking(true)}
         >
@@ -329,7 +328,7 @@ export function PeopleTab() {
       </div>
 
       {error && (
-        <p className="text-[13px] text-[#b42318] mt-2" role="alert">
+        <p className="text-[13px] text-[var(--danger)] mt-2" role="alert">
           {error}
         </p>
       )}

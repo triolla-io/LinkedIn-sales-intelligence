@@ -25,8 +25,8 @@ export function ExtensionStatusBadge({ lastSeenAt, revokedAt }: Props) {
 
   if (revokedAt || minutesAgo === null) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#fff3f3] text-[#dc2626]">
-        <span className="size-1.5 rounded-full bg-[#dc2626]" />
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--danger-soft)] text-[var(--danger)]">
+        <span className="size-1.5 rounded-full bg-[var(--danger)]" />
         LinkedIn לא מחובר
       </span>
     );
@@ -36,8 +36,8 @@ export function ExtensionStatusBadge({ lastSeenAt, revokedAt }: Props) {
   const label = minutesAgo < 1 ? "עכשיו" : minutesAgo < 60 ? `לפני ${minutesAgo} דקות` : `לפני ${Math.floor(minutesAgo / 60)} שעות`;
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${isOnline ? "bg-[#e6faf0] text-[#059669]" : "bg-[#fff7e6] text-[#b45309]"}`}>
-      <span className={`size-1.5 rounded-full ${isOnline ? "bg-[#059669]" : "bg-[#b45309]"}`} />
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${isOnline ? "bg-[var(--success-soft)] text-[var(--success)]" : "bg-[var(--warning-soft)] text-[var(--warning)]"}`}>
+      <span className={`size-1.5 rounded-full ${isOnline ? "bg-[var(--success)]" : "bg-[var(--warning)]"}`} />
       {isOnline ? "LinkedIn מחובר" : `LinkedIn לא פעיל — ${label}`}
     </span>
   );

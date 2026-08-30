@@ -73,17 +73,17 @@ function Section({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div>
-      <div className="h-px bg-[#e5e3df]" />
+      <div className="h-px bg-[var(--line)]" />
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex items-center justify-between w-full px-4 py-2.5 text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest hover:text-[#6b6866] transition-colors"
+        className="flex items-center justify-between w-full px-4 py-2.5 text-[10px] font-mono font-semibold text-[var(--faint)] uppercase tracking-widest hover:text-[var(--muted)] transition-colors"
       >
         <span className="flex items-center gap-2">
           {title}
           {activeCount > 0 && (
-            <span className="px-1 py-0.5 rounded bg-[#1585ff]/10 text-[#1585ff] text-[9px] font-mono">
+            <span className="px-1 py-0.5 rounded bg-[var(--accent)]/10 text-[var(--accent)] text-[9px] font-mono">
               {activeCount}
             </span>
           )}
@@ -157,11 +157,11 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
   if (collapsed) {
     return (
       <div
-        className="flex flex-col items-center justify-start pt-4 gap-3 h-full bg-white border-r border-[#e5e3df] transition-[width] duration-200 ease-in-out"
+        className="flex flex-col items-center justify-start pt-4 gap-3 h-full bg-surface border-r border-[var(--line)] transition-[width] duration-200 ease-in-out"
         style={{ width: 32 }}
       >
         {activeCount > 0 && (
-          <span className="size-5 rounded-full bg-[#1585ff] text-white text-[9px] font-mono font-semibold flex items-center justify-center">
+          <span className="size-5 rounded-full bg-[var(--accent)] text-white text-[9px] font-mono font-semibold flex items-center justify-center">
             {activeCount > 9 ? "9+" : activeCount}
           </span>
         )}
@@ -170,7 +170,7 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
           isIconOnly
           onPress={toggleCollapsed}
           aria-label="הרחב פילטרים"
-          className="size-6 min-w-0 text-[#9b9895]"
+          className="size-6 min-w-0 text-[var(--faint)]"
         >
           <ChevronLeft className="size-3.5" />
         </Button>
@@ -180,19 +180,19 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
 
   return (
     <div
-      className="flex flex-col h-full bg-white border-r border-[#e5e3df] transition-[width] duration-200 ease-in-out"
+      className="flex flex-col h-full bg-surface border-r border-[var(--line)] transition-[width] duration-200 ease-in-out"
       style={{ width: 224 }}
     >
       {/* Header */}
-      <div className="p-4 border-b border-[#e5e3df]">
+      <div className="p-4 border-b border-[var(--line)]">
         <div className="flex items-center gap-2 mb-3">
-          <span className="flex-1 text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest">סינון</span>
+          <span className="flex-1 text-[10px] tabular-nums font-semibold text-[var(--faint)] tracking-normal">סינון</span>
           <Button
             variant="ghost"
             isIconOnly
             onPress={toggleCollapsed}
             aria-label="כווץ פילטרים"
-            className="size-5 min-w-0 text-[#c8c5c2]"
+            className="size-5 min-w-0 text-[var(--faint)]"
           >
             <ChevronRight className="size-3.5" />
           </Button>
@@ -213,14 +213,14 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                 onClick={() => onChange({ ...filters, q: "" })}
                 className="absolute inset-e-3 top-1/2 -translate-y-1/2 z-10"
               >
-                <X className="size-3.5 text-[#9b9895] hover:text-[#6b6866]" />
+                <X className="size-3.5 text-[var(--faint)] hover:text-[var(--muted)]" />
               </button>
             ) : (
-              <Search className="absolute inset-e-3 top-1/2 -translate-y-1/2 size-3.5 text-[#9b9895] pointer-events-none" />
+              <Search className="absolute inset-e-3 top-1/2 -translate-y-1/2 size-3.5 text-[var(--faint)] pointer-events-none" />
             )}
             <Input
               placeholder="חיפוש אנשי קשר…"
-              className="w-full pe-9 ps-3 py-2 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+              className="w-full pe-9 ps-3 py-2 bg-[var(--surface-secondary)] border border-[var(--line)] rounded-md text-sm text-[var(--foreground)] placeholder-[var(--faint)] focus:outline-none focus:border-[var(--accent)]/40 focus:ring-1 focus:ring-[var(--accent)]/20 transition-colors"
             />
           </div>
         </TextField>
@@ -229,8 +229,8 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
       <div className="flex-1 overflow-y-auto">
         {/* Lists */}
         {lists.length > 0 && (
-          <div className="border-b border-[#e5e3df] px-4 py-3">
-            <p className="text-[10px] font-mono font-semibold text-[#9b9895] uppercase tracking-widest mb-2 flex items-center gap-1.5">
+          <div className="border-b border-[var(--line)] px-4 py-3">
+            <p className="text-[10px] tabular-nums font-semibold text-[var(--faint)] tracking-normal mb-2 flex items-center gap-1.5">
               <BookMarked className="size-3" />
               רשימות
             </p>
@@ -248,12 +248,12 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                   className={cn(
                     "w-full flex items-center justify-between px-2 py-1.5 rounded-md text-xs transition-colors text-right",
                     filters.listId === list.id
-                      ? "bg-[#1585ff]/10 text-[#1585ff] font-medium"
-                      : "text-[#6b6866] hover:bg-[#f3f2ef] hover:text-[#111110]"
+                      ? "bg-[var(--accent)]/10 text-[var(--accent)] font-medium"
+                      : "text-[var(--muted)] hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)]"
                   )}
                 >
                   <span className="truncate">{list.name}</span>
-                  <span className="shrink-0 text-[#9b9895] font-mono text-[10px]">{list.memberCount}</span>
+                  <span className="shrink-0 text-[var(--faint)] font-mono text-[10px]">{list.memberCount}</span>
                 </button>
               ))}
             </div>
@@ -274,15 +274,15 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                 >
                   <CheckboxControl className={cn(
                     "size-3.5 rounded-sm border flex items-center justify-center shrink-0 transition-all",
-                    active ? "bg-[#1585ff] border-[#1585ff]" : "bg-white border-[#d4d0cc] group-hover:border-[#9b9895]"
+                    active ? "bg-[var(--accent)] border-[var(--accent)]" : "bg-surface border-[var(--faint)] group-hover:border-[var(--faint)]"
                   )}>
                     <CheckboxIndicator>
-                      {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 -rotate-45" />}
+                      {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-surface -mt-0.5 -rotate-45" />}
                     </CheckboxIndicator>
                   </CheckboxControl>
                   <CheckboxContent className={cn(
                     "text-xs transition-colors",
-                    active ? "text-[#1585ff]" : "text-[#6b6866] group-hover:text-[#111110]"
+                    active ? "text-[var(--accent)]" : "text-[var(--muted)] group-hover:text-[var(--foreground)]"
                   )}>
                     {b.label}
                   </CheckboxContent>
@@ -326,7 +326,7 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
             <Input
               placeholder="הוסף תפקיד…"
               onKeyDown={addCustomTitle}
-              className="w-full px-3 py-1.5 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-xs text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+              className="w-full px-3 py-1.5 bg-[var(--surface-secondary)] border border-[var(--line)] rounded-md text-xs text-[var(--foreground)] placeholder-[var(--faint)] focus:outline-none focus:border-[var(--accent)]/40 focus:ring-1 focus:ring-[var(--accent)]/20 transition-colors"
             />
           </TextField>
 
@@ -335,9 +335,9 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
               ROLE_PILLS.some((p) => p.value === t)
                 ? []
                 : [
-                    <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-[#1585ff]/10 text-[#1585ff] border border-[#1585ff]/20">
+                    <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20">
                       {t}
-                      <button type="button" onClick={() => toggle("titleSearch", t)} aria-label={`הסר ${t}`} className="hover:text-[#0a65c7] transition-colors">
+                      <button type="button" onClick={() => toggle("titleSearch", t)} aria-label={`הסר ${t}`} className="hover:text-[var(--accent-strong)] transition-colors">
                         <X className="size-2.5" />
                       </button>
                     </span>,
@@ -388,15 +388,15 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
                 >
                   <CheckboxControl className={cn(
                     "size-3.5 rounded-sm border flex items-center justify-center shrink-0 transition-all",
-                    active ? "bg-[#1585ff] border-[#1585ff]" : "bg-white border-[#d4d0cc] group-hover:border-[#9b9895]"
+                    active ? "bg-[var(--accent)] border-[var(--accent)]" : "bg-surface border-[var(--faint)] group-hover:border-[var(--faint)]"
                   )}>
                     <CheckboxIndicator>
-                      {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-white -mt-0.5 -rotate-45" />}
+                      {active && <div className="w-2 h-1.5 border-b-2 border-l-2 border-surface -mt-0.5 -rotate-45" />}
                     </CheckboxIndicator>
                   </CheckboxControl>
                   <CheckboxContent className={cn(
                     "text-xs transition-colors",
-                    active ? "text-[#1585ff]" : "text-[#6b6866] group-hover:text-[#111110]"
+                    active ? "text-[var(--accent)]" : "text-[var(--muted)] group-hover:text-[var(--foreground)]"
                   )}>
                     {label}
                   </CheckboxContent>
@@ -409,11 +409,11 @@ export default function FilterSidebar({ filters, onChange }: FilterSidebarProps)
 
       {/* Clear all */}
       {hasFilters && (
-        <div className="p-3 border-t border-[#e5e3df]">
+        <div className="p-3 border-t border-[var(--line)]">
           <Button
             variant="outline"
             onPress={() => onChange(DEFAULT_FILTERS)}
-            className="w-full font-mono text-xs text-[#6b6866]"
+            className="w-full font-mono text-xs text-[var(--muted)]"
           >
             <X className="size-3" />
             נקה הכל

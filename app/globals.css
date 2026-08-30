@@ -18,22 +18,233 @@
 @import "@heroui/styles/themes/default";
 @import "@heroui/styles/utilities";
 
+/* ============================================================================
+   LeadFlow Design System — "נייר חם / גרפיט"
+   ----------------------------------------------------------------------------
+   עיקרון: אותו דאטה, שני סיפורים.
+   • עולם המשתמש (יובל) — נייר חם: החלטות, הודעות, אנשים.
+   • חדר המכונות (אריאל) — גרפיט: כיול, משפך, מסלול החלטות.
+   שני העולמות חולקים ריווח, רדיוסים, טיפוגרפיה וצ'יפים; מתחלפים רק בקרקע.
+
+   הטוקנים למטה דורסים את משתני HeroUI v3, ולכן כל קומפוננטת HeroUI
+   (Button, Chip, Table, Modal, Tabs...) מקבלת את השפה אוטומטית.
+   ============================================================================ */
+
 :root {
-  --background: #f6f5f3;
-  --foreground: #111110;
+  /* ---- Ground & ink ---- */
+  --paper: #f8f4ec;
+  --background: var(--paper);
+  --foreground: #221c14;
+  --ink-strong: #14100a;
+
+  --surface: #fffdf8;
+  --surface-foreground: var(--foreground);
+  --surface-secondary: #f3ede1;
+  --surface-secondary-foreground: var(--foreground);
+  --surface-tertiary: #ebe3d4;
+  --surface-tertiary-foreground: var(--foreground);
+  --overlay: #fffdf8;
+  --overlay-foreground: var(--foreground);
+
+  /* ---- Text hierarchy (4 steps, not 7 greys) ---- */
+  --muted: #7a6f5f;
+  --faint: #a99c88;
+
+  /* ---- Lines ---- */
+  --line: #e6dccb;
+  --border: var(--line);
+  --separator: #efe7d8;
+
+  /* ---- Accent: אורן. ראדאר בלי להיות סייבר. ---- */
+  --accent: #175e4c;
+  --accent-foreground: #fffdf8;
+  --accent-soft: #e3eee7;
+  --accent-strong: #0f4739;
+
+  /* ---- Semantic — נפרד מהאקסנט בכוונה ---- */
+  --success: #2e7d4f;
+  --success-foreground: #ffffff;
+  --success-soft: #e2efe4;
+  --warning: #a66a1f;
+  --warning-foreground: #ffffff;
+  --warning-soft: #f4ead6;
+  --danger: #9c3b2a;
+  --danger-foreground: #ffffff;
+  --danger-soft: #f6e4de;
+  --neutral-soft: #f1ece1;
+
+  /* ---- Form fields ---- */
+  --field-background: #fffdf8;
+  --field-foreground: var(--foreground);
+  --field-placeholder: var(--faint);
+  --field-border: var(--line);
+  --field-border-width: 1px;
+
+  /* ---- Shape & focus ---- */
+  --radius: 0.625rem;
+  --radius-card: 0.625rem;
+  --field-radius: 0.625rem;
+  --focus: var(--accent);
+  --link: var(--accent);
+  --default: #f1ece1;
+  --default-foreground: var(--foreground);
+  --segment: #fffdf8;
+  --segment-foreground: var(--foreground);
+
+  /* ---- Brand — משמשים רק לזיהוי ערוץ, לא כאקסנט של הממשק ---- */
+  --brand-linkedin: #0a66c2;
+  --brand-whatsapp: #1c8c4d;
+
+
+  /* ---- Elevation — נייר, לא זכוכית ---- */
+  --shadow-paper: 0 1px 2px rgba(60, 45, 20, 0.05), 0 1px 3px rgba(60, 45, 20, 0.04);
+  --shadow-lift: 0 2px 6px rgba(60, 45, 20, 0.07), 0 8px 24px rgba(60, 45, 20, 0.06);
 }
 
+/* ============================================================================
+   Tailwind utilities — bg-surface / text-muted / border-line וכו'
+   ============================================================================ */
 @theme inline {
   --color-background: var(--background);
+  --color-paper: var(--paper);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-rubik);
+  --color-ink: var(--foreground);
+  --color-ink-strong: var(--ink-strong);
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-tertiary: var(--surface-tertiary);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-separator: var(--separator);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-neutral-soft: var(--neutral-soft);
+  --color-brand-linkedin: var(--brand-linkedin);
+  --color-brand-whatsapp: var(--brand-whatsapp);
+
+  --font-sans: var(--font-assistant);
+  --font-display: var(--font-assistant);
   --font-mono: var(--font-geist-mono);
+
+  --shadow-paper: var(--shadow-paper);
+  --shadow-lift: var(--shadow-lift);
+
+  --radius-card: 0.625rem;
 }
 
+/* ============================================================================
+   Base
+   ============================================================================ */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-rubik), sans-serif;
+  font-family: var(--font-assistant), system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* סקאלת טיפוגרפיה — פנים תצוגה לכותרות בלבד, לא לממשק */
+.font-display,
+.type-display {
+  font-family: var(--font-assistant), system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.type-h1 {
+  font-family: var(--font-assistant), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.5rem, 3vw, 1.85rem);
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.type-h2 {
+  font-family: var(--font-assistant), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+/* תווית מדור — עברית, לא מונוספייס אנגלי */
+.type-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+/* מספרים בלבד מקבלים מונוספייס — לא תוויות, לא כותרות */
+.type-num {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ============================================================================
+   RTL / Bidi — תוכן מעורב עברית-אנגלית
+   ============================================================================ */
+
+/* שם, תפקיד, חברה, לינק: אף פעם לא גורר את הפיסוק לצד הלא נכון */
+.bidi-isolate,
+[data-bidi="isolate"] {
+  unicode-bidi: isolate;
+}
+
+/* מחרוזת לטינית בתוך משפט עברי */
+.ltr-inline {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
+
+/* בלוק אנגלי מלא (תקציר כתבה לועזי) — יישור לשמאל, לא RTL שבור */
+.ltr-block {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate;
+}
+
+/* מספרים ותאריכים בתוך טקסט עברי */
+.num-inline {
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================
+   Primitives
+   ============================================================================ */
+.card-paper {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card, 0.625rem);
+  box-shadow: var(--shadow-paper);
+}
+
+/* שם מכוון: HeroUI כבר תופס .focus-ring כ-@utility שמצייר טבעת תמידית.
+   כאן רוצים טבעת רק כשמנווטים במקלדת. */
+.fv-ring:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -156,11 +156,11 @@ export default function ListDetailPage() {
   if (!state.list && !state.loading) return null;
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
+    <div className="flex flex-col h-full min-h-screen bg-[var(--background)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--line)] bg-surface sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <Link href="/lists" className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
+          <Link href="/lists" className="text-[var(--faint)] hover:text-[var(--muted)] transition-colors">
             <ArrowLeft className="size-4" />
           </Link>
           {state.editingName ? (
@@ -170,37 +170,37 @@ export default function ListDetailPage() {
                 onChange={(e) => dispatch({ nameInput: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && saveName()}
                 aria-label="שם הרשימה"
-                className="bg-[#f8f7f5] border border-[#1585ff]/60 rounded-md px-2 py-0.5 text-sm text-[#111110] focus:outline-none"
+                className="bg-[var(--surface-secondary)] border border-[var(--accent)]/60 rounded-md px-2 py-0.5 text-sm text-[var(--foreground)] focus:outline-none"
               />
-              <button type="button" onClick={saveName} disabled={state.savingName} aria-label="שמור שם" className="text-[#1585ff] hover:text-[#0a70e0] transition-colors">
+              <button type="button" onClick={saveName} disabled={state.savingName} aria-label="שמור שם" className="text-[var(--accent)] hover:text-[var(--accent-strong)] transition-colors">
                 {state.savingName ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <h1 className="text-sm font-semibold text-[#111110]">{state.list?.name}</h1>
+              <h1 className="text-sm font-semibold text-[var(--foreground)]">{state.list?.name}</h1>
               <button
                 type="button"
                 onClick={() => { dispatch({ nameInput: state.list?.name ?? "", editingName: true }); }}
                 aria-label="ערוך שם רשימה"
-                className="text-[#9b9895] hover:text-[#6b6866] transition-colors"
+                className="text-[var(--faint)] hover:text-[var(--muted)] transition-colors"
               >
                 <Pencil className="size-3" />
               </button>
             </div>
           )}
           {!state.loading && (
-            <span className="text-xs font-mono text-[#9b9895]">{state.total} אנשי קשר ברשימה</span>
+            <span className="text-xs tabular-nums text-[var(--faint)]">{state.total} אנשי קשר ברשימה</span>
           )}
         </div>
         <div className="flex items-center gap-2">
           {state.enrichError && (
-            <span className="text-xs font-mono text-red-400">{state.enrichError}</span>
+            <span className="text-xs font-mono text-[var(--danger)]">{state.enrichError}</span>
           )}
           <button
             type="button"
             onClick={() => dispatch({ addContactsOpen: true })}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1585ff] border border-[#1585ff]/30 hover:bg-[#1585ff]/5 hover:border-[#1585ff]/50 rounded-md transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--accent)] border border-[var(--accent)]/30 hover:bg-[var(--accent)]/5 hover:border-[var(--accent)]/50 rounded-md transition-all"
           >
             <UserPlus className="size-3.5" />
             הוסף אנשי קשר
@@ -209,7 +209,7 @@ export default function ListDetailPage() {
             type="button"
             onClick={enrichList}
             disabled={state.total === 0 || state.enriching || jobActive}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-600 border border-amber-300 hover:bg-amber-50 hover:border-amber-400 rounded-md transition-all disabled:opacity-40"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--warning)] border border-[var(--warning)]/30 hover:bg-[var(--warning-soft)] hover:border-[var(--warning)] rounded-md transition-all disabled:opacity-40"
           >
             {state.enriching ? <Loader2 className="size-3.5 animate-spin" /> : <Zap className="size-3.5" />}
             העשר
@@ -252,7 +252,7 @@ export default function ListDetailPage() {
               disabled={state.removingId === contact.id}
               aria-label={`הסר את ${contact.fullName} מהרשימה`}
               title="הסר מהרשימה"
-              className="p-1.5 text-[#d4d0cc] hover:text-red-400 transition-colors disabled:opacity-40"
+              className="p-1.5 text-[var(--faint)] hover:text-[var(--danger)] transition-colors disabled:opacity-40"
             >
               {state.removingId === contact.id ? (
                 <Loader2 className="size-3.5 animate-spin" />

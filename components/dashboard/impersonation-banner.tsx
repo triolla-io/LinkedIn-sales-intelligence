@@ -17,14 +17,14 @@ export default function ImpersonationBanner({ name }: ImpersonationBannerProps) 
   }
 
   return (
-    <div className="bg-yellow-100 border-b border-yellow-300 px-4 py-2 flex items-center justify-between">
-      <p className="text-sm text-yellow-800 font-medium">
+    <div className="bg-[var(--warning-soft)] border-b border-[var(--warning)]/30 px-4 py-2 flex items-center justify-between">
+      <p className="text-sm text-[var(--warning)] font-medium">
         Viewing as <span className="font-bold">{name}</span>
       </p>
       <button
         type="button"
         onClick={handleExit}
-        className="flex items-center gap-1 text-sm text-yellow-700 hover:text-yellow-900 font-medium transition-colors"
+        className="flex items-center gap-1 text-sm text-[var(--warning)] hover:text-[var(--warning)] font-medium transition-colors"
       >
         <X className="size-3" />
         Exit

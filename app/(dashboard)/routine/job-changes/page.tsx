@@ -48,15 +48,15 @@ export default function JobChangesDashboard() {
   const jobChecksOn = modules?.jobChecksEnabled ?? false;
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]" dir="rtl">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
+    <div className="flex flex-col h-full min-h-screen bg-[var(--background)]" dir="rtl">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--line)] bg-surface sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <PartyPopper className="w-5 h-5 text-[#c2410c]" />
+          <PartyPopper className="w-5 h-5 text-[var(--warning)]" />
           <h1 className="text-lg font-semibold">עדכוני משתמשים — סקירה</h1>
         </div>
         {modules && (
           <label className="flex items-center gap-2 cursor-pointer select-none">
-            <span className={`text-xs font-medium ${jobChecksOn ? "text-[#059669]" : "text-[#b45309]"}`}>
+            <span className={`text-xs font-medium ${jobChecksOn ? "text-[var(--success)]" : "text-[var(--warning)]"}`}>
               {jobChecksOn ? "המודול פעיל" : "המודול כבוי"}
             </span>
             <button
@@ -66,10 +66,10 @@ export default function JobChangesDashboard() {
               aria-label="הפעלת מודול עדכוני משתמשים"
               onClick={() => setModule("jobChecks", !jobChecksOn)}
               dir="ltr"
-              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${jobChecksOn ? "bg-[#059669]" : "bg-gray-300"}`}
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${jobChecksOn ? "bg-[var(--success)]" : "bg-[var(--faint)]"}`}
             >
               <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${jobChecksOn ? "translate-x-[22px]" : "translate-x-[2px]"}`}
+                className={`inline-block h-5 w-5 transform rounded-full bg-surface shadow transition-transform ${jobChecksOn ? "translate-x-[22px]" : "translate-x-[2px]"}`}
               />
             </button>
           </label>
@@ -77,7 +77,7 @@ export default function JobChangesDashboard() {
       </div>
 
       {isLoading || !data ? (
-        <div className="flex items-center gap-2 text-gray-500 p-5">
+        <div className="flex items-center gap-2 text-[var(--muted)] p-5">
           <Loader2 className="w-4 h-4 animate-spin" /> טוען…
         </div>
       ) : (
@@ -112,20 +112,20 @@ export default function JobChangesDashboard() {
           </div>
 
           {/* Coverage bar + rate */}
-          <div className="bg-white rounded-lg border border-[#e5e3df] p-4">
+          <div className="bg-surface rounded-lg border border-[var(--line)] p-4">
             <div className="flex items-center justify-between text-sm mb-2">
               <span className="font-medium">כיסוי חודשי (28 יום)</span>
-              <span className="text-gray-500">
+              <span className="text-[var(--muted)]">
                 {data.coveredLast28d}/{data.eligibleTotal}
               </span>
             </div>
-            <div className="h-2 rounded-full bg-[#e5e3df] overflow-hidden">
+            <div className="h-2 rounded-full bg-[var(--line)] overflow-hidden">
               <div
-                className="h-full bg-[#c2410c]"
+                className="h-full bg-[var(--warning)]"
                 style={{ width: `${coveragePct(data.coveredLast28d, data.eligibleTotal)}%` }}
               />
             </div>
-            <p className="mt-2 text-xs text-gray-500">
+            <p className="mt-2 text-xs text-[var(--muted)]">
               ~{data.dailyThroughput} ליום · סבב מלא מסתיים בעוד ~
               {estimateFullPassDays(data.dueNow, data.dailyThroughput)} ימים
             </p>
@@ -151,11 +151,11 @@ function StatCard({
   href?: string;
 }) {
   const inner = (
-    <div className="bg-white rounded-lg border border-[#e5e3df] p-4 h-full flex flex-col gap-1 transition-colors hover:border-[#c2410c]">
-      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+    <div className="bg-surface rounded-lg border border-[var(--line)] p-4 h-full flex flex-col gap-1 transition-colors hover:border-[var(--warning)]">
+      <div className="flex items-center gap-1.5 text-xs text-[var(--muted)]">
         <Icon className="w-3.5 h-3.5" /> {label}
       </div>
-      <div className="text-2xl font-semibold text-[#111110]">{value}</div>
+      <div className="text-2xl font-semibold text-[var(--foreground)]">{value}</div>
     </div>
   );
   return href ? <Link href={href}>{inner}</Link> : inner;
@@ -163,15 +163,15 @@ function StatCard({
 
 function ScannedTable({ rows }: { rows: ScannedRow[] }) {
   if (rows.length === 0) {
-    return <p className="text-gray-500">עוד לא נסרקו אנשי קשר.</p>;
+    return <p className="text-[var(--muted)]">עוד לא נסרקו אנשי קשר.</p>;
   }
   return (
-    <div className="bg-white rounded-lg border border-[#e5e3df] overflow-hidden">
-      <div className="px-4 py-3 border-b border-[#e5e3df] text-sm font-medium">
+    <div className="bg-surface rounded-lg border border-[var(--line)] overflow-hidden">
+      <div className="px-4 py-3 border-b border-[var(--line)] text-sm font-medium">
         מי נסרק ומתי הבדיקה הבאה
       </div>
       <table className="w-full text-sm">
-        <thead className="text-xs text-gray-500 bg-[#f6f5f3]">
+        <thead className="text-xs text-[var(--muted)] bg-[var(--background)]">
           <tr>
             <th className="text-right px-4 py-2 font-medium">שם</th>
             <th className="text-right px-4 py-2 font-medium">תפקיד / חברה</th>
@@ -182,22 +182,22 @@ function ScannedTable({ rows }: { rows: ScannedRow[] }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.id} className="border-t border-[#e5e3df]">
+            <tr key={r.id} className="border-t border-[var(--line)]">
               <td className="px-4 py-2">
                 <a
                   href={r.linkedinUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[#0a66c2] inline-flex items-center gap-1"
+                  className="text-[var(--brand-linkedin)] inline-flex items-center gap-1"
                 >
                   {r.fullName} <ExternalLink className="w-3 h-3" />
                 </a>
               </td>
-              <td className="px-4 py-2 text-gray-700">
+              <td className="px-4 py-2 text-[var(--muted)]">
                 {[r.currentTitle, r.currentCompany].filter(Boolean).join(" · ") || "—"}
               </td>
-              <td className="px-4 py-2 text-gray-500">{fmtDate(r.lastJobCheckAt)}</td>
-              <td className="px-4 py-2 text-gray-500">{fmtDate(r.nextCheckAt)}</td>
+              <td className="px-4 py-2 text-[var(--muted)]">{fmtDate(r.lastJobCheckAt)}</td>
+              <td className="px-4 py-2 text-[var(--muted)]">{fmtDate(r.nextCheckAt)}</td>
               <td className="px-4 py-2">{r.hasChange ? "✓" : "—"}</td>
             </tr>
           ))}

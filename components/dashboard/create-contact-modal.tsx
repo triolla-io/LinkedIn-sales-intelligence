@@ -91,13 +91,13 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
       ref={dialogRef}
       onClose={onClose}
       aria-labelledby="create-contact-title"
-      className="fixed inset-0 m-auto z-50 w-full max-w-md h-fit bg-white rounded-xl shadow-2xl border border-[#e5e3df] flex flex-col max-h-[90vh] p-0 open:flex backdrop:bg-black/40"
+      className="fixed inset-0 m-auto z-50 w-full max-w-md h-fit bg-surface rounded-xl shadow-2xl border border-[var(--line)] flex flex-col max-h-[90vh] p-0 open:flex backdrop:bg-black/40"
     >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e3df] shrink-0">
-          <h3 id="create-contact-title" className="text-sm font-semibold text-[#111110]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--line)] shrink-0">
+          <h3 id="create-contact-title" className="text-sm font-semibold text-[var(--foreground)]">
             הוסף איש קשר ידני
           </h3>
-          <button type="button" onClick={onClose} aria-label="סגור" className="text-[#9b9895] hover:text-[#6b6866] transition-colors">
+          <button type="button" onClick={onClose} aria-label="סגור" className="text-[var(--faint)] hover:text-[var(--muted)] transition-colors">
             <X className="size-4" />
           </button>
         </div>
@@ -105,9 +105,9 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
         <div className="p-5 space-y-3 overflow-y-auto">
           {TEXT_FIELDS.map(({ key, label, type, required }) => (
             <div key={key}>
-              <label htmlFor={`cc-${key}`} className="flex items-center gap-1 text-[10px] font-mono text-[#9b9895] uppercase tracking-widest mb-1">
+              <label htmlFor={`cc-${key}`} className="flex items-center gap-1 text-[10px] font-mono text-[var(--faint)] uppercase tracking-widest mb-1">
                 {label}
-                {required && <span className="text-red-400">*</span>}
+                {required && <span className="text-[var(--danger)]">*</span>}
               </label>
               <input
                 id={`cc-${key}`}
@@ -117,10 +117,10 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
                 onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
                 dir={type === "url" || type === "email" || key === "phone" ? "ltr" : undefined}
                 className={cn(
-                  "w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] text-[#111110] placeholder:text-[#c4c2be]",
+                  "w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30 focus:border-[var(--accent)] text-[var(--foreground)] placeholder:text-[var(--faint)]",
                   required && !form[key].trim() && error
-                    ? "border-red-300"
-                    : "border-[#d1cfcb]"
+                    ? "border-[var(--danger)]/30"
+                    : "border-[var(--faint)]"
                 )}
                 placeholder={`הוסף ${label}…`}
               />
@@ -128,14 +128,14 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
           ))}
 
           <div>
-            <label htmlFor="cc-seniority" className="block text-[10px] font-mono text-[#9b9895] uppercase tracking-widest mb-1">
+            <label htmlFor="cc-seniority" className="block text-[10px] font-mono text-[var(--faint)] uppercase tracking-widest mb-1">
               Seniority
             </label>
             <select
               id="cc-seniority"
               value={form.seniority}
               onChange={(e) => setForm((prev) => ({ ...prev, seniority: e.target.value }))}
-              className="w-full px-3 py-2 text-sm border border-[#d1cfcb] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1585ff]/30 focus:border-[#1585ff] text-[#111110] bg-white"
+              className="w-full px-3 py-2 text-sm border border-[var(--faint)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30 focus:border-[var(--accent)] text-[var(--foreground)] bg-surface"
               dir="ltr"
             >
               {SENIORITY_OPTIONS.map((o) => (
@@ -144,14 +144,14 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
             </select>
           </div>
 
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {error && <p className="text-xs text-[var(--danger)]">{error}</p>}
         </div>
 
-        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[#e5e3df] shrink-0">
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[var(--line)] shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] transition-colors"
+            className="px-4 py-2 text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
           >
             ביטול
           </button>
@@ -160,8 +160,8 @@ export default function CreateContactModal({ onClose, onCreated }: CreateContact
             onClick={handleSave}
             disabled={saving}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#1585ff] rounded-lg transition-colors",
-              saving ? "opacity-60 cursor-not-allowed" : "hover:bg-[#0a70e0]"
+              "flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--accent)] rounded-lg transition-colors",
+              saving ? "opacity-60 cursor-not-allowed" : "hover:bg-[var(--accent-strong)]"
             )}
           >
             {saving && <Loader2 className="size-3.5 animate-spin" />}

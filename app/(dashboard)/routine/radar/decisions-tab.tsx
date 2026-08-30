@@ -43,11 +43,11 @@ type Decisions = {
   quietAxes: { label: string; person: string; queries: number; results: number; hebrewNoIsraeliSource: boolean }[];
 };
 
-const EN_INK = "text-[#e8ecf2]";
-const EN_INK_2 = "text-[rgba(232,236,242,0.66)]";
-const EN_INK_3 = "text-[rgba(232,236,242,0.42)]";
-const PASS = "#5fb878";
-const FAIL = "#e07a6a";
+const EN_INK = "text-[var(--accent-soft)]";
+const EN_INK_2 = "text-[var(--muted)]";
+const EN_INK_3 = "text-[var(--muted)]";
+const PASS = "var(--success)";
+const FAIL = "var(--danger)";
 
 type Filter = { person: string | null; rejectedOnly: boolean; thinOnly: boolean };
 
@@ -84,8 +84,8 @@ function Funnel({ run }: { run: NonNullable<Decisions["run"]> }) {
           className={cn(
             // Wraps three-up on a phone, one row from sm — five columns of 20% each are
             // unreadable at 390px.
-            "flex-1 min-w-[32%] sm:min-w-0 text-center py-3 px-1.5 bg-[#1e242e]",
-            i > 0 && "border-s border-[rgba(232,236,242,0.09)]",
+            "flex-1 min-w-[32%] sm:min-w-0 text-center py-3 px-1.5 bg-[var(--surface)]",
+            i > 0 && "border-s border-[var(--line)]",
             i === 0 && "rounded-s-xl",
             i === segs.length - 1 && "rounded-e-xl"
           )}
@@ -185,7 +185,7 @@ function ItemCard({ item, onOverridden }: { item: Item; onOverridden: () => void
   }
 
   return (
-    <div className="bg-[#1e242e] border border-[rgba(232,236,242,0.09)] rounded-[14px] px-5 py-4 mb-3.5">
+    <div className="bg-[var(--surface)] border border-[var(--line)] rounded-[14px] px-5 py-4 mb-3.5">
       <div className="flex items-baseline gap-2.5 flex-wrap">
         <span className={cn("font-bold text-[14.5px]", EN_INK)}>{item.title}</span>
         {item.url ? (
@@ -203,12 +203,12 @@ function ItemCard({ item, onOverridden }: { item: Item; onOverridden: () => void
           <span className={cn("text-xs", EN_INK_3)}>{item.sourceHost}</span>
         )}
         {item.snippetOnly && (
-          <span className="text-[11px] rounded-full px-2 py-0.5" style={{ background: "rgba(224,122,106,0.12)", color: FAIL }}>
+          <span className="text-[11px] rounded-full px-2 py-0.5" style={{ background: "var(--danger-soft)", color: FAIL }}>
             לא נקראה עד הסוף
           </span>
         )}
         <span
-          className={cn("ms-auto text-xs rounded-full px-2.5 py-0.5 bg-[#232a36]", EN_INK_2)}
+          className={cn("ms-auto text-xs rounded-full px-2.5 py-0.5 bg-[var(--surface)]", EN_INK_2)}
         >
           → {item.person.fullName}
         </span>
@@ -241,14 +241,14 @@ function ItemCard({ item, onOverridden }: { item: Item; onOverridden: () => void
             placeholder="למה השער טעה? (לא חובה — אבל זה מה שמלמד אותו)"
             aria-label="סיבת הדריסה"
             className={cn(
-              "flex-1 min-w-[240px] bg-[#171b22] border border-[rgba(232,236,242,0.14)] rounded-lg px-3 py-1.5 text-[13px] outline-none",
+              "flex-1 min-w-[240px] bg-[var(--background)] border border-[var(--line)] rounded-lg px-3 py-1.5 text-[13px] outline-none",
               EN_INK
             )}
           />
           <button
             disabled={busy}
             onClick={() => void override()}
-            className="text-[13px] font-semibold rounded-lg px-3.5 py-1.5 bg-[#232a36] disabled:opacity-50 inline-flex items-center gap-1.5"
+            className="text-[13px] font-semibold rounded-lg px-3.5 py-1.5 bg-[var(--surface)] disabled:opacity-50 inline-flex items-center gap-1.5"
           >
             {busy && <Loader2 className="size-3.5 animate-spin" aria-hidden />}
             נסח ושלח לאישור
@@ -278,8 +278,8 @@ export function DecisionsTab() {
     cn(
       "text-[12.5px] rounded-full px-3.5 py-1 border font-medium",
       on
-        ? "bg-[#232a36] border-[rgba(232,236,242,0.22)] text-[#e8ecf2]"
-        : cn("border-[rgba(232,236,242,0.09)] bg-transparent", EN_INK_2)
+        ? "bg-[var(--accent-soft)] border-[var(--accent)]/30 text-[var(--accent)]"
+        : cn("border-[var(--line)] bg-transparent hover:text-[var(--foreground)]", EN_INK_2)
     );
 
   const items = (data?.items ?? []).filter(
@@ -290,7 +290,7 @@ export function DecisionsTab() {
   );
 
   return (
-    <section className="bg-[#171b22] -mx-4 sm:-mx-6 px-4 sm:px-6 py-7 pb-14 rounded-[20px]">
+    <section className="pb-14">
       <p className={cn("text-sm mb-4", EN_INK_2)}>
         כך המערכת מחליטה: כל כתבה עוברת ארבע החלטות בדרך לטיוטה. מה שנעצר — הסיבה כתובה
         בדיוק בנקודת העצירה.
@@ -365,7 +365,7 @@ export function DecisionsTab() {
           )}
 
           {data.quietAxes.length > 0 && (
-            <div className="mt-7 pt-4.5 border-t border-[rgba(232,236,242,0.09)]">
+            <div className="mt-7 pt-4.5 border-t border-[var(--line)]">
               <h3 className={cn("text-[13px] font-bold mb-2.5", EN_INK_3)}>
                 צירים בלי חומר השבוע — לא באג, שקט
               </h3>
@@ -375,7 +375,7 @@ export function DecisionsTab() {
               {data.quietAxes.map((a, i) => (
                 <div
                   key={`${a.label}-${i}`}
-                  className="flex justify-between gap-3 text-[13px] py-1.5 border-b border-dashed border-[rgba(232,236,242,0.09)] flex-wrap"
+                  className="flex justify-between gap-3 text-[13px] py-1.5 border-b border-dashed border-[var(--line)] flex-wrap"
                 >
                   <span className={EN_INK_2}>
                     {a.label}

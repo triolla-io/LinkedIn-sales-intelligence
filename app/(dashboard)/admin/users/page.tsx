@@ -25,9 +25,9 @@ interface AdminUsersResponse {
 }
 
 const ROLE_STYLES: Record<string, string> = {
-  SUPER_ADMIN: "bg-[#f3e8ff] text-[#7c3aed]",
-  ADMIN: "bg-[#e6f4ff] text-[#1585ff]",
-  SALESPERSON: "bg-[#f3f2ef] text-[#6b6866]",
+  SUPER_ADMIN: "bg-[var(--accent-soft)] text-[var(--accent-strong)]",
+  ADMIN: "bg-[var(--accent-soft)] text-[var(--accent)]",
+  SALESPERSON: "bg-[var(--surface-secondary)] text-[var(--muted)]",
 };
 
 const fetcher = async (url: string) => {
@@ -41,7 +41,7 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-const TH = "text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider";
+const TH = "text-right px-4 py-2.5 text-xs font-semibold text-[var(--faint)] uppercase tracking-wider";
 
 /** Shared monthly Apollo pool for the whole org — the outer ceiling every
  *  per-user quota sits inside. */
@@ -55,23 +55,23 @@ function OrgPoolBar({
   return (
     <div className={cn(ui.card, "p-4 mb-4")}>
       <div className="flex items-baseline justify-between gap-3">
-        <p className="text-sm font-medium text-[#1a1917]">
+        <p className="text-sm font-medium text-[var(--ink-strong)]">
           בריכת הקרדיטים החודשית של הארגון
         </p>
         <p className="text-sm tabular-nums">
-          <span className={spent ? "text-[#c2410c] font-medium" : "text-[#1a1917]"}>
+          <span className={spent ? "text-[var(--warning)] font-medium" : "text-[var(--ink-strong)]"}>
             {org.creditsUsed.toLocaleString()}
           </span>
-          <span className="text-[#9b9895]"> / {org.creditsLimit.toLocaleString()}</span>
+          <span className="text-[var(--faint)]"> / {org.creditsLimit.toLocaleString()}</span>
         </p>
       </div>
-      <div className="mt-2 h-1.5 rounded-full bg-[#ece9e3] overflow-hidden">
+      <div className="mt-2 h-1.5 rounded-full bg-[var(--line)] overflow-hidden">
         <div
-          className={cn("h-full rounded-full", spent ? "bg-[#c2410c]" : "bg-[#1585ff]")}
+          className={cn("h-full rounded-full", spent ? "bg-[var(--warning)]" : "bg-[var(--accent)]")}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <p className="mt-2 text-xs text-[#9b9895]">
+      <p className="mt-2 text-xs text-[var(--faint)]">
         מכסה אישית לכל משתמש: {org.perUserLimit.toLocaleString()} קרדיטים · אימייל = 1, טלפון = 8
       </p>
     </div>
@@ -115,7 +115,7 @@ export default function AdminUsersPage() {
   const isLoading = !users && !error;
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]" dir="rtl">
+    <div className="flex flex-col h-full min-h-screen bg-[var(--background)]" dir="rtl">
       <PageHeader
         icon={Users}
         title="משתמשים"
@@ -136,20 +136,20 @@ export default function AdminUsersPage() {
 
       <div className="w-full max-w-5xl mx-auto px-6 pt-6 pb-10">
         {error ? (
-          <div className="bg-[#fff3f3] border border-[#fde2e2] rounded-xl p-4 text-[#dc2626] text-sm">
+          <div className="bg-[var(--danger-soft)] border border-[var(--danger-soft)] rounded-xl p-4 text-[var(--danger)] text-sm">
             {error === "You don't have permission to view this page" ? "אין לך הרשאה לצפות בדף זה" : error}
           </div>
         ) : isLoading ? (
           <div className={cn(ui.card, "overflow-hidden")}>
-            <div className="animate-pulse divide-y divide-[#e7e4dd]">
+            <div className="animate-pulse divide-y divide-[var(--line)]">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-4 p-4">
-                  <div className="h-4 bg-[#ece9e3] rounded w-32" />
-                  <div className="h-4 bg-[#ece9e3] rounded w-48" />
-                  <div className="h-5 bg-[#ece9e3] rounded-full w-20" />
-                  <div className="h-4 bg-[#ece9e3] rounded w-12" />
-                  <div className="h-4 bg-[#ece9e3] rounded w-24" />
-                  <div className="h-4 bg-[#ece9e3] rounded w-16" />
+                  <div className="h-4 bg-[var(--line)] rounded w-32" />
+                  <div className="h-4 bg-[var(--line)] rounded w-48" />
+                  <div className="h-5 bg-[var(--line)] rounded-full w-20" />
+                  <div className="h-4 bg-[var(--line)] rounded w-12" />
+                  <div className="h-4 bg-[var(--line)] rounded w-24" />
+                  <div className="h-4 bg-[var(--line)] rounded w-16" />
                 </div>
               ))}
             </div>
@@ -160,7 +160,7 @@ export default function AdminUsersPage() {
           <div className={cn(ui.card, "overflow-hidden")}>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#e7e4dd] bg-[#fafaf9]">
+                <tr className="border-b border-[var(--line)] bg-[var(--surface-secondary)]">
                   <th className={TH}>שם</th>
                   <th className={TH}>אימייל</th>
                   <th className={TH}>תפקיד</th>
@@ -170,32 +170,32 @@ export default function AdminUsersPage() {
                   <th className="px-4 py-2.5" aria-label="פעולות" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e7e4dd]">
+              <tbody className="divide-y divide-[var(--line)]">
                 {(users ?? []).length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-10 text-[#9b9895] text-sm">
+                    <td colSpan={7} className="text-center py-10 text-[var(--faint)] text-sm">
                       לא נמצאו משתמשים
                     </td>
                   </tr>
                 ) : (
                   (users ?? []).map((user) => (
-                    <tr key={user.id} className="hover:bg-[#fafaf9] transition-colors">
-                      <td className="px-4 py-3 font-medium text-[#1a1917]">{user.name}</td>
-                      <td className="px-4 py-3 text-[#6b6866]">{user.email}</td>
+                    <tr key={user.id} className="hover:bg-[var(--surface-secondary)] transition-colors">
+                      <td className="px-4 py-3 font-medium text-[var(--ink-strong)]">{user.name}</td>
+                      <td className="px-4 py-3 text-[var(--muted)]">{user.email}</td>
                       <td className="px-4 py-3">
                         <span
                           className={cn(
                             "inline-block px-2 py-0.5 rounded-full text-xs font-medium",
-                            ROLE_STYLES[user.role] ?? "bg-[#f3f2ef] text-[#6b6866]",
+                            ROLE_STYLES[user.role] ?? "bg-[var(--surface-secondary)] text-[var(--muted)]",
                           )}
                         >
                           {user.role}
                         </span>
                       </td>
-                      <td className="px-4 py-3 tabular-nums text-[#6b6866]">
+                      <td className="px-4 py-3 tabular-nums text-[var(--muted)]">
                         {user.contactCount.toLocaleString()}
                       </td>
-                      <td className="px-4 py-3 text-[#9b9895]">
+                      <td className="px-4 py-3 text-[var(--faint)]">
                         {user.lastSyncedAt
                           ? new Date(user.lastSyncedAt).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" })
                           : "לעולם לא"}
@@ -204,15 +204,15 @@ export default function AdminUsersPage() {
                         <span
                           className={cn(
                             user.creditsConsumed >= user.creditsLimit
-                              ? "text-[#c2410c] font-medium"
+                              ? "text-[var(--warning)] font-medium"
                               : user.creditsConsumed >= user.creditsLimit * 0.8
-                                ? "text-[#a16207]"
-                                : "text-[#6b6866]",
+                                ? "text-[var(--warning)]"
+                                : "text-[var(--muted)]",
                           )}
                         >
                           {user.creditsConsumed.toLocaleString()}
                         </span>
-                        <span className="text-[#9b9895]"> / {user.creditsLimit.toLocaleString()}</span>
+                        <span className="text-[var(--faint)]"> / {user.creditsLimit.toLocaleString()}</span>
                       </td>
                       <td className="px-4 py-3 text-left">
                         <button
@@ -220,7 +220,7 @@ export default function AdminUsersPage() {
                           onClick={() => handleImpersonate(user.id)}
                           disabled={impersonating === user.id}
                           aria-label={`צפה בחשבון של ${user.name}`}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-[#1585ff] hover:text-[#0a70e0] transition-colors disabled:opacity-50"
+                          className="inline-flex items-center gap-1 text-xs font-medium text-[var(--accent)] hover:text-[var(--accent-strong)] transition-colors disabled:opacity-50"
                         >
                           {impersonating === user.id ? (
                             <RefreshCw className="size-3 animate-spin" />

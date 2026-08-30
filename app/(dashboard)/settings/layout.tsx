@@ -3,10 +3,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV = [
-  { href: "/settings/extension", label: "LinkedIn Extension" },
-  { href: "/settings/whatsapp", label: "WhatsApp" },
+  { href: "/settings/extension", label: "תוסף לינקדאין" },
+  { href: "/settings/whatsapp", label: "וואטסאפ" },
   // Hidden until the Claude/MCP one-click (OAuth) flow ships — page still exists at /settings/mcp.
-  // { href: "/settings/mcp", label: "Claude / MCP" },
+  // { href: "/settings/mcp", label: "Claude / MCP" }, // שם מוצר — נשאר לטינית
   { href: "/settings/signature", label: "חתימת אימייל" },
 ];
 
@@ -14,8 +14,8 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
   return (
     <div className="flex min-h-screen">
-      <aside className="w-48 shrink-0 border-l border-[#e5e3df] bg-[#fafaf9] py-6 px-3">
-        <p className="px-3 mb-3 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">הגדרות</p>
+      <aside className="w-48 shrink-0 border-l border-[var(--line)] bg-[var(--surface-secondary)] py-6 px-3">
+        <p className="px-3 mb-3 text-xs font-semibold text-[var(--muted)]">הגדרות</p>
         <nav className="space-y-0.5">
           {NAV.map(({ href, label }) => {
             const active = pathname === href;
@@ -25,8 +25,8 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                 href={href}
                 className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
                   active
-                    ? "bg-[#e8f0fe] text-[#1585ff] font-medium"
-                    : "text-[#6b6866] hover:bg-[#f0efed] hover:text-[#111110]"
+                    ? "bg-[var(--accent-soft)] text-[var(--accent)] font-medium"
+                    : "text-[var(--muted)] hover:bg-[var(--separator)] hover:text-[var(--foreground)]"
                 }`}
               >
                 {label}

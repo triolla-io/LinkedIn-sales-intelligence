@@ -11,7 +11,7 @@ import { TechRadarClient, TechRadarModuleSwitch } from "./tech-radar-client";
  */
 export default function TechRadarPage() {
   return (
-    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
+    <div className="flex flex-col h-full min-h-screen bg-[var(--background)]">
       <PageHeader
         icon={Radar}
         title="ראדאר טכנולוגי"

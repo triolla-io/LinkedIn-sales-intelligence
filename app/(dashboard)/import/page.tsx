@@ -19,6 +19,7 @@ import {
   Users,
   Building2,
   RefreshCw,
+  ChevronLeft,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
@@ -40,8 +41,8 @@ const STR_CONNECTIONS = "Connections.csv";
 const STR_SETTINGS = "linkedin.com/settings";
 
 const colorByAccent: Record<"info" | "warn", { ring: string; text: string }> = {
-  info: { ring: "border-blue-200", text: "text-blue-600" },
-  warn: { ring: "border-amber-200", text: "text-amber-600" },
+  info: { ring: "border-[var(--accent)]/30", text: "text-[var(--accent)]" },
+  warn: { ring: "border-[var(--warning)]/30", text: "text-[var(--warning)]" },
 };
 
 type State = {
@@ -66,17 +67,17 @@ function StatCard({
   value: number;
   accent?: "info" | "warn";
 }) {
-  let c = { ring: "border-[#e5e3df]", text: "text-[#111110]" };
+  let c = { ring: "border-[var(--line)]", text: "text-[var(--foreground)]" };
   if (accent === "info") c = colorByAccent.info;
   else if (accent === "warn") c = colorByAccent.warn;
 
   return (
-    <div className={`rounded-xl border ${c.ring} bg-white p-4 text-center`}>
-      <Icon className="size-5 text-[#9b9895] mx-auto mb-2" />
+    <div className={`rounded-xl border ${c.ring} bg-surface p-4 text-center`}>
+      <Icon className="size-5 text-[var(--faint)] mx-auto mb-2" />
       <p className={`text-xl font-semibold ${c.text}`}>
         {value.toLocaleString()}
       </p>
-      <p className="text-xs text-[#9b9895] mt-0.5">{label}</p>
+      <p className="text-xs text-[var(--faint)] mt-0.5">{label}</p>
     </div>
   );
 }
@@ -123,11 +124,11 @@ function BackgroundStatus() {
 
   if (status.enrichmentConfigured === false && status.pendingCompanies > 0) {
     return (
-      <div className="mt-4 px-4 py-3 rounded-xl border border-amber-200 bg-amber-50 flex items-start gap-3">
-        <AlertCircle className="size-4 shrink-0 mt-0.5 text-amber-500" />
+      <div className="mt-4 px-4 py-3 rounded-xl border border-[var(--warning)]/30 bg-[var(--warning-soft)] flex items-start gap-3">
+        <AlertCircle className="size-4 shrink-0 mt-0.5 text-[var(--warning)]" />
         <div className="space-y-1 flex-1">
-          <p className="text-xs font-medium text-[#111110]">העשרת חברות אינה מוגדרת</p>
-          <p className="text-xs text-[#6b6866]">
+          <p className="text-xs font-medium text-[var(--foreground)]">העשרת חברות אינה מוגדרת</p>
+          <p className="text-xs text-[var(--muted)]">
             {status.pendingCompanies.toLocaleString()} חברות ממתינות, אך מפתח ה-API להעשרה חסר. פנה למנהל המערכת.
           </p>
         </div>
@@ -136,19 +137,19 @@ function BackgroundStatus() {
   }
 
   return (
-    <div className="mt-4 px-4 py-3 rounded-xl border border-[#e5e3df] bg-white flex items-start gap-3">
-      <RefreshCw className={`size-4 shrink-0 mt-0.5 ${isStuck ? "text-amber-400" : "text-[#1585ff] animate-spin"}`} />
+    <div className="mt-4 px-4 py-3 rounded-xl border border-[var(--line)] bg-surface flex items-start gap-3">
+      <RefreshCw className={`size-4 shrink-0 mt-0.5 ${isStuck ? "text-[var(--warning)]" : "text-[var(--accent)] animate-spin"}`} />
       <div className="space-y-1 flex-1">
-        <p className="text-xs font-medium text-[#111110]">
+        <p className="text-xs font-medium text-[var(--foreground)]">
           {isStuck ? "עיבוד תקוע?" : "עיבוד רץ ברקע"}
         </p>
         {status.pendingEnrichment > 0 && (
-          <p className="text-xs text-[#6b6866]">
+          <p className="text-xs text-[var(--muted)]">
             {status.pendingEnrichment.toLocaleString()} קשרים ממתינים לסיווג (סניוריטי, שם עברי)
           </p>
         )}
         {status.pendingCompanies > 0 && (
-          <p className="text-xs text-[#6b6866]">
+          <p className="text-xs text-[var(--muted)]">
             {status.pendingCompanies.toLocaleString()} חברות ממתינות לנתוני עובדים ותעשייה
           </p>
         )}
@@ -156,7 +157,7 @@ function BackgroundStatus() {
           <button
             type="button"
             onClick={retry}
-            className="mt-1 text-xs text-[#1585ff] hover:underline"
+            className="mt-1 text-xs text-[var(--accent)] hover:underline"
           >
             הפעל מחדש
           </button>
@@ -185,80 +186,83 @@ function LinkedInImportSection({
 }) {
   return (
     <>
-      <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-2">
+      <p className="type-eyebrow mb-2">
         ייבוא נתונים
       </p>
-      <h1 className="text-2xl font-semibold text-[#111110] mb-1">
+      <h1 className="type-h1 mb-1">
         העלאת CSV של LinkedIn
       </h1>
-      <p className="text-[#6b6866] text-sm mb-8">
-        כבר ביקשת את הארכיון שלך? LinkedIn יישלח לך אימייל כשהוא יהיה מוכן, פשוט
-        הורד והעף את קובץ{" "}
-        <span className="font-mono text-[#1585ff]">{STR_CONNECTIONS}</span>{" "}
+      <p className="text-[var(--muted)] text-sm mb-8">
+        כבר ביקשת את הארכיון? לינקדאין ישלחו אימייל כשהוא מוכן — ואז פשוט
+        גוררים לכאן את קובץ{" "}
+        <span className="font-mono text-[var(--accent)]">{STR_CONNECTIONS}</span>{" "}
         למטה.
       </p>
-      <div className="rounded-xl border border-[#e5e3df] bg-white p-5 mb-6">
-        <p className="text-xs font-medium text-[#6b6866] mb-3">
-          שלבים (בפעם הבאה)
-        </p>
-        <ol className="space-y-1.5 text-xs text-[#6b6866]">
+      <details className="group rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface)] p-5 mb-6 shadow-[var(--shadow-paper)]">
+        <summary className="fv-ring flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--foreground)]">
+          <ChevronLeft className="size-3.5 transition-transform group-open:-rotate-90" />
+          איך משיגים את הקובץ מלינקדאין
+        </summary>
+        <div className="pt-3">
+        <ol className="space-y-1.5 text-xs text-[var(--muted)]">
           <li>
-            <span className="text-[#9b9895]">1.</span> עבור ל-{" "}
-            <span className="font-mono text-[#1585ff]">{STR_SETTINGS}</span> →
+            <span className="text-[var(--faint)]">1.</span> נכנסים ל-{" "}
+            <span className="font-mono text-[var(--accent)]">{STR_SETTINGS}</span> →
             Data Privacy → Download my data
           </li>
           <li>
-            <span className="text-[#9b9895]">2.</span> בחר{" "}
-            <strong className="text-[#111110]">
+            <span className="text-[var(--faint)]">2.</span> בוחרים{" "}
+            <strong className="text-[var(--foreground)]">
               &quot;Download larger data archive&quot;
             </strong>{" "}
             → Request archive
           </li>
           <li>
-            <span className="text-[#9b9895]">3.</span> המתן לאימייל מ-LinkedIn
+            <span className="text-[var(--faint)]">3.</span> ממתינים לאימייל מלינקדאין
             (10–30 דק&apos;)
           </li>
           <li>
-            <span className="text-[#9b9895]">4.</span> הורד את ה-zip → חלץ → מצא{" "}
-            <span className="font-mono text-[#1585ff]">{STR_CONNECTIONS}</span>
+            <span className="text-[var(--faint)]">4.</span> מורידים את ה-zip → מחלצים → מאתרים{" "}
+            <span className="font-mono text-[var(--accent)]">{STR_CONNECTIONS}</span>
           </li>
           <li>
-            <span className="text-[#9b9895]">5.</span> גרור אותו למטה ↓
+            <span className="text-[var(--faint)]">5.</span> גוררים אותו למטה ↓
           </li>
         </ol>
-      </div>
+        </div>
+      </details>
       {s.state === "uploading" && (
-        <div className="rounded-xl border border-[#e5e3df] bg-white px-6 py-8 flex flex-col items-center gap-4">
-          <RefreshCw className="size-8 text-[#1585ff] animate-spin" />
+        <div className="rounded-xl border border-[var(--line)] bg-surface px-6 py-8 flex flex-col items-center gap-4">
+          <RefreshCw className="size-8 text-[var(--accent)] animate-spin" />
           <div className="text-center w-full max-w-sm">
-            <p className="text-sm font-medium text-[#111110]">מייבא {s.fileName}…</p>
+            <p className="text-sm font-medium text-[var(--foreground)]">מייבא {s.fileName}…</p>
             {s.progressTotal > 0 ? (
               <>
-                <p className="text-xs text-[#6b6866] mt-1.5 font-mono">
+                <p className="text-xs text-[var(--muted)] mt-1.5 tabular-nums">
                   {s.progress.toLocaleString()} / {s.progressTotal.toLocaleString()} קשרים
                 </p>
-                <div className="mt-3 h-2 w-full bg-[#e5e3df] rounded-full overflow-hidden">
+                <div className="mt-3 h-2 w-full bg-[var(--line)] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#1585ff] rounded-full transition-all duration-200"
+                    className="h-full bg-[var(--accent)] rounded-full transition-all duration-200"
                     style={{ width: `${Math.round((s.progress / s.progressTotal) * 100)}%` }}
                   />
                 </div>
-                <p className="text-[10px] text-[#9b9895] mt-1.5 font-mono">
+                <p className="text-[10px] text-[var(--faint)] mt-1.5 font-mono">
                   {Math.round((s.progress / s.progressTotal) * 100)}%
                 </p>
               </>
             ) : (
-              <p className="text-xs text-[#6b6866] mt-1">מנתח קובץ…</p>
+              <p className="text-xs text-[var(--muted)] mt-1">מנתח קובץ…</p>
             )}
             {stuck && (
-              <p className="text-xs text-amber-600 mt-3">
+              <p className="text-xs text-[var(--warning)] mt-3">
                 הייבוא לוקח יותר מהצפוי. אפשר לבטל ולהעלות מחדש.
               </p>
             )}
             <button
               type="button"
               onClick={onCancel}
-              className="mt-3 text-xs text-[#6b6866] hover:text-red-500 hover:underline transition-colors"
+              className="mt-3 text-xs text-[var(--muted)] hover:text-[var(--danger)] hover:underline transition-colors"
             >
               ביטול והעלאה מחדש
             </button>
@@ -279,19 +283,19 @@ function LinkedInImportSection({
               aria-hidden="true"
               className={cn(
                 "relative w-9 h-5 rounded-full transition-colors duration-200 shrink-0",
-                s.updateOnly ? "bg-[#1585ff]" : "bg-[#d4d0cc]"
+                s.updateOnly ? "bg-[var(--accent)]" : "bg-[var(--faint)]"
               )}
             >
               <span
                 className={cn(
-                  "absolute top-0.5 size-4 rounded-full bg-white shadow transition-transform duration-200",
+                  "absolute top-0.5 size-4 rounded-full bg-surface shadow transition-transform duration-200",
                   s.updateOnly ? "translate-x-4" : "translate-x-0.5"
                 )}
               />
             </div>
             <div>
-              <p className="text-sm font-medium text-[#111110]">עדכון בלבד</p>
-              <p className="text-xs text-[#9b9895]">מוסיף ומעדכן, לא מוחק קשרים קיימים</p>
+              <p className="text-sm font-medium text-[var(--foreground)]">עדכון בלבד</p>
+              <p className="text-xs text-[var(--faint)]">מוסיף ומעדכן, לא מוחק קשרים קיימים</p>
             </div>
           </label>
           <input
@@ -321,18 +325,18 @@ function LinkedInImportSection({
             className={cn(
               "rounded-xl border-2 border-dashed p-12 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all w-full",
               s.state === "dragging"
-                ? "border-[#1585ff] bg-[#1585ff]/5"
-                : "border-[#d4d0cc] bg-white hover:border-[#9b9895] hover:bg-[#f8f7f5]",
+                ? "border-[var(--accent)] bg-[var(--accent)]/5"
+                : "border-[var(--faint)] bg-surface hover:border-[var(--faint)] hover:bg-[var(--surface-secondary)]",
             )}
           >
             {s.state === "error" ? (
               <>
-                <AlertCircle className="size-10 text-red-500" />
+                <AlertCircle className="size-10 text-[var(--danger)]" />
                 <div className="text-center">
-                  <p className="text-sm font-medium text-red-500">
+                  <p className="text-sm font-medium text-[var(--danger)]">
                     {s.errorMsg}
                   </p>
-                  <p className="text-xs text-[#6b6866] mt-1">
+                  <p className="text-xs text-[var(--muted)] mt-1">
                     לחץ כדי לנסות שוב
                   </p>
                 </div>
@@ -342,25 +346,25 @@ function LinkedInImportSection({
                 <div
                   className={cn(
                     "size-16 rounded-2xl flex items-center justify-center transition-all",
-                    s.state === "dragging" ? "bg-[#1585ff]/10" : "bg-[#f3f2ef]",
+                    s.state === "dragging" ? "bg-[var(--accent)]/10" : "bg-[var(--surface-secondary)]",
                   )}
                 >
                   <Upload
                     className={cn(
                       "size-7",
                       s.state === "dragging"
-                        ? "text-[#1585ff]"
-                        : "text-[#9b9895]",
+                        ? "text-[var(--accent)]"
+                        : "text-[var(--faint)]",
                     )}
                   />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-medium text-[#111110]">
+                  <p className="text-sm font-medium text-[var(--foreground)]">
                     {s.state === "dragging"
                       ? "גרור לכאן"
                       : "גרור את ה-CSV שלך לכאן"}
                   </p>
-                  <p className="text-xs text-[#6b6866] mt-1">
+                  <p className="text-xs text-[var(--muted)] mt-1">
                     או לחץ לעיון: .csv או .xlsx
                   </p>
                 </div>
@@ -371,10 +375,10 @@ function LinkedInImportSection({
       )}
       {s.state === "done" && s.result && (
         <div className="space-y-4">
-          <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-emerald-50 border border-emerald-200">
-            <CheckCircle className="size-5 text-emerald-500 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-[var(--success-soft)] border border-[var(--success)]/30">
+            <CheckCircle className="size-5 text-[var(--success)] shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-emerald-700">
+              <p className="text-sm font-medium text-[var(--success)]">
                 הייבוא הצליח!
               </p>
             </div>
@@ -415,13 +419,13 @@ function LinkedInImportSection({
             />
           </div>
           {s.result.newCompanies > 0 && (
-            <div className="px-4 py-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-700">
+            <div className="px-4 py-3 rounded-lg bg-[var(--accent-soft)] border border-[var(--accent)]/30 text-xs text-[var(--accent)]">
               העשרה {s.result.newCompanies} חברות חדשות ברקע, ספירות עובדים
               ותעשיות יופיעו בטבלה כשהן מגיעות.
             </div>
           )}
           {s.result.unchanged > 0 && (
-            <p className="text-xs text-[#9b9895] text-center">
+            <p className="text-xs text-[var(--faint)] text-center">
               {s.result.unchanged.toLocaleString()} אנשי קשר כבר היו עדכניים,
               דולגו.
             </p>
@@ -429,7 +433,7 @@ function LinkedInImportSection({
           <div className="flex gap-3">
             <Link
               href="/contacts"
-              className="flex-1 text-center px-4 py-2.5 rounded-lg bg-[#1585ff] hover:bg-[#0a70e0] text-white text-sm font-medium transition-all"
+              className="flex-1 text-center px-4 py-2.5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-strong)] text-white text-sm font-medium transition-all"
             >
               צפה בהמשכים →
             </Link>
@@ -439,7 +443,7 @@ function LinkedInImportSection({
                 dispatch({ state: "idle", result: null, fileName: "" });
                 if (inputRef.current) inputRef.current.value = "";
               }}
-              className="px-4 py-2.5 rounded-lg border border-[#e5e3df] text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] text-sm transition-all"
+              className="px-4 py-2.5 rounded-lg border border-[var(--line)] text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--faint)] text-sm transition-all"
             >
               ייבוא נוסף
             </button>
@@ -605,11 +609,11 @@ export default function ImportPage() {
   }, [s.state, s.progress]);
 
   return (
-    <div className="min-h-full bg-[#f6f5f3] p-8">
+    <div className="min-h-full bg-[var(--background)] p-8">
       <div className="max-w-2xl">
         <Link
           href="/contacts"
-          className="inline-flex items-center gap-1.5 text-xs text-[#6b6866] hover:text-[#1585ff] transition-colors mb-8"
+          className="inline-flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--accent)] transition-colors mb-8"
         >
           <ArrowLeft className="size-3" />
           חזרה לאנשי קשר

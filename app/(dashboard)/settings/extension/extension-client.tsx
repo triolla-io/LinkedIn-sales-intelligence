@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Copy, Check, Download, AlertTriangle } from "lucide-react";
+import { Copy, Check, Download, AlertTriangle , ChevronLeft } from "lucide-react";
 import { ExtensionStatusBadge } from "@/components/extension-status-badge";
 import { isExtensionOutdated } from "@/lib/extension/version";
 
@@ -81,8 +81,8 @@ export function ExtensionClient({
   return (
     <div className="p-6 max-w-2xl space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-[#111110]">
-          Chrome Extension: LinkedIn Sender
+        <h1 className="text-xl font-semibold text-[var(--foreground)]">
+          תוסף השליחה לכרום
         </h1>
         <ExtensionStatusBadge
           lastSeenAt={session?.lastSeenAt ?? null}
@@ -91,7 +91,7 @@ export function ExtensionClient({
       </div>
 
       {(connected || servedVersion) && (
-        <p className="-mt-6 text-xs text-[#6b6866]">
+        <p className="-mt-6 text-xs text-[var(--muted)]">
           {connected && session!.version
             ? `גרסה מותקנת: ${session!.version}`
             : "גרסה מותקנת: לא ידועה"}
@@ -101,14 +101,14 @@ export function ExtensionClient({
 
       {outdated && (
         <output
-          className="flex gap-3 rounded-lg border border-[#f0c000] bg-[#fffbeb] p-4 text-sm"
+          className="flex gap-3 rounded-lg border border-[var(--warning)] bg-[var(--warning-soft)] p-4 text-sm"
         >
-          <AlertTriangle className="size-5 shrink-0 text-[#b45309]" />
+          <AlertTriangle className="size-5 shrink-0 text-[var(--warning)]" />
           <div className="space-y-1.5">
-            <p className="font-medium text-[#111110]">
+            <p className="font-medium text-[var(--foreground)]">
               התוסף שלך מיושן: גרסה {session!.version} מותקנת, {servedVersion} זמינה
             </p>
-            <p className="text-[#6b6866]">
+            <p className="text-[var(--muted)]">
               גרסאות ישנות מפספסות תיקונים ויכולות לעצור שליחות בשקט. הורידי מחדש,
               והחליפי את <strong>תוכן התיקייה הקיימת</strong> שכרום טעון ממנה, כך הנתיב
               נשמר ו-Reload יקלוט את הגרסה החדשה.
@@ -116,7 +116,7 @@ export function ExtensionClient({
             <Link
               href="/api/extension/download"
               download={`${FOLDER_NAME}.zip`}
-              className="inline-flex items-center gap-2 text-[#1585ff] font-medium hover:underline"
+              className="inline-flex items-center gap-2 text-[var(--accent)] font-medium hover:underline"
             >
               <Download className="size-4" />
               הורד את הגרסה החדשה
@@ -125,25 +125,31 @@ export function ExtensionClient({
         </output>
       )}
 
-      {/* Steps */}
-      <ol className="space-y-6 text-sm">
+      {/* מדריך ההתקנה: תוכן חד-פעמי. מחובר ומעודכן → מקופל.
+          לא מחובר או מיושן → פתוח, כי אז הוא באמת מה שצריך עכשיו. */}
+      <details open={!connected || outdated} className="group">
+        <summary className="fv-ring flex cursor-pointer list-none items-center gap-2 rounded-lg py-2 text-sm font-semibold text-[var(--muted)] hover:text-[var(--foreground)]">
+          <ChevronLeft className="size-4 transition-transform group-open:-rotate-90" />
+          {connected && !outdated ? "הוראות התקנה והחלפת גרסה" : "התקנה — ארבעה שלבים"}
+        </summary>
+      <ol className="space-y-6 text-sm pt-3">
         {/* Step 1 */}
         <li className="flex gap-4">
-          <span className="shrink-0 size-7 rounded-full bg-[#1585ff] text-white text-xs font-bold flex items-center justify-center">
+          <span className="shrink-0 size-7 rounded-full bg-[var(--accent)] text-white text-xs font-bold flex items-center justify-center">
             1
           </span>
           <div className="space-y-2">
-            <p className="font-medium text-[#111110]">הורידי ופרקי את ה-extension</p>
-            <p className="text-[#6b6866]">
+            <p className="font-medium text-[var(--foreground)]">הורידי ופרקי את ה-extension</p>
+            <p className="text-[var(--muted)]">
               אחרי ההורדה, פרקי את ה-zip (דאבל-קליק). תיווצר תיקייה אחת בשם{" "}
-              <code className="bg-[#f3f2ef] px-1 rounded">{FOLDER_NAME}</code> עם
-              הקובץ <code className="bg-[#f3f2ef] px-1 rounded">manifest.json</code>{" "}
+              <code className="bg-[var(--surface-secondary)] px-1 rounded">{FOLDER_NAME}</code> עם
+              הקובץ <code className="bg-[var(--surface-secondary)] px-1 rounded">manifest.json</code>{" "}
               בתוכה. זו התיקייה שתבחרי בשלב הבא.
             </p>
             <Link
               href="/api/extension/download"
               download={`${FOLDER_NAME}.zip`}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white text-sm font-medium rounded-lg hover:bg-[var(--accent-strong)] transition-colors"
             >
               <Download className="size-4" />
               הורד Extension
@@ -153,15 +159,15 @@ export function ExtensionClient({
 
         {/* Step 2 */}
         <li className="flex gap-4">
-          <span className="shrink-0 size-7 rounded-full bg-[#1585ff] text-white text-xs font-bold flex items-center justify-center">
+          <span className="shrink-0 size-7 rounded-full bg-[var(--accent)] text-white text-xs font-bold flex items-center justify-center">
             2
           </span>
           <div className="space-y-1.5">
-            <p className="font-medium text-[#111110]">התקיני ב-Chrome</p>
-            <ol className="text-[#6b6866] space-y-1 list-decimal list-inside">
+            <p className="font-medium text-[var(--foreground)]">התקיני ב-Chrome</p>
+            <ol className="text-[var(--muted)] space-y-1 list-decimal list-inside">
               <li>
                 פתחי{" "}
-                <code className="bg-[#f3f2ef] px-1 rounded">
+                <code className="bg-[var(--surface-secondary)] px-1 rounded">
                   chrome://extensions
                 </code>{" "}
                 בכרטיסייה חדשה
@@ -172,14 +178,14 @@ export function ExtensionClient({
               </li>
               <li>
                 לחצי <strong>Load unpacked</strong> (טען מרוחס) ובחרי את התיקייה{" "}
-                <code className="bg-[#f3f2ef] px-1 rounded">{FOLDER_NAME}</code> שפרקת
+                <code className="bg-[var(--surface-secondary)] px-1 rounded">{FOLDER_NAME}</code> שפרקת
               </li>
               <li>
                 אמתי שהגרסה שמופיעה בכרטיס התוסף היא{" "}
                 <strong>{servedVersion ?? "העדכנית"}</strong>
               </li>
             </ol>
-            <p className="text-[#6b6866]">
+            <p className="text-[var(--muted)]">
               <strong>בעדכון גרסה:</strong> החליפי את התוכן של אותה תיקייה ולחצי Reload
               (🔄). אם תפרקי לתיקייה חדשה, כרום ימשיך לטעון את הישנה, ואז או שתבחרי
               Load unpacked על החדשה <em>ותסירי את הרשומה הישנה</em>, או שתעבירי את
@@ -190,21 +196,21 @@ export function ExtensionClient({
 
         {/* Step 3 — Token */}
         <li className="flex gap-4">
-          <span className="shrink-0 size-7 rounded-full bg-[#1585ff] text-white text-xs font-bold flex items-center justify-center">
+          <span className="shrink-0 size-7 rounded-full bg-[var(--accent)] text-white text-xs font-bold flex items-center justify-center">
             3
           </span>
           <div className="space-y-2 flex-1">
-            <p className="font-medium text-[#111110]">חברי את ה-extension</p>
+            <p className="font-medium text-[var(--foreground)]">חברי את ה-extension</p>
             {!connected ? (
               <div className="space-y-2">
-                <p className="text-[#6b6866]">
+                <p className="text-[var(--muted)]">
                   יצרי token ואז הדביקי אותו בחלון ה-extension.
                 </p>
                 <button
                   type="button"
                   onClick={createToken}
                   disabled={busy}
-                  className="px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-[var(--accent)] text-white text-sm font-medium rounded-lg hover:bg-[var(--accent-strong)] transition-colors disabled:opacity-50"
                 >
                   {busy ? "יוצר…" : "צרי token חדש"}
                 </button>
@@ -212,15 +218,15 @@ export function ExtensionClient({
             ) : null}
             {tokenToShow && (
               <div
-                className={`rounded-lg border px-3 py-2 space-y-1 ${rawToken ? "bg-[#fffbeb] border-[#fcd34d]" : "bg-[#f3f2ef] border-[#e5e3df]"}`}
+                className={`rounded-lg border px-3 py-2 space-y-1 ${rawToken ? "bg-[var(--warning-soft)] border-[var(--warning-soft)]" : "bg-[var(--surface-secondary)] border-[var(--line)]"}`}
               >
                 {rawToken && (
-                  <p className="text-xs text-[#b45309] font-medium">
+                  <p className="text-xs text-[var(--warning)] font-medium">
                     העתיקי עכשיו, לא יוצג שוב
                   </p>
                 )}
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 text-xs break-all text-[#111110]">
+                  <code className="flex-1 text-xs break-all text-[var(--foreground)]">
                     {tokenToShow}
                   </code>
                   {rawToken && (
@@ -228,10 +234,10 @@ export function ExtensionClient({
                       type="button"
                       onClick={() => copyToken(rawToken)}
                       aria-label="העתקי token"
-                      className="shrink-0 text-[#1585ff] hover:text-[#0f6fd4]"
+                      className="shrink-0 text-[var(--accent)] hover:text-[var(--accent-strong)]"
                     >
                       {copied ? (
-                        <Check className="size-4 text-[#059669]" />
+                        <Check className="size-4 text-[var(--success)]" />
                       ) : (
                         <Copy className="size-4" />
                       )}
@@ -241,7 +247,7 @@ export function ExtensionClient({
               </div>
             )}
             {connected && !rawToken && (
-              <p className="text-[#6b6866]">
+              <p className="text-[var(--muted)]">
                 Token פעיל. ה-extension מחובר ועובד ב-background.
               </p>
             )}
@@ -250,27 +256,28 @@ export function ExtensionClient({
 
         {/* Step 4 */}
         <li className="flex gap-4">
-          <span className="shrink-0 size-7 rounded-full bg-[#e5e3df] text-[#6b6866] text-xs font-bold flex items-center justify-center">
+          <span className="shrink-0 size-7 rounded-full bg-[var(--line)] text-[var(--muted)] text-xs font-bold flex items-center justify-center">
             4
           </span>
           <div className="space-y-1.5">
-            <p className="font-medium text-[#111110]">השאירי Chrome פתוח</p>
-            <p className="text-[#6b6866]">
+            <p className="font-medium text-[var(--foreground)]">השאירי Chrome פתוח</p>
+            <p className="text-[var(--muted)]">
               ה-extension עובד ב-background ושולח הודעות בזמן שהמחשב דלוק.
               Chrome חייב להיות פתוח עם חשבון LinkedIn מחובר.
             </p>
           </div>
         </li>
       </ol>
+      </details>
 
       {/* Revoke */}
       {connected && (
-        <div className="border-t border-[#e5e3df] pt-4">
+        <div className="border-t border-[var(--line)] pt-4">
           <button
             type="button"
             onClick={revoke}
             disabled={busy}
-            className="px-3 py-1.5 text-sm text-[#dc2626] border border-[#fecaca] rounded-lg hover:bg-[#fff3f3] transition-colors disabled:opacity-50"
+            className="px-3 py-1.5 text-sm text-[var(--danger)] border border-[var(--danger-soft)] rounded-lg hover:bg-[var(--danger-soft)] transition-colors disabled:opacity-50"
           >
             בטל token
           </button>

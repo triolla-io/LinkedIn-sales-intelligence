@@ -42,7 +42,7 @@ function HighlightedBody({ text }: { text: string }) {
     <>
       {segments.map(({ pos: p, content, isVar }) =>
         isVar ? (
-          <span key={p} className="text-amber-600 font-mono bg-amber-50 px-1 rounded text-xs">
+          <span key={p} className="text-[var(--warning)] font-mono bg-[var(--warning-soft)] px-1 rounded text-xs">
             {content}
           </span>
         ) : (
@@ -119,7 +119,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
   return (
     <form onSubmit={handleSubmit} dir="rtl" className="space-y-4">
       <div>
-        <label htmlFor="template-name" className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
+        <label htmlFor="template-name" className="block text-[11px] font-semibold text-[var(--faint)] uppercase tracking-widest mb-2">
           שם
         </label>
         <input
@@ -128,12 +128,12 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
           value={formState.name}
           onChange={(e) => formDispatch({ name: e.target.value })}
           placeholder="למשל: יצירת קשר ראשונה"
-          className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-lg px-3 py-2.5 text-sm text-right text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+          className="w-full bg-[var(--surface-secondary)] border border-[var(--line)] rounded-lg px-3 py-2.5 text-sm text-right text-[var(--foreground)] placeholder-[var(--faint)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/20 transition-colors"
           dir="rtl"
         />
       </div>
       <div>
-        <label htmlFor="template-body" className="block text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">
+        <label htmlFor="template-body" className="block text-[11px] font-semibold text-[var(--faint)] uppercase tracking-widest mb-2">
           גוף ההודעה
         </label>
         <textarea
@@ -143,7 +143,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
           onChange={(e) => formDispatch({ body: e.target.value })}
           rows={8}
           placeholder={"שלום {{firstName}},\n\nשמתי לב שאתה ב-{{company}}..."}
-          className="w-full bg-white border border-[#e5e3df] rounded-lg px-4 py-3 text-right text-[#111110] placeholder-[#c8c5c2] resize-none focus:outline-none focus:border-[#1585ff] focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+          className="w-full bg-surface border border-[var(--line)] rounded-lg px-4 py-3 text-right text-[var(--foreground)] placeholder-[var(--faint)] resize-none focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/20 transition-colors"
           style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: "14px", lineHeight: 1.5, color: "#222222" }}
           dir="rtl"
         />
@@ -153,15 +153,15 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
               key={v}
               type="button"
               onClick={() => insertChip(v)}
-              className="text-[10px] font-mono text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded hover:bg-amber-100 transition-colors"
+              className="text-[10px] font-mono text-[var(--warning)] bg-[var(--warning-soft)] border border-[var(--warning)]/30 px-2 py-0.5 rounded hover:bg-[var(--warning-soft)] transition-colors"
             >
               {v}
             </button>
           ))}
         </div>
         <div className="mt-4">
-          <p className="text-[11px] font-semibold text-[#9b9895] uppercase tracking-widest mb-2">תצוגה מקדימה</p>
-          <div className="border border-[#e5e3df] rounded-lg px-4 py-3 bg-[#fafaf9]">
+          <p className="text-[11px] font-semibold text-[var(--faint)] uppercase tracking-widest mb-2">תצוגה מקדימה</p>
+          <div className="border border-[var(--line)] rounded-lg px-4 py-3 bg-[var(--surface-secondary)]">
             <div
               dir="auto"
               style={{ fontFamily: "Arial, Helvetica, sans-serif", fontSize: "14px", lineHeight: 1.5, color: "#222222" }}
@@ -171,7 +171,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
         </div>
       </div>
       {formState.error && (
-        <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg border border-red-200">
+        <p className="text-xs text-[var(--danger)] bg-[var(--danger-soft)] px-3 py-2 rounded-lg border border-[var(--danger)]/30">
           {formState.error}
         </p>
       )}
@@ -179,7 +179,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
         <button
           type="submit"
           disabled={formState.loading}
-          className="flex items-center gap-2 px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0a70e0] disabled:opacity-60 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white text-sm font-medium rounded-lg hover:bg-[var(--accent-strong)] disabled:opacity-60 transition-colors"
         >
           {formState.loading ? <RefreshCw className="size-3.5 animate-spin" /> : <Zap className="size-3.5" />}
           {submitLabel}
@@ -187,7 +187,7 @@ function TemplateForm({ initial, onSubmit, onCancel, submitLabel }: TemplateForm
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] hover:bg-[#f3f2ef] rounded-lg transition-colors"
+          className="px-4 py-2 text-sm text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-secondary)] rounded-lg transition-colors"
         >
           ביטול
         </button>
@@ -274,8 +274,8 @@ export default function TemplatesPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-[#111110] tracking-tight">טמפלטים</h1>
-          <p className="text-sm text-[#6b6866] mt-1">
+          <h1 className="text-2xl font-semibold text-[var(--foreground)] tracking-tight">טמפלטים</h1>
+          <p className="text-sm text-[var(--muted)] mt-1">
             תבניות הודעות לפניות הניתנות לשימוש חוזר עם משתנים אישיים
           </p>
         </div>
@@ -283,7 +283,7 @@ export default function TemplatesPage() {
           <button
             type="button"
             onClick={() => dispatch({ showCreate: true })}
-            className="flex items-center gap-2 px-4 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0a70e0] transition-colors shrink-0"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white text-sm font-medium rounded-lg hover:bg-[var(--accent-strong)] transition-colors shrink-0"
           >
             <Plus className="size-4" />
             טמפלט חדש
@@ -293,10 +293,10 @@ export default function TemplatesPage() {
 
       {/* Create form */}
       {state.showCreate && (
-        <div className="bg-white border border-[#1585ff]/30 rounded-xl p-5 mb-4">
+        <div className="bg-surface border border-[var(--accent)]/30 rounded-xl p-5 mb-4">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-1 h-4 bg-[#1585ff] rounded-full" />
-            <h3 className="text-sm font-semibold text-[#111110]">טמפלט חדש</h3>
+            <div className="w-1 h-4 bg-[var(--accent)] rounded-full" />
+            <h3 className="text-sm font-semibold text-[var(--foreground)]">טמפלט חדש</h3>
           </div>
           <TemplateForm
             onSubmit={handleCreate}
@@ -310,28 +310,28 @@ export default function TemplatesPage() {
       {state.loading ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={`skeleton-${i}`} className="bg-white border border-[#e5e3df] rounded-xl p-5 animate-pulse">
-              <div className="h-4 bg-[#e5e3df] rounded w-36 mb-3" />
-              <div className="h-3 bg-[#f3f2ef] rounded w-full mb-2" />
-              <div className="h-3 bg-[#f3f2ef] rounded w-4/5 mb-2" />
-              <div className="h-3 bg-[#f3f2ef] rounded w-2/3" />
+            <div key={`skeleton-${i}`} className="bg-surface border border-[var(--line)] rounded-xl p-5 animate-pulse">
+              <div className="h-4 bg-[var(--line)] rounded w-36 mb-3" />
+              <div className="h-3 bg-[var(--surface-secondary)] rounded w-full mb-2" />
+              <div className="h-3 bg-[var(--surface-secondary)] rounded w-4/5 mb-2" />
+              <div className="h-3 bg-[var(--surface-secondary)] rounded w-2/3" />
             </div>
           ))}
         </div>
       ) : state.templates.length === 0 && !state.showCreate ? (
         /* Empty state */
-        <div className="bg-white border border-[#e5e3df] rounded-xl p-16 text-center">
-          <div className="size-12 bg-[#f3f2ef] border border-[#e5e3df] rounded-xl flex items-center justify-center mx-auto mb-4">
-            <FileText className="size-5 text-[#9b9895]" />
+        <div className="bg-surface border border-[var(--line)] rounded-xl p-16 text-center">
+          <div className="size-12 bg-[var(--surface-secondary)] border border-[var(--line)] rounded-xl flex items-center justify-center mx-auto mb-4">
+            <FileText className="size-5 text-[var(--faint)]" />
           </div>
-          <p className="text-[#111110] font-medium mb-1">אין טמפלטים עדיין</p>
-          <p className="text-[#6b6866] text-sm mb-5">
+          <p className="text-[var(--foreground)] font-medium mb-1">אין טמפלטים עדיין</p>
+          <p className="text-[var(--muted)] text-sm mb-5">
             צור תבניות הודעות לפניות הניתנות לשימוש חוזר עם משתנים אישיים
           </p>
           <button
             type="button"
             onClick={() => dispatch({ showCreate: true })}
-            className="text-sm text-[#1585ff] hover:text-[#0a70e0] transition-colors"
+            className="text-sm text-[var(--accent)] hover:text-[var(--accent-strong)] transition-colors"
           >
             ← צור את הטמפלט הראשון שלך
           </button>
@@ -341,13 +341,13 @@ export default function TemplatesPage() {
           {state.templates.map((template) => (
             <div
               key={template.id}
-              className="bg-white border border-[#e5e3df] rounded-xl p-5 group hover:border-[#9b9895] transition-colors"
+              className="group rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface)] p-5 shadow-[var(--shadow-paper)] transition-colors hover:border-[var(--accent)]/30"
             >
               {state.editingId === template.id ? (
                 <>
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 h-4 bg-amber-500 rounded-full" />
-                    <h3 className="text-sm font-semibold text-[#111110]">עריכת טמפלט</h3>
+                    <div className="w-1 h-4 bg-[var(--warning)] rounded-full" />
+                    <h3 className="text-sm font-semibold text-[var(--foreground)]">עריכת טמפלט</h3>
                   </div>
                   <TemplateForm
                     initial={{ name: template.name, body: template.body }}
@@ -360,8 +360,8 @@ export default function TemplatesPage() {
                 <>
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-medium text-[#111110] text-sm">{template.name}</h3>
-                      <p className="text-[10px] text-[#9b9895] mt-0.5 font-mono uppercase tracking-wider">
+                      <h3 className="font-medium text-[var(--foreground)] text-sm">{template.name}</h3>
+                      <p className="mt-0.5 text-[11px] text-[var(--faint)]">
                         {new Date(template.createdAt).toLocaleDateString("he-IL", {
                           month: "short",
                           day: "numeric",
@@ -375,7 +375,7 @@ export default function TemplatesPage() {
                         type="button"
                         onClick={() => dispatch({ editingId: template.id })}
                         aria-label={`ערוך טמפלט ${template.name}`}
-                        className="p-1.5 text-[#9b9895] hover:text-[#111110] hover:bg-[#f3f2ef] rounded-md transition-colors"
+                        className="p-1.5 text-[var(--faint)] hover:text-[var(--foreground)] hover:bg-[var(--surface-secondary)] rounded-md transition-colors"
                         title="ערוך"
                       >
                         <Edit2 className="size-3.5" />
@@ -385,7 +385,7 @@ export default function TemplatesPage() {
                         onClick={() => handleDelete(template.id)}
                         disabled={state.deletingId === template.id}
                         aria-label={`מחק טמפלט ${template.name}`}
-                        className="p-1.5 text-[#9b9895] hover:text-red-500 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+                        className="fv-ring rounded-md p-1.5 text-[var(--faint)] opacity-0 transition-all hover:bg-[var(--danger-soft)] hover:text-[var(--danger)] focus-visible:opacity-100 disabled:opacity-50 group-hover:opacity-100"
                         title="מחק"
                       >
                         {state.deletingId === template.id ? (
@@ -396,7 +396,7 @@ export default function TemplatesPage() {
                       </button>
                     </div>
                   </div>
-                  <p className="text-sm text-[#6b6866] font-mono leading-relaxed whitespace-pre-wrap line-clamp-4">
+                  <p className="text-sm text-[var(--muted)] font-mono leading-relaxed whitespace-pre-wrap line-clamp-4">
                     <HighlightedBody text={template.body} />
                   </p>
                 </>

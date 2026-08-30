@@ -64,12 +64,12 @@ type ContactOption = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: "bg-[#f3f2ef] text-[#6b6866]",
-  QUEUED: "bg-[#fff7e6] text-[#b45309]",
-  ACTIVE: "bg-[#e6f4ff] text-[#1585ff]",
-  PAUSED: "bg-[#fff3f3] text-[#dc2626]",
-  COMPLETED: "bg-[#e6faf0] text-[#059669]",
-  CANCELLED: "bg-[#f3f2ef] text-[#9b9895]",
+  DRAFT: "bg-[var(--surface-secondary)] text-[var(--muted)]",
+  QUEUED: "bg-[var(--warning-soft)] text-[var(--warning)]",
+  ACTIVE: "bg-[var(--accent-soft)] text-[var(--accent)]",
+  PAUSED: "bg-[var(--neutral-soft)] text-[var(--muted)]",
+  COMPLETED: "bg-[var(--success-soft)] text-[var(--success)]",
+  CANCELLED: "bg-[var(--surface-secondary)] text-[var(--faint)]",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -82,12 +82,12 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const EXEC_COLORS: Record<string, string> = {
-  PENDING: "bg-[#f3f2ef] text-[#6b6866]",
-  QUEUED: "bg-[#eff6ff] text-[#1d4ed8]",
-  SENDING: "bg-[#fff7e6] text-[#b45309]",
-  SENT: "bg-[#e6faf0] text-[#059669]",
-  FAILED: "bg-[#fff3f3] text-[#dc2626]",
-  SKIPPED: "bg-[#f3f2ef] text-[#9b9895]",
+  PENDING: "bg-[var(--surface-secondary)] text-[var(--muted)]",
+  QUEUED: "bg-[var(--accent-soft)] text-[var(--accent-strong)]",
+  SENDING: "bg-[var(--warning-soft)] text-[var(--warning)]",
+  SENT: "bg-[var(--success-soft)] text-[var(--success)]",
+  FAILED: "bg-[var(--danger-soft)] text-[var(--danger)]",
+  SKIPPED: "bg-[var(--surface-secondary)] text-[var(--faint)]",
 };
 
 function nextStepDate(executions: Array<{ status: string; scheduledAt: Date | string | null }>): string {
@@ -125,9 +125,9 @@ function RecipientsTable({
   onOpenEnrollModal: () => void;
 }) {
   return (
-    <div className="border border-[#e5e3df] rounded-xl overflow-hidden bg-white">
-      <div className="px-5 py-3 border-b border-[#e5e3df] bg-[#fafaf9] flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-[#111110]">
+    <div className="border border-[var(--line)] rounded-xl overflow-hidden bg-surface">
+      <div className="px-5 py-3 border-b border-[var(--line)] bg-[var(--surface-secondary)] flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-[var(--foreground)]">
           אנשי קשר ({enrollments.length})
         </h2>
         <div className="flex items-center gap-2">
@@ -136,7 +136,7 @@ function RecipientsTable({
               type="button"
               onClick={onRemoveBulk}
               disabled={removing}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#fff3f3] text-[#dc2626] text-xs font-medium rounded-lg hover:bg-[#fee2e2] transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--danger-soft)] text-[var(--danger)] text-xs font-medium rounded-lg hover:bg-[var(--danger-soft)] transition-colors disabled:opacity-50"
             >
               <X className="size-3" />
               הסר מהקמפיין ({selectedIds.size})
@@ -145,7 +145,7 @@ function RecipientsTable({
           <button
             type="button"
             onClick={onOpenEnrollModal}
-            className="flex items-center gap-2 bg-[#1585ff] text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-[#0a70e0] transition-colors"
+            className="flex items-center gap-2 bg-[var(--accent)] text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--accent-strong)] transition-colors"
           >
             <Plus size={16} />
             הוסף אנשי קשר
@@ -153,11 +153,11 @@ function RecipientsTable({
         </div>
       </div>
       {enrollments.length === 0 ? (
-        <div className="px-5 py-8 text-center text-sm text-[#9b9895]">אין אנשי קשר רשומים</div>
+        <div className="px-5 py-8 text-center text-sm text-[var(--faint)]">אין אנשי קשר רשומים</div>
       ) : (
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[#f3f2ef]">
+            <tr className="border-b border-[var(--surface-secondary)]">
               <th className="px-4 py-2.5 w-10">
                 <input
                   type="checkbox"
@@ -167,10 +167,10 @@ function RecipientsTable({
                   }
                   onChange={onToggleAll}
                   aria-label="בחר את כל אנשי הקשר"
-                  className="rounded border-[#e5e3df]"
+                  className="rounded border-[var(--line)]"
                 />
               </th>
-              <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b6866] uppercase tracking-wider">
+              <th className="text-left px-4 py-2.5 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
                 איש קשר
               </th>
               {sequence.steps.map((step) => (
@@ -178,36 +178,36 @@ function RecipientsTable({
                   key={step.id}
                   className={`text-center px-3 py-2.5 text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
                     step.stepNumber === activeStep
-                      ? "text-[#1585ff]"
-                      : "text-[#6b6866]"
+                      ? "text-[var(--accent)]"
+                      : "text-[var(--muted)]"
                   }`}
                 >
                   שלב {step.stepNumber}
                 </th>
               ))}
-              <th className="text-center px-3 py-2.5 text-xs font-semibold text-[#6b6866] uppercase tracking-wider whitespace-nowrap">
+              <th className="text-center px-3 py-2.5 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider whitespace-nowrap">
                 שלב הבא
               </th>
               <th className="w-10" aria-label="פעולות" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#f3f2ef]">
+          <tbody className="divide-y divide-[var(--surface-secondary)]">
             {enrollments.map((enr) => (
-              <tr key={enr.id} className="hover:bg-[#fafaf9]">
+              <tr key={enr.id} className="hover:bg-[var(--surface-secondary)]">
                 <td className="px-4 py-3">
                   <input
                     type="checkbox"
                     checked={selectedIds.has(enr.id)}
                     onChange={() => onToggleSelect(enr.id)}
                     aria-label={`בחר ${enr.contact.fullName}`}
-                    className="rounded border-[#e5e3df]"
+                    className="rounded border-[var(--line)]"
                   />
                 </td>
                 <td className="px-4 py-3">
-                  <p className="font-medium text-[#111110]">
+                  <p className="font-medium text-[var(--foreground)]">
                     {enr.contact.fullName}
                   </p>
-                  <p className="text-xs text-[#9b9895]">
+                  <p className="text-xs text-[var(--faint)]">
                     {enr.contact.currentTitle}
                     {enr.contact.currentCompany
                       ? ` · ${enr.contact.currentCompany}`
@@ -227,12 +227,12 @@ function RecipientsTable({
                           {exec.status}
                         </span>
                       ) : (
-                        <span className="text-[#c8c5c2] text-xs">-</span>
+                        <span className="text-[var(--faint)] text-xs">-</span>
                       )}
                     </td>
                   );
                 })}
-                <td className="p-3 text-center text-xs text-[#6b6866]">
+                <td className="p-3 text-center text-xs text-[var(--muted)]">
                   {nextStepDate(enr.executions)}
                 </td>
                 <td className="p-3">
@@ -241,7 +241,7 @@ function RecipientsTable({
                       type="button"
                       onClick={() => onRemoveSingle(enr.id)}
                       disabled={removing}
-                      className="p-1 text-[#c8c5c2] hover:text-[#dc2626] hover:bg-[#fff3f3] rounded transition-colors disabled:opacity-50"
+                      className="p-1 text-[var(--faint)] hover:text-[var(--danger)] hover:bg-[var(--danger-soft)] rounded transition-colors disabled:opacity-50"
                       title="הסר מהקמפיין"
                     >
                       <X className="size-3.5" />
@@ -269,23 +269,23 @@ function RemovedRecipients({
   const [open, setOpen] = useState(false);
   if (enrollments.length === 0) return null;
   return (
-    <div className="border border-[#e5e3df] rounded-xl overflow-hidden bg-white">
+    <div className="border border-[var(--line)] rounded-xl overflow-hidden bg-surface">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="w-full px-5 py-3 bg-[#fafaf9] flex items-center justify-between text-sm font-semibold text-[#6b6866] hover:text-[#111110] transition-colors"
+        className="w-full px-5 py-3 bg-[var(--surface-secondary)] flex items-center justify-between text-sm font-semibold text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
       >
         <span>הוסרו מהקמפיין ({enrollments.length})</span>
-        <span className="text-xs font-normal text-[#9b9895]">{open ? "הסתר" : "הצג"}</span>
+        <span className="text-xs font-normal text-[var(--faint)]">{open ? "הסתר" : "הצג"}</span>
       </button>
       {open && (
-        <ul className="divide-y divide-[#f3f2ef]">
+        <ul className="divide-y divide-[var(--surface-secondary)]">
           {enrollments.map((enr) => (
             <li key={enr.id} className="flex items-center justify-between px-5 py-3">
               <div>
-                <p className="font-medium text-[#6b6866]">{enr.contact.fullName}</p>
-                <p className="text-xs text-[#9b9895]">
+                <p className="font-medium text-[var(--muted)]">{enr.contact.fullName}</p>
+                <p className="text-xs text-[var(--faint)]">
                   {enr.contact.currentTitle}
                   {enr.contact.currentCompany ? ` · ${enr.contact.currentCompany}` : ""}
                 </p>
@@ -294,7 +294,7 @@ function RemovedRecipients({
                 type="button"
                 onClick={() => onRestoreSingle(enr.id)}
                 disabled={removing}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1585ff] border border-[#1585ff]/30 hover:bg-[#eff5ff] rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--accent)] border border-[var(--accent)]/30 hover:bg-[var(--accent-soft)] rounded-lg transition-colors disabled:opacity-50"
                 title="החזר לקמפיין"
               >
                 <RefreshCw className="size-3.5" />
@@ -337,15 +337,15 @@ function SequenceHeader({
       <div className="flex items-start gap-3">
         <Link
           href="/campaigns"
-          className="text-[#9b9895] hover:text-[#111110] mt-0.5 transition-colors"
+          className="text-[var(--faint)] hover:text-[var(--foreground)] mt-0.5 transition-colors"
         >
           <ArrowLeft className="size-4" />
         </Link>
         <div>
-          <h1 className="text-xl font-semibold text-[#111110]">
+          <h1 className="text-xl font-semibold text-[var(--foreground)]">
             {sequence.name}
           </h1>
-          <p className="text-sm text-[#6b6866] mt-0.5">
+          <p className="text-sm text-[var(--muted)] mt-0.5">
             רשימה: {sequence.contactList?.name ?? "—"}
           </p>
         </div>
@@ -353,7 +353,7 @@ function SequenceHeader({
       <div className="flex items-center gap-3">
         <Link
           href={`/campaigns/${sequence.id}/edit`}
-          className="border border-[#e7e4dd] rounded-lg px-3 py-2 text-sm text-[#1a1917] hover:bg-[#f6f5f2] transition-colors"
+          className="border border-[var(--line)] rounded-lg px-3 py-2 text-sm text-[var(--ink-strong)] hover:bg-[var(--surface-secondary)] transition-colors"
         >
           ערוך
         </Link>
@@ -367,7 +367,7 @@ function SequenceHeader({
             type="button"
             onClick={() => onAction("start")}
             disabled={acting}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--accent)] text-white text-sm font-medium rounded-lg hover:bg-[var(--accent-strong)] transition-colors disabled:opacity-50"
           >
             <Play className="size-3.5" />
             התחל
@@ -378,7 +378,7 @@ function SequenceHeader({
             type="button"
             onClick={() => onAction("pause")}
             disabled={acting}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#f3f2ef] text-[#6b6866] text-sm font-medium rounded-lg hover:bg-[#e5e3df] transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--surface-secondary)] text-[var(--muted)] text-sm font-medium rounded-lg hover:bg-[var(--line)] transition-colors disabled:opacity-50"
           >
             <Pause className="size-3.5" />
             השהה
@@ -389,7 +389,7 @@ function SequenceHeader({
             type="button"
             onClick={() => onAction("resume")}
             disabled={acting}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1585ff] text-white text-sm font-medium rounded-lg hover:bg-[#0f6fd4] transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--accent)] text-white text-sm font-medium rounded-lg hover:bg-[var(--accent-strong)] transition-colors disabled:opacity-50"
           >
             <RotateCcw className="size-3.5" />
             המשך
@@ -402,7 +402,7 @@ function SequenceHeader({
               if (confirm("בטל את קמפיין זה?")) onAction("cancel");
             }}
             disabled={acting}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#fff3f3] text-[#dc2626] text-sm font-medium rounded-lg hover:bg-[#fee2e2] transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--danger-soft)] text-[var(--danger)] text-sm font-medium rounded-lg hover:bg-[var(--danger-soft)] transition-colors disabled:opacity-50"
           >
             <XCircle className="size-3.5" />
             בטל
@@ -421,8 +421,8 @@ function SequenceTimeline({
   activeStep: number | null;
 }) {
   return (
-    <div className="border border-[#e5e3df] rounded-xl bg-white p-5">
-      <h2 className="text-sm font-semibold text-[#111110] mb-4">שלבים</h2>
+    <div className="border border-[var(--line)] rounded-xl bg-surface p-5">
+      <h2 className="text-sm font-semibold text-[var(--foreground)] mb-4">שלבים</h2>
       <div className="flex overflow-x-auto pb-2">
         {steps.map((step, i) => {
           const isActive = step.stepNumber === activeStep;
@@ -434,45 +434,45 @@ function SequenceTimeline({
             >
               <div className="flex items-center w-full">
                 <div
-                  className={`flex-1 h-0.5 ${i > 0 ? "bg-[#e5e3df]" : "bg-transparent"}`}
+                  className={`flex-1 h-0.5 ${i > 0 ? "bg-[var(--line)]" : "bg-transparent"}`}
                 />
                 <div
-                  className={`size-8 rounded-full border-2 flex items-center justify-center shrink-0 ${isActive ? "border-[#1585ff] bg-[#1585ff]" : "border-[#1585ff] bg-[#eff5ff]"}`}
+                  className={`size-8 rounded-full border-2 flex items-center justify-center shrink-0 ${isActive ? "border-[var(--accent)] bg-[var(--accent)]" : "border-[var(--accent)] bg-[var(--accent-soft)]"}`}
                 >
                   {step.channel === "EMAIL" ? (
                     <Mail
-                      className={`size-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`}
+                      className={`size-3.5 ${isActive ? "text-white" : "text-[var(--accent)]"}`}
                     />
                   ) : step.channel === "LINKEDIN" ? (
                     <Link2
-                      className={`size-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`}
+                      className={`size-3.5 ${isActive ? "text-white" : "text-[var(--accent)]"}`}
                     />
                   ) : (
                     <MessageSquare
-                      className={`size-3.5 ${isActive ? "text-white" : "text-[#1585ff]"}`}
+                      className={`size-3.5 ${isActive ? "text-white" : "text-[var(--accent)]"}`}
                     />
                   )}
                 </div>
                 <div
-                  className={`flex-1 h-0.5 ${i < steps.length - 1 ? "bg-[#e5e3df]" : "bg-transparent"}`}
+                  className={`flex-1 h-0.5 ${i < steps.length - 1 ? "bg-[var(--line)]" : "bg-transparent"}`}
                 />
               </div>
               <div className="mt-2 text-center px-2 w-full">
-                <p className="text-xs font-semibold text-[#111110]">
+                <p className="text-xs font-semibold text-[var(--foreground)]">
                   יום {step.dayOffset + 1}:{" "}
                   {step.channel === "EMAIL" ? "דוא״ל" : step.channel === "LINKEDIN" ? "LinkedIn" : "WhatsApp"}
                 </p>
-                <p className="text-[10px] text-[#9b9895] mt-0.5">{timeStr}</p>
+                <p className="text-[10px] text-[var(--faint)] mt-0.5">{timeStr}</p>
                 {isActive && (
-                  <p className="text-[10px] text-[#1585ff] font-medium mt-0.5">
+                  <p className="text-[10px] text-[var(--accent)] font-medium mt-0.5">
                     ← עכשיו
                   </p>
                 )}
-                <p className="text-xs text-[#6b6866] mt-0.5 truncate">
+                <p className="text-xs text-[var(--muted)] mt-0.5 truncate">
                   {step.template.name}
                 </p>
                 {step.subject && (
-                  <p className="text-xs text-[#9b9895] mt-0.5 italic truncate">
+                  <p className="text-xs text-[var(--faint)] mt-0.5 italic truncate">
                     &ldquo;{step.subject}&rdquo;
                   </p>
                 )}
@@ -715,9 +715,9 @@ export default function CampaignDetailClient({
           { label: "בתהליך", value: inProgress },
           { label: "נכשלו", value: failed },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-white border border-[#e5e3df] rounded-xl p-4">
-            <p className="text-2xl font-semibold text-[#1a1917] tabular-nums">{value}</p>
-            <p className="text-sm text-[#6b6866] mt-1">{label}</p>
+          <div key={label} className="bg-surface border border-[var(--line)] rounded-xl p-4">
+            <p className="text-2xl font-semibold text-[var(--ink-strong)] tabular-nums">{value}</p>
+            <p className="text-sm text-[var(--muted)] mt-1">{label}</p>
           </div>
         ))}
       </div>
@@ -746,7 +746,7 @@ export default function CampaignDetailClient({
       {/* Manual enrollment modal */}
       {showEnrollModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+          <div className="bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
             <h3 className="text-lg font-semibold">הוסף אנשי קשר לקמפיין</h3>
             <input
               type="text"
@@ -754,12 +754,12 @@ export default function CampaignDetailClient({
               value={enrollSearch}
               onChange={(e) => setEnrollSearch(e.target.value)}
               placeholder="חיפוש..."
-              className="w-full bg-white border border-[#dcd8d0] rounded-lg px-3 py-2 text-sm text-[#1a1917] placeholder-[#b8b4ae] focus:outline-none focus:ring-2 focus:ring-[#1585ff]/15 focus:border-[#1585ff] transition"
+              className="w-full bg-surface border border-[var(--line)] rounded-lg px-3 py-2 text-sm text-[var(--ink-strong)] placeholder-[var(--faint)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15 focus:border-[var(--accent)] transition"
               autoFocus
             />
             <div className="max-h-64 overflow-y-auto space-y-1">
               {filteredContacts.map((c) => (
-                <label key={c.id} className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-[#f6f5f2] cursor-pointer transition-colors">
+                <label key={c.id} className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-[var(--surface-secondary)] cursor-pointer transition-colors">
                   <input
                     type="checkbox"
                     checked={selectedContactIds.has(c.id)}
@@ -770,14 +770,14 @@ export default function CampaignDetailClient({
                       setSelectedContactIds(next);
                     }}
                   />
-                  <span className="text-sm text-[#1a1917]">{c.fullName}</span>
+                  <span className="text-sm text-[var(--ink-strong)]">{c.fullName}</span>
                   {c.currentTitle && (
-                    <span className="text-xs text-[#9b9895]">{c.currentTitle}</span>
+                    <span className="text-xs text-[var(--faint)]">{c.currentTitle}</span>
                   )}
                 </label>
               ))}
               {filteredContacts.length === 0 && (
-                <p className="text-sm text-[#9b9895] text-center py-4">אין תוצאות</p>
+                <p className="text-sm text-[var(--faint)] text-center py-4">אין תוצאות</p>
               )}
             </div>
             <div className="flex gap-3">
@@ -785,14 +785,14 @@ export default function CampaignDetailClient({
                 type="button"
                 onClick={doEnroll}
                 disabled={enrolling || selectedContactIds.size === 0}
-                className="flex-1 bg-[#1585ff] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#0a70e0] transition-colors disabled:opacity-50"
+                className="flex-1 bg-[var(--accent)] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--accent-strong)] transition-colors disabled:opacity-50"
               >
                 {enrolling ? "מוסיף..." : `הוסף (${selectedContactIds.size})`}
               </button>
               <button
                 type="button"
                 onClick={() => setShowEnrollModal(false)}
-                className="border border-[#e7e4dd] rounded-lg px-4 py-2 text-sm text-[#6b6866] hover:bg-[#f6f5f2] transition-colors"
+                className="border border-[var(--line)] rounded-lg px-4 py-2 text-sm text-[var(--muted)] hover:bg-[var(--surface-secondary)] transition-colors"
               >
                 ביטול
               </button>

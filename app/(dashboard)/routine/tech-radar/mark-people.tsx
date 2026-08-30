@@ -28,14 +28,14 @@ type Person = {
   radarInclude: boolean | null;
 };
 
-const MUTED = "text-[#6b6866]";
-const FAINT = "text-[#9b9895]";
+const MUTED = "text-[var(--muted)]";
+const FAINT = "text-[var(--faint)]";
 
 function Row({ p, right }: { p: Person; right: React.ReactNode }) {
   return (
     <li className="flex items-center justify-between gap-3 py-1.5">
       <span className="min-w-0">
-        <span className="text-sm text-[#1a1917]">{p.fullName}</span>
+        <span className="text-sm text-[var(--ink-strong)]">{p.fullName}</span>
         {/* The profile link is the only unambiguous identifier — two people share a
             name far more often than they share a LinkedIn URL. */}
         {p.linkedinUrl && (
@@ -43,7 +43,7 @@ function Row({ p, right }: { p: Person; right: React.ReactNode }) {
             href={p.linkedinUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex align-middle mx-1 text-[#1585ff] hover:text-[#0a70e0]"
+            className="inline-flex align-middle mx-1 text-[var(--accent)] hover:text-[var(--accent-strong)]"
             aria-label={`פרופיל לינקדאין של ${p.fullName}`}
           >
             <ExternalLink className="size-3.5" />
@@ -69,7 +69,7 @@ function Row({ p, right }: { p: Person; right: React.ReactNode }) {
  */
 function ErrorNote({ error }: { error: unknown }) {
   return (
-    <p className="text-xs text-[#b42318] flex items-center gap-1.5" role="alert">
+    <p className="text-xs text-[var(--danger)] flex items-center gap-1.5" role="alert">
       <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
       {fetchErrorMessage(error)}
     </p>
@@ -146,7 +146,7 @@ export function MarkPeople() {
           ) : (search.data?.candidates ?? []).length === 0 ? (
             <p className={cn("text-xs", FAINT)}>לא נמצא אף איש קשר בשם או בחברה הזאת.</p>
           ) : (
-            <ul className="divide-y divide-[#f0eee9]">
+            <ul className="divide-y divide-[var(--separator)]">
               {(search.data?.candidates ?? []).map((p) => (
                 <Row
                   key={p.id}
@@ -190,7 +190,7 @@ export function MarkPeople() {
         </p>
         )}
         {included.length > 0 && (
-          <ul className="divide-y divide-[#f0eee9]">
+          <ul className="divide-y divide-[var(--separator)]">
             {included.map((p) => (
               <Row
                 key={p.id}

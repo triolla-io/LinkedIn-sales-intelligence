@@ -27,8 +27,8 @@ interface UserDetails {
   creditsConsumed: number;
 }
 
-const STAT_LABEL = "text-xs font-medium text-[#9b9895] uppercase tracking-wider mb-1";
-const STAT_VALUE = "text-sm text-[#1a1917]";
+const STAT_LABEL = "text-xs font-medium text-[var(--faint)] uppercase tracking-wider mb-1";
+const STAT_VALUE = "text-sm text-[var(--ink-strong)]";
 
 export default async function AdminUserDetailPage({
   params,
@@ -56,8 +56,8 @@ export default async function AdminUserDetailPage({
   if (!targetUser) {
     return (
       <div className="w-full max-w-2xl mx-auto px-6 pt-6" dir="rtl">
-        <p className="text-[#6b6866] text-sm">משתמש לא נמצא.</p>
-        <Link href="/admin/users" className="text-[#1585ff] hover:text-[#0a70e0] text-sm mt-2 inline-block">
+        <p className="text-[var(--muted)] text-sm">משתמש לא נמצא.</p>
+        <Link href="/admin/users" className="text-[var(--accent)] hover:text-[var(--accent-strong)] text-sm mt-2 inline-block">
           חזור למשתמשים
         </Link>
       </div>
@@ -75,13 +75,13 @@ export default async function AdminUserDetailPage({
   };
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]" dir="rtl">
+    <div className="flex flex-col h-full min-h-screen bg-[var(--background)]" dir="rtl">
       <PageHeader icon={UserRound} title={user.name} subtitle={user.email} />
 
       <div className="w-full max-w-2xl mx-auto px-6 pt-5 pb-10 space-y-4">
         <Link
           href="/admin/users"
-          className="inline-flex items-center gap-1 text-sm text-[#6b6866] hover:text-[#1a1917] transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-[var(--muted)] hover:text-[var(--ink-strong)] transition-colors"
         >
           <ArrowRight className="size-4" />
           חזור למשתמשים

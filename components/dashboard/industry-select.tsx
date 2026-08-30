@@ -47,7 +47,7 @@ export function IndustrySelect({ value, onChange }: Props) {
 
   return (
     <div className="relative">
-      <label htmlFor="run-industries" className="block text-xs font-medium text-[#6b6866] mb-1">
+      <label htmlFor="run-industries" className="block text-xs font-medium text-[var(--muted)] mb-1">
         Industries (אופציונלי — ריק = כל התעשיות)
       </label>
       <input
@@ -63,21 +63,21 @@ export function IndustrySelect({ value, onChange }: Props) {
         onBlur={() => setOpen(false)}
         placeholder="e.g. Software Development"
         autoComplete="off"
-        className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors"
+        className="w-full bg-[var(--surface-secondary)] border border-[var(--line)] rounded-md px-3 py-2 text-sm text-[var(--foreground)] placeholder-[var(--faint)] focus:outline-none focus:border-[var(--accent)]/60 focus:bg-surface transition-colors"
       />
       {open && results.length > 0 && (
-        <ul className="absolute z-20 mt-1 w-full max-h-56 overflow-auto bg-white border border-[#e5e3df] rounded-md shadow-md">
+        <ul className="absolute z-20 mt-1 w-full max-h-56 overflow-auto bg-surface border border-[var(--line)] rounded-md shadow-md">
           {results.map((industry) => (
             <li key={industry.id}>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => add(industry.id)}
-                className="w-full text-left px-3 py-2 text-sm text-[#111110] hover:bg-[#f3f2ef] transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-secondary)] transition-colors"
               >
                 {industry.label}
                 {industry.path.includes(" > ") && (
-                  <span className="block text-xs text-[#9b9895]">{industry.path}</span>
+                  <span className="block text-xs text-[var(--faint)]">{industry.path}</span>
                 )}
               </button>
             </li>
@@ -91,14 +91,14 @@ export function IndustrySelect({ value, onChange }: Props) {
             return (
               <span
                 key={id}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[#e6f4ff] text-[#1585ff]"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)]"
               >
                 {label}
                 <button
                   type="button"
                   onClick={() => remove(id)}
                   aria-label={`הסר ${label}`}
-                  className="hover:text-[#0a70e0] transition-colors"
+                  className="hover:text-[var(--accent-strong)] transition-colors"
                 >
                   <X className="size-3" />
                 </button>

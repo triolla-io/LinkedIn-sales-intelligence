@@ -103,23 +103,23 @@ export default function BulkEnrichBar({
       {/* Confirm dialog */}
       {state.showConfirm && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <div className="bg-white border border-[#e5e3df] rounded-xl shadow-2xl p-6 w-96 max-w-[90vw]">
-            <h3 className="font-semibold text-[#111110] mb-2">העשר {N} אנשי קשר?</h3>
-            <p className="text-sm text-[#6b6866] mb-5">
+          <div className="bg-surface border border-[var(--line)] rounded-xl shadow-2xl p-6 w-96 max-w-[90vw]">
+            <h3 className="font-semibold text-[var(--foreground)] mb-2">העשר {N} אנשי קשר?</h3>
+            <p className="text-sm text-[var(--muted)] mb-5">
               זה יצרוך קרדיטים עבור כל איש קשר שיתועשר.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 type="button"
                 onClick={() => dispatch({ showConfirm: false })}
-                className="px-4 py-2 text-sm text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors"
+                className="px-4 py-2 text-sm text-[var(--muted)] hover:text-[var(--foreground)] border border-[var(--line)] hover:border-[var(--faint)] rounded-md transition-colors"
               >
                 ביטול
               </button>
               <button
                 type="button"
                 onClick={doEnrich}
-                className="px-4 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md transition-colors"
+                className="px-4 py-2 text-sm bg-[var(--warning)] hover:bg-[var(--warning)] text-white font-medium rounded-md transition-colors"
               >
                 אישור העשר
               </button>
@@ -143,21 +143,21 @@ export default function BulkEnrichBar({
         )}
       >
         <div className="mx-6 mb-5">
-          <div className="flex items-center justify-between gap-4 bg-white border border-[#e5e3df] rounded-xl px-5 py-3 shadow-lg">
+          <div className="flex items-center justify-between gap-4 bg-surface border border-[var(--line)] rounded-xl px-5 py-3 shadow-lg">
             {/* Left: count + error */}
             <div className="flex items-center gap-3">
-              <span className="text-sm font-mono text-[#111110]">
-                <span className="text-[#1585ff] font-semibold">{N}</span>
+              <span className="text-sm font-mono text-[var(--foreground)]">
+                <span className="text-[var(--accent)] font-semibold">{N}</span>
                 {" "}נבחרו
               </span>
               {state.error && (
-                <span className="text-xs text-red-500 font-mono">{state.error}</span>
+                <span className="text-xs text-[var(--danger)] font-mono">{state.error}</span>
               )}
               {state.notice && !state.enriching && (
-                <span className="text-xs text-amber-600 font-mono">{state.notice}</span>
+                <span className="text-xs text-[var(--warning)] font-mono">{state.notice}</span>
               )}
               {state.enriching && (
-                <span className="flex items-center gap-1.5 text-xs text-[#9b9895]">
+                <span className="flex items-center gap-1.5 text-xs text-[var(--faint)]">
                   <RefreshCw className="size-3 animate-spin" />
                   מעשר…
                 </span>
@@ -171,7 +171,7 @@ export default function BulkEnrichBar({
                   type="button"
                   ref={listBtnRef}
                   onClick={() => dispatch({ showListPopover: !state.showListPopover })}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#6b6866] border border-[#e5e3df] hover:bg-[#f8f7f5] hover:border-[#9b9895] rounded-md transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--muted)] border border-[var(--line)] hover:bg-[var(--surface-secondary)] hover:border-[var(--faint)] rounded-md transition-all"
                 >
                   <Bookmark className="size-3.5" />
                   שמור לרשימה
@@ -191,8 +191,8 @@ export default function BulkEnrichBar({
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all",
                   state.enriching
-                    ? "text-[#9b9895] border border-[#e5e3df] cursor-not-allowed"
-                    : "text-amber-600 border border-amber-200 hover:bg-amber-50 hover:border-amber-300"
+                    ? "text-[var(--faint)] border border-[var(--line)] cursor-not-allowed"
+                    : "text-[var(--warning)] border border-[var(--warning)]/30 hover:bg-[var(--warning-soft)] hover:border-[var(--warning)]/30"
                 )}
               >
                 {state.enriching ? <RefreshCw className="size-3.5 animate-spin" /> : <Zap className="size-3.5" />}
@@ -201,7 +201,7 @@ export default function BulkEnrichBar({
               <button
                 type="button"
                 onClick={() => dispatch({ campaignOpen: true })}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 hover:bg-blue-50 hover:border-blue-300 rounded-md transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--accent)] border border-[var(--accent)]/30 hover:bg-[var(--accent-soft)] hover:border-[var(--accent)]/30 rounded-md transition-all"
               >
                 <Megaphone className="size-3.5" />
                 שלח קמפיין
@@ -209,7 +209,7 @@ export default function BulkEnrichBar({
               <button
                 type="button"
                 onClick={onDone}
-                className="p-1.5 text-[#9b9895] hover:text-[#6b6866] transition-colors ml-1"
+                className="p-1.5 text-[var(--faint)] hover:text-[var(--muted)] transition-colors ml-1"
                 title="בטל את כל הבחירות"
               >
                 <X className="size-4" />
