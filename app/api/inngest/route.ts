@@ -34,6 +34,7 @@ import { radarPersonPrepare } from "@/inngest/functions/radar-person-prepare";
 import { techRadarPersonScan } from "@/inngest/functions/tech-radar-person-scan";
 import { techRadarRunMarked } from "@/inngest/functions/tech-radar-run-marked";
 import { techRadarDraft } from "@/inngest/functions/tech-radar-draft";
+import { postCommentsDraft } from "@/inngest/functions/post-comments-draft";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -74,5 +75,6 @@ export const { GET, POST, PUT } = serve({
     radarPersonPrepare,
     radarJudge,
     techRadarDraft,
+    postCommentsDraft,
   ],
 });
