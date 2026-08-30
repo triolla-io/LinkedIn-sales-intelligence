@@ -251,17 +251,17 @@ export default function ContactsClient({
   const selectedContacts = contacts.filter((c) => selectedIds.has(c.id));
 
   return (
-    <div dir="ltr" className="flex h-full min-h-screen bg-[#f6f5f3]">
+    <div dir="ltr" className="flex h-full min-h-screen bg-[var(--background)]">
       <aside dir="rtl" className="shrink-0 sticky top-0 h-screen">
         <FilterSidebar filters={filters} onChange={handleFiltersChange} />
       </aside>
       <div dir="rtl" className="flex-1 min-w-0 flex flex-col">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--line)] bg-surface sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <h1 className="text-sm font-semibold text-[#111110] tracking-tight">
+            <h1 className="text-sm font-semibold text-[var(--foreground)] tracking-tight">
               אנשי קשר
             </h1>
-            <span className="text-xs font-mono text-[#9b9895]">
+            <span className="text-xs tabular-nums text-[var(--faint)]">
               {total.toLocaleString()} סה"כ
             </span>
           </div>
@@ -269,7 +269,7 @@ export default function ContactsClient({
             <button
               type="button"
               onClick={() => setUiState((prev) => ({ ...prev, showCreateModal: true }))}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[var(--accent)] hover:bg-[var(--accent-strong)] rounded-md transition-colors"
             >
               <UserPlus className="size-3.5" />
               הוסף איש קשר
@@ -278,7 +278,7 @@ export default function ContactsClient({
               type="button"
               onClick={handleApplyCache}
               disabled={applyingCache || loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#9b9895] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--muted)] hover:text-[var(--foreground)] border border-[var(--line)] hover:border-[var(--faint)] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RefreshCw
                 className={cn("size-3.5", (applyingCache || loading) && "animate-spin")}

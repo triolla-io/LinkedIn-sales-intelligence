@@ -126,16 +126,16 @@ export function NewCampaignModal({
       ref={dialogRef}
       onClose={onClose}
       aria-labelledby="new-campaign-title"
-      className="m-auto w-[520px] rounded-xl border border-[#e5e3df] bg-white p-6 shadow-xl backdrop:bg-black/20"
+      className="m-auto w-[520px] rounded-xl border border-[var(--line)] bg-surface p-6 shadow-xl backdrop:bg-black/20"
     >
-        <h2 id="new-campaign-title" className="text-lg font-semibold text-[#111110]">New campaign</h2>
-        <p className="mt-1 text-sm text-[#9b9895]">
+        <h2 id="new-campaign-title" className="text-lg font-semibold text-[var(--foreground)]">New campaign</h2>
+        <p className="mt-1 text-sm text-[var(--faint)]">
           Sending to {contactIds.length} contact
           {contactIds.length === 1 ? "" : "s"}.
         </p>
 
         {/* Channel selector */}
-        <div className="mt-4 flex rounded-lg border border-[#e5e3df] overflow-hidden text-sm">
+        <div className="mt-4 flex rounded-lg border border-[var(--line)] overflow-hidden text-sm">
           {(["WHATSAPP", "EMAIL", "LINKEDIN"] as const).map((ch) => (
             <button
               key={ch}
@@ -143,8 +143,8 @@ export function NewCampaignModal({
               onClick={() => dispatch({ type: "channelSet", value: ch })}
               className={`flex-1 py-1.5 font-medium transition-colors ${
                 form.channel === ch
-                  ? "bg-[#111110] text-white"
-                  : "bg-white text-[#6b6866] hover:text-[#111110]"
+                  ? "bg-[var(--foreground)] text-white"
+                  : "bg-surface text-[var(--muted)] hover:text-[var(--foreground)]"
               }`}
             >
               {ch === "WHATSAPP"
@@ -157,11 +157,11 @@ export function NewCampaignModal({
         </div>
 
         {form.channel === "WHATSAPP" && whatsappConnected === false && (
-          <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-700">
+          <div className="mt-3 rounded-lg bg-[var(--warning-soft)] border border-[var(--warning)]/30 px-3 py-2 text-sm text-[var(--warning)]">
             WhatsApp not connected.{" "}
             <Link
               href="/whatsapp-connect"
-              className="underline hover:text-amber-800"
+              className="underline hover:text-[var(--warning)]"
             >
               Connect your account →
             </Link>{" "}
@@ -169,11 +169,11 @@ export function NewCampaignModal({
           </div>
         )}
         {form.channel === "EMAIL" && gmailConnected === false && (
-          <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-700">
+          <div className="mt-3 rounded-lg bg-[var(--warning-soft)] border border-[var(--warning)]/30 px-3 py-2 text-sm text-[var(--warning)]">
             Gmail not authorized.{" "}
             <Link
               href="/api/auth/signin"
-              className="underline hover:text-amber-800"
+              className="underline hover:text-[var(--warning)]"
             >
               Re-authorize your Google account →
             </Link>{" "}
@@ -181,11 +181,11 @@ export function NewCampaignModal({
           </div>
         )}
         {form.channel === "LINKEDIN" && extensionConnected === false && (
-          <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-700">
+          <div className="mt-3 rounded-lg bg-[var(--warning-soft)] border border-[var(--warning)]/30 px-3 py-2 text-sm text-[var(--warning)]">
             Chrome extension not connected.{" "}
             <Link
               href="/settings/extension"
-              className="underline hover:text-amber-800"
+              className="underline hover:text-[var(--warning)]"
             >
               Set up the extension →
             </Link>{" "}
@@ -193,9 +193,9 @@ export function NewCampaignModal({
           </div>
         )}
 
-        {form.error && <p className="mt-3 text-sm text-red-500">{form.error}</p>}
+        {form.error && <p className="mt-3 text-sm text-[var(--danger)]">{form.error}</p>}
 
-        <label htmlFor="campaign-name" className="mt-4 block text-xs uppercase tracking-wide text-[#9b9895] font-mono">
+        <label htmlFor="campaign-name" className="mt-4 block text-xs uppercase tracking-wide text-[var(--faint)] font-mono">
           Campaign name
         </label>
         <input
@@ -203,12 +203,12 @@ export function NewCampaignModal({
           value={form.name}
           onChange={(e) => dispatch({ type: "fieldChanged", name: "name", value: e.target.value })}
           placeholder="e.g. CTO outreach May 2026"
-          className="mt-1 w-full rounded-lg bg-[#f8f7f5] border border-[#e5e3df] px-3 py-2 text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:ring-1 focus:ring-[#1585ff] focus:border-[#1585ff]/40 text-sm"
+          className="mt-1 w-full rounded-lg bg-[var(--surface-secondary)] border border-[var(--line)] px-3 py-2 text-[var(--foreground)] placeholder-[var(--faint)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] focus:border-[var(--accent)]/40 text-sm"
         />
 
         {form.channel === "EMAIL" && (
           <>
-            <label htmlFor="email-subject" className="mt-4 block text-xs uppercase tracking-wide text-[#9b9895] font-mono">
+            <label htmlFor="email-subject" className="mt-4 block text-xs uppercase tracking-wide text-[var(--faint)] font-mono">
               Email subject
             </label>
             <input
@@ -216,19 +216,19 @@ export function NewCampaignModal({
               value={form.subject}
               onChange={(e) => dispatch({ type: "fieldChanged", name: "subject", value: e.target.value })}
               placeholder="e.g. Quick question about your team"
-              className="mt-1 w-full rounded-lg bg-[#f8f7f5] border border-[#e5e3df] px-3 py-2 text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:ring-1 focus:ring-[#1585ff] focus:border-[#1585ff]/40 text-sm"
+              className="mt-1 w-full rounded-lg bg-[var(--surface-secondary)] border border-[var(--line)] px-3 py-2 text-[var(--foreground)] placeholder-[var(--faint)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] focus:border-[var(--accent)]/40 text-sm"
             />
           </>
         )}
 
-        <label htmlFor="campaign-template" className="mt-4 block text-xs uppercase tracking-wide text-[#9b9895] font-mono">
+        <label htmlFor="campaign-template" className="mt-4 block text-xs uppercase tracking-wide text-[var(--faint)] font-mono">
           Template
         </label>
         <select
           id="campaign-template"
           value={effectiveTemplateId}
           onChange={(e) => dispatch({ type: "fieldChanged", name: "templateId", value: e.target.value })}
-          className="mt-1 w-full rounded-lg bg-[#f8f7f5] border border-[#e5e3df] px-3 py-2 text-[#111110] focus:outline-none focus:ring-1 focus:ring-[#1585ff] text-sm"
+          className="mt-1 w-full rounded-lg bg-[var(--surface-secondary)] border border-[var(--line)] px-3 py-2 text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] text-sm"
         >
           {templates.map((t) => (
             <option key={t.id} value={t.id}>
@@ -238,7 +238,7 @@ export function NewCampaignModal({
         </select>
 
         {preview && (
-          <div className="mt-2 rounded-lg bg-[#f8f7f5] border border-[#e5e3df] p-3 text-xs text-[#6b6866] whitespace-pre-wrap max-h-32 overflow-y-auto font-mono">
+          <div className="mt-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--line)] p-3 text-xs text-[var(--muted)] whitespace-pre-wrap max-h-32 overflow-y-auto font-mono">
             {preview}
           </div>
         )}
@@ -247,7 +247,7 @@ export function NewCampaignModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-[#e5e3df] px-3 py-1.5 text-sm text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] transition-colors"
+            className="rounded-lg border border-[var(--line)] px-3 py-1.5 text-sm text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--faint)] transition-colors"
           >
             Cancel
           </button>
@@ -263,7 +263,7 @@ export function NewCampaignModal({
                 (!form.subject.trim() || gmailConnected === false)) ||
               (form.channel === "LINKEDIN" && extensionConnected === false)
             }
-            className="rounded-lg bg-[#1585ff] px-3 py-1.5 text-sm text-white disabled:opacity-50 hover:bg-[#0a70e0] transition-colors"
+            className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-sm text-white disabled:opacity-50 hover:bg-[var(--accent-strong)] transition-colors"
           >
             {busy ? "Starting…" : "Send Campaign"}
           </button>

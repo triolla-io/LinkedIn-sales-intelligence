@@ -20,12 +20,12 @@ type Sequence = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: "bg-[#f3f2ef] text-[#6b6866]",
-  QUEUED: "bg-[#fff7e6] text-[#b45309]",
-  ACTIVE: "bg-[#e6f4ff] text-[#1585ff]",
-  PAUSED: "bg-[#fff3f3] text-[#dc2626]",
-  COMPLETED: "bg-[#e6faf0] text-[#059669]",
-  CANCELLED: "bg-[#f3f2ef] text-[#9b9895]",
+  DRAFT: "bg-[var(--surface-secondary)] text-[var(--muted)]",
+  QUEUED: "bg-[var(--warning-soft)] text-[var(--warning)]",
+  ACTIVE: "bg-[var(--accent-soft)] text-[var(--accent)]",
+  PAUSED: "bg-[var(--neutral-soft)] text-[var(--muted)]",
+  COMPLETED: "bg-[var(--success-soft)] text-[var(--success)]",
+  CANCELLED: "bg-[var(--surface-secondary)] text-[var(--faint)]",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -70,8 +70,8 @@ function StepTimeline({
             <div
               className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${
                 isActive
-                  ? "bg-[#1585ff] text-white border-[#1585ff]"
-                  : "bg-white text-[#6b6866] border-[#e5e3df]"
+                  ? "bg-[var(--accent)] text-white border-[var(--accent)]"
+                  : "bg-surface text-[var(--muted)] border-[var(--line)]"
               }`}
             >
               {step.channel === "EMAIL" ? (
@@ -81,13 +81,13 @@ function StepTimeline({
               )}
               שלב {step.stepNumber}
               {step.dayOffset > 0 && (
-                <span className={isActive ? "text-blue-100" : "text-[#9b9895]"}>
+                <span className={isActive ? "text-[var(--accent)]" : "text-[var(--faint)]"}>
                   ({step.dayOffset} ימים)
                 </span>
               )}
             </div>
             {i < steps.length - 1 && (
-              <span className="text-[#c8c5c2] text-xs">←</span>
+              <span className="text-[var(--faint)] text-xs">←</span>
             )}
           </div>
         );
@@ -97,9 +97,9 @@ function StepTimeline({
 }
 
 const WA_STATUS_CONFIG = {
-  CONNECTED:    { bg: "bg-[#e6faf0]", text: "text-[#059669]", dot: "bg-[#059669]", label: "WhatsApp מחובר" },
-  QR_PENDING:   { bg: "bg-[#fff7e6]", text: "text-[#b45309]", dot: "bg-[#b45309]", label: "WhatsApp ממתין" },
-  DISCONNECTED: { bg: "bg-[#fff3f3]", text: "text-[#dc2626]", dot: "bg-[#dc2626]", label: "WhatsApp לא מחובר" },
+  CONNECTED:    { bg: "bg-[var(--success-soft)]", text: "text-[var(--success)]", dot: "bg-[var(--success)]", label: "WhatsApp מחובר" },
+  QR_PENDING:   { bg: "bg-[var(--warning-soft)]", text: "text-[var(--warning)]", dot: "bg-[var(--warning)]", label: "WhatsApp ממתין" },
+  DISCONNECTED: { bg: "bg-[var(--danger-soft)]", text: "text-[var(--danger)]", dot: "bg-[var(--danger)]", label: "WhatsApp לא מחובר" },
 } as const;
 
 function WhatsAppStatusBadge({ status }: { status: "CONNECTED" | "QR_PENDING" | "DISCONNECTED" }) {
@@ -160,8 +160,8 @@ export default function CampaignsClient({
       <AutoRefresher />
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-[#111110]">קמפיינים</h1>
-          <p className="text-sm text-[#6b6866] mt-0.5">
+          <h1 className="text-xl font-semibold text-[var(--foreground)]">קמפיינים</h1>
+          <p className="text-sm text-[var(--muted)] mt-0.5">
             פניות ממוקדות לרשימות אנשי קשר
           </p>
         </div>
@@ -173,7 +173,7 @@ export default function CampaignsClient({
           <WhatsAppStatusBadge status={whatsappStatus} />
           <Link
             href="/campaigns/new"
-            className="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700"
+            className="bg-[var(--accent)] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--accent)]"
           >
             + קמפיין חדש
           </Link>
@@ -181,11 +181,11 @@ export default function CampaignsClient({
       </div>
 
       {sequences.length === 0 ? (
-        <div className="border border-dashed border-[#e5e3df] rounded-xl p-12 text-center">
-          <p className="text-sm font-medium text-[#111110]">
+        <div className="border border-dashed border-[var(--line)] rounded-xl p-12 text-center">
+          <p className="text-sm font-medium text-[var(--foreground)]">
             אין קמפיינים עדיין
           </p>
-          <p className="text-xs text-[#9b9895] mt-1">
+          <p className="text-xs text-[var(--faint)] mt-1">
             צור קמפיין כדי להתחיל לשלוח הודעות
           </p>
         </div>
@@ -198,14 +198,14 @@ export default function CampaignsClient({
             return (
               <div
                 key={seq.id}
-                className="border border-[#e5e3df] rounded-xl bg-white px-5 py-4"
+                className="group border border-[var(--line)] rounded-[var(--radius-card)] bg-[var(--surface)] px-5 py-4 shadow-[var(--shadow-paper)] transition-colors hover:border-[var(--accent)]/30"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/campaigns/${seq.id}`}
-                        className="font-semibold text-[#111110] hover:text-[#1585ff] transition-colors"
+                        className="font-semibold text-[var(--foreground)] hover:text-[var(--accent)] transition-colors"
                       >
                         {seq.name}
                       </Link>
@@ -215,11 +215,11 @@ export default function CampaignsClient({
                         {STATUS_LABELS[seq.status] ?? seq.status}
                       </span>
                     </div>
-                    <p className="text-xs text-[#9b9895] mt-0.5">
+                    <p className="text-xs text-[var(--faint)] mt-0.5">
                       {seq.contactList?.name}
                     </p>
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="text-xs text-[#6b6866]">
+                      <span className="text-xs text-[var(--muted)]">
                         {seq._count.enrollments} אנשי קשר · {seq.steps.length}{" "}
                         שלבים
                       </span>
@@ -236,7 +236,7 @@ export default function CampaignsClient({
                       <button
                         type="button"
                         onClick={() => togglePause(seq)}
-                        className="p-1.5 text-[#9b9895] hover:text-[#6b6866] hover:bg-[#f3f2ef] rounded transition-colors"
+                        className="p-1.5 text-[var(--faint)] hover:text-[var(--muted)] hover:bg-[var(--surface-secondary)] rounded transition-colors"
                         title={canPause ? "השהה" : "המשך"}
                       >
                         {canPause ? (
@@ -249,8 +249,9 @@ export default function CampaignsClient({
                     <button
                       type="button"
                       onClick={() => setDeletingSeq(seq)}
-                      className="p-1.5 text-[#9b9895] hover:text-red-400 hover:bg-red-50 rounded transition-colors"
+                      className="fv-ring rounded p-1.5 text-[var(--faint)] opacity-0 transition-all hover:bg-[var(--danger-soft)] hover:text-[var(--danger)] focus-visible:opacity-100 group-hover:opacity-100"
                       title="מחק קמפיין"
+                      aria-label={`מחק את הקמפיין ${seq.name}`}
                     >
                       <Trash2 className="size-3.5" />
                     </button>
@@ -264,25 +265,25 @@ export default function CampaignsClient({
 
       {deletingSeq && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" aria-hidden="true" onClick={() => { setDeletingSeq(null); setDeleteError(null); }}>
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-sm font-semibold text-[#111110] mb-1">מחיקת קמפיין</h2>
-            <p className="text-sm text-[#6b6866] mb-3">
-              האם למחוק את <span className="font-medium text-[#111110]">{deletingSeq.name}</span>?
+          <div className="bg-surface rounded-xl shadow-xl p-6 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-sm font-semibold text-[var(--foreground)] mb-1">מחיקת קמפיין</h2>
+            <p className="text-sm text-[var(--muted)] mb-3">
+              האם למחוק את <span className="font-medium text-[var(--foreground)]">{deletingSeq.name}</span>?
             </p>
             {["ACTIVE", "QUEUED", "PAUSED"].includes(deletingSeq.status) && (
-              <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4">
+              <p className="text-xs text-[var(--warning)] bg-[var(--warning-soft)] border border-[var(--warning)]/30 rounded-md px-3 py-2 mb-4">
                 הקמפיין עדיין פעיל — מחיקה תעצור אותו לאלתר
               </p>
             )}
             {deleteError && (
-              <p className="text-xs text-red-500 mb-3">{deleteError}</p>
+              <p className="text-xs text-[var(--danger)] mb-3">{deleteError}</p>
             )}
             <div className="flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => { setDeletingSeq(null); setDeleteError(null); }}
                 disabled={deleteLoading}
-                className="px-4 py-1.5 text-sm text-[#6b6866] border border-[#e5e3df] rounded-lg hover:bg-[#f3f2ef] transition-colors"
+                className="px-4 py-1.5 text-sm text-[var(--muted)] border border-[var(--line)] rounded-lg hover:bg-[var(--surface-secondary)] transition-colors"
               >
                 ביטול
               </button>
@@ -290,7 +291,7 @@ export default function CampaignsClient({
                 type="button"
                 onClick={() => deleteSequence(deletingSeq)}
                 disabled={deleteLoading}
-                className="px-4 py-1.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50"
+                className="px-4 py-1.5 text-sm font-medium text-white bg-[var(--danger)] hover:bg-[var(--danger)] rounded-lg transition-colors disabled:opacity-50"
               >
                 {deleteLoading ? "מוחק…" : "מחק"}
               </button>

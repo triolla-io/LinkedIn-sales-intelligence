@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useCollapsed } from "@/lib/hooks/use-collapsed";
 import Sidebar from "@/components/dashboard/sidebar";
 
@@ -33,7 +33,10 @@ export default function SidebarShell({ user }: SidebarShellProps) {
       className="shrink-0 transition-[width] duration-200 ease-in-out"
       style={{ width: effective ? 56 : 240 }}
     >
-      <Sidebar user={user} collapsed={effective} onToggle={toggle} />
+      {/* useSearchParams (הניווט קורא ?tab=) מחייב גבול Suspense */}
+      <Suspense fallback={<div className="h-full border-s border-[var(--line)] bg-[var(--surface)]" />}>
+        <Sidebar user={user} collapsed={effective} onToggle={toggle} />
+      </Suspense>
     </div>
   );
 }

@@ -6,9 +6,9 @@ import { cn } from "@/lib/cn";
 import { X, CheckCircle2, AlertCircle, Info } from "lucide-react";
 
 const VARIANT_STYLES: Record<ToastEntry["variant"], string> = {
-  success: "bg-white border-emerald-200 text-emerald-700",
-  error: "bg-white border-red-200 text-red-600",
-  info: "bg-white border-[#1585ff]/20 text-[#1585ff]",
+  success: "bg-surface border-[var(--success)]/30 text-[var(--success)]",
+  error: "bg-surface border-[var(--danger)]/30 text-[var(--danger)]",
+  info: "bg-surface border-[var(--accent)]/20 text-[var(--accent)]",
 };
 
 const ICON: Record<ToastEntry["variant"], React.ReactNode> = {

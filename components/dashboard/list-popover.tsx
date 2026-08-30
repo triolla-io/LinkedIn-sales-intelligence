@@ -66,16 +66,16 @@ export default function ListPopover({ contactIds, onClose, anchorRef, placement 
   return (
     <div
       ref={popoverRef}
-      className={`absolute z-50 right-0 w-56 bg-white border border-[#e5e3df] rounded-xl shadow-2xl shadow-black/10 py-1 overflow-hidden ${placement === "up" ? "bottom-full mb-2" : "top-full mt-2"}`}
+      className={`absolute z-50 right-0 w-56 bg-surface border border-[var(--line)] rounded-xl shadow-2xl shadow-black/10 py-1 overflow-hidden ${placement === "up" ? "bottom-full mb-2" : "top-full mt-2"}`}
     >
       {isLoading ? (
         <div className="flex items-center justify-center py-4">
-          <Loader2 className="size-4 text-[#9b9895] animate-spin" />
+          <Loader2 className="size-4 text-[var(--faint)] animate-spin" />
         </div>
       ) : (
         <>
           {lists.length === 0 && (
-            <p className="px-3 py-2 text-xs text-[#9b9895]">אין רשימות</p>
+            <p className="px-3 py-2 text-xs text-[var(--faint)]">אין רשימות</p>
           )}
           {lists.map((list) => (
             <button
@@ -83,14 +83,14 @@ export default function ListPopover({ contactIds, onClose, anchorRef, placement 
               key={list.id}
               onClick={() => addToList(list.id)}
               disabled={busy === list.id}
-              className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-[#111110] hover:bg-[#f8f7f5] transition-colors text-left"
+              className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-[var(--foreground)] hover:bg-[var(--surface-secondary)] transition-colors text-left"
             >
               <span className="truncate">{list.name}</span>
-              <span className="shrink-0 text-[#9b9895] font-mono">{list.memberCount}</span>
-              {busy === list.id && <Loader2 className="size-3 animate-spin shrink-0 text-[#9b9895]" />}
+              <span className="shrink-0 text-[var(--faint)] font-mono">{list.memberCount}</span>
+              {busy === list.id && <Loader2 className="size-3 animate-spin shrink-0 text-[var(--faint)]" />}
             </button>
           ))}
-          <div className="border-t border-[#e5e3df] mt-1 pt-1 px-2 pb-2">
+          <div className="border-t border-[var(--line)] mt-1 pt-1 px-2 pb-2">
             <div className="flex gap-1">
               <input
                 aria-label="שם רשימה חדשה"
@@ -98,14 +98,14 @@ export default function ListPopover({ contactIds, onClose, anchorRef, placement 
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && createAndAdd()}
                 placeholder="שם רשימה חדשה"
-                className="flex-1 min-w-0 bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-2 py-1 text-xs text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60"
+                className="flex-1 min-w-0 bg-[var(--surface-secondary)] border border-[var(--line)] rounded-md px-2 py-1 text-xs text-[var(--foreground)] placeholder-[var(--faint)] focus:outline-none focus:border-[var(--accent)]/60"
               />
               <button
                 type="button"
                 aria-label="צור רשימה חדשה"
                 onClick={createAndAdd}
                 disabled={!newName.trim() || busy === "new"}
-                className="shrink-0 p-1.5 rounded-md bg-[#1585ff] disabled:opacity-40 hover:bg-[#0a70e0] transition-colors"
+                className="shrink-0 p-1.5 rounded-md bg-[var(--accent)] disabled:opacity-40 hover:bg-[var(--accent-strong)] transition-colors"
               >
                 {busy === "new" ? (
                   <Loader2 className="size-3 text-white animate-spin" />

@@ -32,7 +32,10 @@ async function extensionHeartbeatWatchHandler(_: any) {
       data: {
         userId: s.userId,
         kind: "OFFLINE",
-        message: `Open Chrome to keep sending — extension offline, ${pending} messages waiting.`,
+        message:
+          pending === 1
+            ? "צריך לפתוח את Chrome כדי להמשיך לשלוח — הודעה אחת ממתינה."
+            : `צריך לפתוח את Chrome כדי להמשיך לשלוח — ${pending} הודעות ממתינות.`,
       },
     });
   }

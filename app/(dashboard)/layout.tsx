@@ -41,7 +41,7 @@ export default async function DashboardLayout({
   };
 
   return (
-    <div className="flex h-screen bg-[#f6f5f3]">
+    <div className="flex h-screen bg-[var(--background)]">
       <SidebarShell user={user} />
       <div className="flex-1 flex flex-col overflow-hidden">
         {impersonatedUser && (

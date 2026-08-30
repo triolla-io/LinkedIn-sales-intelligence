@@ -122,26 +122,26 @@ export function WhatsAppConnectCard() {
 
   if (status === "LOADING") {
     return (
-      <div className="rounded-xl border border-[#e5e3df] bg-white p-6">
-        <p className="text-sm text-[#9b9895]">בדיקת חיבור…</p>
+      <div className="rounded-xl border border-[var(--line)] bg-surface p-6">
+        <p className="text-sm text-[var(--faint)]">בדיקת חיבור…</p>
       </div>
     );
   }
 
   if (status === "SERVICE_UNAVAILABLE") {
     return (
-      <div className="rounded-xl border border-[#e5e3df] bg-white p-6">
+      <div className="rounded-xl border border-[var(--line)] bg-surface p-6">
         <div className="flex items-center gap-3">
-          <span className="size-2.5 rounded-full bg-red-400 shrink-0" />
+          <span className="size-2.5 rounded-full bg-[var(--danger)] shrink-0" />
           <div>
-            <p className="text-sm font-medium text-[#111110]">שירות WhatsApp לא זמין</p>
-            <p className="text-xs text-[#9b9895] mt-0.5">שירות WhatsApp אינו פעיל. בדוק את הגדרות ההפצה שלך.</p>
+            <p className="text-sm font-medium text-[var(--foreground)]">שירות WhatsApp לא זמין</p>
+            <p className="text-xs text-[var(--faint)] mt-0.5">שירות WhatsApp אינו פעיל. בדוק את הגדרות ההפצה שלך.</p>
           </div>
         </div>
         <button
           type="button"
           onClick={() => { setStatus("DISCONNECTED"); openStream(); }}
-          className="mt-4 rounded-lg border border-[#e5e3df] px-3 py-1.5 text-sm text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] transition-colors"
+          className="mt-4 rounded-lg border border-[var(--line)] px-3 py-1.5 text-sm text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--faint)] transition-colors"
         >
           נסה שוב
         </button>
@@ -151,19 +151,19 @@ export function WhatsAppConnectCard() {
 
   if (status === "CONNECTED") {
     return (
-      <div className="rounded-xl border border-[#e5e3df] bg-white p-6">
+      <div className="rounded-xl border border-[var(--line)] bg-surface p-6">
         <div className="flex items-center gap-3">
-          <span className="size-2.5 rounded-full bg-green-500 shrink-0" />
+          <span className="size-2.5 rounded-full bg-[var(--success)] shrink-0" />
           <div>
-            <p className="text-sm font-medium text-[#111110]">WhatsApp מחובר</p>
-            {phone && <p className="text-xs text-[#9b9895] mt-0.5">{phone}</p>}
+            <p className="text-sm font-medium text-[var(--foreground)]">WhatsApp מחובר</p>
+            {phone && <p className="text-xs text-[var(--faint)] mt-0.5">{phone}</p>}
           </div>
         </div>
         <button
           type="button"
           onClick={handleDisconnect}
           disabled={disconnecting}
-          className="mt-4 rounded-lg border border-[#e5e3df] px-3 py-1.5 text-sm text-[#6b6866] hover:text-[#111110] hover:border-[#9b9895] transition-colors disabled:opacity-50"
+          className="mt-4 rounded-lg border border-[var(--line)] px-3 py-1.5 text-sm text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--faint)] transition-colors disabled:opacity-50"
         >
           {disconnecting ? "ניתוק…" : "נתק"}
         </button>
@@ -173,15 +173,15 @@ export function WhatsAppConnectCard() {
 
   if (status === "LINKING") {
     return (
-      <div className="rounded-xl border border-[#e5e3df] bg-white p-6">
+      <div className="rounded-xl border border-[var(--line)] bg-surface p-6">
         <div className="flex items-center gap-3">
-          <svg className="animate-spin size-4 text-[#6b6866] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin size-4 text-[var(--muted)] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
           <div>
-            <p className="text-sm font-medium text-[#111110]">מקשרת התקן…</p>
-            <p className="text-xs text-[#9b9895] mt-0.5">הקוד נסרק{" - "}ממתינה לאישור WhatsApp</p>
+            <p className="text-sm font-medium text-[var(--foreground)]">מקשרת התקן…</p>
+            <p className="text-xs text-[var(--faint)] mt-0.5">הקוד נסרק{" - "}ממתינה לאישור WhatsApp</p>
           </div>
         </div>
       </div>
@@ -189,12 +189,12 @@ export function WhatsAppConnectCard() {
   }
 
   return (
-    <div className="rounded-xl border border-[#e5e3df] bg-white p-6">
-      <h2 className="text-base font-semibold text-[#111110]">חיבור WhatsApp</h2>
-      <p className="mt-1 text-sm text-[#9b9895]">
+    <div className="rounded-xl border border-[var(--line)] bg-surface p-6">
+      <h2 className="text-base font-semibold text-[var(--foreground)]">חיבור WhatsApp</h2>
+      <p className="mt-1 text-sm text-[var(--faint)]">
         סרוק את קוד ה-QR עם WhatsApp בטלפון שלך כדי לחבר את הנתון האישי שלך.
       </p>
-      <ol className="mt-3 text-sm text-[#6b6866] list-decimal list-inside space-y-1">
+      <ol className="mt-3 text-sm text-[var(--muted)] list-decimal list-inside space-y-1">
         <li>פתח את WhatsApp בטלפון שלך</li>
         <li>הקש על תפריט (⋮) → התקנים מקושרים → קשר התקן</li>
         <li>סרוק את הקוד למטה</li>
@@ -208,17 +208,17 @@ export function WhatsAppConnectCard() {
             width={220}
             height={220}
             unoptimized
-            className="rounded-lg border border-[#e5e3df]"
+            className="rounded-lg border border-[var(--line)]"
           />
         ) : (
-          <div className="size-[220px] rounded-lg border border-[#e5e3df] bg-[#f8f7f5] flex items-center justify-center">
-            <p className="text-xs text-[#9b9895]">
+          <div className="size-[220px] rounded-lg border border-[var(--line)] bg-[var(--surface-secondary)] flex items-center justify-center">
+            <p className="text-xs text-[var(--faint)]">
               {status === "REFRESHING" ? "הקוד פג — מרעננת קוד חדש…" : "ממתינה ל-QR…"}
             </p>
           </div>
         )}
       </div>
-      <p className="mt-3 text-center text-xs text-[#9b9895]">QR מתחדש באופן אוטומטי כל ~20 שניות</p>
+      <p className="mt-3 text-center text-xs text-[var(--faint)]">QR מתחדש באופן אוטומטי כל ~20 שניות</p>
     </div>
   );
 }

@@ -16,10 +16,10 @@ export function EnrichmentProgressBar() {
   const value = job.total > 0 ? Math.round((job.processed / job.total) * 100) : 0;
 
   return (
-    <div className="w-full bg-white border-b border-[#e5e3df] px-5 py-2">
+    <div className="w-full bg-surface border-b border-[var(--line)] px-5 py-2">
       <div className="flex items-center justify-between gap-4">
-        <span className="text-xs font-medium text-[#111110]">{job.label}</span>
-        <span className="text-xs font-mono text-amber-600">
+        <span className="text-xs font-medium text-[var(--foreground)]">{job.label}</span>
+        <span className="text-xs font-mono text-[var(--warning)]">
           {job.processed} / {job.total}
         </span>
       </div>

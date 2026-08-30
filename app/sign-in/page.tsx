@@ -8,17 +8,17 @@ export const metadata: Metadata = {
 
 export default function SignInPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f6f5f3]">
-      <div className="flex flex-col items-center gap-6 rounded-xl border border-[#e5e3df] bg-white p-10 shadow-sm w-full max-w-sm">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--background)]">
+      <div className="flex flex-col items-center gap-6 rounded-xl border border-[var(--line)] bg-surface p-10 shadow-sm w-full max-w-sm">
         <div className="flex items-center gap-3">
-          <div className="size-9 rounded-lg bg-[#1585ff] flex items-center justify-center">
+          <div className="size-9 rounded-lg bg-[var(--accent)] flex items-center justify-center">
             <span className="text-white text-sm font-bold font-mono">SI</span>
           </div>
-          <span className="font-semibold text-[#111110] text-lg tracking-tight">LinkedIn SI</span>
+          <span className="font-semibold text-[var(--foreground)] text-lg tracking-tight">LinkedIn SI</span>
         </div>
         <div className="text-center">
-          <h1 className="text-xl font-semibold text-[#111110] mb-1">Welcome back</h1>
-          <p className="text-sm text-[#6b6866]">Sign in to access your contacts</p>
+          <h1 className="text-xl font-semibold text-[var(--foreground)] mb-1">Welcome back</h1>
+          <p className="text-sm text-[var(--muted)]">Sign in to access your contacts</p>
         </div>
         <form
           action={async () => {
@@ -29,7 +29,7 @@ export default function SignInPage() {
         >
           <button
             type="submit"
-            className="flex items-center justify-center gap-2.5 w-full rounded-lg border border-[#e5e3df] bg-white hover:bg-[#f8f7f5] hover:border-[#1585ff]/30 px-5 py-2.5 text-sm font-medium text-[#111110] transition-all"
+            className="flex items-center justify-center gap-2.5 w-full rounded-lg border border-[var(--line)] bg-surface hover:bg-[var(--surface-secondary)] hover:border-[var(--accent)]/30 px-5 py-2.5 text-sm font-medium text-[var(--foreground)] transition-all"
           >
             <svg className="size-4" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

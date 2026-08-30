@@ -76,39 +76,39 @@ type RunDetailResponse = {
 
 
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: "bg-[#f3f2ef] text-[#6b6866]",
-  RUNNING: "bg-[#e6f4ff] text-[#1585ff]",
-  PAUSED: "bg-[#fff3f3] text-[#dc2626]",
-  COMPLETED: "bg-[#e6faf0] text-[#059669]",
+  DRAFT: "bg-[var(--surface-secondary)] text-[var(--muted)]",
+  RUNNING: "bg-[var(--accent-soft)] text-[var(--accent)]",
+  PAUSED: "bg-[var(--neutral-soft)] text-[var(--muted)]",
+  COMPLETED: "bg-[var(--success-soft)] text-[var(--success)]",
 };
 
 const REQ_STATUS: Record<string, { label: string; cls: string }> = {
-  DISCOVERED: { label: "ממתין בתור", cls: "bg-[#f3f2ef] text-[#6b6866]" },
-  QUEUED: { label: "בתזמון", cls: "bg-[#fff8e6] text-[#b45309]" },
-  SENT: { label: "נשלח", cls: "bg-[#e6faf0] text-[#059669]" },
-  FAILED: { label: "נכשל", cls: "bg-[#fff3f3] text-[#dc2626]" },
-  SKIPPED: { label: "דולג", cls: "bg-[#f3f2ef] text-[#9b9895]" },
-  ACCEPTED: { label: "התקבל", cls: "bg-[#e6f4ff] text-[#1585ff]" },
+  DISCOVERED: { label: "ממתין בתור", cls: "bg-[var(--surface-secondary)] text-[var(--muted)]" },
+  QUEUED: { label: "בתזמון", cls: "bg-[var(--warning-soft)] text-[var(--warning)]" },
+  SENT: { label: "נשלח", cls: "bg-[var(--success-soft)] text-[var(--success)]" },
+  FAILED: { label: "נכשל", cls: "bg-[var(--danger-soft)] text-[var(--danger)]" },
+  SKIPPED: { label: "דולג", cls: "bg-[var(--surface-secondary)] text-[var(--faint)]" },
+  ACCEPTED: { label: "התקבל", cls: "bg-[var(--accent-soft)] text-[var(--accent)]" },
 };
 
 const STATUS_CHIPS: { key: keyof StatusCounts; status: string; label: string; cls: string }[] = [
-  { key: "sent", status: "SENT", label: "נשלחו", cls: "bg-[#e6faf0] text-[#059669]" },
-  { key: "discovered", status: "DISCOVERED", label: "בתור", cls: "bg-[#f3f2ef] text-[#6b6866]" },
-  { key: "queued", status: "QUEUED", label: "בתזמון", cls: "bg-[#fff8e6] text-[#b45309]" },
-  { key: "failed", status: "FAILED", label: "נכשלו", cls: "bg-[#fff3f3] text-[#dc2626]" },
-  { key: "skipped", status: "SKIPPED", label: "דולגו", cls: "bg-[#f3f2ef] text-[#9b9895]" },
+  { key: "sent", status: "SENT", label: "נשלחו", cls: "bg-[var(--success-soft)] text-[var(--success)]" },
+  { key: "discovered", status: "DISCOVERED", label: "בתור", cls: "bg-[var(--surface-secondary)] text-[var(--muted)]" },
+  { key: "queued", status: "QUEUED", label: "בתזמון", cls: "bg-[var(--warning-soft)] text-[var(--warning)]" },
+  { key: "failed", status: "FAILED", label: "נכשלו", cls: "bg-[var(--danger-soft)] text-[var(--danger)]" },
+  { key: "skipped", status: "SKIPPED", label: "דולגו", cls: "bg-[var(--surface-secondary)] text-[var(--faint)]" },
 ];
 
 const SUMMARY_CLS: Record<string, string> = {
-  extension_offline: "bg-[#fff3f3] text-[#dc2626] border-[#f5c2c2]",
-  frozen: "bg-[#fff3f3] text-[#dc2626] border-[#f5c2c2]",
-  weekly_cap: "bg-[#fff8e6] text-[#b45309] border-[#f5e0a8]",
-  daily_cap: "bg-[#fff8e6] text-[#b45309] border-[#f5e0a8]",
-  completed: "bg-[#e6faf0] text-[#059669] border-[#a8e6c2]",
-  waiting: "bg-[#eff5ff] text-[#1585ff] border-[#bcd9ff]",
-  waiting_discovery: "bg-[#eff5ff] text-[#1585ff] border-[#bcd9ff]",
-  paused: "bg-[#f3f2ef] text-[#6b6866] border-[#e5e3df]",
-  idle: "bg-[#fafaf9] text-[#9b9895] border-[#e5e3df]",
+  extension_offline: "bg-[var(--danger-soft)] text-[var(--danger)] border-[var(--danger-soft)]",
+  frozen: "bg-[var(--danger-soft)] text-[var(--danger)] border-[var(--danger-soft)]",
+  weekly_cap: "bg-[var(--warning-soft)] text-[var(--warning)] border-[var(--warning-soft)]",
+  daily_cap: "bg-[var(--warning-soft)] text-[var(--warning)] border-[var(--warning-soft)]",
+  completed: "bg-[var(--success-soft)] text-[var(--success)] border-[var(--success-soft)]",
+  waiting: "bg-[var(--accent-soft)] text-[var(--accent)] border-[var(--accent-soft)]",
+  waiting_discovery: "bg-[var(--accent-soft)] text-[var(--accent)] border-[var(--accent-soft)]",
+  paused: "bg-[var(--surface-secondary)] text-[var(--muted)] border-[var(--line)]",
+  idle: "bg-[var(--surface-secondary)] text-[var(--faint)] border-[var(--line)]",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -150,7 +150,7 @@ function HumanMessage({ message }: { message: string | null }) {
         {url && (
           <>
             {" "}
-            <a href={url} target="_blank" rel="noreferrer" className="text-[#1585ff] hover:underline">
+            <a href={url} target="_blank" rel="noreferrer" className="text-[var(--accent)] hover:underline">
               לפרופיל
             </a>
           </>
@@ -181,25 +181,25 @@ function TargetProfileCard({ run, companyCount, pacing }: { run: RunDetail; comp
   const titles = run.keywords.split(",").map((t) => t.trim()).filter(Boolean);
   const isCompanyRun = run.targetType === "COMPANY";
   return (
-    <div className="bg-white border border-[#e5e3df] rounded-xl p-4 space-y-3">
-      <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">קהל יעד — למי שולחים</h2>
-      <div className="space-y-2.5 text-sm text-[#6b6866]">
+    <div className="bg-surface border border-[var(--line)] rounded-xl p-4 space-y-3">
+      <h2 className="text-xs font-semibold text-[var(--faint)] uppercase tracking-wider">קהל יעד — למי שולחים</h2>
+      <div className="space-y-2.5 text-sm text-[var(--muted)]">
         <div className="flex items-start gap-2">
-          <Users className="size-3.5 text-[#9b9895] mt-0.5 shrink-0" />
+          <Users className="size-3.5 text-[var(--faint)] mt-0.5 shrink-0" />
           <div className="flex flex-wrap gap-1">
             {titles.length > 0 ? (
               titles.map((t) => (
-                <span key={t} className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#f3f2ef] text-xs text-[#111110]">
+                <span key={t} className="inline-flex items-center px-2 py-0.5 rounded-full bg-[var(--surface-secondary)] text-xs text-[var(--foreground)]">
                   {t}
                 </span>
               ))
             ) : (
-              <span className="text-[#c8c5c2]">—</span>
+              <span className="text-[var(--faint)]">—</span>
             )}
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Globe className="size-3.5 text-[#9b9895] shrink-0" />
+          <Globe className="size-3.5 text-[var(--faint)] shrink-0" />
           <span>
             {GEO_LABELS_HE[run.geoUrn] ?? "🌍 כל העולם"}
             {" · "}
@@ -209,12 +209,12 @@ function TargetProfileCard({ run, companyCount, pacing }: { run: RunDetail; comp
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Gauge className="size-3.5 text-[#9b9895] shrink-0" />
+          <Gauge className="size-3.5 text-[var(--faint)] shrink-0" />
           <span>
-            עד <b className="text-[#111110]">{pacing?.effectiveDailyCap ?? run.dailyCap}</b> בקשות ביום · עד{" "}
-            <b className="text-[#111110]">{pacing?.effectiveWeeklyCap ?? run.weeklyCap}</b> בשבוע
+            עד <b className="text-[var(--foreground)]">{pacing?.effectiveDailyCap ?? run.dailyCap}</b> בקשות ביום · עד{" "}
+            <b className="text-[var(--foreground)]">{pacing?.effectiveWeeklyCap ?? run.weeklyCap}</b> בשבוע
             {pacing?.warmupWeek != null && (
-              <span className="text-[#9b9895]">
+              <span className="text-[var(--faint)]">
                 {" · "}החשבון בחימום — שבוע {pacing.warmupWeek} מתוך 4, היעד להיום: {pacing.dailyTarget} בקשות
               </span>
             )}
@@ -252,9 +252,9 @@ function SendWindowCard({ runId, run, onSaved }: { runId: string; run: RunDetail
   }
 
   return (
-    <div className="bg-white border border-[#e5e3df] rounded-xl p-4 space-y-3">
+    <div className="bg-surface border border-[var(--line)] rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">חלון שליחה</h2>
+        <h2 className="text-xs font-semibold text-[var(--faint)] uppercase tracking-wider">חלון שליחה</h2>
         {!draft && (
           <button
             type="button"
@@ -268,27 +268,27 @@ function SendWindowCard({ runId, run, onSaved }: { runId: string; run: RunDetail
                 sendMinutesEnd: run.sendMinutesEnd ?? 0,
               })
             }
-            className="text-[#9b9895] hover:text-[#1585ff] transition-colors"
+            className="text-[var(--faint)] hover:text-[var(--accent)] transition-colors"
           >
             <Pencil className="size-3.5" />
           </button>
         )}
       </div>
       {!draft ? (
-        <div className="flex items-center gap-2 text-sm text-[#6b6866]">
-          <Clock className="size-3.5 text-[#9b9895]" />
+        <div className="flex items-center gap-2 text-sm text-[var(--muted)]">
+          <Clock className="size-3.5 text-[var(--faint)]" />
           {formatSendWindowHe(run.sendDays, run.sendHoursStart, run.sendHoursEnd, run.sendMinutesStart ?? 0, run.sendMinutesEnd ?? 0)}
         </div>
       ) : (
         <div className="space-y-3">
           <SendWindowPicker value={draft} onChange={setDraft} />
-          {error && <p className="text-xs text-[#dc2626]">השמירה נכשלה — נסו שוב.</p>}
+          {error && <p className="text-xs text-[var(--danger)]">השמירה נכשלה — נסו שוב.</p>}
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={save}
               disabled={saving}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[var(--accent)] hover:bg-[var(--accent-strong)] rounded-md transition-colors disabled:opacity-50"
             >
               {saving && <Loader2 className="size-3 animate-spin" />}
               שמירה
@@ -299,7 +299,7 @@ function SendWindowCard({ runId, run, onSaved }: { runId: string; run: RunDetail
                 setDraft(null);
                 setError(false);
               }}
-              className="px-3 py-1.5 text-xs font-medium text-[#6b6866] hover:text-[#111110] border border-[#e5e3df] hover:border-[#c8c5c2] rounded-md transition-all"
+              className="px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:text-[var(--foreground)] border border-[var(--line)] hover:border-[var(--faint)] rounded-md transition-all"
             >
               ביטול
             </button>
@@ -326,7 +326,7 @@ export default function ProspectingRunDetailPage({
   if (!data) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="size-5 animate-spin text-[#9b9895]" />
+        <Loader2 className="size-5 animate-spin text-[var(--faint)]" />
       </div>
     );
   }
@@ -339,22 +339,22 @@ export default function ProspectingRunDetailPage({
   const lastSentEvent = events?.find((e) => e.type === "SENT") ?? null;
 
   return (
-    <div dir="rtl" className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
+    <div dir="rtl" className="flex flex-col h-full min-h-screen bg-[var(--background)]">
       {/* Header */}
-      <div className="relative flex items-center px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
-        <Link href="/routine/connections" className="text-[#9b9895] hover:text-[#6b6866] transition-colors absolute right-5">
+      <div className="relative flex items-center px-5 py-3 border-b border-[var(--line)] bg-surface sticky top-0 z-10">
+        <Link href="/routine/connections" className="text-[var(--faint)] hover:text-[var(--muted)] transition-colors absolute right-5">
           <ArrowRight className="size-4" />
         </Link>
         <div className="flex items-center gap-3 mr-8">
-          <h1 className="text-sm font-semibold text-[#111110]">{run.name}</h1>
+          <h1 className="text-sm font-semibold text-[var(--foreground)]">{run.name}</h1>
           <span
             className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-              STATUS_COLORS[run.status] ?? "bg-[#f3f2ef] text-[#6b6866]"
+              STATUS_COLORS[run.status] ?? "bg-[var(--surface-secondary)] text-[var(--muted)]"
             }`}
           >
             {STATUS_LABELS[run.status] ?? run.status}
           </span>
-          <span className="text-xs text-[#9b9895]">
+          <span className="text-xs text-[var(--faint)]">
             {run.totalSent} נשלחו · {run.totalDiscovered} נמצאו
           </span>
         </div>
@@ -384,7 +384,7 @@ export default function ProspectingRunDetailPage({
         {events?.some((e) => e.message === "extension_outdated") && (
           <div
             dir="rtl"
-            className="bg-[#fff8e6] border border-[#f0dfae] text-[#b45309] rounded-xl px-4 py-3 text-sm animate-in fade-in duration-300"
+            className="bg-[var(--warning-soft)] border border-[var(--warning-soft)] text-[var(--warning)] rounded-xl px-4 py-3 text-sm animate-in fade-in duration-300"
           >
             גרסת התוסף שלך אינה תומכת בזיהוי חברות — עדכן את תוסף הכרום כדי
             שהרוטינה תמשיך לרוץ.
@@ -399,45 +399,45 @@ export default function ProspectingRunDetailPage({
         )}
         {/* Task status panel */}
         {taskStats && (
-          <div className="bg-white border border-[#e5e3df] rounded-xl p-4 space-y-3">
+          <div className="bg-surface border border-[var(--line)] rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">פעילות התוסף</h2>
+              <h2 className="text-xs font-semibold text-[var(--faint)] uppercase tracking-wider">פעילות התוסף</h2>
               {taskStats.lastActivity && (
-                <span className="text-xs text-[#9b9895]">
+                <span className="text-xs text-[var(--faint)]">
                   נראה לאחרונה: {new Date(taskStats.lastActivity).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}
                 </span>
               )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               {/* Search tasks */}
-              <div className="bg-[#fafaf9] border border-[#e5e3df] rounded-lg p-3">
-                <p className="text-xs font-medium text-[#6b6866] mb-2">חיפוש (איתור אנשים)</p>
+              <div className="bg-[var(--surface-secondary)] border border-[var(--line)] rounded-lg p-3">
+                <p className="text-xs font-medium text-[var(--muted)] mb-2">חיפוש (איתור אנשים)</p>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                  <span className="text-[#9b9895]">ממתינים: {taskStats.search.pending}</span>
-                  <span className="text-[#059669]">הצליחו: {taskStats.search.done}</span>
-                  <span className="text-[#dc2626]">נכשלו: {taskStats.search.failed}</span>
+                  <span className="text-[var(--faint)]">ממתינים: {taskStats.search.pending}</span>
+                  <span className="text-[var(--success)]">הצליחו: {taskStats.search.done}</span>
+                  <span className="text-[var(--danger)]">נכשלו: {taskStats.search.failed}</span>
                   {taskStats.search.retried > 0 && (
-                    <span className="text-[#9b9895]">ניסיונות חוזרים: {taskStats.search.retried}</span>
+                    <span className="text-[var(--faint)]">ניסיונות חוזרים: {taskStats.search.retried}</span>
                   )}
                 </div>
               </div>
               {/* Connect tasks */}
-              <div className="bg-[#fafaf9] border border-[#e5e3df] rounded-lg p-3">
-                <p className="text-xs font-medium text-[#6b6866] mb-2">הצעות חברות</p>
+              <div className="bg-[var(--surface-secondary)] border border-[var(--line)] rounded-lg p-3">
+                <p className="text-xs font-medium text-[var(--muted)] mb-2">הצעות חברות</p>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                  <span className="text-[#9b9895]">ממתינות: {taskStats.connect.pending}</span>
-                  <span className="text-[#059669]">נשלחו: {taskStats.connect.done}</span>
-                  <span className="text-[#dc2626]">נכשלו: {taskStats.connect.failed}</span>
+                  <span className="text-[var(--faint)]">ממתינות: {taskStats.connect.pending}</span>
+                  <span className="text-[var(--success)]">נשלחו: {taskStats.connect.done}</span>
+                  <span className="text-[var(--danger)]">נכשלו: {taskStats.connect.failed}</span>
                   {taskStats.connect.skipped > 0 && (
-                    <span className="text-[#9b9895]">דולגו (עוקב בלבד): {taskStats.connect.skipped}</span>
+                    <span className="text-[var(--faint)]">דולגו (עוקב בלבד): {taskStats.connect.skipped}</span>
                   )}
                 </div>
               </div>
             </div>
             {/* Recent failures */}
             {taskStats.recentFailures.length > 0 && (
-              <div className="border-t border-[#e5e3df] pt-3">
-                <p className="text-xs font-semibold text-[#dc2626] mb-2">כשלים אחרונים</p>
+              <div className="border-t border-[var(--line)] pt-3">
+                <p className="text-xs font-semibold text-[var(--danger)] mb-2">כשלים אחרונים</p>
                 <div className="space-y-1">
                   {taskStats.recentFailures.map((f) => {
                     const profileUrl = f.errorMessage?.match(/url=(https?:\/\/\S+?)\/?\)?\s*$/)?.[1];
@@ -447,20 +447,20 @@ export default function ProspectingRunDetailPage({
                     return (
                       <div key={`${f.kind}-${f.at}`} className="text-xs space-y-0.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-[#9b9895]">{TASK_KIND_LABELS[f.kind] ?? f.kind}</span>
-                          <span className="text-[#dc2626] bg-[#fff3f3] px-1.5 py-0.5 rounded">{known ?? f.errorCode}</span>
-                          {detail && <span className="text-[#6b6866]">{detail}</span>}
+                          <span className="text-[var(--faint)]">{TASK_KIND_LABELS[f.kind] ?? f.kind}</span>
+                          <span className="text-[var(--danger)] bg-[var(--danger-soft)] px-1.5 py-0.5 rounded">{known ?? f.errorCode}</span>
+                          {detail && <span className="text-[var(--muted)]">{detail}</span>}
                           {profileUrl && (
-                            <a href={profileUrl} target="_blank" rel="noreferrer" className="text-[#1585ff] hover:underline">
+                            <a href={profileUrl} target="_blank" rel="noreferrer" className="text-[var(--accent)] hover:underline">
                               לפרופיל
                             </a>
                           )}
                           {!known && !detail && f.errorMessage && (
-                            <span className="text-[#6b6866] truncate max-w-xs" title={f.errorMessage}>{f.errorMessage}</span>
+                            <span className="text-[var(--muted)] truncate max-w-xs" title={f.errorMessage}>{f.errorMessage}</span>
                           )}
-                          <span className="text-[#9b9895] ms-auto">{new Date(f.at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem" })}</span>
+                          <span className="text-[var(--faint)] ms-auto">{new Date(f.at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem" })}</span>
                         </div>
-                        {hint && <p className="text-[#9b9895] pr-1">{hint}</p>}
+                        {hint && <p className="text-[var(--faint)] pr-1">{hint}</p>}
                       </div>
                     );
                   })}
@@ -470,9 +470,9 @@ export default function ProspectingRunDetailPage({
           </div>
         )}
 
-        <div className="bg-white border border-[#e5e3df] rounded-xl overflow-hidden">
-          <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-[#e5e3df] bg-[#fafaf9]">
-            <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">
+        <div className="bg-surface border border-[var(--line)] rounded-xl overflow-hidden">
+          <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-[var(--line)] bg-[var(--surface-secondary)]">
+            <h2 className="text-xs font-semibold text-[var(--faint)] uppercase tracking-wider">
               אנשים בריצה ({filteredRequests.length})
             </h2>
             {/* The chips filter THIS table — they live in its header so the effect is visible. */}
@@ -485,8 +485,8 @@ export default function ProspectingRunDetailPage({
                     onClick={() => setStatusFilter(statusFilter === chip.status ? null : chip.status)}
                     className={`text-xs px-2.5 py-1 rounded-full transition-shadow cursor-pointer ${chip.cls} ${
                       statusFilter === chip.status
-                        ? "ring-2 ring-[#1585ff] ring-offset-1"
-                        : "hover:ring-1 hover:ring-[#c8c5c2]"
+                        ? "ring-2 ring-[var(--accent)] ring-offset-1"
+                        : "hover:ring-1 hover:ring-[var(--faint)]"
                     }`}
                   >
                     {chip.label} {statusCounts[chip.key]}
@@ -498,7 +498,7 @@ export default function ProspectingRunDetailPage({
               <button
                 type="button"
                 onClick={() => setStatusFilter(null)}
-                className="text-xs text-[#1585ff] hover:underline cursor-pointer"
+                className="text-xs text-[var(--accent)] hover:underline cursor-pointer"
               >
                 הצג הכל
               </button>
@@ -507,7 +507,7 @@ export default function ProspectingRunDetailPage({
 
           {filteredRequests.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-sm text-[#9b9895]">
+              <p className="text-sm text-[var(--faint)]">
                 {statusFilter
                   ? `אין אנשים בסטטוס "${STATUS_CHIPS.find((c) => c.status === statusFilter)?.label ?? statusFilter}" בריצה זו.`
                   : "עדיין לא נמצאו אנשים בריצה זו."}
@@ -516,25 +516,25 @@ export default function ProspectingRunDetailPage({
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#e5e3df]">
-                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">שם</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">סטטוס</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">תפקיד</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">חברה</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">מיקום</th>
-                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9b9895] uppercase tracking-wider">עודכן</th>
+                <tr className="border-b border-[var(--line)]">
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[var(--faint)] uppercase tracking-wider">שם</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[var(--faint)] uppercase tracking-wider">סטטוס</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[var(--faint)] uppercase tracking-wider">תפקיד</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[var(--faint)] uppercase tracking-wider">חברה</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[var(--faint)] uppercase tracking-wider">מיקום</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[var(--faint)] uppercase tracking-wider">עודכן</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e5e3df]">
+              <tbody className="divide-y divide-[var(--line)]">
                 {filteredRequests.map((req) => (
-                  <tr key={req.id} className="hover:bg-[#fafaf9] transition-colors">
-                    <td className="px-4 py-3 font-medium text-[#111110]">
+                  <tr key={req.id} className="hover:bg-[var(--surface-secondary)] transition-colors">
+                    <td className="px-4 py-3 font-medium text-[var(--foreground)]">
                       {req.linkedinUrl ? (
                         <a
                           href={req.linkedinUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="hover:text-[#1585ff] transition-colors"
+                          className="hover:text-[var(--accent)] transition-colors"
                         >
                           {req.fullName}
                         </a>
@@ -543,34 +543,34 @@ export default function ProspectingRunDetailPage({
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${REQ_STATUS[req.status]?.cls ?? "bg-[#f3f2ef] text-[#6b6866]"}`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${REQ_STATUS[req.status]?.cls ?? "bg-[var(--surface-secondary)] text-[var(--muted)]"}`}>
                         {REQ_STATUS[req.status]?.label ?? req.status}
                       </span>
-                      {req.status === "SKIPPED" && req.skipReason && <span className="text-[10px] text-[#9b9895] block mt-0.5">{ERROR_CODE_LABELS[req.skipReason] ?? req.skipReason}</span>}
+                      {req.status === "SKIPPED" && req.skipReason && <span className="text-[10px] text-[var(--faint)] block mt-0.5">{ERROR_CODE_LABELS[req.skipReason] ?? req.skipReason}</span>}
                       {req.status === "FAILED" && req.errorCode && (
                         <span
-                          className="text-[10px] text-[#dc2626] block mt-0.5 max-w-55"
+                          className="text-[10px] text-[var(--danger)] block mt-0.5 max-w-55"
                           title={[humanizeErrorDetail(req.errorMessage), ERROR_CODE_HINTS[req.errorCode], req.errorMessage]
                             .filter(Boolean)
                             .join("\n")}
                         >
                           {ERROR_CODE_LABELS[req.errorCode] ?? req.errorCode}
                           {ERROR_CODE_HINTS[req.errorCode] && (
-                            <span className="text-[#9b9895] block">{ERROR_CODE_HINTS[req.errorCode]}</span>
+                            <span className="text-[var(--faint)] block">{ERROR_CODE_HINTS[req.errorCode]}</span>
                           )}
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-[#6b6866]">
-                      {req.currentTitle ?? <span className="text-[#c8c5c2]">—</span>}
+                    <td className="px-4 py-3 text-[var(--muted)]">
+                      {req.currentTitle ?? <span className="text-[var(--faint)]">—</span>}
                     </td>
-                    <td className="px-4 py-3 text-[#6b6866]">
-                      {req.currentCompany ?? <span className="text-[#c8c5c2]">—</span>}
+                    <td className="px-4 py-3 text-[var(--muted)]">
+                      {req.currentCompany ?? <span className="text-[var(--faint)]">—</span>}
                     </td>
-                    <td className="px-4 py-3 text-[#6b6866]">
-                      {req.location ?? <span className="text-[#c8c5c2]">—</span>}
+                    <td className="px-4 py-3 text-[var(--muted)]">
+                      {req.location ?? <span className="text-[var(--faint)]">—</span>}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-[#9b9895]">
+                    <td className="px-4 py-3 font-mono text-xs text-[var(--faint)]">
                       {new Date(req.sentAt ?? req.createdAt).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}
                     </td>
                   </tr>
@@ -581,16 +581,16 @@ export default function ProspectingRunDetailPage({
         </div>
 
         {events && events.length > 0 && (
-          <div className="bg-white border border-[#e5e3df] rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-[#e5e3df] bg-[#fafaf9]">
-              <h2 className="text-xs font-semibold text-[#9b9895] uppercase tracking-wider">יומן פעילות</h2>
+          <div className="bg-surface border border-[var(--line)] rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-[var(--line)] bg-[var(--surface-secondary)]">
+              <h2 className="text-xs font-semibold text-[var(--faint)] uppercase tracking-wider">יומן פעילות</h2>
             </div>
-            <ul className="divide-y divide-[#f3f2ef]">
+            <ul className="divide-y divide-[var(--surface-secondary)]">
               {events.map((e) => (
                 <li key={`${e.type}-${e.createdAt}-${e.connectionRequestId ?? ""}-${e.message ?? ""}`} className="flex items-center gap-3 px-4 py-2 text-xs">
-                  <span className="font-mono text-[#6b6866] w-32 shrink-0 truncate">{EVENT_LABELS[e.type] ?? e.type}</span>
-                  <span className="text-[#6b6866] truncate flex-1"><HumanMessage message={e.message} /></span>
-                  <span className="text-[#9b9895] shrink-0">{new Date(e.createdAt).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}</span>
+                  <span className="font-mono text-[var(--muted)] w-32 shrink-0 truncate">{EVENT_LABELS[e.type] ?? e.type}</span>
+                  <span className="text-[var(--muted)] truncate flex-1"><HumanMessage message={e.message} /></span>
+                  <span className="text-[var(--faint)] shrink-0">{new Date(e.createdAt).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}</span>
                 </li>
               ))}
             </ul>

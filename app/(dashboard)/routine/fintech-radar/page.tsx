@@ -14,7 +14,7 @@ import { FintechRadarClient, RadarModuleSwitch } from "./fintech-radar-client";
  */
 export default function FintechRadarPage() {
   return (
-    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]">
+    <div className="flex flex-col h-full min-h-screen bg-[var(--background)]">
       <PageHeader
         icon={Newspaper}
         title="ראדאר"

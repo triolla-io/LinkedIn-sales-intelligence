@@ -60,7 +60,7 @@ export function RadarModuleSwitch() {
   const on = modules.fintechRadarEnabled ?? false;
   return (
     <div className="flex items-center gap-2" dir="rtl">
-      <span className={cn("text-xs font-medium", on ? "text-[#059669]" : "text-[#b45309]")}>
+      <span className={cn("text-xs font-medium", on ? "text-[var(--success)]" : "text-[var(--warning)]")}>
         {on ? "המודול פעיל" : "המודול כבוי"}
       </span>
       <Switch
@@ -91,18 +91,18 @@ export function FintechRadarClient() {
     <div className="flex-1 p-5" dir="rtl">
       {/* Topics — currently only Fintech is live; more (e.g. Cyber) are coming. */}
       <div className="mb-5">
-        <h2 className="text-xs font-medium text-[#9b9895] mb-2">נושאים</h2>
+        <h2 className="text-xs font-medium text-[var(--faint)] mb-2">נושאים</h2>
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="px-3 py-1.5 rounded-full text-sm font-medium bg-[#1585ff] text-white">
+          <span className="px-3 py-1.5 rounded-full text-sm font-medium bg-[var(--accent)] text-white">
             Fintech
           </span>
           <span
             aria-disabled="true"
             title="בקרוב"
-            className="px-3 py-1.5 rounded-full text-sm font-medium bg-[#f0efec] text-[#9b9895] cursor-not-allowed select-none inline-flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-full text-sm font-medium bg-[var(--separator)] text-[var(--faint)] cursor-not-allowed select-none inline-flex items-center gap-1.5"
           >
             סייבר
-            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#e5e3df] text-[#78716c]">
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[var(--line)] text-[var(--muted)]">
               בקרוב
             </span>
           </span>
@@ -110,21 +110,21 @@ export function FintechRadarClient() {
       </div>
 
       {modules && totalMatches > 0 && (
-        <div className="mb-4 text-xs text-[#9b9895]">{totalMatches} התאמות ממתינות</div>
+        <div className="mb-4 text-xs text-[var(--faint)]">{totalMatches} התאמות ממתינות</div>
       )}
 
       {modules && !radarOn && (
-        <div className="mb-4 px-4 py-2.5 rounded-lg bg-[#fffbeb] border border-[#fde68a] text-xs text-[#b45309]">
+        <div className="mb-4 px-4 py-2.5 rounded-lg bg-[var(--warning-soft)] border border-[var(--warning-soft)] text-xs text-[var(--warning)]">
           איתור כתבות פינטק חדשות מושבת. ההעדפה נשמרת ותוחל כשהמודול יופעל.
         </div>
       )}
 
       {isLoading ? (
-        <div className="flex items-center gap-2 text-[#9b9895]">
+        <div className="flex items-center gap-2 text-[var(--faint)]">
           <Loader2 className="size-4 animate-spin" /> טוען…
         </div>
       ) : articles.length === 0 ? (
-        <p className="text-[#9b9895]">אין כתבות חדשות עם התאמות כרגע.</p>
+        <p className="text-[var(--faint)]">אין כתבות חדשות עם התאמות כרגע.</p>
       ) : (
         <ul className="flex flex-col gap-4">
           {articles.map((article) => (
@@ -146,23 +146,23 @@ function ArticleCard({ article, onChanged }: { article: Article; onChanged: () =
           href={article.url}
           target="_blank"
           rel="noreferrer"
-          className="font-semibold text-[#1a1917] hover:text-[#1585ff] transition-colors inline-flex items-center gap-1"
+          className="font-semibold text-[var(--ink-strong)] hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1"
         >
           {article.title}
           <ExternalLink className="size-3.5 shrink-0" />
         </a>
-        <div className="text-xs text-[#9b9895] mt-0.5">
+        <div className="text-xs text-[var(--faint)] mt-0.5">
           {article.source || hostLabel(article.url)}
           {article.publishedAt &&
             ` · ${new Date(article.publishedAt).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" })}`}
         </div>
       </div>
 
-      <p className="text-sm text-[#6b6866]">{article.summary}</p>
+      <p className="text-sm text-[var(--muted)]">{article.summary}</p>
 
       {article.matches.length > 0 && (
         <div className="flex flex-col gap-2">
-          <span className="text-xs font-medium text-[#6b6866]">עשוי לעניין:</span>
+          <span className="text-xs font-medium text-[var(--muted)]">עשוי לעניין:</span>
           <div className="flex flex-wrap gap-2">
             {article.matches.map((m) => (
               <button
@@ -172,7 +172,7 @@ function ArticleCard({ article, onChanged }: { article: Article; onChanged: () =
                 className={cn(
                   ui.chip,
                   "cursor-pointer transition-colors",
-                  expandedId === m.id ? "bg-[#1585ff]/10 text-[#1585ff]" : "hover:bg-[#e7e4dd]"
+                  expandedId === m.id ? "bg-[var(--accent)]/10 text-[var(--accent)]" : "hover:bg-[var(--line)]"
                 )}
               >
                 {m.contact.fullName}
@@ -282,15 +282,15 @@ function MatchPanel({ match, onChanged }: { match: Match; onChanged: () => void 
   const isLinkedinPrepare = match.sentChannel !== "email" && match.sentChannel !== "whatsapp";
 
   return (
-    <div className="rounded-lg border border-[#e7e4dd] bg-[#faf9f7] p-3 flex flex-col gap-2">
-      <div className="text-sm text-[#1a1917]">
+    <div className="rounded-lg border border-[var(--line)] bg-[var(--surface-secondary)] p-3 flex flex-col gap-2">
+      <div className="text-sm text-[var(--ink-strong)]">
         אל:{" "}
         {match.contact.linkedinUrl ? (
           <a
             href={match.contact.linkedinUrl}
             target="_blank"
             rel="noreferrer"
-            className="font-medium text-[#1585ff] hover:underline"
+            className="font-medium text-[var(--accent)] hover:underline"
           >
             {match.contact.fullName}
           </a>
@@ -299,20 +299,20 @@ function MatchPanel({ match, onChanged }: { match: Match; onChanged: () => void 
         )}
         {match.contact.currentTitle ? ` · ${match.contact.currentTitle}` : ""}
       </div>
-      <p className="text-xs text-[#9b9895]">{match.reason}</p>
+      <p className="text-xs text-[var(--faint)]">{match.reason}</p>
 
       {match.status !== "SUGGESTED" ? (
         <>
-          <div className="rounded-md border border-[#e7e4dd] bg-white p-3">
-            <p className="text-sm text-[#1a1917] whitespace-pre-wrap">{match.draftMessage}</p>
+          <div className="rounded-md border border-[var(--line)] bg-surface p-3">
+            <p className="text-sm text-[var(--ink-strong)] whitespace-pre-wrap">{match.draftMessage}</p>
           </div>
           {match.status === "PREPARING" ? (
-            <div className="flex items-center gap-2 text-sm text-[#b45309]">
+            <div className="flex items-center gap-2 text-sm text-[var(--warning)]">
               <Loader2 className="size-4 animate-spin" />
               ההודעה בהכנה — טאב לינקדאין עם ההודעה מוקלדת ייפתח אצלך עוד רגע (ודא שהתוסף פעיל)
             </div>
           ) : (
-            <div className="text-sm text-[#059669]">
+            <div className="text-sm text-[var(--success)]">
               {isLinkedinPrepare
                 ? "ההודעה מוקלדת ומחכה בטאב הלינקדאין שנפתח — לחץ שם שליחה וחזור לאשר כאן"
                 : "הטיוטה נפתחה — לחץ שליחה שם וחזור לאשר כאן"}
@@ -375,7 +375,7 @@ function MatchPanel({ match, onChanged }: { match: Match; onChanged: () => void 
               </span>
             </Button>
           </div>
-          <span className="text-xs text-[#9b9895]">
+          <span className="text-xs text-[var(--faint)]">
             שום דבר לא נשלח אוטומטית — ההודעה תוכן בערוץ שבחרת ותשלח אותה בעצמך
           </span>
         </>

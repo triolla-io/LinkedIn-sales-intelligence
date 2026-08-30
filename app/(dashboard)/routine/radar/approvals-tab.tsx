@@ -50,8 +50,8 @@ type Approvals = {
   quiet: { contactId: string; fullName: string; company: string | null; reason: string }[];
 };
 
-const INK_2 = "text-[rgba(28,36,48,0.72)]";
-const INK_3 = "text-[rgba(28,36,48,0.5)]";
+const INK_2 = "text-[var(--muted)]";
+const INK_3 = "text-[var(--faint)]";
 
 const HARD_HE: Record<string, string> = {
   foreign_link: "אפשר לקשר רק לכתובת המקורית של הכתבה",
@@ -92,7 +92,8 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
-const AVATAR_BG = ["#5b7a9d", "#8a6d54", "#7d8b9a", "#6d8a70"];
+/* גוונים חמים שיושבים על הנייר — לא כחול קריר שנלחם בו */
+const AVATAR_BG = ["#175e4c", "#8a5a2b", "#5c6b4a", "#7a4a3d"];
 
 function Chip({ ok, children }: { ok?: boolean; children: React.ReactNode }) {
   return (
@@ -100,8 +101,8 @@ function Chip({ ok, children }: { ok?: boolean; children: React.ReactNode }) {
       className={cn(
         "text-xs rounded-full px-[11px] py-[3.5px] border",
         ok
-          ? "text-[#3d7a45] bg-[rgba(61,122,69,0.09)] border-transparent font-semibold"
-          : cn("bg-white border-[rgba(28,36,48,0.1)]", INK_2)
+          ? "text-[var(--success)] bg-[var(--success-soft)] border-transparent font-semibold"
+          : cn("bg-surface border-[var(--line)]", INK_2)
       )}
     >
       {children}
@@ -157,7 +158,7 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
   const pending = draft.status === "PENDING_REVIEW";
 
   return (
-    <article className="bg-white border border-[rgba(28,36,48,0.06)] rounded-[20px] p-5 sm:p-7 mt-6 shadow-[0_1px_2px_rgba(28,36,48,0.04),0_8px_28px_-18px_rgba(28,36,48,0.14)]">
+    <article className="bg-[var(--surface)] border border-[var(--line)] rounded-[var(--radius-card)] p-5 sm:p-7 mt-6 shadow-[var(--shadow-paper)]">
       {/* who */}
       <div className="flex items-center gap-3.5">
         <div
@@ -168,15 +169,15 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
           {initials(draft.contact.fullName)}
         </div>
         <div className="min-w-0">
-          <div className="font-bold text-[16px] flex items-center gap-2 flex-wrap">
+          <div dir="auto" className="font-bold text-[16px] flex items-center gap-2 flex-wrap bidi-isolate">
             {draft.contact.fullName}
             {draft.overridden && (
-              <span className="text-[11px] font-semibold text-[#a8742a] bg-[rgba(168,116,42,0.1)] rounded-full px-2 py-0.5">
+              <span className="text-[11px] font-semibold text-[var(--warning)] bg-[var(--warning-soft)] rounded-full px-2 py-0.5">
                 נוצרה בדריסה ידנית
               </span>
             )}
           </div>
-          <div className={cn("text-[13px]", INK_3)}>
+          <div dir="auto" className={cn("text-[13px] bidi-isolate", INK_3)}>
             {[draft.contact.currentTitle, draft.contact.currentCompany].filter(Boolean).join(" · ")}
           </div>
         </div>
@@ -185,7 +186,7 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
             href={draft.contact.linkedinUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="ms-auto shrink-0 text-[12.5px] text-[#0a66c2] border border-[rgba(10,102,194,0.25)] rounded-full px-3 py-1"
+            className="ms-auto shrink-0 text-[12.5px] text-[var(--brand-linkedin)] border border-[var(--brand-linkedin)]/25 rounded-full px-3 py-1"
           >
             הפרופיל שלו ↗
           </a>
@@ -193,7 +194,7 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
       </div>
 
       {/* the bubble — what you see is what is sent */}
-      <div className="mt-5 bg-[#eef3f8] rounded-tr-[4px] rounded-tl-[18px] rounded-b-[18px] px-4 py-3.5">
+      <div className="mt-5 bg-[var(--accent-soft)] rounded-tr-[4px] rounded-tl-[18px] rounded-b-[18px] px-4 py-3.5">
         {/* A bare textarea, not a form field: the bubble IS the control. What you see is
             what is sent, one-to-one. field-sizing keeps it growing with the content. */}
         <textarea
@@ -202,7 +203,8 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
           onChange={(e) => setText(e.target.value)}
           disabled={!pending || busy !== null}
           rows={3}
-          className="w-full resize-none bg-transparent border-0 outline-none text-[15.5px] leading-[1.7] p-0 text-[#1c2430] field-sizing-content disabled:opacity-70"
+          dir="auto"
+          className="w-full resize-none bg-transparent border-0 outline-none text-[15.5px] leading-[1.7] p-0 text-[var(--foreground)] field-sizing-content disabled:opacity-70"
         />
         {draft.canonicalUrl && (
           <a
@@ -210,7 +212,7 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
             target="_blank"
             rel="noopener noreferrer"
             dir="ltr"
-            className="block mt-2 text-[13.5px] text-[#0a66c2] truncate text-right hover:underline"
+            className="block mt-2 text-[13.5px] text-[var(--brand-linkedin)] truncate text-right hover:underline"
           >
             {draft.sourceHost} · {draft.canonicalUrl.replace(/^https?:\/\/(www\.)?/, "")}
           </a>
@@ -219,20 +221,20 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
 
       {/* guard feedback: hard blocks, soft only warns */}
       {hard.length > 0 && (
-        <p className="text-[13px] text-[#b42318] mt-2" role="alert">
+        <p className="text-[13px] text-[var(--danger)] mt-2" role="alert">
           {hard.map((h) => HARD_HE[h] ?? h).join(" · ")}
         </p>
       )}
       {hard.length === 0 && soft.length > 0 && (
-        <p className="text-[12.5px] text-[#a8742a] mt-2">{soft.map((s) => SOFT_HE[s] ?? s).join(" · ")}</p>
+        <p className="text-[12.5px] text-[var(--warning)] mt-2">{soft.map((s) => SOFT_HE[s] ?? s).join(" · ")}</p>
       )}
 
       {/* why now */}
       {draft.whyHim && (
         <div className={cn("flex gap-2.5 items-start mt-4 text-[13.5px]", INK_2)}>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#a8742a] mt-2 shrink-0" aria-hidden />
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--warning)] mt-2 shrink-0" aria-hidden />
           <span>
-            <b className="text-[#1c2430] font-semibold">למה עכשיו:</b> {draft.whyHim}
+            <b className="text-[var(--foreground)] font-semibold">למה עכשיו:</b> {draft.whyHim}
           </span>
         </div>
       )}
@@ -250,13 +252,13 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
       </div>
 
       {/* actions */}
-      <div className="flex flex-wrap items-center gap-2.5 mt-5 pt-4 border-t border-[rgba(28,36,48,0.06)]">
+      <div className="flex flex-wrap items-center gap-2.5 mt-5 pt-4 border-t border-[var(--separator)]">
         {pending ? (
           <>
             <Button
               size="sm"
               variant="primary"
-              className="bg-[#0a66c2]"
+              className="bg-[var(--brand-linkedin)]"
               isDisabled={busy !== null || !text.trim()}
               onPress={() => patch({ action: "prepare", message: text }, "prepare")}
             >
@@ -269,7 +271,7 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setWaOpened(true)}
-                className="inline-flex items-center rounded-full bg-[#25d366] text-white text-sm font-medium px-4 py-1.5 hover:opacity-90"
+                className="inline-flex items-center rounded-full bg-[var(--brand-whatsapp)] text-white text-sm font-medium px-4 py-1.5 hover:opacity-90"
               >
                 שלח בוואטסאפ
               </a>
@@ -281,7 +283,7 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
                 aria-disabled="true"
                 title="אין מספר טלפון לאיש הקשר הזה"
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border border-[rgba(28,36,48,0.12)] bg-[#f6f4f0] text-sm px-4 py-1.5 cursor-not-allowed",
+                  "inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-secondary)] text-sm px-4 py-1.5 cursor-not-allowed",
                   INK_3
                 )}
               >
@@ -313,7 +315,7 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
                     disabled={busy !== null}
                     onClick={() => patch({ action: "dismiss", reason: r.key }, "dismiss")}
                     className={cn(
-                      "text-xs border border-[rgba(28,36,48,0.1)] rounded-full px-3 py-1 bg-white hover:bg-[#f6f4f0]",
+                      "text-xs border border-[var(--line)] rounded-full px-3 py-1 bg-surface hover:bg-[var(--surface-secondary)]",
                       INK_2
                     )}
                   >
@@ -337,7 +339,7 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
             <Button
               size="sm"
               variant="primary"
-              className="bg-[#0a66c2] ms-auto"
+              className="bg-[var(--brand-linkedin)] ms-auto"
               isDisabled={busy !== null}
               onPress={() => patch({ action: "sent" }, "sent")}
             >
@@ -358,7 +360,7 @@ export function ApprovalsTab() {
 
   if (error && !data) {
     return (
-      <p className="text-sm text-[#b42318] flex items-center gap-1.5 mt-6" role="alert">
+      <p className="text-sm text-[var(--danger)] flex items-center gap-1.5 mt-6" role="alert">
         <AlertTriangle className="size-4 shrink-0" aria-hidden />
         {fetchErrorMessage(error)}
       </p>
@@ -382,9 +384,9 @@ export function ApprovalsTab() {
 
   return (
     <section>
-      <p className="text-[21px] font-semibold leading-[1.45] tracking-tight max-w-[34em]">
+      <p className="type-h1 max-w-[30ch] leading-[1.25]">
         {lede}
-        <span className={cn("block mt-1.5 text-[16px] font-normal", INK_3)}>
+        <span className={cn("block mt-2.5 text-[15px] font-normal font-sans leading-relaxed", INK_3)}>
           {data.scan ? (
             <>
               נסרקו <span className="tabular-nums">{data.scan.scanned}</span> כתבות ·{" "}
@@ -404,17 +406,17 @@ export function ApprovalsTab() {
       ))}
 
       {data.quiet.length > 0 && (
-        <div className="mt-10 pt-6 border-t border-[rgba(28,36,48,0.1)]">
-          <h3 className={cn("text-[13px] font-bold mb-3", INK_3)}>שקט השבוע — ולמה</h3>
+        <div className="mt-10 pt-6 border-t border-[var(--line)]">
+          <h3 className="type-h2 text-[var(--foreground)] mb-3 text-[17px]">שקט השבוע — ולמה</h3>
           {data.quiet.map((q, i) => (
             <div
               key={q.contactId}
               className={cn(
                 "flex justify-between gap-3 py-[9px] text-[13.5px]",
-                i < data.quiet.length - 1 && "border-b border-dashed border-[rgba(28,36,48,0.06)]"
+                i < data.quiet.length - 1 && "border-b border-dashed border-[var(--separator)]"
               )}
             >
-              <span className={INK_2}>
+              <span dir="auto" className={cn("bidi-isolate", INK_2)}>
                 {q.fullName}
                 {q.company ? ` · ${q.company}` : ""}
               </span>
@@ -427,7 +429,7 @@ export function ApprovalsTab() {
       {n === 0 && data.quiet.length === 0 && data.scan && (
         <p className={cn("text-sm mt-8", INK_3)}>
           אין עדיין אנשים במעקב. בטאב ״אנשים״ אפשר יהיה להוסיף — ובינתיים מסמנים אנשים במסך{" "}
-          <a href="/routine/tech-radar" className="text-[#0a66c2] hover:underline">
+          <a href="/routine/tech-radar" className="text-[var(--brand-linkedin)] hover:underline">
             Tech Radar
           </a>
           .

@@ -75,10 +75,10 @@ export default function CompanySignalsPage() {
   useAutoRefresh(fetchDrafts, 30_000);
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]" dir="rtl">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-[#e5e3df] bg-white sticky top-0 z-10">
+    <div className="flex flex-col h-full min-h-screen bg-[var(--background)]" dir="rtl">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--line)] bg-surface sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-[#c2410c]" />
+          <Sparkles className="w-5 h-5 text-[var(--warning)]" />
           <h1 className="text-lg font-semibold">חדשות חברות — סקירה</h1>
           {state.drafts.length > 0 && (
             <Chip size="sm" color="warning">{state.drafts.length} ממתינים לסקירה</Chip>
@@ -86,7 +86,7 @@ export default function CompanySignalsPage() {
         </div>
         {modules && (
           <div className="flex items-center gap-2">
-            <span className={`text-xs font-medium ${signalsOn ? "text-[#059669]" : "text-[#b45309]"}`}>
+            <span className={`text-xs font-medium ${signalsOn ? "text-[var(--success)]" : "text-[var(--warning)]"}`}>
               {signalsOn ? "המודול פעיל" : "המודול כבוי"}
             </span>
             <Switch
@@ -104,18 +104,18 @@ export default function CompanySignalsPage() {
       </div>
 
       {modules && !signalsOn && (
-        <div className="px-5 py-2.5 bg-[#fffbeb] border-b border-[#fde68a] text-xs text-[#b45309]">
+        <div className="px-5 py-2.5 bg-[var(--warning-soft)] border-b border-[var(--warning-soft)] text-xs text-[var(--warning)]">
           זיהוי החדשות האוטומטי מושבת. ההעדפה נשמרת ותוחל כשהמודול יופעל.
         </div>
       )}
 
       <div className="flex-1 p-5">
         {state.loading ? (
-          <div className="flex items-center gap-2 text-gray-500">
+          <div className="flex items-center gap-2 text-[var(--muted)]">
             <Loader2 className="w-4 h-4 animate-spin" /> טוען…
           </div>
         ) : state.drafts.length === 0 ? (
-          <p className="text-gray-500">אין טיוטות ממתינות לסקירה.</p>
+          <p className="text-[var(--muted)]">אין טיוטות ממתינות לסקירה.</p>
         ) : (
           <ul className="flex flex-col gap-4">
             {state.drafts.map((d) => (
@@ -176,42 +176,42 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
   const newsDate = formatEventDate(resolveEventDate(draft.signal.eventDate, draft.signal.sources));
 
   return (
-    <li className="bg-white rounded-lg border border-[#e5e3df] p-4 flex flex-col gap-3">
+    <li className="bg-surface rounded-lg border border-[var(--line)] p-4 flex flex-col gap-3">
       <div className="flex items-center gap-2 flex-wrap">
-        <Building2 className="w-4 h-4 text-gray-500" />
+        <Building2 className="w-4 h-4 text-[var(--muted)]" />
         <span className="font-semibold">{draft.signal.company.name}</span>
         <Chip size="sm" color="warning">
           {TYPE_LABEL[draft.signal.signalType] ?? draft.signal.signalType}
         </Chip>
-        <span className="text-xs text-gray-500">ביטחון {pct}%</span>
+        <span className="text-xs text-[var(--muted)]">ביטחון {pct}%</span>
         {newsDate && (
-          <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+          <span className="inline-flex items-center gap-1 text-xs text-[var(--muted)]">
             <CalendarDays className="w-3 h-3" /> {newsDate}
           </span>
         )}
-        <span className="text-sm text-gray-700">· {draft.signal.title}</span>
+        <span className="text-sm text-[var(--muted)]">· {draft.signal.title}</span>
       </div>
 
-      <div className="text-sm text-gray-600">{draft.signal.summary}</div>
+      <div className="text-sm text-[var(--muted)]">{draft.signal.summary}</div>
 
       {draft.signal.sources.length > 0 && (
         <div className="flex flex-wrap gap-2 text-xs">
           {draft.signal.sources.map((s, i) => (
             <a key={i} href={s.url} target="_blank" rel="noreferrer"
-               className="inline-flex items-center gap-1 text-[#c2410c] hover:underline">
+               className="inline-flex items-center gap-1 text-[var(--warning)] hover:underline">
               <ExternalLink className="w-3 h-3" /> {s.name || hostLabel(s.url)}
             </a>
           ))}
         </div>
       )}
 
-      <div className="text-sm text-gray-700">
+      <div className="text-sm text-[var(--muted)]">
         אל:{" "}
         <a
           href={draft.contact.linkedinUrl}
           target="_blank"
           rel="noreferrer"
-          className="font-medium text-[#1585ff] hover:underline"
+          className="font-medium text-[var(--accent)] hover:underline"
         >
           {draft.contact.fullName}
         </a>
@@ -246,7 +246,7 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
 
         <Tabs.Panel id="linkedin" className="pt-3">
           <div className="flex flex-col gap-2">
-            {actionError && <p className="text-xs text-red-600">{actionError}</p>}
+            {actionError && <p className="text-xs text-[var(--danger)]">{actionError}</p>}
             <TextArea
               aria-label="טיוטת הודעה"
               value={text}
@@ -277,7 +277,7 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
                   דחה
                 </span>
               </Button>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-[var(--muted)]">
                 ההודעה תוקלד בלינקדאין וייפתח לך טאב מוכן — השליחה עצמה בידיים שלך
               </span>
             </div>
@@ -287,7 +287,7 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
         {draft.emailBody && draft.contact.email && (
           <Tabs.Panel id="email" className="pt-3">
             <div className="flex flex-col gap-2">
-              {actionError && <p className="text-xs text-red-600">{actionError}</p>}
+              {actionError && <p className="text-xs text-[var(--danger)]">{actionError}</p>}
               <TextArea
                 aria-label="נושא האימייל"
                 value={emailSubject}
@@ -314,7 +314,7 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
                     פתח טיוטה ב-Gmail
                   </span>
                 </Button>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-[var(--muted)]">
                   ייפתח חלון כתיבה ב-Gmail אל {draft.contact.email} — השליחה בידיים שלך
                 </span>
               </div>
@@ -325,7 +325,7 @@ function DraftCard({ draft, onDone }: { draft: Draft; onDone: () => void }) {
         {draft.whatsappMessage && (
           <Tabs.Panel id="whatsapp" className="pt-3">
             <CopyBlock label="הודעת וואטסאפ" text={draft.whatsappMessage}>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{draft.whatsappMessage}</p>
+              <p className="text-sm text-[var(--muted)] whitespace-pre-wrap">{draft.whatsappMessage}</p>
             </CopyBlock>
           </Tabs.Panel>
         )}
@@ -351,17 +351,17 @@ function PrepareStatePanel({
 
   return (
     <div className="flex flex-col gap-2">
-      {actionError && <p className="text-xs text-red-600">{actionError}</p>}
-      <div className="bg-[#f6f5f3] rounded-md border border-[#e5e3df] p-3">
-        <p className="text-sm text-gray-700 whitespace-pre-wrap">{message}</p>
+      {actionError && <p className="text-xs text-[var(--danger)]">{actionError}</p>}
+      <div className="bg-[var(--background)] rounded-md border border-[var(--line)] p-3">
+        <p className="text-sm text-[var(--muted)] whitespace-pre-wrap">{message}</p>
       </div>
       {draft.status === "APPROVED" ? (
-        <div className="flex items-center gap-2 text-sm text-[#b45309]">
+        <div className="flex items-center gap-2 text-sm text-[var(--warning)]">
           <Loader2 className="w-4 h-4 animate-spin" />
           ההודעה בהכנה — טאב לינקדאין עם ההודעה מוקלדת ייפתח אצלך עוד רגע (ודא שהתוסף פעיל)
         </div>
       ) : (
-        <div className="flex items-center gap-2 text-sm text-[#059669]">
+        <div className="flex items-center gap-2 text-sm text-[var(--success)]">
           <Check className="w-4 h-4" />
           {isEmail
             ? "הטיוטה נפתחה בחלון Gmail — בדוק, לחץ שליחה שם, וחזור לאשר כאן"
@@ -403,7 +403,7 @@ function CopyBlock({ label, text, children }: { label: string; text: string; chi
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="bg-[#f6f5f3] rounded-md border border-[#e5e3df] p-3 flex flex-col gap-1">
+      <div className="bg-[var(--background)] rounded-md border border-[var(--line)] p-3 flex flex-col gap-1">
         {children}
       </div>
       <div className="flex items-center gap-2">
@@ -413,7 +413,7 @@ function CopyBlock({ label, text, children }: { label: string; text: string; chi
             {state === "copied" ? "הועתק" : "העתק"}
           </span>
         </Button>
-        {state === "error" && <span className="text-xs text-red-600">ההעתקה נכשלה — סמן והעתק ידנית</span>}
+        {state === "error" && <span className="text-xs text-[var(--danger)]">ההעתקה נכשלה — סמן והעתק ידנית</span>}
       </div>
     </div>
   );

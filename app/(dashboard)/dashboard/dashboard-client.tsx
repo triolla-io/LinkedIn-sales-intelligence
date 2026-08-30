@@ -1,8 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { Users, ArrowRight, Upload, FileText, Terminal } from "lucide-react";
+import { Users, Upload, ArrowLeft } from "lucide-react";
 import AutoRefresher from "@/components/auto-refresher";
+import { ApprovalsTab } from "@/app/(dashboard)/routine/radar/approvals-tab";
+import { Num } from "@/components/ui/text";
+
+/**
+ * "היום" — דף הבית.
+ *
+ * מה השתנה: הדשבורד הקודם פתח בספירת אנשי קשר ובייבוא CSV מלפני 54 יום,
+ * בעוד הדבר היחיד שיובל נכנס בשבילו — ההודעות שממתינות לאישור — היה קבור
+ * שמונה פריטי ניווט למטה. עכשיו המסך פותח במה שדורש החלטה, ומצב הנתונים
+ * ירד לשורת רקע בתחתית: מידע שנכון להחזיק, לא מה שפותחים בשבילו את הבוקר.
+ */
 
 interface Props {
   user: { name: string; email: string; image?: string | null };
@@ -16,121 +27,87 @@ interface Props {
   } | null;
 }
 
+/**
+ * זמן יחסי בעברית — כולל צורת זוגי ("לפני חודשיים") ויחיד בלי המספר.
+ * הפורמט הקודם ייצר "לפני 1 חודשים".
+ */
 function formatRelative(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60_000);
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
   if (mins < 1) return "עכשיו";
-  if (mins < 60) return `לפני ${mins} דקות`;
+  if (mins < 60) return mins === 1 ? "לפני דקה" : `לפני ${mins} דקות`;
+
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `לפני ${hrs} שעות`;
-  return `לפני ${Math.floor(hrs / 24)} ימים`;
+  if (hrs < 24) return hrs === 1 ? "לפני שעה" : hrs === 2 ? "לפני שעתיים" : `לפני ${hrs} שעות`;
+
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return "אתמול";
+  if (days < 7) return `לפני ${days} ימים`;
+
+  const weeks = Math.floor(days / 7);
+  if (days < 30) return weeks === 1 ? "לפני שבוע" : weeks === 2 ? "לפני שבועיים" : `לפני ${weeks} שבועות`;
+
+  const months = Math.floor(days / 30);
+  if (months < 12) return months === 1 ? "לפני חודש" : months === 2 ? "לפני חודשיים" : `לפני ${months} חודשים`;
+
+  const years = Math.floor(months / 12);
+  return years === 1 ? "לפני שנה" : years === 2 ? "לפני שנתיים" : `לפני ${years} שנים`;
 }
 
-export default function DashboardClient({ user, contactCount, latestImport }: Props) {
-  return (
-    <div className="min-h-full bg-[#f6f5f3] p-8">
-      <AutoRefresher />
-      <div className="mb-10">
-        <p className="text-[#9b9895] text-sm font-mono tracking-widest uppercase mb-1">דשבורד</p>
-        <h1 className="text-2xl font-semibold text-[#111110]">
-          שלום, {user.name.split(" ")[0]}.
-        </h1>
-        <p className="text-[#6b6866] text-sm mt-1">{user.email}</p>
-      </div>
+export default function DashboardClient({ contactCount, latestImport }: Props) {
+  const today = new Date().toLocaleDateString("he-IL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Recent Import card */}
-        <div className="lg:col-span-2 rounded-xl border border-[#e5e3df] bg-white p-6">
-          <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-4">
-            ייבוא אחרון
-          </p>
-          {latestImport ? (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="size-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
-                  <FileText className="size-4 text-[#1585ff]" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-[#111110]">{latestImport.fileName}</p>
-                  <p className="text-xs text-[#9b9895]">{formatRelative(latestImport.createdAt)}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: "נוספו", value: latestImport.added, color: "text-emerald-600" },
-                  { label: "עודכנו", value: latestImport.updated, color: "text-[#1585ff]" },
-                  { label: "הוסרו", value: latestImport.removed, color: "text-amber-600" },
-                ].map(({ label, value, color }) => (
-                  <div key={label} className="rounded-lg bg-[#f6f5f3] px-4 py-3">
-                    <p className="text-xs text-[#9b9895] font-mono uppercase tracking-wide mb-1">{label}</p>
-                    <p className={`text-xl font-semibold font-mono tabular-nums ${color}`}>
-                      {value.toLocaleString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-              <p className="text-sm text-blue-700 mb-3">
-                אין ייבואים עדיין. העלה קובץ CSV להוספת אנשי קשר.
-              </p>
+  return (
+    <div dir="rtl" className="min-h-full bg-[var(--background)]">
+      <AutoRefresher />
+
+      <div className="mx-auto max-w-[860px] px-5 pb-24 pt-8 sm:px-8">
+        {/* התאריך הוא ההקשר היחיד שהמסך צריך מעל הסיפור */}
+        <p className="type-eyebrow mb-5">{today}</p>
+
+        {/* הפתיח הנרטיבי, הבועות והשקט — כולם מגיעים מכאן */}
+        <ApprovalsTab />
+
+        {/* ---------- מצב הנתונים: רקע, לא כותרת ---------- */}
+        <footer className="mt-14 border-t border-[var(--line)] pt-5">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-[13px] text-[var(--muted)]">
+            <Link
+              href="/contacts"
+              className="fv-ring group inline-flex items-center gap-1.5 rounded-md py-0.5 transition-colors hover:text-[var(--accent)]"
+            >
+              <Users className="size-3.5 text-[var(--faint)] transition-colors group-hover:text-[var(--accent)]" />
+              <Num>{contactCount.toLocaleString("he-IL")}</Num> אנשי קשר
+              <ArrowLeft className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
+            </Link>
+
+            <span className="text-[var(--line)]" aria-hidden>
+              |
+            </span>
+
+            {latestImport ? (
               <Link
                 href="/import"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#1585ff] hover:bg-[#0a70e0] text-white text-sm font-medium transition-colors"
+                className="fv-ring group inline-flex items-center gap-1.5 rounded-md py-0.5 transition-colors hover:text-[var(--accent)]"
               >
-                <Upload className="size-4" />
-                ייבוא נתונים
-                <ArrowRight className="size-3.5" />
+                <Upload className="size-3.5 text-[var(--faint)] transition-colors group-hover:text-[var(--accent)]" />
+                ייבוא אחרון {formatRelative(latestImport.createdAt)} · נוספו{" "}
+                <Num>{latestImport.added.toLocaleString("he-IL")}</Num>
+                <ArrowLeft className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
               </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Contacts card */}
-        <div className="rounded-xl border border-[#e5e3df] bg-white p-6 flex flex-col">
-          <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-4">
-            אנשי הקשר שלך
-          </p>
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <p className="text-5xl font-semibold text-[#111110] font-mono tabular-nums">
-              {contactCount.toLocaleString()}
-            </p>
-            <p className="text-xs text-[#9b9895] mt-2">אנשי קשר שהועלו</p>
-          </div>
-          <Link
-            href="/contacts"
-            className="mt-5 flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-md border border-[#e5e3df] hover:border-blue-200 hover:bg-[#eff5ff] text-sm text-[#6b6866] hover:text-[#1585ff] transition-all group"
-          >
-            <Users className="size-4" />
-            צפה באנשי קשר
-            <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        </div>
-
-        {/* Quick actions */}
-        <div className="lg:col-span-3 rounded-xl border border-[#e5e3df] bg-white p-6">
-          <p className="text-xs font-mono text-[#9b9895] uppercase tracking-widest mb-4">
-            פעולות מהירות
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {[
-              { href: "/contacts", label: "עיון באנשי קשר", icon: Users },
-              { href: "/contacts?seniority=C_LEVEL", label: "אנשי קשר בנושאי C-Level", icon: Users },
-              { href: "/import", label: "ייבוא נתונים", icon: Upload },
-              { href: "/templates", label: "טמפלטים", icon: Terminal },
-            ].map(({ href, label, icon: Icon }) => (
+            ) : (
               <Link
-                key={href}
-                href={href}
-                className="flex items-center gap-2.5 px-4 py-3 rounded-lg border border-[#e5e3df] hover:border-blue-200 hover:bg-[#eff5ff] text-sm text-[#6b6866] hover:text-[#1585ff] transition-all group"
+                href="/import"
+                className="fv-ring inline-flex items-center gap-1.5 rounded-md py-0.5 text-[var(--accent)]"
               >
-                <Icon className="size-4 shrink-0 text-[#9b9895] group-hover:text-[#1585ff] transition-colors" />
-                <span>{label}</span>
+                <Upload className="size-3.5" />
+                עוד לא ייבאת אנשי קשר — להתחיל כאן
               </Link>
-            ))}
+            )}
           </div>
-        </div>
+        </footer>
       </div>
     </div>
   );

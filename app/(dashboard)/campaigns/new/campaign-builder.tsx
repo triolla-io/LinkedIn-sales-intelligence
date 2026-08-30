@@ -208,7 +208,7 @@ export default function CampaignBuilder({
   const templatesForChannel = (_channel: Channel) => templates;
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-[#f6f5f3]" dir="rtl">
+    <div className="flex flex-col h-full min-h-screen bg-[var(--background)]" dir="rtl">
       <PageHeader
         icon={Megaphone}
         title={sequenceId ? "עריכת קמפיין" : "קמפיין חדש"}
@@ -234,7 +234,7 @@ export default function CampaignBuilder({
           </div>
           <div>
             <label htmlFor="contact-list" className={ui.label}>
-              רשימה מקושרת <span className="text-[#9b9895]">(אופציונלי)</span>
+              רשימה מקושרת <span className="text-[var(--faint)]">(אופציונלי)</span>
             </label>
             <select
               id="contact-list"
@@ -249,7 +249,7 @@ export default function CampaignBuilder({
                 </option>
               ))}
             </select>
-            <p className="text-xs text-[#9b9895] mt-1">
+            <p className="text-xs text-[var(--faint)] mt-1">
               אנשי קשר שיתווספו לרשימה יירשמו אוטומטית לקמפיין
             </p>
           </div>
@@ -259,13 +259,13 @@ export default function CampaignBuilder({
         <div className="space-y-3">
           <div className="flex items-center justify-between px-1">
             <h2 className={ui.sectionTitle}>שלבים</h2>
-            <span className="text-xs text-[#9b9895]">
+            <span className="text-xs text-[var(--faint)]">
               {steps.length} {steps.length === 1 ? "שלב" : "שלבים"}
             </span>
           </div>
 
           {isActive && (
-            <p className="text-xs text-[#b45309] bg-[#fffbeb] border border-[#fde68a] rounded-lg px-3 py-2">
+            <p className="text-xs text-[var(--warning)] bg-[var(--warning-soft)] border border-[var(--warning-soft)] rounded-lg px-3 py-2">
               הקמפיין פעיל — לא ניתן לשנות שלבים. ניתן לשנות שם ורשימה בלבד.
             </p>
           )}
@@ -283,11 +283,11 @@ export default function CampaignBuilder({
               <div key={step.localId} className={`${ui.card} p-4 space-y-3`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <span className="grid place-items-center size-6 rounded-full bg-[#1585ff] text-white text-[11px] font-semibold tabular-nums">
+                    <span className="grid place-items-center size-6 rounded-full bg-[var(--accent)] text-white text-[11px] font-semibold tabular-nums">
                       {step.stepNumber}
                     </span>
-                    <span className="text-sm font-medium text-[#1a1917]">שלב {step.stepNumber}</span>
-                    <span className="text-[11px] text-[#6b6866] bg-[#f3f2ef] rounded-full px-2 py-0.5">
+                    <span className="text-sm font-medium text-[var(--ink-strong)]">שלב {step.stepNumber}</span>
+                    <span className="text-[11px] text-[var(--muted)] bg-[var(--surface-secondary)] rounded-full px-2 py-0.5">
                       {step.dayOffset === 0 ? "יום ההתחלה" : `יום ${step.dayOffset}`}
                     </span>
                   </div>
@@ -298,7 +298,7 @@ export default function CampaignBuilder({
                         onClick={() => moveStep(step.localId, "up")}
                         disabled={idx === 0}
                         aria-label="הזז שלב למעלה"
-                        className="p-1 rounded hover:bg-[#f3f2ef] disabled:opacity-30 transition-colors"
+                        className="p-1 rounded hover:bg-[var(--surface-secondary)] disabled:opacity-30 transition-colors"
                       >
                         <ChevronUp size={16} />
                       </button>
@@ -307,7 +307,7 @@ export default function CampaignBuilder({
                         onClick={() => moveStep(step.localId, "down")}
                         disabled={idx === steps.length - 1}
                         aria-label="הזז שלב למטה"
-                        className="p-1 rounded hover:bg-[#f3f2ef] disabled:opacity-30 transition-colors"
+                        className="p-1 rounded hover:bg-[var(--surface-secondary)] disabled:opacity-30 transition-colors"
                       >
                         <ChevronDown size={16} />
                       </button>
@@ -316,7 +316,7 @@ export default function CampaignBuilder({
                           type="button"
                           onClick={() => removeStep(step.localId)}
                           aria-label="מחק שלב"
-                          className="p-1 rounded hover:bg-[#fff3f3] text-[#dc2626] transition-colors"
+                          className="p-1 rounded hover:bg-[var(--danger-soft)] text-[var(--danger)] transition-colors"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -432,7 +432,7 @@ export default function CampaignBuilder({
                           </option>
                         ))}
                       </select>
-                      <span className="text-xs text-[#9b9895]">—</span>
+                      <span className="text-xs text-[var(--faint)]">—</span>
                       <select
                         aria-label="שעת סיום"
                         value={endMod}
@@ -463,7 +463,7 @@ export default function CampaignBuilder({
             <button
               type="button"
               onClick={addStep}
-              className="w-full flex items-center justify-center gap-1.5 py-3 text-sm font-medium text-[#6b6866] bg-white/50 border border-dashed border-[#d9d5cd] rounded-2xl hover:border-[#1585ff]/50 hover:text-[#1585ff] hover:bg-[#1585ff]/5 transition-colors"
+              className="w-full flex items-center justify-center gap-1.5 py-3 text-sm font-medium text-[var(--muted)] bg-surface/50 border border-dashed border-[var(--line)] rounded-2xl hover:border-[var(--accent)]/50 hover:text-[var(--accent)] hover:bg-[var(--accent)]/5 transition-colors"
             >
               <Plus size={16} />
               הוסף שלב
@@ -472,7 +472,7 @@ export default function CampaignBuilder({
         </div>
 
         {error && (
-          <p className="text-sm text-[#dc2626] bg-[#fff3f3] border border-[#fde2e2] rounded-lg px-3 py-2">
+          <p className="text-sm text-[var(--danger)] bg-[var(--danger-soft)] border border-[var(--danger-soft)] rounded-lg px-3 py-2">
             {error}
           </p>
         )}

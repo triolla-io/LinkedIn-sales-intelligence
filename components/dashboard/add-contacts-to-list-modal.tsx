@@ -108,18 +108,18 @@ function ModalContent({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-      <div className="bg-white rounded-xl border border-[#e5e3df] shadow-2xl shadow-black/10 w-full max-w-md mx-4 flex flex-col overflow-hidden">
+      <div className="bg-surface rounded-xl border border-[var(--line)] shadow-2xl shadow-black/10 w-full max-w-md mx-4 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e3df]">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--line)]">
           <div className="flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-[#1585ff]" />
-            <span className="text-sm font-semibold text-[#111110]">הוסף אנשי קשר לרשימה</span>
+            <UserPlus className="w-4 h-4 text-[var(--accent)]" />
+            <span className="text-sm font-semibold text-[var(--foreground)]">הוסף אנשי קשר לרשימה</span>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="סגור"
-            className="text-[#9b9895] hover:text-[#6b6866] transition-colors"
+            className="text-[var(--faint)] hover:text-[var(--muted)] transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -133,7 +133,7 @@ function ModalContent({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="חפש לפי שם, חברה, תפקיד או אימייל…"
-            className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/60"
+            className="w-full bg-[var(--surface-secondary)] border border-[var(--line)] rounded-md px-3 py-2 text-sm text-[var(--foreground)] placeholder-[var(--faint)] focus:outline-none focus:border-[var(--accent)]/60"
           />
         </div>
 
@@ -141,14 +141,14 @@ function ModalContent({
         <div className="flex-1 overflow-y-auto min-h-[120px] max-h-72">
           {isSearching && (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-4 h-4 text-[#9b9895] animate-spin" />
+              <Loader2 className="w-4 h-4 text-[var(--faint)] animate-spin" />
             </div>
           )}
           {!hasQuery && (
-            <p className="text-xs text-[#9b9895] text-center py-8">חפש אנשי קשר להוספה</p>
+            <p className="text-xs text-[var(--faint)] text-center py-8">חפש אנשי קשר להוספה</p>
           )}
           {!isSearching && hasQuery && displayedResults.length === 0 && (
-            <p className="text-xs text-[#9b9895] text-center py-8">לא נמצאו אנשי קשר</p>
+            <p className="text-xs text-[var(--faint)] text-center py-8">לא נמצאו אנשי קשר</p>
           )}
           {!isSearching &&
             displayedResults.map((contact) => {
@@ -159,23 +159,23 @@ function ModalContent({
                   type="button"
                   onClick={() => toggleContact(contact.id)}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 text-right transition-colors ${
-                    isSelected ? "bg-[#1585ff]/5" : "hover:bg-[#f8f7f5]"
+                    isSelected ? "bg-[var(--accent)]/5" : "hover:bg-[var(--surface-secondary)]"
                   }`}
                 >
                   <div className="flex-1 min-w-0 text-right">
-                    <p className="text-xs font-medium text-[#111110] truncate">{contact.fullName ?? "—"}</p>
-                    <p className="text-[11px] text-[#9b9895] truncate">
+                    <p className="text-xs font-medium text-[var(--foreground)] truncate">{contact.fullName ?? "—"}</p>
+                    <p className="text-[11px] text-[var(--faint)] truncate">
                       {[contact.currentTitle, contact.currentCompany].filter(Boolean).join(" · ")}
                       {contact.email && (
-                        <span className="me-1 text-[#b0adaa]">{contact.email}</span>
+                        <span className="me-1 text-[var(--faint)]">{contact.email}</span>
                       )}
                     </p>
                   </div>
                   <div
                     className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
                       isSelected
-                        ? "bg-[#1585ff] border-[#1585ff]"
-                        : "border-[#d1cfc9] bg-white"
+                        ? "bg-[var(--accent)] border-[var(--accent)]"
+                        : "border-[var(--faint)] bg-surface"
                     }`}
                   >
                     {isSelected && (
@@ -188,22 +188,22 @@ function ModalContent({
               );
             })}
           {showTruncationHint && (
-            <p className="text-[11px] text-[#9b9895] text-center py-3 border-t border-[#f0eeea]">
+            <p className="text-[11px] text-[var(--faint)] text-center py-3 border-t border-[var(--separator)]">
               יש עוד תוצאות — הוסף שם, חברה או תפקיד כדי לצמצם
             </p>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col gap-3 px-4 py-3 border-t border-[#e5e3df]">
+        <div className="flex flex-col gap-3 px-4 py-3 border-t border-[var(--line)]">
           {addError && (
-            <span className="text-xs text-red-400 font-mono">{addError}</span>
+            <span className="text-xs text-[var(--danger)] font-mono">{addError}</span>
           )}
           <div className="flex items-center justify-between gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 text-xs font-medium text-[#6b6866] hover:text-[#111110] transition-colors"
+              className="px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
             >
               ביטול
             </button>
@@ -211,7 +211,7 @@ function ModalContent({
               type="button"
               onClick={handleAdd}
               disabled={selected.size === 0 || adding}
-              className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium text-white bg-[#1585ff] hover:bg-[#0a70e0] rounded-md transition-colors disabled:opacity-40"
+              className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium text-white bg-[var(--accent)] hover:bg-[var(--accent-strong)] rounded-md transition-colors disabled:opacity-40"
             >
               {adding ? (
                 <Loader2 className="w-3 h-3 animate-spin" />

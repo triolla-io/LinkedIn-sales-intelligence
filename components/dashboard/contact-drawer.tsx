@@ -54,12 +54,12 @@ interface LocalContact extends Contact {
 }
 
 const SENIORITY_COLOR: Record<string, string> = {
-  C_LEVEL: "text-amber-700 bg-amber-50 border-amber-200",
-  VP: "text-blue-600 bg-blue-50 border-blue-200",
-  DIRECTOR: "text-violet-600 bg-violet-50 border-violet-200",
-  MANAGER: "text-emerald-600 bg-emerald-50 border-emerald-200",
-  IC: "text-stone-500 bg-stone-100 border-stone-200",
-  OTHER: "text-stone-500 bg-stone-100 border-stone-200",
+  C_LEVEL: "text-[var(--warning)] bg-[var(--warning-soft)] border-[var(--warning)]/30",
+  VP: "text-[var(--accent)] bg-[var(--accent-soft)] border-[var(--accent)]/30",
+  DIRECTOR: "text-[var(--accent)] bg-[var(--accent-soft)] border-[var(--accent)]/30",
+  MANAGER: "text-[var(--success)] bg-[var(--success-soft)] border-[var(--success)]/30",
+  IC: "text-[var(--muted)] bg-[var(--surface-secondary)] border-[var(--line)]",
+  OTHER: "text-[var(--muted)] bg-[var(--surface-secondary)] border-[var(--line)]",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -92,42 +92,42 @@ function ContactMessagesSection({
 }) {
   return (
     <div className="p-4">
-      <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest mb-3">
+      <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal mb-3">
         היסטוריית הודעות
       </p>
       {loading ? (
         <div className="space-y-2">
           {[1, 2].map((i) => (
-            <div key={i} className="h-16 rounded-lg bg-[#f3f2ef] animate-pulse" />
+            <div key={i} className="h-16 rounded-lg bg-[var(--surface-secondary)] animate-pulse" />
           ))}
         </div>
       ) : messages.length === 0 ? (
-        <p className="text-xs text-[#9b9895]">לא נשלחו הודעות עדיין.</p>
+        <p className="text-xs text-[var(--faint)]">לא נשלחו הודעות עדיין.</p>
       ) : (
         <div className="space-y-2">
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className="rounded-lg border border-[#e5e3df] bg-[#f8f7f5] px-3 py-2.5"
+              className="rounded-lg border border-[var(--line)] bg-[var(--surface-secondary)] px-3 py-2.5"
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-mono text-[#9b9895]">
+                <span className="text-[10px] font-mono text-[var(--faint)]">
                   {formatDate(msg.sentAt)}
                 </span>
                 <span
                   className={cn(
-                    "text-[10px] font-mono px-1.5 py-0.5 rounded",
+                    "text-[10px] tabular-nums px-1.5 py-0.5 rounded",
                     msg.status === "SENT"
-                      ? "text-emerald-600 bg-emerald-50"
+                      ? "text-[var(--success)] bg-[var(--success-soft)]"
                       : msg.status === "QUEUED"
-                      ? "text-blue-600 bg-blue-50"
-                      : "text-red-500 bg-red-50"
+                      ? "text-[var(--accent)] bg-[var(--accent-soft)]"
+                      : "text-[var(--danger)] bg-[var(--danger-soft)]"
                   )}
                 >
                   {msg.status === "SENT" ? "נשלח" : msg.status === "QUEUED" ? "בתור" : msg.status}
                 </span>
               </div>
-              <p className="text-xs text-[#111110] leading-relaxed line-clamp-3">{msg.body}</p>
+              <p className="text-xs text-[var(--foreground)] leading-relaxed line-clamp-3">{msg.body}</p>
             </div>
           ))}
         </div>
@@ -152,15 +152,15 @@ function ContactListsSection({
   addListBtnRef: RefObject<HTMLButtonElement | null>;
 }) {
   return (
-    <div className="p-4 border-b border-[#e5e3df]">
+    <div className="p-4 border-b border-[var(--line)]">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">רשימות</p>
+        <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal">רשימות</p>
         <div className="relative">
           <button
             type="button"
             ref={addListBtnRef}
             onClick={onTogglePopover}
-            className="flex items-center gap-1 text-xs text-[#9b9895] hover:text-[#1585ff] transition-colors"
+            className="flex items-center gap-1 text-xs text-[var(--faint)] hover:text-[var(--accent)] transition-colors"
           >
             <Plus className="size-3" />
             הוסף
@@ -179,13 +179,13 @@ function ContactListsSection({
         </div>
       </div>
       {lists.length === 0 ? (
-        <p className="text-xs text-[#9b9895]">לא כלול ברשימה כלשהי</p>
+        <p className="text-xs text-[var(--faint)]">לא כלול ברשימה כלשהי</p>
       ) : (
         <div className="flex flex-wrap gap-1.5">
           {lists.map((list) => (
             <span
               key={list.id}
-              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#1585ff]/10 border border-[#1585ff]/20 text-xs text-[#1585ff]"
+              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-xs text-[var(--accent)]"
             >
               {list.name}
               <button
@@ -199,7 +199,7 @@ function ContactListsSection({
                   });
                   onMutateLists();
                 }}
-                className="hover:text-red-400 transition-colors"
+                className="hover:text-[var(--danger)] transition-colors"
               >
                 <XIcon className="size-2.5" />
               </button>
@@ -259,39 +259,39 @@ function ContactInfoSection({
   onEnrich: () => void;
 }) {
   return (
-    <div className="p-4 space-y-4 border-b border-[#e5e3df]">
+    <div className="p-4 space-y-4 border-b border-[var(--line)]">
       <div className="flex items-center justify-between">
-        <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">פרטי קשר</p>
-        <button type="button" onClick={onEdit} className="text-xs text-[#9b9895] hover:text-[#1585ff] transition-colors">
+        <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal">פרטי קשר</p>
+        <button type="button" onClick={onEdit} className="text-xs text-[var(--faint)] hover:text-[var(--accent)] transition-colors">
           ערוך
         </button>
       </div>
 
       {localContact.email ? (
         <div className="flex items-center gap-2.5">
-          <Mail className="size-4 text-[#1585ff] shrink-0" />
+          <Mail className="size-4 text-[var(--accent)] shrink-0" />
           <div>
-            <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">אימייל</p>
-            <a href={`mailto:${localContact.email}`} className="text-sm text-[#1585ff] hover:text-[#0a70e0] transition-colors font-mono">
+            <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal">אימייל</p>
+            <a href={`mailto:${localContact.email}`} className="text-sm text-[var(--accent)] hover:text-[var(--accent-strong)] transition-colors font-mono">
               {localContact.email}
             </a>
           </div>
         </div>
       ) : (
         <div className="flex items-center gap-2.5 opacity-40">
-          <Mail className="size-4 text-[#9b9895] shrink-0" />
-          <p className="text-xs text-[#9b9895]">אין אימייל בנתונים</p>
+          <Mail className="size-4 text-[var(--faint)] shrink-0" />
+          <p className="text-xs text-[var(--faint)]">אין אימייל בנתונים</p>
         </div>
       )}
 
       {displayPhone ? (
         <div className="flex items-center gap-2.5">
-          <Phone className="size-4 text-emerald-500 shrink-0" />
+          <Phone className="size-4 text-[var(--success)] shrink-0" />
           <div>
-            <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">טלפון</p>
+            <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal">טלפון</p>
             <a
               href={`tel:${displayPhone}`}
-              className="text-sm text-[#111110] hover:text-black transition-colors font-mono"
+              className="text-sm text-[var(--foreground)] hover:text-ink transition-colors font-mono"
               style={{ direction: "ltr", unicodeBidi: "isolate", display: "inline-block" }}
             >
               {displayPhone}
@@ -300,38 +300,38 @@ function ContactInfoSection({
         </div>
       ) : mobilePending ? (
         <div className="flex items-center gap-2.5">
-          <Phone className="size-4 text-amber-400 shrink-0" />
+          <Phone className="size-4 text-[var(--warning)] shrink-0" />
           <div>
-            <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">טלפון</p>
-            <p className="text-xs text-amber-500 font-mono">אימות טלפון נייד דרך webhook…</p>
+            <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal">טלפון</p>
+            <p className="text-xs text-[var(--warning)] tabular-nums">אימות טלפון נייד דרך webhook…</p>
           </div>
         </div>
       ) : (
         <div className="flex items-center gap-2.5 opacity-40">
-          <Phone className="size-4 text-[#9b9895] shrink-0" />
-          <p className="text-xs text-[#9b9895]">אין טלפון בנתונים</p>
+          <Phone className="size-4 text-[var(--faint)] shrink-0" />
+          <p className="text-xs text-[var(--faint)]">אין טלפון בנתונים</p>
         </div>
       )}
 
       {!localContact.email && !displayPhone && !mobilePending && (
         <div className="mt-1 space-y-1.5">
           {enrichState === "idle" && (
-            <button type="button" onClick={onEnrich} className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#6b6866] border border-[#e5e3df] hover:border-amber-300 hover:text-amber-600 rounded-md transition-all">
+            <button type="button" onClick={onEnrich} className="flex items-center gap-2 px-3 py-1.5 text-xs text-[var(--muted)] border border-[var(--line)] hover:border-[var(--warning)]/30 hover:text-[var(--warning)] rounded-md transition-all">
               <Zap className="size-3" />
               טעינת פרטים נוספים
             </button>
           )}
           {enrichState === "loading" && (
-            <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-blue-600 border border-blue-100 bg-blue-50 rounded-md">
+            <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-[var(--accent)] border border-[var(--accent)]/30 bg-[var(--accent-soft)] rounded-md">
               <RefreshCw className="size-3 animate-spin" />
               חיפוש ב-Apollo…
             </div>
           )}
-          {enrichState === "done" && <p className="text-xs text-[#9b9895] px-1">לא נמצאו נתוני קשר ב-Apollo.</p>}
+          {enrichState === "done" && <p className="text-xs text-[var(--faint)] px-1">לא נמצאו נתוני קשר ב-Apollo.</p>}
           {enrichState === "error" && (
             <div className="space-y-1">
-              <p className="text-xs text-red-500 px-1">{enrichError}</p>
-              <button type="button" onClick={onEnrich} className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#6b6866] border border-[#e5e3df] hover:border-amber-300 hover:text-amber-600 rounded-md transition-all">
+              <p className="text-xs text-[var(--danger)] px-1">{enrichError}</p>
+              <button type="button" onClick={onEnrich} className="flex items-center gap-2 px-3 py-1.5 text-xs text-[var(--muted)] border border-[var(--line)] hover:border-[var(--warning)]/30 hover:text-[var(--warning)] rounded-md transition-all">
                 <Zap className="size-3" />
                 נסה שוב
               </button>
@@ -341,14 +341,14 @@ function ContactInfoSection({
       )}
 
       {enrichState === "done" && (localContact.email || displayPhone) && (
-        <div className="flex items-center gap-1.5 mt-1 px-1 text-xs text-emerald-600">
+        <div className="flex items-center gap-1.5 mt-1 px-1 text-xs text-[var(--success)]">
           <CheckCircle2 className="size-3" />
           הועשר בהצלחה
         </div>
       )}
 
       {(localContact.email || displayPhone) && enrichState === "idle" && (
-        <button type="button" onClick={onEnrich} className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#9b9895] border border-[#e5e3df] hover:border-amber-300 hover:text-amber-600 rounded-md transition-all">
+        <button type="button" onClick={onEnrich} className="flex items-center gap-2 px-3 py-1.5 text-xs text-[var(--faint)] border border-[var(--line)] hover:border-[var(--warning)]/30 hover:text-[var(--warning)] rounded-md transition-all">
           <RefreshCw className="size-3" />
           העשר שוב
         </button>
@@ -359,15 +359,15 @@ function ContactInfoSection({
 
 function ContactProfessionalSection({ localContact }: { localContact: LocalContact }) {
   return (
-    <div className="p-4 space-y-3 border-b border-[#e5e3df]">
-      <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">מקצועי</p>
+    <div className="p-4 space-y-3 border-b border-[var(--line)]">
+      <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal">מקצועי</p>
       <div className="space-y-3">
         {localContact.currentCompany && (
           <div className="flex items-center gap-2.5">
-            <Building2 className="size-4 text-[#9b9895] shrink-0" />
+            <Building2 className="size-4 text-[var(--faint)] shrink-0" />
             <div className="min-w-0">
-              <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">חברה</p>
-              <p className="text-sm text-[#111110] truncate">{localContact.currentCompany}</p>
+              <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal">חברה</p>
+              <p className="text-sm text-[var(--foreground)] truncate">{localContact.currentCompany}</p>
             </div>
           </div>
         )}
@@ -376,12 +376,12 @@ function ContactProfessionalSection({ localContact }: { localContact: LocalConta
           if (!empCount) return null;
           return (
             <div className="flex items-center gap-2.5">
-              <Users className="size-4 text-[#9b9895] shrink-0" />
+              <Users className="size-4 text-[var(--faint)] shrink-0" />
               <div>
-                <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">עובדים</p>
-                <p className="text-sm font-mono text-[#111110]">
+                <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal">עובדים</p>
+                <p className="text-sm font-mono text-[var(--foreground)]">
                   {empCount.toLocaleString()}
-                  <span className="ml-1.5 text-[10px] text-[#9b9895] font-sans">(מ-{empSource === "apollo" ? "Apollo" : "LinkedIn"})</span>
+                  <span className="ml-1.5 text-[10px] text-[var(--faint)] font-sans">(מ-{empSource === "apollo" ? "Apollo" : "LinkedIn"})</span>
                 </p>
               </div>
             </div>
@@ -389,40 +389,40 @@ function ContactProfessionalSection({ localContact }: { localContact: LocalConta
         })()}
         {localContact.location && (
           <div className="flex items-center gap-2.5">
-            <MapPin className="size-4 text-[#9b9895] shrink-0" />
+            <MapPin className="size-4 text-[var(--faint)] shrink-0" />
             <div>
-              <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">מיקום</p>
-              <p className="text-sm text-[#111110]">{localContact.location}</p>
+              <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal">מיקום</p>
+              <p className="text-sm text-[var(--foreground)]">{localContact.location}</p>
             </div>
           </div>
         )}
         {localContact.industry && (
           <div>
-            <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest mb-0.5">ענף</p>
-            <p className="text-sm text-[#111110]">{localContact.industry}</p>
+            <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal mb-0.5">ענף</p>
+            <p className="text-sm text-[var(--foreground)]">{localContact.industry}</p>
           </div>
         )}
         {localContact.connectedAt && (
           <div className="flex items-center gap-2.5">
-            <Clock className="size-4 text-[#9b9895] shrink-0" />
+            <Clock className="size-4 text-[var(--faint)] shrink-0" />
             <div>
-              <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">התחברות ב-LinkedIn</p>
-              <p className="text-xs font-mono text-[#9b9895]">{formatDate(localContact.connectedAt)}</p>
+              <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal">התחברות ב-LinkedIn</p>
+              <p className="text-xs font-mono text-[var(--faint)]">{formatDate(localContact.connectedAt)}</p>
             </div>
           </div>
         )}
         {localContact.lastSyncedAt && (
           <div className="flex items-center gap-2.5">
-            <Clock className="size-4 text-[#9b9895] shrink-0" />
+            <Clock className="size-4 text-[var(--faint)] shrink-0" />
             <div>
-              <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">סינכרון אחרון</p>
-              <p className="text-xs font-mono text-[#9b9895]">{formatDate(localContact.lastSyncedAt)}</p>
+              <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal">סינכרון אחרון</p>
+              <p className="text-xs font-mono text-[var(--faint)]">{formatDate(localContact.lastSyncedAt)}</p>
             </div>
           </div>
         )}
       </div>
       {localContact.linkedinUrl && localContact.linkedinUrl.includes("/in/") && localContact.linkedinUrl.split("/in/")[1] && (
-        <a href={localContact.linkedinUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 mt-2 text-xs text-[#9b9895] hover:text-[#1585ff] transition-colors">
+        <a href={localContact.linkedinUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 mt-2 text-xs text-[var(--faint)] hover:text-[var(--accent)] transition-colors">
           <ExternalLink className="size-3.5" />
           צפה ב-LinkedIn
         </a>
@@ -445,40 +445,40 @@ function ContactEnrichmentDetails({
   onToggleLog: () => void;
 }) {
   return (
-    <div className="border-b border-[#e5e3df]">
-      <button type="button" onClick={onToggleDetails} className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#f8f7f5] transition-colors">
-        <p className="text-[10px] font-mono text-[#9b9895] uppercase tracking-widest">פרטי העשרה</p>
-        {showEnrichDetails ? <ChevronDown className="size-3.5 text-[#9b9895]" /> : <ChevronRight className="size-3.5 text-[#9b9895]" />}
+    <div className="border-b border-[var(--line)]">
+      <button type="button" onClick={onToggleDetails} className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[var(--surface-secondary)] transition-colors">
+        <p className="text-[10px] tabular-nums text-[var(--faint)] tracking-normal">פרטי העשרה</p>
+        {showEnrichDetails ? <ChevronDown className="size-3.5 text-[var(--faint)]" /> : <ChevronRight className="size-3.5 text-[var(--faint)]" />}
       </button>
       {showEnrichDetails && (
         <div className="px-4 pb-4 space-y-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-[#9b9895]">ניסיון אחרון: {formatDateTime(localContact.enrichmentRanAt!)}</span>
+            <span className="text-xs text-[var(--faint)]">ניסיון אחרון: {formatDateTime(localContact.enrichmentRanAt!)}</span>
             {localContact.enrichmentSource && (
               <span className={cn(
-                "px-1.5 py-0.5 rounded text-[10px] font-mono font-medium",
+                "px-1.5 py-0.5 rounded text-[10px] tabular-nums font-medium",
                 localContact.enrichmentSource === "apollo"
-                  ? "bg-blue-50 text-blue-600 border border-blue-200"
-                  : "bg-violet-50 text-violet-600 border border-violet-200"
+                  ? "bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent)]/30"
+                  : "bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent)]/30"
               )}>
                 {localContact.enrichmentSource === "apollo" ? "Apollo (חדש)" : "זיכרון מטמון"}
               </span>
             )}
           </div>
           {localContact.enrichmentError && (
-            <div className="flex items-start gap-2 p-2.5 rounded-md bg-red-50 border border-red-200">
-              <AlertTriangle className="size-3.5 text-red-500 shrink-0 mt-0.5" />
-              <p className="text-xs text-red-600 leading-snug">{localContact.enrichmentError}</p>
+            <div className="flex items-start gap-2 p-2.5 rounded-md bg-[var(--danger-soft)] border border-[var(--danger)]/30">
+              <AlertTriangle className="size-3.5 text-[var(--danger)] shrink-0 mt-0.5" />
+              <p className="text-xs text-[var(--danger)] leading-snug">{localContact.enrichmentError}</p>
             </div>
           )}
           {!!localContact.enrichmentLog && (
             <div>
-              <button type="button" onClick={onToggleLog} className="flex items-center gap-1 text-xs text-[#9b9895] hover:text-[#1585ff] transition-colors">
+              <button type="button" onClick={onToggleLog} className="flex items-center gap-1 text-xs text-[var(--faint)] hover:text-[var(--accent)] transition-colors">
                 {showRawLog ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
                 הצג תגובת Apollo גולמית
               </button>
               {showRawLog && (
-                <pre className="mt-2 p-2.5 rounded-md bg-[#f8f7f5] border border-[#e5e3df] text-[10px] text-[#6b6866] overflow-x-auto max-h-64 leading-relaxed">
+                <pre className="mt-2 p-2.5 rounded-md bg-[var(--surface-secondary)] border border-[var(--line)] text-[10px] text-[var(--muted)] overflow-x-auto max-h-64 leading-relaxed">
                   {JSON.stringify(localContact.enrichmentLog, null, 2)}
                 </pre>
               )}
@@ -686,7 +686,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
       {/* Panel */}
       <div
         className={cn(
-          "fixed left-0 top-0 bottom-0 w-[420px] bg-white border-r border-[#e5e3df] z-40 flex flex-col shadow-xl",
+          "fixed left-0 top-0 bottom-0 w-[420px] bg-surface border-r border-[var(--line)] z-40 flex flex-col shadow-xl",
           "transition-transform duration-200 ease-out",
           visible ? "translate-x-0" : "-translate-x-full"
         )}
@@ -694,16 +694,16 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
         {!contact || !localContact ? null : (
           <>
             {/* Header */}
-            <div className="flex items-start justify-between px-5 py-4 border-b border-[#e5e3df]">
+            <div className="flex items-start justify-between px-5 py-4 border-b border-[var(--line)]">
               <div className="flex-1 min-w-0 pr-3">
                 <div className="flex items-baseline gap-2 flex-wrap">
-                  <h2 className="text-base font-semibold text-[#111110] truncate">{localContact.fullName}</h2>
+                  <h2 className="text-base font-semibold text-[var(--foreground)] truncate">{localContact.fullName}</h2>
                   {localContact.hebrewFirstName && (
-                    <span className="text-sm text-[#9b9895] shrink-0">{localContact.hebrewFirstName}</span>
+                    <span className="text-sm text-[var(--faint)] shrink-0">{localContact.hebrewFirstName}</span>
                   )}
                 </div>
                 {localContact.currentTitle && (
-                  <p className="text-sm text-[#6b6866] truncate mt-0.5">{localContact.currentTitle}</p>
+                  <p className="text-sm text-[var(--muted)] truncate mt-0.5">{localContact.currentTitle}</p>
                 )}
                 {localContact.seniority && (
                   <span
@@ -721,7 +721,7 @@ export default function ContactDrawer({ contact, onClose, onEnrich, onSaved }: C
                 type="button"
                 aria-label="סגור"
                 onClick={onClose}
-                className="text-[#9b9895] hover:text-[#6b6866] transition-colors shrink-0 mt-0.5"
+                className="text-[var(--faint)] hover:text-[var(--muted)] transition-colors shrink-0 mt-0.5"
               >
                 <X className="size-5" />
               </button>

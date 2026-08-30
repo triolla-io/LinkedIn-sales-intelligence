@@ -66,20 +66,20 @@ function CodeBlock({
   copyLabel: string;
 }) {
   return (
-    <div className="relative rounded-lg border border-[#e5e3df] bg-[#f8f7f5]">
+    <div className="relative rounded-lg border border-[var(--line)] bg-[var(--surface-secondary)]">
       <button
         type="button"
         onClick={onCopy}
         aria-label={copyLabel}
-        className="absolute top-2 right-2 p-1.5 rounded-md text-[#6b6866] hover:text-[#111110] hover:bg-white transition-colors"
+        className="absolute top-2 right-2 p-1.5 rounded-md text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-surface transition-colors"
       >
         {copied ? (
-          <Check className="size-4 text-[#059669]" />
+          <Check className="size-4 text-[var(--success)]" />
         ) : (
           <Copy className="size-4" />
         )}
       </button>
-      <pre className="p-4 pe-10 text-xs font-mono text-[#111110] overflow-x-auto whitespace-pre">
+      <pre className="p-4 pe-10 text-xs font-mono text-[var(--foreground)] overflow-x-auto whitespace-pre">
         {code}
       </pre>
     </div>
@@ -154,8 +154,8 @@ export function McpClient() {
   return (
     <div className="p-6 max-w-3xl space-y-8" dir="ltr">
       <div>
-        <h1 className="text-xl font-semibold text-[#111110]">Claude / MCP Access</h1>
-        <p className="text-sm text-[#6b6866] mt-1">
+        <h1 className="text-xl font-semibold text-[var(--foreground)]">Claude / MCP Access</h1>
+        <p className="text-sm text-[var(--muted)] mt-1">
           Mint a personal access token to connect Claude Code or Claude Desktop to your Triolla
           sales data over MCP.
         </p>
@@ -163,17 +163,17 @@ export function McpClient() {
 
       {/* Generate */}
       <div className="space-y-2">
-        <p className="text-sm font-medium text-[#111110]">Generate a new token</p>
+        <p className="text-sm font-medium text-[var(--foreground)]">Generate a new token</p>
         <div className="flex items-end gap-2">
           <TextField
             value={label}
             onChange={(v: string) => setLabel(() => v)}
             className="flex-1 max-w-xs"
           >
-            <Label className="block text-xs text-[#6b6866] mb-1">Label</Label>
+            <Label className="block text-xs text-[var(--muted)] mb-1">Label</Label>
             <Input
               placeholder="e.g. Ariel's laptop"
-              className="w-full px-3 py-2 bg-[#f8f7f5] border border-[#e5e3df] rounded-md text-sm text-[#111110] placeholder-[#c8c5c2] focus:outline-none focus:border-[#1585ff]/40 focus:ring-1 focus:ring-[#1585ff]/20 transition-colors"
+              className="w-full px-3 py-2 bg-[var(--surface-secondary)] border border-[var(--line)] rounded-md text-sm text-[var(--foreground)] placeholder-[var(--faint)] focus:outline-none focus:border-[var(--accent)]/40 focus:ring-1 focus:ring-[var(--accent)]/20 transition-colors"
             />
           </TextField>
           <Button
@@ -188,7 +188,7 @@ export function McpClient() {
 
       {/* Raw token reveal — shown once */}
       {rawToken && (
-        <Card variant="default" className="border-[#fcd34d]">
+        <Card variant="default" className="border-[var(--warning-soft)]">
           <CardHeader className="flex items-center justify-between">
             <Alert status="warning" className="flex-1 border-0 bg-transparent p-0">
               <AlertIndicator>
@@ -216,40 +216,40 @@ export function McpClient() {
 
       {/* Token table */}
       <div className="space-y-2">
-        <p className="text-sm font-medium text-[#111110]">Your tokens</p>
-        <div className="rounded-lg border border-[#e5e3df] overflow-hidden">
+        <p className="text-sm font-medium text-[var(--foreground)]">Your tokens</p>
+        <div className="rounded-lg border border-[var(--line)] overflow-hidden">
           <Table>
             <Table.Content aria-label="MCP access tokens" className="w-full text-sm">
               <Table.Header>
-                <Table.Column isRowHeader className="px-4 py-2 text-left text-xs font-medium text-[#9b9895] bg-[#f8f7f5]">
+                <Table.Column isRowHeader className="px-4 py-2 text-left text-xs font-medium text-[var(--faint)] bg-[var(--surface-secondary)]">
                   Label
                 </Table.Column>
-                <Table.Column className="px-4 py-2 text-left text-xs font-medium text-[#9b9895] bg-[#f8f7f5]">
+                <Table.Column className="px-4 py-2 text-left text-xs font-medium text-[var(--faint)] bg-[var(--surface-secondary)]">
                   Created
                 </Table.Column>
-                <Table.Column className="px-4 py-2 text-left text-xs font-medium text-[#9b9895] bg-[#f8f7f5]">
+                <Table.Column className="px-4 py-2 text-left text-xs font-medium text-[var(--faint)] bg-[var(--surface-secondary)]">
                   Last used
                 </Table.Column>
-                <Table.Column className="px-4 py-2 text-left text-xs font-medium text-[#9b9895] bg-[#f8f7f5]">
+                <Table.Column className="px-4 py-2 text-left text-xs font-medium text-[var(--faint)] bg-[var(--surface-secondary)]">
                   Status
                 </Table.Column>
-                <Table.Column className="px-4 py-2 bg-[#f8f7f5]" />
+                <Table.Column className="px-4 py-2 bg-[var(--surface-secondary)]" />
               </Table.Header>
               <Table.Body
                 items={tokens}
                 renderEmptyState={() => (
-                  <div className="px-4 py-6 text-center text-sm text-[#9b9895]">
+                  <div className="px-4 py-6 text-center text-sm text-[var(--faint)]">
                     {loading ? "Loading…" : "No tokens yet."}
                   </div>
                 )}
               >
                 {(token) => (
-                  <Table.Row id={token.id} className="border-t border-[#f3f2ef]">
-                    <Table.Cell className="px-4 py-2.5 text-[#111110]">{token.label}</Table.Cell>
-                    <Table.Cell className="px-4 py-2.5 text-[#6b6866] tabular-nums">
+                  <Table.Row id={token.id} className="border-t border-[var(--surface-secondary)]">
+                    <Table.Cell className="px-4 py-2.5 text-[var(--foreground)]">{token.label}</Table.Cell>
+                    <Table.Cell className="px-4 py-2.5 text-[var(--muted)] tabular-nums">
                       {formatDate(token.createdAt)}
                     </Table.Cell>
-                    <Table.Cell className="px-4 py-2.5 text-[#6b6866] tabular-nums">
+                    <Table.Cell className="px-4 py-2.5 text-[var(--muted)] tabular-nums">
                       {formatDate(token.lastUsedAt)}
                     </Table.Cell>
                     <Table.Cell className="px-4 py-2.5">
@@ -279,8 +279,8 @@ export function McpClient() {
 
       {/* Static connect snippet */}
       <div className="space-y-2">
-        <p className="text-sm font-medium text-[#111110]">Connect from Claude Code / Desktop</p>
-        <p className="text-xs text-[#6b6866]">
+        <p className="text-sm font-medium text-[var(--foreground)]">Connect from Claude Code / Desktop</p>
+        <p className="text-xs text-[var(--muted)]">
           {rawToken
             ? "Add this to your MCP config — your new token is already filled in."
             : "Add this to your MCP config, replacing <YOUR_TOKEN> with a token generated above."}

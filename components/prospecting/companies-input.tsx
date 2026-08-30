@@ -28,10 +28,10 @@ export function CompaniesInput({
   return (
     <div className="grid gap-2" dir="rtl">
       <div className="flex items-center justify-between">
-        <label htmlFor="companies-text" className="text-xs font-medium text-[#6b6866]">
+        <label htmlFor="companies-text" className="text-xs font-medium text-[var(--muted)]">
           חברות — שם או קישור LinkedIn, חברה אחת בכל שורה
         </label>
-        <span className="text-xs text-[#9b9895] tabular-nums">
+        <span className="text-xs text-[var(--faint)] tabular-nums">
           {count} חברות
         </span>
       </div>
@@ -43,7 +43,7 @@ export function CompaniesInput({
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
         placeholder={"Acme Corp\nhttps://www.linkedin.com/company/globex"}
-        className="w-full bg-[#f8f7f5] border border-[#e5e3df] rounded-md px-3 py-2 text-sm text-[#111110] font-mono focus:outline-none focus:border-[#1585ff]/60 focus:bg-white transition-colors resize-y"
+        className="w-full bg-[var(--surface-secondary)] border border-[var(--line)] rounded-md px-3 py-2 text-sm text-[var(--foreground)] font-mono focus:outline-none focus:border-[var(--accent)]/60 focus:bg-surface transition-colors resize-y"
       />
 
       <input
@@ -55,8 +55,8 @@ export function CompaniesInput({
         onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
       />
       {file ? (
-        <div className="flex items-center gap-2 bg-[#e6f4ff] border border-[#1585ff]/20 rounded-md px-3 py-2 text-sm text-[#111110] animate-in fade-in zoom-in-95 duration-200">
-          <FileSpreadsheet className="w-4 h-4 text-[#1585ff] shrink-0" />
+        <div className="flex items-center gap-2 bg-[var(--accent-soft)] border border-[var(--accent)]/20 rounded-md px-3 py-2 text-sm text-[var(--foreground)] animate-in fade-in zoom-in-95 duration-200">
+          <FileSpreadsheet className="w-4 h-4 text-[var(--accent)] shrink-0" />
           <span className="truncate flex-1">{file.name}</span>
           <button
             type="button"
@@ -66,9 +66,9 @@ export function CompaniesInput({
               onFileChange(null);
               if (inputRef.current) inputRef.current.value = "";
             }}
-            className="p-2 -m-1 rounded hover:bg-[#1585ff]/10 transition-colors"
+            className="p-2 -m-1 rounded hover:bg-[var(--accent)]/10 transition-colors"
           >
-            <X className="w-4 h-4 text-[#6b6866]" />
+            <X className="w-4 h-4 text-[var(--muted)]" />
           </button>
         </div>
       ) : (
@@ -91,8 +91,8 @@ export function CompaniesInput({
           className={cn(
             "rounded-md border-2 border-dashed px-4 py-3 flex items-center justify-center gap-2 cursor-pointer transition-colors w-full text-sm",
             dragging
-              ? "border-[#1585ff] bg-[#1585ff]/5 text-[#1585ff]"
-              : "border-[#d4d0cc] bg-white text-[#6b6866] hover:border-[#9b9895] hover:bg-[#f8f7f5]",
+              ? "border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]"
+              : "border-[var(--faint)] bg-surface text-[var(--muted)] hover:border-[var(--faint)] hover:bg-[var(--surface-secondary)]",
           )}
         >
           <Upload className="w-4 h-4" />
