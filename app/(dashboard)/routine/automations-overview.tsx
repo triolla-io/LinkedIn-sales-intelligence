@@ -4,7 +4,7 @@ import Link from "next/link";
 import useSWR from "swr";
 import { Switch } from "@heroui/react";
 import {
-  Search, PartyPopper, Sparkles, Newspaper, Radar, Route as RouteIcon, Upload,
+  Search, PartyPopper, Sparkles, Newspaper, Radar, Route as RouteIcon, Upload, MessageSquareText,
   ArrowLeft, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -23,7 +23,13 @@ import { Chip } from "@/components/ui/chip";
  * ולאן נכנסים. בלי טלמטריה — המספרים גרים בפנים, בכל מסך.
  */
 
-type ModuleKey = "connections" | "jobChecks" | "companySignals" | "fintechRadar" | "techRadar";
+type ModuleKey =
+  | "connections"
+  | "jobChecks"
+  | "companySignals"
+  | "fintechRadar"
+  | "techRadar"
+  | "postComments";
 
 type ModuleState = {
   connectionsEnabled: boolean;
@@ -31,6 +37,7 @@ type ModuleState = {
   companySignalsEnabled: boolean;
   fintechRadarEnabled: boolean;
   techRadarEnabled: boolean;
+  postCommentsEnabled: boolean;
 };
 
 const AUTOMATIONS: {
@@ -79,8 +86,16 @@ const AUTOMATIONS: {
     stateField: "techRadarEnabled",
     href: "/routine/tech-radar",
     label: "ראדאר טכנולוגי",
-    what: "החדשה במשפחה: קוראת כתבות דרך העיניים של כל איש קשר, ומנסחת ׳ראיתי וחשבתי עליך׳.",
+    what: "קוראת כתבות דרך העיניים של כל איש קשר, ומנסחת ׳ראיתי וחשבתי עליך׳.",
     icon: Radar,
+  },
+  {
+    key: "postComments",
+    stateField: "postCommentsEnabled",
+    href: "/routine/post-comments",
+    label: "תגובות לפוסטים",
+    what: "החדשה במשפחה: עוקבת אחרי הפוסטים של אנשים שבחרת ומכינה תגובה קצרה — את פותחת בלינקדאין ושולחת.",
+    icon: MessageSquareText,
   },
 ];
 
