@@ -42,7 +42,10 @@ export type PageRequest =
   | { kind: "CLICK_MODAL_CLOSE" }
   | { kind: "CLOSE_OVERLAYS" }
   | { kind: "SCROLL_BY"; dy: number }
-  | { kind: "READ_RECENT_POSTS"; limit: number };
+  | { kind: "READ_RECENT_POSTS"; limit: number }
+  | { kind: "COMMENT_DIAG" }
+  | { kind: "REVEAL_COMMENT_BOX" }
+  | { kind: "TYPE_INTO_COMMENT"; text: string };
 
 /** Result type per request kind. */
 export interface PageResults {
@@ -76,6 +79,15 @@ export interface PageResults {
   READ_RECENT_POSTS: {
     posts: Array<{ urn: string; text: string; postedAgoText: string | null }>;
   };
+  COMMENT_DIAG: {
+    editorFound: boolean;
+    commentButtonFound: boolean;
+    href: string;
+    readyState: string;
+  };
+  REVEAL_COMMENT_BOX: { clicked: boolean };
+  /** `ok` means the text actually landed in the box (read back), not just that we tried. */
+  TYPE_INTO_COMMENT: { ok: boolean; length: number };
 }
 
 export interface ComposeDiag {

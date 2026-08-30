@@ -15,6 +15,7 @@ import {
   getComposeUrl,
   typeIntoCompose,
 } from "./lib/compose";
+import { commentDiag, revealCommentBox, typeIntoComment } from "./lib/comment-dom";
 import { clickConnect, clickInviteSend, clickMore, isFollowOnly } from "./lib/connect-dom";
 import { detectProfileState } from "./lib/dom-detect";
 import { extractCompany, topCompanyResults } from "./lib/resolve-company";
@@ -104,6 +105,12 @@ async function handle(msg: PageRequest): Promise<unknown> {
       return undefined;
     case "READ_RECENT_POSTS":
       return readRecentPosts(msg.limit);
+    case "COMMENT_DIAG":
+      return commentDiag();
+    case "REVEAL_COMMENT_BOX":
+      return revealCommentBox();
+    case "TYPE_INTO_COMMENT":
+      return typeIntoComment(msg.text);
     default: {
       const unknown: never = msg;
       throw withCode(new Error(`unknown_kind: ${JSON.stringify(unknown)}`), "unknown_kind");
