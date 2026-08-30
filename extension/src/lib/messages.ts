@@ -41,7 +41,8 @@ export type PageRequest =
   | { kind: "SCAN_BUTTONS" }
   | { kind: "CLICK_MODAL_CLOSE" }
   | { kind: "CLOSE_OVERLAYS" }
-  | { kind: "SCROLL_BY"; dy: number };
+  | { kind: "SCROLL_BY"; dy: number }
+  | { kind: "READ_RECENT_POSTS"; limit: number };
 
 /** Result type per request kind. */
 export interface PageResults {
@@ -72,6 +73,9 @@ export interface PageResults {
   CLICK_MODAL_CLOSE: boolean;
   CLOSE_OVERLAYS: void;
   SCROLL_BY: void;
+  READ_RECENT_POSTS: {
+    posts: Array<{ urn: string; text: string; postedAgoText: string | null }>;
+  };
 }
 
 export interface ComposeDiag {

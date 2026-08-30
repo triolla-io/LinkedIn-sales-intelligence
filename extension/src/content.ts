@@ -19,6 +19,7 @@ import { clickConnect, clickInviteSend, clickMore, isFollowOnly } from "./lib/co
 import { detectProfileState } from "./lib/dom-detect";
 import { extractCompany, topCompanyResults } from "./lib/resolve-company";
 import { readProfileTopcard, readProfileAbout, readProfileExperience } from "./lib/profile-dom";
+import { readRecentPosts } from "./lib/posts-dom";
 import { scrapeSearchPage } from "./lib/scrape-search";
 
 // Idempotence guard: this file ships twice — declared in the manifest (via the bundler's
@@ -101,6 +102,8 @@ async function handle(msg: PageRequest): Promise<unknown> {
     case "SCROLL_BY":
       window.scrollBy(0, msg.dy);
       return undefined;
+    case "READ_RECENT_POSTS":
+      return readRecentPosts(msg.limit);
     default: {
       const unknown: never = msg;
       throw withCode(new Error(`unknown_kind: ${JSON.stringify(unknown)}`), "unknown_kind");
