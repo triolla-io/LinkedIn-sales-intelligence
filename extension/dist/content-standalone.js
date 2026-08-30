@@ -50,7 +50,7 @@
     }
     return out;
   }
-  function tryExec(command, value) {
+  function tryExec$1(command, value) {
     var _a;
     try {
       return ((_a = document.execCommand) == null ? void 0 : _a.call(document, command, false, value)) ?? false;
@@ -74,34 +74,34 @@
     'button[aria-label*="Send"]',
     'button[aria-label*="שלח"]'
   ];
-  function queryDeep(selector, root = document) {
+  function queryDeep$1(selector, root = document) {
     const found = Array.from(root.querySelectorAll(selector));
     for (const el of Array.from(root.querySelectorAll("*"))) {
       const shadow = el.shadowRoot;
-      if (shadow) found.push(...queryDeep(selector, shadow));
+      if (shadow) found.push(...queryDeep$1(selector, shadow));
     }
     return found;
   }
   function countDeep(selector) {
     try {
-      return queryDeep(selector).length;
+      return queryDeep$1(selector).length;
     } catch {
       return 0;
     }
   }
   function findComposeBox() {
     for (const sel of EDITABLE_SELECTORS) {
-      const matches = queryDeep(sel);
+      const matches = queryDeep$1(sel);
       const laidOut = matches.find((el) => el.getBoundingClientRect().width > 50);
       if (laidOut) return laidOut;
       if (matches.length > 0) return matches[0];
     }
     return null;
   }
-  function boxText(el) {
+  function boxText$1(el) {
     return (el.innerText ?? el.textContent ?? "").trim();
   }
-  function focusAtEnd(el) {
+  function focusAtEnd$1(el) {
     el.focus();
     const selection = window.getSelection();
     if (!selection) return;
@@ -112,7 +112,7 @@
     selection.addRange(range);
   }
   function getComposeUrl() {
-    const anchors = queryDeep('a[href*="/messaging/compose/"]');
+    const anchors = queryDeep$1('a[href*="/messaging/compose/"]');
     if (anchors.length === 0) return null;
     const visible = anchors.find((a) => {
       const r = a.getBoundingClientRect();
@@ -133,26 +133,26 @@
   function typeIntoCompose(text) {
     const el = findComposeBox();
     if (!el) return { ok: false, length: 0 };
-    focusAtEnd(el);
-    tryExec("insertText", text);
-    if (!boxText(el).includes(text.trim().slice(0, 24))) {
+    focusAtEnd$1(el);
+    tryExec$1("insertText", text);
+    if (!boxText$1(el).includes(text.trim().slice(0, 24))) {
       el.textContent = text;
       el.dispatchEvent(
         new InputEvent("input", { bubbles: true, inputType: "insertText", data: text })
       );
     }
-    const landed = boxText(el);
+    const landed = boxText$1(el);
     return { ok: landed.includes(text.trim().slice(0, 24)), length: landed.length };
   }
   function clearDraft() {
     let cleared = 0;
     for (const sel of EDITABLE_SELECTORS) {
-      for (const el of queryDeep(sel)) {
-        if (boxText(el) === "") continue;
+      for (const el of queryDeep$1(sel)) {
+        if (boxText$1(el) === "") continue;
         el.focus();
-        tryExec("selectAll");
-        tryExec("delete");
-        if (boxText(el) !== "") {
+        tryExec$1("selectAll");
+        tryExec$1("delete");
+        if (boxText$1(el) !== "") {
           el.textContent = "";
           el.dispatchEvent(
             new InputEvent("input", { bubbles: true, inputType: "deleteContentBackward" })
@@ -164,19 +164,19 @@
     return { cleared };
   }
   async function clickSend() {
-    const target = SEND_SELECTORS.flatMap((sel) => queryDeep(sel)).find(
+    const target = SEND_SELECTORS.flatMap((sel) => queryDeep$1(sel)).find(
       (el) => el.getBoundingClientRect().width > 0
-    ) ?? UNAMBIGUOUS_SEND_SELECTORS.flatMap((sel) => queryDeep(sel))[0];
+    ) ?? UNAMBIGUOUS_SEND_SELECTORS.flatMap((sel) => queryDeep$1(sel))[0];
     if (!target) return { clicked: false, emptied: false };
     target.click();
     const clicked = true;
     const box = findComposeBox();
     if (!box) return { clicked, emptied: true };
     for (let i = 0; i < 10; i++) {
-      if (boxText(box) === "") return { clicked, emptied: true };
+      if (boxText$1(box) === "") return { clicked, emptied: true };
       await new Promise((r) => setTimeout(r, 250));
     }
-    return { clicked, emptied: boxText(box) === "" };
+    return { clicked, emptied: boxText$1(box) === "" };
   }
   async function closeOverlays() {
     for (let i = 0; i < 5; i++) {
@@ -187,6 +187,88 @@
       }
       await new Promise((r) => setTimeout(r, 150));
     }
+  }
+  function queryDeep(selector, root = document) {
+    const found = Array.from(root.querySelectorAll(selector));
+    for (const el of Array.from(root.querySelectorAll("*"))) {
+      const shadow = el.shadowRoot;
+      if (shadow) found.push(...queryDeep(selector, shadow));
+    }
+    return found;
+  }
+  function tryExec(command, value) {
+    var _a;
+    try {
+      return ((_a = document.execCommand) == null ? void 0 : _a.call(document, command, false, value)) ?? false;
+    } catch {
+      return false;
+    }
+  }
+  const EDITOR_SELECTOR = [
+    ".comments-comment-box .ql-editor",
+    ".comments-comment-texteditor .ql-editor",
+    '.comments-comment-box [contenteditable="true"][role="textbox"]'
+  ].join(", ");
+  function findEditor() {
+    return queryDeep(EDITOR_SELECTOR)[0] ?? null;
+  }
+  function isCommentLabel(label) {
+    const t = label.trim();
+    if (!t) return false;
+    if (/^\d/.test(t)) return false;
+    if (t === "תגובה" || t.startsWith("תגובה ")) return true;
+    if (/^comment(\s|$)/i.test(t)) return true;
+    return false;
+  }
+  function findCommentButton() {
+    const withAriaLabel = queryDeep("button[aria-label]").filter(
+      (btn) => isCommentLabel(btn.getAttribute("aria-label") ?? "")
+    );
+    if (withAriaLabel.length > 0) return withAriaLabel[0];
+    return queryDeep("button").find((btn) => isCommentLabel(btn.textContent ?? "")) ?? null;
+  }
+  function commentDiag() {
+    const editor = findEditor();
+    const commentButtonFound = editor ? false : findCommentButton() !== null;
+    return {
+      editorFound: editor !== null,
+      commentButtonFound,
+      href: location.href,
+      readyState: document.readyState
+    };
+  }
+  function revealCommentBox() {
+    const button = findCommentButton();
+    if (!button) return { clicked: false };
+    button.click();
+    return { clicked: true };
+  }
+  function boxText(el) {
+    return (el.innerText ?? el.textContent ?? "").trim();
+  }
+  function focusAtEnd(el) {
+    el.focus();
+    const selection = window.getSelection();
+    if (!selection) return;
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+  function typeIntoComment(text) {
+    const el = findEditor();
+    if (!el) return { ok: false, length: 0 };
+    focusAtEnd(el);
+    tryExec("insertText", text);
+    if (!boxText(el).includes(text.trim().slice(0, 24))) {
+      el.textContent = text;
+      el.dispatchEvent(
+        new InputEvent("input", { bubbles: true, inputType: "insertText", data: text })
+      );
+    }
+    const landed = boxText(el);
+    return { ok: landed.includes(text.trim().slice(0, 24)), length: landed.length };
   }
   function allActionables(root = document) {
     const out = Array.from(
@@ -445,6 +527,48 @@
     const entries = headline || company ? [{ title: headline, company, current: true, startDate: "9999-99" }] : [];
     return { entries, headline };
   }
+  const URN_RE = /urn:li:activity:(\d+)/;
+  function deepQueryAll(selector, root = document) {
+    const found = Array.from(root.querySelectorAll(selector));
+    const hosts = root.querySelectorAll("*");
+    for (const el of Array.from(hosts)) {
+      const shadow = el.shadowRoot;
+      if (shadow) found.push(...deepQueryAll(selector, shadow));
+    }
+    return found;
+  }
+  const TEXT_SELECTORS = [
+    ".update-components-text",
+    ".feed-shared-inline-show-more-text",
+    '[class*="update-components-text"]'
+  ].join(", ");
+  const TIME_SELECTORS = [
+    ".update-components-actor__sub-description",
+    "time"
+  ].join(", ");
+  function readRecentPosts(limit) {
+    var _a, _b, _c, _d;
+    const matches = deepQueryAll('[data-urn*="urn:li:activity"], [data-id*="urn:li:activity"]');
+    const containers = matches.filter(
+      (el) => !matches.some((other) => other !== el && other.contains(el))
+    );
+    const seen = /* @__PURE__ */ new Set();
+    const posts = [];
+    for (const el of containers) {
+      const rawUrn = el.getAttribute("data-urn") ?? el.getAttribute("data-id") ?? "";
+      const m = URN_RE.exec(rawUrn);
+      if (!m) continue;
+      const urn = `urn:li:activity:${m[1]}`;
+      if (seen.has(urn)) continue;
+      const text = ((_b = (_a = el.querySelector(TEXT_SELECTORS)) == null ? void 0 : _a.textContent) == null ? void 0 : _b.trim()) ?? "";
+      if (!text) continue;
+      const postedAgoText = ((_d = (_c = el.querySelector(TIME_SELECTORS)) == null ? void 0 : _c.textContent) == null ? void 0 : _d.trim().replace(/\s+/g, " ")) || null;
+      seen.add(urn);
+      posts.push({ urn, text, postedAgoText });
+      if (posts.length >= limit) break;
+    }
+    return { posts };
+  }
   function parseCardFields(nameRaw, rawLines) {
     const stripBidi = (s) => (s || "").replace(/[‎‏‪-‮⁦-⁩]/g, "");
     const norm = rawLines.map((s) => stripBidi(s).replace(/\s+/g, " ").trim()).filter(Boolean);
@@ -637,6 +761,14 @@
       case "SCROLL_BY":
         window.scrollBy(0, msg.dy);
         return void 0;
+      case "READ_RECENT_POSTS":
+        return readRecentPosts(msg.limit);
+      case "COMMENT_DIAG":
+        return commentDiag();
+      case "REVEAL_COMMENT_BOX":
+        return revealCommentBox();
+      case "TYPE_INTO_COMMENT":
+        return typeIntoComment(msg.text);
       default: {
         const unknown = msg;
         throw withCode(new Error(`unknown_kind: ${JSON.stringify(unknown)}`), "unknown_kind");

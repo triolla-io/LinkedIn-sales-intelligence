@@ -192,7 +192,7 @@ async function runOneCycle(): Promise<boolean> {
   return true;
 }
 
-async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "SEARCH" | "CONNECT" | "RESOLVE_COMPANY" | "SCRAPE_PROFILE" | "PREPARE_MESSAGE"; payload: unknown }): Promise<unknown> {
+async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "SEARCH" | "CONNECT" | "RESOLVE_COMPANY" | "SCRAPE_PROFILE" | "PREPARE_MESSAGE" | "SCRAPE_POSTS" | "PREPARE_COMMENT"; payload: unknown }): Promise<unknown> {
   const payload = task.payload as {
     linkedinUrl?: string;
     conversationUrl?: string;
@@ -203,6 +203,8 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "S
     profileUrl?: string;
     recipientName?: string;
     name?: string;
+    activityUrl?: string;
+    postUrl?: string;
   };
 
   if (task.kind === "SEND") {
@@ -241,6 +243,16 @@ async function executeTask(task: { id: string; kind: "SEND" | "CHECK_REPLY" | "S
   if (task.kind === "SCRAPE_PROFILE") {
     if (!payload.linkedinUrl) throw withCode(new Error("missing_payload"), "bad_payload");
     return await scrapeProfile(payload.linkedinUrl);
+  }
+
+  if (task.kind === "SCRAPE_POSTS") {
+    if (!payload.activityUrl) throw withCode(new Error("missing_payload"), "bad_payload");
+    return await scrapeRecentPosts(payload.activityUrl);
+  }
+
+  if (task.kind === "PREPARE_COMMENT") {
+    if (!payload.postUrl || !payload.text) throw withCode(new Error("missing_payload"), "bad_payload");
+    return await prepareLinkedInComment(payload.postUrl, payload.text);
   }
 
   throw withCode(new Error("unknown_kind"), "unsupported_kind");
@@ -465,6 +477,125 @@ async function moveTabToUserWindow(tabId: number): Promise<void> {
     });
   } else {
     await chrome.windows.create({ tabId, focused: true });
+  }
+}
+
+// ---------- SCRAPE_POSTS ----------
+
+const POSTS_PER_SCRAPE = 10;
+const POSTS_SCROLL_ROUNDS = 6;
+
+// Mirrors scrapeSearch's shape (open in the automation window, track for the timeout
+// watchdog, scroll-and-rescrape loop, always close). `activityUrl` is the contact's
+// /recent-activity/all/ page, not a single post — scrolling is what surfaces more than
+// the first page-load's worth of posts.
+async function scrapeRecentPosts(activityUrl: string): Promise<{
+  posts: Array<{ urn: string; text: string; postedAgoText: string | null }>;
+}> {
+  const tabId = await openTabInAutomationWindow(activityUrl).catch(() => {
+    throw withCode(new Error("tab_create_failed"), "tab_load");
+  });
+  await trackActiveTab(tabId);
+
+  try {
+    await waitForTabLoad(tabId);
+    await sleep(2000);
+    await throwIfCheckpoint(tabId);
+
+    let posts: Array<{ urn: string; text: string; postedAgoText: string | null }> = [];
+    for (let i = 0; i < POSTS_SCROLL_ROUNDS; i++) {
+      const r = await pageCall(tabId, { kind: "READ_RECENT_POSTS", limit: POSTS_PER_SCRAPE });
+      posts = r.posts;
+      trace("scrape_posts.round", { round: i, count: posts.length });
+      if (posts.length >= POSTS_PER_SCRAPE) break;
+      await pageCall(tabId, { kind: "SCROLL_BY", dy: 1500 });
+      await sleep(1200);
+    }
+
+    return { posts };
+  } finally {
+    await closeAutomationTab(tabId);
+    await clearActiveTab();
+  }
+}
+
+// ---------- PREPARE_COMMENT ----------
+
+// How long to keep polling the pure COMMENT_DIAG after the one-shot reveal click, waiting
+// for LinkedIn's Quill editor to mount.
+const COMMENT_DIAG_POLL_ROUNDS = 20;
+const COMMENT_DIAG_POLL_DELAY_MS = 500;
+
+// PREPARE_COMMENT: same prepare-not-send contract as PREPARE_MESSAGE — types into
+// LinkedIn's own comment box on the post and STOPS. The user reviews the typed draft and
+// presses LinkedIn's own submit button themselves; nothing in this flow ever clicks it.
+//
+// `postUrl` is always the single-post permalink
+// (https://www.linkedin.com/feed/update/urn:li:activity:<id>/), never a feed — the
+// content-script finders (findEditor / findCommentButton) take the FIRST matching editor
+// on the page, which is only guaranteed to be the intended post on a permalink page.
+//
+// COMMENT_DIAG is a pure read (clicks nothing) so it is safe to poll repeatedly; the
+// reveal click is a separate, single-shot action, called at most once. This mirrors
+// prepareLinkedInMessage's poll-diag-then-act pattern while avoiding the up-to-30-clicks
+// bug the brief's single-call version had.
+async function prepareLinkedInComment(postUrl: string, text: string): Promise<{ preparedAt: string }> {
+  const tabId = await openTabInAutomationWindow(postUrl).catch(() => {
+    throw withCode(new Error("tab_create_failed"), "tab_create_failed");
+  });
+  await trackActiveTab(tabId);
+  let prepared = false;
+
+  try {
+    await waitForTabLoad(tabId);
+    trace("post.loaded", { url: (await chrome.tabs.get(tabId)).url?.slice(0, 120) });
+    await sleep(1500);
+
+    await throwIfCheckpoint(tabId);
+
+    let diag = await pageCall(tabId, { kind: "COMMENT_DIAG" });
+    trace("comment.diag", diag);
+
+    if (!diag.editorFound) {
+      const revealed = await pageCall(tabId, { kind: "REVEAL_COMMENT_BOX" });
+      trace("comment.revealed", revealed);
+
+      for (let i = 0; i < COMMENT_DIAG_POLL_ROUNDS; i++) {
+        await sleep(COMMENT_DIAG_POLL_DELAY_MS);
+        diag = await pageCall(tabId, { kind: "COMMENT_DIAG" });
+        if (diag.editorFound) break;
+      }
+      trace("comment.diag.polled", diag);
+    }
+
+    if (!diag.editorFound) {
+      throw withCode(
+        new Error(`comment_editor_not_found href=${diag.href} readyState=${diag.readyState}`),
+        "comment_editor_not_found",
+      );
+    }
+
+    const typed = await pageCall(tabId, { kind: "TYPE_INTO_COMMENT", text });
+    trace("comment.typed", typed);
+    if (!typed.ok) {
+      throw withCode(
+        new Error(`comment_type_failed href=${diag.href} readyState=${diag.readyState}`),
+        "comment_type_failed",
+      );
+    }
+
+    // Hand the tab to the user: move it OUT of the automation window, same as
+    // prepareLinkedInMessage. The user presses LinkedIn's own submit button.
+    await moveTabToUserWindow(tabId);
+    prepared = true;
+
+    return { preparedAt: new Date().toISOString() };
+  } catch (err) {
+    throw await decorateFailure(err as Error, tabId, true);
+  } finally {
+    // A prepared tab belongs to the user now — only tear it down on failure.
+    if (!prepared) await closeAutomationTab(tabId);
+    await clearActiveTab();
   }
 }
 

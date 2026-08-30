@@ -5,16 +5,28 @@
  *   npx tsx --env-file=.env scripts/create-extension-test-task.ts SCRAPE_PROFILE https://www.linkedin.com/in/someone/
  *   npx tsx --env-file=.env scripts/create-extension-test-task.ts PREPARE_MESSAGE https://www.linkedin.com/in/someone/ "טקסט"
  *   npx tsx --env-file=.env scripts/create-extension-test-task.ts CONNECT https://www.linkedin.com/in/someone/
+ *   npx tsx --env-file=.env scripts/create-extension-test-task.ts SCRAPE_POSTS https://www.linkedin.com/in/someone/recent-activity/all/
+ *   npx tsx --env-file=.env scripts/create-extension-test-task.ts PREPARE_COMMENT https://www.linkedin.com/feed/update/urn:li:activity:.../ "טקסט"
  *
- * SCRAPE_PROFILE and PREPARE_MESSAGE make no outward change on LinkedIn (a profile view /
- * an unsent draft). CONNECT and SEND do — they send a real invitation / message.
+ * SCRAPE_PROFILE, SCRAPE_POSTS, and PREPARE_MESSAGE/PREPARE_COMMENT make no outward change
+ * on LinkedIn (a profile view / an unsent draft). CONNECT and SEND do — they send a real
+ * invitation / message.
  */
 
 import { prisma } from "../lib/prisma";
 
 const USER_EMAIL = process.env.TEST_USER_EMAIL ?? "ariel@triolla.io";
 
-const KINDS = ["SCRAPE_PROFILE", "PREPARE_MESSAGE", "CONNECT", "SEND", "SEARCH", "RESOLVE_COMPANY"] as const;
+const KINDS = [
+  "SCRAPE_PROFILE",
+  "PREPARE_MESSAGE",
+  "CONNECT",
+  "SEND",
+  "SEARCH",
+  "RESOLVE_COMPANY",
+  "SCRAPE_POSTS",
+  "PREPARE_COMMENT",
+] as const;
 type Kind = (typeof KINDS)[number];
 
 function payloadFor(kind: Kind, target: string, text: string | undefined) {
@@ -31,6 +43,11 @@ function payloadFor(kind: Kind, target: string, text: string | undefined) {
       return { searchUrl: target };
     case "RESOLVE_COMPANY":
       return target.startsWith("http") ? { linkedinUrl: target } : { name: target };
+    case "SCRAPE_POSTS":
+      return { contactId: "manual-test", activityUrl: target };
+    case "PREPARE_COMMENT":
+      if (!text) throw new Error(`${kind} needs a comment text as the 3rd argument`);
+      return { postUrl: target, text, recipientName: "manual-test" };
   }
 }
 
