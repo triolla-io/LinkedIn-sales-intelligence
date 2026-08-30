@@ -19,9 +19,18 @@ const MAX_DRAFTS_PER_INGEST = 3;
 
 /**
  * Persist a SCRAPE_POSTS result. New posts are created once per (owner, urn);
- * only fresh ones (<= MAX_POST_AGE_DAYS, or unknown age) get a draft event, capped at
- * MAX_DRAFTS_PER_INGEST per call. Re-scrapes are idempotent: existing urns are skipped
- * entirely, and a unique-constraint race on create is treated as "already ingested".
+ * re-scrapes are idempotent: existing urns are skipped entirely, and a unique-constraint
+ * race on create is treated as "already ingested".
+ *
+ * The draft set is derived from the database AFTER persistence, not collected in memory
+ * during the loop: this handler runs with no step.run boundaries, so a throw partway
+ * through the loop (transient DB error, deploy restart, OOM) re-runs the whole function.
+ * An in-memory "posts I just created" list would not survive that retry — the posts are
+ * already persisted (and skipped via `known` on replay), so they'd never be reconsidered
+ * for a draft, and there is nothing else that would ever detect they still need one. That
+ * is a silent, permanent loss on retry. Deriving "still needs a draft" from
+ * `drafts: { none: {} }` self-heals: whatever crashed mid-run, the next ingest (or the
+ * next daily scrape) recomputes the same candidate set from committed state.
  */
 export async function ingestScrapedPosts(task: {
   id: string;
@@ -48,19 +57,13 @@ export async function ingestScrapedPosts(task: {
   });
   const known = new Set(existing.map((e) => e.activityUrn));
 
-  // The extension returns posts in page order (newest first) — validateScrapedPosts
-  // preserves that order, so "first MAX_DRAFTS_PER_INGEST that qualify" IS "3 most
-  // recent". Do not sort here; sorting would require a reliable postedAt, which
-  // unparseable postedAgoText does not give us.
-  const toDraft: string[] = [];
   let created = 0;
   for (const p of posts) {
     if (known.has(p.urn)) continue;
     const postedAt = p.postedAgoText ? parsePostedAgo(p.postedAgoText, now) : null;
 
-    let row;
     try {
-      row = await prisma.linkedInPost.create({
+      await prisma.linkedInPost.create({
         data: {
           contactId: contact.id,
           ownerId: contact.ownerId,
@@ -79,22 +82,39 @@ export async function ingestScrapedPosts(task: {
       throw e;
     }
     created += 1;
-
-    // Unknown age (postedAgoText missing or unparseable) is treated as fresh: it is
-    // far more likely to be a DOM/format drift on a genuinely new post than an old
-    // post whose age string happened to fail parsing, and treating it as stale would
-    // silently drop a real new post from the review queue with no signal anywhere.
-    const fresh =
-      postedAt === null || now.getTime() - postedAt.getTime() <= MAX_POST_AGE_DAYS * DAY_MS;
-    if (fresh && contact.postWatchEnabled === true && toDraft.length < MAX_DRAFTS_PER_INGEST) {
-      toDraft.push(row.id);
-    }
   }
 
-  if (toDraft.length > 0) {
+  if (contact.postWatchEnabled !== true) return { created, drafted: 0 };
+
+  // Unknown age (postedAgoText missing or unparseable) is treated as fresh, same as
+  // before: it is far more likely to be a DOM/format drift on a genuinely new post than
+  // an old post whose age string happened to fail parsing, and treating it as stale
+  // would silently drop a real new post from the review queue with no signal anywhere.
+  const cutoff = new Date(now.getTime() - MAX_POST_AGE_DAYS * DAY_MS);
+  const candidates = await prisma.linkedInPost.findMany({
+    where: {
+      contactId: contact.id,
+      drafts: { none: {} },
+      OR: [{ postedAt: null }, { postedAt: { gte: cutoff } }],
+    },
+    // postedAt DESC ranks confirmed-recent posts first. Rows with unknown age (postedAt
+    // null) are pushed to the end of that ordering (`nulls: "last"`) rather than the
+    // front (Postgres's own default for DESC): a null is "fresh" but not "confirmed most
+    // recent," so it must not out-rank actually-dated recent posts for the capped slots.
+    // It still can't vanish — the OR clause above keeps it a candidate every run — it
+    // just waits behind dated posts, same as any other post held back by the cap.
+    // createdAt DESC is the tiebreak, which matters most among the null group itself
+    // (all sharing postedAt = null): it surfaces the most recently scraped one first
+    // instead of leaving null rows in undefined/insertion order.
+    orderBy: [{ postedAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
+    take: MAX_DRAFTS_PER_INGEST,
+    select: { id: true },
+  });
+
+  if (candidates.length > 0) {
     await inngest.send(
-      toDraft.map((postId) => ({ name: "post-comments.draft" as const, data: { postId } }))
+      candidates.map((c) => ({ name: "post-comments.draft" as const, data: { postId: c.id } }))
     );
   }
-  return { created, drafted: toDraft.length };
+  return { created, drafted: candidates.length };
 }
