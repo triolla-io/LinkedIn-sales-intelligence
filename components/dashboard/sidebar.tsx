@@ -8,7 +8,7 @@ import { signOut } from "next-auth/react";
 import {
   Users, FileText, LogOut, Upload, BookMarked, GitBranch, ChevronLeft, ChevronRight,
   Settings, Search, PartyPopper, Sparkles, Newspaper, Radar, Sun, Send, Wrench, Shield,
-  Route as RouteIcon, Contact,
+  Route as RouteIcon, Contact, MessageSquareText,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -92,6 +92,7 @@ export const GROUPS: NavGroup[] = [
       { href: "/routine/company-signals", label: "חדשות חברות", icon: Sparkles },
       { href: "/routine/fintech-radar", label: "ראדאר פינטק", icon: Newspaper },
       { href: "/routine/tech-radar", label: "ראדאר טכנולוגי", icon: Radar },
+      { href: "/routine/post-comments", label: "תגובות לפוסטים", icon: MessageSquareText },
       { href: "/import", label: "ייבוא נתונים", icon: Upload },
     ],
   },
