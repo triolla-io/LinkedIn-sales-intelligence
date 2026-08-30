@@ -168,7 +168,9 @@ export const ExtensionTaskKind = {
   RESOLVE_COMPANY: 'RESOLVE_COMPANY',
   SCRAPE_PROFILE: 'SCRAPE_PROFILE',
   PREPARE_MESSAGE: 'PREPARE_MESSAGE',
-  SCRAPE_CONNECTIONS: 'SCRAPE_CONNECTIONS'
+  SCRAPE_CONNECTIONS: 'SCRAPE_CONNECTIONS',
+  SCRAPE_POSTS: 'SCRAPE_POSTS',
+  PREPARE_COMMENT: 'PREPARE_COMMENT'
 } as const
 
 export type ExtensionTaskKind = (typeof ExtensionTaskKind)[keyof typeof ExtensionTaskKind]
@@ -369,6 +371,17 @@ export const RadarDraftStatus = {
 } as const
 
 export type RadarDraftStatus = (typeof RadarDraftStatus)[keyof typeof RadarDraftStatus]
+
+
+export const PostCommentDraftStatus = {
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  PREPARING: 'PREPARING',
+  PREPARED: 'PREPARED',
+  SENT: 'SENT',
+  DISMISSED: 'DISMISSED'
+} as const
+
+export type PostCommentDraftStatus = (typeof PostCommentDraftStatus)[keyof typeof PostCommentDraftStatus]
 
 
 export const RadarFeedbackEvent = {

@@ -48,6 +48,7 @@ export type OrganizationMinAggregateOutputType = {
   companySignalsEnabled: boolean | null
   fintechRadarEnabled: boolean | null
   techRadarEnabled: boolean | null
+  postCommentsEnabled: boolean | null
   radarScheduleEnabled: boolean | null
   createdAt: Date | null
 }
@@ -62,6 +63,7 @@ export type OrganizationMaxAggregateOutputType = {
   companySignalsEnabled: boolean | null
   fintechRadarEnabled: boolean | null
   techRadarEnabled: boolean | null
+  postCommentsEnabled: boolean | null
   radarScheduleEnabled: boolean | null
   createdAt: Date | null
 }
@@ -76,6 +78,7 @@ export type OrganizationCountAggregateOutputType = {
   companySignalsEnabled: number
   fintechRadarEnabled: number
   techRadarEnabled: number
+  postCommentsEnabled: number
   radarScheduleEnabled: number
   createdAt: number
   _all: number
@@ -104,6 +107,7 @@ export type OrganizationMinAggregateInputType = {
   companySignalsEnabled?: true
   fintechRadarEnabled?: true
   techRadarEnabled?: true
+  postCommentsEnabled?: true
   radarScheduleEnabled?: true
   createdAt?: true
 }
@@ -118,6 +122,7 @@ export type OrganizationMaxAggregateInputType = {
   companySignalsEnabled?: true
   fintechRadarEnabled?: true
   techRadarEnabled?: true
+  postCommentsEnabled?: true
   radarScheduleEnabled?: true
   createdAt?: true
 }
@@ -132,6 +137,7 @@ export type OrganizationCountAggregateInputType = {
   companySignalsEnabled?: true
   fintechRadarEnabled?: true
   techRadarEnabled?: true
+  postCommentsEnabled?: true
   radarScheduleEnabled?: true
   createdAt?: true
   _all?: true
@@ -233,6 +239,7 @@ export type OrganizationGroupByOutputType = {
   companySignalsEnabled: boolean
   fintechRadarEnabled: boolean
   techRadarEnabled: boolean
+  postCommentsEnabled: boolean
   radarScheduleEnabled: boolean
   createdAt: Date
   _count: OrganizationCountAggregateOutputType | null
@@ -270,6 +277,7 @@ export type OrganizationWhereInput = {
   companySignalsEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   fintechRadarEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   techRadarEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  postCommentsEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   radarScheduleEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   users?: Prisma.UserListRelationFilter
@@ -290,6 +298,7 @@ export type OrganizationOrderByWithRelationInput = {
   companySignalsEnabled?: Prisma.SortOrder
   fintechRadarEnabled?: Prisma.SortOrder
   techRadarEnabled?: Prisma.SortOrder
+  postCommentsEnabled?: Prisma.SortOrder
   radarScheduleEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   users?: Prisma.UserOrderByRelationAggregateInput
@@ -313,6 +322,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   companySignalsEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   fintechRadarEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   techRadarEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  postCommentsEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   radarScheduleEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   users?: Prisma.UserListRelationFilter
@@ -333,6 +343,7 @@ export type OrganizationOrderByWithAggregationInput = {
   companySignalsEnabled?: Prisma.SortOrder
   fintechRadarEnabled?: Prisma.SortOrder
   techRadarEnabled?: Prisma.SortOrder
+  postCommentsEnabled?: Prisma.SortOrder
   radarScheduleEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
@@ -355,6 +366,7 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   companySignalsEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   fintechRadarEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   techRadarEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
+  postCommentsEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   radarScheduleEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
 }
@@ -369,6 +381,7 @@ export type OrganizationCreateInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrgInput
@@ -389,6 +402,7 @@ export type OrganizationUncheckedCreateInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrgInput
@@ -409,6 +423,7 @@ export type OrganizationUpdateInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrgNestedInput
@@ -429,6 +444,7 @@ export type OrganizationUncheckedUpdateInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrgNestedInput
@@ -449,6 +465,7 @@ export type OrganizationCreateManyInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
 }
@@ -463,6 +480,7 @@ export type OrganizationUpdateManyMutationInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -477,6 +495,7 @@ export type OrganizationUncheckedUpdateManyInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -491,6 +510,7 @@ export type OrganizationCountOrderByAggregateInput = {
   companySignalsEnabled?: Prisma.SortOrder
   fintechRadarEnabled?: Prisma.SortOrder
   techRadarEnabled?: Prisma.SortOrder
+  postCommentsEnabled?: Prisma.SortOrder
   radarScheduleEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -511,6 +531,7 @@ export type OrganizationMaxOrderByAggregateInput = {
   companySignalsEnabled?: Prisma.SortOrder
   fintechRadarEnabled?: Prisma.SortOrder
   techRadarEnabled?: Prisma.SortOrder
+  postCommentsEnabled?: Prisma.SortOrder
   radarScheduleEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -525,6 +546,7 @@ export type OrganizationMinOrderByAggregateInput = {
   companySignalsEnabled?: Prisma.SortOrder
   fintechRadarEnabled?: Prisma.SortOrder
   techRadarEnabled?: Prisma.SortOrder
+  postCommentsEnabled?: Prisma.SortOrder
   radarScheduleEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -646,6 +668,7 @@ export type OrganizationCreateWithoutUsersInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   enrichmentSpends?: Prisma.EnrichmentSpendCreateNestedManyWithoutOrgInput
@@ -665,6 +688,7 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedCreateNestedManyWithoutOrgInput
@@ -700,6 +724,7 @@ export type OrganizationUpdateWithoutUsersInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   enrichmentSpends?: Prisma.EnrichmentSpendUpdateManyWithoutOrgNestedInput
@@ -719,6 +744,7 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   enrichmentSpends?: Prisma.EnrichmentSpendUncheckedUpdateManyWithoutOrgNestedInput
@@ -738,6 +764,7 @@ export type OrganizationCreateWithoutEnrichmentSpendsInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrgInput
@@ -757,6 +784,7 @@ export type OrganizationUncheckedCreateWithoutEnrichmentSpendsInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrgInput
@@ -792,6 +820,7 @@ export type OrganizationUpdateWithoutEnrichmentSpendsInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrgNestedInput
@@ -811,6 +840,7 @@ export type OrganizationUncheckedUpdateWithoutEnrichmentSpendsInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrgNestedInput
@@ -830,6 +860,7 @@ export type OrganizationCreateWithoutPersonEnrichmentsInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrgInput
@@ -849,6 +880,7 @@ export type OrganizationUncheckedCreateWithoutPersonEnrichmentsInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrgInput
@@ -884,6 +916,7 @@ export type OrganizationUpdateWithoutPersonEnrichmentsInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrgNestedInput
@@ -903,6 +936,7 @@ export type OrganizationUncheckedUpdateWithoutPersonEnrichmentsInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrgNestedInput
@@ -922,6 +956,7 @@ export type OrganizationCreateWithoutInvitesInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrgInput
@@ -941,6 +976,7 @@ export type OrganizationUncheckedCreateWithoutInvitesInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrgInput
@@ -976,6 +1012,7 @@ export type OrganizationUpdateWithoutInvitesInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrgNestedInput
@@ -995,6 +1032,7 @@ export type OrganizationUncheckedUpdateWithoutInvitesInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrgNestedInput
@@ -1014,6 +1052,7 @@ export type OrganizationCreateWithoutTrackedCompaniesInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrgInput
@@ -1033,6 +1072,7 @@ export type OrganizationUncheckedCreateWithoutTrackedCompaniesInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrgInput
@@ -1068,6 +1108,7 @@ export type OrganizationUpdateWithoutTrackedCompaniesInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrgNestedInput
@@ -1087,6 +1128,7 @@ export type OrganizationUncheckedUpdateWithoutTrackedCompaniesInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrgNestedInput
@@ -1106,6 +1148,7 @@ export type OrganizationCreateWithoutRadarAxesInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrgInput
@@ -1125,6 +1168,7 @@ export type OrganizationUncheckedCreateWithoutRadarAxesInput = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrgInput
@@ -1160,6 +1204,7 @@ export type OrganizationUpdateWithoutRadarAxesInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrgNestedInput
@@ -1179,6 +1224,7 @@ export type OrganizationUncheckedUpdateWithoutRadarAxesInput = {
   companySignalsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fintechRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   techRadarEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  postCommentsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   radarScheduleEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrgNestedInput
@@ -1274,6 +1320,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: boolean
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
@@ -1295,6 +1342,7 @@ export type OrganizationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["organization"]>
@@ -1309,6 +1357,7 @@ export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["organization"]>
@@ -1323,11 +1372,12 @@ export type OrganizationSelectScalar = {
   companySignalsEnabled?: boolean
   fintechRadarEnabled?: boolean
   techRadarEnabled?: boolean
+  postCommentsEnabled?: boolean
   radarScheduleEnabled?: boolean
   createdAt?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "syncCadenceDays" | "monthlyApolloBudget" | "perUserMonthlyApolloCredits" | "jobCheckEnabled" | "companySignalsEnabled" | "fintechRadarEnabled" | "techRadarEnabled" | "radarScheduleEnabled" | "createdAt", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "syncCadenceDays" | "monthlyApolloBudget" | "perUserMonthlyApolloCredits" | "jobCheckEnabled" | "companySignalsEnabled" | "fintechRadarEnabled" | "techRadarEnabled" | "postCommentsEnabled" | "radarScheduleEnabled" | "createdAt", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   enrichmentSpends?: boolean | Prisma.Organization$enrichmentSpendsArgs<ExtArgs>
@@ -1364,6 +1414,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     companySignalsEnabled: boolean
     fintechRadarEnabled: boolean
     techRadarEnabled: boolean
+    postCommentsEnabled: boolean
     /**
      * Gates the SCHEDULED tick only. `techRadarEnabled` means the module exists —
      * population runs, the screen is visible, a manual scan can be triggered. This
@@ -1810,6 +1861,7 @@ export interface OrganizationFieldRefs {
   readonly companySignalsEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly fintechRadarEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly techRadarEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
+  readonly postCommentsEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly radarScheduleEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Organization", 'DateTime'>
 }

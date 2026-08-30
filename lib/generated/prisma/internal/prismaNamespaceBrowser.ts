@@ -100,6 +100,8 @@ export const ModelName = {
   PersonAxis: 'PersonAxis',
   AxisMatch: 'AxisMatch',
   RadarDraft: 'RadarDraft',
+  LinkedInPost: 'LinkedInPost',
+  PostCommentDraft: 'PostCommentDraft',
   RadarFeedback: 'RadarFeedback',
   RadarScanRun: 'RadarScanRun',
   RadarDomain: 'RadarDomain',
@@ -169,6 +171,7 @@ export const OrganizationScalarFieldEnum = {
   companySignalsEnabled: 'companySignalsEnabled',
   fintechRadarEnabled: 'fintechRadarEnabled',
   techRadarEnabled: 'techRadarEnabled',
+  postCommentsEnabled: 'postCommentsEnabled',
   radarScheduleEnabled: 'radarScheduleEnabled',
   createdAt: 'createdAt'
 } as const
@@ -231,6 +234,8 @@ export const ContactScalarFieldEnum = {
   experience: 'experience',
   profileScrapedAt: 'profileScrapedAt',
   radarInclude: 'radarInclude',
+  postWatchEnabled: 'postWatchEnabled',
+  postWatchAddedAt: 'postWatchAddedAt',
   messageLanguage: 'messageLanguage',
   radarAddedAt: 'radarAddedAt',
   channels: 'channels',
@@ -568,6 +573,7 @@ export const ExtensionTaskScalarFieldEnum = {
   articleMatchId: 'articleMatchId',
   techDraftId: 'techDraftId',
   radarDraftId: 'radarDraftId',
+  postCommentDraftId: 'postCommentDraftId',
   scheduledFor: 'scheduledFor',
   claimedAt: 'claimedAt',
   completedAt: 'completedAt',
@@ -965,6 +971,38 @@ export const RadarDraftScalarFieldEnum = {
 } as const
 
 export type RadarDraftScalarFieldEnum = (typeof RadarDraftScalarFieldEnum)[keyof typeof RadarDraftScalarFieldEnum]
+
+
+export const LinkedInPostScalarFieldEnum = {
+  id: 'id',
+  contactId: 'contactId',
+  ownerId: 'ownerId',
+  activityUrn: 'activityUrn',
+  postUrl: 'postUrl',
+  text: 'text',
+  postedAgoText: 'postedAgoText',
+  postedAt: 'postedAt',
+  scrapedAt: 'scrapedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type LinkedInPostScalarFieldEnum = (typeof LinkedInPostScalarFieldEnum)[keyof typeof LinkedInPostScalarFieldEnum]
+
+
+export const PostCommentDraftScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  contactId: 'contactId',
+  ownerId: 'ownerId',
+  commentText: 'commentText',
+  status: 'status',
+  dismissReason: 'dismissReason',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PostCommentDraftScalarFieldEnum = (typeof PostCommentDraftScalarFieldEnum)[keyof typeof PostCommentDraftScalarFieldEnum]
 
 
 export const RadarFeedbackScalarFieldEnum = {

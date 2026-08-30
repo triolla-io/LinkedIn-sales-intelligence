@@ -915,6 +915,23 @@ export type EnumRadarDraftStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumRadarDraftStatusFilter<$PrismaModel>
 }
 
+export type EnumPostCommentDraftStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.PostCommentDraftStatus | Prisma.EnumPostCommentDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PostCommentDraftStatus[] | Prisma.ListEnumPostCommentDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PostCommentDraftStatus[] | Prisma.ListEnumPostCommentDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPostCommentDraftStatusFilter<$PrismaModel> | $Enums.PostCommentDraftStatus
+}
+
+export type EnumPostCommentDraftStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PostCommentDraftStatus | Prisma.EnumPostCommentDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PostCommentDraftStatus[] | Prisma.ListEnumPostCommentDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PostCommentDraftStatus[] | Prisma.ListEnumPostCommentDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPostCommentDraftStatusWithAggregatesFilter<$PrismaModel> | $Enums.PostCommentDraftStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPostCommentDraftStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPostCommentDraftStatusFilter<$PrismaModel>
+}
+
 export type EnumRadarFeedbackEventFilter<$PrismaModel = never> = {
   equals?: $Enums.RadarFeedbackEvent | Prisma.EnumRadarFeedbackEventFieldRefInput<$PrismaModel>
   in?: $Enums.RadarFeedbackEvent[] | Prisma.ListEnumRadarFeedbackEventFieldRefInput<$PrismaModel>
@@ -1768,6 +1785,23 @@ export type NestedEnumRadarDraftStatusWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumRadarDraftStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumRadarDraftStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumPostCommentDraftStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.PostCommentDraftStatus | Prisma.EnumPostCommentDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PostCommentDraftStatus[] | Prisma.ListEnumPostCommentDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PostCommentDraftStatus[] | Prisma.ListEnumPostCommentDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPostCommentDraftStatusFilter<$PrismaModel> | $Enums.PostCommentDraftStatus
+}
+
+export type NestedEnumPostCommentDraftStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PostCommentDraftStatus | Prisma.EnumPostCommentDraftStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PostCommentDraftStatus[] | Prisma.ListEnumPostCommentDraftStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PostCommentDraftStatus[] | Prisma.ListEnumPostCommentDraftStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPostCommentDraftStatusWithAggregatesFilter<$PrismaModel> | $Enums.PostCommentDraftStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPostCommentDraftStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPostCommentDraftStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumRadarFeedbackEventFilter<$PrismaModel = never> = {

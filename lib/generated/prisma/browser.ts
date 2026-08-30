@@ -276,6 +276,16 @@ export type AxisMatch = Prisma.AxisMatchModel
  */
 export type RadarDraft = Prisma.RadarDraftModel
 /**
+ * Model LinkedInPost
+ * 
+ */
+export type LinkedInPost = Prisma.LinkedInPostModel
+/**
+ * Model PostCommentDraft
+ * 
+ */
+export type PostCommentDraft = Prisma.PostCommentDraftModel
+/**
  * Model RadarFeedback
  * The learning log. Only DISCARDED with a `not_interesting` reason moves a filter.
  */

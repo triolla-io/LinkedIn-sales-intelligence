@@ -118,6 +118,7 @@ model Organization {
   companySignalsEnabled       Boolean  @default(false)
   fintechRadarEnabled         Boolean  @default(false)
   techRadarEnabled            Boolean  @default(false)
+  postCommentsEnabled         Boolean  @default(false)
   /// Gates the SCHEDULED tick only. `techRadarEnabled` means the module exists —
   /// population runs, the screen is visible, a manual scan can be triggered. This
   /// second flag is what lets the cron fire, and it is turned on only after a
@@ -224,6 +225,10 @@ model Contact {
   /// person company); true = always include, even outside the cohort (this is how
   /// a handful of people at giants get cultivated); false = never include.
   radarInclude Boolean?
+  /// Post-comments watch. true = draft comments on this person's new posts; null/false = off.
+  postWatchEnabled Boolean?
+  /// When post-watching was turned on for this person.
+  postWatchAddedAt DateTime?
   /// Radar drafts to this person are written in this language. "he" | "en".
   messageLanguage String @default("he")
   /// When this person was put on the radar. The clock the "בהכנה" stall rule measures:
@@ -249,6 +254,8 @@ model Contact {
   sequenceEnrollments SequenceEnrollment[]
   articleMatches      ArticleMatch[]
   techDrafts          TechOpportunityDraft[]
+  linkedInPosts       LinkedInPost[]
+  postCommentDrafts   PostCommentDraft[]
 
   @@unique([ownerId, linkedinUrn])
   @@index([ownerId, seniority])
@@ -488,6 +495,8 @@ enum ExtensionTaskKind {
   SCRAPE_PROFILE
   PREPARE_MESSAGE
   SCRAPE_CONNECTIONS
+  SCRAPE_POSTS
+  PREPARE_COMMENT
 }
 
 enum ExtensionTaskStatus {
@@ -768,6 +777,7 @@ model ExtensionTask {
   articleMatchId       String?
   techDraftId          String?
   radarDraftId         String?
+  postCommentDraftId   String?
   scheduledFor         DateTime            @default(now())
   claimedAt            DateTime?
   completedAt          DateTime?
@@ -1437,6 +1447,51 @@ model RadarDraft {
   /// Never the same item twice to the same person — enforced by the database, not by
   /// code that a retry can bypass.
   @@unique([contactId, itemId])
+  @@index([ownerId, status])
+}
+
+enum PostCommentDraftStatus {
+  PENDING_REVIEW
+  PREPARING
+  PREPARED
+  SENT
+  DISMISSED
+}
+
+model LinkedInPost {
+  id            String   @id @default(cuid())
+  contactId     String
+  contact       Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  ownerId       String
+  /// urn:li:activity:<digits> — LinkedIn's stable id for a feed update.
+  activityUrn   String
+  postUrl       String
+  text          String   @db.Text
+  /// Raw relative-time string from the DOM ("3d", "שבוע"); postedAt is derived from it at scrape time.
+  postedAgoText String?
+  postedAt      DateTime?
+  scrapedAt     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  drafts        PostCommentDraft[]
+
+  @@unique([ownerId, activityUrn])
+  @@index([contactId])
+}
+
+model PostCommentDraft {
+  id            String                 @id @default(cuid())
+  postId        String                 @unique
+  post          LinkedInPost           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  contactId     String
+  contact       Contact                @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  ownerId       String
+  commentText   String                 @db.Text
+  status        PostCommentDraftStatus @default(PENDING_REVIEW)
+  dismissReason String?
+  sentAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
   @@index([ownerId, status])
 }
 

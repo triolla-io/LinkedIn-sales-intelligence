@@ -67,6 +67,8 @@ export type ContactMinAggregateOutputType = {
   about: string | null
   profileScrapedAt: Date | null
   radarInclude: boolean | null
+  postWatchEnabled: boolean | null
+  postWatchAddedAt: Date | null
   messageLanguage: string | null
   radarAddedAt: Date | null
   createdAt: Date | null
@@ -107,6 +109,8 @@ export type ContactMaxAggregateOutputType = {
   about: string | null
   profileScrapedAt: Date | null
   radarInclude: boolean | null
+  postWatchEnabled: boolean | null
+  postWatchAddedAt: Date | null
   messageLanguage: string | null
   radarAddedAt: Date | null
   createdAt: Date | null
@@ -150,6 +154,8 @@ export type ContactCountAggregateOutputType = {
   experience: number
   profileScrapedAt: number
   radarInclude: number
+  postWatchEnabled: number
+  postWatchAddedAt: number
   messageLanguage: number
   radarAddedAt: number
   channels: number
@@ -201,6 +207,8 @@ export type ContactMinAggregateInputType = {
   about?: true
   profileScrapedAt?: true
   radarInclude?: true
+  postWatchEnabled?: true
+  postWatchAddedAt?: true
   messageLanguage?: true
   radarAddedAt?: true
   createdAt?: true
@@ -241,6 +249,8 @@ export type ContactMaxAggregateInputType = {
   about?: true
   profileScrapedAt?: true
   radarInclude?: true
+  postWatchEnabled?: true
+  postWatchAddedAt?: true
   messageLanguage?: true
   radarAddedAt?: true
   createdAt?: true
@@ -284,6 +294,8 @@ export type ContactCountAggregateInputType = {
   experience?: true
   profileScrapedAt?: true
   radarInclude?: true
+  postWatchEnabled?: true
+  postWatchAddedAt?: true
   messageLanguage?: true
   radarAddedAt?: true
   channels?: true
@@ -415,6 +427,8 @@ export type ContactGroupByOutputType = {
   experience: runtime.JsonValue | null
   profileScrapedAt: Date | null
   radarInclude: boolean | null
+  postWatchEnabled: boolean | null
+  postWatchAddedAt: Date | null
   messageLanguage: string
   radarAddedAt: Date | null
   channels: string[]
@@ -482,6 +496,8 @@ export type ContactWhereInput = {
   experience?: Prisma.JsonNullableFilter<"Contact">
   profileScrapedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   radarInclude?: Prisma.BoolNullableFilter<"Contact"> | boolean | null
+  postWatchEnabled?: Prisma.BoolNullableFilter<"Contact"> | boolean | null
+  postWatchAddedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   messageLanguage?: Prisma.StringFilter<"Contact"> | string
   radarAddedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   channels?: Prisma.StringNullableListFilter<"Contact">
@@ -498,6 +514,8 @@ export type ContactWhereInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentListRelationFilter
   articleMatches?: Prisma.ArticleMatchListRelationFilter
   techDrafts?: Prisma.TechOpportunityDraftListRelationFilter
+  linkedInPosts?: Prisma.LinkedInPostListRelationFilter
+  postCommentDrafts?: Prisma.PostCommentDraftListRelationFilter
   personProfile?: Prisma.XOR<Prisma.PersonProfileNullableScalarRelationFilter, Prisma.PersonProfileWhereInput> | null
   radarDrafts?: Prisma.RadarDraftListRelationFilter
 }
@@ -538,6 +556,8 @@ export type ContactOrderByWithRelationInput = {
   experience?: Prisma.SortOrderInput | Prisma.SortOrder
   profileScrapedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   radarInclude?: Prisma.SortOrderInput | Prisma.SortOrder
+  postWatchEnabled?: Prisma.SortOrderInput | Prisma.SortOrder
+  postWatchAddedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   messageLanguage?: Prisma.SortOrder
   radarAddedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   channels?: Prisma.SortOrder
@@ -554,6 +574,8 @@ export type ContactOrderByWithRelationInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentOrderByRelationAggregateInput
   articleMatches?: Prisma.ArticleMatchOrderByRelationAggregateInput
   techDrafts?: Prisma.TechOpportunityDraftOrderByRelationAggregateInput
+  linkedInPosts?: Prisma.LinkedInPostOrderByRelationAggregateInput
+  postCommentDrafts?: Prisma.PostCommentDraftOrderByRelationAggregateInput
   personProfile?: Prisma.PersonProfileOrderByWithRelationInput
   radarDrafts?: Prisma.RadarDraftOrderByRelationAggregateInput
 }
@@ -598,6 +620,8 @@ export type ContactWhereUniqueInput = Prisma.AtLeast<{
   experience?: Prisma.JsonNullableFilter<"Contact">
   profileScrapedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   radarInclude?: Prisma.BoolNullableFilter<"Contact"> | boolean | null
+  postWatchEnabled?: Prisma.BoolNullableFilter<"Contact"> | boolean | null
+  postWatchAddedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   messageLanguage?: Prisma.StringFilter<"Contact"> | string
   radarAddedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   channels?: Prisma.StringNullableListFilter<"Contact">
@@ -614,6 +638,8 @@ export type ContactWhereUniqueInput = Prisma.AtLeast<{
   sequenceEnrollments?: Prisma.SequenceEnrollmentListRelationFilter
   articleMatches?: Prisma.ArticleMatchListRelationFilter
   techDrafts?: Prisma.TechOpportunityDraftListRelationFilter
+  linkedInPosts?: Prisma.LinkedInPostListRelationFilter
+  postCommentDrafts?: Prisma.PostCommentDraftListRelationFilter
   personProfile?: Prisma.XOR<Prisma.PersonProfileNullableScalarRelationFilter, Prisma.PersonProfileWhereInput> | null
   radarDrafts?: Prisma.RadarDraftListRelationFilter
 }, "id" | "ownerId_linkedinUrn">
@@ -654,6 +680,8 @@ export type ContactOrderByWithAggregationInput = {
   experience?: Prisma.SortOrderInput | Prisma.SortOrder
   profileScrapedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   radarInclude?: Prisma.SortOrderInput | Prisma.SortOrder
+  postWatchEnabled?: Prisma.SortOrderInput | Prisma.SortOrder
+  postWatchAddedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   messageLanguage?: Prisma.SortOrder
   radarAddedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   channels?: Prisma.SortOrder
@@ -706,6 +734,8 @@ export type ContactScalarWhereWithAggregatesInput = {
   experience?: Prisma.JsonNullableWithAggregatesFilter<"Contact">
   profileScrapedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Contact"> | Date | string | null
   radarInclude?: Prisma.BoolNullableWithAggregatesFilter<"Contact"> | boolean | null
+  postWatchEnabled?: Prisma.BoolNullableWithAggregatesFilter<"Contact"> | boolean | null
+  postWatchAddedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Contact"> | Date | string | null
   messageLanguage?: Prisma.StringWithAggregatesFilter<"Contact"> | string
   radarAddedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Contact"> | Date | string | null
   channels?: Prisma.StringNullableListFilter<"Contact">
@@ -749,6 +779,8 @@ export type ContactCreateInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -764,6 +796,8 @@ export type ContactCreateInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
 }
@@ -804,6 +838,8 @@ export type ContactUncheckedCreateInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -818,6 +854,8 @@ export type ContactUncheckedCreateInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
 }
@@ -857,6 +895,8 @@ export type ContactUpdateInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -872,6 +912,8 @@ export type ContactUpdateInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
 }
@@ -912,6 +954,8 @@ export type ContactUncheckedUpdateInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -926,6 +970,8 @@ export type ContactUncheckedUpdateInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
 }
@@ -966,6 +1012,8 @@ export type ContactCreateManyInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -1009,6 +1057,8 @@ export type ContactUpdateManyMutationInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -1052,6 +1102,8 @@ export type ContactUncheckedUpdateManyInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -1119,6 +1171,8 @@ export type ContactCountOrderByAggregateInput = {
   experience?: Prisma.SortOrder
   profileScrapedAt?: Prisma.SortOrder
   radarInclude?: Prisma.SortOrder
+  postWatchEnabled?: Prisma.SortOrder
+  postWatchAddedAt?: Prisma.SortOrder
   messageLanguage?: Prisma.SortOrder
   radarAddedAt?: Prisma.SortOrder
   channels?: Prisma.SortOrder
@@ -1164,6 +1218,8 @@ export type ContactMaxOrderByAggregateInput = {
   about?: Prisma.SortOrder
   profileScrapedAt?: Prisma.SortOrder
   radarInclude?: Prisma.SortOrder
+  postWatchEnabled?: Prisma.SortOrder
+  postWatchAddedAt?: Prisma.SortOrder
   messageLanguage?: Prisma.SortOrder
   radarAddedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -1204,6 +1260,8 @@ export type ContactMinOrderByAggregateInput = {
   about?: Prisma.SortOrder
   profileScrapedAt?: Prisma.SortOrder
   radarInclude?: Prisma.SortOrder
+  postWatchEnabled?: Prisma.SortOrder
+  postWatchAddedAt?: Prisma.SortOrder
   messageLanguage?: Prisma.SortOrder
   radarAddedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -1474,6 +1532,34 @@ export type ContactUpdateOneRequiredWithoutRadarDraftsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ContactUpdateToOneWithWhereWithoutRadarDraftsInput, Prisma.ContactUpdateWithoutRadarDraftsInput>, Prisma.ContactUncheckedUpdateWithoutRadarDraftsInput>
 }
 
+export type ContactCreateNestedOneWithoutLinkedInPostsInput = {
+  create?: Prisma.XOR<Prisma.ContactCreateWithoutLinkedInPostsInput, Prisma.ContactUncheckedCreateWithoutLinkedInPostsInput>
+  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutLinkedInPostsInput
+  connect?: Prisma.ContactWhereUniqueInput
+}
+
+export type ContactUpdateOneRequiredWithoutLinkedInPostsNestedInput = {
+  create?: Prisma.XOR<Prisma.ContactCreateWithoutLinkedInPostsInput, Prisma.ContactUncheckedCreateWithoutLinkedInPostsInput>
+  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutLinkedInPostsInput
+  upsert?: Prisma.ContactUpsertWithoutLinkedInPostsInput
+  connect?: Prisma.ContactWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ContactUpdateToOneWithWhereWithoutLinkedInPostsInput, Prisma.ContactUpdateWithoutLinkedInPostsInput>, Prisma.ContactUncheckedUpdateWithoutLinkedInPostsInput>
+}
+
+export type ContactCreateNestedOneWithoutPostCommentDraftsInput = {
+  create?: Prisma.XOR<Prisma.ContactCreateWithoutPostCommentDraftsInput, Prisma.ContactUncheckedCreateWithoutPostCommentDraftsInput>
+  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutPostCommentDraftsInput
+  connect?: Prisma.ContactWhereUniqueInput
+}
+
+export type ContactUpdateOneRequiredWithoutPostCommentDraftsNestedInput = {
+  create?: Prisma.XOR<Prisma.ContactCreateWithoutPostCommentDraftsInput, Prisma.ContactUncheckedCreateWithoutPostCommentDraftsInput>
+  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutPostCommentDraftsInput
+  upsert?: Prisma.ContactUpsertWithoutPostCommentDraftsInput
+  connect?: Prisma.ContactWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ContactUpdateToOneWithWhereWithoutPostCommentDraftsInput, Prisma.ContactUpdateWithoutPostCommentDraftsInput>, Prisma.ContactUncheckedUpdateWithoutPostCommentDraftsInput>
+}
+
 export type ContactCreateWithoutOwnerInput = {
   id?: string
   linkedinUrn: string
@@ -1509,6 +1595,8 @@ export type ContactCreateWithoutOwnerInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -1523,6 +1611,8 @@ export type ContactCreateWithoutOwnerInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
 }
@@ -1562,6 +1652,8 @@ export type ContactUncheckedCreateWithoutOwnerInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -1576,6 +1668,8 @@ export type ContactUncheckedCreateWithoutOwnerInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
 }
@@ -1645,6 +1739,8 @@ export type ContactScalarWhereInput = {
   experience?: Prisma.JsonNullableFilter<"Contact">
   profileScrapedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   radarInclude?: Prisma.BoolNullableFilter<"Contact"> | boolean | null
+  postWatchEnabled?: Prisma.BoolNullableFilter<"Contact"> | boolean | null
+  postWatchAddedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   messageLanguage?: Prisma.StringFilter<"Contact"> | string
   radarAddedAt?: Prisma.DateTimeNullableFilter<"Contact"> | Date | string | null
   channels?: Prisma.StringNullableListFilter<"Contact">
@@ -1688,6 +1784,8 @@ export type ContactCreateWithoutMessagesInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -1702,6 +1800,8 @@ export type ContactCreateWithoutMessagesInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
 }
@@ -1742,6 +1842,8 @@ export type ContactUncheckedCreateWithoutMessagesInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -1755,6 +1857,8 @@ export type ContactUncheckedCreateWithoutMessagesInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
 }
@@ -1810,6 +1914,8 @@ export type ContactUpdateWithoutMessagesInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -1824,6 +1930,8 @@ export type ContactUpdateWithoutMessagesInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
 }
@@ -1864,6 +1972,8 @@ export type ContactUncheckedUpdateWithoutMessagesInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -1877,6 +1987,8 @@ export type ContactUncheckedUpdateWithoutMessagesInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
 }
@@ -1916,6 +2028,8 @@ export type ContactCreateWithoutCompanyInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -1930,6 +2044,8 @@ export type ContactCreateWithoutCompanyInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
 }
@@ -1970,6 +2086,8 @@ export type ContactUncheckedCreateWithoutCompanyInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -1983,6 +2101,8 @@ export type ContactUncheckedCreateWithoutCompanyInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
 }
@@ -2048,6 +2168,8 @@ export type ContactCreateWithoutCampaignRecipientsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -2062,6 +2184,8 @@ export type ContactCreateWithoutCampaignRecipientsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
 }
@@ -2102,6 +2226,8 @@ export type ContactUncheckedCreateWithoutCampaignRecipientsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -2115,6 +2241,8 @@ export type ContactUncheckedCreateWithoutCampaignRecipientsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
 }
@@ -2170,6 +2298,8 @@ export type ContactUpdateWithoutCampaignRecipientsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -2184,6 +2314,8 @@ export type ContactUpdateWithoutCampaignRecipientsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
 }
@@ -2224,6 +2356,8 @@ export type ContactUncheckedUpdateWithoutCampaignRecipientsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -2237,6 +2371,8 @@ export type ContactUncheckedUpdateWithoutCampaignRecipientsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
 }
@@ -2276,6 +2412,8 @@ export type ContactCreateWithoutListsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -2290,6 +2428,8 @@ export type ContactCreateWithoutListsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
 }
@@ -2330,6 +2470,8 @@ export type ContactUncheckedCreateWithoutListsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -2343,6 +2485,8 @@ export type ContactUncheckedCreateWithoutListsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
 }
@@ -2398,6 +2542,8 @@ export type ContactUpdateWithoutListsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -2412,6 +2558,8 @@ export type ContactUpdateWithoutListsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
 }
@@ -2452,6 +2600,8 @@ export type ContactUncheckedUpdateWithoutListsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -2465,6 +2615,8 @@ export type ContactUncheckedUpdateWithoutListsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
 }
@@ -2504,6 +2656,8 @@ export type ContactCreateWithoutSequenceEnrollmentsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -2518,6 +2672,8 @@ export type ContactCreateWithoutSequenceEnrollmentsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
 }
@@ -2558,6 +2714,8 @@ export type ContactUncheckedCreateWithoutSequenceEnrollmentsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -2571,6 +2729,8 @@ export type ContactUncheckedCreateWithoutSequenceEnrollmentsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
 }
@@ -2626,6 +2786,8 @@ export type ContactUpdateWithoutSequenceEnrollmentsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -2640,6 +2802,8 @@ export type ContactUpdateWithoutSequenceEnrollmentsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
 }
@@ -2680,6 +2844,8 @@ export type ContactUncheckedUpdateWithoutSequenceEnrollmentsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -2693,6 +2859,8 @@ export type ContactUncheckedUpdateWithoutSequenceEnrollmentsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
 }
@@ -2732,6 +2900,8 @@ export type ContactCreateWithoutJobChangesInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -2746,6 +2916,8 @@ export type ContactCreateWithoutJobChangesInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
 }
@@ -2786,6 +2958,8 @@ export type ContactUncheckedCreateWithoutJobChangesInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -2799,6 +2973,8 @@ export type ContactUncheckedCreateWithoutJobChangesInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
 }
@@ -2854,6 +3030,8 @@ export type ContactUpdateWithoutJobChangesInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -2868,6 +3046,8 @@ export type ContactUpdateWithoutJobChangesInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
 }
@@ -2908,6 +3088,8 @@ export type ContactUncheckedUpdateWithoutJobChangesInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -2921,6 +3103,8 @@ export type ContactUncheckedUpdateWithoutJobChangesInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
 }
@@ -2960,6 +3144,8 @@ export type ContactCreateWithoutCompanySignalDraftsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -2974,6 +3160,8 @@ export type ContactCreateWithoutCompanySignalDraftsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
 }
@@ -3014,6 +3202,8 @@ export type ContactUncheckedCreateWithoutCompanySignalDraftsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -3027,6 +3217,8 @@ export type ContactUncheckedCreateWithoutCompanySignalDraftsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
 }
@@ -3082,6 +3274,8 @@ export type ContactUpdateWithoutCompanySignalDraftsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -3096,6 +3290,8 @@ export type ContactUpdateWithoutCompanySignalDraftsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
 }
@@ -3136,6 +3332,8 @@ export type ContactUncheckedUpdateWithoutCompanySignalDraftsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -3149,6 +3347,8 @@ export type ContactUncheckedUpdateWithoutCompanySignalDraftsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
 }
@@ -3188,6 +3388,8 @@ export type ContactCreateWithoutArticleMatchesInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -3202,6 +3404,8 @@ export type ContactCreateWithoutArticleMatchesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutContactInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
 }
@@ -3242,6 +3446,8 @@ export type ContactUncheckedCreateWithoutArticleMatchesInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -3255,6 +3461,8 @@ export type ContactUncheckedCreateWithoutArticleMatchesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutContactInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
 }
@@ -3310,6 +3518,8 @@ export type ContactUpdateWithoutArticleMatchesInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -3324,6 +3534,8 @@ export type ContactUpdateWithoutArticleMatchesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutContactNestedInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
 }
@@ -3364,6 +3576,8 @@ export type ContactUncheckedUpdateWithoutArticleMatchesInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -3377,6 +3591,8 @@ export type ContactUncheckedUpdateWithoutArticleMatchesInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutContactNestedInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
 }
@@ -3416,6 +3632,8 @@ export type ContactCreateWithoutTechDraftsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -3430,6 +3648,8 @@ export type ContactCreateWithoutTechDraftsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutContactInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
 }
@@ -3470,6 +3690,8 @@ export type ContactUncheckedCreateWithoutTechDraftsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -3483,6 +3705,8 @@ export type ContactUncheckedCreateWithoutTechDraftsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutContactInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
   radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
 }
@@ -3538,6 +3762,8 @@ export type ContactUpdateWithoutTechDraftsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -3552,6 +3778,8 @@ export type ContactUpdateWithoutTechDraftsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutContactNestedInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
 }
@@ -3592,6 +3820,8 @@ export type ContactUncheckedUpdateWithoutTechDraftsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -3605,6 +3835,8 @@ export type ContactUncheckedUpdateWithoutTechDraftsInput = {
   companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutContactNestedInput
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
 }
@@ -3644,6 +3876,8 @@ export type ContactCreateWithoutPersonProfileInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -3659,6 +3893,8 @@ export type ContactCreateWithoutPersonProfileInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
   radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
 }
 
@@ -3698,6 +3934,8 @@ export type ContactUncheckedCreateWithoutPersonProfileInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -3712,6 +3950,8 @@ export type ContactUncheckedCreateWithoutPersonProfileInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
   radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
 }
 
@@ -3766,6 +4006,8 @@ export type ContactUpdateWithoutPersonProfileInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -3781,6 +4023,8 @@ export type ContactUpdateWithoutPersonProfileInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
 }
 
@@ -3820,6 +4064,8 @@ export type ContactUncheckedUpdateWithoutPersonProfileInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -3834,6 +4080,8 @@ export type ContactUncheckedUpdateWithoutPersonProfileInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
 }
 
@@ -3872,6 +4120,8 @@ export type ContactCreateWithoutRadarDraftsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -3887,6 +4137,8 @@ export type ContactCreateWithoutRadarDraftsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
 }
 
@@ -3926,6 +4178,8 @@ export type ContactUncheckedCreateWithoutRadarDraftsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -3940,6 +4194,8 @@ export type ContactUncheckedCreateWithoutRadarDraftsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
   articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
   personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
 }
 
@@ -3994,6 +4250,8 @@ export type ContactUpdateWithoutRadarDraftsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -4009,6 +4267,8 @@ export type ContactUpdateWithoutRadarDraftsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
 }
 
@@ -4048,6 +4308,8 @@ export type ContactUncheckedUpdateWithoutRadarDraftsInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -4062,7 +4324,497 @@ export type ContactUncheckedUpdateWithoutRadarDraftsInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
+}
+
+export type ContactCreateWithoutLinkedInPostsInput = {
+  id?: string
+  linkedinUrn: string
+  linkedinUrl: string
+  fullName: string
+  hebrewFirstName?: string | null
+  headline?: string | null
+  currentTitle?: string | null
+  currentCompany?: string | null
+  currentCompanyId?: string | null
+  companySize?: number | null
+  seniority?: $Enums.Seniority | null
+  function?: $Enums.Function | null
+  location?: string | null
+  industry?: string | null
+  profilePicUrl?: string | null
+  connectedAt?: Date | string | null
+  lastSyncedAt: Date | string
+  removedAt?: Date | string | null
+  email?: string | null
+  phone?: string | null
+  enrichedAt?: Date | string | null
+  enrichmentSource?: string | null
+  manualFields?: Prisma.ContactCreatemanualFieldsInput | string[]
+  enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  enrichmentRanAt?: Date | string | null
+  enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
+  about?: string | null
+  experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  profileScrapedAt?: Date | string | null
+  radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
+  messageLanguage?: string
+  radarAddedAt?: Date | string | null
+  channels?: Prisma.ContactCreatechannelsInput | string[]
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
+  company?: Prisma.CompanyCreateNestedOneWithoutContactsInput
+  owner: Prisma.UserCreateNestedOneWithoutContactsInput
+  messages?: Prisma.SentMessageCreateNestedManyWithoutContactInput
+  campaignRecipients?: Prisma.CampaignRecipientCreateNestedManyWithoutContactInput
+  lists?: Prisma.ContactListMemberCreateNestedManyWithoutContactInput
+  companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutContactInput
+  sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
+  articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
+  techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftCreateNestedManyWithoutContactInput
+  personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
+}
+
+export type ContactUncheckedCreateWithoutLinkedInPostsInput = {
+  id?: string
+  ownerId: string
+  linkedinUrn: string
+  linkedinUrl: string
+  fullName: string
+  hebrewFirstName?: string | null
+  headline?: string | null
+  currentTitle?: string | null
+  currentCompany?: string | null
+  currentCompanyId?: string | null
+  companySize?: number | null
+  seniority?: $Enums.Seniority | null
+  function?: $Enums.Function | null
+  location?: string | null
+  industry?: string | null
+  profilePicUrl?: string | null
+  connectedAt?: Date | string | null
+  lastSyncedAt: Date | string
+  removedAt?: Date | string | null
+  email?: string | null
+  phone?: string | null
+  enrichedAt?: Date | string | null
+  enrichmentSource?: string | null
+  manualFields?: Prisma.ContactCreatemanualFieldsInput | string[]
+  enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  enrichmentRanAt?: Date | string | null
+  enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
+  about?: string | null
+  experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  profileScrapedAt?: Date | string | null
+  radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
+  messageLanguage?: string
+  radarAddedAt?: Date | string | null
+  channels?: Prisma.ContactCreatechannelsInput | string[]
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  companyId?: string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedCreateNestedManyWithoutContactInput
+  messages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutContactInput
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedCreateNestedManyWithoutContactInput
+  lists?: Prisma.ContactListMemberUncheckedCreateNestedManyWithoutContactInput
+  companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutContactInput
+  sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
+  articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
+  techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedCreateNestedManyWithoutContactInput
+  personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
+}
+
+export type ContactCreateOrConnectWithoutLinkedInPostsInput = {
+  where: Prisma.ContactWhereUniqueInput
+  create: Prisma.XOR<Prisma.ContactCreateWithoutLinkedInPostsInput, Prisma.ContactUncheckedCreateWithoutLinkedInPostsInput>
+}
+
+export type ContactUpsertWithoutLinkedInPostsInput = {
+  update: Prisma.XOR<Prisma.ContactUpdateWithoutLinkedInPostsInput, Prisma.ContactUncheckedUpdateWithoutLinkedInPostsInput>
+  create: Prisma.XOR<Prisma.ContactCreateWithoutLinkedInPostsInput, Prisma.ContactUncheckedCreateWithoutLinkedInPostsInput>
+  where?: Prisma.ContactWhereInput
+}
+
+export type ContactUpdateToOneWithWhereWithoutLinkedInPostsInput = {
+  where?: Prisma.ContactWhereInput
+  data: Prisma.XOR<Prisma.ContactUpdateWithoutLinkedInPostsInput, Prisma.ContactUncheckedUpdateWithoutLinkedInPostsInput>
+}
+
+export type ContactUpdateWithoutLinkedInPostsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companySize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  seniority?: Prisma.NullableEnumSeniorityFieldUpdateOperationsInput | $Enums.Seniority | null
+  function?: Prisma.NullableEnumFunctionFieldUpdateOperationsInput | $Enums.Function | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enrichedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enrichmentSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualFields?: Prisma.ContactUpdatemanualFieldsInput | string[]
+  enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
+  radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  channels?: Prisma.ContactUpdatechannelsInput | string[]
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
+  company?: Prisma.CompanyUpdateOneWithoutContactsNestedInput
+  owner?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
+  messages?: Prisma.SentMessageUpdateManyWithoutContactNestedInput
+  campaignRecipients?: Prisma.CampaignRecipientUpdateManyWithoutContactNestedInput
+  lists?: Prisma.ContactListMemberUpdateManyWithoutContactNestedInput
+  companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutContactNestedInput
+  sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
+  articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
+  techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
+  personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
+}
+
+export type ContactUncheckedUpdateWithoutLinkedInPostsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companySize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  seniority?: Prisma.NullableEnumSeniorityFieldUpdateOperationsInput | $Enums.Seniority | null
+  function?: Prisma.NullableEnumFunctionFieldUpdateOperationsInput | $Enums.Function | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enrichedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enrichmentSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualFields?: Prisma.ContactUpdatemanualFieldsInput | string[]
+  enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
+  radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  channels?: Prisma.ContactUpdatechannelsInput | string[]
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedUpdateManyWithoutContactNestedInput
+  messages?: Prisma.SentMessageUncheckedUpdateManyWithoutContactNestedInput
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedUpdateManyWithoutContactNestedInput
+  lists?: Prisma.ContactListMemberUncheckedUpdateManyWithoutContactNestedInput
+  companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutContactNestedInput
+  sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
+  articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
+  techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
+  personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
+}
+
+export type ContactCreateWithoutPostCommentDraftsInput = {
+  id?: string
+  linkedinUrn: string
+  linkedinUrl: string
+  fullName: string
+  hebrewFirstName?: string | null
+  headline?: string | null
+  currentTitle?: string | null
+  currentCompany?: string | null
+  currentCompanyId?: string | null
+  companySize?: number | null
+  seniority?: $Enums.Seniority | null
+  function?: $Enums.Function | null
+  location?: string | null
+  industry?: string | null
+  profilePicUrl?: string | null
+  connectedAt?: Date | string | null
+  lastSyncedAt: Date | string
+  removedAt?: Date | string | null
+  email?: string | null
+  phone?: string | null
+  enrichedAt?: Date | string | null
+  enrichmentSource?: string | null
+  manualFields?: Prisma.ContactCreatemanualFieldsInput | string[]
+  enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  enrichmentRanAt?: Date | string | null
+  enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
+  about?: string | null
+  experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  profileScrapedAt?: Date | string | null
+  radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
+  messageLanguage?: string
+  radarAddedAt?: Date | string | null
+  channels?: Prisma.ContactCreatechannelsInput | string[]
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  jobChanges?: Prisma.ContactJobChangeCreateNestedManyWithoutContactInput
+  company?: Prisma.CompanyCreateNestedOneWithoutContactsInput
+  owner: Prisma.UserCreateNestedOneWithoutContactsInput
+  messages?: Prisma.SentMessageCreateNestedManyWithoutContactInput
+  campaignRecipients?: Prisma.CampaignRecipientCreateNestedManyWithoutContactInput
+  lists?: Prisma.ContactListMemberCreateNestedManyWithoutContactInput
+  companySignalDrafts?: Prisma.CompanySignalDraftCreateNestedManyWithoutContactInput
+  sequenceEnrollments?: Prisma.SequenceEnrollmentCreateNestedManyWithoutContactInput
+  articleMatches?: Prisma.ArticleMatchCreateNestedManyWithoutContactInput
+  techDrafts?: Prisma.TechOpportunityDraftCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostCreateNestedManyWithoutContactInput
+  personProfile?: Prisma.PersonProfileCreateNestedOneWithoutContactInput
+  radarDrafts?: Prisma.RadarDraftCreateNestedManyWithoutContactInput
+}
+
+export type ContactUncheckedCreateWithoutPostCommentDraftsInput = {
+  id?: string
+  ownerId: string
+  linkedinUrn: string
+  linkedinUrl: string
+  fullName: string
+  hebrewFirstName?: string | null
+  headline?: string | null
+  currentTitle?: string | null
+  currentCompany?: string | null
+  currentCompanyId?: string | null
+  companySize?: number | null
+  seniority?: $Enums.Seniority | null
+  function?: $Enums.Function | null
+  location?: string | null
+  industry?: string | null
+  profilePicUrl?: string | null
+  connectedAt?: Date | string | null
+  lastSyncedAt: Date | string
+  removedAt?: Date | string | null
+  email?: string | null
+  phone?: string | null
+  enrichedAt?: Date | string | null
+  enrichmentSource?: string | null
+  manualFields?: Prisma.ContactCreatemanualFieldsInput | string[]
+  enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  enrichmentRanAt?: Date | string | null
+  enrichmentError?: string | null
+  hubspotSyncedAt?: Date | string | null
+  jobSnapshotTitle?: string | null
+  jobSnapshotCompany?: string | null
+  lastJobCheckAt?: Date | string | null
+  about?: string | null
+  experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  profileScrapedAt?: Date | string | null
+  radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
+  messageLanguage?: string
+  radarAddedAt?: Date | string | null
+  channels?: Prisma.ContactCreatechannelsInput | string[]
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  companyId?: string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedCreateNestedManyWithoutContactInput
+  messages?: Prisma.SentMessageUncheckedCreateNestedManyWithoutContactInput
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedCreateNestedManyWithoutContactInput
+  lists?: Prisma.ContactListMemberUncheckedCreateNestedManyWithoutContactInput
+  companySignalDrafts?: Prisma.CompanySignalDraftUncheckedCreateNestedManyWithoutContactInput
+  sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedCreateNestedManyWithoutContactInput
+  articleMatches?: Prisma.ArticleMatchUncheckedCreateNestedManyWithoutContactInput
+  techDrafts?: Prisma.TechOpportunityDraftUncheckedCreateNestedManyWithoutContactInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedCreateNestedManyWithoutContactInput
+  personProfile?: Prisma.PersonProfileUncheckedCreateNestedOneWithoutContactInput
+  radarDrafts?: Prisma.RadarDraftUncheckedCreateNestedManyWithoutContactInput
+}
+
+export type ContactCreateOrConnectWithoutPostCommentDraftsInput = {
+  where: Prisma.ContactWhereUniqueInput
+  create: Prisma.XOR<Prisma.ContactCreateWithoutPostCommentDraftsInput, Prisma.ContactUncheckedCreateWithoutPostCommentDraftsInput>
+}
+
+export type ContactUpsertWithoutPostCommentDraftsInput = {
+  update: Prisma.XOR<Prisma.ContactUpdateWithoutPostCommentDraftsInput, Prisma.ContactUncheckedUpdateWithoutPostCommentDraftsInput>
+  create: Prisma.XOR<Prisma.ContactCreateWithoutPostCommentDraftsInput, Prisma.ContactUncheckedCreateWithoutPostCommentDraftsInput>
+  where?: Prisma.ContactWhereInput
+}
+
+export type ContactUpdateToOneWithWhereWithoutPostCommentDraftsInput = {
+  where?: Prisma.ContactWhereInput
+  data: Prisma.XOR<Prisma.ContactUpdateWithoutPostCommentDraftsInput, Prisma.ContactUncheckedUpdateWithoutPostCommentDraftsInput>
+}
+
+export type ContactUpdateWithoutPostCommentDraftsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companySize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  seniority?: Prisma.NullableEnumSeniorityFieldUpdateOperationsInput | $Enums.Seniority | null
+  function?: Prisma.NullableEnumFunctionFieldUpdateOperationsInput | $Enums.Function | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enrichedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enrichmentSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualFields?: Prisma.ContactUpdatemanualFieldsInput | string[]
+  enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
+  radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  channels?: Prisma.ContactUpdatechannelsInput | string[]
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  jobChanges?: Prisma.ContactJobChangeUpdateManyWithoutContactNestedInput
+  company?: Prisma.CompanyUpdateOneWithoutContactsNestedInput
+  owner?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
+  messages?: Prisma.SentMessageUpdateManyWithoutContactNestedInput
+  campaignRecipients?: Prisma.CampaignRecipientUpdateManyWithoutContactNestedInput
+  lists?: Prisma.ContactListMemberUpdateManyWithoutContactNestedInput
+  companySignalDrafts?: Prisma.CompanySignalDraftUpdateManyWithoutContactNestedInput
+  sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
+  articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
+  techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
+  radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
+}
+
+export type ContactUncheckedUpdateWithoutPostCommentDraftsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrn?: Prisma.StringFieldUpdateOperationsInput | string
+  linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companySize?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  seniority?: Prisma.NullableEnumSeniorityFieldUpdateOperationsInput | $Enums.Seniority | null
+  function?: Prisma.NullableEnumFunctionFieldUpdateOperationsInput | $Enums.Function | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profilePicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastSyncedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enrichedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enrichmentSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualFields?: Prisma.ContactUpdatemanualFieldsInput | string[]
+  enrichmentLog?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  enrichmentRanAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enrichmentError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hubspotSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  jobSnapshotTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobSnapshotCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastJobCheckAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
+  radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  channels?: Prisma.ContactUpdatechannelsInput | string[]
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobChanges?: Prisma.ContactJobChangeUncheckedUpdateManyWithoutContactNestedInput
+  messages?: Prisma.SentMessageUncheckedUpdateManyWithoutContactNestedInput
+  campaignRecipients?: Prisma.CampaignRecipientUncheckedUpdateManyWithoutContactNestedInput
+  lists?: Prisma.ContactListMemberUncheckedUpdateManyWithoutContactNestedInput
+  companySignalDrafts?: Prisma.CompanySignalDraftUncheckedUpdateManyWithoutContactNestedInput
+  sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
+  articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
+  techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
+  radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
 }
 
 export type ContactCreateManyOwnerInput = {
@@ -4100,6 +4852,8 @@ export type ContactCreateManyOwnerInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -4143,6 +4897,8 @@ export type ContactUpdateWithoutOwnerInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -4157,6 +4913,8 @@ export type ContactUpdateWithoutOwnerInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
 }
@@ -4196,6 +4954,8 @@ export type ContactUncheckedUpdateWithoutOwnerInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -4210,6 +4970,8 @@ export type ContactUncheckedUpdateWithoutOwnerInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
 }
@@ -4249,6 +5011,8 @@ export type ContactUncheckedUpdateManyWithoutOwnerInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -4293,6 +5057,8 @@ export type ContactCreateManyCompanyInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Date | string | null
   radarInclude?: boolean | null
+  postWatchEnabled?: boolean | null
+  postWatchAddedAt?: Date | string | null
   messageLanguage?: string
   radarAddedAt?: Date | string | null
   channels?: Prisma.ContactCreatechannelsInput | string[]
@@ -4335,6 +5101,8 @@ export type ContactUpdateWithoutCompanyInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -4349,6 +5117,8 @@ export type ContactUpdateWithoutCompanyInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUpdateManyWithoutContactNestedInput
 }
@@ -4389,6 +5159,8 @@ export type ContactUncheckedUpdateWithoutCompanyInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -4402,6 +5174,8 @@ export type ContactUncheckedUpdateWithoutCompanyInput = {
   sequenceEnrollments?: Prisma.SequenceEnrollmentUncheckedUpdateManyWithoutContactNestedInput
   articleMatches?: Prisma.ArticleMatchUncheckedUpdateManyWithoutContactNestedInput
   techDrafts?: Prisma.TechOpportunityDraftUncheckedUpdateManyWithoutContactNestedInput
+  linkedInPosts?: Prisma.LinkedInPostUncheckedUpdateManyWithoutContactNestedInput
+  postCommentDrafts?: Prisma.PostCommentDraftUncheckedUpdateManyWithoutContactNestedInput
   personProfile?: Prisma.PersonProfileUncheckedUpdateOneWithoutContactNestedInput
   radarDrafts?: Prisma.RadarDraftUncheckedUpdateManyWithoutContactNestedInput
 }
@@ -4442,6 +5216,8 @@ export type ContactUncheckedUpdateManyWithoutCompanyInput = {
   experience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profileScrapedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   radarInclude?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchEnabled?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  postWatchAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   messageLanguage?: Prisma.StringFieldUpdateOperationsInput | string
   radarAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   channels?: Prisma.ContactUpdatechannelsInput | string[]
@@ -4463,6 +5239,8 @@ export type ContactCountOutputType = {
   sequenceEnrollments: number
   articleMatches: number
   techDrafts: number
+  linkedInPosts: number
+  postCommentDrafts: number
   radarDrafts: number
 }
 
@@ -4475,6 +5253,8 @@ export type ContactCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   sequenceEnrollments?: boolean | ContactCountOutputTypeCountSequenceEnrollmentsArgs
   articleMatches?: boolean | ContactCountOutputTypeCountArticleMatchesArgs
   techDrafts?: boolean | ContactCountOutputTypeCountTechDraftsArgs
+  linkedInPosts?: boolean | ContactCountOutputTypeCountLinkedInPostsArgs
+  postCommentDrafts?: boolean | ContactCountOutputTypeCountPostCommentDraftsArgs
   radarDrafts?: boolean | ContactCountOutputTypeCountRadarDraftsArgs
 }
 
@@ -4547,6 +5327,20 @@ export type ContactCountOutputTypeCountTechDraftsArgs<ExtArgs extends runtime.Ty
 /**
  * ContactCountOutputType without action
  */
+export type ContactCountOutputTypeCountLinkedInPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LinkedInPostWhereInput
+}
+
+/**
+ * ContactCountOutputType without action
+ */
+export type ContactCountOutputTypeCountPostCommentDraftsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PostCommentDraftWhereInput
+}
+
+/**
+ * ContactCountOutputType without action
+ */
 export type ContactCountOutputTypeCountRadarDraftsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.RadarDraftWhereInput
 }
@@ -4588,6 +5382,8 @@ export type ContactSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   experience?: boolean
   profileScrapedAt?: boolean
   radarInclude?: boolean
+  postWatchEnabled?: boolean
+  postWatchAddedAt?: boolean
   messageLanguage?: boolean
   radarAddedAt?: boolean
   channels?: boolean
@@ -4604,6 +5400,8 @@ export type ContactSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   sequenceEnrollments?: boolean | Prisma.Contact$sequenceEnrollmentsArgs<ExtArgs>
   articleMatches?: boolean | Prisma.Contact$articleMatchesArgs<ExtArgs>
   techDrafts?: boolean | Prisma.Contact$techDraftsArgs<ExtArgs>
+  linkedInPosts?: boolean | Prisma.Contact$linkedInPostsArgs<ExtArgs>
+  postCommentDrafts?: boolean | Prisma.Contact$postCommentDraftsArgs<ExtArgs>
   personProfile?: boolean | Prisma.Contact$personProfileArgs<ExtArgs>
   radarDrafts?: boolean | Prisma.Contact$radarDraftsArgs<ExtArgs>
   _count?: boolean | Prisma.ContactCountOutputTypeDefaultArgs<ExtArgs>
@@ -4645,6 +5443,8 @@ export type ContactSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   experience?: boolean
   profileScrapedAt?: boolean
   radarInclude?: boolean
+  postWatchEnabled?: boolean
+  postWatchAddedAt?: boolean
   messageLanguage?: boolean
   radarAddedAt?: boolean
   channels?: boolean
@@ -4691,6 +5491,8 @@ export type ContactSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   experience?: boolean
   profileScrapedAt?: boolean
   radarInclude?: boolean
+  postWatchEnabled?: boolean
+  postWatchAddedAt?: boolean
   messageLanguage?: boolean
   radarAddedAt?: boolean
   channels?: boolean
@@ -4737,6 +5539,8 @@ export type ContactSelectScalar = {
   experience?: boolean
   profileScrapedAt?: boolean
   radarInclude?: boolean
+  postWatchEnabled?: boolean
+  postWatchAddedAt?: boolean
   messageLanguage?: boolean
   radarAddedAt?: boolean
   channels?: boolean
@@ -4745,7 +5549,7 @@ export type ContactSelectScalar = {
   companyId?: boolean
 }
 
-export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "hebrewFirstName" | "headline" | "currentTitle" | "currentCompany" | "currentCompanyId" | "companySize" | "seniority" | "function" | "location" | "industry" | "profilePicUrl" | "connectedAt" | "lastSyncedAt" | "removedAt" | "email" | "phone" | "enrichedAt" | "enrichmentSource" | "manualFields" | "enrichmentLog" | "enrichmentRanAt" | "enrichmentError" | "hubspotSyncedAt" | "jobSnapshotTitle" | "jobSnapshotCompany" | "lastJobCheckAt" | "about" | "experience" | "profileScrapedAt" | "radarInclude" | "messageLanguage" | "radarAddedAt" | "channels" | "createdAt" | "updatedAt" | "companyId", ExtArgs["result"]["contact"]>
+export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "hebrewFirstName" | "headline" | "currentTitle" | "currentCompany" | "currentCompanyId" | "companySize" | "seniority" | "function" | "location" | "industry" | "profilePicUrl" | "connectedAt" | "lastSyncedAt" | "removedAt" | "email" | "phone" | "enrichedAt" | "enrichmentSource" | "manualFields" | "enrichmentLog" | "enrichmentRanAt" | "enrichmentError" | "hubspotSyncedAt" | "jobSnapshotTitle" | "jobSnapshotCompany" | "lastJobCheckAt" | "about" | "experience" | "profileScrapedAt" | "radarInclude" | "postWatchEnabled" | "postWatchAddedAt" | "messageLanguage" | "radarAddedAt" | "channels" | "createdAt" | "updatedAt" | "companyId", ExtArgs["result"]["contact"]>
 export type ContactInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   jobChanges?: boolean | Prisma.Contact$jobChangesArgs<ExtArgs>
   company?: boolean | Prisma.Contact$companyArgs<ExtArgs>
@@ -4757,6 +5561,8 @@ export type ContactInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   sequenceEnrollments?: boolean | Prisma.Contact$sequenceEnrollmentsArgs<ExtArgs>
   articleMatches?: boolean | Prisma.Contact$articleMatchesArgs<ExtArgs>
   techDrafts?: boolean | Prisma.Contact$techDraftsArgs<ExtArgs>
+  linkedInPosts?: boolean | Prisma.Contact$linkedInPostsArgs<ExtArgs>
+  postCommentDrafts?: boolean | Prisma.Contact$postCommentDraftsArgs<ExtArgs>
   personProfile?: boolean | Prisma.Contact$personProfileArgs<ExtArgs>
   radarDrafts?: boolean | Prisma.Contact$radarDraftsArgs<ExtArgs>
   _count?: boolean | Prisma.ContactCountOutputTypeDefaultArgs<ExtArgs>
@@ -4783,6 +5589,8 @@ export type $ContactPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     sequenceEnrollments: Prisma.$SequenceEnrollmentPayload<ExtArgs>[]
     articleMatches: Prisma.$ArticleMatchPayload<ExtArgs>[]
     techDrafts: Prisma.$TechOpportunityDraftPayload<ExtArgs>[]
+    linkedInPosts: Prisma.$LinkedInPostPayload<ExtArgs>[]
+    postCommentDrafts: Prisma.$PostCommentDraftPayload<ExtArgs>[]
     personProfile: Prisma.$PersonProfilePayload<ExtArgs> | null
     radarDrafts: Prisma.$RadarDraftPayload<ExtArgs>[]
   }
@@ -4827,6 +5635,14 @@ export type $ContactPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
      * a handful of people at giants get cultivated); false = never include.
      */
     radarInclude: boolean | null
+    /**
+     * Post-comments watch. true = draft comments on this person's new posts; null/false = off.
+     */
+    postWatchEnabled: boolean | null
+    /**
+     * When post-watching was turned on for this person.
+     */
+    postWatchAddedAt: Date | null
     /**
      * Radar drafts to this person are written in this language. "he" | "en".
      */
@@ -5250,6 +6066,8 @@ export interface Prisma__ContactClient<T, Null = never, ExtArgs extends runtime.
   sequenceEnrollments<T extends Prisma.Contact$sequenceEnrollmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Contact$sequenceEnrollmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SequenceEnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   articleMatches<T extends Prisma.Contact$articleMatchesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Contact$articleMatchesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ArticleMatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   techDrafts<T extends Prisma.Contact$techDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Contact$techDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TechOpportunityDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  linkedInPosts<T extends Prisma.Contact$linkedInPostsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Contact$linkedInPostsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LinkedInPostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  postCommentDrafts<T extends Prisma.Contact$postCommentDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Contact$postCommentDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PostCommentDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   personProfile<T extends Prisma.Contact$personProfileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Contact$personProfileArgs<ExtArgs>>): Prisma.Prisma__PersonProfileClient<runtime.Types.Result.GetResult<Prisma.$PersonProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   radarDrafts<T extends Prisma.Contact$radarDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Contact$radarDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RadarDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -5316,6 +6134,8 @@ export interface ContactFieldRefs {
   readonly experience: Prisma.FieldRef<"Contact", 'Json'>
   readonly profileScrapedAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly radarInclude: Prisma.FieldRef<"Contact", 'Boolean'>
+  readonly postWatchEnabled: Prisma.FieldRef<"Contact", 'Boolean'>
+  readonly postWatchAddedAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly messageLanguage: Prisma.FieldRef<"Contact", 'String'>
   readonly radarAddedAt: Prisma.FieldRef<"Contact", 'DateTime'>
   readonly channels: Prisma.FieldRef<"Contact", 'String[]'>
@@ -5931,6 +6751,54 @@ export type Contact$techDraftsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.TechOpportunityDraftScalarFieldEnum | Prisma.TechOpportunityDraftScalarFieldEnum[]
+}
+
+/**
+ * Contact.linkedInPosts
+ */
+export type Contact$linkedInPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LinkedInPost
+   */
+  select?: Prisma.LinkedInPostSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LinkedInPost
+   */
+  omit?: Prisma.LinkedInPostOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LinkedInPostInclude<ExtArgs> | null
+  where?: Prisma.LinkedInPostWhereInput
+  orderBy?: Prisma.LinkedInPostOrderByWithRelationInput | Prisma.LinkedInPostOrderByWithRelationInput[]
+  cursor?: Prisma.LinkedInPostWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LinkedInPostScalarFieldEnum | Prisma.LinkedInPostScalarFieldEnum[]
+}
+
+/**
+ * Contact.postCommentDrafts
+ */
+export type Contact$postCommentDraftsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PostCommentDraft
+   */
+  select?: Prisma.PostCommentDraftSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PostCommentDraft
+   */
+  omit?: Prisma.PostCommentDraftOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PostCommentDraftInclude<ExtArgs> | null
+  where?: Prisma.PostCommentDraftWhereInput
+  orderBy?: Prisma.PostCommentDraftOrderByWithRelationInput | Prisma.PostCommentDraftOrderByWithRelationInput[]
+  cursor?: Prisma.PostCommentDraftWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PostCommentDraftScalarFieldEnum | Prisma.PostCommentDraftScalarFieldEnum[]
 }
 
 /**

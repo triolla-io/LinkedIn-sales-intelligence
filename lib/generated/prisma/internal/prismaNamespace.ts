@@ -433,6 +433,8 @@ export const ModelName = {
   PersonAxis: 'PersonAxis',
   AxisMatch: 'AxisMatch',
   RadarDraft: 'RadarDraft',
+  LinkedInPost: 'LinkedInPost',
+  PostCommentDraft: 'PostCommentDraft',
   RadarFeedback: 'RadarFeedback',
   RadarScanRun: 'RadarScanRun',
   RadarDomain: 'RadarDomain',
@@ -452,7 +454,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "mcpAccessToken" | "enrichmentSpend" | "userEnrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange" | "companySignal" | "companySignalDraft" | "fintechArticle" | "articleMatch" | "trackedCompany" | "techItem" | "techOpportunity" | "techOpportunityDraft" | "radarAxis" | "personProfile" | "personAxis" | "axisMatch" | "radarDraft" | "radarFeedback" | "radarScanRun" | "radarDomain" | "newsQueryCache"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "mcpAccessToken" | "enrichmentSpend" | "userEnrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange" | "companySignal" | "companySignalDraft" | "fintechArticle" | "articleMatch" | "trackedCompany" | "techItem" | "techOpportunity" | "techOpportunityDraft" | "radarAxis" | "personProfile" | "personAxis" | "axisMatch" | "radarDraft" | "linkedInPost" | "postCommentDraft" | "radarFeedback" | "radarScanRun" | "radarDomain" | "newsQueryCache"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4082,6 +4084,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    LinkedInPost: {
+      payload: Prisma.$LinkedInPostPayload<ExtArgs>
+      fields: Prisma.LinkedInPostFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LinkedInPostFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedInPostPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LinkedInPostFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedInPostPayload>
+        }
+        findFirst: {
+          args: Prisma.LinkedInPostFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedInPostPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LinkedInPostFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedInPostPayload>
+        }
+        findMany: {
+          args: Prisma.LinkedInPostFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedInPostPayload>[]
+        }
+        create: {
+          args: Prisma.LinkedInPostCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedInPostPayload>
+        }
+        createMany: {
+          args: Prisma.LinkedInPostCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LinkedInPostCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedInPostPayload>[]
+        }
+        delete: {
+          args: Prisma.LinkedInPostDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedInPostPayload>
+        }
+        update: {
+          args: Prisma.LinkedInPostUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedInPostPayload>
+        }
+        deleteMany: {
+          args: Prisma.LinkedInPostDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LinkedInPostUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LinkedInPostUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedInPostPayload>[]
+        }
+        upsert: {
+          args: Prisma.LinkedInPostUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LinkedInPostPayload>
+        }
+        aggregate: {
+          args: Prisma.LinkedInPostAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLinkedInPost>
+        }
+        groupBy: {
+          args: Prisma.LinkedInPostGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LinkedInPostGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LinkedInPostCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LinkedInPostCountAggregateOutputType> | number
+        }
+      }
+    }
+    PostCommentDraft: {
+      payload: Prisma.$PostCommentDraftPayload<ExtArgs>
+      fields: Prisma.PostCommentDraftFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PostCommentDraftFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostCommentDraftPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PostCommentDraftFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostCommentDraftPayload>
+        }
+        findFirst: {
+          args: Prisma.PostCommentDraftFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostCommentDraftPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PostCommentDraftFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostCommentDraftPayload>
+        }
+        findMany: {
+          args: Prisma.PostCommentDraftFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostCommentDraftPayload>[]
+        }
+        create: {
+          args: Prisma.PostCommentDraftCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostCommentDraftPayload>
+        }
+        createMany: {
+          args: Prisma.PostCommentDraftCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PostCommentDraftCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostCommentDraftPayload>[]
+        }
+        delete: {
+          args: Prisma.PostCommentDraftDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostCommentDraftPayload>
+        }
+        update: {
+          args: Prisma.PostCommentDraftUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostCommentDraftPayload>
+        }
+        deleteMany: {
+          args: Prisma.PostCommentDraftDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PostCommentDraftUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PostCommentDraftUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostCommentDraftPayload>[]
+        }
+        upsert: {
+          args: Prisma.PostCommentDraftUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostCommentDraftPayload>
+        }
+        aggregate: {
+          args: Prisma.PostCommentDraftAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePostCommentDraft>
+        }
+        groupBy: {
+          args: Prisma.PostCommentDraftGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PostCommentDraftGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PostCommentDraftCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PostCommentDraftCountAggregateOutputType> | number
+        }
+      }
+    }
     RadarFeedback: {
       payload: Prisma.$RadarFeedbackPayload<ExtArgs>
       fields: Prisma.RadarFeedbackFieldRefs
@@ -4464,6 +4614,7 @@ export const OrganizationScalarFieldEnum = {
   companySignalsEnabled: 'companySignalsEnabled',
   fintechRadarEnabled: 'fintechRadarEnabled',
   techRadarEnabled: 'techRadarEnabled',
+  postCommentsEnabled: 'postCommentsEnabled',
   radarScheduleEnabled: 'radarScheduleEnabled',
   createdAt: 'createdAt'
 } as const
@@ -4526,6 +4677,8 @@ export const ContactScalarFieldEnum = {
   experience: 'experience',
   profileScrapedAt: 'profileScrapedAt',
   radarInclude: 'radarInclude',
+  postWatchEnabled: 'postWatchEnabled',
+  postWatchAddedAt: 'postWatchAddedAt',
   messageLanguage: 'messageLanguage',
   radarAddedAt: 'radarAddedAt',
   channels: 'channels',
@@ -4863,6 +5016,7 @@ export const ExtensionTaskScalarFieldEnum = {
   articleMatchId: 'articleMatchId',
   techDraftId: 'techDraftId',
   radarDraftId: 'radarDraftId',
+  postCommentDraftId: 'postCommentDraftId',
   scheduledFor: 'scheduledFor',
   claimedAt: 'claimedAt',
   completedAt: 'completedAt',
@@ -5260,6 +5414,38 @@ export const RadarDraftScalarFieldEnum = {
 } as const
 
 export type RadarDraftScalarFieldEnum = (typeof RadarDraftScalarFieldEnum)[keyof typeof RadarDraftScalarFieldEnum]
+
+
+export const LinkedInPostScalarFieldEnum = {
+  id: 'id',
+  contactId: 'contactId',
+  ownerId: 'ownerId',
+  activityUrn: 'activityUrn',
+  postUrl: 'postUrl',
+  text: 'text',
+  postedAgoText: 'postedAgoText',
+  postedAt: 'postedAt',
+  scrapedAt: 'scrapedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type LinkedInPostScalarFieldEnum = (typeof LinkedInPostScalarFieldEnum)[keyof typeof LinkedInPostScalarFieldEnum]
+
+
+export const PostCommentDraftScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  contactId: 'contactId',
+  ownerId: 'ownerId',
+  commentText: 'commentText',
+  status: 'status',
+  dismissReason: 'dismissReason',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PostCommentDraftScalarFieldEnum = (typeof PostCommentDraftScalarFieldEnum)[keyof typeof PostCommentDraftScalarFieldEnum]
 
 
 export const RadarFeedbackScalarFieldEnum = {
@@ -5896,6 +6082,20 @@ export type ListEnumRadarDraftStatusFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
+ * Reference to a field of type 'PostCommentDraftStatus'
+ */
+export type EnumPostCommentDraftStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PostCommentDraftStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PostCommentDraftStatus[]'
+ */
+export type ListEnumPostCommentDraftStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PostCommentDraftStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'RadarFeedbackEvent'
  */
 export type EnumRadarFeedbackEventFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RadarFeedbackEvent'>
@@ -6067,6 +6267,8 @@ export type GlobalOmitConfig = {
   personAxis?: Prisma.PersonAxisOmit
   axisMatch?: Prisma.AxisMatchOmit
   radarDraft?: Prisma.RadarDraftOmit
+  linkedInPost?: Prisma.LinkedInPostOmit
+  postCommentDraft?: Prisma.PostCommentDraftOmit
   radarFeedback?: Prisma.RadarFeedbackOmit
   radarScanRun?: Prisma.RadarScanRunOmit
   radarDomain?: Prisma.RadarDomainOmit
