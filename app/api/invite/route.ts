@@ -43,14 +43,14 @@ export const POST = withTenant(async (req: NextRequest, ctx) => {
 
   if (resend) {
     await resend.emails.send({
-      from: `${me.org.name} via LinkedIn SI <onboarding@resend.dev>`,
+      from: `${me.org.name} via Linked <onboarding@resend.dev>`,
       to: email,
-      subject: `${me.name} invited you to join ${me.org.name} on LinkedIn SI`,
+      subject: `${me.name} invited you to join ${me.org.name} on Linked`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
           <h2 style="margin-bottom:8px">You've been invited</h2>
           <p style="color:#555;margin-bottom:24px">
-            ${me.name} has invited you to join <strong>${me.org.name}</strong> on LinkedIn SI —
+            ${me.name} has invited you to join <strong>${me.org.name}</strong> on Linked —
             a sales intelligence dashboard for your LinkedIn network.
           </p>
           <a href="${inviteUrl}"

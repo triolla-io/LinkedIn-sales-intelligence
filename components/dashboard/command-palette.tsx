@@ -43,10 +43,10 @@ export function CommandPalette() {
     // פתיחה גם בלחיצה — קיצור מקלדת שאף אחד לא רואה הוא קיצור שלא קיים
     const onOpen = () => setOpen(true);
     window.addEventListener("keydown", onKey);
-    window.addEventListener("leadflow:open-palette", onOpen);
+    window.addEventListener("linked:open-palette", onOpen);
     return () => {
       window.removeEventListener("keydown", onKey);
-      window.removeEventListener("leadflow:open-palette", onOpen);
+      window.removeEventListener("linked:open-palette", onOpen);
     };
   }, []);
 

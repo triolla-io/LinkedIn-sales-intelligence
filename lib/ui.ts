@@ -1,5 +1,5 @@
 /**
- * Shared UI class tokens for the LeadFlow dashboard.
+ * Shared UI class tokens for the Linked dashboard.
  *
  * One source of truth for the warm-neutral + brand-blue design system so pages
  * don't re-hardcode hex. Compose with `cn()` when adding per-use classes.

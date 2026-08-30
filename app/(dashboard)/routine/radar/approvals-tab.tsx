@@ -352,11 +352,19 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
   );
 }
 
-export function ApprovalsTab() {
+export function ApprovalsTab({ variant = "page" }: { variant?: "page" | "embedded" }) {
+  /**
+   * embedded — מסך "היום" החדש: הטופ-בר של הדף כבר מספר את סיפור הבוקר,
+   * ואריח הפעולה נושא את המספרים, אז כאן נשארות רק הבועות עצמן ורשימת
+   * "שקט השבוע". כשאין לא אלה ולא אלה — הסקשן לא מציג כלום.
+   */
+  const embedded = variant === "embedded";
   const { data, error, isLoading, mutate } = useSWR<Approvals>("/api/radar/approvals", fetcher, {
     refreshInterval: 20_000,
     revalidateOnFocus: true,
   });
+
+  if (embedded && (isLoading || !data) && !error) return null;
 
   if (error && !data) {
     return (
@@ -382,8 +390,11 @@ export function ApprovalsTab() {
           n === 1 ? "הודעה אחת שווה" : `${n} הודעות שוות`
         } את הזמן שלך היום.`;
 
+  if (embedded && n === 0 && data.quiet.length === 0) return null;
+
   return (
     <section>
+      {!embedded && (
       <p className="type-h1 max-w-[30ch] leading-[1.25]">
         {lede}
         <span className={cn("block mt-2.5 text-[15px] font-normal font-sans leading-relaxed", INK_3)}>
@@ -400,6 +411,13 @@ export function ApprovalsTab() {
           )}
         </span>
       </p>
+      )}
+
+      {embedded && n > 0 && (
+        <h2 className="type-h2 text-[17px]">
+          {n === 1 ? "ההודעה של הבוקר" : "ההודעות של הבוקר"}
+        </h2>
+      )}
 
       {data.drafts.map((d, i) => (
         <DraftCard key={d.id} draft={d} index={i} onChanged={() => void mutate()} />
@@ -426,7 +444,7 @@ export function ApprovalsTab() {
         </div>
       )}
 
-      {n === 0 && data.quiet.length === 0 && data.scan && (
+      {!embedded && n === 0 && data.quiet.length === 0 && data.scan && (
         <p className={cn("text-sm mt-8", INK_3)}>
           אין עדיין אנשים במעקב. בטאב ״אנשים״ אפשר יהיה להוסיף — ובינתיים מסמנים אנשים במסך{" "}
           <a href="/routine/tech-radar" className="text-[var(--brand-linkedin)] hover:underline">

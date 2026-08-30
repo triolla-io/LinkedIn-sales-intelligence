@@ -163,7 +163,7 @@ export async function openrouterChat(
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "https://sales.triolla.io",
-        "X-Title": "Triolla Sales Intelligence",
+        "X-Title": "Triolla Linked",
       },
       // usage.include makes OpenRouter return the real cost of this call in usage.cost.
       body: JSON.stringify({ ...body, usage: { include: true } }),
