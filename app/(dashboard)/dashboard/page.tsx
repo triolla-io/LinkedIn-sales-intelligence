@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import DashboardClient from "./dashboard-client";
-import type { OverviewFeedItem } from "@/components/dashboard/today-overview";
+import type { ActionInfo, OverviewFeedItem } from "@/components/dashboard/today-overview";
 
 /**
  * "היום" — דף הבית.
@@ -45,6 +45,7 @@ export default async function DashboardPage() {
   const startOfYear = new Date(now.getFullYear(), 0, 1);
   const since30 = new Date(now.getTime() - 30 * 864e5);
   const since7 = new Date(now.getTime() - 7 * 864e5);
+  const since8w = new Date(startOfToday.getTime() - 55 * 864e5); // 8 דליים שבועיים
 
   const ownedCompanies = { contacts: { some: { ownerId, removedAt: null } } };
   const ownedContact = { ownerId, removedAt: null };
@@ -67,6 +68,9 @@ export default async function DashboardPage() {
     sentMonth,
     sentPrevMonth,
     sentYtd,
+    pendingDrafts,
+    lastScan,
+    sentForWeekly,
   ] = await Promise.all([
     prisma.user.findUnique({ where: { id: ownerId } }),
     prisma.contact.count({ where: ownedContact }),
@@ -112,7 +116,50 @@ export default async function DashboardPage() {
     peopleContacted(ownerId, startOfMonth),
     peopleContacted(ownerId, startOfPrevMonth, startOfMonth),
     peopleContacted(ownerId, startOfYear),
+    prisma.radarDraft.findMany({
+      // אותם תנאים כמו מסך האישורים: מה שעוד רלוונטי להחלטה של יובל
+      where: {
+        ownerId,
+        status: { in: ["PENDING_REVIEW", "PREPARING", "PREPARED"] },
+        supersededAt: null,
+      },
+      select: { contact: { select: { fullName: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+    }),
+    prisma.radarScanRun.findFirst({
+      where: { finishedAt: { not: null } },
+      orderBy: { startedAt: "desc" },
+      select: { scanned: true, vetoed: true, finishedAt: true },
+    }),
+    prisma.sentMessage.findMany({
+      where: { senderId: ownerId, status: "SENT", sentAt: { gte: since8w } },
+      select: { contactId: true, sentAt: true },
+    }),
   ]);
+
+  /* קצב שבועי — אנשים ייחודיים פר שבוע, 8 דליים שהאחרון נגמר היום */
+  const weekly = Array.from({ length: 8 }, () => new Set<string>());
+  const bucketMs = 7 * 864e5;
+  const horizonEnd = startOfToday.getTime() + 864e5;
+  for (const m of sentForWeekly) {
+    const idx = 7 - Math.floor((horizonEnd - m.sentAt.getTime() - 1) / bucketMs);
+    if (idx >= 0 && idx < 8) weekly[idx].add(m.contactId);
+  }
+
+  const action: ActionInfo = {
+    pending: {
+      count: pendingDrafts.length,
+      names: pendingDrafts.map((d) => d.contact.fullName).slice(0, 3),
+    },
+    scan: lastScan?.finishedAt
+      ? {
+          scanned: lastScan.scanned,
+          vetoed: lastScan.vetoed,
+          finishedAt: lastScan.finishedAt.toISOString(),
+        }
+      : null,
+  };
 
   if (!user) redirect("/sign-in");
 
@@ -152,6 +199,8 @@ export default async function DashboardPage() {
     <DashboardClient
       user={{ name: user.name, email: user.email, image: user.image }}
       overview={{
+        action,
+        weekly: weekly.map((set) => set.size),
         contacts: { total: contactCount, addedThisMonth, onRadar },
         companyUpdates: { total: signals30, fresh: signalsToday },
         peopleUpdates: { total: jobChanges30, fresh: jobChangesToday },

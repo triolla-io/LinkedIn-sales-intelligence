@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "LinkedIn Sales Intelligence",
-  description: "LinkedIn Sales Intelligence platform",
+  title: "Linked",
+  description: "Linked — פלטפורמת מכירות חכמה",
 };
 
 export default function Home() {

@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LeadFlow",
+  title: { default: "Linked", template: "%s · Linked" },
   description: "פלטפורמת מכירות חכמה",
 };
 

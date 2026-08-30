@@ -1,21 +1,17 @@
 import { signIn } from "@/lib/auth";
 import type { Metadata } from "next";
+import { LinkedLogo } from "@/components/ui/logo";
 
 export const metadata: Metadata = {
   title: "Sign In",
-  description: "Sign in to LinkedIn Sales Intelligence",
+  description: "Sign in to Linked",
 };
 
 export default function SignInPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[var(--background)]">
       <div className="flex flex-col items-center gap-6 rounded-xl border border-[var(--line)] bg-surface p-10 shadow-sm w-full max-w-sm">
-        <div className="flex items-center gap-3">
-          <div className="size-9 rounded-lg bg-[var(--accent)] flex items-center justify-center">
-            <span className="text-white text-sm font-bold font-mono">SI</span>
-          </div>
-          <span className="font-semibold text-[var(--foreground)] text-lg tracking-tight">LinkedIn SI</span>
-        </div>
+        <LinkedLogo markClassName="h-7 w-auto" textClassName="text-xl" />
         <div className="text-center">
           <h1 className="text-xl font-semibold text-[var(--foreground)] mb-1">Welcome back</h1>
           <p className="text-sm text-[var(--muted)]">Sign in to access your contacts</p>
