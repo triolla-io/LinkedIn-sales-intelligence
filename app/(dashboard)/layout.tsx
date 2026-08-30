@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import SidebarShell from "@/components/dashboard/sidebar-shell";
 import { MobileNav } from "@/components/dashboard/mobile-nav";
+import { CommandPalette } from "@/components/dashboard/command-palette";
 import ImpersonationBanner from "@/components/dashboard/impersonation-banner";
 import { Toaster } from "@/components/ui/toaster";
 import { ExtensionBanner } from "@/components/extension-banner";
@@ -57,6 +58,7 @@ export default async function DashboardLayout({
       <Suspense fallback={null}>
         <MobileNav />
       </Suspense>
+      <CommandPalette />
       <Toaster />
       <EnrichmentSummaryModal />
     </div>

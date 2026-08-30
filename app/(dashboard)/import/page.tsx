@@ -19,6 +19,7 @@ import {
   Users,
   Building2,
   RefreshCw,
+  ChevronLeft,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
@@ -185,48 +186,51 @@ function LinkedInImportSection({
 }) {
   return (
     <>
-      <p className="text-xs tabular-nums text-[var(--faint)] tracking-normal mb-2">
+      <p className="type-eyebrow mb-2">
         ייבוא נתונים
       </p>
-      <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-1">
+      <h1 className="type-h1 mb-1">
         העלאת CSV של LinkedIn
       </h1>
       <p className="text-[var(--muted)] text-sm mb-8">
-        כבר ביקשת את הארכיון שלך? LinkedIn יישלח לך אימייל כשהוא יהיה מוכן, פשוט
-        הורד והעף את קובץ{" "}
+        כבר ביקשת את הארכיון? לינקדאין ישלחו אימייל כשהוא מוכן — ואז פשוט
+        גוררים לכאן את קובץ{" "}
         <span className="font-mono text-[var(--accent)]">{STR_CONNECTIONS}</span>{" "}
         למטה.
       </p>
-      <div className="rounded-xl border border-[var(--line)] bg-surface p-5 mb-6">
-        <p className="text-xs font-medium text-[var(--muted)] mb-3">
-          שלבים (בפעם הבאה)
-        </p>
+      <details className="group rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface)] p-5 mb-6 shadow-[var(--shadow-paper)]">
+        <summary className="fv-ring flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--foreground)]">
+          <ChevronLeft className="size-3.5 transition-transform group-open:-rotate-90" />
+          איך משיגים את הקובץ מלינקדאין
+        </summary>
+        <div className="pt-3">
         <ol className="space-y-1.5 text-xs text-[var(--muted)]">
           <li>
-            <span className="text-[var(--faint)]">1.</span> עבור ל-{" "}
+            <span className="text-[var(--faint)]">1.</span> נכנסים ל-{" "}
             <span className="font-mono text-[var(--accent)]">{STR_SETTINGS}</span> →
             Data Privacy → Download my data
           </li>
           <li>
-            <span className="text-[var(--faint)]">2.</span> בחר{" "}
+            <span className="text-[var(--faint)]">2.</span> בוחרים{" "}
             <strong className="text-[var(--foreground)]">
               &quot;Download larger data archive&quot;
             </strong>{" "}
             → Request archive
           </li>
           <li>
-            <span className="text-[var(--faint)]">3.</span> המתן לאימייל מ-LinkedIn
+            <span className="text-[var(--faint)]">3.</span> ממתינים לאימייל מלינקדאין
             (10–30 דק&apos;)
           </li>
           <li>
-            <span className="text-[var(--faint)]">4.</span> הורד את ה-zip → חלץ → מצא{" "}
+            <span className="text-[var(--faint)]">4.</span> מורידים את ה-zip → מחלצים → מאתרים{" "}
             <span className="font-mono text-[var(--accent)]">{STR_CONNECTIONS}</span>
           </li>
           <li>
-            <span className="text-[var(--faint)]">5.</span> גרור אותו למטה ↓
+            <span className="text-[var(--faint)]">5.</span> גוררים אותו למטה ↓
           </li>
         </ol>
-      </div>
+        </div>
+      </details>
       {s.state === "uploading" && (
         <div className="rounded-xl border border-[var(--line)] bg-surface px-6 py-8 flex flex-col items-center gap-4">
           <RefreshCw className="size-8 text-[var(--accent)] animate-spin" />

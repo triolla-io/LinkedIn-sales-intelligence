@@ -49,7 +49,7 @@ interface ContactTableProps {
 }
 
 const SENIORITY_CHIP_COLOR: Record<string, "warning" | "accent" | "success" | "default"> = {
-  C_LEVEL: "warning",
+  C_LEVEL: "accent",
   VP: "accent",
   DIRECTOR: "accent",
   MANAGER: "success",

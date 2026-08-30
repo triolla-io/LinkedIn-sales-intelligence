@@ -165,6 +165,27 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
 
       {/* ---------- ניווט ---------- */}
       <nav className="flex-1 overflow-y-auto px-2.5 py-3">
+        {/* פתח לפלטת הפקודות. גם הרמז היחיד לכך ש-⌘K קיים. */}
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event("leadflow:open-palette"))}
+          title="חיפוש ומעבר מהיר (⌘K)"
+          aria-label="חיפוש ומעבר מהיר"
+          className={cn(
+            "fv-ring mb-2 flex w-full items-center rounded-lg border border-[var(--line)] bg-[var(--background)] text-sm text-[var(--faint)] transition-colors hover:border-[var(--accent)]/40 hover:text-[var(--muted)]",
+            collapsed ? "justify-center p-2" : "gap-2 px-2.5 py-1.5",
+          )}
+        >
+          <Search className="size-3.5 shrink-0" />
+          {!collapsed && (
+            <>
+              <span>חיפוש</span>
+              <kbd className="type-num ms-auto rounded border border-[var(--line)] bg-[var(--surface)] px-1.5 py-0.5 text-[10px] text-[var(--faint)]">
+                ⌘K
+              </kbd>
+            </>
+          )}
+        </button>
         <div className={cn("mb-2 flex items-center", collapsed ? "justify-center" : "justify-end")}>
           <button
             type="button"
