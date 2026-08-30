@@ -9,6 +9,7 @@ import { queueNextConnect, releaseConnectSlot, stampWarmupStart, SEARCH_FAIL_CAP
 import type { ScrapedCard } from "@/lib/prospecting/filter";
 import { buildSearchUrl, parseSearchTitles } from "@/lib/prospecting/search-url";
 import { logProspectingEvent } from "@/lib/prospecting/events";
+import { ingestScrapedPosts } from "@/lib/post-comments/ingest";
 import {
   buildCompanySearchUrl,
   enqueueCompanySearchTask,
@@ -58,6 +59,14 @@ export async function extensionTaskResultHandler({ event }: any) {
     await handleScrapeProfile(task);
   } else if (task.kind === "SCRAPE_PROFILE" && task.status === "FAILED") {
     await markScrapeProfileChecked(task);
+  } else if (task.kind === "SCRAPE_POSTS" && task.status === "DONE") {
+    await ingestScrapedPosts(task);
+  } else if (task.kind === "PREPARE_COMMENT") {
+    if (task.status === "DONE") {
+      await handlePrepareSuccess(task);
+    } else if (task.status === "FAILED") {
+      await handlePrepareFailure(task);
+    }
   }
 }
 
@@ -264,6 +273,13 @@ async function handlePrepareSuccess(task: TaskRow) {
       where: { id: task.radarDraftId, status: "PREPARING" },
       data: { status: "PREPARED" },
     });
+    return;
+  }
+  if (task.postCommentDraftId) {
+    await prisma.postCommentDraft.updateMany({
+      where: { id: task.postCommentDraftId, status: "PREPARING" },
+      data: { status: "PREPARED" },
+    });
   }
 }
 
@@ -304,6 +320,13 @@ async function handlePrepareFailure(task: TaskRow) {
   if (task.radarDraftId) {
     await prisma.radarDraft.updateMany({
       where: { id: task.radarDraftId, status: "PREPARING" },
+      data: { status: "PENDING_REVIEW" },
+    });
+    return;
+  }
+  if (task.postCommentDraftId) {
+    await prisma.postCommentDraft.updateMany({
+      where: { id: task.postCommentDraftId, status: "PREPARING" },
       data: { status: "PENDING_REVIEW" },
     });
   }
