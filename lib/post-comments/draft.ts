@@ -112,8 +112,18 @@ export async function draftPostComment(input: CommentDraftInput): Promise<string
     const violations = enforceCommentRules(first);
     if (violations.length === 0) return first;
     const repaired = await callModel(input, violations.join(", "));
-    if (repaired && enforceCommentRules(repaired).length === 0) return repaired;
-    throw new PostCommentGuardError(violations);
+    // `repaired === null` means the repair CALL itself produced nothing usable (timeout,
+    // 5xx, ok:false) — transient, same as the "nothing usable" path below, not a guard
+    // rejection. Only once we actually have repair text do we ask whether IT passes the
+    // guard; if not, that text's own violations are what a caller should see, since they
+    // describe what was actually rejected last, not the (possibly different) reason the
+    // first attempt failed.
+    if (repaired === null) {
+      throw new Error("post-comment draft failed: repair attempt returned nothing usable");
+    }
+    const repairedViolations = enforceCommentRules(repaired);
+    if (repairedViolations.length === 0) return repaired;
+    throw new PostCommentGuardError(repairedViolations);
   }
   const second = await callModel(input, "empty_or_unparseable");
   if (second && enforceCommentRules(second).length === 0) return second;

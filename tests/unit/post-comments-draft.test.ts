@@ -74,12 +74,15 @@ describe("draftPostComment", () => {
     mockOpenrouterChat.mockReset();
   });
 
-  it("throws PostCommentGuardError (not a plain Error) when the model's text never passes the guard, even after the repair retry", async () => {
-    // Both the first attempt and the repair attempt return parseable text that violates
-    // the guard (an emoji) — this is the "model answered, guard said no" path.
+  it("throws PostCommentGuardError carrying the REPAIR attempt's violations (not the first attempt's) when both attempts produce text but neither passes the guard", async () => {
+    // Deliberately give the two attempts DIFFERENT violation types (emoji vs. banned word)
+    // so the assertion can only pass if the thrown error's `violations` come from the
+    // repair attempt, not carried over from the first.
     mockOpenrouterChat
-      .mockResolvedValueOnce(chatResponse(JSON.stringify({ comment: "מעולה 🚀" })))
-      .mockResolvedValueOnce(chatResponse(JSON.stringify({ comment: "עדיין מעולה 🚀" })));
+      .mockResolvedValueOnce(chatResponse(JSON.stringify({ comment: "מעולה 🚀" }))) // emoji
+      .mockResolvedValueOnce(
+        chatResponse(JSON.stringify({ comment: "זה פוסט מרגש מאוד" })) // banned_word, no emoji
+      );
 
     const err: unknown = await draftPostComment({ fullName: "Dana", postText: "post" }).catch(
       (e) => e
@@ -87,11 +90,31 @@ describe("draftPostComment", () => {
 
     expect(err).toBeInstanceOf(PostCommentGuardError);
     expect(err).toBeInstanceOf(Error);
-    expect((err as PostCommentGuardError).violations).toContain("emoji");
+    expect((err as PostCommentGuardError).violations).toContain("banned_word");
+    expect((err as PostCommentGuardError).violations).not.toContain("emoji");
     expect(mockOpenrouterChat).toHaveBeenCalledTimes(2);
   });
 
-  it("throws a plain Error, NOT a PostCommentGuardError, when no usable response arrives at all", async () => {
+  it("throws a plain Error, NOT a PostCommentGuardError, when the REPAIR call itself fails transiently (not because its text violated the guard)", async () => {
+    // First attempt produces guard-violating text; the repair call comes back with a
+    // transient failure (timeout/5xx/ok:false) rather than more text at all. This must NOT
+    // be folded into the first attempt's guard violations and reported as permanent — it's
+    // the exact ambiguity round 1 left open (repaired === null for two different reasons).
+    // Written so it fails if the two null-reasons are ever collapsed back together.
+    mockOpenrouterChat
+      .mockResolvedValueOnce(chatResponse(JSON.stringify({ comment: "מעולה 🚀" })))
+      .mockResolvedValueOnce(chatFailure());
+
+    const err: unknown = await draftPostComment({ fullName: "Dana", postText: "post" }).catch(
+      (e) => e
+    );
+
+    expect(err).toBeInstanceOf(Error);
+    expect(err).not.toBeInstanceOf(PostCommentGuardError);
+    expect(mockOpenrouterChat).toHaveBeenCalledTimes(2);
+  });
+
+  it("throws a plain Error, NOT a PostCommentGuardError, when no usable response arrives at all (first attempt itself fails)", async () => {
     // Both attempts fail to produce anything parseable at all (timeout/5xx/ok:false) —
     // this is the transient "no usable response" path, which must stay retriable.
     mockOpenrouterChat.mockResolvedValueOnce(chatFailure()).mockResolvedValueOnce(chatFailure());
