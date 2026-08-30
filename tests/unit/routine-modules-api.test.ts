@@ -50,6 +50,7 @@ describe("/api/routine/modules", () => {
       companySignalsEnabled: false,
       fintechRadarEnabled: false,
       techRadarEnabled: false,
+      postCommentsEnabled: false,
     });
   });
 
