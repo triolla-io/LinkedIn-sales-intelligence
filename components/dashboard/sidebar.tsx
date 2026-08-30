@@ -22,7 +22,7 @@ import { cn } from "@/lib/cn";
  *
  * המבנה: חמישה יעדים ראשיים. תת-היעדים של קבוצה נחשפים רק כשנמצאים בתוכה
  * (progressive disclosure) — כך שום דבר לא נעלם, אבל רואים 5–8 פריטים
- * במקום 14. "חדר המכונות" צבוע גרפיט כי המעבר אליו הוא מעבר עולם.
+ * במקום 14. "אוטומציות" מופרדת בקו — הכניסה אליה היא דף מבט-על, לא מסך כיול.
  */
 
 interface SidebarProps {
@@ -40,7 +40,7 @@ export type NavGroup = {
   /** כל תחילית שמסמנת "אנחנו בתוך הקבוצה הזאת" */
   match: string[];
   children?: NavChild[];
-  /** קבוצת חדר המכונות — קרקע גרפיט */
+  /** קבוצת האוטומציות — מופרדת ויזואלית מהיעדים היומיומיים */
   machine?: boolean;
   /** מציג את מונה ההודעות הממתינות */
   badge?: "approvals";
@@ -80,12 +80,13 @@ export const GROUPS: NavGroup[] = [
   },
   {
     key: "machine",
-    href: "/routine/radar?tab=decisions",
-    label: "חדר המכונות",
+    href: "/routine",
+    label: "אוטומציות",
     icon: Wrench,
     machine: true,
     match: ["/routine", "/import"],
     children: [
+      { href: "/routine", label: "מבט-על", icon: Wrench },
       { href: "/routine/radar?tab=decisions", label: "מסלול ההחלטות", icon: RouteIcon },
       { href: "/routine/connections", label: "בקשות חברות", icon: Search },
       { href: "/routine/job-changes", label: "עדכוני משתמשים", icon: PartyPopper },

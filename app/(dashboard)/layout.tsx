@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ExtensionBanner } from "@/components/extension-banner";
 import { EnrichmentProgressBar } from "@/components/dashboard/enrichment-progress-bar";
 import { EnrichmentSummaryModal } from "@/components/dashboard/enrichment-summary-modal";
+import { PmBridgeWidget } from "@/components/pm-bridge-widget";
 
 export default async function DashboardLayout({
   children,
@@ -61,6 +62,7 @@ export default async function DashboardLayout({
       <CommandPalette />
       <Toaster />
       <EnrichmentSummaryModal />
+      <PmBridgeWidget />
     </div>
   );
 }
