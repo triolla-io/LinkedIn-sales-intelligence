@@ -1,23 +1,17 @@
 import type { Metadata } from "next";
-import { Assistant, Frank_Ruhl_Libre, Geist_Mono } from "next/font/google";
+import { Assistant, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { StagingBanner } from "@/components/staging-banner";
 
-// גוף הממשק — Assistant: פנים עברית ניטרלית, קריאה בצפיפות גבוהה
+// משפחה אחת לכל הממשק — Assistant. ההיררכיה מגיעה ממשקל וגודל,
+// לא מהחלפת פנים. 800 שמור לכותרת הפתיח.
 const assistant = Assistant({
   variable: "--font-assistant",
   subsets: ["latin", "hebrew"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-// תצוגה — Frank Ruhl Libre: הסריף שנותן לפתיח הנרטיבי קול של מכתב, לא של מערכת
-const frankRuhl = Frank_Ruhl_Libre({
-  variable: "--font-frank-ruhl",
-  subsets: ["latin", "hebrew"],
-  weight: ["500", "700", "800", "900"],
-  display: "swap",
-});
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -38,7 +32,7 @@ export default function RootLayout({
     <html
       lang="he"
       dir="rtl"
-      className={`${assistant.variable} ${frankRuhl.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${assistant.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <StagingBanner />
