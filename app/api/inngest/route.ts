@@ -35,6 +35,8 @@ import { techRadarPersonScan } from "@/inngest/functions/tech-radar-person-scan"
 import { techRadarRunMarked } from "@/inngest/functions/tech-radar-run-marked";
 import { techRadarDraft } from "@/inngest/functions/tech-radar-draft";
 import { postCommentsDraft } from "@/inngest/functions/post-comments-draft";
+import { postCommentsTick } from "@/inngest/functions/post-comments-tick";
+import { postCommentsDispatchOnEnable } from "@/inngest/functions/post-comments-dispatch";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -76,5 +78,7 @@ export const { GET, POST, PUT } = serve({
     radarJudge,
     techRadarDraft,
     postCommentsDraft,
+    postCommentsTick,
+    postCommentsDispatchOnEnable,
   ],
 });

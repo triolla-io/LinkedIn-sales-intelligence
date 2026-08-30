@@ -63,6 +63,8 @@ Use HeroUI (`@heroui/react`) for all React components.
 | `radar.judge` | manual — rank + veto + draft on AxisMatch rows that already exist. No search, no triage: ~$0.10 vs ~$1 for a full scan, which is what makes tuning the judgement affordable | `inngest/functions/radar-judge.ts` |
 | `radar.person-scan` | manual (pilot) — person-outward run: marked people → their axes → queries from axes → per-axis fit → veto → one draft | `inngest/functions/tech-radar-person-scan.ts` |
 | `tech-radar.run-marked` | person-first run: employers of hand-marked contacts → research → wait → scan. No manual company entry. | `inngest/functions/tech-radar-run-marked.ts` |
+| *(cron 0 8 \* \* \*)* | daily post-comments scan — SCRAPE_POSTS for watched connections (extension, no API spend) | `inngest/functions/post-comments-tick.ts` |
+| `post-comments.enabled` | "תגובות לפוסטים" module toggled ON (kick-on-enable dispatch) | `inngest/functions/post-comments-dispatch.ts` |
 | `post-comments.draft` | per new fresh post of a watched person, emitted by the SCRAPE_POSTS ingest | `inngest/functions/post-comments-draft.ts` |
 
 ## Temporary env overrides (remove on the stated date)

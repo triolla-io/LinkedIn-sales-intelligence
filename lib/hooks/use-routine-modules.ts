@@ -9,8 +9,15 @@ export type RoutineModules = {
   companySignalsEnabled: boolean;
   fintechRadarEnabled: boolean;
   techRadarEnabled: boolean;
+  postCommentsEnabled: boolean;
 };
-export type RoutineModuleKey = "connections" | "jobChecks" | "companySignals" | "fintechRadar" | "techRadar";
+export type RoutineModuleKey =
+  | "connections"
+  | "jobChecks"
+  | "companySignals"
+  | "fintechRadar"
+  | "techRadar"
+  | "postComments";
 
 const MODULE_STATE_KEY: Record<RoutineModuleKey, keyof RoutineModules> = {
   connections: "connectionsEnabled",
@@ -18,6 +25,7 @@ const MODULE_STATE_KEY: Record<RoutineModuleKey, keyof RoutineModules> = {
   companySignals: "companySignalsEnabled",
   fintechRadar: "fintechRadarEnabled",
   techRadar: "techRadarEnabled",
+  postComments: "postCommentsEnabled",
 };
 
 

@@ -1,7 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { inngest } from "@/inngest/client";
 
-export type RoutineModuleKey = "connections" | "jobChecks" | "companySignals" | "fintechRadar" | "techRadar";
+export type RoutineModuleKey =
+  | "connections"
+  | "jobChecks"
+  | "companySignals"
+  | "fintechRadar"
+  | "techRadar"
+  | "postComments";
 
 export type RoutineModuleState = {
   connectionsEnabled: boolean;
@@ -9,6 +15,7 @@ export type RoutineModuleState = {
   companySignalsEnabled: boolean;
   fintechRadarEnabled: boolean;
   techRadarEnabled: boolean;
+  postCommentsEnabled: boolean;
 };
 
 /** connections is per-user; every other module is per-org. */
@@ -23,6 +30,7 @@ export async function getRoutineModuleState(userId: string): Promise<RoutineModu
           companySignalsEnabled: true,
           fintechRadarEnabled: true,
           techRadarEnabled: true,
+          postCommentsEnabled: true,
         },
       },
     },
@@ -33,6 +41,7 @@ export async function getRoutineModuleState(userId: string): Promise<RoutineModu
     companySignalsEnabled: user?.org.companySignalsEnabled ?? false,
     fintechRadarEnabled: user?.org.fintechRadarEnabled ?? false,
     techRadarEnabled: user?.org.techRadarEnabled ?? false,
+    postCommentsEnabled: user?.org.postCommentsEnabled ?? false,
   };
 }
 
@@ -68,6 +77,15 @@ export async function setRoutineModule(
     // Kick-on-enable: fetch news + dispatch matching for this org immediately instead of waiting for the weekly cron.
     if (enabled) {
       await inngest.send({ name: "fintech.radar.enabled" as const, data: { orgId: user.orgId } });
+    }
+    return;
+  }
+  if (module === "postComments") {
+    await prisma.organization.update({ where: { id: user.orgId }, data: { postCommentsEnabled: enabled } });
+    // Kick-on-enable: dispatch a first scan batch immediately for this org instead of
+    // waiting for the daily cron.
+    if (enabled) {
+      await inngest.send({ name: "post-comments.enabled" as const, data: { orgId: user.orgId } });
     }
     return;
   }
