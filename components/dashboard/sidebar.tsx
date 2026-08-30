@@ -6,11 +6,12 @@ import Image from "next/image";
 import useSWR from "swr";
 import { signOut } from "next-auth/react";
 import {
-  Users, FileText, LogOut, Upload, BookMarked, GitBranch, ChevronLeft, ChevronRight,
+  Users, FileText, LogOut, BookMarked, GitBranch, ChevronLeft, ChevronRight,
   Settings, Search, PartyPopper, Sparkles, Newspaper, Radar, Sun, Send, Wrench, Shield,
   Route as RouteIcon, Contact, MessageSquareText,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { LinkedLogo, LinkedMark } from "@/components/ui/logo";
 
 /**
  * הניווט — 12 פריטים שטוחים הפכו לחמישה.
@@ -84,7 +85,7 @@ export const GROUPS: NavGroup[] = [
     label: "אוטומציות",
     icon: Wrench,
     machine: true,
-    match: ["/routine", "/import"],
+    match: ["/routine"],
     children: [
       { href: "/routine", label: "מבט-על", icon: Wrench },
       { href: "/routine/radar?tab=decisions", label: "מסלול ההחלטות", icon: RouteIcon },
@@ -94,7 +95,6 @@ export const GROUPS: NavGroup[] = [
       { href: "/routine/fintech-radar", label: "ראדאר פינטק", icon: Newspaper },
       { href: "/routine/tech-radar", label: "ראדאר טכנולוגי", icon: Radar },
       { href: "/routine/post-comments", label: "תגובות לפוסטים", icon: MessageSquareText },
-      { href: "/import", label: "ייבוא נתונים", icon: Upload },
     ],
   },
   { key: "settings", href: "/settings", label: "הגדרות", icon: Settings, match: ["/settings"] },
@@ -132,19 +132,16 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
     if (pathOf(href) !== pathname) return false;
     const t = tabOf(href);
     if (!t) return true;
-    return (currentTab ?? "approvals") === t;
+    return (currentTab ?? "people") === t;
   };
 
   const groupActive = (g: NavGroup) => {
-    if (g.key === "today") {
-      // "היום" תופס גם את הדשבורד הישן וגם את טאב האישורים
-      return pathname === "/dashboard" || (pathname === "/routine/radar" && (currentTab ?? "approvals") === "approvals");
-    }
+    if (g.key === "today") return pathname === "/dashboard";
     if (g.key === "machine") {
       if (pathname === "/routine/radar") return currentTab === "decisions";
       return g.match.some((m) => pathname.startsWith(m));
     }
-    if (g.key === "people" && pathname === "/routine/radar") return currentTab === "people";
+    if (g.key === "people" && pathname === "/routine/radar") return currentTab !== "decisions";
     return g.match.some((m) => pathname.startsWith(m));
   };
 
@@ -152,17 +149,13 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
     <aside className="flex h-full flex-col overflow-hidden border-s border-[var(--line)] bg-[var(--surface)]">
       {/* ---------- מותג ---------- */}
       <div className={cn("shrink-0 border-b border-[var(--line)]", collapsed ? "flex justify-center px-3 py-4" : "px-4 py-4")}>
-        <div className={cn("flex items-center gap-2.5", collapsed && "justify-center")}>
-          <span className="relative grid size-7 shrink-0 place-items-center">
-            <span className="absolute inset-0 rounded-full bg-[var(--accent-soft)]" />
-            <span className="relative size-2.5 rounded-full bg-[var(--accent)]" />
+        {collapsed ? (
+          <span className="grid size-7 place-items-center text-[var(--foreground)]">
+            <LinkedMark className="h-[18px] w-auto" />
           </span>
-          {!collapsed && (
-            <span className="font-display whitespace-nowrap text-[17px] font-bold tracking-tight text-[var(--foreground)]">
-              LeadFlow
-            </span>
-          )}
-        </div>
+        ) : (
+          <LinkedLogo markClassName="h-[22px] w-auto" />
+        )}
       </div>
 
       {/* ---------- ניווט ---------- */}
@@ -170,7 +163,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
         {/* פתח לפלטת הפקודות. גם הרמז היחיד לכך ש-⌘K קיים. */}
         <button
           type="button"
-          onClick={() => window.dispatchEvent(new Event("leadflow:open-palette"))}
+          onClick={() => window.dispatchEvent(new Event("linked:open-palette"))}
           title="חיפוש ומעבר מהיר (⌘K)"
           aria-label="חיפוש ומעבר מהיר"
           className={cn(

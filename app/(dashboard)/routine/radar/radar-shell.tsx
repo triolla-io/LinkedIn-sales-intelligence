@@ -1,23 +1,23 @@
 "use client";
 
+import { useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { ApprovalsTab } from "./approvals-tab";
 import { PeopleTab } from "./people-tab";
 import { DecisionsTab } from "./decisions-tab";
 
 /**
- * הקליפה של /routine/radar. אותו דאטה, שני סיפורים.
+ * הקליפה של /routine/radar — שני טאבים: אנשים ומסלול ההחלטות.
  *
- * שני הטאבים הראשונים הם העולם של יובל — החלטות ואנשים.
- * "מסלול ההחלטות" הוא חדר המכונות. הוא נשאר מובחן, אבל בתוך עולם בהיר:
- * נייר עמוק יותר במקצת במקום היפוך לקרקע כהה.
+ * "לאישור שלך" כבר לא גר כאן: מסך הבית ("היום") הוא-הוא תור האישורים,
+ * וכשהטאב הזה חי גם כאן, לחיצה על "ראדאר קשרים" נחתה על תוכן שנראה
+ * זהה לעמוד הבית — והרגישה כמו באג. לינקים ישנים ל-?tab=approvals
+ * מופנים הביתה, ששם התוכן הזה באמת גר.
  *
  * הטאב הפעיל חי ב-?tab= כדי שלינק יוכל לנחות בכל מקום.
  */
 
 const TABS = [
-  { key: "approvals", label: "לאישור שלך" },
   { key: "people", label: "אנשים" },
   { key: "decisions", label: "מסלול ההחלטות" },
 ] as const;
@@ -28,8 +28,14 @@ export function RadarShell() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const raw = searchParams.get("tab");
-  const tab: TabKey = TABS.some((t) => t.key === raw) ? (raw as TabKey) : "approvals";
+  const legacyApprovals = raw === "approvals";
+  const tab: TabKey = TABS.some((t) => t.key === raw) ? (raw as TabKey) : "people";
   const machine = tab === "decisions";
+
+  useEffect(() => {
+    if (legacyApprovals) router.replace("/dashboard");
+  }, [legacyApprovals, router]);
+  if (legacyApprovals) return null;
 
   return (
     <div
@@ -76,7 +82,6 @@ export function RadarShell() {
           </nav>
         </header>
 
-        {tab === "approvals" && <ApprovalsTab />}
         {tab === "people" && <PeopleTab />}
         {tab === "decisions" && <DecisionsTab />}
       </div>
