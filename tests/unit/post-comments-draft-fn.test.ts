@@ -8,7 +8,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Task 3's test of lib/post-comments/draft.ts's pure guard/parse helpers — this file tests
 // the Inngest function's decision logic instead.
 
-const { FakePrismaClientKnownRequestError } = vi.hoisted(() => {
+// FakePostCommentGuardError stands in for the real lib/post-comments/draft.ts export: the
+// Inngest function does `e instanceof PostCommentGuardError`, so the mocked module must
+// export the SAME class reference the function imports — a lookalike class or a message
+// substring match would not exercise the real narrowing logic at all.
+const { FakePrismaClientKnownRequestError, FakePostCommentGuardError } = vi.hoisted(() => {
   class FakePrismaClientKnownRequestError extends Error {
     code: string;
     constructor(message: string, code: string) {
@@ -16,7 +20,14 @@ const { FakePrismaClientKnownRequestError } = vi.hoisted(() => {
       this.code = code;
     }
   }
-  return { FakePrismaClientKnownRequestError };
+  class FakePostCommentGuardError extends Error {
+    violations: string[];
+    constructor(violations: string[]) {
+      super(`post-comment draft failed guard: ${violations.join(",")}`);
+      this.violations = violations;
+    }
+  }
+  return { FakePrismaClientKnownRequestError, FakePostCommentGuardError };
 });
 
 const mockFindUnique = vi.fn();
@@ -37,6 +48,7 @@ vi.mock("@/lib/generated/prisma/client", () => ({
 }));
 vi.mock("@/lib/post-comments/draft", () => ({
   draftPostComment: (...a: unknown[]) => mockDraftPostComment(...a),
+  PostCommentGuardError: FakePostCommentGuardError,
 }));
 
 const { postCommentsDraft } = await import("@/inngest/functions/post-comments-draft");
@@ -94,6 +106,7 @@ describe("post-comments-draft handler", () => {
       fullName: "Dana Cohen",
       postText: "some post text",
     });
+    // `status` is intentionally omitted here — the schema default (PENDING_REVIEW) applies.
     expect(mockCreate).toHaveBeenCalledWith({
       data: {
         postId: "post1",
@@ -125,13 +138,43 @@ describe("post-comments-draft handler", () => {
     ).rejects.toThrow("connection reset");
   });
 
-  it("propagates a guard failure from draftPostComment (no draft row is created)", async () => {
+  it("records a PostCommentGuardError as a DISMISSED row (draft_failed) instead of retrying", async () => {
+    // The guard rejected the model's text even after its own internal repair retry — this
+    // is permanent, so it must be recorded once and removed from Task 7's
+    // `drafts: { none: {} }` candidate set, not left to be re-selected on every future
+    // ingest for as long as the post stays inside the freshness window.
     mockFindUnique.mockResolvedValue(POST);
-    mockDraftPostComment.mockRejectedValue(new Error("post-comment draft failed guard: too_long"));
+    mockDraftPostComment.mockRejectedValue(new FakePostCommentGuardError(["too_long"]));
+    mockCreate.mockResolvedValue({ id: "draft1" });
+
+    const result = await handler({ event: { data: { postId: "post1" } }, step: fakeStep() });
+
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    expect(mockCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        postId: "post1",
+        contactId: "c1",
+        ownerId: "o1",
+        status: "DISMISSED",
+        dismissReason: "draft_failed",
+      }),
+    });
+    expect(result).toEqual({ skipped: "draft_failed" });
+  });
+
+  // Deliberately asserts BOTH halves (no row + does reject) so this fails loudly if a
+  // future edit widens the catch beyond `instanceof PostCommentGuardError` — e.g. to catch
+  // every Error — which would silently and permanently dismiss drafts during a transient
+  // OpenRouter outage instead of letting Inngest retry them tomorrow.
+  it("does NOT create a row for a plain Error (transient outage) and lets it propagate so Inngest retries", async () => {
+    mockFindUnique.mockResolvedValue(POST);
+    mockDraftPostComment.mockRejectedValue(
+      new Error("post-comment draft failed: model returned nothing usable")
+    );
 
     await expect(
       handler({ event: { data: { postId: "post1" } }, step: fakeStep() })
-    ).rejects.toThrow("post-comment draft failed guard");
+    ).rejects.toThrow("model returned nothing usable");
     expect(mockCreate).not.toHaveBeenCalled();
   });
 });

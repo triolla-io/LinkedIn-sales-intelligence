@@ -1,5 +1,26 @@
-import { describe, expect, it } from "vitest";
-import { COMMENT_SYSTEM, enforceCommentRules, parseCommentJson } from "@/lib/post-comments/draft";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+import {
+  COMMENT_SYSTEM,
+  enforceCommentRules,
+  parseCommentJson,
+  draftPostComment,
+  PostCommentGuardError,
+} from "@/lib/post-comments/draft";
+
+// draftPostComment goes through openrouterChat — mock the central client directly rather
+// than stubbing fetch, so these tests exercise draftPostComment's own guard/retry branching
+// without also re-testing the client's kill-switch/budget/network plumbing.
+const mockOpenrouterChat = vi.fn();
+vi.mock("@/lib/openrouter/client", () => ({
+  openrouterChat: (...a: unknown[]) => mockOpenrouterChat(...a),
+}));
+
+function chatResponse(content: string) {
+  return { ok: true, status: 200, data: { choices: [{ message: { content } }] } };
+}
+function chatFailure() {
+  return { ok: false, status: 500, detail: "boom" };
+}
 
 describe("enforceCommentRules", () => {
   it("accepts a short casual hebrew comment", () => {
@@ -45,6 +66,54 @@ describe("parseCommentJson", () => {
   it("returns null on garbage", () => {
     expect(parseCommentJson("not json")).toBeNull();
     expect(parseCommentJson('{"other":1}')).toBeNull();
+  });
+});
+
+describe("draftPostComment", () => {
+  beforeEach(() => {
+    mockOpenrouterChat.mockReset();
+  });
+
+  it("throws PostCommentGuardError (not a plain Error) when the model's text never passes the guard, even after the repair retry", async () => {
+    // Both the first attempt and the repair attempt return parseable text that violates
+    // the guard (an emoji) — this is the "model answered, guard said no" path.
+    mockOpenrouterChat
+      .mockResolvedValueOnce(chatResponse(JSON.stringify({ comment: "מעולה 🚀" })))
+      .mockResolvedValueOnce(chatResponse(JSON.stringify({ comment: "עדיין מעולה 🚀" })));
+
+    const err: unknown = await draftPostComment({ fullName: "Dana", postText: "post" }).catch(
+      (e) => e
+    );
+
+    expect(err).toBeInstanceOf(PostCommentGuardError);
+    expect(err).toBeInstanceOf(Error);
+    expect((err as PostCommentGuardError).violations).toContain("emoji");
+    expect(mockOpenrouterChat).toHaveBeenCalledTimes(2);
+  });
+
+  it("throws a plain Error, NOT a PostCommentGuardError, when no usable response arrives at all", async () => {
+    // Both attempts fail to produce anything parseable at all (timeout/5xx/ok:false) —
+    // this is the transient "no usable response" path, which must stay retriable.
+    mockOpenrouterChat.mockResolvedValueOnce(chatFailure()).mockResolvedValueOnce(chatFailure());
+
+    const err: unknown = await draftPostComment({ fullName: "Dana", postText: "post" }).catch(
+      (e) => e
+    );
+
+    expect(err).toBeInstanceOf(Error);
+    expect(err).not.toBeInstanceOf(PostCommentGuardError);
+    expect(mockOpenrouterChat).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns the comment on a clean first pass without needing a repair call", async () => {
+    mockOpenrouterChat.mockResolvedValueOnce(
+      chatResponse(JSON.stringify({ comment: "סחטיין על הנקודה הזאת" }))
+    );
+
+    const comment = await draftPostComment({ fullName: "Dana", postText: "post" });
+
+    expect(comment).toBe("סחטיין על הנקודה הזאת");
+    expect(mockOpenrouterChat).toHaveBeenCalledTimes(1);
   });
 });
 

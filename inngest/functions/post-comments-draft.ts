@@ -1,7 +1,7 @@
 import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
-import { draftPostComment } from "@/lib/post-comments/draft";
+import { draftPostComment, PostCommentGuardError } from "@/lib/post-comments/draft";
 
 /**
  * Draft ONE comment for ONE fresh post, per `post-comments.draft` (Task 7's ingest emits
@@ -15,10 +15,38 @@ import { draftPostComment } from "@/lib/post-comments/draft";
  * returns `already_drafted` BEFORE calling the model. Without the key both would pay for an
  * LLM call and only one would win the `postId @unique` constraint on create.
  *
- * The create is still wrapped in try/catch for a P2002 as the last line of defense — e.g. a
+ * Every create below is still wrapped for a P2002 as the last line of defense — e.g. a
  * duplicate event delivered after Inngest's own dedup window, or two different processes
  * racing outside the key's serialization guarantee.
  */
+
+/**
+ * Create the PostCommentDraft row (real draft or a DISMISSED terminal record). Returns
+ * `false` instead of throwing on a P2002 — the row already exists, which this function
+ * treats as "somebody else won the race," not a failure.
+ */
+async function createDraftRow(
+  post: { id: string; contactId: string; ownerId: string },
+  data: { commentText: string; status?: "DISMISSED"; dismissReason?: string }
+): Promise<boolean> {
+  try {
+    await prisma.postCommentDraft.create({
+      data: {
+        postId: post.id,
+        contactId: post.contactId,
+        ownerId: post.ownerId,
+        ...data,
+      },
+    });
+    return true;
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return false;
+    }
+    throw e;
+  }
+}
+
 export const postCommentsDraft = inngest.createFunction(
   {
     id: "post-comments-draft",
@@ -45,29 +73,40 @@ export const postCommentsDraft = inngest.createFunction(
     if (!post) return { skipped: "post_gone" };
     if (post.drafts.length > 0) return { skipped: "already_drafted" };
 
-    const comment = await step.run("draft", () =>
-      draftPostComment({ fullName: post.contact.fullName, postText: post.text })
-    );
-
-    return step.run("save", async () => {
-      try {
-        await prisma.postCommentDraft.create({
-          data: {
-            postId: post.id,
-            contactId: post.contactId,
-            ownerId: post.ownerId,
-            commentText: comment,
-          },
-        });
-        return { drafted: true };
-      } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-          // The concurrency key above should make this unreachable in practice; this is
-          // the last line of defense, not the primary guard against duplicate spend.
-          return { skipped: "already_drafted" };
-        }
-        throw e;
+    let comment: string;
+    try {
+      comment = await step.run("draft", () =>
+        draftPostComment({ fullName: post.contact.fullName, postText: post.text })
+      );
+    } catch (e) {
+      // Only a PostCommentGuardError is terminal-and-recordable: the model answered but
+      // its text could never pass the guard, even after one repair attempt. Retrying that
+      // spends money to reproduce the same rejection, and — because Task 7 re-selects any
+      // post with no draft row every ingest for as long as it stays inside the freshness
+      // window — an unhandled throw here would otherwise cost up to ~6 model calls PER
+      // INGEST for as long as the post stays fresh (~7 daily ingests), not once. Writing a
+      // DISMISSED row removes the post from `drafts: { none: {} }` after this one attempt.
+      //
+      // Anything else (plain Error from "no usable response at all," OpenRouterBlockedError
+      // from the kill-switch/budget) must keep propagating so Inngest retries the whole
+      // function — those are transient, and swallowing them would silently and permanently
+      // drop every draft across every watched person during e.g. an OpenRouter outage.
+      if (e instanceof PostCommentGuardError) {
+        return step.run("dismiss", () =>
+          createDraftRow(post, {
+            commentText: `[guard rejected] ${e.violations.join(", ")}`,
+            status: "DISMISSED",
+            dismissReason: "draft_failed",
+          }).then((created) => ({ skipped: created ? "draft_failed" : "already_drafted" }))
+        );
       }
-    });
+      throw e;
+    }
+
+    return step.run("save", () =>
+      createDraftRow(post, { commentText: comment }).then((created) =>
+        created ? { drafted: true } : { skipped: "already_drafted" }
+      )
+    );
   }
 );

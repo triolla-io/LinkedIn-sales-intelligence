@@ -90,6 +90,21 @@ async function callModel(
   return parseCommentJson(text);
 }
 
+/**
+ * The model answered but its text could not pass the guard, even after one repair
+ * attempt. Terminal: retrying spends money to get the same rejection — a caller should
+ * record this and move on rather than let it feed an Inngest retry loop. Kept distinct
+ * from the plain `Error` thrown below (no usable response arrived at all — a transient
+ * provider hiccup) precisely so a catch site can retry one and not the other without
+ * matching on error message text.
+ */
+export class PostCommentGuardError extends Error {
+  constructor(public readonly violations: string[]) {
+    super(`post-comment draft failed guard: ${violations.join(",")}`);
+    this.name = "PostCommentGuardError";
+  }
+}
+
 /** One guard-driven repair retry, then throw — same contract as draftTechMessage. */
 export async function draftPostComment(input: CommentDraftInput): Promise<string> {
   const first = await callModel(input);
@@ -98,7 +113,7 @@ export async function draftPostComment(input: CommentDraftInput): Promise<string
     if (violations.length === 0) return first;
     const repaired = await callModel(input, violations.join(", "));
     if (repaired && enforceCommentRules(repaired).length === 0) return repaired;
-    throw new Error(`post-comment draft failed guard: ${violations.join(",")}`);
+    throw new PostCommentGuardError(violations);
   }
   const second = await callModel(input, "empty_or_unparseable");
   if (second && enforceCommentRules(second).length === 0) return second;
