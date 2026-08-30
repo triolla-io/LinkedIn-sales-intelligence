@@ -95,75 +95,10 @@
   --brand-linkedin: #0a66c2;
   --brand-whatsapp: #1c8c4d;
 
-  /* ---- Graphite surfaces — חדר המכונות בתוך עמוד בהיר ---- */
-  --graphite-bg: #211e19;
-  --graphite-card: #2a261f;
-  --graphite-line: #3b352b;
-  --graphite-ink: #ede5d8;
 
   /* ---- Elevation — נייר, לא זכוכית ---- */
   --shadow-paper: 0 1px 2px rgba(60, 45, 20, 0.05), 0 1px 3px rgba(60, 45, 20, 0.04);
   --shadow-lift: 0 2px 6px rgba(60, 45, 20, 0.07), 0 8px 24px rgba(60, 45, 20, 0.06);
-}
-
-/* ============================================================================
-   חדר המכונות — גרפיט.
-   מוחל על תת-עץ עם data-theme="dark" (HeroUI מזהה את אותו סלקטור).
-   ============================================================================ */
-.dark,
-[data-theme="dark"] {
-  --paper: #211e19;
-  --background: var(--paper);
-  --foreground: #ede5d8;
-  --ink-strong: #fbf6ee;
-
-  --surface: #2a261f;
-  --surface-foreground: var(--foreground);
-  --surface-secondary: #322d25;
-  --surface-secondary-foreground: var(--foreground);
-  --surface-tertiary: #3b352b;
-  --surface-tertiary-foreground: var(--foreground);
-  --overlay: #2a261f;
-  --overlay-foreground: var(--foreground);
-
-  --muted: #a3988a;
-  --faint: #7d7365;
-
-  --line: #3b352b;
-  --border: var(--line);
-  --separator: #342f27;
-
-  --accent: #5cb897;
-  --accent-foreground: #12241d;
-  --accent-soft: #28382f;
-  --accent-strong: #7fcdae;
-
-  --success: #6fbe8c;
-  --success-foreground: #12241d;
-  --success-soft: #23352a;
-  --warning: #d6a254;
-  --warning-foreground: #241c10;
-  --warning-soft: #37301f;
-  --danger: #d97c66;
-  --danger-foreground: #2a1712;
-  --danger-soft: #3a241e;
-  --neutral-soft: #322d25;
-
-  --field-background: #322d25;
-  --field-foreground: var(--foreground);
-  --field-placeholder: var(--faint);
-  --field-border: var(--line);
-
-  --default: #322d25;
-  --default-foreground: var(--foreground);
-  --segment: #2a261f;
-  --segment-foreground: var(--foreground);
-
-  --brand-linkedin: #4d9fe0;
-  --brand-whatsapp: #4fbe80;
-
-  --shadow-paper: 0 1px 2px rgba(0, 0, 0, 0.35);
-  --shadow-lift: 0 4px 16px rgba(0, 0, 0, 0.45);
 }
 
 /* ============================================================================
@@ -195,10 +130,6 @@
   --color-neutral-soft: var(--neutral-soft);
   --color-brand-linkedin: var(--brand-linkedin);
   --color-brand-whatsapp: var(--brand-whatsapp);
-  --color-graphite-bg: var(--graphite-bg);
-  --color-graphite-card: var(--graphite-card);
-  --color-graphite-line: var(--graphite-line);
-  --color-graphite-ink: var(--graphite-ink);
 
   --font-sans: var(--font-assistant);
   --font-display: var(--font-assistant);

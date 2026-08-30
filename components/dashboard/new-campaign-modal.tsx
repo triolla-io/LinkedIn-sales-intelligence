@@ -143,7 +143,7 @@ export function NewCampaignModal({
               onClick={() => dispatch({ type: "channelSet", value: ch })}
               className={`flex-1 py-1.5 font-medium transition-colors ${
                 form.channel === ch
-                  ? "bg-[var(--foreground)] text-white"
+                  ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
                   : "bg-surface text-[var(--muted)] hover:text-[var(--foreground)]"
               }`}
             >

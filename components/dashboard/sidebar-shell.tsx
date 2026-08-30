@@ -30,7 +30,7 @@ export default function SidebarShell({ user }: SidebarShellProps) {
 
   return (
     <div
-      className="shrink-0 transition-[width] duration-200 ease-in-out"
+      className="hidden shrink-0 transition-[width] duration-200 ease-in-out md:block"
       style={{ width: effective ? 56 : 240 }}
     >
       {/* useSearchParams (הניווט קורא ?tab=) מחייב גבול Suspense */}

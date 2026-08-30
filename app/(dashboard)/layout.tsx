@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import SidebarShell from "@/components/dashboard/sidebar-shell";
+import { MobileNav } from "@/components/dashboard/mobile-nav";
 import ImpersonationBanner from "@/components/dashboard/impersonation-banner";
 import { Toaster } from "@/components/ui/toaster";
 import { ExtensionBanner } from "@/components/extension-banner";
@@ -49,8 +51,12 @@ export default async function DashboardLayout({
         )}
         <ExtensionBanner />
         <EnrichmentProgressBar />
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto pb-[68px] md:pb-0">{children}</main>
       </div>
+      {/* useSearchParams (הפס קורא ?tab=) מחייב גבול Suspense */}
+      <Suspense fallback={null}>
+        <MobileNav />
+      </Suspense>
       <Toaster />
       <EnrichmentSummaryModal />
     </div>

@@ -9,9 +9,9 @@ import { DecisionsTab } from "./decisions-tab";
 /**
  * הקליפה של /routine/radar. אותו דאטה, שני סיפורים.
  *
- * שני הטאבים הראשונים הם העולם של יובל — נייר חם, החלטות, אנשים.
- * "מסלול ההחלטות" הוא חדר המכונות: אותן קומפוננטות ואותו ריווח, קרקע גרפיט.
- * החלפת הקרקע היא הסימן שעברת עולם — לא כותרת שמסבירה את זה.
+ * שני הטאבים הראשונים הם העולם של יובל — החלטות ואנשים.
+ * "מסלול ההחלטות" הוא חדר המכונות. הוא נשאר מובחן, אבל בתוך עולם בהיר:
+ * נייר עמוק יותר במקצת במקום היפוך לקרקע כהה.
  *
  * הטאב הפעיל חי ב-?tab= כדי שלינק יוכל לנחות בכל מקום.
  */
@@ -34,9 +34,10 @@ export function RadarShell() {
   return (
     <div
       dir="rtl"
-      // חדר המכונות מחליף את כל טוקני הצבע לתת-העץ הזה — כולל קומפוננטות HeroUI
-      {...(machine ? { "data-theme": "dark" } : {})}
-      className="min-h-full flex-1 bg-[var(--background)] text-[var(--foreground)] transition-colors"
+      className={cn(
+        "min-h-full flex-1 text-[var(--foreground)] transition-colors",
+        machine ? "bg-[var(--surface-secondary)]" : "bg-[var(--background)]",
+      )}
     >
       <div className="mx-auto max-w-[880px] px-4 pb-20 pt-6 sm:px-6">
         <header className="mb-7 flex flex-wrap items-center justify-between gap-3">

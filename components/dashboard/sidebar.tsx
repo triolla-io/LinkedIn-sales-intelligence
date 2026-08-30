@@ -31,8 +31,8 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
-type NavChild = { href: string; label: string; icon: typeof Users };
-type NavGroup = {
+export type NavChild = { href: string; label: string; icon: typeof Users };
+export type NavGroup = {
   key: string;
   href: string;
   label: string;
@@ -46,7 +46,7 @@ type NavGroup = {
   badge?: "approvals";
 };
 
-const GROUPS: NavGroup[] = [
+export const GROUPS: NavGroup[] = [
   {
     key: "today",
     href: "/dashboard",
@@ -191,10 +191,8 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                   className={cn(
                     "fv-ring relative flex items-center rounded-lg text-sm font-semibold transition-colors",
                     collapsed ? "justify-center p-2" : "gap-2.5 px-2.5 py-2",
-                    active && g.machine && "bg-[var(--graphite-bg)] text-[var(--graphite-ink)]",
-                    active && !g.machine && "bg-[var(--accent)] text-[var(--accent-foreground)]",
-                    !active && g.machine && "text-[var(--muted)] hover:bg-[var(--graphite-bg)]/8 hover:text-[var(--foreground)]",
-                    !active && !g.machine && "text-[var(--muted)] hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)]",
+                    active && "bg-[var(--accent)] text-[var(--accent-foreground)]",
+                    !active && "text-[var(--muted)] hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)]",
                   )}
                 >
                   <Icon className="size-4 shrink-0" />
@@ -225,7 +223,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                   <div
                     className={cn(
                       "mt-1 flex flex-col gap-0.5 border-s-2 ps-2",
-                      g.machine ? "ms-4 border-[var(--graphite-bg)]/20" : "ms-4 border-[var(--line)]",
+                      "ms-4 border-[var(--line)]",
                     )}
                   >
                     {g.children.map((c) => {

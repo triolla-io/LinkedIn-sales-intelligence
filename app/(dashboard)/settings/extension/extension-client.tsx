@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Copy, Check, Download, AlertTriangle } from "lucide-react";
+import { Copy, Check, Download, AlertTriangle , ChevronLeft } from "lucide-react";
 import { ExtensionStatusBadge } from "@/components/extension-status-badge";
 import { isExtensionOutdated } from "@/lib/extension/version";
 
@@ -82,7 +82,7 @@ export function ExtensionClient({
     <div className="p-6 max-w-2xl space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-[var(--foreground)]">
-          Chrome Extension: LinkedIn Sender
+          תוסף השליחה לכרום
         </h1>
         <ExtensionStatusBadge
           lastSeenAt={session?.lastSeenAt ?? null}
@@ -125,8 +125,14 @@ export function ExtensionClient({
         </output>
       )}
 
-      {/* Steps */}
-      <ol className="space-y-6 text-sm">
+      {/* מדריך ההתקנה: תוכן חד-פעמי. מחובר ומעודכן → מקופל.
+          לא מחובר או מיושן → פתוח, כי אז הוא באמת מה שצריך עכשיו. */}
+      <details open={!connected || outdated} className="group">
+        <summary className="fv-ring flex cursor-pointer list-none items-center gap-2 rounded-lg py-2 text-sm font-semibold text-[var(--muted)] hover:text-[var(--foreground)]">
+          <ChevronLeft className="size-4 transition-transform group-open:-rotate-90" />
+          {connected && !outdated ? "הוראות התקנה והחלפת גרסה" : "התקנה — ארבעה שלבים"}
+        </summary>
+      <ol className="space-y-6 text-sm pt-3">
         {/* Step 1 */}
         <li className="flex gap-4">
           <span className="shrink-0 size-7 rounded-full bg-[var(--accent)] text-white text-xs font-bold flex items-center justify-center">
@@ -262,6 +268,7 @@ export function ExtensionClient({
           </div>
         </li>
       </ol>
+      </details>
 
       {/* Revoke */}
       {connected && (
