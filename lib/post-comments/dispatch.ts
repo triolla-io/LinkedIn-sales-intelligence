@@ -58,14 +58,20 @@ export async function dispatchPostScrapes(
   }
   if (toCreate.length === 0) return { created: 0 };
 
+  // An explicit contactIds list means a person just pressed "follow" and is watching the
+  // screen — run now. The spread window exists to keep the DAILY sweep from visiting
+  // every profile the instant the tick fires; applying it to a hand-picked follow would
+  // make the user wait hours for the thing she just asked for.
+  const immediate = (opts.contactIds?.length ?? 0) > 0;
+
   await prisma.extensionTask.createMany({
     data: toCreate.map((c) => ({
       userId: c.ownerId,
       kind: "SCRAPE_POSTS" as const,
       payload: { contactId: c.id, activityUrl: buildActivityUrl(c.linkedinUrl) },
-      // Randomized time within the spread window → visits are spread through the day
-      // instead of all firing the moment the tick runs.
-      scheduledFor: new Date(now + Math.floor(Math.random() * SPREAD_WINDOW_MS)),
+      scheduledFor: immediate
+        ? new Date(now)
+        : new Date(now + Math.floor(Math.random() * SPREAD_WINDOW_MS)),
     })),
   });
   return { created: toCreate.length };

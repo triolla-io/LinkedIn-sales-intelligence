@@ -26,12 +26,19 @@ describe("normalizeUrn", () => {
 });
 
 describe("urls", () => {
-  it("builds the recent-activity url from a profile url", () => {
+  // `shares`, never `all`: the `all` tab also lists posts by OTHER people that this
+  // person liked or commented on, which would produce drafts aimed at strangers' posts.
+  it("builds the shares (own posts) url from a profile url", () => {
     expect(buildActivityUrl("https://www.linkedin.com/in/somebody/")).toBe(
-      "https://www.linkedin.com/in/somebody/recent-activity/all/"
+      "https://www.linkedin.com/in/somebody/recent-activity/shares/"
     );
     expect(buildActivityUrl("https://www.linkedin.com/in/somebody")).toBe(
-      "https://www.linkedin.com/in/somebody/recent-activity/all/"
+      "https://www.linkedin.com/in/somebody/recent-activity/shares/"
+    );
+  });
+  it("never points at the all-activity tab", () => {
+    expect(buildActivityUrl("https://www.linkedin.com/in/somebody")).not.toContain(
+      "/recent-activity/all/"
     );
   });
   it("builds a post permalink from an urn", () => {

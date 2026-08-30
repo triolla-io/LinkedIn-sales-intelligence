@@ -216,6 +216,23 @@ describe("dispatchPostScrapes", () => {
     const data = mockExtensionTaskCreateMany.mock.calls[0][0].data as Array<{
       payload: { activityUrl: string };
     }>;
-    expect(data[0].payload.activityUrl).toBe("https://www.linkedin.com/in/jane/recent-activity/all/");
+    expect(data[0].payload.activityUrl).toBe("https://www.linkedin.com/in/jane/recent-activity/shares/");
+  });
+
+  it("runs a hand-picked follow immediately, without the daily spread window", async () => {
+    orgs.set("o1", { id: "org1", postCommentsEnabled: true });
+    contactsTable = [contact({ id: "c1", ownerId: "o1", linkedinUrl: "https://www.linkedin.com/in/jane" })];
+
+    const before = Date.now();
+    const { dispatchPostScrapes } = await import("@/lib/post-comments/dispatch");
+    await dispatchPostScrapes({ contactIds: ["c1"] });
+    const after = Date.now();
+
+    const data = mockExtensionTaskCreateMany.mock.calls[0][0].data as Array<{
+      scheduledFor: Date;
+    }>;
+    // The user is watching the screen: due now, not hours from now.
+    expect(data[0].scheduledFor.getTime()).toBeGreaterThanOrEqual(before);
+    expect(data[0].scheduledFor.getTime()).toBeLessThanOrEqual(after);
   });
 });

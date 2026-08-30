@@ -19,8 +19,17 @@ export function postUrlFromUrn(urn: string): string {
   return `https://www.linkedin.com/feed/update/${urn}/`;
 }
 
+/**
+ * The person's own posts and reposts — the "Posts" tab, NOT `/recent-activity/all/`.
+ *
+ * `all` is every kind of activity, including posts by other people that this person
+ * merely liked or commented on. Those render as ordinary post cards carrying their own
+ * activity urn, so scraping `all` would draft comments aimed at strangers' posts — the
+ * opposite of "comment on the people I chose". `shares` is the tab that holds only what
+ * they published or shared themselves.
+ */
 export function buildActivityUrl(linkedinUrl: string): string {
-  return `${linkedinUrl.replace(/\/+$/, "")}/recent-activity/all/`;
+  return `${linkedinUrl.replace(/\/+$/, "")}/recent-activity/shares/`;
 }
 
 const MINUTE = 60_000;
