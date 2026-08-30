@@ -8,6 +8,7 @@ const NAV = [
   // Hidden until the Claude/MCP one-click (OAuth) flow ships — page still exists at /settings/mcp.
   // { href: "/settings/mcp", label: "Claude / MCP" }, // שם מוצר — נשאר לטינית
   { href: "/settings/signature", label: "חתימת אימייל" },
+  { href: "/settings/import", label: "ייבוא נתונים" },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {

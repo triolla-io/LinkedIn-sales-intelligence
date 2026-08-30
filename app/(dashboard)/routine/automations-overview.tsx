@@ -4,7 +4,7 @@ import Link from "next/link";
 import useSWR from "swr";
 import { Switch } from "@heroui/react";
 import {
-  Search, PartyPopper, Sparkles, Newspaper, Radar, Route as RouteIcon, Upload,
+  Search, PartyPopper, Sparkles, Newspaper, Radar, Route as RouteIcon,
   ArrowLeft, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -170,17 +170,6 @@ export function AutomationsOverview() {
             <span>
               <b className="font-semibold text-[var(--foreground)]">מסלול ההחלטות</b> — למה כל
               כתבה עברה או נעצרה בדרך לטיוטה
-            </span>
-            <ArrowLeft className="size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
-          </Link>
-          <Link
-            href="/import"
-            className="fv-ring group flex items-center gap-3 rounded-lg px-2 py-2 text-sm text-[var(--muted)] transition-colors hover:text-[var(--accent)]"
-          >
-            <Upload className="size-4 text-[var(--faint)] transition-colors group-hover:text-[var(--accent)]" />
-            <span>
-              <b className="font-semibold text-[var(--foreground)]">ייבוא נתונים</b> — העלאת קובץ
-              הקשרים מלינקדאין
             </span>
             <ArrowLeft className="size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
           </Link>

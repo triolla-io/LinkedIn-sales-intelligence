@@ -25,6 +25,7 @@ const nextConfig: NextConfig = {
       { source: "/prospecting", destination: "/routine/connections", permanent: false },
       { source: "/prospecting/:id", destination: "/routine/connections/:id", permanent: false },
       { source: "/job-changes", destination: "/routine/job-changes", permanent: false },
+      { source: "/import", destination: "/settings/import", permanent: false },
     ];
   },
   images: {
