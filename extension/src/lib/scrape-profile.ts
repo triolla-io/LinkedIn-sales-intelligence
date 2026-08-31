@@ -8,7 +8,7 @@
 import { openTabInAutomationWindow, pageCall, closeAutomationTab, waitForTabLoad, sleep } from "./page";
 
 export type { RawEntry, ExperienceItem } from "./profile-dom";
-import type { RawEntry, ExperienceItem } from "./profile-dom";
+import type { RawEntry, ExperienceItem, EducationItem } from "./profile-dom";
 
 
 /**
@@ -43,6 +43,11 @@ export interface ScrapeProfileResult {
   headline: string | null;
   about: string | null;
   experience: ExperienceItem[];
+  /** Deep scrape (0.7.1). Every field the page reader returns has to be listed here AND
+   *  destructured below, or it is read off LinkedIn and then silently dropped on the way
+   *  to the server — which is exactly what happened to skills and education. */
+  skills: string[];
+  education: EducationItem[];
 }
 
 /**
@@ -67,13 +72,13 @@ export async function scrapeProfile(linkedinUrl: string): Promise<ScrapeProfileR
     // About/Experience render a beat after the topcard — give them the extra time before
     // the (single, now-heavier) read.
     await sleep(800);
-    const { headline, company, about, experience } = await pageCall(tabId, {
+    const { headline, company, about, experience, skills, education } = await pageCall(tabId, {
       kind: "READ_PROFILE_FULL",
     });
     const entries: RawEntry[] =
       headline || company ? [{ title: headline, company, current: true, startDate: "9999-99" }] : [];
     const { title } = parseProfileRole(entries, headline);
-    return { title, company, headline, about, experience };
+    return { title, company, headline, about, experience, skills, education };
   } finally {
     await closeAutomationTab(tabId);
   }

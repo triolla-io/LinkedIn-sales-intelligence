@@ -14,7 +14,7 @@
 
 import type { ScannedButton } from "./buttons";
 import type { ScrapeResult } from "./scrape-search";
-import type { RawEntry, ExperienceItem } from "./profile-dom";
+import type { RawEntry, ExperienceItem, EducationItem } from "./profile-dom";
 import type { ProfileState } from "./dom-detect";
 
 export type PageRequest =
@@ -57,6 +57,8 @@ export interface PageResults {
     company: string | null;
     about: string | null;
     experience: ExperienceItem[];
+    skills: string[];
+    education: EducationItem[];
   };
   EXTRACT_COMPANY: { companyId: string | null; resolvedName: string | null; url: string };
   TOP_COMPANY_RESULTS: Array<{ companyUrl: string; name: string | null }>;

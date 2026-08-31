@@ -16,12 +16,21 @@ export interface ExperienceItem {
   title: string;
   company: string | null;
   dateRange: string | null;
+  description: string | null;
+}
+
+export interface EducationItem {
+  school: string;
+  degree: string | null;
+  field: string | null;
 }
 
 const clean = (s: string | null | undefined): string => (s || "").replace(/\s+/g, " ").trim();
 
 const ABOUT_HEADERS = ["about", "אודות"];
 const EXPERIENCE_HEADERS = ["experience", "ניסיון"];
+const SKILLS_HEADERS = ["skills", "כישורים", "מיומנויות"];
+const EDUCATION_HEADERS = ["education", "השכלה"];
 
 /**
  * Find the <section> whose <h2> text (lowercased/trimmed) is one of `headers`. Same
@@ -93,6 +102,25 @@ const EMPLOYMENT_SUFFIX =
   /\s*[·•]\s*(Full-time|Part-time|Contract|Internship|Freelance|Self[- ]employed|Seasonal|Temporary|משרה מלאה|משרה חלקית|חוזה|פרילנס)\b.*$/i;
 
 /**
+ * The person's own free-text description of one role, which LinkedIn renders as <p> blocks
+ * inside the experience <li> — below the title/company/date lines. We take the LONGEST such
+ * paragraph because the same <li> also carries short <p> chrome (a media caption, a "…see
+ * more" affordance, a skills-used line), and the title itself is a <p> in some renders.
+ * A paragraph whose first ~24 chars hold a year is a date/duration line, not prose.
+ *
+ * Capped at 1500 chars for the same reason readProfileAbout caps at 2000: five of these
+ * cross the page-message bridge in one payload.
+ */
+function entryDescription(li: Element, title: string): string | null {
+  const paragraphs = Array.from(li.querySelectorAll("p"))
+    .map((p) => clean(p.textContent))
+    .filter((t) => t && t !== title && !/\d{4}/.test(t.slice(0, 24)));
+  if (!paragraphs.length) return null;
+  const best = paragraphs.reduce((a, b) => (b.length > a.length ? b : a));
+  return best ? best.slice(0, 1500) : null;
+}
+
+/**
  * Experience section: each role is one <li>. Within it, the title is the first bold/heading
  * line (LinkedIn always bolds the role title, not the company), the company is the next
  * distinct line with the employment-type suffix stripped, and the date range is whichever
@@ -123,10 +151,65 @@ export function readProfileExperience(): ExperienceItem[] {
     const rawCompany = after.find((l) => !/\d{4}/.test(l.text))?.text ?? null;
     const company = rawCompany ? rawCompany.replace(EMPLOYMENT_SUFFIX, "").trim() || null : null;
     const dateLine = lines.find((l) => /\d{4}/.test(l.text)) ?? null;
-    results.push({ title, company, dateRange: dateLine?.text ?? null });
+    results.push({
+      title,
+      company,
+      dateRange: dateLine?.text ?? null,
+      description: entryDescription(li, title),
+    });
     if (results.length >= 5) break;
   }
   return results;
+}
+
+/**
+ * Skills section: one <li> per skill, whose first leaf line is the skill name — the lines
+ * after it are endorsement chrome ("Endorsed by 3 colleagues", the endorser names). Nested
+ * <li>s are those endorser rows, so they are skipped the same way readProfileExperience
+ * skips grouped sub-roles; taking them would file "Endorsed by…" as a skill.
+ *
+ * Capped at 30: a heavily-endorsed profile lists 50+, and the tail is noise (LinkedIn orders
+ * by endorsement count, so the signal is at the top).
+ */
+export function readProfileSkills(): string[] {
+  const section = findSection(SKILLS_HEADERS);
+  if (!section) return [];
+  const skills: string[] = [];
+  const seen = new Set<string>();
+  for (const li of Array.from(section.querySelectorAll("li"))) {
+    if (li.parentElement?.closest("li")) continue;
+    const name = leafLines(li)[0]?.text;
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    skills.push(name);
+    if (skills.length >= 30) break;
+  }
+  return skills;
+}
+
+/**
+ * Education section: one <li> per school. The school is the bold/heading line (LinkedIn
+ * bolds the institution, not the degree — the mirror image of the Experience section, where
+ * the ROLE is bold), and the next distinct line is the degree, which LinkedIn writes as one
+ * combined "Degree, Field of study" string rather than two fields.
+ *
+ * Capped at 5, matching readProfileExperience: this feeds a person model, not a CV.
+ */
+export function readProfileEducation(): EducationItem[] {
+  const section = findSection(EDUCATION_HEADERS);
+  if (!section) return [];
+  const rows: EducationItem[] = [];
+  for (const li of Array.from(section.querySelectorAll("li"))) {
+    if (li.parentElement?.closest("li")) continue;
+    const lines = leafLines(li);
+    if (!lines.length) continue;
+    const school = (lines.find((l) => l.bold) ?? lines[0]).text;
+    const degreeLine = lines.map((l) => l.text).find((t) => t !== school) ?? null;
+    const [degree, ...rest] = (degreeLine ?? "").split(",").map((s) => s.trim());
+    rows.push({ school, degree: degree || null, field: rest.join(", ") || null });
+    if (rows.length >= 5) break;
+  }
+  return rows;
 }
 
 /**
