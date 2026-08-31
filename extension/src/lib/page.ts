@@ -57,6 +57,17 @@ export async function getAutomationWindow(): Promise<number> {
  */
 export async function openTabInAutomationWindow(url: string): Promise<number> {
   const windowId = await getAutomationWindow();
+  // getAutomationWindow REUSES a cached window, and the bounds above are only applied when
+  // one is created. A reused window that has since been minimized lays its tab out at 0x0
+  // — the very failure the WINDOW_BOUNDS comment warns about, arriving by the other road.
+  // Measured on 2026-08-31: four profile scrapes returned a perfect topcard (it is in the
+  // initial render) and NOTHING below it, across eight scroll steps, because LinkedIn's
+  // lower sections are gated on IntersectionObserver and nothing can intersect a
+  // zero-height viewport. Re-assert the bounds on every open; `focused: false` keeps this
+  // from stealing the screen from whatever the user is doing.
+  await chrome.windows
+    .update(windowId, { state: "normal", focused: false, ...WINDOW_BOUNDS })
+    .catch(() => {});
   const tab = await chrome.tabs.create({ windowId, url, active: true });
   if (!tab.id) throw new Error("tab_create_failed");
   return tab.id;

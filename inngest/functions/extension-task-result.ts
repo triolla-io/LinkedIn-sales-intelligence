@@ -930,7 +930,7 @@ export async function handleScrapeProfile(task: TaskRow) {
     skills?: unknown;
     education?: { school: string; degree?: string | null; field?: string | null }[];
     /** 0.7.2: did the lazy-rendered lower page appear before the read. Absent on older builds. */
-    revealed?: { scrolls?: number; found?: boolean; experience?: boolean; education?: boolean };
+    revealed?: { scrolls?: number; found?: boolean; experience?: boolean; education?: boolean; viewport?: { w?: number; h?: number } };
   };
   if (!payload.contactId) return;
   const contact = await prisma.contact.findUnique({
@@ -997,7 +997,7 @@ export async function handleScrapeProfile(task: TaskRow) {
         ? "extension predates the scroll fix, so this cannot be told apart from a genuinely empty profile"
         : result.revealed.found
           ? `page DID render (${result.revealed.scrolls ?? "?"} scrolls; experience section ${result.revealed.experience ? "present" : "ABSENT"}, education ${result.revealed.education ? "present" : "ABSENT"}) — so this person really published neither`
-          : `page NEVER rendered its lower sections (${result.revealed.scrolls ?? "?"} scrolls) — this is a READ failure, not an empty profile`;
+          : `page NEVER rendered its lower sections (${result.revealed.scrolls ?? "?"} scrolls, viewport ${result.revealed.viewport?.w ?? "?"}x${result.revealed.viewport?.h ?? "?"}) — a READ failure, not an empty profile; a zero-height viewport means the automation window was minimized`;
     console.warn(
       `[job-check] SCRAPE_PROFILE returned no about and no experience for contact=${payload.contactId} — profileScrapedAt was still stamped, so the radar will not retry this person for ${RADAR_SCRAPE_STALE_DAYS} days. ${reveal}`
     );

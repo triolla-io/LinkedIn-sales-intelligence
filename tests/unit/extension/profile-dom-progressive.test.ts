@@ -94,6 +94,20 @@ describe("readProfileProgressively", () => {
     expect(out.experience).toHaveLength(1);
   });
 
+  /**
+   * The viewport goes in the report because a zero-height one explains an empty read
+   * completely, and nothing else does. The automation window is created at 1440x900, but a
+   * REUSED window that has been minimized lays its tab out at 0x0 — and LinkedIn's lower
+   * sections are gated on IntersectionObserver, which can never fire against a zero-height
+   * viewport. Four scrapes returned a perfect topcard and nothing below it before this
+   * number existed to say why.
+   */
+  it("reports the viewport it read in, so a zero-height window is not a mystery", async () => {
+    document.body.innerHTML = TOPCARD;
+    const out = await readProfileProgressively({ scrollBy: vi.fn(), sleep: async () => {}, maxScrolls: 1 });
+    expect(out.viewport).toEqual({ w: window.innerWidth, h: window.innerHeight });
+  });
+
   it("captures about and skills on whichever step they are visible", async () => {
     document.body.innerHTML = TOPCARD;
     let step = 0;

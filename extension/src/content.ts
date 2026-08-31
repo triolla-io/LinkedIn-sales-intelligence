@@ -92,6 +92,7 @@ async function handle(msg: PageRequest): Promise<unknown> {
           found: scrolled.revealed.experience || scrolled.revealed.education,
           experience: scrolled.revealed.experience,
           education: scrolled.revealed.education,
+          viewport: scrolled.viewport,
         },
       };
     }

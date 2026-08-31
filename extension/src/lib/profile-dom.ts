@@ -261,6 +261,11 @@ export async function readProfileProgressively(
   skills: string[];
   scrolls: number;
   revealed: { experience: boolean; education: boolean };
+  /** The viewport the read happened in. A zero height explains an empty read completely:
+   *  LinkedIn gates its lower sections on IntersectionObserver, which cannot fire against
+   *  a 0px-tall viewport, and a REUSED automation window that has been minimized lays out
+   *  exactly that way. */
+  viewport: { w: number; h: number };
 }> {
   const scrollBy = deps.scrollBy ?? ((dy: number) => window.scrollBy(0, dy));
   const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
@@ -301,6 +306,7 @@ export async function readProfileProgressively(
     // Which halves were ever seen at all — the difference between "published nothing" and
     // "we never managed to read it", the distinction that took three runs to get right.
     revealed: { experience: experience.length > 0, education: education.length > 0 },
+    viewport: { w: window.innerWidth, h: window.innerHeight },
   };
 }
 

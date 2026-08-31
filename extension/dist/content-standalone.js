@@ -573,7 +573,8 @@
       scrolls,
       // Which halves were ever seen at all — the difference between "published nothing" and
       // "we never managed to read it", the distinction that took three runs to get right.
-      revealed: { experience: experience.length > 0, education: education.length > 0 }
+      revealed: { experience: experience.length > 0, education: education.length > 0 },
+      viewport: { w: window.innerWidth, h: window.innerHeight }
     };
   }
   function readProfileTopcard() {
@@ -819,7 +820,8 @@
             scrolls: scrolled.scrolls,
             found: scrolled.revealed.experience || scrolled.revealed.education,
             experience: scrolled.revealed.experience,
-            education: scrolled.revealed.education
+            education: scrolled.revealed.education,
+            viewport: scrolled.viewport
           }
         };
       }
