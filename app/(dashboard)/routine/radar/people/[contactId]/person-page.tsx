@@ -3,7 +3,7 @@
 import useSWR from "swr";
 import Link from "next/link";
 import { useState } from "react";
-import { Button } from "@heroui/react";
+import { Button, Input } from "@heroui/react";
 import { Loader2, AlertTriangle, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { fetcher, fetchErrorMessage } from "@/lib/fetcher";
@@ -12,6 +12,10 @@ import { fetcher, fetchErrorMessage } from "@/lib/fetcher";
  * One person: what the system thinks interests them, and the ability to say "no, not
  * that". A muted axis stays on screen, greyed, with a way back — a correction the user
  * cannot see is a correction they cannot undo.
+ *
+ * Muting is the subtraction; the manual tag below the list is the addition. Both are
+ * corrections to a model an LLM built, and a manual one is marked "ידני" because a user
+ * who cannot tell their own line apart from the machine's guess cannot audit either.
  */
 
 type PrepStage = { key: string; state: "done" | "running" | "waiting" | "failed"; detail: string };
@@ -27,7 +31,24 @@ type Person = {
   lastMessageFromUsAt: string | null;
   prep: { ready: boolean; failed: boolean; stages: PrepStage[] };
   employerFinding: { noClearCompetitors: boolean; reason: string } | null;
-  axes: { id: string; label: string; source: "role" | "company"; muted: boolean; itemsFound: number }[];
+  /**
+   * The review surface. Null on every profile built before the person model existed —
+   * so the card that shows it is absent, not empty: an "קהל הלקוחות: —" would look like a
+   * model that answered nothing, when in truth it was never asked.
+   */
+  audience: { type: string[]; who: string; geography: string } | null;
+  scope: { owns: string[]; notOwns: string[] } | null;
+  career: {
+    tenureYearsInCurrentRole: number | null;
+    path: { title: string; company: string | null; years: number | null }[];
+  } | null;
+  axes: {
+    id: string;
+    label: string;
+    source: "role" | "company" | "entity" | "manual";
+    muted: boolean;
+    itemsFound: number;
+  }[];
   history: { id: string; status: string; statusText: string; itemTitle: string; at: string }[];
 };
 
@@ -37,6 +58,16 @@ const INK_3 = "text-[var(--faint)]";
 const SOURCE_HE: Record<Person["axes"][number]["source"], string> = {
   role: "נגזר מהתפקיד ומהחברה",
   company: "ממה שהחברה מתמודדת איתו עכשיו",
+  entity: "שם שהמערכת זיהתה שהוא עוקב אחריו",
+  manual: "הוספת בעצמך",
+};
+
+/** Why the add failed, in words the user can act on. */
+const TAG_ERROR_HE: Record<string, string> = {
+  already_exists: "התגית הזאת כבר רשומה אצלו.",
+  name_required: "צריך לכתוב שם לתגית.",
+  name_not_distinctive: "השם הזה לא מספק — צריך שם ממשי, לא מילות קישור.",
+  no_person_profile: "המודל שלו עוד נבנה — אפשר להוסיף תגיות ברגע שהתחומים יופיעו כאן.",
 };
 
 function relativeHe(iso: string | null): string | null {
@@ -50,6 +81,30 @@ function relativeHe(iso: string | null): string | null {
   return `לפני ${Math.floor(days / 30)} חודשים`;
 }
 
+/**
+ * "B2C · משקי בית ולקוחות פרטיים · ישראל". Every part is optional in the data —
+ * `geography` is legitimately "" for an internal audience — so the line is assembled from
+ * whatever is actually there rather than from a fixed template with holes in it.
+ */
+function audienceHe(a: NonNullable<Person["audience"]>): string {
+  const types = Array.isArray(a.type) ? a.type : [];
+  return [...types, a.who, a.geography]
+    .map((s) => (typeof s === "string" ? s.trim() : ""))
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/**
+ * Tenure in words. `null` (no parsable start year) yields null and the chip disappears —
+ * a "0 שנים" would read as a fact about the person instead of a gap in the scrape.
+ */
+function tenureHe(years: number | null | undefined): string | null {
+  if (years == null) return null;
+  if (years === 0) return "פחות משנה";
+  if (years === 1) return "שנה";
+  return `${years} שנים`;
+}
+
 function Chip({ children }: { children: React.ReactNode }) {
   return (
     <span className={cn("text-xs rounded-full px-[11px] py-[3.5px] border bg-surface border-[var(--line)]", INK_2)}>
@@ -60,6 +115,8 @@ function Chip({ children }: { children: React.ReactNode }) {
 
 export function PersonPage({ contactId }: { contactId: string }) {
   const [busy, setBusy] = useState<string | null>(null);
+  const [tagName, setTagName] = useState("");
+  const [tagError, setTagError] = useState<string | null>(null);
   const { data, error, isLoading, mutate } = useSWR<Person>(
     `/api/radar/people/${contactId}`,
     fetcher,
@@ -74,6 +131,34 @@ export function PersonPage({ contactId }: { contactId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+      await mutate();
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  /**
+   * The addition half of the correction. Re-fetches rather than patching the cache by
+   * hand: the row the server writes carries its own id and provenance chip, and a guessed
+   * one would be a second source of truth for the same line.
+   */
+  async function addTag() {
+    const name = tagName.trim();
+    if (!name || busy !== null) return;
+    setBusy("add-tag");
+    setTagError(null);
+    try {
+      const res = await fetch(`/api/radar/people/${contactId}/tags`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        setTagError(TAG_ERROR_HE[body.error ?? ""] ?? "לא הצלחנו להוסיף את התגית.");
+        return;
+      }
+      setTagName("");
       await mutate();
     } finally {
       setBusy(null);
@@ -99,6 +184,13 @@ export function PersonPage({ contactId }: { contactId: string }) {
   }
 
   const live = data.axes.filter((a) => !a.muted);
+  const owns = data.scope?.owns ?? [];
+  const notOwns = data.scope?.notOwns ?? [];
+  const tenure = tenureHe(data.career?.tenureYearsInCurrentRole);
+  // Empty is treated as absent: a "קהל הלקוחות: " with nothing after it is a dangling label,
+  // and for the purpose of reviewing a model an audience with no content in it says
+  // exactly as much as no audience at all.
+  const audienceText = data.audience ? audienceHe(data.audience) : "";
 
   return (
     <div dir="rtl" className="flex-1 min-h-full bg-[var(--background)] text-[var(--foreground)]">
@@ -165,6 +257,48 @@ export function PersonPage({ contactId }: { contactId: string }) {
           </div>
         </div>
 
+        {/* Whose customers she serves, and what is on her desk — read-only, and the thing
+            a human reads BEFORE approving a rebuilt model. It sits above the axes because
+            every axis below is supposed to follow from it: an axis about a line she does
+            not hold is visibly wrong once this line is on screen.
+
+            Absent, not empty, when the profile predates the person model: a card of
+            em-dashes would claim the model answered and answered nothing. */}
+        {audienceText && (
+          <section className="bg-surface border border-[var(--separator)] rounded-[20px] px-5 sm:px-7 py-4 mt-5">
+            <div className="flex items-start gap-3 flex-wrap">
+              <p className="text-[13.5px] min-w-0">
+                <span className={INK_3}>קהל הלקוחות: </span>
+                <b className="font-semibold">{audienceText}</b>
+              </p>
+              {tenure && (
+                <span className="ms-auto shrink-0">
+                  <Chip>בתפקיד: {tenure}</Chip>
+                </span>
+              )}
+            </div>
+
+            {(owns.length > 0 || notOwns.length > 0) && (
+              <div className="mt-2.5 pt-2.5 border-t border-dashed border-[var(--separator)] flex flex-col gap-1">
+                {owns.length > 0 && (
+                  <p className={cn("text-[13px]", INK_2)}>
+                    <span className={INK_3}>על השולחן: </span>
+                    {owns.join(" · ")}
+                  </p>
+                )}
+                {/* The half that no other field records — and the half that does the
+                    filtering: a story about a line she does not hold dies here. */}
+                {notOwns.length > 0 && (
+                  <p className={cn("text-[13px]", INK_2)}>
+                    <span className={INK_3}>לא על השולחן: </span>
+                    {notOwns.join(" · ")}
+                  </p>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+
         {/* what the system thinks interests him */}
         <div className="bg-surface border border-[var(--separator)] rounded-[20px] p-5 sm:p-7 mt-5">
           <h2 className="text-[15px] font-bold">מה לדעת המערכת מעניין אותו — ואפשר לתקן אותה</h2>
@@ -204,9 +338,12 @@ export function PersonPage({ contactId }: { contactId: string }) {
                     i < data.axes.length - 1 && "border-b border-dashed border-[var(--separator)]"
                   )}
                 >
-                  <span className={cn("text-[13.5px] min-w-0", a.muted && "opacity-45")}>
+                  <span className={cn("text-[13.5px] min-w-0 flex items-center gap-1.5 flex-wrap", a.muted && "opacity-45")}>
                     <b className="font-semibold">{a.label}</b>
-                    <span className={INK_3}> · {SOURCE_HE[a.source]}</span>
+                    {/* The user's own line, marked as theirs: a rebuild leaves it alone,
+                        and that promise is only worth something if it is visible. */}
+                    {a.source === "manual" && <Chip>ידני</Chip>}
+                    <span className={INK_3}>· {SOURCE_HE[a.source]}</span>
                   </span>
                   <span className={cn("text-[12.5px] shrink-0 flex items-center gap-2", INK_3)}>
                     {a.muted ? (
@@ -238,6 +375,44 @@ export function PersonPage({ contactId }: { contactId: string }) {
               )}
             </div>
           )}
+
+          {/* The addition. Muting takes a subject away; this puts one in — and unlike
+              everything above it, a rebuild leaves it standing. */}
+          <div className="mt-4 pt-4 border-t border-[var(--separator)]">
+            <label htmlFor="manual-tag" className={cn("text-[12.5px]", INK_3)}>
+              + תגית ידנית
+            </label>
+            <div className="flex gap-2 mt-1.5">
+              <Input
+                id="manual-tag"
+                value={tagName}
+                onChange={(e) => setTagName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void addTag();
+                }}
+                placeholder="למשל: רגולציית סייבר"
+                aria-label="תגית ידנית"
+                disabled={busy !== null}
+                className="flex-1"
+              />
+              <Button
+                size="sm"
+                variant="primary"
+                isDisabled={busy !== null || tagName.trim() === ""}
+                onPress={() => void addTag()}
+              >
+                הוספה
+              </Button>
+            </div>
+            <p className={cn("text-[12px] mt-1.5", INK_3)}>
+              תגית ידנית נשארת גם כשהמערכת בונה את המודל שלו מחדש.
+            </p>
+            {tagError && (
+              <p className="text-[12.5px] mt-1.5 text-[var(--danger)]" role="alert">
+                {tagError}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* history */}

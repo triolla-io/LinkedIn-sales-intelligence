@@ -434,6 +434,8 @@
   const clean = (s) => (s || "").replace(/\s+/g, " ").trim();
   const ABOUT_HEADERS = ["about", "אודות"];
   const EXPERIENCE_HEADERS = ["experience", "ניסיון"];
+  const SKILLS_HEADERS = ["skills", "כישורים", "מיומנויות"];
+  const EDUCATION_HEADERS = ["education", "השכלה"];
   function findSection(headers) {
     for (const section of Array.from(document.querySelectorAll("section"))) {
       const h2 = section.querySelector("h2");
@@ -473,6 +475,12 @@
     return lines;
   }
   const EMPLOYMENT_SUFFIX = /\s*[·•]\s*(Full-time|Part-time|Contract|Internship|Freelance|Self[- ]employed|Seasonal|Temporary|משרה מלאה|משרה חלקית|חוזה|פרילנס)\b.*$/i;
+  function entryDescription(li, title) {
+    const paragraphs = Array.from(li.querySelectorAll("p")).map((p) => clean(p.textContent)).filter((t) => t && t !== title && !/\d{4}/.test(t.slice(0, 24)));
+    if (!paragraphs.length) return null;
+    const best = paragraphs.reduce((a, b) => b.length > a.length ? b : a);
+    return best ? best.slice(0, 1500) : null;
+  }
   function readProfileExperience() {
     var _a, _b, _c;
     const section = findSection(EXPERIENCE_HEADERS);
@@ -489,10 +497,48 @@
       const rawCompany = ((_c = after.find((l) => !/\d{4}/.test(l.text))) == null ? void 0 : _c.text) ?? null;
       const company = rawCompany ? rawCompany.replace(EMPLOYMENT_SUFFIX, "").trim() || null : null;
       const dateLine = lines.find((l) => /\d{4}/.test(l.text)) ?? null;
-      results.push({ title, company, dateRange: (dateLine == null ? void 0 : dateLine.text) ?? null });
+      results.push({
+        title,
+        company,
+        dateRange: (dateLine == null ? void 0 : dateLine.text) ?? null,
+        description: entryDescription(li, title)
+      });
       if (results.length >= 5) break;
     }
     return results;
+  }
+  function readProfileSkills() {
+    var _a, _b;
+    const section = findSection(SKILLS_HEADERS);
+    if (!section) return [];
+    const skills = [];
+    const seen = /* @__PURE__ */ new Set();
+    for (const li of Array.from(section.querySelectorAll("li"))) {
+      if ((_a = li.parentElement) == null ? void 0 : _a.closest("li")) continue;
+      const name = (_b = leafLines(li)[0]) == null ? void 0 : _b.text;
+      if (!name || seen.has(name)) continue;
+      seen.add(name);
+      skills.push(name);
+      if (skills.length >= 30) break;
+    }
+    return skills;
+  }
+  function readProfileEducation() {
+    var _a;
+    const section = findSection(EDUCATION_HEADERS);
+    if (!section) return [];
+    const rows = [];
+    for (const li of Array.from(section.querySelectorAll("li"))) {
+      if ((_a = li.parentElement) == null ? void 0 : _a.closest("li")) continue;
+      const lines = leafLines(li);
+      if (!lines.length) continue;
+      const school = (lines.find((l) => l.bold) ?? lines[0]).text;
+      const degreeLine = lines.map((l) => l.text).find((t) => t !== school) ?? null;
+      const [degree, ...rest] = (degreeLine ?? "").split(",").map((s) => s.trim());
+      rows.push({ school, degree: degree || null, field: rest.join(", ") || null });
+      if (rows.length >= 5) break;
+    }
+    return rows;
   }
   function readProfileTopcard() {
     var _a;
@@ -725,7 +771,9 @@
           headline,
           company: ((_a = entries[0]) == null ? void 0 : _a.company) ?? null,
           about: readProfileAbout(),
-          experience: readProfileExperience()
+          experience: readProfileExperience(),
+          skills: readProfileSkills(),
+          education: readProfileEducation()
         };
       }
       case "EXTRACT_COMPANY":

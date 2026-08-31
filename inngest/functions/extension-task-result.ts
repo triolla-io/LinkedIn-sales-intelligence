@@ -924,7 +924,11 @@ export async function handleScrapeProfile(task: TaskRow) {
   const result = (task.result ?? {}) as {
     title?: string | null; company?: string | null;
     headline?: string | null; about?: string | null;
-    experience?: { title: string; company: string | null; dateRange: string | null }[];
+    experience?: { title: string; company: string | null; dateRange: string | null; description?: string | null }[];
+    // The deep scrape, extension 0.7.1. Optional because older installs coexist in the
+    // field for as long as manual distribution takes.
+    skills?: unknown;
+    education?: { school: string; degree?: string | null; field?: string | null }[];
   };
   if (!payload.contactId) return;
   const contact = await prisma.contact.findUnique({
@@ -954,7 +958,24 @@ export async function handleScrapeProfile(task: TaskRow) {
       ...(result.headline ? { headline: result.headline } : {}),
       ...(result.about ? { about: result.about.slice(0, 2000) } : {}),
       ...(Array.isArray(result.experience) && result.experience.length
-        ? { experience: result.experience.slice(0, 5) }
+        ? {
+            experience: result.experience.slice(0, 5).map((e) => ({
+              ...e,
+              // The role's own free-text description — the person's account of their own
+              // scope, and the strongest layer-4 FOUND source there is. Capped here as
+              // well as in the page reader, because the cap is a storage decision.
+              ...(typeof e.description === "string" ? { description: e.description.slice(0, 1500) } : {}),
+            })),
+          }
+        : {}),
+      // Absent means "an older extension sent this result", NEVER "the person has none":
+      // writing null here would erase what a newer build already stored, and the two
+      // builds coexist for as long as distribution takes.
+      ...(Array.isArray(result.skills) && result.skills.length
+        ? { skills: result.skills.filter((s): s is string => typeof s === "string").slice(0, 30) }
+        : {}),
+      ...(Array.isArray(result.education) && result.education.length
+        ? { education: result.education.slice(0, 5) }
         : {}),
     },
   });

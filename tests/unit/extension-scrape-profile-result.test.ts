@@ -213,4 +213,71 @@ describe("handleScrapeProfile", () => {
     expect(call![0].data.experience).toHaveLength(5);
     expect(call![0].data.experience).toEqual(experience.slice(0, 5));
   });
+
+  /**
+   * The deep scrape (extension 0.7.1). Until it existed, the person model read a job
+   * title and a bare list of past roles — so "what does this person own" was answered by
+   * inference every time. The free-text description under a role is the person's OWN
+   * account of their scope; skills and education are what they chose to publish. All
+   * three are layer-4 FOUND evidence, and none of them were being stored.
+   */
+  it("stores skills, education and experience descriptions when present", async () => {
+    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "T", jobSnapshotCompany: "C", owner: { org: { jobCheckEnabled: true } } });
+    await handleScrapeProfile({
+      payload: { contactId: "c1" },
+      result: {
+        title: "T", company: "C", about: "bio",
+        experience: [{ title: "Head of Retail", company: "Bank", dateRange: "2020 - Present", description: "consumer credit and mortgages" }],
+        skills: ["Retail Banking", "Credit Risk"],
+        education: [{ school: "TAU", degree: "MBA", field: "Finance" }],
+      },
+    } as never);
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        skills: ["Retail Banking", "Credit Risk"],
+        education: [{ school: "TAU", degree: "MBA", field: "Finance" }],
+        experience: [expect.objectContaining({ description: "consumer credit and mortgages" })],
+      }),
+    }));
+  });
+
+  /**
+   * An older extension build sends neither key. Writing `skills: null` in that case would
+   * ERASE what a newer build already stored — the two builds coexist in the field for as
+   * long as distribution takes, and one stale install must not undo the others' work.
+   */
+  it("omits skills/education keys entirely when absent (does not null them out)", async () => {
+    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "T", jobSnapshotCompany: "C", owner: { org: { jobCheckEnabled: true } } });
+    await handleScrapeProfile({ payload: { contactId: "c1" }, result: { title: "T", company: "C" } } as never);
+    const data = mockUpdate.mock.calls[0]?.[0]?.data ?? {};
+    expect("skills" in data).toBe(false);
+    expect("education" in data).toBe(false);
+  });
+
+  it("caps skills at 30, education at 5, and a role description at 1500 chars", async () => {
+    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "T", jobSnapshotCompany: "C", owner: { org: { jobCheckEnabled: true } } });
+    await handleScrapeProfile({
+      payload: { contactId: "c1" },
+      result: {
+        title: "T", company: "C",
+        skills: Array.from({ length: 40 }, (_, i) => `S${i}`),
+        education: Array.from({ length: 8 }, (_, i) => ({ school: `U${i}` })),
+        experience: [{ title: "R", company: "C", dateRange: "2020 - 2021", description: "x".repeat(2000) }],
+      },
+    } as never);
+    const data = mockUpdate.mock.calls.find((c) => c[0]?.data?.skills !== undefined)![0].data;
+    expect(data.skills).toHaveLength(30);
+    expect(data.education).toHaveLength(5);
+    expect(data.experience[0].description).toHaveLength(1500);
+  });
+
+  it("drops non-string entries from skills rather than storing them", async () => {
+    mockFindContact.mockResolvedValue({ ownerId: "o1", jobSnapshotTitle: "T", jobSnapshotCompany: "C", owner: { org: { jobCheckEnabled: true } } });
+    await handleScrapeProfile({
+      payload: { contactId: "c1" },
+      result: { title: "T", company: "C", skills: ["Real", 42, null, "Also real"] },
+    } as never);
+    const data = mockUpdate.mock.calls.find((c) => c[0]?.data?.skills !== undefined)![0].data;
+    expect(data.skills).toEqual(["Real", "Also real"]);
+  });
 });

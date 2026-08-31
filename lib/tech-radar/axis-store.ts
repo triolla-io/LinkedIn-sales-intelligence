@@ -23,7 +23,9 @@ import {
   type CompetitiveSet,
 } from "@/lib/tech-radar/axis";
 import { MAX_INDUSTRY_QUERIES } from "@/lib/tech-radar/types";
-import type { AxisProposal, AxisLayerEvidence, PersonDomainSource } from "@/lib/tech-radar/person-profile";
+import type {
+  AxisProposal, AxisLayerEvidence, PersonDomainSource, PersonEntityTag,
+} from "@/lib/tech-radar/person-profile";
 import { resolveMergeQuestions } from "@/lib/tech-radar/axis-merge";
 import { checkAxisLabel } from "@/lib/tech-radar/draft-guard";
 
@@ -111,7 +113,12 @@ export async function attachAxes(input: {
   // the org's own ROLE_COMPANY axes at MAX_AXES_PER_ORG. COMPANY_MONITOR axes are
   // deliberately NOT exempted: they still count, one per tracked company, pre-existing
   // behaviour that is out of scope here.
-  let orgAxisCount = existingRows.filter((r) => r.kind !== "INDUSTRY").length;
+  //
+  // PERSON_ENTITY is exempted for the same reason and one more: it is a NAMED thing one
+  // person watches (and, when a human added it, an instruction rather than a proposal).
+  // A person who tags ten competitors would otherwise eat the org's whole subject budget
+  // with rows that cost no search query at all — an entity axis carries none.
+  let orgAxisCount = existingRows.filter((r) => r.kind !== "INDUSTRY" && r.kind !== "PERSON_ENTITY").length;
 
   // ── The competitive-set gate, database half ────────────────────────────────
   const subscriberEmployerIds = [
@@ -192,8 +199,18 @@ export async function attachAxes(input: {
   // comment already promises ("bypasses MAX_AXES_PER_PERSON by design"). Without this,
   // a person subscribed to an industry net loses their 5th own-subject axis to a forced
   // low-similarity merge (2026-08-26 final review, Finding 1).
+  //
+  // PERSON_ENTITY and MANUAL are exempt for the same reason, and the arithmetic is worse
+  // for them: entity tags are NAMES this person watches (One Zero, Poalim Wonder), matched
+  // in code rather than searched, and a person can reasonably carry several — plus every
+  // manual tag a human adds. Counting them as subjects would mean adding three corrections
+  // to Pazit silently drops her from five own axes to two, i.e. correcting the model would
+  // shrink it. A net is not a subject, whoever created it.
   const held = await prisma.personAxis.count({
-    where: { personProfileId: input.personProfileId, source: { not: "INDUSTRY" } },
+    where: {
+      personProfileId: input.personProfileId,
+      source: { notIn: ["INDUSTRY", "PERSON_ENTITY", "MANUAL"] },
+    },
   });
   let personAxisCount = held;
 
@@ -472,4 +489,96 @@ export async function ensureIndustryAxis(input: {
   });
 
   return axis.id;
+}
+
+/**
+ * The key of one person's entity tag. Namespaced per PERSON, not per org: two executives
+ * at the same bank can both watch One Zero, and they watch it for different reasons and
+ * with different aliases — a shared row would hand one of them the other's evidence.
+ *
+ * Normalised through the same token-sort as every other key, so "One Zero" and "one zero"
+ * are one tag and a human re-adding a tag the model already found does not create a second.
+ */
+export function entityAxisKey(personProfileId: string, name: string): string {
+  return `entity:${personProfileId}:${normalizeAxisKey(name)}`;
+}
+
+/**
+ * Personal entity tags: the NAMED things this person watches — a rival they are measured
+ * against, their own product, a project they own, their regulator.
+ *
+ * One RadarAxis (kind PERSON_ENTITY) + one PersonAxis (source PERSON_ENTITY) per tag.
+ * Deliberately parallel to ensureIndustryAxis, and deliberately different in three ways:
+ *
+ * - **searchQueries stays EMPTY.** Matching an entity tag is by name and aliases in code,
+ *   which is the whole point of a personal tag; a query phrased FROM a tag belongs to the
+ *   narrow named-query channel, not to this row. It is also the safe side of the live
+ *   failure that motivated the truth gates: an LLM-written query invented a bank name and
+ *   went out in a search aimed at a real executive.
+ * - **Sits OUTSIDE attachAxes and never passes through gateRationales.** An entity tag
+ *   carries no personDecision and would die on `no_person_side`, exactly as an INDUSTRY
+ *   proposal would.
+ * - **Bypasses MAX_AXES_PER_PERSON and the org subject budget** (see orgAxisCount above),
+ *   and cannot be a merge target: the merge catalog is an allowlist on ROLE_COMPANY.
+ *
+ * Both writes are UPSERTS rather than findUnique-then-create, for the reason
+ * ensureIndustryAxis spells out: RadarAxis is unique on [orgId, key], radar.build-profiles
+ * and radar.person.prepare can both run over one org at the same time, and a lost race in
+ * that window throws P2002 and crashes the WHOLE build instead of one axis. `update: {}` on
+ * the link so a re-run neither double-subscribes nor overwrites a weight the learning loop
+ * has moved — and, for a MANUAL row a human created first, so a rebuild cannot quietly
+ * rewrite its source out from under Task 10's contract.
+ *
+ * Returns the axis ids actually ensured, so a caller can report the count.
+ */
+export async function ensureEntityAxes(input: {
+  orgId: string;
+  personProfileId: string;
+  tags: PersonEntityTag[];
+}): Promise<string[]> {
+  const ids: string[] = [];
+  for (const tag of input.tags ?? []) {
+    const name = String(tag?.name ?? "").trim();
+    if (!name) continue;
+    const key = entityAxisKey(input.personProfileId, name);
+    // A name made only of filler ("של", "the") normalises to nothing, and
+    // "entity:<pp>:" with no suffix is a real key — every such tag, however different its
+    // source text, would collide onto one degenerate axis. Same guard, same reason, as
+    // ensureIndustryAxis's `industry:` check.
+    if (key === `entity:${input.personProfileId}:`) continue;
+
+    const axis = await prisma.radarAxis.upsert({
+      where: { orgId_key: { orgId: input.orgId, key } },
+      create: {
+        orgId: input.orgId,
+        key,
+        label: name,
+        kind: "PERSON_ENTITY",
+        searchQueries: [],
+      },
+      update: {},
+      select: { id: true },
+    });
+
+    await prisma.personAxis.upsert({
+      where: { personProfileId_axisId: { personProfileId: input.personProfileId, axisId: axis.id } },
+      create: {
+        personProfileId: input.personProfileId,
+        axisId: axis.id,
+        rationale: `תגית אישית — ${name}`,
+        agenda: false,
+        // A named thing is as specific as evidence gets about one person, so it carries
+        // full weight — unlike the industry net's 0.5, which is a broad shared catch.
+        weight: 1,
+        source: "PERSON_ENTITY",
+        // The aliases ARE the matching mechanism (this axis has no queries), so they are
+        // persisted with the link rather than left in the build report.
+        evidence: { aliases: tag.aliases ?? [], tagKind: tag.kind },
+      },
+      update: {},
+      select: { id: true },
+    });
+    ids.push(axis.id);
+  }
+  return ids;
 }

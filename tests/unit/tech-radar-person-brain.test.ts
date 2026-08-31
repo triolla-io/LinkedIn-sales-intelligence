@@ -61,12 +61,21 @@ const validAxes = [
   },
 ];
 
+/**
+ * Since the v3 role analysis (2026-08-31) `audience` is REQUIRED, so every fixture that
+ * expects a draft back carries one. See tests/unit/tech-radar-person-profile-v2.test.ts for
+ * the rules about it; here it is only the price of admission, and the assertions below still
+ * test exactly what they tested before.
+ */
+const validAudience = { type: ["B2C"], who: "משקי בית ולקוחות פרטיים", geography: "ישראל" };
+
 describe("parseProfileResponse reasoning", () => {
   it("keeps the staged reasoning alongside the axes", () => {
     const draft = parseProfileResponse(
       JSON.stringify({
         reasoning: "(1) בנקאות. (2) לאומי אוכל לה לקוחות. (3) השקת ביטקוין של לאומי.",
         roleLens: "מחזיקה את היצע המוצרים הקמעונאי",
+        audience: validAudience,
         domains: validDomains,
         axes: validAxes,
       })
@@ -78,7 +87,7 @@ describe("parseProfileResponse reasoning", () => {
     // A model that skips the layers is the old brain with a new name. Null means the
     // caller records profile_call_failed instead of silently building unreasoned axes.
     const draft = parseProfileResponse(
-      JSON.stringify({ roleLens: "תפקיד", domains: validDomains, axes: validAxes })
+      JSON.stringify({ roleLens: "תפקיד", audience: validAudience, domains: validDomains, axes: validAxes })
     );
     expect(draft).toBeNull();
   });
@@ -337,6 +346,7 @@ describe("parseProfileResponse declared intersection", () => {
   const base = {
     reasoning: "(1) בנקאות. (2) לאומי אוכל לה לקוחות.",
     roleLens: "מחזיקה את ההיצע הקמעונאי",
+    audience: validAudience,
     domains: validDomains,
   };
 
@@ -392,6 +402,7 @@ describe("parseProfileResponse domains", () => {
   const base = {
     reasoning: "(1) בנקאות. (2) לאומי אוכל לה לקוחות.",
     roleLens: "מחזיקה את ההיצע הקמעונאי",
+    audience: validAudience,
   };
 
   it("carries the mapped fields onto the draft, with their provenance", () => {
@@ -557,6 +568,7 @@ describe("the adopt axis carries its exemplar separately", () => {
       JSON.stringify({
         reasoning: "ה) שרד",
         roleLens: "חתום על ארכיטקטורת הליבה",
+        audience: { type: ["INTERNAL"], who: "היחידות של הבנק עצמו", geography: "" },
         domains: [
           {
             domain: "ארכיטקטורת זיהוי",

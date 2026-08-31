@@ -30,6 +30,13 @@ const DOMAINS = JSON.stringify([
 ]);
 
 /**
+ * Since the v3 role analysis (2026-08-31) a draft without `audience` is null — the profile
+ * never answered whose customers this person serves. Every fixture below carries one so each
+ * test still fails for the reason its name gives.
+ */
+const AUDIENCE = JSON.stringify({ type: ["B2C"], who: "לקוחות פרטיים", geography: "ישראל" });
+
+/**
  * INDUSTRY is layer 1: one shared axis per (org × industry), so N employers in the same
  * industry pay for one set of queries instead of N. The sharing mechanism is the SAME
  * token-sort that already merges "זיהוי הונאות" and "הונאות זיהוי" for ROLE_COMPANY axes
@@ -103,7 +110,7 @@ describe("PROFILE_SYSTEM", () => {
 describe("parseProfileResponse", () => {
   it("parses a role lens and its axes", () => {
     const out = parseProfileResponse(
-      `{"domains":${DOMAINS},"reasoning":"חשיבה בשלבים","roleLens":"אחראי על מנוע ההמלצות","axes":[${axis("קונסולידציה של מסדי וקטורים")}]}`
+      `{"domains":${DOMAINS},"audience":${AUDIENCE},"reasoning":"חשיבה בשלבים","roleLens":"אחראי על מנוע ההמלצות","axes":[${axis("קונסולידציה של מסדי וקטורים")}]}`
     );
     expect(out?.roleLens).toBe("אחראי על מנוע ההמלצות");
     expect(out?.axes[0].key).toBe(normalizeAxisKey("קונסולידציה של מסדי וקטורים"));
@@ -111,27 +118,27 @@ describe("parseProfileResponse", () => {
 
   /** A label of pure filler would create an axis every later proposal collides with. */
   it("drops an axis whose label normalises to nothing", () => {
-    expect(parseProfileResponse(`{"domains":${DOMAINS},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("תחום")}]}`)).toBeNull();
+    expect(parseProfileResponse(`{"domains":${DOMAINS},"audience":${AUDIENCE},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("תחום")}]}`)).toBeNull();
   });
 
   it("drops an axis with no queries, since it can never surface anything", () => {
-    expect(parseProfileResponse(`{"domains":${DOMAINS},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות", "r", [])}]}`)).toBeNull();
+    expect(parseProfileResponse(`{"domains":${DOMAINS},"audience":${AUDIENCE},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות", "r", [])}]}`)).toBeNull();
   });
 
   it("drops an axis with no rationale, since the veto would have nothing to read", () => {
-    expect(parseProfileResponse(`{"domains":${DOMAINS},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות", "")}]}`)).toBeNull();
+    expect(parseProfileResponse(`{"domains":${DOMAINS},"audience":${AUDIENCE},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות", "")}]}`)).toBeNull();
   });
 
   it("collapses the same subject proposed twice", () => {
     const out = parseProfileResponse(
-      `{"domains":${DOMAINS},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות")},${axis("הונאות זיהוי")}]}`
+      `{"domains":${DOMAINS},"audience":${AUDIENCE},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות")},${axis("הונאות זיהוי")}]}`
     );
     expect(out?.axes).toHaveLength(1);
   });
 
   it("caps the axes per person", () => {
     const many = Array.from({ length: 9 }, (_, i) => axis(`נושא מספר ${i} ייחודי`)).join(",");
-    expect(parseProfileResponse(`{"domains":${DOMAINS},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${many}]}`)?.axes.length).toBe(MAX_AXES_PER_PERSON);
+    expect(parseProfileResponse(`{"domains":${DOMAINS},"audience":${AUDIENCE},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${many}]}`)?.axes.length).toBe(MAX_AXES_PER_PERSON);
   });
 
   it("returns null without a role lens", () => {

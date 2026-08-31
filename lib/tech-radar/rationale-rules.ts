@@ -416,3 +416,130 @@ export function declaresCompanySide(
   if (namesSegment(n, words)) return true;
   return segmentQuoteWords(customerSegments).some((w) => words.includes(w));
 }
+
+// ─── Truth gates: a real date, one signature per axis, no invented names ──────
+//
+// Read out of the pilot org's prod rows on 2026-08-31. All three failures share a shape:
+// the brain wrote something that LOOKS like evidence, and nothing downstream could tell it
+// apart from the real thing.
+
+/**
+ * A layer-3 `dateIso` the employer research never reported.
+ *
+ * EVERY layer-3 axis in the pilot org carried `dateIso: "2024-01-01"` — a placeholder the
+ * model invented to satisfy the prompt's demand that a layer-3 quote be dated. The
+ * consequence is silent and total: layer3Expired (lib/tech-radar/layers.ts, TTL 45 days)
+ * reads that date, finds it eighteen months stale, and drops the axis from the query pool.
+ * Five of the group's axes — including one person's ONLY two — sit on screen and search
+ * for nothing. An undated axis at least dies loudly, named layer3_undated; a fabricated
+ * date passes every check and then quietly deletes itself.
+ *
+ * So the date must be COPIED, not composed: verbatim equality against a move the research
+ * actually found. Nothing looser — a fuzzy month match is exactly how "2024-01-01" would
+ * survive again.
+ *
+ * True = REJECT.
+ */
+export function dateIsoNotInMoves(
+  dateIso: string | undefined,
+  recentMoves: { dateIso: string }[]
+): boolean {
+  // An absent date is layer3_undated's territory; reporting it here too would count one
+  // axis against two rules.
+  if (typeof dateIso !== "string" || !dateIso) return false;
+  return !(recentMoves ?? []).some((m) => m.dateIso === dateIso);
+}
+
+/** Particles that carry no meaning in a decision and would inflate every overlap. */
+const DECISION_STOPWORDS = new Set(["על", "של", "את", "ועל", "גם", "and", "the", "of", "for"]);
+
+function decisionTokens(s: string): Set<string> {
+  return new Set(
+    (s ?? "")
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s]/gu, " ")
+      .split(/\s+/)
+      .filter((t) => t.length > 1 && !DECISION_STOPWORDS.has(t))
+  );
+}
+
+/**
+ * Indexes of decisions that restate an EARLIER one. The first of each group survives.
+ *
+ * Pazit Garfinkel came back with five axes whose personDecision was one sentence wearing
+ * five labels: "חתומה על הצעת השירותים הקמעונאיים ועל תקציב הפיתוח שלהם", then the same
+ * with "של ערוצים דיגיטליים" glued on, and so on down the list. Every one of them passed
+ * declaresPersonSide — they ARE real ownership claims — and the LLM judge passed them too,
+ * because judged one at a time each one is fine. The duplication exists only ACROSS the
+ * batch, which is why no per-axis rule could ever have seen it.
+ *
+ * The measure is the OVERLAP coefficient — shared tokens over the SMALLER set — and not
+ * Jaccard. Her clones differ by a trailing qualifier, so the longer one carries extra
+ * tokens the shorter one lacks: 6 shared between a 7-token and an 8-token set is Jaccard
+ * 0.67, under any threshold worth setting, while the overlap is 0.86. The asymmetry is the
+ * right one here: a decision wholly contained in one already accepted adds nothing, and
+ * only the LATER one is ever dropped. It is also self-limiting at the short end — for a
+ * two-token decision, 0.8 of the smaller set means both tokens, i.e. full containment.
+ */
+export function duplicateDecisionIndexes(decisions: string[]): number[] {
+  const sets = (decisions ?? []).map(decisionTokens);
+  const out: number[] = [];
+  for (let i = 1; i < sets.length; i += 1) {
+    for (let j = 0; j < i; j += 1) {
+      const smaller = Math.min(sets[i].size, sets[j].size);
+      if (smaller === 0) continue;
+      const shared = [...sets[i]].filter((t) => sets[j].has(t)).length;
+      if (shared / smaller >= 0.8) {
+        out.push(i);
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Entity tags whose NAME the evidence does not support. Returns the names to DROP.
+ *
+ * An LLM-written search query in the pilot invented the bank "בנק בינלאומי ראשון" for
+ * people whose evidence never mentions it, and that query went out aimed at real
+ * executives. A tag is worse than a rationale in this respect: a rationale is read by a
+ * human before it is sent, while a tag carries its name into searches and into drafted
+ * messages mechanically. So a competitor must be in the employer research's gazetteer, and
+ * a product or project must be the employer's OWN.
+ *
+ * Competitor matching is EXACT on the normalised form, deliberately — and the FIBI case is
+ * what proves it must be. "לאומי" is a substring of "בינלאומי", so the containment
+ * matching unknownNames uses on prose would have read the invented "בנק בינלאומי ראשון"
+ * as the researched "Bank Leumi / לאומי" and kept it. Products go the other way and DO use
+ * containment, via nameRole: the research stores "Poalim Wonder" while a tag may name just
+ * "Wonder", and mistaking the employer's own brand for an invention is the Gil
+ * Tamir/Phoenix failure that nameRole exists to prevent.
+ *
+ * `kind` is a plain string, and any kind not named here — `regulator` above all — is kept:
+ * there is no closed list to check a regulator against, and inventing one would only trade
+ * a false keep for a false drop.
+ */
+export function invalidEntityTags(
+  tags: { name: string; aliases: string[]; kind: string }[],
+  gazetteer: string[],
+  employer: { names: string[]; products: string[] }
+): string[] {
+  // Flattened through the same helper the gate uses, so a raw research entry that still
+  // carries both scripts in one string — "Bank Leumi / לאומי" — is matchable either way.
+  const gaz = new Set(competitorGazetteer(gazetteer ?? []));
+  const dropped: string[] = [];
+  for (const tag of tags ?? []) {
+    const forms = [tag.name, ...(tag.aliases ?? [])].map((f) => norm(String(f ?? ""))).filter(Boolean);
+    if (forms.length === 0) continue;
+    if (tag.kind === "competitor") {
+      if (!forms.some((f) => gaz.has(f))) dropped.push(tag.name);
+    } else if (tag.kind === "product" || tag.kind === "project") {
+      // stage is pinned to a non-"adopt" value on purpose: this is not an axis at all, and
+      // the only question being put to nameRole is "is this the employer's own?".
+      const own = forms.some((f) => nameRole(f, { employer, stage: "competitor" }) === "self");
+      if (!own) dropped.push(tag.name);
+    }
+  }
+  return dropped;
+}

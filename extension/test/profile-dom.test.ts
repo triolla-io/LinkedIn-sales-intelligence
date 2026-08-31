@@ -85,8 +85,8 @@ describe("readProfileExperience", () => {
       </section>
     `;
     expect(readProfileExperience()).toEqual([
-      { title: "Senior Engineer", company: "Acme Inc", dateRange: "Jan 2020 - Present · 4 yrs" },
-      { title: "Engineer", company: "Beta Corp", dateRange: "2017 - 2019" },
+      { title: "Senior Engineer", company: "Acme Inc", dateRange: "Jan 2020 - Present · 4 yrs", description: null },
+      { title: "Engineer", company: "Beta Corp", dateRange: "2017 - 2019", description: null },
     ]);
   });
 
@@ -107,7 +107,7 @@ describe("readProfileExperience", () => {
       </section>
     `;
     expect(readProfileExperience()).toEqual([
-      { title: "Senior Engineer", company: "Acme Inc", dateRange: "Jan 2020 - Present" },
+      { title: "Senior Engineer", company: "Acme Inc", dateRange: "Jan 2020 - Present", description: null },
     ]);
   });
 
@@ -121,7 +121,7 @@ describe("readProfileExperience", () => {
       </section>
     `;
     expect(readProfileExperience()).toEqual([
-      { title: "מנהל מוצר", company: "חברת דוגמה", dateRange: "2019 - 2022" },
+      { title: "מנהל מוצר", company: "חברת דוגמה", dateRange: "2019 - 2022", description: null },
     ]);
   });
 
@@ -145,7 +145,7 @@ describe("readProfileExperience", () => {
       </section>
     `;
     expect(readProfileExperience()).toEqual([
-      { title: "Engineer", company: "Beta Corp", dateRange: "2017 - 2019" },
+      { title: "Engineer", company: "Beta Corp", dateRange: "2017 - 2019", description: null },
     ]);
   });
 

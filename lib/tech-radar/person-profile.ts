@@ -22,7 +22,19 @@ import { parseJsonLoose } from "@/lib/tech-radar/parse";
 import { OR_FEATURE } from "@/lib/tech-radar/types";
 import { normalizeAxisKey, MAX_AXES_PER_PERSON } from "@/lib/tech-radar/axis";
 
-const MODEL = process.env.TECH_RADAR_MODEL ?? "anthropic/claude-haiku-4.5";
+/**
+ * The BUILD model, split off from the shared `TECH_RADAR_MODEL` (Haiku) on 2026-08-31.
+ * The old constant is gone from this file rather than left unused: one env var read that
+ * nothing reaches is how a "we switched the model" change turns out not to have switched it.
+ *
+ * This is the rarest call in the system — once per person, refreshed quarterly — and the
+ * most consequential: everything downstream (which queries run, which items match, what a
+ * message says) is a function of the profile it produces. Haiku wrote Pazit Garfinkel five
+ * axes whose personDecision was the same sentence five times, all of it a restatement of
+ * her title. Triage and fit run per ITEM, thousands of times a scan, and stay on Haiku:
+ * paying Sonnet prices there would buy a rounding error in relevance for a real bill.
+ */
+export const PROFILE_MODEL = process.env.TECH_RADAR_PROFILE_MODEL ?? "anthropic/claude-sonnet-5";
 
 /** 400 chars, per the spec: a note about a person, not a dossier on them. */
 export const MAX_PERSONAL_NOTES = 400;
@@ -86,6 +98,60 @@ export type PersonDomain = {
   source: PersonDomainSource | null;
   /** Verbatim quote from the person data (found), or the crossing logic (derived). */
   evidence: string;
+};
+
+/**
+ * WHOSE customers this person serves — the output of ROLE-3, not a fact about the company.
+ *
+ * The distinction is the whole point. Bank Hapoalim's `customerSegments` string is
+ * "Individual consumers and households", and two of Pazit Garfinkel's five axes offered
+ * exactly that as their layer-2 evidence: the company answering a question about the
+ * person. `audience` is the intersection instead — the union of `forWhom` across only the
+ * business lines she actually owns. A CITO at the same bank has the same employer segments
+ * and audience `["INTERNAL"]`.
+ *
+ * `type` is a LIST because a real chair often straddles: a head of business banking serves
+ * SMEs (B2B) and their owners (B2C). `geography` may be "" — an internal audience has no
+ * country, and inventing one would be a fact nobody established.
+ */
+export const AUDIENCE_TYPES = ["B2C", "B2B", "B2G", "INTERNAL"] as const;
+export type AudienceType = (typeof AUDIENCE_TYPES)[number];
+const AUDIENCE_TYPE_SET: ReadonlySet<string> = new Set<string>(AUDIENCE_TYPES);
+
+export type PersonAudience = {
+  type: AudienceType[];
+  /** Who those customers actually are, in Hebrew. Required — see parse. */
+  who: string;
+  geography: string;
+};
+
+/**
+ * The intersection of the title's canonical remit with the company's business-line map.
+ *
+ * `notOwns` is the half that does work no other field can do: it is a deterministic filter
+ * later (an axis, and then an article, about a line this person does not hold is dropped
+ * without an LLM being asked). Yuval's complaint that "what the system thinks about the
+ * person isn't right" was mostly this — nothing ever recorded what a person does NOT hold,
+ * so every company subject remained eligible for everyone.
+ */
+export type PersonScope = { owns: string[]; notOwns: string[] };
+
+/**
+ * A NAMED thing this person watches — the v3 replacement for search queries as the axis's
+ * central product, and the vocabulary the tag-based matching of חלק 3 will join on.
+ *
+ * Aliases matter more than they look: Israeli press writes "וואן זירו", the company writes
+ * "One Zero", and a match on one spelling only is a recall hole with no symptom. `kind`
+ * exists so a later policy can treat a regulator differently from a rival, and is CLAMPED
+ * rather than trusted — see readEntityTags.
+ */
+export const ENTITY_TAG_KINDS = ["competitor", "product", "project", "regulator"] as const;
+export type EntityTagKind = (typeof ENTITY_TAG_KINDS)[number];
+
+export type PersonEntityTag = {
+  name: string;
+  aliases: string[];
+  kind: EntityTagKind;
 };
 
 /**
@@ -156,6 +222,17 @@ export type PersonProfileDraft = {
   /** The staged thinking that produced the axes. Saved so a human can audit the path. */
   reasoning: string;
   roleLens: string;
+  /**
+   * REQUIRED, and the one field whose absence kills the whole draft. Everything else here
+   * can degrade — a thin `domains` list still builds a usable person — but a profile with
+   * no audience never answered "whose customers are these", and that is precisely the
+   * question whose absence produced a company-shaped profile five times over.
+   */
+  audience: PersonAudience;
+  /** Defaults to empty/empty rather than failing: an unknown remit is a weaker filter, not a wrong person. */
+  scope: PersonScope;
+  /** The named things this person watches. May be empty — an invented tag is worse than none. */
+  entityTags: PersonEntityTag[];
   /** Layer 4's fields of work, each tagged found/derived. Persisted as PersonProfile.domains. */
   domains: PersonDomain[];
   axes: AxisProposal[];
@@ -163,9 +240,64 @@ export type PersonProfileDraft = {
 
 export const PROFILE_SYSTEM = `You describe what ONE person owns at work, and which subjects would make them stop and read.
 
-You are given the person's full title and headline, their LinkedIn About text and their past roles, and the commercial picture of their employer: the industry, what the company sells and to whom, its competitors BY NAME, and the DATED moves it made recently. The employer picture is CONTEXT for understanding what this person's job actually involves. A description of the company as an answer to "what does this person own" is a failed answer.
+You are given the person's full title and headline, their LinkedIn About text, their past roles with their descriptions, their curated Skills and their education, a CAREER summary computed in code, sometimes web research about the person, and the commercial picture of their employer: the industry, its BUSINESS LINES and who each serves, what the company sells and to whom, its competitors BY NAME, and the DATED moves it made recently. The employer picture is CONTEXT for understanding what this person's job actually involves. A description of the company as an answer to "what does this person own" is a failed answer.
 
-THINK AS A FOUR-LAYER CAKE, in writing, in Hebrew, BEFORE deriving a single axis.
+BEFORE the layers, answer the ROLE ANALYSIS, in Hebrew, in writing — three questions in
+this exact order. Each answer feeds the next; do not skip ahead.
+
+ROLE-1 — THE ROLE IN GENERAL: what does this job title mean ANYWHERE in this industry?
+What does a holder of this title own at any company — and, just as important, what do
+they NOT own (that belongs to other chairs)? Answer from the title alone, before
+looking at this company.
+
+ROLE-2 — THE COMPANY'S BUSINESS MAP: you are given businessLines — the lines this
+company actually operates and who each line serves. Quote them. This is the map the
+role sits on.
+
+ROLE-3 — THE INTERSECTION = SCOPE: lay ROLE-1 over ROLE-2. Which of THIS company's
+lines fall under THIS person ("owns"), and which do not ("notOwns")? Then VERIFY
+against the person's own words — their About, their role descriptions, their skills:
+a line their own text claims moves from notOwns to owns; a line their text disclaims
+moves out. The person's own words outrank the canonical definition; the canonical
+definition outranks a guess.
+
+From ROLE-3 derive:
+- audience: the PERSON's customers — the union of forWhom across the lines they own:
+  {"type": one or more of "B2C"/"B2B"/"B2G"/"INTERNAL", "who": who they actually are,
+  in Hebrew, "geography": where those customers live}. A CIO or CTO serves the
+  company's own units: type ["INTERNAL"]. audience is REQUIRED — a profile without it
+  is rejected in code. NEVER answer it with the company's own segment string: "לקוחות
+  פרטיים ומשקי בית" copied off the employer profile is the company's audience, and if
+  it is also this person's, it is because the lines they own say so.
+- scope: {"owns": [line names], "notOwns": [line names]} — from ROLE-3, in Hebrew.
+
+You are also given CAREER (computed in code — trust it, do not re-derive): tenure in
+the current role and the path into it. Read what the path says about what they own:
+someone who rose through branch management reads retail differently from someone who
+arrived from a digital product role. Use it in ROLE-3's verification and in choosing
+what would genuinely interest them.
+
+You may be given PERSON RESEARCH — interviews, panel appearances, quotes. What a
+person chose to say in public is layer-4 FOUND evidence (source: "post" is reserved;
+use source "about" for research quotes and cite the finding's title in evidence).
+
+ENTITY TAGS: alongside the axes, return entityTags — the NAMED things this person
+watches: their competitors (only names from the employer's namedCompetitors list),
+their own company's products/projects they own, their regulator. Each tag:
+{"name": the canonical name, "aliases": [every spelling in both scripts, the short
+form people actually say], "kind": "competitor"|"product"|"project"|"regulator"}.
+3-8 tags. A name that is not in namedCompetitors and is not the employer's own
+product/project/regulator DOES NOT APPEAR — an invented name in a tag becomes an
+invented name in a message.
+
+DISTINCT DECISIONS: every axis's personDecision must name a DIFFERENT decision.
+Two axes whose personDecision restates the same signature ("חתומה על הצעת השירותים
+הקמעונאיים" twice) are ONE axis wearing two labels — merge them yourself before
+returning. Code checks this and deletes duplicates.
+
+An axis about a subject in scope.notOwns is deleted in code. Do not propose one.
+
+WITH THE ROLE ANALYSIS ANSWERED, THINK AS A FOUR-LAYER CAKE, in writing, in Hebrew, BEFORE deriving a single axis.
 Each layer answers ONE question, and answers it with QUOTED EVIDENCE. The chaining
 rule is the method: a layer may not answer without quoting the output of the layer
 beneath it. This is a thinking order, not a form. A layer with no data FAILS LOUDLY —
@@ -176,8 +308,9 @@ LAYER 1 — INDUSTRY: "באיזו תעשייה החברה?" One line. The resear
 (Industry:) — quote it, never invent a different one.
 
 LAYER 2 — COMPANY & CUSTOMERS: "איזו חברה זו, מי הלקוחות, ומי מנסה לאכול אותם?"
-Open by quoting layer 1. Answer ONLY from whatTheySell, customerSegments (B2C/B2B/B2G
-and who they actually are) and namedCompetitors. A competitor is whoever is trying to
+Open by quoting layer 1. Answer ONLY from the businessLines you quoted in ROLE-2,
+whatTheySell, customerSegments (B2C/B2B/B2G and who they actually are) and
+namedCompetitors. A competitor is whoever is trying to
 take THESE customers — never a company that merely resembles this one.
 
 LAYER 3 — WHAT OCCUPIES THEM NOW: open by quoting the company identity from layer 2.
@@ -212,7 +345,7 @@ no axis. Every axis names its field ("domain") and quotes the layer-2/3 fact it 
 ("layerEvidence") — an axis whose evidence is a layer-3 move MUST carry that move's
 date as dateIso.
 
-Return these answers as "reasoning", IN HEBREW, at most THREE SENTENCES PER LAYER — except the swap test, which is one short line per surviving derived subject. Brevity is not cosmetic: the reasoning and the axes share one output budget, and an essay here leaves no room for the axes themselves. It is saved next to the profile so a human can see how you reached the axes — reasoning that could have been written without reading the title is a failed answer.
+Return the ROLE ANALYSIS and the layers as "reasoning", IN HEBREW, at most TWO SENTENCES PER ROLE QUESTION and THREE SENTENCES PER LAYER — except the swap test, which is one short line per surviving derived subject. The role analysis goes FIRST, labelled ROLE-1/ROLE-2/ROLE-3: it is the part a human reviewing the profile checks, because a wrong intersection makes every axis under it wrong. Brevity is not cosmetic: the reasoning and the axes share one output budget, and an essay here leaves no room for the axes themselves. It is saved next to the profile so a human can see how you reached the axes — reasoning that could have been written without reading the title is a failed answer.
 
 Then return:
 
@@ -262,7 +395,7 @@ Then return:
      * For a report-hunting query, name the kind of thing: "outlook report", "industry survey", "regulatory ruling", "market outlook".
 
 Return strict JSON only — no prose, no fences:
-{"reasoning":"...","roleLens":"...","domains":[{"domain":"...","kind":"found"|"derived","source":"title"|"headline"|"about"|"experience"|"post"|null,"evidence":"..."}],"axes":[{"label":"...","stage":"decision"|"competitor"|"stop_and_read"|"adopt","domain":"...","layerEvidence":{"layer":2|3,"quote":"...","dateIso":"YYYY-MM-DD" — layer 3 ONLY, omitted on layer 2},"personDecision":"...","companyFact":"...","externalExample":"...","agenda":true,"searchQueries":["..."],"rationale":"..."}]}`;
+{"reasoning":"...","roleLens":"...","audience":{"type":["B2C"|"B2B"|"B2G"|"INTERNAL"],"who":"...","geography":"..."},"scope":{"owns":["..."],"notOwns":["..."]},"entityTags":[{"name":"...","aliases":["..."],"kind":"competitor"|"product"|"project"|"regulator"}],"domains":[{"domain":"...","kind":"found"|"derived","source":"title"|"headline"|"about"|"experience"|"post"|null,"evidence":"..."}],"axes":[{"label":"...","stage":"decision"|"competitor"|"stop_and_read"|"adopt","domain":"...","layerEvidence":{"layer":2|3,"quote":"...","dateIso":"YYYY-MM-DD" — layer 3 ONLY, omitted on layer 2},"personDecision":"...","companyFact":"...","externalExample":"...","agenda":true,"searchQueries":["..."],"rationale":"..."}]}`;
 
 export type PersonProfileInput = {
   fullName: string;
@@ -273,8 +406,44 @@ export type PersonProfileInput = {
   employerProfile: unknown;
   /** LinkedIn "About" paragraph, captured by SCRAPE_PROFILE. A layer-4 FOUND source. */
   about?: string | null;
-  /** [{title, company, dateRange}], newest first, max 5. Also a layer-4 FOUND source. */
+  /**
+   * [{title, company, dateRange, description}], newest first, max 5. A layer-4 FOUND
+   * source, and since the deep scrape the `description` on each row is the most direct
+   * evidence of scope there is — it is the person describing their own remit.
+   */
   experience?: unknown;
+  /**
+   * The person's curated LinkedIn Skills, untyped Json off Contact.skills. Weak evidence on
+   * its own (people leave stale skills up) and good evidence in ROLE-3's verification: a
+   * head of retail listing "Trade Finance" is claiming a line the canonical definition
+   * would have put in notOwns.
+   */
+  skills?: unknown;
+  /**
+   * [{school, degree, field}], untyped Json off Contact.education. It changes how a title
+   * READS — a CPA running finance, a lawyer running regulation, an engineer running product
+   * — which is why it is in the prompt and not just on the person page.
+   */
+  education?: unknown;
+  /**
+   * Tenure and trajectory, COMPUTED in lib/tech-radar/career.ts. Passed in rather than
+   * derived here so the model is never invited to guess a number: the invented
+   * `dateIso: "2024-01-01"` that silently removed five axes from the query pool is the same
+   * failure mode one field over.
+   */
+  career?: { tenureYearsInCurrentRole: number | null; path: { title: string; company: string | null; years: number | null }[] } | null;
+  /**
+   * Web research about the PERSON — interviews, panels, quotes. Layer-4 FOUND evidence in
+   * the person's own words, and the first input this build ever had that is about the human
+   * rather than about their employer.
+   */
+  personResearch?: { findings: { title: string; url: string; snippet: string; pageText: string | null }[] } | null;
+  /**
+   * The employer's business-line map, ROLE-2's whole input. Passed explicitly when a caller
+   * has it, and otherwise read off `employerProfile` — same rule as industry and moves: a
+   * caller that only hands over the stored profile must not silently lose a question.
+   */
+  businessLines?: { name: string; description: string; forWhom: string }[];
   /**
    * Layers 1 and 3, which live on the employer's research profile. Passed explicitly when
    * a caller has them in hand, and otherwise read off `employerProfile` — a caller that
@@ -318,7 +487,14 @@ const MAX_MOVES_IN_PROMPT = 6;
 /** The About paragraph is a source to quote, not a document to read. */
 const MAX_ABOUT_IN_PROMPT = 600;
 
-/** Past roles as "title — company (dateRange)", newest first, capped at five. */
+/**
+ * Past roles as "title — company (dateRange): description", newest first, capped at five.
+ *
+ * The description arrived with the deep scrape and is the highest-value string in the whole
+ * input for ROLE-3: it is the person saying, in their own words, what their remit is. It is
+ * truncated because a maximalist LinkedIn role description runs to a page, and five of them
+ * would crowd out the employer picture entirely.
+ */
 function readExperience(v: unknown): string[] {
   if (!Array.isArray(v)) return [];
   return v
@@ -328,12 +504,116 @@ function readExperience(v: unknown): string[] {
       const title = str(o.title);
       const company = str(o.company);
       const dateRange = str(o.dateRange);
+      const description = str(o.description);
       if (!title && !company) return "";
       const head = [title, company].filter(Boolean).join(" — ");
-      return dateRange ? `${head} (${dateRange})` : head;
+      const dated = dateRange ? `${head} (${dateRange})` : head;
+      return description ? `${dated}: ${description.slice(0, MAX_ROLE_DESCRIPTION_IN_PROMPT)}` : dated;
     })
     .filter(Boolean);
 }
+
+/** Per role. Five roles × 300 is already as much text as the About paragraph. */
+const MAX_ROLE_DESCRIPTION_IN_PROMPT = 300;
+
+/**
+ * ROLE-2's map: "name — forWhom: description" per line.
+ *
+ * `forWhom` is what makes this more than the old single `whatTheySell` sentence — audience
+ * is defined as the union of `forWhom` over the owned lines, so a line whose reader cannot
+ * be identified contributes nothing and is dropped rather than passed on nameless. Legacy
+ * profiles (researched before `forWhom` existed) still render the name and description,
+ * which is a weaker map, not a broken one.
+ */
+function readBusinessLines(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .slice(0, MAX_BUSINESS_LINES_IN_PROMPT)
+    .map((l) => {
+      const o = (l ?? {}) as Record<string, unknown>;
+      const name = str(o.name);
+      if (!name) return "";
+      const forWhom = str(o.forWhom);
+      const description = str(o.description);
+      const head = forWhom ? `${name} — ${forWhom}` : name;
+      return description ? `${head}: ${description}` : head;
+    })
+    .filter(Boolean);
+}
+
+/** A bank has five or six lines. Twenty would be the research profile again. */
+const MAX_BUSINESS_LINES_IN_PROMPT = 8;
+
+/** The Skills list is curated, not exhaustive — the head of it is the signal. */
+const MAX_SKILLS_IN_PROMPT = 20;
+
+/**
+ * Education as "school — degree, field". Untyped Json off Contact.education, so a row that
+ * is not an object (or has no school) is dropped rather than rendered as "undefined".
+ */
+function readEducation(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .slice(0, MAX_EDUCATION_IN_PROMPT)
+    .map((e) => {
+      const o = (e ?? {}) as Record<string, unknown>;
+      const school = str(o.school);
+      if (!school) return "";
+      const rest = [str(o.degree), str(o.field)].filter(Boolean).join(", ");
+      return rest ? `${school} — ${rest}` : school;
+    })
+    .filter(Boolean);
+}
+
+const MAX_EDUCATION_IN_PROMPT = 4;
+
+/**
+ * The computed career summary, labelled COMPUTED so the model treats it as given rather
+ * than as something to check or improve. An unknown tenure is written as "unknown": the one
+ * thing that must never appear here is a plausible number, because a guessed tenure is
+ * indistinguishable from a measured one once it is inside the reasoning.
+ */
+function readCareer(c: PersonProfileInput["career"]): string | null {
+  if (!c) return null;
+  const tenure = c.tenureYearsInCurrentRole == null ? "unknown" : `${c.tenureYearsInCurrentRole} years`;
+  const path = (Array.isArray(c.path) ? c.path : [])
+    .slice(0, 5)
+    .map((p) => {
+      const head = p?.company ? `${p.title} @ ${p.company}` : `${p?.title ?? ""}`;
+      return p?.years == null ? head : `${head} (${p.years}y)`;
+    })
+    .filter((l) => l.trim() !== "");
+  const lines = [`Career (computed) — tenure in current role: ${tenure}`];
+  if (path.length) lines.push(`  path (newest first): ${path.join(" ← ")}`);
+  return lines.join("\n");
+}
+
+/**
+ * Person research findings, four at most.
+ *
+ * The cap is a budget decision, not a quality one: `researchPerson` returns up to eight,
+ * each with up to 4000 chars of page text, and all of it in one prompt would dwarf both the
+ * employer picture and the person's own profile — the input that models the person would be
+ * crowded out by material ABOUT the person. Title and snippet always survive; the page text
+ * is where a quotable sentence lives, so it is trimmed rather than dropped.
+ */
+function readPersonResearch(r: PersonProfileInput["personResearch"]): string[] {
+  const findings = Array.isArray(r?.findings) ? r.findings : [];
+  return findings
+    .slice(0, MAX_RESEARCH_FINDINGS_IN_PROMPT)
+    .map((f) => {
+      const o = (f ?? {}) as Record<string, unknown>;
+      const title = str(o.title);
+      const snippet = str(o.snippet);
+      const pageText = str(o.pageText).slice(0, MAX_RESEARCH_TEXT_IN_PROMPT);
+      if (!title && !snippet && !pageText) return "";
+      return [title, snippet, pageText].filter(Boolean).join(" — ");
+    })
+    .filter(Boolean);
+}
+
+const MAX_RESEARCH_FINDINGS_IN_PROMPT = 4;
+const MAX_RESEARCH_TEXT_IN_PROMPT = 500;
 
 /**
  * The commercial picture as FIRST-CLASS lines, not buried in a JSON slice. The layered
@@ -364,6 +644,13 @@ export function personPromptInput(i: PersonProfileInput): string {
   const quiet = i.quietNow === true || (i.quietNow === undefined && p.quietNow === true);
   const about = (i.about ?? "").trim();
   const experience = readExperience(i.experience);
+  // The v3 person inputs. Same rule as layers 1 and 3: the caller's value when it has one,
+  // the stored employer profile otherwise, and NO LINE AT ALL when neither has it.
+  const businessLines = readBusinessLines(i.businessLines ?? p.businessLines);
+  const skills = strList(i.skills).slice(0, MAX_SKILLS_IN_PROMPT);
+  const education = readEducation(i.education);
+  const career = readCareer(i.career);
+  const research = readPersonResearch(i.personResearch);
 
   return [
     `Person: ${i.fullName}`,
@@ -371,8 +658,15 @@ export function personPromptInput(i: PersonProfileInput): string {
     i.headline ? `Headline: ${i.headline}` : null,
     about ? `About: ${about.slice(0, MAX_ABOUT_IN_PROMPT)}` : null,
     experience.length ? `Experience: ${experience.join(" | ")}` : null,
+    skills.length ? `Skills: ${skills.join(", ")}` : null,
+    education.length ? `Education: ${education.join(" | ")}` : null,
+    career,
+    research.length ? `Person research (interviews, panels, quotes):\n${research.map((r) => `- ${r}`).join("\n")}` : null,
     `Employer: ${i.companyName}`,
     industry ? `Industry: ${industry}` : null,
+    businessLines.length
+      ? `Business lines — the company's map, ROLE-2's input (name — forWhom: description):\n${businessLines.map((l) => `- ${l}`).join("\n")}`
+      : null,
     whatTheySell ? `What the employer sells, and to whom: ${whatTheySell}` : null,
     segments.length ? `Customer segments: ${segments.join(", ")}` : null,
     competitors.length ? `Named competitors: ${competitors.join(", ")}` : null,
@@ -401,11 +695,100 @@ function domainKey(s: string): string {
 }
 
 /**
+ * The audience, or null — and null KILLS THE DRAFT (see parseProfileResponseWithReason).
+ *
+ * Two requirements, both learned: at least one recognised `type`, and a non-empty `who`.
+ * `type` alone is a shape with no content ("B2C" is true of the whole bank); `who` alone
+ * cannot be joined on later. `geography` is allowed to be empty on purpose — a CITO's
+ * internal audience has no country, and defaulting it to "ישראל" would manufacture the
+ * geography claim that חלק 3's filter is about to trust.
+ *
+ * An unrecognised type value is DROPPED rather than clamped: unlike an entity-tag kind,
+ * there is no neutral audience type — every one of the four carries policy, and guessing
+ * B2C for a garbled value is how a person acquires customers they do not have.
+ */
+function readAudience(v: unknown): PersonAudience | null {
+  if (typeof v !== "object" || v === null || Array.isArray(v)) return null;
+  const o = v as Record<string, unknown>;
+  const type = [
+    ...new Set(strList(o.type).map((t) => t.trim().toUpperCase())),
+  ].filter((t): t is AudienceType => AUDIENCE_TYPE_SET.has(t));
+  const who = str(o.who);
+  if (type.length === 0 || !who) return null;
+  return { type, who, geography: str(o.geography) };
+}
+
+/**
+ * `owns`/`notOwns`, defaulting to empty — and deliberately NOT fatal the way audience is.
+ *
+ * An empty scope costs recall precision (nothing is pre-filtered) but describes the person
+ * correctly: we do not know their remit. An empty audience, by contrast, means the build
+ * never answered whose customers these are, which is the question that separates a person
+ * from their employer — and a profile that skipped it is the failure, not a weaker profile.
+ */
+function readScope(v: unknown): PersonScope {
+  if (typeof v !== "object" || v === null || Array.isArray(v)) return { owns: [], notOwns: [] };
+  const o = v as Record<string, unknown>;
+  return { owns: strList(o.owns), notOwns: strList(o.notOwns) };
+}
+
+/**
+ * The named things this person watches, parsed defensively.
+ *
+ * An unrecognised `kind` is clamped to "product" — the same discipline as `asKind` in
+ * triage.ts: "product" is the one value that carries NO policy, so a garbled kind costs a
+ * slightly worse tag rather than a rival that is not a rival or a regulator that regulates
+ * nothing. A nameless tag is dropped, because the name IS the tag; and an alias equal to
+ * the name is dropped as noise. Whether the name is a real company at all is not decided
+ * here — that check needs the employer's competitor gazetteer, which the gate has and this
+ * pure parser does not.
+ */
+function readEntityTags(v: unknown): PersonEntityTag[] {
+  if (!Array.isArray(v)) return [];
+  const tags: PersonEntityTag[] = [];
+  const seen = new Set<string>();
+  for (const row of v) {
+    if (tags.length >= MAX_ENTITY_TAGS) break;
+    const o = (row ?? {}) as Record<string, unknown>;
+    const name = str(o.name);
+    if (!name) continue;
+    const nameKey = name.toLowerCase();
+    if (seen.has(nameKey)) continue;
+    seen.add(nameKey);
+    const rawKind = str(o.kind).toLowerCase();
+    const kind = (ENTITY_TAG_KINDS as readonly string[]).includes(rawKind) ? (rawKind as EntityTagKind) : "product";
+    const aliases = [...new Set(strList(o.aliases))]
+      .filter((a) => a.toLowerCase() !== nameKey)
+      .slice(0, MAX_TAG_ALIASES);
+    tags.push({ name, aliases, kind });
+  }
+  return tags;
+}
+
+/** The prompt asks for 3-8. Ten is the point where a "watch list" is a topic dump. */
+const MAX_ENTITY_TAGS = 10;
+/** Both scripts, plus the short form people say. More than that is spelling permutations. */
+const MAX_TAG_ALIASES = 8;
+
+/**
  * Pure. Drops any axis whose label normalises to nothing — a label made only of filler
  * ("תחום", "עולם") is not an interest, and letting one through creates an axis that
  * every future proposal collides with.
  */
 export function parseProfileResponse(text: string): PersonProfileDraft | null {
+  return parseProfileResponseWithReason(text).draft;
+}
+
+/**
+ * The same parse under the name the v3 tasks use.
+ *
+ * Two modules in this directory exported a `parseProfileResponse` — one parsing a COMPANY
+ * research profile (lib/tech-radar/profile.ts), one parsing a PERSON build — and every
+ * reader had to check the import line to know which. `parsePersonProfile` says which. The
+ * old name is kept as-is because it is the name in the tests that hold the pre-v2 rules,
+ * and renaming those would be a diff that hides what actually changed.
+ */
+export function parsePersonProfile(text: string): PersonProfileDraft | null {
   return parseProfileResponseWithReason(text).draft;
 }
 
@@ -428,6 +811,9 @@ export function parseProfileResponseWithReason(
   const parsed = parseJsonLoose<{
     reasoning?: unknown;
     roleLens?: unknown;
+    audience?: unknown;
+    scope?: unknown;
+    entityTags?: unknown;
     domains?: unknown;
     axes?: unknown;
   }>(text);
@@ -438,6 +824,20 @@ export function parseProfileResponseWithReason(
   // new name, and the caller records profile_call_failed rather than building blind.
   const reasoning = str(parsed?.reasoning);
   if (!reasoning) return { draft: null, reason: "no reasoning — the staged thinking was skipped" };
+  // The ROLE ANALYSIS gate, and the only new fatal one in v2. A build that cannot say whose
+  // customers this person serves did not answer ROLE-3, and what comes back instead is the
+  // company wearing a person's name — five axes signed "חתומה על הצעת השירותים הקמעונאיים"
+  // with the bank's own "Individual consumers and households" as their evidence. Failing
+  // here costs one re-run; passing here costs a message to a real executive.
+  const audience = readAudience(parsed?.audience);
+  if (!audience) {
+    return {
+      draft: null,
+      reason: "no usable audience — ROLE-3 was not answered (needs at least one of B2C/B2B/B2G/INTERNAL and a non-empty who)",
+    };
+  }
+  const scope = readScope(parsed?.scope);
+  const entityTags = readEntityTags(parsed?.entityTags);
 
   /** Which requirement each dropped row failed, so the empty case names itself. */
   const dropped: Record<string, number> = {};
@@ -592,14 +992,15 @@ export function parseProfileResponseWithReason(
     else a.agenda = false;
   }
   if (!seenAgenda) axes[0].agenda = true;
-  return { draft: { reasoning, roleLens, domains, axes }, reason: null };
+  return { draft: { reasoning, roleLens, audience, scope, entityTags, domains, axes }, reason: null };
 }
 
 export async function buildPersonProfile(input: PersonProfileInput): Promise<PersonProfileDraft | null> {
   const res = await openrouterChat(
     OR_FEATURE.personProfile,
     {
-      model: MODEL,
+      // PROFILE_MODEL, not MODEL: see the constant. Triage and fit stay on MODEL.
+      model: PROFILE_MODEL,
       messages: [
         { role: "system", content: PROFILE_SYSTEM },
         { role: "user", content: personPromptInput(input) },

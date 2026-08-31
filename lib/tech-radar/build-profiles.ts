@@ -9,7 +9,13 @@
 import { prisma } from "@/lib/prisma";
 import { buildPersonProfile, type AxisProposal } from "@/lib/tech-radar/person-profile";
 import { gateRationales } from "@/lib/tech-radar/rationale-gate";
-import { attachAxes, ensureCompanyMonitorAxis, ensureIndustryAxis } from "@/lib/tech-radar/axis-store";
+import { invalidEntityTags } from "@/lib/tech-radar/rationale-rules";
+import { careerSummary } from "@/lib/tech-radar/career";
+import type { PersonWebResearch } from "@/lib/tech-radar/person-research";
+import type { BusinessLine } from "@/lib/tech-radar/types";
+import {
+  attachAxes, ensureCompanyMonitorAxis, ensureIndustryAxis, ensureEntityAxes,
+} from "@/lib/tech-radar/axis-store";
 import { countHebrewQueries } from "@/lib/tech-radar/axis";
 import { poolQueryCount, MAX_QUERIES_PER_AXIS } from "@/lib/tech-radar/person-scan";
 import { buildAxisQueryPool } from "@/lib/tech-radar/axis-fit";
@@ -116,6 +122,13 @@ export type BuildProfilesReport = {
    * silent skip with no visibility anywhere is indistinguishable from a bug.
    */
   notes: string[];
+  /**
+   * Entity tags the truth gate refused, by name. An invented rival is worse in a tag than
+   * in a rationale: a rationale is read by a human before anything is sent, while a tag
+   * carries its name into matching mechanically. The pilot's invented "בנק בינלאומי ראשון"
+   * is the case — so each refusal is named here rather than counted.
+   */
+  entityTagsDropped: string[];
 };
 
 export async function buildProfilesForMarked(input: {
@@ -130,6 +143,13 @@ export async function buildProfilesForMarked(input: {
    * are. Muted links survive — the mute is learned feedback, and the learning stays.
    */
   force?: boolean;
+  /**
+   * Web research about the PEOPLE, keyed by contact id. The prepare flow
+   * (radar.person.prepare) researches the one person it is onboarding and hands the
+   * findings in; the nightly path omits the map entirely and builds without it, because
+   * researching a whole cohort is a news-quota bill, not a per-run cost.
+   */
+  personResearchByContact?: Map<string, PersonWebResearch>;
 }): Promise<BuildProfilesReport> {
   const report: BuildProfilesReport = {
     considered: 0, built: 0, refreshed: 0, axesCreated: 0, axesMerged: 0, axesRefused: 0,
@@ -139,7 +159,7 @@ export async function buildProfilesForMarked(input: {
     domainsByPerson: [], allDerived: [],
     layerQueries: { industry: 0, companyMonitor: 0, person: 0 },
     industryShared: { industries: 0, employers: 0, savedQueries: 0 },
-    notes: [],
+    notes: [], entityTagsDropped: [],
   };
 
   const contacts = await prisma.contact.findMany({
@@ -152,6 +172,9 @@ export async function buildProfilesForMarked(input: {
     select: {
       id: true, fullName: true, currentTitle: true, headline: true, currentCompany: true, companyId: true,
       about: true, experience: true, profileScrapedAt: true,
+      // Layer-4 sources the deep scrape added, plus the Hebrew first name — the same
+      // person's press is almost entirely Hebrew, so it is what person research searches on.
+      skills: true, education: true, hebrewFirstName: true,
       personProfile: { select: { id: true, refreshedAt: true } },
     },
   });
@@ -224,8 +247,30 @@ export async function buildProfilesForMarked(input: {
       // and must quote them verbatim to claim a field was found there.
       about: contact.about,
       experience: contact.experience,
+      // The deep scrape's own two fields. Weak alone, strong in the role verification: a
+      // head of retail listing "Trade Finance" is claiming a line the canonical role
+      // definition would have put in notOwns.
+      skills: contact.skills,
+      education: contact.education,
+      // Computed in code (lib/tech-radar/career.ts), never asked of the model — an invented
+      // tenure is indistinguishable from a real one once it is downstream, which is exactly
+      // what the fabricated `dateIso: "2024-01-01"` cost the pilot one field over.
+      career: careerSummary(contact.experience),
+      // Present only on the prepare path; the nightly build passes no map and models the
+      // person without it rather than paying a news quota per contact.
+      personResearch: input.personResearchByContact?.get(contact.id) ?? null,
+      // The employer's lines of business WITH `forWhom` — the input the audience answer is
+      // an intersection over. Without it the model can only copy the company's whole
+      // customer base onto one executive, which is the v1 failure this phase exists to fix.
+      businessLines: (employer.profile as { businessLines?: BusinessLine[] } | null)?.businessLines ?? [],
     });
     if (!draft) {
+      // NOTE (Task 9): a draft rejected for a missing `audience` — the one hard new
+      // requirement in the v2 parser — lands in this same bucket, because
+      // buildPersonProfile signals both a failed call and an unusable response as `null`
+      // (it logs the parse reason and drops it). Distinguishing them needs the reason
+      // surfaced on buildPersonProfile's return, in person-profile.ts, which this task is
+      // not allowed to touch; until then `profile_no_audience` is only in the server log.
       report.skipped.push({ contactId: contact.id, name, reason: "profile_call_failed" });
       continue;
     }
@@ -252,6 +297,11 @@ export async function buildProfilesForMarked(input: {
           // Absence is handled below by simply not calling ensureIndustryAxis — never a
           // crash, never an empty-string industry.
           industry?: { canonical: string; queries: string[] };
+          // The dated moves research actually found. Feeds two checks: the gate's
+          // fabricated-date rule (which fails OPEN without them, so an invented dateIso
+          // survives if they are not passed) and the entity-tag gate, where a project the
+          // employer announced is the evidence that the project is theirs.
+          recentMoves?: { fact: string; dateIso: string; sourceUrl?: string }[];
         }
       | null;
     const gate = await gateRationales(draft.roleLens, draft.axes, {
@@ -269,6 +319,11 @@ export async function buildProfilesForMarked(input: {
         products: employerFacts?.products ?? [],
       },
       reasoning: draft.reasoning,
+      // Every layer-3 axis in the pilot org carried an invented `dateIso: "2024-01-01"`,
+      // and layer3Expired then quietly dropped all of them from the query pool. The check
+      // that catches it fails open with no moves in hand — so not passing these means the
+      // rule can never fire.
+      recentMoves: employerFacts?.recentMoves ?? [],
     });
     for (const r of gate.rejected) {
       report.skipped.push({ contactId: contact.id, name, reason: formatAxisRejection(r.reason, r.label) });
@@ -287,6 +342,11 @@ export async function buildProfilesForMarked(input: {
         reasoning: draft.reasoning,
         employerTrackedCompanyId: employer.id,
         domains: draft.domains,
+        // Whose customers this person serves, and which lines are and are not on their
+        // desk. Persisted rather than recomputed: Phase B's matching reads them, and the
+        // person page shows them to the human who has to approve the model.
+        audience: draft.audience,
+        scope: draft.scope,
       },
       // personalNotes is deliberately untouched: it is learned from feedback, and a
       // rebuild must not erase what the pilot taught us about someone.
@@ -302,6 +362,11 @@ export async function buildProfilesForMarked(input: {
         // review, Finding 2).
         ...(gate.kept.length > 0 ? { refreshedAt: new Date() } : {}),
         domains: draft.domains,
+        // Refreshed unconditionally, like roleLens: a legacy profile built before the v2
+        // parser has `audience: null`, and leaving it null after a rebuild would keep
+        // Phase B blind to exactly the people who were just remodelled.
+        audience: draft.audience,
+        scope: draft.scope,
       },
       select: { id: true },
     });
@@ -354,8 +419,15 @@ export async function buildProfilesForMarked(input: {
       // zero queries for exactly the people this pipeline is meant to feed (2026-08-26
       // review round 2). An INDUSTRY link is a net subscription, not one of the subjects
       // force-detach exists to clear.
+      //
+      // MANUAL is excluded for a different reason, and it is the stronger one: a MANUAL
+      // link is a HUMAN'S CORRECTION — someone looked at the model, saw what it missed and
+      // typed the tag in. A rebuild that deleted it would make the person page's add-tag
+      // control a lie: the tag would hold until the next rebuild and then vanish with no
+      // trace and no explanation. The rebuild supersedes what the LLM proposed, never what
+      // a person decided.
       await prisma.personAxis.deleteMany({
-        where: { personProfileId: profile.id, mutedAt: null, source: { not: "INDUSTRY" } },
+        where: { personProfileId: profile.id, mutedAt: null, source: { notIn: ["INDUSTRY", "MANUAL"] } },
       });
     }
 
@@ -411,6 +483,35 @@ export async function buildProfilesForMarked(input: {
       trackedCompanyId: employer.id,
       companyName: employer.name,
     });
+
+    // The person's NAMED subjects, gated before any of them can reach matching. A tag is
+    // held to a harder standard than a rationale: a rationale is read by a human before
+    // anything is sent, while a tag carries its name mechanically. So a competitor must
+    // appear in the employer's researched gazetteer, and a product or project must be the
+    // employer's OWN — the pilot's invented "בנק בינלאומי ראשון" is what this refuses.
+    //
+    // The employer's own vocabulary is its products PLUS the facts of its dated moves: a
+    // project tag ("אשראי מהיר") is almost never in a product list, and the announcement
+    // that names it is the evidence that the project is theirs.
+    const entityTags = draft.entityTags ?? [];
+    const dropped = invalidEntityTags(entityTags, employerFacts?.namedCompetitors ?? [], {
+      names: [employer.name, ...employer.aliases],
+      products: [
+        ...(employerFacts?.products ?? []),
+        ...(employerFacts?.recentMoves ?? []).map((m) => m.fact),
+      ],
+    });
+    report.entityTagsDropped.push(...dropped);
+    const keptTags = entityTags.filter((t) => !dropped.includes(t.name));
+    // Skipped entirely at zero, so a cohort with no tags does no writes — and, in the
+    // report, an empty `entityTagsDropped` with no axes is not confused with a refusal.
+    if (keptTags.length > 0) {
+      await ensureEntityAxes({
+        orgId: input.orgId,
+        personProfileId: profile.id,
+        tags: keptTags,
+      });
+    }
 
     rebuilt.push(contact.id);
     if (contact.personProfile) report.refreshed += 1;

@@ -2,6 +2,7 @@ import { inngest } from "@/inngest/client";
 import { prisma } from "@/lib/prisma";
 import { markedEmployers, upsertEmployers } from "@/lib/tech-radar/population";
 import { buildProfilesForMarked } from "@/lib/tech-radar/build-profiles";
+import { researchPerson } from "@/lib/tech-radar/person-research";
 import { RADAR_SCRAPE_STALE_DAYS } from "@/lib/job-check/dispatch";
 
 /**
@@ -28,6 +29,12 @@ import { RADAR_SCRAPE_STALE_DAYS } from "@/lib/job-check/dispatch";
  * session, no Apollo/Bright Data spend — and waits for it before building the model,
  * the same way it waits for employer research. If the nightly dispatch already has one
  * queued for this contact it waits on that instead of paying for a second profile visit.
+ *
+ * Since the v3 person model it also RESEARCHES the person on the web (interviews, panels,
+ * quotes) between the scrape and the build. That is the one input the nightly path does
+ * not have: a cohort-wide person research is a news-quota bill, while one hand-added person
+ * is four queries — so the expensive-but-good version of the model is exactly what someone
+ * clicking "add" gets.
  */
 
 /** Research is async and paced by its own concurrency; poll rather than guess. */
@@ -153,8 +160,43 @@ export const radarPersonPrepare = inngest.createFunction(
       });
     }
 
+    /**
+     * Web research about the PERSON — interviews, panels, quotes. The first input this
+     * pipeline ever had that is about the human rather than about their employer.
+     *
+     * Placed HERE, after the employer wait and immediately before the build, on purpose:
+     * the function returns early on `no_employer` above, and each person costs up to four
+     * provider queries plus four page reads out of a nearly-exhausted monthly news quota.
+     * Researching someone whose employer never resolved would spend that for a build that
+     * is never going to happen.
+     *
+     * Its own step id — "person-web-research", not a round-numbered one — because Inngest
+     * memoises by step id and this file has already been bitten twice by that: the two
+     * wait loops had to be given distinct prefixes after "wait-0"/"check-0" collided, and
+     * a memoised step is the only reason a retry after the build does not re-run the paid
+     * research. Never throws: researchPerson returns whatever it found, and a null here
+     * simply builds the model without the person layer.
+     */
+    const personResearch = await step.run("person-web-research", async () => {
+      const c = await prisma.contact.findUnique({
+        where: { id: contactId },
+        select: { fullName: true, hebrewFirstName: true, currentCompany: true },
+      });
+      if (!c?.fullName) return null;
+      return researchPerson({
+        fullName: c.fullName,
+        hebrewName: c.hebrewFirstName,
+        companyName: c.currentCompany ?? "",
+      });
+    });
+
     const profiles = await step.run("build-person-profile", () =>
-      buildProfilesForMarked({ orgId, ownerId, contactIds: [contactId] })
+      buildProfilesForMarked({
+        orgId,
+        ownerId,
+        contactIds: [contactId],
+        personResearchByContact: new Map(personResearch ? [[contactId, personResearch]] : []),
+      })
     );
 
     // Deliberately dispatches no scan.
@@ -163,6 +205,11 @@ export const radarPersonPrepare = inngest.createFunction(
       employers: employers.length,
       profileWaitedOut: scrapeRequest.needsScrape && !scraped,
       waitedOut: !settled,
+      // How much the person research actually found. Zero is not a failure — plenty of
+      // executives are not in the press — but it is the difference between "the model read
+      // about the human" and "the model read a job title", and the run trail is where that
+      // has to be visible.
+      personResearchFindings: personResearch?.findings.length ?? 0,
       profiles,
     };
   }

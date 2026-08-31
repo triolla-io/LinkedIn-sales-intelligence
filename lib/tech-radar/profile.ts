@@ -93,6 +93,8 @@ export function pickInnerLinks(html: string, baseUrl: string, limit = 5): string
 
 const SYSTEM = `You are a B2B technology researcher. Given raw text from a company's own website plus recent coverage, produce a structured profile of what the company actually does.
 
+For each business line, forWhom names who that line serves — the customer slice, not the industry ("households and consumers in Israel", "corporate clients"). The person model downstream cuts a person's audience out of these.
+
 Five fields are REQUIRED and the research is rejected without them:
 
 - whatTheySell: one plain sentence — what does this company sell, and to whom? Not the mission statement; the actual product and the actual buyer.
@@ -118,7 +120,7 @@ The profile's purpose is to drive web searches for NEW technologies, products an
 
 Return strict JSON only — no prose, no fences:
 {
-  "businessLines": [{"name": string, "description": string}],
+  "businessLines": [{"name": string, "description": string, "forWhom": string}],
   "products": [string],
   "customerSegments": [string],
   "whatTheySell": string,
@@ -177,7 +179,15 @@ export function parseProfileResponse(text: string): TechRadarProfile | null {
   const businessLines = (Array.isArray(parsed.businessLines) ? parsed.businessLines : [])
     .map((b) => {
       const o = b as Record<string, unknown>;
-      return { name: String(o?.name ?? "").trim(), description: String(o?.description ?? "").trim() };
+      return {
+        name: String(o?.name ?? "").trim(),
+        description: String(o?.description ?? "").trim(),
+        // "" — not undefined, not the company-wide segment — when the model omits it or a
+        // stored profile predates the field. The person model reads forWhom to cut a
+        // person's audience out of the lines they own, and "" there means "unknown"; a
+        // filled-in guess would put the whole bank's customers on a retail chair's desk.
+        forWhom: typeof o?.forWhom === "string" ? o.forWhom.trim() : "",
+      };
     })
     .filter((b) => b.name);
 

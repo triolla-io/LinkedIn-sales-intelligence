@@ -23,6 +23,7 @@ import { researchTrackedCompany } from "@/lib/tech-radar/research-company";
 import { buildProfilesForMarked } from "@/lib/tech-radar/build-profiles";
 import { markedEmployers, upsertEmployers } from "@/lib/tech-radar/population";
 import { runFixtures, type ProposedAxis, type ProposedDomain } from "@/lib/tech-radar/rebuild-fixtures";
+import type { PersonAudience, PersonScope } from "@/lib/tech-radar/person-profile";
 import { newsQuotaStatus } from "@/lib/news/budget";
 import { existsSync, readFileSync } from "node:fs";
 
@@ -37,19 +38,65 @@ function rule(s: string) {
 
 type AxisRow = { label: string; rationale: string; queries: string[]; muted: boolean };
 
+/** A Json column that holds a record, not null / a scalar / an array. */
+function isObject(v: unknown): boolean {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+/** One line for the readout: "B2C, B2B · משקי בית · ישראל", or the absence, said out loud. */
+function audienceLine(a: PersonAudience | null): string {
+  if (!a) return "— none (profile built before the person model, or the build skipped it)";
+  const types = Array.isArray(a.type) ? a.type.join(", ") : "";
+  const line = [types, a.who, a.geography]
+    .filter((s) => typeof s === "string" && s.trim() !== "")
+    .join(" · ");
+  // A present-but-empty audience is not the same finding as a missing one, so it gets its
+  // own mark rather than printing as a blank after the label.
+  return line || "— present but empty";
+}
+
+/**
+ * owns / notOwns on one line. Both halves always print, empty included: `notOwns` is the
+ * deterministic prefilter that drops a story about a line the person does not hold, so an
+ * empty one is a real finding about the rebuild, not a blank worth hiding.
+ */
+function scopeLine(s: PersonScope | null): string {
+  const list = (xs: string[] | undefined) => (xs?.length ? xs.join(" · ") : "—");
+  return `owns: ${list(s?.owns)}   |   notOwns: ${list(s?.notOwns)}`;
+}
+
 /**
  * `PersonProfile.domains` read back as the layer-4 fields of work, tagged found/derived
  * (Task 9). Read alongside the axes so the BEFORE/AFTER comparison can show the layer
  * cake's own output, not just what it produced axes from — a rebuild that raises the
  * axis count on a wholly-derived domain list is not the improvement it looks like.
+ *
+ * `audience` and `scope` ride along for the same reason, and are the two the human
+ * approving this rebuild is really reading: whose customers the person serves, and which
+ * business lines are on and off their desk. Omitting them from the comparison would leave
+ * the whole point of the rebuild invisible in the very readout that authorises it — and a
+ * missing `audience` after a rebuild is itself the finding (the build never answered
+ * "whose customers are these", which is the failure the field exists to expose).
  */
 async function readModel(
   ownerId: string
-): Promise<Map<string, { name: string; slug: string; axes: AxisRow[]; domains: ProposedDomain[] }>> {
+): Promise<
+  Map<
+    string,
+    {
+      name: string;
+      slug: string;
+      axes: AxisRow[];
+      domains: ProposedDomain[];
+      audience: PersonAudience | null;
+      scope: PersonScope | null;
+    }
+  >
+> {
   const profiles = await prisma.personProfile.findMany({
     where: { contact: { ownerId } },
     select: {
-      contactId: true, domains: true,
+      contactId: true, domains: true, audience: true, scope: true,
       contact: { select: { fullName: true, linkedinUrl: true } },
       axes: {
         select: {
@@ -72,6 +119,11 @@ async function readModel(
           muted: a.mutedAt != null,
         })),
         domains: Array.isArray(p.domains) ? (p.domains as unknown as ProposedDomain[]) : [],
+        // Legacy rows have neither — read as null so the readout can say "none" out loud
+        // instead of printing an empty line that reads like an answer. Same defensive
+        // shape as `domains`: whatever is in the Json column, never trusted blindly.
+        audience: isObject(p.audience) ? (p.audience as unknown as PersonAudience) : null,
+        scope: isObject(p.scope) ? (p.scope as unknown as PersonScope) : null,
       },
     ])
   );
@@ -184,6 +236,16 @@ async function main() {
     const derivedCount = domains.filter((d) => d.kind === "derived").length;
     console.log(`\n  domains: ${foundCount} found / ${derivedCount} derived`);
     if (foundCount === 0) console.log(`  ⚠ כולו נגזר`);
+
+    // The two fields the approval actually turns on, before → after. Printed for every
+    // person even when unchanged: "the audience did not move" is exactly what a reader
+    // checking a rebuild needs to be able to see, and a line that only appears on change
+    // cannot be distinguished from a line that was forgotten.
+    console.log(`\n  audience  before: ${audienceLine(prev.audience)}`);
+    console.log(`            after:  ${audienceLine(next?.audience ?? null)}`);
+    if (!next?.audience) console.log(`  ⚠ אין קהל — הבנייה לא ענתה למי האדם הזה מוכר`);
+    console.log(`  scope     before: ${scopeLine(prev.scope)}`);
+    console.log(`            after:  ${scopeLine(next?.scope ?? null)}`);
 
     const axes: ProposedAxis[] = (next?.axes ?? [])
       .filter((a) => !a.muted)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 import { derivePrepStatus } from "@/lib/tech-radar/prep-status";
+import { careerSummary } from "@/lib/tech-radar/career";
 import { findEmployer, NEXT_SCAN_LABEL } from "../route";
 import { pilotHoldEnabled, isPilotReviewer } from "@/lib/tech-radar/pilot-gate";
 
@@ -15,9 +16,16 @@ import { pilotHoldEnabled, isPilotReviewer } from "@/lib/tech-radar/pilot-gate";
  * explicable, and a rebuild can respect the correction.
  */
 
-const AXIS_SOURCE: Record<string, "role" | "company"> = {
+const AXIS_SOURCE: Record<string, "role" | "company" | "entity" | "manual"> = {
   ROLE_COMPANY: "role",
   COMPANY_MONITOR: "company",
+  /// A named thing this person watches, found by the person model.
+  PERSON_ENTITY: "entity",
+  /// Typed by a human on the person page. Reaches the screen as its own provenance
+  /// because the page marks it "ידני": a manual tag is the one axis the machine may not
+  /// quietly replace, and a user who cannot tell their own correction apart from the
+  /// model's guess cannot audit either.
+  MANUAL: "manual",
 };
 
 /** Screen copy for a draft's fate. The only place this mapping lives. */
@@ -52,9 +60,17 @@ async function loadPerson(contactId: string, ownerId: string) {
     select: {
       id: true, fullName: true, currentTitle: true, currentCompany: true, companyId: true,
       linkedinUrl: true, messageLanguage: true, radarInclude: true, radarAddedAt: true,
+      // Read for `career` — tenure and trajectory are computed from the scraped date
+      // strings in code (see lib/tech-radar/career.ts), never asked of the model.
+      experience: true,
       personProfile: {
         select: {
           id: true,
+          // The two fields the review gate exists for: whose customers this person
+          // serves, and which business lines are on their desk. Nullable in the DB —
+          // every profile built before this phase has neither, and that state has to
+          // reach the screen as an explicit absence rather than an empty-looking card.
+          audience: true, scope: true,
           axes: {
             select: {
               id: true, mutedAt: true, source: true,
@@ -136,6 +152,17 @@ export const GET = withTenant(async (req: NextRequest, ctx) => {
         ? { noClearCompetitors: true, reason: typeof p.noCompetitorsReason === "string" ? p.noCompetitorsReason : "" }
         : null;
     })(),
+    // The review surface. Passed through verbatim: the route's job is to say what the
+    // model concluded, and the page's job is to say it in Hebrew — a route that reworded
+    // `audience` here would be a second place the wording lives.
+    //
+    // `?? null` is not defensive noise: a legacy profile (and a person whose model was
+    // never built) has to arrive as a stated null, because `undefined` disappears in JSON
+    // and the page could no longer tell "no audience" apart from "field forgotten".
+    audience: contact.personProfile?.audience ?? null,
+    scope: contact.personProfile?.scope ?? null,
+    // Computed, not stored — so it never goes stale against a re-scraped experience.
+    career: careerSummary(contact.experience),
     prep: derivePrepStatus({
       radarAddedAt: contact.radarAddedAt,
       hasEmployer: employer != null,

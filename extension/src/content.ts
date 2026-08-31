@@ -19,7 +19,13 @@ import { commentDiag, revealCommentBox, typeIntoComment } from "./lib/comment-do
 import { clickConnect, clickInviteSend, clickMore, isFollowOnly } from "./lib/connect-dom";
 import { detectProfileState } from "./lib/dom-detect";
 import { extractCompany, topCompanyResults } from "./lib/resolve-company";
-import { readProfileTopcard, readProfileAbout, readProfileExperience } from "./lib/profile-dom";
+import {
+  readProfileTopcard,
+  readProfileAbout,
+  readProfileExperience,
+  readProfileSkills,
+  readProfileEducation,
+} from "./lib/profile-dom";
 import { readRecentPosts } from "./lib/posts-dom";
 import { scrapeSearchPage } from "./lib/scrape-search";
 
@@ -60,14 +66,16 @@ async function handle(msg: PageRequest): Promise<unknown> {
     case "READ_PROFILE_TOPCARD":
       return readProfileTopcard();
     case "READ_PROFILE_FULL": {
-      // Compose the three readers here rather than in scrape-profile.ts: they all read the
-      // SAME already-loaded page, so one page-message round-trip beats three.
+      // Compose every reader here rather than in scrape-profile.ts: they all read the
+      // SAME already-loaded page, so one page-message round-trip beats one per section.
       const { entries, headline } = readProfileTopcard();
       return {
         headline,
         company: entries[0]?.company ?? null,
         about: readProfileAbout(),
         experience: readProfileExperience(),
+        skills: readProfileSkills(),
+        education: readProfileEducation(),
       };
     }
     case "EXTRACT_COMPANY":
