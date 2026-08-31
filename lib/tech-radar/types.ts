@@ -11,7 +11,13 @@
 
 // ─── Company profile (research output, stored on TrackedCompany.profile) ─────
 
-export type BusinessLine = { name: string; description: string };
+/**
+ * `forWhom` = who THIS line serves, not who the company serves. Added 2026-08-31:
+ * a Head of Retail Banking was handed the bank's company-wide customerSegments as
+ * her own customers, because the line she owns had no audience of its own to quote.
+ * "" on a profile researched before this change — unknown, never a guess.
+ */
+export type BusinessLine = { name: string; description: string; forWhom: string };
 export type FocusArea = { area: string; why: string };
 export type ProfileSource = { url: string; title: string };
 
