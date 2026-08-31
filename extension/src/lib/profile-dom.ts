@@ -226,6 +226,42 @@ export function readProfileEducation(): EducationItem[] {
   return rows;
 }
 /**
+ * One scroll step that actually moves something.
+ *
+ * `window.scrollBy` was scrolling nothing: the 0.7.5 run reported a healthy 1440x766
+ * viewport, eight completed steps, and still no lower section on any of the four people —
+ * while the topcard read perfectly. LinkedIn scrolls an inner container, so scrolling the
+ * WINDOW leaves the page exactly where it was and no section ever enters view. Scrolling by
+ * hand worked because a mouse wheel over the content scrolls whatever container is under
+ * the cursor.
+ *
+ * So: try the window, and if its offset did not budge, scroll the tallest genuinely
+ * scrollable element instead. Returns what moved, for the report — a step that moved
+ * nothing is the signal, and its absence is what cost four rounds of guessing.
+ */
+function scrollStep(dy: number): { moved: number; via: "window" | "container" | "none" } {
+  const before = window.scrollY;
+  window.scrollBy(0, dy);
+  if (window.scrollY !== before) return { moved: window.scrollY - before, via: "window" };
+
+  let best: Element | null = null;
+  let bestOverflow = 0;
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>("div, main, section"))) {
+    const overflow = el.scrollHeight - el.clientHeight;
+    // A real scroller, not a one-pixel rounding artifact or a hidden overflow container.
+    if (overflow > 400 && el.clientHeight > 200 && overflow > bestOverflow) {
+      bestOverflow = overflow;
+      best = el;
+    }
+  }
+  if (!best) return { moved: 0, via: "none" };
+  const elBefore = best.scrollTop;
+  best.scrollTop = elBefore + dy;
+  const moved = best.scrollTop - elBefore;
+  return { moved, via: moved !== 0 ? "container" : "none" };
+}
+
+/**
  * Read the profile WHILE scrolling it, keeping each section the moment it is on screen.
  *
  * Three live runs on the same four people taught this, each correcting the last:
@@ -266,10 +302,14 @@ export async function readProfileProgressively(
    *  a 0px-tall viewport, and a REUSED automation window that has been minimized lays out
    *  exactly that way. */
   viewport: { w: number; h: number };
+  /** What the page looked like when reading finished. `scrollVia: "none"` means no scroll
+   *  moved anything, which is the failure that survived four other explanations. */
+  page: { sections: number; headings: string[]; scrollVia: string; docHeight: number; hidden: boolean };
 }> {
-  const scrollBy = deps.scrollBy ?? ((dy: number) => window.scrollBy(0, dy));
+  const scrollBy = deps.scrollBy ?? ((dy: number) => { lastStep = scrollStep(dy); });
   const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const maxScrolls = deps.maxScrolls ?? 8;
+  let lastStep: { moved: number; via: string } = { moved: 0, via: "none" };
   const stepPx = deps.stepPx ?? 1200;
   const settleMs = deps.settleMs ?? 700;
 
@@ -307,6 +347,18 @@ export async function readProfileProgressively(
     // "we never managed to read it", the distinction that took three runs to get right.
     revealed: { experience: experience.length > 0, education: education.length > 0 },
     viewport: { w: window.innerWidth, h: window.innerHeight },
+    page: {
+      sections: document.querySelectorAll("section").length,
+      // The actual section headings present, so a wrong-anchor theory can be settled by
+      // reading them instead of by another round of hypotheses.
+      headings: Array.from(document.querySelectorAll("section h2"))
+        .map((h) => clean(h.textContent))
+        .filter(Boolean)
+        .slice(0, 12),
+      scrollVia: lastStep.via,
+      docHeight: document.documentElement.scrollHeight,
+      hidden: document.hidden,
+    },
   };
 }
 

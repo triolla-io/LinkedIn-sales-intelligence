@@ -541,10 +541,32 @@
     }
     return rows;
   }
+  function scrollStep(dy) {
+    const before = window.scrollY;
+    window.scrollBy(0, dy);
+    if (window.scrollY !== before) return { moved: window.scrollY - before, via: "window" };
+    let best = null;
+    let bestOverflow = 0;
+    for (const el of Array.from(document.querySelectorAll("div, main, section"))) {
+      const overflow = el.scrollHeight - el.clientHeight;
+      if (overflow > 400 && el.clientHeight > 200 && overflow > bestOverflow) {
+        bestOverflow = overflow;
+        best = el;
+      }
+    }
+    if (!best) return { moved: 0, via: "none" };
+    const elBefore = best.scrollTop;
+    best.scrollTop = elBefore + dy;
+    const moved = best.scrollTop - elBefore;
+    return { moved, via: moved !== 0 ? "container" : "none" };
+  }
   async function readProfileProgressively(deps = {}) {
-    const scrollBy = deps.scrollBy ?? ((dy) => window.scrollBy(0, dy));
+    const scrollBy = deps.scrollBy ?? ((dy) => {
+      lastStep = scrollStep(dy);
+    });
     const sleep = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
     const maxScrolls = deps.maxScrolls ?? 8;
+    let lastStep = { via: "none" };
     const stepPx = deps.stepPx ?? 1200;
     const settleMs = deps.settleMs ?? 700;
     let about = null;
@@ -574,7 +596,16 @@
       // Which halves were ever seen at all — the difference between "published nothing" and
       // "we never managed to read it", the distinction that took three runs to get right.
       revealed: { experience: experience.length > 0, education: education.length > 0 },
-      viewport: { w: window.innerWidth, h: window.innerHeight }
+      viewport: { w: window.innerWidth, h: window.innerHeight },
+      page: {
+        sections: document.querySelectorAll("section").length,
+        // The actual section headings present, so a wrong-anchor theory can be settled by
+        // reading them instead of by another round of hypotheses.
+        headings: Array.from(document.querySelectorAll("section h2")).map((h) => clean(h.textContent)).filter(Boolean).slice(0, 12),
+        scrollVia: lastStep.via,
+        docHeight: document.documentElement.scrollHeight,
+        hidden: document.hidden
+      }
     };
   }
   function readProfileTopcard() {
@@ -821,7 +852,8 @@
             found: scrolled.revealed.experience || scrolled.revealed.education,
             experience: scrolled.revealed.experience,
             education: scrolled.revealed.education,
-            viewport: scrolled.viewport
+            viewport: scrolled.viewport,
+            page: scrolled.page
           }
         };
       }

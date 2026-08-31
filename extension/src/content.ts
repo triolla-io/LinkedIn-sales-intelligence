@@ -93,6 +93,7 @@ async function handle(msg: PageRequest): Promise<unknown> {
           experience: scrolled.revealed.experience,
           education: scrolled.revealed.education,
           viewport: scrolled.viewport,
+          page: scrolled.page,
         },
       };
     }
