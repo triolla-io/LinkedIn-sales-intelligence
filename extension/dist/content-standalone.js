@@ -480,13 +480,31 @@
   }
   const EMPLOYMENT_SUFFIX = /\s*[·•]\s*(Full-time|Part-time|Contract|Internship|Freelance|Self[- ]employed|Seasonal|Temporary|משרה מלאה|משרה חלקית|חוזה|פרילנס)\b.*$/i;
   function entryDescription(li, title) {
-    const paragraphs = Array.from(li.querySelectorAll("p")).map((p) => clean(p.textContent)).filter((t) => t && t !== title && !/\d{4}/.test(t.slice(0, 24)));
+    const paragraphs = Array.from(li.querySelectorAll("p")).map((p) => clean(p.textContent)).filter((t) => t && t !== title && !isRowChrome(t));
     if (!paragraphs.length) return null;
     const best = paragraphs.reduce((a, b) => b.length > a.length ? b : a);
     return best ? best.slice(0, 1500) : null;
   }
+  const EMPLOYMENT_TYPES = /^(full[- ]?time|part[- ]?time|contract|internship|freelance|self[- ]employed|seasonal|temporary|permanent|משרה מלאה|משרה חלקית|חוזה|פרילנס|עצמאי|התמחות|זמני)$/i;
+  const LOCATION_SHAPE = /\b(district|israel|area|region|remote|ישראל|מחוז|אזור|היברידי|מרחוק)\b/i;
+  function looksLikeDates(text) {
+    return /\d{4}/.test(text) || /\b(yrs?|years?|mos?|months?|שנים|שנה|חודשים|חודש)\b/i.test(text);
+  }
+  function isRowChrome(text) {
+    return EMPLOYMENT_TYPES.test(text) || LOCATION_SHAPE.test(text) || looksLikeDates(text);
+  }
+  function rowCompany(row, lines, titleIdx) {
+    var _a, _b, _c, _d;
+    const link = row.querySelector('a[href*="/company/"]') ?? ((_c = (_b = (_a = row.closest("div[componentkey], li")) == null ? void 0 : _a.parentElement) == null ? void 0 : _b.closest("div[componentkey], li")) == null ? void 0 : _c.querySelector('a[href*="/company/"]')) ?? null;
+    const linked = clean(link == null ? void 0 : link.textContent);
+    if (linked && !isRowChrome(linked)) return linked;
+    const after = lines.slice((titleIdx >= 0 ? titleIdx : 0) + 1);
+    const raw = ((_d = after.find((l) => !isRowChrome(l.text))) == null ? void 0 : _d.text) ?? null;
+    if (!raw) return null;
+    return raw.replace(EMPLOYMENT_SUFFIX, "").trim() || null;
+  }
   function readProfileExperience() {
-    var _a, _b;
+    var _a;
     const section = findSection(EXPERIENCE_HEADERS);
     if (!section) return [];
     const results = [];
@@ -496,9 +514,7 @@
       const titleIdx = lines.findIndex((l) => l.bold);
       const title = (_a = titleIdx >= 0 ? lines[titleIdx] : lines[0]) == null ? void 0 : _a.text;
       if (!title) continue;
-      const after = lines.slice((titleIdx >= 0 ? titleIdx : 0) + 1);
-      const rawCompany = ((_b = after.find((l) => !/\d{4}/.test(l.text))) == null ? void 0 : _b.text) ?? null;
-      const company = rawCompany ? rawCompany.replace(EMPLOYMENT_SUFFIX, "").trim() || null : null;
+      const company = rowCompany(li, lines, titleIdx);
       const dateLine = lines.find((l) => /\d{4}/.test(l.text)) ?? null;
       results.push({
         title,

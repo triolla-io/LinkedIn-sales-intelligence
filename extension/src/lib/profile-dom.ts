@@ -149,10 +149,59 @@ const EMPLOYMENT_SUFFIX =
 function entryDescription(li: Element, title: string): string | null {
   const paragraphs = Array.from(li.querySelectorAll("p"))
     .map((p) => clean(p.textContent))
-    .filter((t) => t && t !== title && !/\d{4}/.test(t.slice(0, 24)));
+    // Employment type, location and duration lines are row chrome, not the person's own
+    // account of the role — 0.7.10 stored `description: "Full-time"` for a board member.
+    .filter((t) => t && t !== title && !isRowChrome(t));
   if (!paragraphs.length) return null;
   const best = paragraphs.reduce((a, b) => (b.length > a.length ? b : a));
   return best ? best.slice(0, 1500) : null;
+}
+
+/**
+ * Row chrome that is never the company and never the person's description of the role.
+ *
+ * Taken from what 0.7.10 stored for real: `company: "Full-time"` and
+ * `company: "Jerusalem District, Israel"`, each duplicated into `description`. In the SDUI
+ * render a grouped employer block keeps the company on its header, so a role row carries
+ * only its own title, dates, employment type and location — and "the line after the title"
+ * is whichever of those happens to come first.
+ */
+const EMPLOYMENT_TYPES =
+  /^(full[- ]?time|part[- ]?time|contract|internship|freelance|self[- ]employed|seasonal|temporary|permanent|משרה מלאה|משרה חלקית|חוזה|פרילנס|עצמאי|התמחות|זמני)$/i;
+
+/** "Tel Aviv - Jaffa, Tel Aviv District, Israel", "Jerusalem District, Israel", "Israel". */
+const LOCATION_SHAPE = /\b(district|israel|area|region|remote|ישראל|מחוז|אזור|היברידי|מרחוק)\b/i;
+
+/** A duration/date line: "אוק׳ 2024 - נוכחי · 1 שנה 11 חודשים", "2020 - 2022", "8 שנים 1 חודש". */
+function looksLikeDates(text: string): boolean {
+  return /\d{4}/.test(text) || /\b(yrs?|years?|mos?|months?|שנים|שנה|חודשים|חודש)\b/i.test(text);
+}
+
+function isRowChrome(text: string): boolean {
+  return EMPLOYMENT_TYPES.test(text) || LOCATION_SHAPE.test(text) || looksLikeDates(text);
+}
+
+/**
+ * The employer for one experience row.
+ *
+ * A /company/ link is the only self-describing signal here, so it wins: on the row itself
+ * if present, otherwise on the enclosing group header — which is where a grouped block puts
+ * it. Only when there is no link at all does this fall back to the old "line after the
+ * title" heuristic, which is what the <li> render needs and the only shape it was ever
+ * right for.
+ */
+function rowCompany(row: Element, lines: { text: string }[], titleIdx: number): string | null {
+  const link =
+    row.querySelector('a[href*="/company/"]') ??
+    row.closest("div[componentkey], li")?.parentElement?.closest("div[componentkey], li")?.querySelector('a[href*="/company/"]') ??
+    null;
+  const linked = clean(link?.textContent);
+  if (linked && !isRowChrome(linked)) return linked;
+
+  const after = lines.slice((titleIdx >= 0 ? titleIdx : 0) + 1);
+  const raw = after.find((l) => !isRowChrome(l.text))?.text ?? null;
+  if (!raw) return null;
+  return raw.replace(EMPLOYMENT_SUFFIX, "").trim() || null;
 }
 
 /**
@@ -179,9 +228,7 @@ export function readProfileExperience(): ExperienceItem[] {
     // rest[0] from a title-excluding filter would grab that preceding line instead. Also
     // skip a line that's actually the date range (some layouts put it immediately after
     // the title, before the company).
-    const after = lines.slice((titleIdx >= 0 ? titleIdx : 0) + 1);
-    const rawCompany = after.find((l) => !/\d{4}/.test(l.text))?.text ?? null;
-    const company = rawCompany ? rawCompany.replace(EMPLOYMENT_SUFFIX, "").trim() || null : null;
+    const company = rowCompany(li, lines, titleIdx);
     const dateLine = lines.find((l) => /\d{4}/.test(l.text)) ?? null;
     results.push({
       title,
