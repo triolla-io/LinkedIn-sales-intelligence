@@ -21,6 +21,8 @@ import {
   competitorGazetteer,
   declaresPersonSide,
   declaresCompanySide,
+  dateIsoNotInMoves,
+  duplicateDecisionIndexes,
 } from "@/lib/tech-radar/rationale-rules";
 
 const MODEL = process.env.TECH_RADAR_MODEL ?? "anthropic/claude-haiku-4.5";
@@ -68,7 +70,13 @@ export type GateResult = {
   /**
    * How many axes the DETERMINISTIC rules killed, by rule: `title_pattern`,
    * `unknown_competitor`, `no_person_side`, `no_company_side`, `contradicts_reasoning`,
-   * `layer3_undated`.
+   * `layer3_undated`, `layer3_fabricated_date`, `duplicate_person_decision`.
+   *
+   * `layer3_fabricated_date` staying above zero is the placeholder-date failure showing up
+   * as a number instead of as axes that silently search for nothing after layer3Expired
+   * ages out an invented "2024-01-01". `duplicate_person_decision` is the only counter that
+   * measures the batch rather than an axis: it counts one signature that arrived wearing
+   * several labels.
    *
    * `title_pattern` is the one to watch for prompt compliance: it measures whether the
    * brain is obeying the prompt's prohibition, and a number that stays high means the
@@ -102,6 +110,16 @@ export type GateContext = {
    * Pazit Garfinkel's for naming "Poalim UP", Bank Hapoalim's own product.
    */
   employer?: { names: string[]; products: string[] };
+  /**
+   * The dated moves the employer research actually found, for the fabricated-date check.
+   *
+   * Every layer-3 axis in the pilot org carried `dateIso: "2024-01-01"` — invented to
+   * satisfy the prompt — and layer3Expired then dropped all of them from the query pool.
+   * Absent or empty, the check does NOT run: with no moves in hand the gate cannot tell a
+   * fabricated date from a real one, and the same fail-open guards unknown_competitor
+   * behind `gazetteer.length > 0`.
+   */
+  recentMoves?: { dateIso: string }[];
 };
 
 export async function gateRationales(
@@ -169,6 +187,22 @@ export async function gateRationales(
     if (!reason && p.layerEvidence?.layer === 3 && !hasUsableDate(p.layerEvidence.dateIso)) {
       reason = "layer3_undated";
     }
+    // A date that PARSES but that the research never reported is worse than a missing one:
+    // layer3_undated dies loudly here, while an invented "2024-01-01" — which is what every
+    // layer-3 axis in the pilot org carried — passes every check and is then dropped from
+    // the query pool by layer3Expired (layers.ts, TTL 45 days) without a word. Five of the
+    // group's axes searched for nothing that way, including one person's only two.
+    //
+    // Runs only when the caller supplied moves, for the same reason unknown_competitor
+    // sits behind `gazetteer.length > 0`: an unverifiable claim must not be a rejected one.
+    if (
+      !reason &&
+      (ctx.recentMoves?.length ?? 0) > 0 &&
+      p.layerEvidence?.layer === 3 &&
+      dateIsoNotInMoves(p.layerEvidence.dateIso, ctx.recentMoves ?? [])
+    ) {
+      reason = "layer3_fabricated_date";
+    }
 
     if (reason) {
       const key = reason.split(":")[0];
@@ -179,10 +213,25 @@ export async function gateRationales(
     }
   }
 
-  if (survivors.length === 0) {
+  // One signature, one axis — the only rule here that judges the BATCH rather than an axis.
+  // Pazit Garfinkel's five axes were one personDecision wearing five labels, each of them a
+  // real ownership claim, so every per-axis rule and the judge itself passed all five. Run
+  // LAST, over the survivors only: an axis already rejected for another reason must not
+  // also be counted as the clone of a kept one, and the FIRST of each group is what stays.
+  const dupes = new Set(duplicateDecisionIndexes(survivors.map((p) => p.personDecision)));
+  if (dupes.size > 0) {
+    for (const [i, p] of survivors.entries()) {
+      if (!dupes.has(i)) continue;
+      deterministic.duplicate_person_decision = (deterministic.duplicate_person_decision ?? 0) + 1;
+      hardRejected.push({ label: p.label, rationale: p.rationale, reason: "duplicate_person_decision" });
+    }
+  }
+  const deduped = survivors.filter((_, i) => !dupes.has(i));
+
+  if (deduped.length === 0) {
     return { kept: [], rejected: hardRejected, judged: true, deterministic };
   }
-  proposals = survivors;
+  proposals = deduped;
 
   // The judge is shown both declared sides, not just the sentence: it cannot run the
   // person swap without knowing which decision the axis claims this person holds.
