@@ -45,7 +45,7 @@ export function PageHeader({
           </p>
         )}
       </div>
-      {actions && <div className="me-auto flex items-center gap-2">{actions}</div>}
+      {actions && <div className="ms-auto flex items-center gap-2">{actions}</div>}
     </div>
   );
 }
