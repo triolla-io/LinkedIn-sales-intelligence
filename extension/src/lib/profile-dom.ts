@@ -252,25 +252,34 @@ export async function revealProfileSections(
     stepPx?: number;
     settleMs?: number;
   } = {}
-): Promise<{ scrolls: number; found: boolean }> {
+): Promise<{ scrolls: number; found: boolean; experience: boolean; education: boolean }> {
   const scrollBy = deps.scrollBy ?? ((dy: number) => window.scrollBy(0, dy));
   const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const maxScrolls = deps.maxScrolls ?? 8;
   const stepPx = deps.stepPx ?? 1200;
   const settleMs = deps.settleMs ?? 700;
 
-  // Either section proves the lower page rendered. Experience alone would be the wrong
-  // test: a profile can legitimately have none, and waiting for one that does not exist
-  // spends the whole budget on every such person.
-  const rendered = () => findSection(EXPERIENCE_HEADERS) !== null || findSection(EDUCATION_HEADERS) !== null;
+  const hasExperience = () => findSection(EXPERIENCE_HEADERS) !== null;
+  const hasEducation = () => findSection(EDUCATION_HEADERS) !== null;
 
+  // BOTH, not either. The first version of this stopped at whichever section appeared
+  // first, and experience sits ABOVE education — so the live 0.7.2 run exited the moment
+  // experience rendered and education, one screen further down, never did: Pazit Garfinkel
+  // came back with five roles and zero degrees while her page plainly showed two.
+  //
+  // A profile can legitimately have no education, so the scroll budget is the backstop and
+  // the two flags say which half is actually missing. Spending the budget is not waste in
+  // that case: exhausting it means we scrolled to the bottom, which is exactly what makes
+  // everything below the fold render.
   let scrolls = 0;
-  while (!rendered() && scrolls < maxScrolls) {
+  while (!(hasExperience() && hasEducation()) && scrolls < maxScrolls) {
     scrollBy(stepPx);
     scrolls += 1;
     await sleep(settleMs);
   }
-  return { scrolls, found: rendered() };
+  const experience = hasExperience();
+  const education = hasEducation();
+  return { scrolls, found: experience || education, experience, education };
 }
 
 /**

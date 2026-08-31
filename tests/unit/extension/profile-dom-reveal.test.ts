@@ -33,13 +33,15 @@ beforeEach(() => {
 });
 
 describe("revealProfileSections", () => {
-  it("stops scrolling the moment the experience section appears", async () => {
+  it("stops as soon as both sections have rendered", async () => {
     document.body.innerHTML = TOPCARD_ONLY;
     let scrolls = 0;
     const scrollBy = vi.fn(() => {
       scrolls += 1;
-      // Simulate LinkedIn's lazy render: the section arrives on the third scroll.
-      if (scrolls === 3) document.body.innerHTML += WITH_EXPERIENCE;
+      // Simulate LinkedIn's lazy render: both arrive by the third scroll.
+      if (scrolls === 3) {
+        document.body.innerHTML += WITH_EXPERIENCE + `<section><h2>השכלה</h2></section>`;
+      }
     });
     const out = await revealProfileSections({ scrollBy, sleep: async () => {}, maxScrolls: 10 });
     expect(out.found).toBe(true);
@@ -55,8 +57,8 @@ describe("revealProfileSections", () => {
     expect(out.scrolls).toBe(4);
   });
 
-  it("does not scroll at all when the section is already present", async () => {
-    document.body.innerHTML = TOPCARD_ONLY + WITH_EXPERIENCE;
+  it("does not scroll at all when BOTH sections are already present", async () => {
+    document.body.innerHTML = TOPCARD_ONLY + WITH_EXPERIENCE + `<section><h2>השכלה</h2></section>`;
     const scrollBy = vi.fn();
     const out = await revealProfileSections({ scrollBy, sleep: async () => {}, maxScrolls: 6 });
     expect(out.found).toBe(true);
@@ -65,19 +67,42 @@ describe("revealProfileSections", () => {
   });
 
   /**
-   * Education alone is enough to stop. A profile can legitimately have no Experience
-   * section, and waiting for one that does not exist would spend the whole budget on
-   * every such person — while the education that IS there proves the page is rendered.
+   * The bug in the FIRST version of this function, caught by the live 0.7.2 run on
+   * 2026-08-31: it stopped as soon as EITHER section appeared. Experience sits ABOVE
+   * education on a LinkedIn profile, so the loop exited the moment experience rendered and
+   * education — one screen further down — never did. Pazit Garfinkel came back with five
+   * roles and zero degrees, while her page plainly showed two.
+   *
+   * "Either one" was the wrong stopping rule. Both, or the bottom of the page.
    */
-  it("accepts education as proof the lower page rendered", async () => {
+  it("keeps scrolling past experience until education appears too", async () => {
     document.body.innerHTML = TOPCARD_ONLY;
     let n = 0;
     const scrollBy = vi.fn(() => {
       n += 1;
-      if (n === 2) document.body.innerHTML += `<section><h2>השכלה</h2></section>`;
+      if (n === 1) document.body.innerHTML += WITH_EXPERIENCE;
+      if (n === 4) document.body.innerHTML += `<section><h2>השכלה</h2></section>`;
     });
-    const out = await revealProfileSections({ scrollBy, sleep: async () => {}, maxScrolls: 8 });
+    const out = await revealProfileSections({ scrollBy, sleep: async () => {}, maxScrolls: 10 });
     expect(out.found).toBe(true);
-    expect(out.scrolls).toBe(2);
+    expect(out.education).toBe(true);
+    expect(out.scrolls).toBe(4);
+  });
+
+  /**
+   * A profile can legitimately have no education section. Waiting for one that will never
+   * come must not hang — the budget is the backstop, and `education: false` says which
+   * half is missing so an empty result is still diagnosable.
+   */
+  it("spends the budget and reports which half is missing when education never comes", async () => {
+    document.body.innerHTML = TOPCARD_ONLY;
+    const scrollBy = vi.fn(() => {
+      if (!document.body.innerHTML.includes("ניסיון")) document.body.innerHTML += WITH_EXPERIENCE;
+    });
+    const out = await revealProfileSections({ scrollBy, sleep: async () => {}, maxScrolls: 5 });
+    expect(out.found).toBe(true);
+    expect(out.experience).toBe(true);
+    expect(out.education).toBe(false);
+    expect(out.scrolls).toBe(5);
   });
 });

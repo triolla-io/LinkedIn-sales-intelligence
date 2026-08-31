@@ -51,7 +51,7 @@ export interface ScrapeProfileResult {
   /** Diagnostic: did the lazy-rendered lower page ever appear, and after how many scrolls.
    *  Without it, "this person published no experience" and "we read the page too early"
    *  are the same empty array — which is how the second one went unnoticed for weeks. */
-  revealed: { scrolls: number; found: boolean };
+  revealed: { scrolls: number; found: boolean; experience: boolean; education: boolean };
 }
 
 /**

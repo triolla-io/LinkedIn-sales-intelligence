@@ -547,14 +547,17 @@
     const maxScrolls = deps.maxScrolls ?? 8;
     const stepPx = deps.stepPx ?? 1200;
     const settleMs = deps.settleMs ?? 700;
-    const rendered = () => findSection(EXPERIENCE_HEADERS) !== null || findSection(EDUCATION_HEADERS) !== null;
+    const hasExperience = () => findSection(EXPERIENCE_HEADERS) !== null;
+    const hasEducation = () => findSection(EDUCATION_HEADERS) !== null;
     let scrolls = 0;
-    while (!rendered() && scrolls < maxScrolls) {
+    while (!(hasExperience() && hasEducation()) && scrolls < maxScrolls) {
       scrollBy(stepPx);
       scrolls += 1;
       await sleep(settleMs);
     }
-    return { scrolls, found: rendered() };
+    const experience = hasExperience();
+    const education = hasEducation();
+    return { scrolls, found: experience || education, experience, education };
   }
   function readProfileTopcard() {
     var _a;
