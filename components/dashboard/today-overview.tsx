@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, Building2, Radar, Upload, UserRound, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  MessageSquareText,
+  Radar,
+  Upload,
+  UserRound,
+  Users,
+} from "lucide-react";
 import { Card, CardBody } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { AutoDir, Num } from "@/components/ui/text";
@@ -34,8 +42,26 @@ export interface ActionInfo {
   scan: { scanned: number; vetoed: number; finishedAt: string } | null;
 }
 
+/** טיוטות התגובה של מודול "תגובות לפוסטים" שעדיין ממתינות לפעולה של המשתמש. */
+export interface PostCommentsInfo {
+  /** דגל המודול ברמת הארגון — מבדיל בין "שקט" ל"כבוי". */
+  enabled: boolean;
+  count: number;
+  /** שמות בעלי הפוסטים — עד שלושה, בסדר יורד לפי זמן. */
+  names: string[];
+  /** התגובה החדשה ביותר שממתינה, להצגה כתוכן ולא כמספר. */
+  latest: {
+    author: string;
+    postText: string;
+    commentText: string;
+    /** ISO אם ידוע מתי הפוסט פורסם, אחרת המחרוזת היחסית שנגרדה ("3d"). */
+    postedAgo: string | null;
+  } | null;
+}
+
 export interface TodayOverviewProps {
   action: ActionInfo;
+  postComments: PostCommentsInfo;
   contacts: { total: number; addedThisMonth: number; onRadar: number };
   companyUpdates: { total: number; fresh: number };
   peopleUpdates: { total: number; fresh: number };
@@ -49,6 +75,13 @@ export interface TodayOverviewProps {
 }
 
 const he = (n: number) => n.toLocaleString("he-IL");
+
+/** מחלקות מלאות ולא מחרוזת מורכבת — הסורק של Tailwind קורא טקסט, לא מריץ קוד. */
+const TOP_ROW_COLS: Record<number, string> = {
+  3: "@4xl:grid-cols-3",
+  4: "@4xl:grid-cols-4",
+  5: "@4xl:grid-cols-5",
+};
 
 /* ── אריח הפעולה — הדבר היחיד במסך שדורש החלטה ─────────────────────── */
 
@@ -99,17 +132,41 @@ function ActionTile({ action }: { action: ActionInfo }) {
     );
   }
 
-  /* עוד לא רצה סריקה — מצב הכנה, לא תקלה ולא שקט */
+  /* לא ממתין כלום ועוד לא רצה סריקה — אין מה לומר, ולכן האריח פשוט לא קיים.
+     שורת הכותרת של המסך כבר אומרת שאין הודעות; אריח מקווקו רק תפס מקום. */
+  return null;
+}
+
+/* ── תגובות לפוסטים — התראה שנייה, לא אריח הפעולה ────────────────────── */
+
+/**
+ * מוצג רק כשיש מה לעשות. אריח הפעולה (הירוק) שמור להודעות הראדאר —
+ * זה זרם אחר, עם מסך אחר, ולכן אריח נפרד ולא מספר שמתאחד עם השני.
+ */
+function CommentsTile({ postComments }: { postComments: PostCommentsInfo }) {
+  const { count, names } = postComments;
   return (
-    <div className="flex h-full flex-col rounded-[var(--radius-card)] border border-dashed border-[var(--faint)] p-5">
-      <span className="text-[13px] font-medium text-[var(--muted)]">ממתינות למשלוח</span>
-      <span className="mt-1 text-[17px] leading-snug font-semibold text-[var(--foreground)]">
-        עוד לא רצה סריקה
-      </span>
-      <span className="mt-1.5 text-[12.5px] leading-relaxed text-[var(--faint)]">
-        אחרי הסריקה הבאה, מה שיעבור את השערים יופיע כאן.
-      </span>
-    </div>
+    <Card tone="accent" className="h-full">
+      <CardBody className="flex h-full flex-col p-5">
+        <span className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--muted)]">
+          <MessageSquareText className="size-3.5 text-[var(--faint)]" aria-hidden />
+          תגובות מוכנות
+        </span>
+        <span className="type-num mt-1 text-[34px] leading-none font-semibold text-[var(--foreground)]">
+          {he(count)}
+        </span>
+        <AutoDir as="span" className="mt-1.5 truncate text-[12.5px] text-[var(--muted)]">
+          {names.length > 0 ? `על הפוסטים של ${names.join(" · ")}` : "על פוסטים של אנשים שאתם עוקבים"}
+        </AutoDir>
+        <Link
+          href="/routine/post-comments"
+          className="fv-ring mt-auto inline-flex items-center gap-1.5 self-start pt-3 text-[13px] font-medium text-[var(--accent)] hover:underline"
+        >
+          לעריכה ולשליחה
+          <ArrowLeft className="size-3.5" />
+        </Link>
+      </CardBody>
+    </Card>
   );
 }
 
@@ -341,28 +398,110 @@ function Outreach({
   );
 }
 
-/* ── פוסט לינקדאין (בפיתוח) ─────────────────────────────────────────── */
+/* ── תגובות לפוסטים — התוכן עצמו, בעמודה הצדדית ───────────────────────── */
 
-function PostCard({ quietDay }: { quietDay: boolean }) {
+/**
+ * החליף את כרטיס "כתיבת פוסט" שהיה כאן כמצג "בקרוב" ולא עשה דבר.
+ *
+ * האריח למעלה נושא את המספר; הכרטיס הזה נושא את התוכן — מי פרסם, מה הוא כתב,
+ * ומה נוסח בשמכם. אין כאן עריכה ואין שליחה: הכפתור מוביל למסך התגובות, כי
+ * שכפול של שדה העריכה בשני מקומות פירושו שני מקומות שיכולים לצאת מסנכרון.
+ */
+function CommentsCard({ postComments }: { postComments: PostCommentsInfo }) {
+  const { enabled, count, latest } = postComments;
+
+  /* המודול כבוי — אומרים את זה במפורש, אחרת "אין תגובות" נקרא כמו כישלון */
+  if (!enabled && count === 0) {
+    return (
+      <Card>
+        <CardBody className="p-6">
+          <Chip tone="warning" className="text-[10.5px]">
+            המודול כבוי
+          </Chip>
+          <h2 className="type-h2 mt-2.5">תגובות לפוסטים</h2>
+          <p className="mt-1 text-[13px] leading-relaxed text-[var(--muted)]">
+            כשהוא פעיל, כל בוקר מחכה כאן תגובה קצרה לפוסט טרי של מישהו שאתם עוקבים אחריו.
+          </p>
+          <Link
+            href="/routine/post-comments"
+            className="fv-ring mt-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--accent)] hover:underline"
+          >
+            להפעלה ולבחירת אנשים
+            <ArrowLeft className="size-3.5" />
+          </Link>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  /* פעיל, אבל אף אחד מהעוקבים לא פרסם משהו טרי — שקט אמיתי, לא תקלה */
+  if (!latest) {
+    return (
+      <Card>
+        <CardBody className="p-6">
+          <span className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--muted)]">
+            <MessageSquareText className="size-3.5 text-[var(--faint)]" aria-hidden />
+            תגובות לפוסטים
+          </span>
+          <h2 className="type-h2 mt-2">אין פוסט טרי להגיב עליו</h2>
+          <p className="mt-1 text-[13px] leading-relaxed text-[var(--muted)]">
+            הפוסטים של האנשים שאתם עוקבים אחריהם נסרקים כל בוקר.
+          </p>
+          <Link
+            href="/routine/post-comments"
+            className="fv-ring mt-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--accent)] hover:underline"
+          >
+            מי במעקב
+            <ArrowLeft className="size-3.5" />
+          </Link>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  const ago = latest.postedAgo
+    ? /^\d{4}-/.test(latest.postedAgo)
+      ? formatRelative(latest.postedAgo)
+      : latest.postedAgo
+    : null;
+
   return (
-    <Card className="border-dashed">
+    <Card tone="accent">
       <CardBody className="p-6">
-        <Chip tone="warning" className="text-[10.5px]">
-          בקרוב
-        </Chip>
-        <h2 className="type-h2 mt-2.5">
-          {quietDay ? "יום שקט — זמן טוב לפוסט" : "פוסט חדש — לינקדאין"}
-        </h2>
-        <p className="mt-1 text-[13px] text-[var(--muted)]">
-          פוסט מהכתבות שהמערכת קראה השבוע, בקול שלך.
-        </p>
-        <button
-          type="button"
-          disabled
-          className="mt-4 cursor-default rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--surface)] opacity-45"
+        <span className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--muted)]">
+          <MessageSquareText className="size-3.5 text-[var(--faint)]" aria-hidden />
+          תגובה מוכנה
+        </span>
+
+        <AutoDir as="h2" className="type-h2 mt-2">
+          {latest.author}
+        </AutoDir>
+        <AutoDir as="p" className="mt-1 line-clamp-2 text-[12.5px] leading-relaxed text-[var(--faint)]">
+          {latest.postText}
+        </AutoDir>
+        {ago && <p className="mt-1 text-[11.5px] text-[var(--faint)]">פורסם {ago}</p>}
+
+        {/* הנוסח עצמו — מצוטט, כדי שיהיה ברור שזו טיוטה ולא משהו שנשלח */}
+        <AutoDir
+          as="p"
+          className="mt-3 border-s-2 border-[var(--accent)] ps-3 text-[13.5px] leading-[1.6] text-[var(--foreground)]"
         >
-          כתיבת פוסט
-        </button>
+          {latest.commentText}
+        </AutoDir>
+
+        <Link
+          href="/routine/post-comments"
+          className="fv-ring mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--surface)] transition-opacity hover:opacity-90"
+        >
+          לעריכה ולשליחה
+          <ArrowLeft className="size-3.5" />
+        </Link>
+
+        {count > 1 && (
+          <p className="mt-2.5 text-[12.5px] text-[var(--muted)]">
+            ועוד <Num>{he(count - 1)}</Num> {count === 2 ? "תגובה שממתינה" : "תגובות שממתינות"}
+          </p>
+        )}
       </CardBody>
     </Card>
   );
@@ -372,6 +511,7 @@ function PostCard({ quietDay }: { quietDay: boolean }) {
 
 export function TodayOverview({
   action,
+  postComments,
   contacts,
   companyUpdates,
   peopleUpdates,
@@ -381,11 +521,20 @@ export function TodayOverview({
   feedTotalThisWeek,
   latestImport,
 }: TodayOverviewProps) {
+  /* שלושת ה-KPI תמיד מוצגים; שני האריחים הראשונים מותנים */
+  const showActionTile = action.pending.count > 0 || action.scan !== null;
+  const showCommentsTile = postComments.count > 0;
+  const topTiles = 3 + (showActionTile ? 1 : 0) + (showCommentsTile ? 1 : 0);
+
   return (
     <div className="@container">
-      {/* שורת הפתיחה: אריח הפעולה ראשון, ואז שלושת מספרי ההקשר */}
-      <div className="grid items-stretch gap-4 @xl:grid-cols-2 @4xl:grid-cols-4">
+      {/* שורת הפתיחה: אריח הפעולה (רק כשיש מה לומר), התראת התגובות (רק כשיש),
+          ואז שלושת מספרי ההקשר. מספר העמודות נגזר ממה שבאמת מוצג — אריח ריק
+          שמחזיק מקום הוא בדיוק מה שהורדנו מכאן. */}
+      <div className={`grid items-stretch gap-4 @xl:grid-cols-2 ${TOP_ROW_COLS[topTiles]}`}>
         <ActionTile action={action} />
+
+        {showCommentsTile && <CommentsTile postComments={postComments} />}
 
         <Kpi
           icon={Users}
@@ -454,7 +603,7 @@ export function TodayOverview({
         <Feed items={feed} totalThisWeek={feedTotalThisWeek} />
         <div className="grid content-start gap-4">
           <Outreach outreach={outreach} weekly={weekly} />
-          <PostCard quietDay={feed.length === 0} />
+          <CommentsCard postComments={postComments} />
         </div>
       </div>
 

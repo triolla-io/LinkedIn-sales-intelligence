@@ -69,10 +69,16 @@ export default async function DashboardPage() {
     sentPrevMonth,
     sentYtd,
     pendingDrafts,
+    pendingComments,
     lastScan,
     sentForWeekly,
   ] = await Promise.all([
-    prisma.user.findUnique({ where: { id: ownerId } }),
+    prisma.user.findUnique({
+      where: { id: ownerId },
+      // דגל המודול נשלף באותה נסיעה — הכרטיס חייב לדעת להבדיל בין
+      // "אין תגובות כי שקט" לבין "אין תגובות כי המודול כבוי".
+      include: { org: { select: { postCommentsEnabled: true } } },
+    }),
     prisma.contact.count({ where: ownedContact }),
     prisma.contact.count({ where: { ...ownedContact, createdAt: { gte: startOfMonth } } }),
     prisma.contact.count({ where: { ...ownedContact, radarInclude: true } }),
@@ -127,6 +133,21 @@ export default async function DashboardPage() {
       orderBy: { createdAt: "desc" },
       take: 6,
     }),
+    prisma.postCommentDraft.findMany({
+      // אותם סטטוסים שמסך "תגובות לפוסטים" מציג כממתינים: PREPARING/PREPARED נשארים
+      // עד שהמשתמש מאשר "נשלח", אחרת ההתראה נעלמת באמצע הפעולה.
+      where: {
+        ownerId,
+        status: { in: ["PENDING_REVIEW", "PREPARING", "PREPARED"] },
+      },
+      select: {
+        contact: { select: { fullName: true } },
+        commentText: true,
+        post: { select: { text: true, postedAt: true, postedAgoText: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+    }),
     prisma.radarScanRun.findFirst({
       where: { finishedAt: { not: null } },
       orderBy: { startedAt: "desc" },
@@ -146,6 +167,12 @@ export default async function DashboardPage() {
     const idx = 7 - Math.floor((horizonEnd - m.sentAt.getTime() - 1) / bucketMs);
     if (idx >= 0 && idx < 8) weekly[idx].add(m.contactId);
   }
+
+  /* התגובה שהכי כדאי להסתכל עליה עכשיו — החדשה ביותר; השאר נספרות בלבד */
+  const latestComment = pendingComments[0] ?? null;
+  /* הפוסט המלא יכול להיות ארוך מאוד, והכרטיס מציג ממנו שתי שורות —
+     חותכים בשרת כדי לא לשלוח טקסט שאיש לא יראה. */
+  const postExcerpt = (t: string) => (t.length > 240 ? `${t.slice(0, 240).trimEnd()}…` : t);
 
   const action: ActionInfo = {
     pending: {
@@ -204,6 +231,22 @@ export default async function DashboardPage() {
         contacts: { total: contactCount, addedThisMonth, onRadar },
         companyUpdates: { total: signals30, fresh: signalsToday },
         peopleUpdates: { total: jobChanges30, fresh: jobChangesToday },
+        postComments: {
+          enabled: user.org.postCommentsEnabled,
+          count: pendingComments.length,
+          names: pendingComments.map((d) => d.contact.fullName).slice(0, 3),
+          latest: latestComment
+            ? {
+                author: latestComment.contact.fullName,
+                postText: postExcerpt(latestComment.post.text),
+                commentText: latestComment.commentText,
+                postedAgo:
+                  latestComment.post.postedAt?.toISOString() ??
+                  latestComment.post.postedAgoText ??
+                  null,
+              }
+            : null,
+        },
         outreach: { today: sentToday, month: sentMonth, prevMonth: sentPrevMonth, ytd: sentYtd },
         feed,
         feedTotalThisWeek: signals7 + jobChanges7,

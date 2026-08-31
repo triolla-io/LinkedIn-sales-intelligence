@@ -34,12 +34,22 @@ export default function DashboardClient({ user, overview }: Props) {
   const n = overview.action.pending.count;
   const freshCount = overview.companyUpdates.fresh + overview.peopleUpdates.fresh;
 
+  const c = overview.postComments.count;
+
   const story =
     n === 0
       ? "אין הודעות שממתינות לאישור שלך"
       : n === 1
         ? "הודעה אחת שווה את הזמן שלך"
         : `${n.toLocaleString("he-IL")} הודעות שוות את הזמן שלך`;
+
+  /* התגובות הן זרם נפרד מההודעות, ולכן משפט משלהן ולא חיבור לאותו מספר */
+  const commentsStory =
+    c === 0
+      ? null
+      : c === 1
+        ? "תגובה אחת מוכנה לפוסט"
+        : `${c.toLocaleString("he-IL")} תגובות מוכנות לפוסטים`;
 
   return (
     <div dir="rtl" className="min-h-full bg-[var(--background)]">
@@ -51,6 +61,7 @@ export default function DashboardClient({ user, overview }: Props) {
           <h1 className="type-h1 text-[26px]">היום</h1>
           <p className="text-[13.5px] text-[var(--muted)]">
             בוקר טוב{firstName ? `, ${firstName}` : ""} · {today} · {story}
+            {commentsStory && <> · {commentsStory}</>}
             {freshCount > 0 && (
               <>
                 {" "}
