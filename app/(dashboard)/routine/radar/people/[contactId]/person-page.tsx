@@ -31,6 +31,17 @@ type Person = {
   lastMessageFromUsAt: string | null;
   prep: { ready: boolean; failed: boolean; stages: PrepStage[] };
   employerFinding: { noClearCompetitors: boolean; reason: string } | null;
+  /**
+   * The review surface. Null on every profile built before the person model existed —
+   * so the card that shows it is absent, not empty: an "קהל הלקוחות: —" would look like a
+   * model that answered nothing, when in truth it was never asked.
+   */
+  audience: { type: string[]; who: string; geography: string } | null;
+  scope: { owns: string[]; notOwns: string[] } | null;
+  career: {
+    tenureYearsInCurrentRole: number | null;
+    path: { title: string; company: string | null; years: number | null }[];
+  } | null;
   axes: {
     id: string;
     label: string;
@@ -68,6 +79,30 @@ function relativeHe(iso: string | null): string | null {
   if (days < 14) return "לפני שבוע";
   if (days < 30) return `לפני ${Math.floor(days / 7)} שבועות`;
   return `לפני ${Math.floor(days / 30)} חודשים`;
+}
+
+/**
+ * "B2C · משקי בית ולקוחות פרטיים · ישראל". Every part is optional in the data —
+ * `geography` is legitimately "" for an internal audience — so the line is assembled from
+ * whatever is actually there rather than from a fixed template with holes in it.
+ */
+function audienceHe(a: NonNullable<Person["audience"]>): string {
+  const types = Array.isArray(a.type) ? a.type : [];
+  return [...types, a.who, a.geography]
+    .map((s) => (typeof s === "string" ? s.trim() : ""))
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/**
+ * Tenure in words. `null` (no parsable start year) yields null and the chip disappears —
+ * a "0 שנים" would read as a fact about the person instead of a gap in the scrape.
+ */
+function tenureHe(years: number | null | undefined): string | null {
+  if (years == null) return null;
+  if (years === 0) return "פחות משנה";
+  if (years === 1) return "שנה";
+  return `${years} שנים`;
 }
 
 function Chip({ children }: { children: React.ReactNode }) {
@@ -149,6 +184,13 @@ export function PersonPage({ contactId }: { contactId: string }) {
   }
 
   const live = data.axes.filter((a) => !a.muted);
+  const owns = data.scope?.owns ?? [];
+  const notOwns = data.scope?.notOwns ?? [];
+  const tenure = tenureHe(data.career?.tenureYearsInCurrentRole);
+  // Empty is treated as absent: a "קהל הלקוחות: " with nothing after it is a dangling label,
+  // and for the purpose of reviewing a model an audience with no content in it says
+  // exactly as much as no audience at all.
+  const audienceText = data.audience ? audienceHe(data.audience) : "";
 
   return (
     <div dir="rtl" className="flex-1 min-h-full bg-[var(--background)] text-[var(--foreground)]">
@@ -214,6 +256,48 @@ export function PersonPage({ contactId }: { contactId: string }) {
             </button>
           </div>
         </div>
+
+        {/* Whose customers she serves, and what is on her desk — read-only, and the thing
+            a human reads BEFORE approving a rebuilt model. It sits above the axes because
+            every axis below is supposed to follow from it: an axis about a line she does
+            not hold is visibly wrong once this line is on screen.
+
+            Absent, not empty, when the profile predates the person model: a card of
+            em-dashes would claim the model answered and answered nothing. */}
+        {audienceText && (
+          <section className="bg-surface border border-[var(--separator)] rounded-[20px] px-5 sm:px-7 py-4 mt-5">
+            <div className="flex items-start gap-3 flex-wrap">
+              <p className="text-[13.5px] min-w-0">
+                <span className={INK_3}>קהל הלקוחות: </span>
+                <b className="font-semibold">{audienceText}</b>
+              </p>
+              {tenure && (
+                <span className="ms-auto shrink-0">
+                  <Chip>בתפקיד: {tenure}</Chip>
+                </span>
+              )}
+            </div>
+
+            {(owns.length > 0 || notOwns.length > 0) && (
+              <div className="mt-2.5 pt-2.5 border-t border-dashed border-[var(--separator)] flex flex-col gap-1">
+                {owns.length > 0 && (
+                  <p className={cn("text-[13px]", INK_2)}>
+                    <span className={INK_3}>על השולחן: </span>
+                    {owns.join(" · ")}
+                  </p>
+                )}
+                {/* The half that no other field records — and the half that does the
+                    filtering: a story about a line she does not hold dies here. */}
+                {notOwns.length > 0 && (
+                  <p className={cn("text-[13px]", INK_2)}>
+                    <span className={INK_3}>לא על השולחן: </span>
+                    {notOwns.join(" · ")}
+                  </p>
+                )}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* what the system thinks interests him */}
         <div className="bg-surface border border-[var(--separator)] rounded-[20px] p-5 sm:p-7 mt-5">

@@ -7,6 +7,8 @@ import type { NextRequest } from "next/server";
  *   pay for research twice)
  * - muting an axis never deletes it — the learning trail has to survive
  * - axis provenance reaches the screen in human words, never the enum name
+ * - the review surface (audience / scope / career) reaches the page, and a profile built
+ *   before the person model existed still renders instead of 500-ing
  */
 
 // A mutable ctx so pilot-gate tests can swap the requesting user's email between the
@@ -258,6 +260,64 @@ describe("GET /api/radar/people/[contactId]", () => {
       noClearCompetitors: true,
       reason: "מונופול ממשלתי בתחומו",
     });
+  });
+
+  /**
+   * The review gate (Phase A, Task 11). Ariel reads these three fields on the person page
+   * before any scan runs on a rebuilt profile, so the route has to ASK for them: a payload
+   * that ships `audience: undefined` because the select forgot the column looks identical
+   * on screen to a person whose model genuinely has no audience. Hence the select
+   * assertions — they are the half a mocked prisma cannot fake.
+   */
+  it("returns audience and scope verbatim, and career computed from the scraped experience", async () => {
+    const startYear = new Date().getFullYear() - 5;
+    contactFindFirst.mockResolvedValue(
+      radarContact({
+        experience: [
+          { title: "CEO", company: "Delek US Holdings", dateRange: `${startYear} - Present` },
+          { title: "COO", company: "Delek US Holdings", dateRange: `${startYear - 3} - ${startYear}` },
+        ],
+        personProfile: {
+          id: "pp1",
+          audience: { type: ["B2C"], who: "משקי בית ולקוחות פרטיים", geography: "ישראל" },
+          scope: { owns: ["בנקאות קמעונאית"], notOwns: ["שוק ההון", "אשראי עסקי"] },
+          axes: [],
+        },
+      })
+    );
+    const body = await ((await getPerson(req(undefined, "/api/radar/people/ct1"))) as Response).json();
+
+    // Verbatim — the page, not the route, decides how a person's audience reads in Hebrew.
+    expect(body.audience).toEqual({ type: ["B2C"], who: "משקי בית ולקוחות פרטיים", geography: "ישראל" });
+    expect(body.scope).toEqual({ owns: ["בנקאות קמעונאית"], notOwns: ["שוק ההון", "אשראי עסקי"] });
+    expect(body.career.tenureYearsInCurrentRole).toBe(5);
+    expect(body.career.path.map((p: { title: string }) => p.title)).toEqual(["CEO", "COO"]);
+
+    const select = contactFindFirst.mock.calls[0][0].select;
+    expect(select.experience).toBe(true);
+    expect(select.personProfile.select).toMatchObject({ audience: true, scope: true });
+  });
+
+  /**
+   * Every profile in prod predates this phase, so the audience-less state is the COMMON
+   * one, not an edge case: it has to come back as an explicit null the page can branch on.
+   */
+  it("a profile built before the person model returns audience and scope as null", async () => {
+    contactFindFirst.mockResolvedValue(radarContact());
+    const body = await ((await getPerson(req(undefined, "/api/radar/people/ct1"))) as Response).json();
+    expect(body.audience).toBeNull();
+    expect(body.scope).toBeNull();
+    expect(body.career).toEqual({ tenureYearsInCurrentRole: null, path: [] });
+  });
+
+  it("a person whose model was never built at all is still served", async () => {
+    contactFindFirst.mockResolvedValue(radarContact({ personProfile: null, experience: null }));
+    const res = (await getPerson(req(undefined, "/api/radar/people/ct1"))) as Response;
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.audience).toBeNull();
+    expect(body.scope).toBeNull();
+    expect(body.career.path).toEqual([]);
   });
 
   it("returns no employer finding when competitors were found", async () => {
