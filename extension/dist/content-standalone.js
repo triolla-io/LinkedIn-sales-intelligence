@@ -433,14 +433,17 @@
   }
   const BIDI_MARKS = /[‎‏؜‪-‮⁦-⁩]/g;
   const clean = (s) => (s || "").replace(BIDI_MARKS, "").replace(/\s+/g, " ").trim();
-  const ABOUT_HEADERS = ["about", "אודות"];
-  const EXPERIENCE_HEADERS = ["experience", "ניסיון"];
-  const SKILLS_HEADERS = ["skills", "כישורים", "מיומנויות"];
-  const EDUCATION_HEADERS = ["education", "השכלה"];
+  const ABOUT_HEADERS = /^(about|(על\s+)?אודות)$/;
+  const EXPERIENCE_HEADERS = /^(experience|ניסיון)$/;
+  const SKILLS_HEADERS = /^(skills|כישורים|מיומנויות)$/;
+  const EDUCATION_HEADERS = /^(education|השכלה)$/;
+  function headingText(el) {
+    return clean(el == null ? void 0 : el.textContent).replace(/\s*\(\s*\d+\s*\)\s*$/, "").toLowerCase();
+  }
   function findSection(headers) {
     for (const section of Array.from(document.querySelectorAll("section"))) {
       const h2 = section.querySelector("h2");
-      if (h2 && headers.includes(clean(h2.textContent).toLowerCase())) {
+      if (h2 && headers.test(headingText(h2))) {
         return section;
       }
     }

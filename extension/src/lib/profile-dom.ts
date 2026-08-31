@@ -41,10 +41,31 @@ const BIDI_MARKS = /[‎‏؜‪-‮⁦-⁩]/g;
 const clean = (s: string | null | undefined): string =>
   (s || "").replace(BIDI_MARKS, "").replace(/\s+/g, " ").trim();
 
-const ABOUT_HEADERS = ["about", "אודות"];
-const EXPERIENCE_HEADERS = ["experience", "ניסיון"];
-const SKILLS_HEADERS = ["skills", "כישורים", "מיומנויות"];
-const EDUCATION_HEADERS = ["education", "השכלה"];
+/**
+ * Section headings, as PATTERNS rather than exact strings.
+ *
+ * Exact matching is what actually broke the deep scrape, and it took six extension
+ * versions to see it because every wrong theory (time, scrolling, virtualization, a 0x0
+ * window) produced the same empty result. The 0.7.6 run finally printed the headings the
+ * page really carries:
+ *
+ *   ["0 התראות", "Elinor Levinson Gafni", "על אודות", "פעילות", "ניסיון", "השכלה",
+ *    "מיומנויות (16)", "המלצות", "תחומי עניין", ...]
+ *
+ * Two mismatches, both invisible to a reader of the code: LinkedIn's Hebrew About heading
+ * is "על אודות", not "אודות" — and the skills heading carries a COUNT, "מיומנויות (16)".
+ * Neither could ever equal its constant. Everything was in the DOM the whole time; nothing
+ * needed scrolling at all (`docHeight` equals the viewport height).
+ */
+const ABOUT_HEADERS = /^(about|(על\s+)?אודות)$/;
+const EXPERIENCE_HEADERS = /^(experience|ניסיון)$/;
+const SKILLS_HEADERS = /^(skills|כישורים|מיומנויות)$/;
+const EDUCATION_HEADERS = /^(education|השכלה)$/;
+
+/** A trailing "(16)" is a live item count, not part of the heading's name. */
+function headingText(el: Element | null | undefined): string {
+  return clean(el?.textContent).replace(/\s*\(\s*\d+\s*\)\s*$/, "").toLowerCase();
+}
 
 /**
  * Find the <section> whose <h2> text (lowercased/trimmed) is one of `headers`. Same
@@ -53,10 +74,10 @@ const EDUCATION_HEADERS = ["education", "השכלה"];
  * the CONNECT invite modal, a different part of the page). LinkedIn ships an English/Hebrew
  * <h2> per section depending on the viewer's UI language, so we match both.
  */
-function findSection(headers: string[]): HTMLElement | null {
+function findSection(headers: RegExp): HTMLElement | null {
   for (const section of Array.from(document.querySelectorAll("section"))) {
     const h2 = section.querySelector("h2");
-    if (h2 && headers.includes(clean(h2.textContent).toLowerCase())) {
+    if (h2 && headers.test(headingText(h2))) {
       return section as HTMLElement;
     }
   }
