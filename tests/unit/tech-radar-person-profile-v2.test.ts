@@ -338,3 +338,59 @@ describe("personPromptInput v2 inputs", () => {
     expect(prompt).not.toMatch(/Person research/);
   });
 });
+
+/**
+ * The first live v3 rebuild lost all four people to `rationale=4`: the model returned
+ * every other axis field and omitted this one — a predictable consequence of v3 making
+ * `personDecision` and `companyFact` mandatory and separately declared, which makes a
+ * sentence restating both look redundant.
+ *
+ * So it is composed from the two sides rather than demanded again. The rationale's job is
+ * to name both, and the gate checks exactly that (declaresPersonSide / declaresCompanySide,
+ * never opens with the job title). A composed sentence satisfies the structure by
+ * construction; the gate still judges the substance.
+ */
+describe("rationale composed from the declared sides", () => {
+  const axis = (extra: Record<string, unknown>) => ({
+    label: "האשראי הצרכני של משקי הבית",
+    stage: "decision",
+    domain: "בנקאות קמעונאית",
+    layerEvidence: { layer: 2, quote: "לקוחות פרטיים ומשקי בית בישראל" },
+    personDecision: "חתומה על מדיניות האשראי הצרכני ותיאבון הסיכון",
+    companyFact: "משקי בית בישראל שנוטלים הלוואות וחוסכים",
+    externalExample: "",
+    agenda: false,
+    searchQueries: ["אשראי צרכני בנקים ישראל"],
+    ...extra,
+  });
+
+  const wrap = (a: Record<string, unknown>) =>
+    JSON.stringify({
+      reasoning: "…",
+      roleLens: "מחזיקה את הקמעונאות",
+      audience: { type: ["B2C"], who: "משקי בית ולקוחות פרטיים", geography: "ישראל" },
+      scope: { owns: ["בנקאות קמעונאית"], notOwns: ["שוקי הון"] },
+      entityTags: [],
+      domains: [{ domain: "בנקאות קמעונאית", kind: "found", source: "title", evidence: "Head of Retail Banking" }],
+      axes: [a],
+    });
+
+  it("composes a both-sided rationale when the model omits the field", () => {
+    const d = parsePersonProfile(wrap(axis({})));
+    expect(d?.axes).toHaveLength(1);
+    const r = d!.axes[0].rationale;
+    expect(r.startsWith("כי ")).toBe(true);
+    expect(r).toContain("מדיניות האשראי הצרכני");
+    expect(r).toContain("משקי בית בישראל");
+  });
+
+  it("keeps the model's own rationale when it supplies one", () => {
+    const d = parsePersonProfile(wrap(axis({ rationale: "כי היא מחזיקה את החלטת האשראי, בזמן שלאומי משיק אשראי מיידי" })));
+    expect(d?.axes[0].rationale).toBe("כי היא מחזיקה את החלטת האשראי, בזמן שלאומי משיק אשראי מיידי");
+  });
+
+  it("still drops an axis that declares neither side and gives no rationale", () => {
+    const d = parsePersonProfile(wrap(axis({ personDecision: "", companyFact: "" })));
+    expect(d).toBeNull();
+  });
+});

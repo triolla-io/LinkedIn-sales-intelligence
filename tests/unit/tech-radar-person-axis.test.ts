@@ -125,8 +125,30 @@ describe("parseProfileResponse", () => {
     expect(parseProfileResponse(`{"domains":${DOMAINS},"audience":${AUDIENCE},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות", "r", [])}]}`)).toBeNull();
   });
 
-  it("drops an axis with no rationale, since the veto would have nothing to read", () => {
-    expect(parseProfileResponse(`{"domains":${DOMAINS},"audience":${AUDIENCE},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות", "")}]}`)).toBeNull();
+  /**
+   * Changed 2026-08-31. The rule was "no rationale, no axis" — the veto would have nothing
+   * to read. The first live v3 rebuild then lost all four people to exactly that: the model
+   * returned every other field and omitted this one, which is what v3 invites by making
+   * personDecision and companyFact mandatory and separately declared.
+   *
+   * So a missing rationale is now COMPOSED from those two sides. The veto still gets a
+   * sentence, and it is guaranteed to name both halves of the crossing — which is what the
+   * gate checks anyway. Dropping only survives for an axis that declares neither.
+   */
+  it("composes the rationale from the declared sides when the model omits it", () => {
+    const out = parseProfileResponse(`{"domains":${DOMAINS},"audience":${AUDIENCE},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${axis("זיהוי הונאות", "")}]}`);
+    expect(out?.axes).toHaveLength(1);
+    expect(out?.axes[0].rationale).toBe("כי חתום על מנוע הדירוג, בזמן שלקוחות פרטיים שמחפשים מוצרים");
+  });
+
+  it("still drops an axis that has no rationale AND declares neither side", () => {
+    const bare = JSON.stringify({
+      label: "זיהוי הונאות", rationale: "", searchQueries: ["vector search research"], agenda: false,
+      stage: "decision", domain: "מנוע דירוג",
+      layerEvidence: { layer: 2, quote: "לקוחות פרטיים שמחפשים מוצרים" },
+      personDecision: "", companyFact: "",
+    });
+    expect(parseProfileResponse(`{"domains":${DOMAINS},"audience":${AUDIENCE},"reasoning":"חשיבה בשלבים","roleLens":"x","axes":[${bare}]}`)).toBeNull();
   });
 
   it("collapses the same subject proposed twice", () => {
