@@ -225,26 +225,28 @@ export function readProfileEducation(): EducationItem[] {
   }
   return rows;
 }
-
 /**
- * Scroll until the lower profile sections actually exist, then stop.
+ * Read the profile WHILE scrolling it, keeping each section the moment it is on screen.
  *
- * The scraper used to wait 2.3s and read — its own comment said About and Experience
- * "render a beat after the topcard", assuming the missing ingredient was TIME. It is
- * SCROLL: LinkedIn renders those sections only as they approach the viewport. Because
- * nothing ever scrolled, no profile ever returned experience or education, and the radar's
- * layer 4 ran on a job title alone for everyone. Pazit Garfinkel's page holds eight roles
- * across three companies and two degrees; the model saw none of it.
+ * Three live runs on the same four people taught this, each correcting the last:
+ *   0.7.1  read after 2.3s, never scrolled          -> experience: [] for everyone
+ *   0.7.2  scrolled until EITHER section appeared    -> experience at scrolls:0, education
+ *                                                       never rendered
+ *   0.7.3  scrolled until BOTH appeared, then read   -> found:false after 8 scrolls, and
+ *                                                       NOTHING found, for all four
  *
- * A POLL rather than a fixed number of scrolls, for two reasons. A profile that is already
- * rendered costs nothing. And the automation window can lay out 0x0 (see the coordinate-
- * click lesson in background.ts), where scrolling may never trigger the lazy render at
- * all — in that state a fixed budget would burn seven seconds per person and still read an
- * empty page, with nothing saying so. `found: false` is that signal.
+ * The third result explains the first two: LinkedIn VIRTUALIZES the profile. Eight scrolls
+ * of 1200px travel past the sections, which are unmounted as they leave the viewport, so a
+ * reader running at the bottom of the page finds an empty document. "Scroll, then read"
+ * races itself by construction and cannot be fixed by tuning the wait.
  *
- * Deps are injectable so this is testable without a real lazy-loading page.
+ * So: capture on every step, first non-empty read per section wins, and a later empty read
+ * can never clobber an earlier capture. Scrolling continues only while something is still
+ * missing, and does not happen at all when the page was already complete.
+ *
+ * Deps are injectable so this is testable without a real virtualizing page.
  */
-export async function revealProfileSections(
+export async function readProfileProgressively(
   deps: {
     scrollBy?: (dy: number) => void;
     sleep?: (ms: number) => Promise<void>;
@@ -252,34 +254,54 @@ export async function revealProfileSections(
     stepPx?: number;
     settleMs?: number;
   } = {}
-): Promise<{ scrolls: number; found: boolean; experience: boolean; education: boolean }> {
+): Promise<{
+  about: string | null;
+  experience: ExperienceItem[];
+  education: EducationItem[];
+  skills: string[];
+  scrolls: number;
+  revealed: { experience: boolean; education: boolean };
+}> {
   const scrollBy = deps.scrollBy ?? ((dy: number) => window.scrollBy(0, dy));
   const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const maxScrolls = deps.maxScrolls ?? 8;
   const stepPx = deps.stepPx ?? 1200;
   const settleMs = deps.settleMs ?? 700;
 
-  const hasExperience = () => findSection(EXPERIENCE_HEADERS) !== null;
-  const hasEducation = () => findSection(EDUCATION_HEADERS) !== null;
+  let about: string | null = null;
+  let experience: ExperienceItem[] = [];
+  let education: EducationItem[] = [];
+  let skills: string[] = [];
 
-  // BOTH, not either. The first version of this stopped at whichever section appeared
-  // first, and experience sits ABOVE education — so the live 0.7.2 run exited the moment
-  // experience rendered and education, one screen further down, never did: Pazit Garfinkel
-  // came back with five roles and zero degrees while her page plainly showed two.
-  //
-  // A profile can legitimately have no education, so the scroll budget is the backstop and
-  // the two flags say which half is actually missing. Spending the budget is not waste in
-  // that case: exhausting it means we scrolled to the bottom, which is exactly what makes
-  // everything below the fold render.
+  const capture = () => {
+    if (about === null) about = readProfileAbout();
+    if (experience.length === 0) experience = readProfileExperience();
+    if (education.length === 0) education = readProfileEducation();
+    if (skills.length === 0) skills = readProfileSkills();
+  };
+
+  // The page can already be complete — 0.7.2 found experience at scrolls: 0 — so read
+  // before moving. Scrolling a complete page would only unmount what is already there.
+  capture();
+
   let scrolls = 0;
-  while (!(hasExperience() && hasEducation()) && scrolls < maxScrolls) {
+  while ((experience.length === 0 || education.length === 0) && scrolls < maxScrolls) {
     scrollBy(stepPx);
     scrolls += 1;
     await sleep(settleMs);
+    capture();
   }
-  const experience = hasExperience();
-  const education = hasEducation();
-  return { scrolls, found: experience || education, experience, education };
+
+  return {
+    about,
+    experience,
+    education,
+    skills,
+    scrolls,
+    // Which halves were ever seen at all — the difference between "published nothing" and
+    // "we never managed to read it", the distinction that took three runs to get right.
+    revealed: { experience: experience.length > 0, education: education.length > 0 },
+  };
 }
 
 /**

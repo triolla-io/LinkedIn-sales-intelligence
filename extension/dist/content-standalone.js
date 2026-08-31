@@ -541,23 +541,40 @@
     }
     return rows;
   }
-  async function revealProfileSections(deps = {}) {
+  async function readProfileProgressively(deps = {}) {
     const scrollBy = deps.scrollBy ?? ((dy) => window.scrollBy(0, dy));
     const sleep = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
     const maxScrolls = deps.maxScrolls ?? 8;
     const stepPx = deps.stepPx ?? 1200;
     const settleMs = deps.settleMs ?? 700;
-    const hasExperience = () => findSection(EXPERIENCE_HEADERS) !== null;
-    const hasEducation = () => findSection(EDUCATION_HEADERS) !== null;
+    let about = null;
+    let experience = [];
+    let education = [];
+    let skills = [];
+    const capture = () => {
+      if (about === null) about = readProfileAbout();
+      if (experience.length === 0) experience = readProfileExperience();
+      if (education.length === 0) education = readProfileEducation();
+      if (skills.length === 0) skills = readProfileSkills();
+    };
+    capture();
     let scrolls = 0;
-    while (!(hasExperience() && hasEducation()) && scrolls < maxScrolls) {
+    while ((experience.length === 0 || education.length === 0) && scrolls < maxScrolls) {
       scrollBy(stepPx);
       scrolls += 1;
       await sleep(settleMs);
+      capture();
     }
-    const experience = hasExperience();
-    const education = hasEducation();
-    return { scrolls, found: experience || education, experience, education };
+    return {
+      about,
+      experience,
+      education,
+      skills,
+      scrolls,
+      // Which halves were ever seen at all — the difference between "published nothing" and
+      // "we never managed to read it", the distinction that took three runs to get right.
+      revealed: { experience: experience.length > 0, education: education.length > 0 }
+    };
   }
   function readProfileTopcard() {
     var _a;
@@ -785,19 +802,25 @@
       case "READ_PROFILE_TOPCARD":
         return readProfileTopcard();
       case "READ_PROFILE_FULL": {
-        const revealed = await revealProfileSections();
+        const scrolled = await readProfileProgressively();
+        window.scrollTo(0, 0);
         const { entries, headline } = readProfileTopcard();
         return {
           headline,
           company: ((_a = entries[0]) == null ? void 0 : _a.company) ?? null,
-          // Reported so a scrape that read an unrendered page is diagnosable instead of
-          // looking exactly like a person with an empty profile — the failure mode that
-          // hid this bug for as long as it existed.
-          revealed,
-          about: readProfileAbout(),
-          experience: readProfileExperience(),
-          skills: readProfileSkills(),
-          education: readProfileEducation()
+          about: scrolled.about,
+          experience: scrolled.experience,
+          skills: scrolled.skills,
+          education: scrolled.education,
+          // Reported so an empty read is diagnosable instead of looking exactly like a person
+          // with an empty profile — the indistinguishability that hid this for weeks, and
+          // that caught two wrong fixes of my own before this one.
+          revealed: {
+            scrolls: scrolled.scrolls,
+            found: scrolled.revealed.experience || scrolled.revealed.education,
+            experience: scrolled.revealed.experience,
+            education: scrolled.revealed.education
+          }
         };
       }
       case "EXTRACT_COMPANY":
