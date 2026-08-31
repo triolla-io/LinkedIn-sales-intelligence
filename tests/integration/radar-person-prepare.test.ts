@@ -19,6 +19,17 @@ vi.mock("@/lib/tech-radar/build-profiles", () => ({
   buildProfilesForMarked: (...a: unknown[]) => buildProfilesForMarked(...a),
 }));
 
+/**
+ * MOCKED, and not optional: researchPerson makes up to four live provider queries and
+ * four page reads. Unmocked, this file would spend from a nearly-exhausted monthly news
+ * quota every time the suite runs — the same trap tech-radar-build-profiles.test.ts fell
+ * into with the rationale gate until 2026-08-26.
+ */
+const researchPerson = vi.fn();
+vi.mock("@/lib/tech-radar/person-research", () => ({
+  researchPerson: (...a: unknown[]) => researchPerson(...a),
+}));
+
 const companyCount = vi.fn();
 const contactFindUnique = vi.fn();
 const extensionTaskCreate = vi.fn();
@@ -63,9 +74,10 @@ function run() {
 beforeEach(() => {
   for (const m of [
     markedEmployers, upsertEmployers, buildProfilesForMarked, companyCount, sendEvent,
-    contactFindUnique, extensionTaskCreate, extensionTaskFindFirst, sleep,
+    contactFindUnique, extensionTaskCreate, extensionTaskFindFirst, sleep, researchPerson,
   ])
     m.mockReset();
+  researchPerson.mockResolvedValue({ findings: [] });
   sleep.mockResolvedValue(undefined);
   markedEmployers.mockResolvedValue([{ name: "Delek US Holdings" }]);
   upsertEmployers.mockResolvedValue({ created: 1, matched: 0, pendingResearch: ["tc1"], alreadyPending: [] });
@@ -100,7 +112,49 @@ describe("radar.person.prepare", () => {
       orgId: "org1",
       ownerId: "owner1",
       contactIds: ["ct1"],
+      // Empty here because the default contact fixture has no fullName — there is nobody
+      // to search for. The threading is asserted in its own test below.
+      personResearchByContact: new Map(),
     });
+  });
+
+  /**
+   * The v3 person layer: the one input the nightly cohort build does not have, because
+   * researching a whole cohort is a quota bill while one hand-added person is four queries.
+   * It reaches the build through `personResearchByContact` — a map keyed by contact id, so
+   * the same build function serves both paths.
+   */
+  it("researches the person and threads the findings into the build", async () => {
+    contactFindUnique.mockResolvedValue({
+      linkedinUrl: "https://linkedin.com/in/ct1",
+      profileScrapedAt: new Date(),
+      fullName: "Pazit Garfinkel",
+      hebrewFirstName: "פזית",
+      currentCompany: "Bank Hapoalim",
+    });
+    const findings = { findings: [{ title: "ראיון", url: "https://x", snippet: "s", pageText: null }] };
+    researchPerson.mockResolvedValue(findings);
+
+    const out = (await run()) as { personResearchFindings: number };
+
+    expect(researchPerson).toHaveBeenCalledWith({
+      fullName: "Pazit Garfinkel",
+      hebrewName: "פזית",
+      companyName: "Bank Hapoalim",
+    });
+    expect(buildProfilesForMarked.mock.calls[0][0].personResearchByContact).toEqual(
+      new Map([["ct1", findings]])
+    );
+    // Visible in the run trail: "the model read about the human" vs "read a job title".
+    expect(out.personResearchFindings).toBe(1);
+  });
+
+  /** No name, nothing to search: the research is skipped rather than run on an empty
+   *  string, and the build still happens without the person layer. */
+  it("skips the research when the contact has no name, and still builds", async () => {
+    await run();
+    expect(researchPerson).not.toHaveBeenCalled();
+    expect(buildProfilesForMarked).toHaveBeenCalled();
   });
 
   it("never dispatches a scan — that costs money and is the weekly run's job", async () => {

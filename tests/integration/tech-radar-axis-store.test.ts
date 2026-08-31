@@ -807,10 +807,16 @@ describe("attachAxes ceiling exemption for INDUSTRY", () => {
  * (`orgAxisCount = existingRows.filter(r => r.kind !== "INDUSTRY").length`).
  */
 describe("attachAxes person ceiling exempts INDUSTRY", () => {
-  it("counts held axes with an explicit source-not-INDUSTRY filter, not every PersonAxis row", async () => {
+  /**
+   * PERSON_ENTITY and MANUAL joined the exemption with the v3 person model: an entity tag
+   * is a NAME matched in code, and a person can carry several plus every manual correction
+   * a human adds. Counting them as subjects would mean three manual tags drop a person from
+   * five own axes to two — correcting the model would shrink it.
+   */
+  it("counts held axes excluding every net source, not every PersonAxis row", async () => {
     await attachAxes({ orgId: "org1", personProfileId: "pp1", employer: HAPOALIM, proposals: [proposal("זיהוי הונאות")] });
     expect(personAxisCount.mock.calls[0][0]).toEqual({
-      where: { personProfileId: "pp1", source: { not: "INDUSTRY" } },
+      where: { personProfileId: "pp1", source: { notIn: ["INDUSTRY", "PERSON_ENTITY", "MANUAL"] } },
     });
   });
 

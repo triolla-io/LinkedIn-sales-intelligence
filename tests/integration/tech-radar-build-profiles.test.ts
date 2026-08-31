@@ -492,8 +492,12 @@ describe("force-mode data safety on a wholesale gate rejection", () => {
 
     // NOT a bare { personProfileId, mutedAt } — see the next test. The delete must
     // exclude INDUSTRY, or it wipes out the net link ensureIndustryAxis just created.
+    // MANUAL joined INDUSTRY in the exclusion on 2026-08-31 (Task 9): a MANUAL link is a
+    // human's correction typed in on the person page, and a rebuild that deleted it would
+    // make that control a lie. The exact predicate is pinned in
+    // tests/unit/tech-radar-build-v2-wiring.test.ts.
     expect(personAxisDeleteMany).toHaveBeenCalledWith({
-      where: { personProfileId: "pp1", mutedAt: null, source: { not: "INDUSTRY" } },
+      where: { personProfileId: "pp1", mutedAt: null, source: { notIn: ["INDUSTRY", "MANUAL"] } },
     });
   });
 
@@ -534,8 +538,12 @@ describe("force-mode data safety on a wholesale gate rejection", () => {
     });
     // ...and the detach that runs after it explicitly spares INDUSTRY while still
     // clearing everything else un-muted.
+    // MANUAL joined INDUSTRY in the exclusion on 2026-08-31 (Task 9): a MANUAL link is a
+    // human's correction typed in on the person page, and a rebuild that deleted it would
+    // make that control a lie. The exact predicate is pinned in
+    // tests/unit/tech-radar-build-v2-wiring.test.ts.
     expect(personAxisDeleteMany).toHaveBeenCalledWith({
-      where: { personProfileId: "pp1", mutedAt: null, source: { not: "INDUSTRY" } },
+      where: { personProfileId: "pp1", mutedAt: null, source: { notIn: ["INDUSTRY", "MANUAL"] } },
     });
   });
 });
