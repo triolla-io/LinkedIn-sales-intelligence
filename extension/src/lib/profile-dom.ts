@@ -168,10 +168,7 @@ export function readProfileExperience(): ExperienceItem[] {
   const section = findSection(EXPERIENCE_HEADERS);
   if (!section) return [];
   const results: ExperienceItem[] = [];
-  for (const li of Array.from(section.querySelectorAll("li"))) {
-    // Skip nested <li>s belonging to a grouped multi-role-at-one-company entry — they were
-    // already walked as part of their parent li's leafLines().
-    if (li.parentElement?.closest("li")) continue;
+  for (const li of sectionRows(section)) {
     const lines = leafLines(li);
     if (!lines.length) continue;
     const titleIdx = lines.findIndex((l) => l.bold);
@@ -211,8 +208,7 @@ export function readProfileSkills(): string[] {
   if (!section) return [];
   const skills: string[] = [];
   const seen = new Set<string>();
-  for (const li of Array.from(section.querySelectorAll("li"))) {
-    if (li.parentElement?.closest("li")) continue;
+  for (const li of sectionRows(section)) {
     const name = leafLines(li)[0]?.text;
     if (!name || seen.has(name)) continue;
     seen.add(name);
@@ -234,11 +230,13 @@ export function readProfileEducation(): EducationItem[] {
   const section = findSection(EDUCATION_HEADERS);
   if (!section) return [];
   const rows: EducationItem[] = [];
-  for (const li of Array.from(section.querySelectorAll("li"))) {
-    if (li.parentElement?.closest("li")) continue;
+  for (const li of sectionRows(section)) {
     const lines = leafLines(li);
     if (!lines.length) continue;
-    const school = (lines.find((l) => l.bold) ?? lines[0]).text;
+    // In the SDUI render nothing is bold — the school is inside an <a href="/school/…">.
+    // Falling back to the first line would file the degree as the institution.
+    const schoolLink = clean(li.querySelector('a[href*="/school/"]')?.textContent);
+    const school = schoolLink || (lines.find((l) => l.bold) ?? lines[0]).text;
     const degreeLine = lines.map((l) => l.text).find((t) => t !== school) ?? null;
     const [degree, ...rest] = (degreeLine ?? "").split(",").map((s) => s.trim());
     rows.push({ school, degree: degree || null, field: rest.join(", ") || null });
@@ -246,6 +244,49 @@ export function readProfileEducation(): EducationItem[] {
   }
   return rows;
 }
+/**
+ * The rows of a profile section, across BOTH renders LinkedIn currently serves.
+ *
+ * Every reader here used to iterate `section.querySelectorAll("li")`, and the 0.7.8 markup
+ * report showed why education and skills always came back empty: the SDUI render has no
+ * <li> at all. Its rows are `<div componentkey=...>` — sometimes a semantic key
+ * ("com.linkedin.sdui.profile.skill(urn, 2)"), sometimes a bare uuid — and the same key can
+ * appear on a row and again on its own child.
+ *
+ * Both renders are live at once (three of four people parsed fine off <li> while the fourth
+ * returned nothing), so the <li> path stays first and the SDUI path is the fallback.
+ *
+ * Three things a componentkey div can be, and only the third is a row:
+ *   - a named layout anchor ("profile_education_top_anchor_…", "ProfileNullStateCardAnchor_…")
+ *   - a wrapper that merely contains other rows
+ *   - an actual entry
+ * So: drop named anchors, drop the empty, de-nest identical keys, and finally drop anything
+ * that contains another candidate — what remains is the leaf-level rows.
+ */
+const NAMED_ANCHOR = /anchor/i;
+
+function sectionRows(section: HTMLElement): Element[] {
+  const lis = Array.from(section.querySelectorAll("li")).filter(
+    (li) => !li.parentElement?.closest("li")
+  );
+  if (lis.length > 0) return lis;
+
+  const keyed = Array.from(section.querySelectorAll<HTMLElement>("div[componentkey]")).filter((el) => {
+    const key = el.getAttribute("componentkey") ?? "";
+    if (!key || NAMED_ANCHOR.test(key)) return false;
+    if (!clean(el.textContent)) return false;
+    // Outermost of a nested identical-key chain: the child repeat carries the same content.
+    const parentKeyed = el.parentElement?.closest("div[componentkey]");
+    return !parentKeyed || (parentKeyed.getAttribute("componentkey") ?? "") !== key;
+  });
+  // Leaf-level only. A card wrapper with its own key would otherwise be parsed as a row
+  // whose leafLines are every entry's text run together.
+  const leaves = keyed.filter((el) => !keyed.some((other) => other !== el && el.contains(other)));
+  if (leaves.length > 0) return leaves;
+
+  return Array.from(section.querySelectorAll('[role="listitem"]'));
+}
+
 /**
  * One-off structural sample of a section whose reader came back empty.
  *

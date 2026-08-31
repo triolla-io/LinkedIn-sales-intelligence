@@ -486,19 +486,18 @@
     return best ? best.slice(0, 1500) : null;
   }
   function readProfileExperience() {
-    var _a, _b, _c;
+    var _a, _b;
     const section = findSection(EXPERIENCE_HEADERS);
     if (!section) return [];
     const results = [];
-    for (const li of Array.from(section.querySelectorAll("li"))) {
-      if ((_a = li.parentElement) == null ? void 0 : _a.closest("li")) continue;
+    for (const li of sectionRows(section)) {
       const lines = leafLines(li);
       if (!lines.length) continue;
       const titleIdx = lines.findIndex((l) => l.bold);
-      const title = (_b = titleIdx >= 0 ? lines[titleIdx] : lines[0]) == null ? void 0 : _b.text;
+      const title = (_a = titleIdx >= 0 ? lines[titleIdx] : lines[0]) == null ? void 0 : _a.text;
       if (!title) continue;
       const after = lines.slice((titleIdx >= 0 ? titleIdx : 0) + 1);
-      const rawCompany = ((_c = after.find((l) => !/\d{4}/.test(l.text))) == null ? void 0 : _c.text) ?? null;
+      const rawCompany = ((_b = after.find((l) => !/\d{4}/.test(l.text))) == null ? void 0 : _b.text) ?? null;
       const company = rawCompany ? rawCompany.replace(EMPLOYMENT_SUFFIX, "").trim() || null : null;
       const dateLine = lines.find((l) => /\d{4}/.test(l.text)) ?? null;
       results.push({
@@ -512,14 +511,13 @@
     return results;
   }
   function readProfileSkills() {
-    var _a, _b;
+    var _a;
     const section = findSection(SKILLS_HEADERS);
     if (!section) return [];
     const skills = [];
     const seen = /* @__PURE__ */ new Set();
-    for (const li of Array.from(section.querySelectorAll("li"))) {
-      if ((_a = li.parentElement) == null ? void 0 : _a.closest("li")) continue;
-      const name = (_b = leafLines(li)[0]) == null ? void 0 : _b.text;
+    for (const li of sectionRows(section)) {
+      const name = (_a = leafLines(li)[0]) == null ? void 0 : _a.text;
       if (!name || seen.has(name)) continue;
       seen.add(name);
       skills.push(name);
@@ -532,17 +530,38 @@
     const section = findSection(EDUCATION_HEADERS);
     if (!section) return [];
     const rows = [];
-    for (const li of Array.from(section.querySelectorAll("li"))) {
-      if ((_a = li.parentElement) == null ? void 0 : _a.closest("li")) continue;
+    for (const li of sectionRows(section)) {
       const lines = leafLines(li);
       if (!lines.length) continue;
-      const school = (lines.find((l) => l.bold) ?? lines[0]).text;
+      const schoolLink = clean((_a = li.querySelector('a[href*="/school/"]')) == null ? void 0 : _a.textContent);
+      const school = schoolLink || (lines.find((l) => l.bold) ?? lines[0]).text;
       const degreeLine = lines.map((l) => l.text).find((t) => t !== school) ?? null;
       const [degree, ...rest] = (degreeLine ?? "").split(",").map((s) => s.trim());
       rows.push({ school, degree: degree || null, field: rest.join(", ") || null });
       if (rows.length >= 5) break;
     }
     return rows;
+  }
+  const NAMED_ANCHOR = /anchor/i;
+  function sectionRows(section) {
+    const lis = Array.from(section.querySelectorAll("li")).filter(
+      (li) => {
+        var _a;
+        return !((_a = li.parentElement) == null ? void 0 : _a.closest("li"));
+      }
+    );
+    if (lis.length > 0) return lis;
+    const keyed = Array.from(section.querySelectorAll("div[componentkey]")).filter((el) => {
+      var _a;
+      const key = el.getAttribute("componentkey") ?? "";
+      if (!key || NAMED_ANCHOR.test(key)) return false;
+      if (!clean(el.textContent)) return false;
+      const parentKeyed = (_a = el.parentElement) == null ? void 0 : _a.closest("div[componentkey]");
+      return !parentKeyed || (parentKeyed.getAttribute("componentkey") ?? "") !== key;
+    });
+    const leaves = keyed.filter((el) => !keyed.some((other) => other !== el && el.contains(other)));
+    if (leaves.length > 0) return leaves;
+    return Array.from(section.querySelectorAll('[role="listitem"]'));
   }
   function sampleSection(headers) {
     const section = findSection(headers);
