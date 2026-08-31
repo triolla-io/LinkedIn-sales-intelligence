@@ -25,7 +25,21 @@ export interface EducationItem {
   field: string | null;
 }
 
-const clean = (s: string | null | undefined): string => (s || "").replace(/\s+/g, " ").trim();
+/**
+ * Invisible bidirectional-formatting characters LinkedIn injects in RTL locales: the
+ * LRM/RLM marks, the Arabic letter mark, and the embedding/override/isolate controls.
+ *
+ * They are stripped because they defeat exact comparison while being invisible in every
+ * log and every screenshot. On 2026-08-31 all four radar people had their `headline`
+ * stored as a connection-degree badge — "‏· שלישית" — even though readProfileTopcard
+ * already guarded against `startsWith("·")`: in the Hebrew UI the badge's first character
+ * is U+200F, not the middle dot, so the guard never fired. `headline` was one of only
+ * three person facts the radar's layer 4 ever had.
+ */
+const BIDI_MARKS = /[‎‏؜‪-‮⁦-⁩]/g;
+
+const clean = (s: string | null | undefined): string =>
+  (s || "").replace(BIDI_MARKS, "").replace(/\s+/g, " ").trim();
 
 const ABOUT_HEADERS = ["about", "אודות"];
 const EXPERIENCE_HEADERS = ["experience", "ניסיון"];
@@ -210,6 +224,53 @@ export function readProfileEducation(): EducationItem[] {
     if (rows.length >= 5) break;
   }
   return rows;
+}
+
+/**
+ * Scroll until the lower profile sections actually exist, then stop.
+ *
+ * The scraper used to wait 2.3s and read — its own comment said About and Experience
+ * "render a beat after the topcard", assuming the missing ingredient was TIME. It is
+ * SCROLL: LinkedIn renders those sections only as they approach the viewport. Because
+ * nothing ever scrolled, no profile ever returned experience or education, and the radar's
+ * layer 4 ran on a job title alone for everyone. Pazit Garfinkel's page holds eight roles
+ * across three companies and two degrees; the model saw none of it.
+ *
+ * A POLL rather than a fixed number of scrolls, for two reasons. A profile that is already
+ * rendered costs nothing. And the automation window can lay out 0x0 (see the coordinate-
+ * click lesson in background.ts), where scrolling may never trigger the lazy render at
+ * all — in that state a fixed budget would burn seven seconds per person and still read an
+ * empty page, with nothing saying so. `found: false` is that signal.
+ *
+ * Deps are injectable so this is testable without a real lazy-loading page.
+ */
+export async function revealProfileSections(
+  deps: {
+    scrollBy?: (dy: number) => void;
+    sleep?: (ms: number) => Promise<void>;
+    maxScrolls?: number;
+    stepPx?: number;
+    settleMs?: number;
+  } = {}
+): Promise<{ scrolls: number; found: boolean }> {
+  const scrollBy = deps.scrollBy ?? ((dy: number) => window.scrollBy(0, dy));
+  const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const maxScrolls = deps.maxScrolls ?? 8;
+  const stepPx = deps.stepPx ?? 1200;
+  const settleMs = deps.settleMs ?? 700;
+
+  // Either section proves the lower page rendered. Experience alone would be the wrong
+  // test: a profile can legitimately have none, and waiting for one that does not exist
+  // spends the whole budget on every such person.
+  const rendered = () => findSection(EXPERIENCE_HEADERS) !== null || findSection(EDUCATION_HEADERS) !== null;
+
+  let scrolls = 0;
+  while (!rendered() && scrolls < maxScrolls) {
+    scrollBy(stepPx);
+    scrolls += 1;
+    await sleep(settleMs);
+  }
+  return { scrolls, found: rendered() };
 }
 
 /**

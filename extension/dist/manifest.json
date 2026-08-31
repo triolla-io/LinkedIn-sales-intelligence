@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Triolla LinkedIn Sender",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Sends LinkedIn messages for Triolla campaigns",
   "permissions": [
     "storage",
@@ -23,7 +23,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/content.ts-loader-D90MKHH9.js"
+        "assets/content.ts-loader-Cxd3vtmz.js"
       ],
       "matches": [
         "https://www.linkedin.com/*"
@@ -41,7 +41,7 @@
       ],
       "resources": [
         "assets/resolve-company-L53-Bghy.js",
-        "assets/content.ts-BJvNJSu6.js"
+        "assets/content.ts-CN-7JSCI.js"
       ],
       "use_dynamic_url": false
     }

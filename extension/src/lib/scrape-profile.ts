@@ -48,6 +48,10 @@ export interface ScrapeProfileResult {
    *  to the server — which is exactly what happened to skills and education. */
   skills: string[];
   education: EducationItem[];
+  /** Diagnostic: did the lazy-rendered lower page ever appear, and after how many scrolls.
+   *  Without it, "this person published no experience" and "we read the page too early"
+   *  are the same empty array — which is how the second one went unnoticed for weeks. */
+  revealed: { scrolls: number; found: boolean };
 }
 
 /**
@@ -69,16 +73,17 @@ export async function scrapeProfile(linkedinUrl: string): Promise<ScrapeProfileR
     await waitForTabLoad(tabId);
     // Give the SDUI page a moment to hydrate the topcard before reading it.
     await sleep(1500);
-    // About/Experience render a beat after the topcard — give them the extra time before
-    // the (single, now-heavier) read.
-    await sleep(800);
-    const { headline, company, about, experience, skills, education } = await pageCall(tabId, {
+    // The extra 800ms that used to sit here was based on a wrong diagnosis: its comment
+    // said About/Experience "render a beat after the topcard", so the fix was assumed to
+    // be time. It is scroll — those sections render only as they near the viewport — and
+    // READ_PROFILE_FULL now scrolls for them itself, stopping as soon as they appear.
+    const { headline, company, about, experience, skills, education, revealed } = await pageCall(tabId, {
       kind: "READ_PROFILE_FULL",
     });
     const entries: RawEntry[] =
       headline || company ? [{ title: headline, company, current: true, startDate: "9999-99" }] : [];
     const { title } = parseProfileRole(entries, headline);
-    return { title, company, headline, about, experience, skills, education };
+    return { title, company, headline, about, experience, skills, education, revealed };
   } finally {
     await closeAutomationTab(tabId);
   }

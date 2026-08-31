@@ -929,6 +929,8 @@ export async function handleScrapeProfile(task: TaskRow) {
     // field for as long as manual distribution takes.
     skills?: unknown;
     education?: { school: string; degree?: string | null; field?: string | null }[];
+    /** 0.7.2: did the lazy-rendered lower page appear before the read. Absent on older builds. */
+    revealed?: { scrolls?: number; found?: boolean };
   };
   if (!payload.contactId) return;
   const contact = await prisma.contact.findUnique({
@@ -986,8 +988,18 @@ export async function handleScrapeProfile(task: TaskRow) {
   // drift on live LinkedIn parks the person for a month with nobody the wiser. Say it.
   const gotExperience = Array.isArray(result.experience) && result.experience.length > 0;
   if (!result.about && !gotExperience) {
+    // Two very different causes, and for weeks they were indistinguishable: a person who
+    // published nothing, versus a page we read before it rendered. `revealed.found` is
+    // what separates them (extension 0.7.2+). An empty read on a page that never
+    // rendered is a BUG report, not a fact about the person.
+    const reveal =
+      result.revealed === undefined
+        ? "extension predates the scroll fix, so this cannot be told apart from a genuinely empty profile"
+        : result.revealed.found
+          ? `page DID render (after ${result.revealed.scrolls ?? "?"} scrolls) — so this person really published neither`
+          : `page NEVER rendered its lower sections (${result.revealed.scrolls ?? "?"} scrolls) — this is a READ failure, not an empty profile`;
     console.warn(
-      `[job-check] SCRAPE_PROFILE returned no about and no experience for contact=${payload.contactId} — profileScrapedAt was still stamped, so the radar will not retry this person for ${RADAR_SCRAPE_STALE_DAYS} days (check the LinkedIn DOM anchors)`
+      `[job-check] SCRAPE_PROFILE returned no about and no experience for contact=${payload.contactId} — profileScrapedAt was still stamped, so the radar will not retry this person for ${RADAR_SCRAPE_STALE_DAYS} days. ${reveal}`
     );
   }
 

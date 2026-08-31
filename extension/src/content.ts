@@ -25,6 +25,7 @@ import {
   readProfileExperience,
   readProfileSkills,
   readProfileEducation,
+  revealProfileSections,
 } from "./lib/profile-dom";
 import { readRecentPosts } from "./lib/posts-dom";
 import { scrapeSearchPage } from "./lib/scrape-search";
@@ -66,12 +67,22 @@ async function handle(msg: PageRequest): Promise<unknown> {
     case "READ_PROFILE_TOPCARD":
       return readProfileTopcard();
     case "READ_PROFILE_FULL": {
+      // Scroll FIRST, and only then read. LinkedIn renders About/Experience/Education
+      // only as they approach the viewport, and the previous flow waited 2.3s without
+      // ever scrolling — so every profile came back with experience: [] and the person
+      // model ran on a job title alone. The scroll lives here, in the page context, so
+      // the wait ends the moment the sections exist rather than after a fixed budget.
+      const revealed = await revealProfileSections();
       // Compose every reader here rather than in scrape-profile.ts: they all read the
       // SAME already-loaded page, so one page-message round-trip beats one per section.
       const { entries, headline } = readProfileTopcard();
       return {
         headline,
         company: entries[0]?.company ?? null,
+        // Reported so a scrape that read an unrendered page is diagnosable instead of
+        // looking exactly like a person with an empty profile — the failure mode that
+        // hid this bug for as long as it existed.
+        revealed,
         about: readProfileAbout(),
         experience: readProfileExperience(),
         skills: readProfileSkills(),

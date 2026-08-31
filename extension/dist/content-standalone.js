@@ -431,7 +431,8 @@
     }
     return out;
   }
-  const clean = (s) => (s || "").replace(/\s+/g, " ").trim();
+  const BIDI_MARKS = /[‎‏؜‪-‮⁦-⁩]/g;
+  const clean = (s) => (s || "").replace(BIDI_MARKS, "").replace(/\s+/g, " ").trim();
   const ABOUT_HEADERS = ["about", "אודות"];
   const EXPERIENCE_HEADERS = ["experience", "ניסיון"];
   const SKILLS_HEADERS = ["skills", "כישורים", "מיומנויות"];
@@ -539,6 +540,21 @@
       if (rows.length >= 5) break;
     }
     return rows;
+  }
+  async function revealProfileSections(deps = {}) {
+    const scrollBy = deps.scrollBy ?? ((dy) => window.scrollBy(0, dy));
+    const sleep = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
+    const maxScrolls = deps.maxScrolls ?? 8;
+    const stepPx = deps.stepPx ?? 1200;
+    const settleMs = deps.settleMs ?? 700;
+    const rendered = () => findSection(EXPERIENCE_HEADERS) !== null || findSection(EDUCATION_HEADERS) !== null;
+    let scrolls = 0;
+    while (!rendered() && scrolls < maxScrolls) {
+      scrollBy(stepPx);
+      scrolls += 1;
+      await sleep(settleMs);
+    }
+    return { scrolls, found: rendered() };
   }
   function readProfileTopcard() {
     var _a;
@@ -766,10 +782,15 @@
       case "READ_PROFILE_TOPCARD":
         return readProfileTopcard();
       case "READ_PROFILE_FULL": {
+        const revealed = await revealProfileSections();
         const { entries, headline } = readProfileTopcard();
         return {
           headline,
           company: ((_a = entries[0]) == null ? void 0 : _a.company) ?? null,
+          // Reported so a scrape that read an unrendered page is diagnosable instead of
+          // looking exactly like a person with an empty profile — the failure mode that
+          // hid this bug for as long as it existed.
+          revealed,
           about: readProfileAbout(),
           experience: readProfileExperience(),
           skills: readProfileSkills(),

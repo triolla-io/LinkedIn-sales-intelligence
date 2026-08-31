@@ -59,6 +59,8 @@ export interface PageResults {
     experience: ExperienceItem[];
     skills: string[];
     education: EducationItem[];
+    /** Whether the lazy-rendered lower page was actually reached before reading. */
+    revealed: { scrolls: number; found: boolean };
   };
   EXTRACT_COMPANY: { companyId: string | null; resolvedName: string | null; url: string };
   TOP_COMPANY_RESULTS: Array<{ companyUrl: string; name: string | null }>;
