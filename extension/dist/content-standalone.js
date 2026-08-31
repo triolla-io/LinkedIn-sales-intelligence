@@ -544,6 +544,19 @@
     }
     return rows;
   }
+  function sampleSection(headers) {
+    const section = findSection(headers);
+    if (!section) return { found: false, lis: 0, childTags: [], html: "" };
+    const list = section.querySelector("ul, ol") ?? section;
+    return {
+      found: true,
+      lis: section.querySelectorAll("li").length,
+      childTags: Array.from(list.children).slice(0, 6).map((el) => el.tagName.toLowerCase()),
+      // Attributes stripped: LinkedIn's class soup is noise and would blow the payload past
+      // anything readable, while the TAG structure is the whole question.
+      html: section.innerHTML.replace(/\s(class|id|style|data-[\w-]+|aria-[\w-]+)="[^"]*"/g, "").slice(0, 900)
+    };
+  }
   function scrollStep(dy) {
     const before = window.scrollY;
     window.scrollBy(0, dy);
@@ -608,6 +621,13 @@
         scrollVia: lastStep.via,
         docHeight: document.documentElement.scrollHeight,
         hidden: document.hidden
+      },
+      // Only for sections that actually came back empty — a working parser needs no sample,
+      // and the payload crosses a message bridge.
+      samples: {
+        ...education.length === 0 ? { education: sampleSection(EDUCATION_HEADERS) } : {},
+        ...skills.length === 0 ? { skills: sampleSection(SKILLS_HEADERS) } : {},
+        ...experience.length === 0 ? { experience: sampleSection(EXPERIENCE_HEADERS) } : {}
       }
     };
   }
@@ -856,7 +876,8 @@
             experience: scrolled.revealed.experience,
             education: scrolled.revealed.education,
             viewport: scrolled.viewport,
-            page: scrolled.page
+            page: scrolled.page,
+            samples: scrolled.samples
           }
         };
       }

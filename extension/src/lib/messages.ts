@@ -60,7 +60,7 @@ export interface PageResults {
     skills: string[];
     education: EducationItem[];
     /** Whether the lazy-rendered lower page was actually reached before reading. */
-    revealed: { scrolls: number; found: boolean; experience: boolean; education: boolean; viewport: { w: number; h: number }; page: { sections: number; headings: string[]; scrollVia: string; docHeight: number; hidden: boolean } };
+    revealed: { scrolls: number; found: boolean; experience: boolean; education: boolean; viewport: { w: number; h: number }; page: { sections: number; headings: string[]; scrollVia: string; docHeight: number; hidden: boolean }; samples: Record<string, { found: boolean; lis: number; childTags: string[]; html: string }> };
   };
   EXTRACT_COMPANY: { companyId: string | null; resolvedName: string | null; url: string };
   TOP_COMPANY_RESULTS: Array<{ companyUrl: string; name: string | null }>;

@@ -94,6 +94,7 @@ async function handle(msg: PageRequest): Promise<unknown> {
           education: scrolled.revealed.education,
           viewport: scrolled.viewport,
           page: scrolled.page,
+          samples: scrolled.samples,
         },
       };
     }

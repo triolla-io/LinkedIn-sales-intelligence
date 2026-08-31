@@ -247,6 +247,30 @@ export function readProfileEducation(): EducationItem[] {
   return rows;
 }
 /**
+ * One-off structural sample of a section whose reader came back empty.
+ *
+ * TEMPORARY (added 0.7.8). Three parsers fail on real markup — skills, education, and
+ * experience for one of the four people — now that the heading-matching bug no longer
+ * hides them. Guessing at the markup is what produced six wrong fixes already, so the
+ * extension reports the structure itself rather than sending a human to a console: tag
+ * names, row counts, and a trimmed innerHTML sample. Delete once the parsers are written
+ * against reality.
+ */
+function sampleSection(headers: RegExp): { found: boolean; lis: number; childTags: string[]; html: string } {
+  const section = findSection(headers);
+  if (!section) return { found: false, lis: 0, childTags: [], html: "" };
+  const list = section.querySelector("ul, ol") ?? section;
+  return {
+    found: true,
+    lis: section.querySelectorAll("li").length,
+    childTags: Array.from(list.children).slice(0, 6).map((el) => el.tagName.toLowerCase()),
+    // Attributes stripped: LinkedIn's class soup is noise and would blow the payload past
+    // anything readable, while the TAG structure is the whole question.
+    html: section.innerHTML.replace(/\s(class|id|style|data-[\w-]+|aria-[\w-]+)="[^"]*"/g, "").slice(0, 900),
+  };
+}
+
+/**
  * One scroll step that actually moves something.
  *
  * `window.scrollBy` was scrolling nothing: the 0.7.5 run reported a healthy 1440x766
@@ -326,6 +350,8 @@ export async function readProfileProgressively(
   /** What the page looked like when reading finished. `scrollVia: "none"` means no scroll
    *  moved anything, which is the failure that survived four other explanations. */
   page: { sections: number; headings: string[]; scrollVia: string; docHeight: number; hidden: boolean };
+  /** TEMPORARY (0.7.8): structural samples of the sections whose parsers return nothing. */
+  samples: Record<string, { found: boolean; lis: number; childTags: string[]; html: string }>;
 }> {
   const scrollBy = deps.scrollBy ?? ((dy: number) => { lastStep = scrollStep(dy); });
   const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
@@ -379,6 +405,13 @@ export async function readProfileProgressively(
       scrollVia: lastStep.via,
       docHeight: document.documentElement.scrollHeight,
       hidden: document.hidden,
+    },
+    // Only for sections that actually came back empty — a working parser needs no sample,
+    // and the payload crosses a message bridge.
+    samples: {
+      ...(education.length === 0 ? { education: sampleSection(EDUCATION_HEADERS) } : {}),
+      ...(skills.length === 0 ? { skills: sampleSection(SKILLS_HEADERS) } : {}),
+      ...(experience.length === 0 ? { experience: sampleSection(EXPERIENCE_HEADERS) } : {}),
     },
   };
 }
