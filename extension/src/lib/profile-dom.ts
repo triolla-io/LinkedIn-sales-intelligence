@@ -382,7 +382,7 @@ export async function readProfileProgressively(
   education: EducationItem[];
   skills: string[];
   scrolls: number;
-  revealed: { experience: boolean; education: boolean };
+  revealed: { experience: boolean; education: boolean; skills: boolean; about: boolean };
   /** The viewport the read happened in. A zero height explains an empty read completely:
    *  LinkedIn gates its lower sections on IntersectionObserver, which cannot fire against
    *  a 0px-tall viewport, and a REUSED automation window that has been minimized lays out
@@ -417,8 +417,21 @@ export async function readProfileProgressively(
   // before moving. Scrolling a complete page would only unmount what is already there.
   capture();
 
+  // Wait for EVERYTHING we read, not for the first thing to arrive. This stop condition
+  // has now been wrong three times, and each fix exposed the next section: stopping at
+  // "either" hid education, stopping at "both" hid skills the moment education started
+  // working. Skills sits below education, so it renders last.
+  //
+  // And what actually makes them appear is the SLEEP, not the scroll: `scrollVia` came
+  // back "none" with docHeight equal to the viewport height, so nothing was ever
+  // scrollable — the SPA simply keeps hydrating. The scroll is harmless and kept for the
+  // renders that do lazy-load on it; the poll is the mechanism.
+  //
+  // A profile can legitimately have no skills and no About (one of the four pilot people
+  // has neither), so the budget is the backstop and those people spend all of it. 8 x 700ms
+  // is a cost worth paying to stop reading half a page.
   let scrolls = 0;
-  while ((experience.length === 0 || education.length === 0) && scrolls < maxScrolls) {
+  while ((experience.length === 0 || education.length === 0 || skills.length === 0) && scrolls < maxScrolls) {
     scrollBy(stepPx);
     scrolls += 1;
     await sleep(settleMs);
@@ -433,7 +446,12 @@ export async function readProfileProgressively(
     scrolls,
     // Which halves were ever seen at all — the difference between "published nothing" and
     // "we never managed to read it", the distinction that took three runs to get right.
-    revealed: { experience: experience.length > 0, education: education.length > 0 },
+    revealed: {
+      experience: experience.length > 0,
+      education: education.length > 0,
+      skills: skills.length > 0,
+      about: about !== null,
+    },
     viewport: { w: window.innerWidth, h: window.innerHeight },
     page: {
       sections: document.querySelectorAll("section").length,
@@ -452,6 +470,7 @@ export async function readProfileProgressively(
     samples: {
       ...(education.length === 0 ? { education: sampleSection(EDUCATION_HEADERS) } : {}),
       ...(skills.length === 0 ? { skills: sampleSection(SKILLS_HEADERS) } : {}),
+      ...(about === null ? { about: sampleSection(ABOUT_HEADERS) } : {}),
       ...(experience.length === 0 ? { experience: sampleSection(EXPERIENCE_HEADERS) } : {}),
     },
   };

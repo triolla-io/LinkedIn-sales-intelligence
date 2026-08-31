@@ -1,23 +1,28 @@
 // @vitest-environment jsdom
 /**
- * Why reading has to happen DURING the scroll, not after it.
+ * Why reading is a POLL, and why its stop condition is the whole design.
  *
- * Three live runs on the same four people, each one correcting the last:
+ * Live runs on the same four people, each correcting the last (the earlier explanations
+ * here were wrong and are kept only as the trail):
  *
- *  0.7.1  read after a 2.3s wait, never scrolling      -> experience: [] for everyone
- *  0.7.2  scrolled until EITHER section appeared        -> experience found at scrolls:0,
- *                                                          education never rendered
- *  0.7.3  scrolled until BOTH appeared, then read       -> found:false after 8 scrolls,
- *                                                          NOTHING found, for all four
+ *  0.7.1  read after a 2.3s wait, never polling   -> experience: [] for everyone
+ *  0.7.2  stopped at EITHER section               -> experience at scrolls:0, education never
+ *  0.7.3  stopped at BOTH, then read              -> found:false after 8 steps, nothing at all
+ *  0.7.4  captured on every step                  -> still nothing; the topcard read perfectly
+ *  0.7.5  re-asserted window bounds               -> viewport 1440x766, entirely healthy
+ *  0.7.6  reported the real headings              -> "על אודות", "מיומנויות (16)": the anchors
+ *                                                    never matched, and docHeight == viewport
+ *  0.7.9  parsed SDUI div[componentkey] rows      -> education and experience finally land
  *
- * The third result is the one that explains the other two: LinkedIn VIRTUALIZES the
- * profile. Scrolling 8 x 1200px goes past the sections and they are unmounted from the DOM
- * as they leave the viewport, so by the time the reader ran at the bottom of the page there
- * was nothing left to read. "Scroll, then read" cannot work at all — the two steps race
- * each other by construction.
+ * What survives of all that: `scrollVia` came back "none" with the document exactly as tall
+ * as the viewport, so NOTHING was ever scrollable. What makes sections appear is the SLEEP —
+ * the SPA keeps hydrating — which makes this a poll with a budget, not a scroll.
  *
- * So each section is captured the moment it is on screen, and kept. The first non-empty
- * read for a section wins; scrolling continues only for what is still missing.
+ * And the recurring bug was never the mechanism, it was the STOP CONDITION: it has been
+ * wrong three times, and each fix exposed the next section down the page. Stopping at
+ * "either" hid education; stopping at "both" hid skills the instant education began working.
+ * Hence: capture everything on every step, keep the first non-empty read per section, and
+ * keep polling until all of them are in or the budget is spent.
  */
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { readProfileProgressively } from "@/extension/src/lib/profile-dom";
@@ -31,6 +36,9 @@ const EDUCATION_HTML = `
   <section><h2>השכלה</h2><ul><li>
     <h3>Tel Aviv University</h3><div>MBA, Finance</div>
   </li></ul></section>`;
+
+const SKILLS_HTML = `
+  <section><h2>מיומנויות (16)</h2><ul><li><span>Retail Banking</span></li></ul></section>`;
 
 const TOPCARD = `<section><h2>Pazit Garfinkel</h2><p>Head of Retail Banking</p></section>`;
 
@@ -62,17 +70,41 @@ describe("readProfileProgressively", () => {
     expect(out.education[0].school).toBe("Tel Aviv University");
   });
 
-  it("stops as soon as both sections have been captured", async () => {
-    document.body.innerHTML = TOPCARD + EXPERIENCE_HTML + EDUCATION_HTML;
+  /**
+   * The stop condition covers everything read, not the first arrival. It has been wrong
+   * three times, and each fix exposed the next section: stopping at "either" hid
+   * education; stopping at "both" hid SKILLS the moment education started working, because
+   * skills renders last, below education.
+   */
+  it("stops only once experience, education AND skills are all captured", async () => {
+    document.body.innerHTML = TOPCARD + EXPERIENCE_HTML + EDUCATION_HTML + SKILLS_HTML;
     const scrollBy = vi.fn();
     const out = await readProfileProgressively({ scrollBy, sleep: async () => {}, maxScrolls: 6 });
     expect(out.scrolls).toBe(0);
     expect(scrollBy).not.toHaveBeenCalled();
     expect(out.experience).toHaveLength(1);
     expect(out.education).toHaveLength(1);
+    expect(out.skills).toHaveLength(1);
   });
 
-  it("spends the budget and says which half never appeared", async () => {
+  it("keeps polling past education until skills arrive", async () => {
+    document.body.innerHTML = TOPCARD + EXPERIENCE_HTML + EDUCATION_HTML;
+    let n = 0;
+    const scrollBy = vi.fn(() => {
+      n += 1;
+      if (n === 3) document.body.innerHTML += SKILLS_HTML;
+    });
+    const out = await readProfileProgressively({ scrollBy, sleep: async () => {}, maxScrolls: 8 });
+    expect(out.scrolls).toBe(3);
+    expect(out.skills).toEqual(["Retail Banking"]);
+  });
+
+  /**
+   * One of the four pilot people has neither skills nor an About section, so a profile that
+   * genuinely lacks a section must spend the budget rather than hang — and the report has to
+   * say which parts were never there.
+   */
+  it("spends the budget and says exactly which parts never appeared", async () => {
     document.body.innerHTML = TOPCARD;
     const scrollBy = vi.fn(() => {
       document.body.innerHTML = TOPCARD + EXPERIENCE_HTML;
@@ -81,7 +113,8 @@ describe("readProfileProgressively", () => {
     expect(out.scrolls).toBe(3);
     expect(out.experience).toHaveLength(1);
     expect(out.education).toEqual([]);
-    expect(out.revealed).toEqual({ experience: true, education: false });
+    expect(out.skills).toEqual([]);
+    expect(out.revealed).toEqual({ experience: true, education: false, skills: false, about: false });
   });
 
   /** A later, emptier read must never overwrite a good capture. */

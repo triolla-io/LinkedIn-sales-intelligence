@@ -616,7 +616,7 @@
     };
     capture();
     let scrolls = 0;
-    while ((experience.length === 0 || education.length === 0) && scrolls < maxScrolls) {
+    while ((experience.length === 0 || education.length === 0 || skills.length === 0) && scrolls < maxScrolls) {
       scrollBy(stepPx);
       scrolls += 1;
       await sleep(settleMs);
@@ -630,7 +630,12 @@
       scrolls,
       // Which halves were ever seen at all — the difference between "published nothing" and
       // "we never managed to read it", the distinction that took three runs to get right.
-      revealed: { experience: experience.length > 0, education: education.length > 0 },
+      revealed: {
+        experience: experience.length > 0,
+        education: education.length > 0,
+        skills: skills.length > 0,
+        about: about !== null
+      },
       viewport: { w: window.innerWidth, h: window.innerHeight },
       page: {
         sections: document.querySelectorAll("section").length,
@@ -646,6 +651,7 @@
       samples: {
         ...education.length === 0 ? { education: sampleSection(EDUCATION_HEADERS) } : {},
         ...skills.length === 0 ? { skills: sampleSection(SKILLS_HEADERS) } : {},
+        ...about === null ? { about: sampleSection(ABOUT_HEADERS) } : {},
         ...experience.length === 0 ? { experience: sampleSection(EXPERIENCE_HEADERS) } : {}
       }
     };
@@ -894,6 +900,8 @@
             found: scrolled.revealed.experience || scrolled.revealed.education,
             experience: scrolled.revealed.experience,
             education: scrolled.revealed.education,
+            skills: scrolled.revealed.skills,
+            about: scrolled.revealed.about,
             viewport: scrolled.viewport,
             page: scrolled.page,
             samples: scrolled.samples

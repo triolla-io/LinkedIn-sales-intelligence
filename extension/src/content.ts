@@ -92,6 +92,8 @@ async function handle(msg: PageRequest): Promise<unknown> {
           found: scrolled.revealed.experience || scrolled.revealed.education,
           experience: scrolled.revealed.experience,
           education: scrolled.revealed.education,
+          skills: scrolled.revealed.skills,
+          about: scrolled.revealed.about,
           viewport: scrolled.viewport,
           page: scrolled.page,
           samples: scrolled.samples,

@@ -930,7 +930,7 @@ export async function handleScrapeProfile(task: TaskRow) {
     skills?: unknown;
     education?: { school: string; degree?: string | null; field?: string | null }[];
     /** 0.7.2: did the lazy-rendered lower page appear before the read. Absent on older builds. */
-    revealed?: { scrolls?: number; found?: boolean; experience?: boolean; education?: boolean; viewport?: { w?: number; h?: number }; page?: { sections?: number; headings?: string[]; scrollVia?: string; docHeight?: number; hidden?: boolean } };
+    revealed?: { scrolls?: number; found?: boolean; experience?: boolean; education?: boolean; skills?: boolean; about?: boolean; viewport?: { w?: number; h?: number }; page?: { sections?: number; headings?: string[]; scrollVia?: string; docHeight?: number; hidden?: boolean } };
   };
   if (!payload.contactId) return;
   const contact = await prisma.contact.findUnique({
