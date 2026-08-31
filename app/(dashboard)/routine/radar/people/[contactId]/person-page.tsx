@@ -3,7 +3,7 @@
 import useSWR from "swr";
 import Link from "next/link";
 import { useState } from "react";
-import { Button } from "@heroui/react";
+import { Button, Input } from "@heroui/react";
 import { Loader2, AlertTriangle, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { fetcher, fetchErrorMessage } from "@/lib/fetcher";
@@ -12,6 +12,10 @@ import { fetcher, fetchErrorMessage } from "@/lib/fetcher";
  * One person: what the system thinks interests them, and the ability to say "no, not
  * that". A muted axis stays on screen, greyed, with a way back — a correction the user
  * cannot see is a correction they cannot undo.
+ *
+ * Muting is the subtraction; the manual tag below the list is the addition. Both are
+ * corrections to a model an LLM built, and a manual one is marked "ידני" because a user
+ * who cannot tell their own line apart from the machine's guess cannot audit either.
  */
 
 type PrepStage = { key: string; state: "done" | "running" | "waiting" | "failed"; detail: string };
@@ -27,7 +31,13 @@ type Person = {
   lastMessageFromUsAt: string | null;
   prep: { ready: boolean; failed: boolean; stages: PrepStage[] };
   employerFinding: { noClearCompetitors: boolean; reason: string } | null;
-  axes: { id: string; label: string; source: "role" | "company"; muted: boolean; itemsFound: number }[];
+  axes: {
+    id: string;
+    label: string;
+    source: "role" | "company" | "entity" | "manual";
+    muted: boolean;
+    itemsFound: number;
+  }[];
   history: { id: string; status: string; statusText: string; itemTitle: string; at: string }[];
 };
 
@@ -37,6 +47,16 @@ const INK_3 = "text-[var(--faint)]";
 const SOURCE_HE: Record<Person["axes"][number]["source"], string> = {
   role: "נגזר מהתפקיד ומהחברה",
   company: "ממה שהחברה מתמודדת איתו עכשיו",
+  entity: "שם שהמערכת זיהתה שהוא עוקב אחריו",
+  manual: "הוספת בעצמך",
+};
+
+/** Why the add failed, in words the user can act on. */
+const TAG_ERROR_HE: Record<string, string> = {
+  already_exists: "התגית הזאת כבר רשומה אצלו.",
+  name_required: "צריך לכתוב שם לתגית.",
+  name_not_distinctive: "השם הזה לא מספק — צריך שם ממשי, לא מילות קישור.",
+  no_person_profile: "המודל שלו עוד נבנה — אפשר להוסיף תגיות ברגע שהתחומים יופיעו כאן.",
 };
 
 function relativeHe(iso: string | null): string | null {
@@ -60,6 +80,8 @@ function Chip({ children }: { children: React.ReactNode }) {
 
 export function PersonPage({ contactId }: { contactId: string }) {
   const [busy, setBusy] = useState<string | null>(null);
+  const [tagName, setTagName] = useState("");
+  const [tagError, setTagError] = useState<string | null>(null);
   const { data, error, isLoading, mutate } = useSWR<Person>(
     `/api/radar/people/${contactId}`,
     fetcher,
@@ -74,6 +96,34 @@ export function PersonPage({ contactId }: { contactId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+      await mutate();
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  /**
+   * The addition half of the correction. Re-fetches rather than patching the cache by
+   * hand: the row the server writes carries its own id and provenance chip, and a guessed
+   * one would be a second source of truth for the same line.
+   */
+  async function addTag() {
+    const name = tagName.trim();
+    if (!name || busy !== null) return;
+    setBusy("add-tag");
+    setTagError(null);
+    try {
+      const res = await fetch(`/api/radar/people/${contactId}/tags`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        setTagError(TAG_ERROR_HE[body.error ?? ""] ?? "לא הצלחנו להוסיף את התגית.");
+        return;
+      }
+      setTagName("");
       await mutate();
     } finally {
       setBusy(null);
@@ -204,9 +254,12 @@ export function PersonPage({ contactId }: { contactId: string }) {
                     i < data.axes.length - 1 && "border-b border-dashed border-[var(--separator)]"
                   )}
                 >
-                  <span className={cn("text-[13.5px] min-w-0", a.muted && "opacity-45")}>
+                  <span className={cn("text-[13.5px] min-w-0 flex items-center gap-1.5 flex-wrap", a.muted && "opacity-45")}>
                     <b className="font-semibold">{a.label}</b>
-                    <span className={INK_3}> · {SOURCE_HE[a.source]}</span>
+                    {/* The user's own line, marked as theirs: a rebuild leaves it alone,
+                        and that promise is only worth something if it is visible. */}
+                    {a.source === "manual" && <Chip>ידני</Chip>}
+                    <span className={INK_3}>· {SOURCE_HE[a.source]}</span>
                   </span>
                   <span className={cn("text-[12.5px] shrink-0 flex items-center gap-2", INK_3)}>
                     {a.muted ? (
@@ -238,6 +291,44 @@ export function PersonPage({ contactId }: { contactId: string }) {
               )}
             </div>
           )}
+
+          {/* The addition. Muting takes a subject away; this puts one in — and unlike
+              everything above it, a rebuild leaves it standing. */}
+          <div className="mt-4 pt-4 border-t border-[var(--separator)]">
+            <label htmlFor="manual-tag" className={cn("text-[12.5px]", INK_3)}>
+              + תגית ידנית
+            </label>
+            <div className="flex gap-2 mt-1.5">
+              <Input
+                id="manual-tag"
+                value={tagName}
+                onChange={(e) => setTagName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void addTag();
+                }}
+                placeholder="למשל: רגולציית סייבר"
+                aria-label="תגית ידנית"
+                disabled={busy !== null}
+                className="flex-1"
+              />
+              <Button
+                size="sm"
+                variant="primary"
+                isDisabled={busy !== null || tagName.trim() === ""}
+                onPress={() => void addTag()}
+              >
+                הוספה
+              </Button>
+            </div>
+            <p className={cn("text-[12px] mt-1.5", INK_3)}>
+              תגית ידנית נשארת גם כשהמערכת בונה את המודל שלו מחדש.
+            </p>
+            {tagError && (
+              <p className="text-[12.5px] mt-1.5 text-[var(--danger)]" role="alert">
+                {tagError}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* history */}

@@ -15,9 +15,16 @@ import { pilotHoldEnabled, isPilotReviewer } from "@/lib/tech-radar/pilot-gate";
  * explicable, and a rebuild can respect the correction.
  */
 
-const AXIS_SOURCE: Record<string, "role" | "company"> = {
+const AXIS_SOURCE: Record<string, "role" | "company" | "entity" | "manual"> = {
   ROLE_COMPANY: "role",
   COMPANY_MONITOR: "company",
+  /// A named thing this person watches, found by the person model.
+  PERSON_ENTITY: "entity",
+  /// Typed by a human on the person page. Reaches the screen as its own provenance
+  /// because the page marks it "ידני": a manual tag is the one axis the machine may not
+  /// quietly replace, and a user who cannot tell their own correction apart from the
+  /// model's guess cannot audit either.
+  MANUAL: "manual",
 };
 
 /** Screen copy for a draft's fate. The only place this mapping lives. */
