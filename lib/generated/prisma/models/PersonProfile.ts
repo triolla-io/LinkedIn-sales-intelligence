@@ -54,6 +54,8 @@ export type PersonProfileCountAggregateOutputType = {
   personalNotes: number
   reasoning: number
   domains: number
+  audience: number
+  scope: number
   refreshedAt: number
   createdAt: number
   _all: number
@@ -90,6 +92,8 @@ export type PersonProfileCountAggregateInputType = {
   personalNotes?: true
   reasoning?: true
   domains?: true
+  audience?: true
+  scope?: true
   refreshedAt?: true
   createdAt?: true
   _all?: true
@@ -175,6 +179,8 @@ export type PersonProfileGroupByOutputType = {
   personalNotes: string | null
   reasoning: string | null
   domains: runtime.JsonValue | null
+  audience: runtime.JsonValue | null
+  scope: runtime.JsonValue | null
   refreshedAt: Date
   createdAt: Date
   _count: PersonProfileCountAggregateOutputType | null
@@ -208,6 +214,8 @@ export type PersonProfileWhereInput = {
   personalNotes?: Prisma.StringNullableFilter<"PersonProfile"> | string | null
   reasoning?: Prisma.StringNullableFilter<"PersonProfile"> | string | null
   domains?: Prisma.JsonNullableFilter<"PersonProfile">
+  audience?: Prisma.JsonNullableFilter<"PersonProfile">
+  scope?: Prisma.JsonNullableFilter<"PersonProfile">
   refreshedAt?: Prisma.DateTimeFilter<"PersonProfile"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"PersonProfile"> | Date | string
   contact?: Prisma.XOR<Prisma.ContactScalarRelationFilter, Prisma.ContactWhereInput>
@@ -222,6 +230,8 @@ export type PersonProfileOrderByWithRelationInput = {
   personalNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   reasoning?: Prisma.SortOrderInput | Prisma.SortOrder
   domains?: Prisma.SortOrderInput | Prisma.SortOrder
+  audience?: Prisma.SortOrderInput | Prisma.SortOrder
+  scope?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   contact?: Prisma.ContactOrderByWithRelationInput
@@ -239,6 +249,8 @@ export type PersonProfileWhereUniqueInput = Prisma.AtLeast<{
   personalNotes?: Prisma.StringNullableFilter<"PersonProfile"> | string | null
   reasoning?: Prisma.StringNullableFilter<"PersonProfile"> | string | null
   domains?: Prisma.JsonNullableFilter<"PersonProfile">
+  audience?: Prisma.JsonNullableFilter<"PersonProfile">
+  scope?: Prisma.JsonNullableFilter<"PersonProfile">
   refreshedAt?: Prisma.DateTimeFilter<"PersonProfile"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"PersonProfile"> | Date | string
   contact?: Prisma.XOR<Prisma.ContactScalarRelationFilter, Prisma.ContactWhereInput>
@@ -253,6 +265,8 @@ export type PersonProfileOrderByWithAggregationInput = {
   personalNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   reasoning?: Prisma.SortOrderInput | Prisma.SortOrder
   domains?: Prisma.SortOrderInput | Prisma.SortOrder
+  audience?: Prisma.SortOrderInput | Prisma.SortOrder
+  scope?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.PersonProfileCountOrderByAggregateInput
@@ -271,6 +285,8 @@ export type PersonProfileScalarWhereWithAggregatesInput = {
   personalNotes?: Prisma.StringNullableWithAggregatesFilter<"PersonProfile"> | string | null
   reasoning?: Prisma.StringNullableWithAggregatesFilter<"PersonProfile"> | string | null
   domains?: Prisma.JsonNullableWithAggregatesFilter<"PersonProfile">
+  audience?: Prisma.JsonNullableWithAggregatesFilter<"PersonProfile">
+  scope?: Prisma.JsonNullableWithAggregatesFilter<"PersonProfile">
   refreshedAt?: Prisma.DateTimeWithAggregatesFilter<"PersonProfile"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PersonProfile"> | Date | string
 }
@@ -282,6 +298,8 @@ export type PersonProfileCreateInput = {
   personalNotes?: string | null
   reasoning?: string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Date | string
   createdAt?: Date | string
   contact: Prisma.ContactCreateNestedOneWithoutPersonProfileInput
@@ -296,6 +314,8 @@ export type PersonProfileUncheckedCreateInput = {
   personalNotes?: string | null
   reasoning?: string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Date | string
   createdAt?: Date | string
   axes?: Prisma.PersonAxisUncheckedCreateNestedManyWithoutPersonProfileInput
@@ -308,6 +328,8 @@ export type PersonProfileUpdateInput = {
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contact?: Prisma.ContactUpdateOneRequiredWithoutPersonProfileNestedInput
@@ -322,6 +344,8 @@ export type PersonProfileUncheckedUpdateInput = {
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   axes?: Prisma.PersonAxisUncheckedUpdateManyWithoutPersonProfileNestedInput
@@ -335,6 +359,8 @@ export type PersonProfileCreateManyInput = {
   personalNotes?: string | null
   reasoning?: string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Date | string
   createdAt?: Date | string
 }
@@ -346,6 +372,8 @@ export type PersonProfileUpdateManyMutationInput = {
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -358,6 +386,8 @@ export type PersonProfileUncheckedUpdateManyInput = {
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -375,6 +405,8 @@ export type PersonProfileCountOrderByAggregateInput = {
   personalNotes?: Prisma.SortOrder
   reasoning?: Prisma.SortOrder
   domains?: Prisma.SortOrder
+  audience?: Prisma.SortOrder
+  scope?: Prisma.SortOrder
   refreshedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -459,6 +491,8 @@ export type PersonProfileCreateWithoutContactInput = {
   personalNotes?: string | null
   reasoning?: string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Date | string
   createdAt?: Date | string
   axes?: Prisma.PersonAxisCreateNestedManyWithoutPersonProfileInput
@@ -471,6 +505,8 @@ export type PersonProfileUncheckedCreateWithoutContactInput = {
   personalNotes?: string | null
   reasoning?: string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Date | string
   createdAt?: Date | string
   axes?: Prisma.PersonAxisUncheckedCreateNestedManyWithoutPersonProfileInput
@@ -499,6 +535,8 @@ export type PersonProfileUpdateWithoutContactInput = {
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   axes?: Prisma.PersonAxisUpdateManyWithoutPersonProfileNestedInput
@@ -511,6 +549,8 @@ export type PersonProfileUncheckedUpdateWithoutContactInput = {
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   axes?: Prisma.PersonAxisUncheckedUpdateManyWithoutPersonProfileNestedInput
@@ -523,6 +563,8 @@ export type PersonProfileCreateWithoutAxesInput = {
   personalNotes?: string | null
   reasoning?: string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Date | string
   createdAt?: Date | string
   contact: Prisma.ContactCreateNestedOneWithoutPersonProfileInput
@@ -536,6 +578,8 @@ export type PersonProfileUncheckedCreateWithoutAxesInput = {
   personalNotes?: string | null
   reasoning?: string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Date | string
   createdAt?: Date | string
 }
@@ -563,6 +607,8 @@ export type PersonProfileUpdateWithoutAxesInput = {
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contact?: Prisma.ContactUpdateOneRequiredWithoutPersonProfileNestedInput
@@ -576,6 +622,8 @@ export type PersonProfileUncheckedUpdateWithoutAxesInput = {
   personalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domains?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  audience?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  scope?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   refreshedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -619,6 +667,8 @@ export type PersonProfileSelect<ExtArgs extends runtime.Types.Extensions.Interna
   personalNotes?: boolean
   reasoning?: boolean
   domains?: boolean
+  audience?: boolean
+  scope?: boolean
   refreshedAt?: boolean
   createdAt?: boolean
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
@@ -634,6 +684,8 @@ export type PersonProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   personalNotes?: boolean
   reasoning?: boolean
   domains?: boolean
+  audience?: boolean
+  scope?: boolean
   refreshedAt?: boolean
   createdAt?: boolean
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
@@ -647,6 +699,8 @@ export type PersonProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   personalNotes?: boolean
   reasoning?: boolean
   domains?: boolean
+  audience?: boolean
+  scope?: boolean
   refreshedAt?: boolean
   createdAt?: boolean
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
@@ -660,11 +714,13 @@ export type PersonProfileSelectScalar = {
   personalNotes?: boolean
   reasoning?: boolean
   domains?: boolean
+  audience?: boolean
+  scope?: boolean
   refreshedAt?: boolean
   createdAt?: boolean
 }
 
-export type PersonProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contactId" | "roleLens" | "employerTrackedCompanyId" | "personalNotes" | "reasoning" | "domains" | "refreshedAt" | "createdAt", ExtArgs["result"]["personProfile"]>
+export type PersonProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contactId" | "roleLens" | "employerTrackedCompanyId" | "personalNotes" | "reasoning" | "domains" | "audience" | "scope" | "refreshedAt" | "createdAt", ExtArgs["result"]["personProfile"]>
 export type PersonProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contact?: boolean | Prisma.ContactDefaultArgs<ExtArgs>
   axes?: boolean | Prisma.PersonProfile$axesArgs<ExtArgs>
@@ -706,6 +762,19 @@ export type $PersonProfilePayload<ExtArgs extends runtime.Types.Extensions.Inter
      * evidence chain a first-class row.
      */
     domains: runtime.JsonValue | null
+    /**
+     * { type: ("B2C"|"B2B"|"B2G"|"INTERNAL")[], who: string, geography: string }
+     * The PERSON's customers — a quoted slice of the employer's businessLines, not the
+     * company-wide segment list. Two of Pazit's axes cited "Individual consumers and
+     * households" (the bank's own generic string) as their layer-2 fact; that is the
+     * failure this field exists to end. Required on every v3 build.
+     */
+    audience: runtime.JsonValue | null
+    /**
+     * { owns: string[], notOwns: string[] } — business lines on and off this person's desk.
+     * notOwns is the zero-cost prefilter: a capital-markets story dies before any LLM sees it.
+     */
+    scope: runtime.JsonValue | null
     refreshedAt: Date
     createdAt: Date
   }, ExtArgs["result"]["personProfile"]>
@@ -1140,6 +1209,8 @@ export interface PersonProfileFieldRefs {
   readonly personalNotes: Prisma.FieldRef<"PersonProfile", 'String'>
   readonly reasoning: Prisma.FieldRef<"PersonProfile", 'String'>
   readonly domains: Prisma.FieldRef<"PersonProfile", 'Json'>
+  readonly audience: Prisma.FieldRef<"PersonProfile", 'Json'>
+  readonly scope: Prisma.FieldRef<"PersonProfile", 'Json'>
   readonly refreshedAt: Prisma.FieldRef<"PersonProfile", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"PersonProfile", 'DateTime'>
 }

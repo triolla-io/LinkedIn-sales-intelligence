@@ -216,9 +216,14 @@ model Contact {
   lastJobCheckAt     DateTime?
   jobChanges         ContactJobChange[]
 
-  // Contact — layer-4 person data captured by SCRAPE_PROFILE (topcard + about + experience).
+  // Contact — layer-4 person data captured by SCRAPE_PROFILE (topcard + about + experience
+  // + role descriptions, skills, education — the deep scrape, radar v3).
   about            String?   @db.Text
-  experience       Json?     // [{ title, company, dateRange }] newest first, max 5
+  experience       Json?     // [{ title, company, dateRange, description? }] newest first, max 5
+  /// string[] — the skill list the person curated. Max 30. A layer-4 FOUND source.
+  skills           Json?
+  /// [{ school, degree?, field? }] max 5. Changes how a title should be read.
+  education        Json?
   profileScrapedAt DateTime? // last successful full-profile scrape; radar staleness clock
 
   /// Radar cohort override. null = follow the cohort rule (C-level at a 50-200
@@ -1271,6 +1276,10 @@ enum RadarAxisKind {
   COMPANY_MONITOR
   /// The shared industry-wide net (layer 1), not a subject.
   INDUSTRY
+  /// A personal entity tag — one named competitor / product / project / regulator that
+  /// ONE person watches. Single subscriber, matched in CODE by name+aliases rather than
+  /// by an LLM, which is why it can be personal without breaking a closed vocabulary.
+  PERSON_ENTITY
 }
 
 enum RadarAxisStatus {
@@ -1287,6 +1296,11 @@ enum RadarAxisSource {
   COMPANY_MONITOR
   /// The shared industry-wide net (layer 1), not a subject.
   INDUSTRY
+  /// Born from the person model's entityTags — a named thing this person watches.
+  PERSON_ENTITY
+  /// Added by a human on the person page. A rebuild supersedes LLM-born links only;
+  /// a MANUAL link is never touched, which is what makes a correction stick.
+  MANUAL
 }
 
 /// A canonical interest axis for one org. The matching unit: fit is judged once per
@@ -1341,6 +1355,15 @@ model PersonProfile {
   /// personDecision/companyFact used to live only in memory; the layer cake makes the
   /// evidence chain a first-class row.
   domains                   Json?
+  /// { type: ("B2C"|"B2B"|"B2G"|"INTERNAL")[], who: string, geography: string }
+  /// The PERSON's customers — a quoted slice of the employer's businessLines, not the
+  /// company-wide segment list. Two of Pazit's axes cited "Individual consumers and
+  /// households" (the bank's own generic string) as their layer-2 fact; that is the
+  /// failure this field exists to end. Required on every v3 build.
+  audience                  Json?
+  /// { owns: string[], notOwns: string[] } — business lines on and off this person's desk.
+  /// notOwns is the zero-cost prefilter: a capital-markets story dies before any LLM sees it.
+  scope                     Json?
   refreshedAt               DateTime @default(now())
   createdAt                 DateTime @default(now())
 

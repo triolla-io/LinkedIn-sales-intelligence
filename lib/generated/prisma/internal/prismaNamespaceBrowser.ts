@@ -232,6 +232,8 @@ export const ContactScalarFieldEnum = {
   lastJobCheckAt: 'lastJobCheckAt',
   about: 'about',
   experience: 'experience',
+  skills: 'skills',
+  education: 'education',
   profileScrapedAt: 'profileScrapedAt',
   radarInclude: 'radarInclude',
   postWatchEnabled: 'postWatchEnabled',
@@ -915,6 +917,8 @@ export const PersonProfileScalarFieldEnum = {
   personalNotes: 'personalNotes',
   reasoning: 'reasoning',
   domains: 'domains',
+  audience: 'audience',
+  scope: 'scope',
   refreshedAt: 'refreshedAt',
   createdAt: 'createdAt'
 } as const
