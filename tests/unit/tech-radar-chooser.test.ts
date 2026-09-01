@@ -20,6 +20,8 @@ const {
   parseChooserResponse,
   chooserMaxTokens,
   chooserModel,
+  chooserUserPrompt,
+  entityPickPasses,
   CHOOSER_SYSTEM,
   CHOOSER_TIMEOUT_MS,
   MAX_PICKS,
@@ -306,5 +308,308 @@ describe("chooseForPerson", () => {
       if (prev === undefined) delete process.env.TECH_RADAR_CHOOSER_MODEL;
       else process.env.TECH_RADAR_CHOOSER_MODEL = prev;
     }
+  });
+});
+
+// ─── the entity-MENTION gate ─────────────────────────────────────────────────
+//
+// The 2026-08-31 live run, second failure: two drafts reached the Opus veto and Opus
+// killed both, in both cases because the only link between the person and the article was
+// that a bank on the person's entity list was NAMED in it — "תגית מתחרה כללית",
+// "ההתאמה נשענה רק על תגית בנק הפועלים ללא קשר ממשי להחלטה או לבעלות". Floor 1 passes an
+// entity hit with no stature check by design; floor 2 is where that has to be caught, and
+// the most expensive call in the pipeline had to do floor 2's job instead.
+//
+// The distinction being pinned: a competitor NAMED in a story is not a story ABOUT
+// something that competitor DID that bears on this person's own lines.
+
+/** The good case, and the one the recall side is pinned on: a rival moved on HER subject. */
+const LEUMI_ONBOARDING = {
+  itemId: "e1",
+  title: "בנק לאומי השיק תהליך פתיחת חשבון דיגיטלי ללקוחות פרטיים חדשים",
+  summary: "הבנק פתח מסלול הצטרפות מלא באפליקציה ללקוחות חדשים",
+  publisher: "globes.co.il",
+  publishedAt: "2026-08-28",
+  kind: "big_news",
+  tier: "entity",
+  matched: ["בנק לאומי"],
+  stature: 0.7,
+};
+
+/** The item that actually reached the veto twice: her tag matched a bank's NAME. */
+const DISCOUNT_PALESTINIAN = {
+  itemId: "e2",
+  title: "בנק דיסקונט דחה את הפסקת שירותי בנקאות לפלסטינים",
+  summary: "שירותי correspondent banking לבנקים פלסטיניים, תחום מוסדי-רגולטורי",
+  publisher: "globes.co.il",
+  publishedAt: "2026-08-29",
+  kind: "big_news",
+  tier: "entity",
+  matched: ["בנק דיסקונט"],
+  stature: 0.6,
+};
+
+/** Pazit with the line the good item lands on written into her scope. */
+const PAZIT_ONBOARDING = {
+  ...PAZIT,
+  scope: { owns: [...PAZIT.scope.owns, "פתיחת חשבון דיגיטלית"], notOwns: PAZIT.scope.notOwns },
+};
+
+const ENTITY_GATE = {
+  validIds: new Set(["e1", "e2"]),
+  tierById: new Map([
+    ["e1", "entity"],
+    ["e2", "entity"],
+  ]),
+  matchedById: new Map([
+    ["e1", ["בנק לאומי"]],
+    ["e2", ["בנק דיסקונט"]],
+  ]),
+  heldLines: PAZIT_ONBOARDING.scope.owns,
+};
+
+describe("CHOOSER_SYSTEM — the entity tier is a mention until proven otherwise", () => {
+  it("names the entity tier and says a printed name is not news on its own", () => {
+    expect(CHOOSER_SYSTEM).toMatch(/tier=entity/);
+    expect(CHOOSER_SYSTEM).toMatch(/NAMES|named/);
+    expect(CHOOSER_SYSTEM).toMatch(/mention/i);
+  });
+
+  it("demands the action and the line, and says the pick is dropped in code without them", () => {
+    expect(CHOOSER_SYSTEM).toMatch(/\bdid\b/);
+    expect(CHOOSER_SYSTEM).toMatch(/bearsOn/);
+    expect(CHOOSER_SYSTEM).toMatch(/discarded in code|dropped in code/i);
+    // bearsOn is copied, not paraphrased — the itemId discipline, applied to the line.
+    expect(CHOOSER_SYSTEM).toMatch(/COPIED|copy/);
+  });
+
+  it("carries both halves of the distinction as worked examples", () => {
+    expect(CHOOSER_SYSTEM).toMatch(/institutional|regulatory|geopolitical/i);
+    expect(CHOOSER_SYSTEM).toMatch(/onboarding|account opening/i);
+  });
+
+  /** The hardening must not become pressure to pick. Rejecting all four was CORRECT. */
+  it("keeps nothing a full answer under the entity rule too", () => {
+    expect(CHOOSER_SYSTEM).toMatch(/still a (full|legitimate|correct) answer/i);
+  });
+
+  it("carries no emoji in the new copy either", () => {
+    expect(CHOOSER_SYSTEM).not.toMatch(/\p{Extended_Pictographic}/u);
+  });
+});
+
+describe("chooserUserPrompt — the entity candidate is flagged where the model reads it", () => {
+  it("marks an entity-tier candidate as a mention and leaves a focused one alone", () => {
+    const user = chooserUserPrompt(PAZIT_ONBOARDING, [LEUMI_ONBOARDING, candidate("i1")]);
+    const [entityBlock, focusedBlock] = [user.slice(0, user.indexOf("2. itemId=")), user.slice(user.indexOf("2. itemId="))];
+    expect(entityBlock).toMatch(/entity tier/i);
+    expect(entityBlock).toMatch(/NAMES/);
+    expect(focusedBlock).not.toMatch(/entity tier/i);
+  });
+});
+
+describe("entityPickPasses", () => {
+  const ctx = { matched: ["בנק לאומי"], heldLines: PAZIT_ONBOARDING.scope.owns };
+
+  /** THE RECALL PIN: the rival moved on her own subject, and the pick survives. */
+  it("passes the rival-moved-on-her-subject pick, inflection and extra words included", () => {
+    expect(
+      entityPickPasses(
+        { did: "השיק תהליך פתיחת חשבון דיגיטלי מלא באפליקציה", bearsOn: "פתיחת חשבון דיגיטלי ללקוחות חדשים" },
+        ctx
+      )
+    ).toEqual({ ok: true });
+  });
+
+  it("passes a bearsOn copied verbatim off the owns list", () => {
+    expect(entityPickPasses({ did: "השיק מסלול אשראי חדש", bearsOn: "אשראי צרכני" }, ctx)).toEqual({ ok: true });
+  });
+
+  it("rejects a pick that names no action at all", () => {
+    expect(entityPickPasses({ bearsOn: "בנקאות קמעונאית" }, ctx)).toEqual({ ok: false, reason: "no_action" });
+    expect(entityPickPasses({ did: "   ", bearsOn: "בנקאות קמעונאית" }, ctx)).toEqual({ ok: false, reason: "no_action" });
+  });
+
+  it("rejects an action that is only the entity's own name", () => {
+    expect(entityPickPasses({ did: "בנק לאומי", bearsOn: "בנקאות קמעונאית" }, ctx)).toMatchObject({
+      ok: false,
+      reason: "action_is_only_the_name",
+    });
+    expect(entityPickPasses({ did: "בנק לאומי מוזכר", bearsOn: "בנקאות קמעונאית" }, ctx)).toMatchObject({
+      ok: false,
+      reason: "action_is_only_the_name",
+    });
+  });
+
+  it("rejects a line the person does not hold, and a missing line", () => {
+    expect(entityPickPasses({ did: "דחה את הפסקת השירותים לבנקים פלסטיניים", bearsOn: "בנקאות מוסדית וסחר חוץ" }, ctx)).toEqual({
+      ok: false,
+      reason: "line_not_held",
+    });
+    expect(entityPickPasses({ did: "דחה את הפסקת השירותים לבנקים פלסטיניים" }, ctx)).toEqual({
+      ok: false,
+      reason: "line_not_held",
+    });
+  });
+
+  /**
+   * An unresearched scope is not a verdict. `line()` already refuses to let an empty
+   * field read as a fact; the gate refuses to let it read as a rejection — the shape is
+   * still required, the membership check simply has nothing to check against.
+   */
+  it("requires the shape but not the membership when the person's lines were never researched", () => {
+    expect(entityPickPasses({ did: "השיק מסלול חדש", bearsOn: "משהו אחר" }, { matched: ["בנק לאומי"] })).toEqual({ ok: true });
+    expect(entityPickPasses({ did: "השיק מסלול חדש" }, { matched: ["בנק לאומי"], heldLines: [] })).toEqual({
+      ok: false,
+      reason: "line_not_held",
+    });
+  });
+});
+
+describe("parseChooserResponse — the gate, per candidate tier", () => {
+  it("keeps the good entity pick and carries its did and bearsOn through", () => {
+    const r = parseChooserResponse(
+      JSON.stringify({
+        picks: [
+          {
+            itemId: "e1",
+            why: "לאומי פתח מסלול הצטרפות דיגיטלי מלא, בדיוק בקו שאת/ה מחזיק/ה",
+            did: "השיק תהליך פתיחת חשבון דיגיטלי ללקוחות חדשים",
+            bearsOn: "פתיחת חשבון דיגיטלית",
+          },
+        ],
+      }),
+      ENTITY_GATE
+    );
+    expect(r.outcome).toBe("judged");
+    expect(r.picks).toHaveLength(1);
+    expect(r.picks[0]).toMatchObject({ itemId: "e1", did: expect.stringContaining("השיק"), bearsOn: "פתיחת חשבון דיגיטלית" });
+  });
+
+  it("drops the bare-mention entity pick and records it as a mention, not as taste", () => {
+    const r = parseChooserResponse(
+      '{"picks":[{"itemId":"e2","why":"תגית מתחרה"}]}',
+      ENTITY_GATE
+    );
+    expect(r.picks).toEqual([]);
+    expect(r.outcome).toBe("mention_only");
+    expect(r.noneReason).toBeTruthy();
+    expect(r.noneReason).not.toMatch(/\p{Extended_Pictographic}/u);
+  });
+
+  it("drops an entity pick whose line is not one the person holds", () => {
+    const r = parseChooserResponse(
+      JSON.stringify({
+        picks: [
+          {
+            itemId: "e2",
+            why: "ידיעה גדולה",
+            did: "דחה את הפסקת שירותי correspondent banking לבנקים פלסטיניים",
+            bearsOn: "בנקאות מוסדית וסחר חוץ",
+          },
+        ],
+      }),
+      ENTITY_GATE
+    );
+    expect(r.picks).toEqual([]);
+    expect(r.outcome).toBe("mention_only");
+  });
+
+  it("keeps a good entity pick alongside a dropped one", () => {
+    const r = parseChooserResponse(
+      JSON.stringify({
+        picks: [
+          { itemId: "e2", why: "מוזכר בנק מהרשימה" },
+          { itemId: "e1", why: "לאומי זז על הקו שלה", did: "השיק פתיחת חשבון דיגיטלית", bearsOn: "בנקאות קמעונאית" },
+        ],
+      }),
+      ENTITY_GATE
+    );
+    expect(r.picks.map((p) => p.itemId)).toEqual(["e1"]);
+    expect(r.outcome).toBe("judged");
+  });
+
+  /** No regression: only the entity tier is gated. A focused hit is the person's own tag. */
+  it("leaves a focused-tier pick untouched and adds no fields to it", () => {
+    const r = parseChooserResponse('{"picks":[{"itemId":"i1","why":"אשראי צרכני, הקו שלה"}]}', {
+      validIds: IDS,
+      tierById: new Map([["i1", "focused"]]),
+      heldLines: PAZIT.scope.owns,
+    });
+    expect(r.picks).toEqual([{ itemId: "i1", why: "אשראי צרכני, הקו שלה" }]);
+    expect(r.outcome).toBe("judged");
+  });
+
+  it("still takes a plain Set of ids, ungated", () => {
+    const r = parseChooserResponse('{"picks":[{"itemId":"i1","why":"טוב"}]}', IDS);
+    expect(r.picks).toEqual([{ itemId: "i1", why: "טוב" }]);
+  });
+
+  /** A mention drop must not mask a fault: an invented id is still a bug, and reads as one. */
+  it("reports a fault ahead of a mention drop when the model also invented an id", () => {
+    const r = parseChooserResponse(
+      '{"picks":[{"itemId":"e9","why":"המצאה"},{"itemId":"e2","why":"מוזכר"}]}',
+      ENTITY_GATE
+    );
+    expect(r.picks).toEqual([]);
+    expect(r.outcome).toBe("parse_failed");
+  });
+
+  /** The model's own none is untouched by any of this. */
+  it("leaves a declared none a decision", () => {
+    const r = parseChooserResponse('{"picks":[],"noneReason":"רק אזכורי שם, אין מה להעביר"}', ENTITY_GATE);
+    expect(r).toMatchObject({ picks: [], outcome: "none", noneReason: "רק אזכורי שם, אין מה להעביר" });
+  });
+});
+
+describe("chooseForPerson — the gate is built from the person and the candidates", () => {
+  it("kills the 2026-08-31 draft end to end: an entity tag with no action and no line", async () => {
+    chat.mockResolvedValue(ok('{"picks":[{"itemId":"e2","why":"תגית בנק הפועלים"}]}'));
+    const r = await chooseForPerson(PAZIT_ONBOARDING, [LEUMI_ONBOARDING, DISCOUNT_PALESTINIAN]);
+    expect(r.picks).toEqual([]);
+    expect(r.outcome).toBe("mention_only");
+    expect(r.noneReason).toBeTruthy();
+  });
+
+  /** THE RECALL PIN, end to end: the rival's move on her own line still gets through. */
+  it("lets the rival-moved-on-her-subject pick through end to end", async () => {
+    chat.mockResolvedValue(
+      ok(
+        JSON.stringify({
+          picks: [
+            {
+              itemId: "e1",
+              why: "לאומי השיק פתיחת חשבון דיגיטלית, בדיוק הקו שבאחריות",
+              did: "השיק תהליך פתיחת חשבון דיגיטלי ללקוחות פרטיים חדשים",
+              bearsOn: "פתיחת חשבון דיגיטלית",
+            },
+          ],
+        })
+      )
+    );
+    const r = await chooseForPerson(PAZIT_ONBOARDING, [LEUMI_ONBOARDING, DISCOUNT_PALESTINIAN]);
+    expect(r.outcome).toBe("judged");
+    expect(r.picks.map((p) => p.itemId)).toEqual(["e1"]);
+  });
+
+  /** The agenda is a line they hold too — it is what they are living through right now. */
+  it("accepts a bearsOn taken off the agenda, not only off the owns list", async () => {
+    chat.mockResolvedValue(
+      ok(
+        JSON.stringify({
+          picks: [
+            {
+              itemId: "e1",
+              why: "נוגע לניוד חשבון",
+              did: "השיק מסלול ניוד חשבון מהיר",
+              bearsOn: "ניוד חשבון ותחרות מול הבנקים הדיגיטליים",
+            },
+          ],
+        })
+      )
+    );
+    const r = await chooseForPerson(PAZIT_ONBOARDING, [LEUMI_ONBOARDING]);
+    expect(r.outcome).toBe("judged");
+    expect(r.picks).toHaveLength(1);
   });
 });
