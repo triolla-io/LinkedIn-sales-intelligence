@@ -40,6 +40,10 @@ export type PackSource = {
    * nothing, which reads like a quiet week — whereas an unset `rss` routes the outlet
    * through the site-restricted Google News feed, which works on any domain (see
    * lib/news/google-news-rss.ts). Filling one in is a UI edit, not a deploy.
+   *
+   * Every URL written here was FETCHED first and seen to return parseable feed XML with
+   * items from the current week; a candidate that could not be verified is left unset with
+   * a comment saying what was tried. Guessing trades one silent zero for another.
    */
   rss?: string;
   lang: SourceLang;
@@ -106,7 +110,18 @@ export const BANKING_IL_PACK: SourcePack = {
     { host: "fintechfutures.com", name: "FinTech Futures", rss: "https://www.fintechfutures.com/feed/", lang: "en", scope: "global", enabled: true },
     { host: "thefintechtimes.com", name: "The Fintech Times", rss: "https://thefintechtimes.com/feed/", lang: "en", scope: "global", enabled: true },
     { host: "finovate.com", name: "Finovate", rss: "https://finovate.com/feed/", lang: "en", scope: "global", enabled: true },
-    { host: "fintechnexus.com", name: "Fintech Nexus", rss: "https://www.fintechnexus.com/feed/", lang: "en", scope: "global", enabled: true },
+    // NO FEED, and no longer a live domain. Checked 2026-09-01: fintechnexus.com (with or
+    // without www, / and /feed/) 301s off-site to heyfuturenexus.com — the outlet rebranded
+    // to "Future Nexus" — and that site is a Next.js app that serves 404 for /feed, /feed/,
+    // /feed.xml, /rss, /rss.xml, /atom.xml, /index.xml, /api/rss, /sitemap.xml and carries
+    // no <link rel="alternate"> in its HTML. The old `rss: .../feed/` was therefore a wasted
+    // request per scan plus a misleading error line, and is removed rather than replaced.
+    // Google News has no fresh window for either domain either (site:fintechnexus.com → 1
+    // stale item; site:heyfuturenexus.com → 100 items, newest 2026-06), so this source is
+    // expected to keep reporting zero. Kept in the pack — the ten is Ariel's list — with a
+    // replacement recommended separately (pymnts.com/feed/ and bankingdive.com/feeds/news/
+    // both verified live).
+    { host: "fintechnexus.com", name: "Fintech Nexus", lang: "en", scope: "global", enabled: true },
     { host: "crowdfundinsider.com", name: "Crowdfund Insider", rss: "https://www.crowdfundinsider.com/feed/", lang: "en", scope: "global", enabled: true },
     // The fintech CATEGORY feed, not the firehose — TechCrunch's front page would flood
     // the 200-item pool cap on its own.
@@ -116,19 +131,66 @@ export const BANKING_IL_PACK: SourcePack = {
     { host: "spglobal.com", name: "S&P Global Market Intelligence", lang: "en", scope: "global", newsQuery: "site:spglobal.com banking", enabled: true },
 
     // ---- Israeli (10) ------------------------------------------------------
-    // Almost all of these route through the site-restricted Google News feed on purpose:
-    // the Israeli outlets' own feed paths are CMS-specific ids we would be guessing at,
-    // and the fallback carries the IL:he locale — which is the actual fix for the
-    // 2026-08-26 run that found 200 items and zero Israeli sources.
+    // The 2026-08-31 live pull measured what the Google News fallback is actually worth to
+    // this half of the pack: FIVE of the ten Israeli outlets returned exactly zero items,
+    // every one of them with "Google News site:<host>: no results". Two separate causes,
+    // and only the first is fixable from this file:
+    //
+    //   1. The outlet HAS a feed and nobody had looked. funder.co.il and ice.co.il both
+    //      serve a plain RSS 2.0 channel with same-day items; they are now pulled directly
+    //      and never touch the fallback (verified 2026-09-01, see each line).
+    //   2. A bare ASCII `site:<host>` query reaches Google News on the US locale, because
+    //      fetchGoogleNewsRss re-derives the locale from the QUERY TEXT (Hebrew letters mean
+    //      Israel) and ignores the `hl/gl/ceid` that googleNewsSiteFeedUrl spells out from
+    //      `lang`. Measured on 2026-09-01: `site:calcalist.co.il` on hl=en-US returns 100
+    //      items dated 2017-2024 — all of which the 30-day freshness gate then throws away,
+    //      i.e. a guaranteed zero — while the SAME query on hl=he-IL/gl=IL/ceid=IL:he
+    //      returns 100 items whose newest is two days old. That is why ynet, mako and
+    //      haaretz (Hebrew `newsQuery`, therefore IL locale) delivered and calcalist,
+    //      bizportal and ice (ASCII `site:`) delivered nothing. The fix belongs in
+    //      fetch-sources.ts / google-news-rss.ts, NOT here; a Hebrew word bolted onto a
+    //      `newsQuery` just to flip the locale would narrow recall as a side effect.
     { host: "globes.co.il", name: "גלובס", lang: "he", scope: "il", enabled: true },
+    // NO FEED. Checked 2026-09-01: /rss, /rss/, /rss.xml, /feed, /feed/, /atom.xml,
+    // /sitemap.xml, the Ynet-family CMS paths (/integration/StoryRss<id>.xml,
+    // /GeneralRSS/0,16335,L-<id>,00.xml, /3rdparty/mobile/rss/...) and rss./feeds.
+    // subdomains all 404 or do not resolve, the homepage HTML carries no
+    // <link rel="alternate">, and robots.txt lists no feed. The same CMS still serves
+    // ynet.co.il/Integration/StoryRss2.xml (200, 30 items), so Calcalist dropped RSS rather
+    // than moving it. Its English sibling calcalistech.com has none either. Second obstacle
+    // if one ever appears: the Akamai edge answers 403 to the browser User-Agent
+    // fetch-sources.ts sends, while returning 200 to a bot/empty UA — a correct URL alone
+    // would not be enough here.
     { host: "calcalist.co.il", name: "כלכליסט", lang: "he", scope: "il", enabled: true },
     { host: "themarker.com", name: "דה-מרקר", lang: "he", scope: "il", enabled: true },
+    // NO FEED. Checked 2026-09-01: every conventional path and every .aspx spelling
+    // (/rss, /rss.xml, /feed, /atom.xml, /rss.aspx, /rssfeed.aspx, /rssNews.aspx,
+    // /handlers/rss.ashx, /rss/news, /feeds/rss, /api/rss) either 404s or 302s to
+    // page_not_found.aspx, no rss./feeds. subdomain resolves, and the homepage HTML has no
+    // feed link. The Wayback index shows the PRE-rebuild site did publish RSS
+    // (/list/marketopinion_rss, /list/author_rss/<id>, last seen 2018); those paths 404 on
+    // today's site. What Bizportal does still publish is a Google-News sitemap at
+    // /sitemap.xml — fresh, with <news:title> and <news:publication_date> — but parseFeed
+    // reads <item>/<entry> blocks only, so pointing `rss` at it would parse zero items and
+    // fall straight back. Teaching the fetcher to read a news sitemap is the real fix.
     { host: "bizportal.co.il", name: "ביזפורטל", lang: "he", scope: "il", enabled: true },
     { host: "ynet.co.il", name: "וואינט כלכלה", lang: "he", scope: "il", newsQuery: "site:ynet.co.il כלכלה", enabled: true },
     { host: "mako.co.il", name: "מאקו כסף", lang: "he", scope: "il", newsQuery: "site:mako.co.il כסף", enabled: true },
+    // WordPress, and the feed is fine: fetched 2026-09-01 with the exact headers
+    // fetch-sources.ts sends → 200 application/rss+xml, 30 <item>s, newest same-day. The
+    // 2026-08-31 "empty or non-2xx" was transient at the outlet's end, not a wrong URL, so
+    // the value stays. Note /feed (no trailing slash) 301s — keep the slash.
     { host: "geektime.co.il", name: "גיקטיים", rss: "https://www.geektime.co.il/feed/", lang: "he", scope: "il", enabled: true },
-    { host: "funder.co.il", name: "פאנדר", lang: "he", scope: "il", enabled: true },
-    { host: "ice.co.il", name: "ice", lang: "he", scope: "il", enabled: true },
+    // Found from the homepage's own <link rel="alternate" type="application/rss+xml">.
+    // Verified 2026-09-01: 200 text/xml, 40 <item>s, newest minutes old, capital-market and
+    // pension copy — exactly the beat this source is in the pack for.
+    { host: "funder.co.il", name: "פאנדר", rss: "https://www.funder.co.il/rssNews.aspx", lang: "he", scope: "il", enabled: true },
+    // Verified 2026-09-01: 200 application/rss+xml, 20 <item>s, all same-day. The
+    // whole-site channel on purpose — /rss/money, /rss/finance and /rss?section=... all
+    // serve the identical general channel, so there is no narrower section feed to pick.
+    // Its pubDate is "YYYY/MM/DD HH:mm:ss" rather than RFC-822; Date.parse accepts that, so
+    // parseFeed dates the items instead of nulling them into the freshness gate.
+    { host: "ice.co.il", name: "ice", rss: "https://www.ice.co.il/rss", lang: "he", scope: "il", enabled: true },
     { host: "haaretz.co.il", name: "הארץ — כלכלה", lang: "he", scope: "il", newsQuery: "site:haaretz.co.il כלכלה", enabled: true },
   ],
   /**

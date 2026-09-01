@@ -61,6 +61,35 @@ describe("BANKING_IL_PACK", () => {
     const hosts = BANKING_IL_PACK.sources.map((s) => s.host);
     expect(new Set(hosts).size).toBe(hosts.length);
   });
+
+  /**
+   * Walks the PACK, not a copy of it, so a feed URL added in a later edit is covered too.
+   *
+   * `pullOne` hands `source.rss` straight to fetch(). A relative path, a bare host or an
+   * http:// URL therefore throws or gets redirected, the source records an error and
+   * contributes nothing — the same silent zero as a 404, which is the failure the
+   * 2026-08-31 pull exposed (five of ten Israeli outlets at zero items). Absolute https is
+   * the only shape that can succeed.
+   *
+   * NOTE what this does NOT check: whether the URL is the RIGHT feed. Nothing offline can,
+   * and nothing here is allowed to fetch. That verification is a human fetching the
+   * candidate before writing it down, recorded per line in sources.ts.
+   */
+  it("declares every feed URL as an absolute https URL", () => {
+    const withFeeds = BANKING_IL_PACK.sources.filter((s) => s.rss !== undefined);
+    expect(withFeeds.length).toBeGreaterThan(0);
+
+    for (const s of withFeeds) {
+      const raw = s.rss as string;
+      expect(raw, `${s.host}: rss must not be blank`).not.toBe("");
+      expect(raw, `${s.host}: rss must not carry surrounding whitespace`).toBe(raw.trim());
+      expect(raw, `${s.host}: rss must be https, not http or a relative path`).toMatch(/^https:\/\//);
+      // Parses as a URL with a real host, rather than merely starting with the right letters.
+      const url = new URL(raw);
+      expect(url.protocol).toBe("https:");
+      expect(url.hostname, `${s.host}: rss needs a hostname`).not.toBe("");
+    }
+  });
 });
 
 describe("parseFeed", () => {
