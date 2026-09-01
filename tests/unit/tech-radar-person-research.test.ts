@@ -13,7 +13,9 @@ vi.mock("@/lib/news/query-cache", () => ({
   EMPTY_CACHE_TTL_MINUTES: 90,
 }));
 
-const { buildPersonResearchQueries, researchPerson } = await import("@/lib/tech-radar/person-research");
+const { buildPersonResearchQueries, researchPerson, learnHebrewSurname } = await import(
+  "@/lib/tech-radar/person-research"
+);
 
 beforeEach(() => {
   getCachedQuery.mockReset();
@@ -218,10 +220,12 @@ describe("researchPerson", () => {
       { title: "הוצאת ידיעות ספרים", url: "https://x.co.il/3", snippet: "", source: "google-news-rss", publishedAt: null },
       { title: "ראיון עם פזית גרפינקל על בנקאות דיגיטלית", url: "https://calcalist.co.il/4", snippet: "", source: "google-news-rss", publishedAt: null },
     ]);
-    // With only a given name on the record, even the ONE genuine article about her is
-    // discarded — her surname is "גרפינקל" in the text and "Garfinkel" on the record, and
-    // those do not match. This assertion IS the recall gap, stated: the fix is a Hebrew
-    // FULL name on the contact, not a looser filter.
+    // With only a given name on the record all four are still out, INCLUDING the genuine
+    // one — and the reason is worth being exact about, because it is the discipline and not
+    // a gap. Her Hebrew surname is not on the record, so the only remaining proof is the
+    // given-name-plus-employer pairing, and that article's title names her employer nowhere.
+    // One half of a two-half rule is not evidence. (The pairing firing when both halves ARE
+    // present is the "gate — Hebrew first name plus the Hebrew employer" block below.)
     const givenNameOnly = await researchPerson(
       { fullName: "Pazit Garfinkel", hebrewName: "פזית", companyName: "Bank Hapoalim בנק הפועלים" },
       { rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep }
@@ -274,5 +278,218 @@ describe("researchPerson", () => {
     );
     expect(res.findings).toHaveLength(1);
     expect(res.findings[0].pageText).toBeNull();
+  });
+});
+
+/**
+ * PART 1 — the gate, when `Contact.hebrewFullName` is still empty.
+ *
+ * Measured on 2026-09-01: four Israeli banking executives were rebuilt live and came back
+ * with 3, 0, 1 and 2 findings and THIN profiles, because the queries went out in Hebrew
+ * (correct — the coverage is Hebrew) while the gate could only be satisfied by the English
+ * name, which a Hebrew article never contains. 71 pages fetched, 3 accepted, and the number
+ * that would have said so did not exist.
+ */
+describe("gate — Hebrew first name plus the Hebrew employer", () => {
+  const pazit = { fullName: "Pazit Garfinkel", hebrewName: "פזית", companyName: "Bank Hapoalim בנק הפועלים" };
+
+  it("accepts a Hebrew page that carries the first name AND the Hebrew employer, labelled as the weaker proof", async () => {
+    const rssFetcher = vi.fn().mockResolvedValue([
+      {
+        title: "פזית גרפינקל מובילה את הבנקאות היוזמת בבנק הפועלים",
+        url: "https://calcalist.co.il/1",
+        snippet: "",
+        source: "google-news-rss",
+        publishedAt: null,
+      },
+    ]);
+    const res = await researchPerson(pazit, {
+      rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep,
+    });
+    expect(res.findings).toHaveLength(1);
+    // Not merged with a full-name match: the caller has to be able to see which proof it was.
+    expect(res.findings[0].match).toBe("first_name_employer");
+    expect(res.acceptedFirstNameEmployer).toBe(1);
+    expect(res.acceptedFullName).toBe(0);
+    expect(res.rejected).toBe(0);
+  });
+
+  it("rejects some other פזית when nothing on the page ties her to the employer", async () => {
+    const rssFetcher = vi.fn().mockResolvedValue([
+      { title: "פזית לוי פתחה מסעדה בתל אביב", url: "https://mako.co.il/9", snippet: "", source: "google-news-rss", publishedAt: null },
+    ]);
+    const res = await researchPerson(pazit, {
+      rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep,
+    });
+    expect(res.findings).toHaveLength(0);
+    expect(res.rejected).toBe(1);
+    expect(res.suggestedHebrewSurname).toBeUndefined();
+  });
+
+  /** Substring matching is the trap next door to the \b trap: "לאומי" sits inside
+   *  "בינלאומי", and those are two different banks. */
+  it("does not let בינלאומי satisfy a לאומי employer", async () => {
+    const rssFetcher = vi.fn().mockResolvedValue([
+      { title: "פזית כהן מונתה בבנק הבינלאומי הראשון", url: "https://globes.co.il/7", snippet: "", source: "google-news-rss", publishedAt: null },
+    ]);
+    const res = await researchPerson(
+      { fullName: "Pazit Cohen", hebrewName: "פזית", companyName: "Bank Leumi בנק לאומי" },
+      { rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep }
+    );
+    expect(res.findings).toHaveLength(0);
+    expect(res.rejected).toBe(1);
+  });
+
+  /** A prefixed employer is ordinary Hebrew — "בלאומי" is "at Leumi" — and still not
+   *  "בינלאומי", because only ONE prefix letter is allowed in front of the exact token. */
+  it("accepts a one-letter Hebrew prefix on the employer token", async () => {
+    const rssFetcher = vi.fn().mockResolvedValue([
+      { title: "פזית כהן מובילה את הדיגיטל בלאומי", url: "https://globes.co.il/8", snippet: "", source: "google-news-rss", publishedAt: null },
+    ]);
+    const res = await researchPerson(
+      { fullName: "Pazit Cohen", hebrewName: "פזית", companyName: "Bank Leumi בנק לאומי" },
+      { rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep }
+    );
+    expect(res.findings).toHaveLength(1);
+    expect(res.findings[0].match).toBe("first_name_employer");
+  });
+
+  /** The old false positives must stay out: exact tokens only, so "גיל" is not `גילאי`. */
+  it("still refuses a given name that is only a substring of another word", async () => {
+    const rssFetcher = vi.fn().mockResolvedValue([
+      { title: "INFINITY NADO מיני משגר חרב, גילאי 5+ בפניקס", url: "https://toys.co.il/1", snippet: "", source: "google-news-rss", publishedAt: null },
+    ]);
+    const res = await researchPerson(
+      { fullName: "Gil Tamir", hebrewName: "גיל", companyName: "Phoenix הפניקס" },
+      { rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep }
+    );
+    expect(res.findings).toHaveLength(0);
+  });
+});
+
+/**
+ * PART 2 — the Hebrew surname is LEARNED from the pages, never transliterated.
+ *
+ * A model-invented Hebrew spelling aimed at a real named executive is a fabrication; two
+ * independent pages that both put the same token straight after her given name are
+ * evidence. Evidence may be SUGGESTED to a human. It may not be persisted here.
+ */
+describe("learning the Hebrew surname from evidence", () => {
+  const pazit = { fullName: "Pazit Garfinkel", hebrewName: "פזית", companyName: "Bank Hapoalim בנק הפועלים" };
+  const item = (title: string, url: string) => ({ title, url, snippet: "", source: "google-news-rss", publishedAt: null });
+
+  it("learns the surname from two different hosts and then accepts a page that never names the employer", async () => {
+    const rssFetcher = vi.fn().mockResolvedValue([
+      item("פזית גרפינקל, מנהלת אגף, בבנק הפועלים", "https://calcalist.co.il/1"),
+      item("ראיון: פזית גרפינקל על הבנקאות היוזמת בבנק הפועלים", "https://globes.co.il/2"),
+      item("פזית גרפינקל בכנס הפינטק", "https://ynet.co.il/3"),
+    ]);
+    const res = await researchPerson(pazit, {
+      rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep,
+    });
+    expect(res.suggestedHebrewSurname?.surname).toBe("גרפינקל");
+    expect(res.suggestedHebrewSurname?.hebrewFullName).toBe("פזית גרפינקל");
+    expect(res.suggestedHebrewSurname?.basis).toBe("two_independent_pages");
+    expect(res.suggestedHebrewSurname?.sources.length).toBeGreaterThanOrEqual(2);
+    // The third page names no employer at all and is accepted only because the surname is
+    // now known — and it is accepted as a FULL-name match, which is what it is.
+    expect(res.findings).toHaveLength(3);
+    expect(res.acceptedFullName).toBe(3);
+    expect(res.acceptedFirstNameEmployer).toBe(0);
+    expect(res.rejected).toBe(0);
+  });
+
+  it("does not learn a surname from two pages on ONE host", async () => {
+    const rssFetcher = vi.fn().mockResolvedValue([
+      item("פזית גרפינקל, מנהלת אגף, בבנק הפועלים", "https://calcalist.co.il/1"),
+      item("פזית גרפינקל על הבנקאות היוזמת בבנק הפועלים", "https://calcalist.co.il/2"),
+    ]);
+    const res = await researchPerson(pazit, {
+      rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep,
+    });
+    expect(res.suggestedHebrewSurname).toBeUndefined();
+    // Both still come in on the weaker proof — the employer is named on both.
+    expect(res.acceptedFirstNameEmployer).toBe(2);
+    expect(res.acceptedFullName).toBe(0);
+  });
+
+  /** The dangerous false positive the module was already documenting: a DIFFERENT executive
+   *  with the same given name at the right employer. Once the surname is known, she goes. */
+  it("drops a different פזית at the same employer once the surname is known", async () => {
+    const rssFetcher = vi.fn().mockResolvedValue([
+      item("פזית גרפינקל, מנהלת אגף, בבנק הפועלים", "https://calcalist.co.il/1"),
+      item("ראיון: פזית גרפינקל על הבנקאות היוזמת בבנק הפועלים", "https://globes.co.il/2"),
+      item("פזית כהן מונתה לסמנכלית בבנק הפועלים", "https://mako.co.il/3"),
+    ]);
+    const res = await researchPerson(pazit, {
+      rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep,
+    });
+    expect(res.suggestedHebrewSurname?.surname).toBe("גרפינקל");
+    expect(res.findings.map((f) => f.url)).not.toContain("https://mako.co.il/3");
+    expect(res.acceptedFullName).toBe(2);
+    expect(res.rejected).toBe(1);
+  });
+
+  it("never takes a job title, or a word across punctuation, as a surname", () => {
+    expect(
+      learnHebrewSurname(
+        [
+          { url: "https://a.co.il/1", text: "פזית, מנהלת אגף בבנק הפועלים" },
+          { url: "https://b.co.il/1", text: "פזית מנהלת את אגף הבנקאות" },
+        ],
+        { hebrewFirstName: "פזית", companyName: "Bank Hapoalim בנק הפועלים" }
+      )
+    ).toBeNull();
+  });
+
+  it("refuses to choose between two surnames that are equally attested", () => {
+    expect(
+      learnHebrewSurname(
+        [
+          { url: "https://a.co.il/1", text: "פזית גרפינקל בבנק הפועלים" },
+          { url: "https://b.co.il/1", text: "פזית גרפינקל בבנק הפועלים" },
+          { url: "https://c.co.il/1", text: "פזית לוי בבנק הפועלים" },
+          { url: "https://d.co.il/1", text: "פזית לוי בבנק הפועלים" },
+        ],
+        { hebrewFirstName: "פזית", companyName: "Bank Hapoalim בנק הפועלים" }
+      )
+    ).toBeNull();
+  });
+
+  it("never suggests a surname when the Hebrew FULL name is already on the record", async () => {
+    const rssFetcher = vi.fn().mockResolvedValue([
+      item("פזית גרפינקל, מנהלת אגף, בבנק הפועלים", "https://calcalist.co.il/1"),
+      item("ראיון: פזית גרפינקל בבנק הפועלים", "https://globes.co.il/2"),
+    ]);
+    const res = await researchPerson(
+      { fullName: "Pazit Garfinkel", hebrewName: "פזית גרפינקל", companyName: "Bank Hapoalim בנק הפועלים" },
+      { rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep }
+    );
+    expect(res.suggestedHebrewSurname).toBeUndefined();
+    expect(res.acceptedFullName).toBe(2);
+  });
+});
+
+/** PART 3 — the numbers that would have made the live failure readable. */
+describe("researchPerson — gate counters", () => {
+  it("reports how many were fetched, how each accepted one was proved, and how many the gate rejected", async () => {
+    const rssFetcher = vi.fn().mockResolvedValue([
+      { title: "מגיל 8: בנק הפועלים רוצה ללמד ילדים לנהל כסף", url: "https://maariv.co.il/1", snippet: "", source: "google-news-rss", publishedAt: null },
+      { title: "אדיר מילר ובנק הפועלים ביחד", url: "https://ice.co.il/2", snippet: "", source: "google-news-rss", publishedAt: null },
+      { title: "הוצאת ידיעות ספרים", url: "https://x.co.il/3", snippet: "", source: "google-news-rss", publishedAt: null },
+      { title: "תחזית מאקרו לרבעון", url: "https://y.co.il/4", snippet: "", source: "google-news-rss", publishedAt: null },
+      { title: "פזית גרפינקל על הבנקאות היוזמת בבנק הפועלים", url: "https://calcalist.co.il/5", snippet: "", source: "google-news-rss", publishedAt: null },
+    ]);
+    const res = await researchPerson(
+      { fullName: "Pazit Garfinkel", hebrewName: "פזית", companyName: "Bank Hapoalim בנק הפועלים" },
+      { rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep }
+    );
+    expect(res.fetched).toBe(5);
+    expect(res.acceptedFullName).toBe(0);
+    expect(res.acceptedFirstNameEmployer).toBe(1);
+    expect(res.rejected).toBe(4);
+    // `discarded` is the same number under the name build-profiles.ts already reads.
+    expect(res.discarded).toBe(4);
+    expect((res.acceptedFullName ?? 0) + (res.acceptedFirstNameEmployer ?? 0) + (res.rejected ?? 0)).toBe(res.fetched);
   });
 });
