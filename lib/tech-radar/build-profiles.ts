@@ -137,7 +137,7 @@ export type BuildProfilesReport = {
    * AND this path passed no research map at all. Both halves are fixed; this is the meter
    * that says so.
    */
-  researchByPerson: { name: string; findings: number; paidQueries: number }[];
+  researchByPerson: { name: string; findings: number; paidQueries: number; discarded: number }[];
   /** Anyone built on ZERO findings. Must be empty, and is a defect when it is not. */
   noResearch: string[];
 };
@@ -282,6 +282,10 @@ export async function buildProfilesForMarked(input: {
       name,
       findings: personResearch?.findings.length ?? 0,
       paidQueries: personResearch?.paidQueries ?? 0,
+      // Results that came back naming only the employer. High here with `findings: 0` is a
+      // recall problem; both being zero is a provider problem. Different fixes, so the
+      // report has to tell them apart.
+      discarded: personResearch?.discarded ?? 0,
     });
     if (!personResearch || personResearch.findings.length === 0) report.noResearch.push(name);
 

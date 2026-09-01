@@ -36,12 +36,53 @@ export type PersonResearchInput = {
   companyName: string;
 };
 
+/**
+ * Does this result actually talk about the PERSON, or just about their employer?
+ *
+ * The 2026-09-01 prod probe is why this exists. `Contact` stores only `hebrewFirstName`, so
+ * the Hebrew queries carry one given name, and a lone given name cannot be quoted as a
+ * phrase without matching every Pazit in Israel — but unquoted it lets the company name
+ * dominate instead, and the provider happily returns the employer's own press. Pazit
+ * Garfinkel's six queries came back with eight results of which none named her: a children's
+ * financial-literacy launch, a comedian's campaign, and a book publisher. Elinor Levinson
+ * Gafni's eight were Wikipedia, a stock forecast, Q2 slides and a hospital statement.
+ *
+ * Handing those to the build is WORSE than handing it nothing: the prompt reads person
+ * research as layer-4 FOUND evidence about the human and quotes it as such, so generic
+ * employer news arrives wearing the person's name. A loud zero is the better answer, which
+ * is what `noResearch` in the build report is for.
+ *
+ * Deterministic and free — no model decides this. A result is kept when the title or the
+ * snippet names the person: the full English name, their surname, or the Hebrew given name.
+ */
+export function namesThePerson(
+  text: string,
+  input: Pick<PersonResearchInput, "fullName" | "hebrewName">
+): boolean {
+  const hay = text.toLowerCase();
+  const en = input.fullName.trim().toLowerCase();
+  if (en && hay.includes(en)) return true;
+  // The surname alone: Israeli press writes "גרפינקל" and English coverage "Rachmil said",
+  // without repeating the given name. Two characters is not a surname, it is a preposition.
+  const surname = en.split(/\s+/).filter((w) => w.length > 2).at(-1);
+  if (surname && hay.includes(surname)) return true;
+  const he = (input.hebrewName ?? "").trim();
+  if (he.length > 2 && text.includes(he)) return true;
+  return false;
+}
+
 export type PersonWebResearch = {
   findings: { title: string; url: string; snippet: string; pageText: string | null }[];
   /** The queries actually run. On the report, so an empty result can name what was asked. */
   queries?: string[];
   /** How many PAID queries the top-up spent. 0 means the whole research was free. */
   paidQueries?: number;
+  /**
+   * Results that came back but named only the employer, never the person. A high number
+   * here beside `findings: 0` is a recall problem worth reading; it used to be invisible
+   * because every one of them was passed to the build as evidence about the human.
+   */
+  discarded?: number;
 };
 
 /**
@@ -159,8 +200,14 @@ export async function researchPerson(
   //
   // No company subscriptions: this pool is one person's, so nothing is shared across
   // companies the way a scan's pool is.
+  // The top-up decision is made on results that NAME THE PERSON, not on raw result count.
+  // Eight results about the employer are not four results about the human, and the whole
+  // point of spending a paid query is to find the human.
+  const namedSoFar = () =>
+    dedupeByUrl(collected).filter((i) => namesThePerson(`${i.title} ${i.snippet ?? ""}`, input)).length;
+
   let paidQueries = 0;
-  if (dedupeByUrl(collected).length < MIN_FINDINGS_BEFORE_PAID && (deps.fetcher || !inTest)) {
+  if (namedSoFar() < MIN_FINDINGS_BEFORE_PAID && (deps.fetcher || !inTest)) {
     const pool = queries.map((query) => ({ query, companyIds: [] as string[] }));
     const news = await fetchPoolNews(pool, deps.fetcher, deps.sleep ? { sleep: deps.sleep } : {});
     collected.push(...news.items);
@@ -171,9 +218,12 @@ export async function researchPerson(
   // now by two providers on top of that. Same rule as persist.ts's normalizeStoryUrl,
   // duplicated rather than imported because that module pulls in prisma and this one is
   // deliberately injectable for tests.
+  const unique = dedupeByUrl(collected);
+  const named = unique.filter((item) => namesThePerson(`${item.title} ${item.snippet ?? ""}`, input));
+
   const findings: PersonWebResearch["findings"] = [];
   let reads = 0;
-  for (const item of dedupeByUrl(collected).slice(0, MAX_FINDINGS)) {
+  for (const item of named.slice(0, MAX_FINDINGS)) {
     let pageText: string | null = null;
     if (reads < maxReads && (deps.readPage || !inTest)) {
       reads += 1;
@@ -183,7 +233,7 @@ export async function researchPerson(
     findings.push({ title: item.title, url: item.url, snippet: item.snippet ?? "", pageText });
   }
 
-  return { findings, queries, paidQueries };
+  return { findings, queries, paidQueries, discarded: unique.length - named.length };
 }
 
 /** Scheme, www, trailing slash and case are noise; the host+path is the story. */

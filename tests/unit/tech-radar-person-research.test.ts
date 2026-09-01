@@ -75,7 +75,7 @@ describe("researchPerson — free first", () => {
    */
   it("runs on free RSS and never touches the paid pool when free is enough", async () => {
     const rssFetcher = vi.fn(async (q: string) => [
-      { title: `t-${q}`, url: `https://calcalist.co.il/${encodeURIComponent(q)}`, snippet: "s", source: "google-news-rss", publishedAt: null },
+      { title: `פזית גרפינקל — ${q}`, url: `https://calcalist.co.il/${encodeURIComponent(q)}`, snippet: "s", source: "google-news-rss", publishedAt: null },
     ]);
     const fetcher = vi.fn();
     const res = await researchPerson(
@@ -91,7 +91,7 @@ describe("researchPerson — free first", () => {
   it("tops up from the paid pool only when free came back thin", async () => {
     const rssFetcher = vi.fn(async () => []);
     const fetcher = vi.fn(async () => [
-      { title: "paid", url: "https://globes.co.il/a", snippet: "s", source: "serper", publishedAt: null },
+      { title: "ראיון עם פזית גרפינקל", url: "https://globes.co.il/a", snippet: "s", source: "serper", publishedAt: null },
     ]);
     const res = await researchPerson(
       { fullName: "Pazit Garfinkel", hebrewName: "פזית גרפינקל", companyName: "Bank Hapoalim" },
@@ -104,7 +104,7 @@ describe("researchPerson — free first", () => {
 
   /** The same interview is found by several queries and now by two providers on top. */
   it("dedupes the same story across queries and providers", async () => {
-    const one = { title: "ראיון", url: "https://calcalist.co.il/a/?utm_source=x", snippet: "s", source: "google-news-rss", publishedAt: null };
+    const one = { title: "ראיון עם פזית גרפינקל", url: "https://calcalist.co.il/a/?utm_source=x", snippet: "s", source: "google-news-rss", publishedAt: null };
     const res = await researchPerson(
       { fullName: "Pazit Garfinkel", hebrewName: "פזית גרפינקל", companyName: "Bank Hapoalim" },
       {
@@ -120,11 +120,11 @@ describe("researchPerson — free first", () => {
 describe("researchPerson", () => {
   it("fetches queries, reads top pages, caps page reads", async () => {
     const fetcher = vi.fn().mockResolvedValue([
-      { title: "Interview with Pazit", url: "https://globes.co.il/a1", snippet: "s", source: "serper", publishedAt: null },
+      { title: "Interview with Pazit Garfinkel", url: "https://globes.co.il/a1", snippet: "s", source: "serper", publishedAt: null },
     ]);
     const readPage = vi.fn().mockResolvedValue({
       url: "https://globes.co.il/a1",
-      title: "Interview with Pazit",
+      title: "Interview with Pazit Garfinkel",
       text: "full interview text",
       finalUrl: "https://globes.co.il/a1",
     });
@@ -148,8 +148,8 @@ describe("researchPerson", () => {
   it("leaves pageText null past the cap rather than dropping the finding", async () => {
     const fetcher = vi
       .fn()
-      .mockResolvedValueOnce([{ title: "a", url: "https://globes.co.il/a", snippet: "sa", source: "serper", publishedAt: null }])
-      .mockResolvedValue([{ title: "b", url: "https://calcalist.co.il/b", snippet: "sb", source: "serper", publishedAt: null }]);
+      .mockResolvedValueOnce([{ title: "Garfinkel a", url: "https://globes.co.il/a", snippet: "sa", source: "serper", publishedAt: null }])
+      .mockResolvedValue([{ title: "Garfinkel b", url: "https://calcalist.co.il/b", snippet: "sb", source: "serper", publishedAt: null }]);
     const readPage = vi.fn().mockResolvedValue({ url: "u", title: null, text: "read", finalUrl: "u" });
     const res = await researchPerson(
       { fullName: "Pazit Garfinkel", companyName: "Bank Hapoalim" },
@@ -161,12 +161,35 @@ describe("researchPerson", () => {
     expect(readPage).toHaveBeenCalledTimes(1);
   });
 
-  it("survives an unreadable page — a null read is the normal case, not a failure", async () => {
-    const fetcher = vi.fn().mockResolvedValue([
-      { title: "paywalled", url: "https://themarker.com/x", snippet: "s", source: "serper", publishedAt: null },
+  /**
+   * The 2026-09-01 prod probe in one test. Six queries for Pazit Garfinkel returned eight
+   * results and not one of them named her — a children's financial-literacy launch, a
+   * comedian's campaign, a book publisher. Generic employer news handed to the build as
+   * layer-4 evidence about the human is worse than no research at all, because the prompt
+   * quotes it as if it were about her.
+   */
+  it("discards results that name only the employer, and says how many", async () => {
+    const rssFetcher = vi.fn().mockResolvedValue([
+      { title: "מגיל 8: בנק הפועלים רוצה ללמד ילדים לנהל כסף", url: "https://maariv.co.il/1", snippet: "", source: "google-news-rss", publishedAt: null },
+      { title: "אדיר מילר ובנק הפועלים ביחד", url: "https://ice.co.il/2", snippet: "", source: "google-news-rss", publishedAt: null },
+      { title: "הוצאת ידיעות ספרים", url: "https://x.co.il/3", snippet: "", source: "google-news-rss", publishedAt: null },
+      { title: "ראיון עם פזית גרפינקל על בנקאות דיגיטלית", url: "https://calcalist.co.il/4", snippet: "", source: "google-news-rss", publishedAt: null },
     ]);
     const res = await researchPerson(
-      { fullName: "X", companyName: "Y" },
+      { fullName: "Pazit Garfinkel", hebrewName: "פזית", companyName: "Bank Hapoalim בנק הפועלים" },
+      { rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep }
+    );
+    expect(res.findings).toHaveLength(1);
+    expect(res.findings[0].title).toContain("פזית גרפינקל");
+    expect(res.discarded).toBe(3);
+  });
+
+  it("survives an unreadable page — a null read is the normal case, not a failure", async () => {
+    const fetcher = vi.fn().mockResolvedValue([
+      { title: "paywalled Rachmil piece", url: "https://themarker.com/x", snippet: "s", source: "serper", publishedAt: null },
+    ]);
+    const res = await researchPerson(
+      { fullName: "Erez Rachmil", companyName: "Y" },
       { fetcher, readPage: vi.fn().mockResolvedValue(null), sleep: noSleep }
     );
     expect(res.findings).toHaveLength(1);
