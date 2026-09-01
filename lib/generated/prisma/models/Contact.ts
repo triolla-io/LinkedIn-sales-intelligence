@@ -41,6 +41,7 @@ export type ContactMinAggregateOutputType = {
   linkedinUrl: string | null
   fullName: string | null
   hebrewFirstName: string | null
+  hebrewFullName: string | null
   headline: string | null
   currentTitle: string | null
   currentCompany: string | null
@@ -83,6 +84,7 @@ export type ContactMaxAggregateOutputType = {
   linkedinUrl: string | null
   fullName: string | null
   hebrewFirstName: string | null
+  hebrewFullName: string | null
   headline: string | null
   currentTitle: string | null
   currentCompany: string | null
@@ -125,6 +127,7 @@ export type ContactCountAggregateOutputType = {
   linkedinUrl: number
   fullName: number
   hebrewFirstName: number
+  hebrewFullName: number
   headline: number
   currentTitle: number
   currentCompany: number
@@ -183,6 +186,7 @@ export type ContactMinAggregateInputType = {
   linkedinUrl?: true
   fullName?: true
   hebrewFirstName?: true
+  hebrewFullName?: true
   headline?: true
   currentTitle?: true
   currentCompany?: true
@@ -225,6 +229,7 @@ export type ContactMaxAggregateInputType = {
   linkedinUrl?: true
   fullName?: true
   hebrewFirstName?: true
+  hebrewFullName?: true
   headline?: true
   currentTitle?: true
   currentCompany?: true
@@ -267,6 +272,7 @@ export type ContactCountAggregateInputType = {
   linkedinUrl?: true
   fullName?: true
   hebrewFirstName?: true
+  hebrewFullName?: true
   headline?: true
   currentTitle?: true
   currentCompany?: true
@@ -402,6 +408,7 @@ export type ContactGroupByOutputType = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName: string | null
+  hebrewFullName: string | null
   headline: string | null
   currentTitle: string | null
   currentCompany: string | null
@@ -473,6 +480,7 @@ export type ContactWhereInput = {
   linkedinUrl?: Prisma.StringFilter<"Contact"> | string
   fullName?: Prisma.StringFilter<"Contact"> | string
   hebrewFirstName?: Prisma.StringNullableFilter<"Contact"> | string | null
+  hebrewFullName?: Prisma.StringNullableFilter<"Contact"> | string | null
   headline?: Prisma.StringNullableFilter<"Contact"> | string | null
   currentTitle?: Prisma.StringNullableFilter<"Contact"> | string | null
   currentCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
@@ -535,6 +543,7 @@ export type ContactOrderByWithRelationInput = {
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   hebrewFirstName?: Prisma.SortOrderInput | Prisma.SortOrder
+  hebrewFullName?: Prisma.SortOrderInput | Prisma.SortOrder
   headline?: Prisma.SortOrderInput | Prisma.SortOrder
   currentTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   currentCompany?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -601,6 +610,7 @@ export type ContactWhereUniqueInput = Prisma.AtLeast<{
   linkedinUrl?: Prisma.StringFilter<"Contact"> | string
   fullName?: Prisma.StringFilter<"Contact"> | string
   hebrewFirstName?: Prisma.StringNullableFilter<"Contact"> | string | null
+  hebrewFullName?: Prisma.StringNullableFilter<"Contact"> | string | null
   headline?: Prisma.StringNullableFilter<"Contact"> | string | null
   currentTitle?: Prisma.StringNullableFilter<"Contact"> | string | null
   currentCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
@@ -663,6 +673,7 @@ export type ContactOrderByWithAggregationInput = {
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   hebrewFirstName?: Prisma.SortOrderInput | Prisma.SortOrder
+  hebrewFullName?: Prisma.SortOrderInput | Prisma.SortOrder
   headline?: Prisma.SortOrderInput | Prisma.SortOrder
   currentTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   currentCompany?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -719,6 +730,7 @@ export type ContactScalarWhereWithAggregatesInput = {
   linkedinUrl?: Prisma.StringWithAggregatesFilter<"Contact"> | string
   fullName?: Prisma.StringWithAggregatesFilter<"Contact"> | string
   hebrewFirstName?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
+  hebrewFullName?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
   headline?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
   currentTitle?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
   currentCompany?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
@@ -766,6 +778,7 @@ export type ContactCreateInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -827,6 +840,7 @@ export type ContactUncheckedCreateInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -886,6 +900,7 @@ export type ContactUpdateInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -947,6 +962,7 @@ export type ContactUncheckedUpdateInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1007,6 +1023,7 @@ export type ContactCreateManyInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -1054,6 +1071,7 @@ export type ContactUpdateManyMutationInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1101,6 +1119,7 @@ export type ContactUncheckedUpdateManyInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1172,6 +1191,7 @@ export type ContactCountOrderByAggregateInput = {
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   hebrewFirstName?: Prisma.SortOrder
+  hebrewFullName?: Prisma.SortOrder
   headline?: Prisma.SortOrder
   currentTitle?: Prisma.SortOrder
   currentCompany?: Prisma.SortOrder
@@ -1224,6 +1244,7 @@ export type ContactMaxOrderByAggregateInput = {
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   hebrewFirstName?: Prisma.SortOrder
+  hebrewFullName?: Prisma.SortOrder
   headline?: Prisma.SortOrder
   currentTitle?: Prisma.SortOrder
   currentCompany?: Prisma.SortOrder
@@ -1266,6 +1287,7 @@ export type ContactMinOrderByAggregateInput = {
   linkedinUrl?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   hebrewFirstName?: Prisma.SortOrder
+  hebrewFullName?: Prisma.SortOrder
   headline?: Prisma.SortOrder
   currentTitle?: Prisma.SortOrder
   currentCompany?: Prisma.SortOrder
@@ -1598,6 +1620,7 @@ export type ContactCreateWithoutOwnerInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -1657,6 +1680,7 @@ export type ContactUncheckedCreateWithoutOwnerInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -1746,6 +1770,7 @@ export type ContactScalarWhereInput = {
   linkedinUrl?: Prisma.StringFilter<"Contact"> | string
   fullName?: Prisma.StringFilter<"Contact"> | string
   hebrewFirstName?: Prisma.StringNullableFilter<"Contact"> | string | null
+  hebrewFullName?: Prisma.StringNullableFilter<"Contact"> | string | null
   headline?: Prisma.StringNullableFilter<"Contact"> | string | null
   currentTitle?: Prisma.StringNullableFilter<"Contact"> | string | null
   currentCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
@@ -1793,6 +1818,7 @@ export type ContactCreateWithoutMessagesInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -1853,6 +1879,7 @@ export type ContactUncheckedCreateWithoutMessagesInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -1927,6 +1954,7 @@ export type ContactUpdateWithoutMessagesInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1987,6 +2015,7 @@ export type ContactUncheckedUpdateWithoutMessagesInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2045,6 +2074,7 @@ export type ContactCreateWithoutCompanyInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -2105,6 +2135,7 @@ export type ContactUncheckedCreateWithoutCompanyInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -2189,6 +2220,7 @@ export type ContactCreateWithoutCampaignRecipientsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -2249,6 +2281,7 @@ export type ContactUncheckedCreateWithoutCampaignRecipientsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -2323,6 +2356,7 @@ export type ContactUpdateWithoutCampaignRecipientsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2383,6 +2417,7 @@ export type ContactUncheckedUpdateWithoutCampaignRecipientsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2441,6 +2476,7 @@ export type ContactCreateWithoutListsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -2501,6 +2537,7 @@ export type ContactUncheckedCreateWithoutListsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -2575,6 +2612,7 @@ export type ContactUpdateWithoutListsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2635,6 +2673,7 @@ export type ContactUncheckedUpdateWithoutListsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2693,6 +2732,7 @@ export type ContactCreateWithoutSequenceEnrollmentsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -2753,6 +2793,7 @@ export type ContactUncheckedCreateWithoutSequenceEnrollmentsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -2827,6 +2868,7 @@ export type ContactUpdateWithoutSequenceEnrollmentsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2887,6 +2929,7 @@ export type ContactUncheckedUpdateWithoutSequenceEnrollmentsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2945,6 +2988,7 @@ export type ContactCreateWithoutJobChangesInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -3005,6 +3049,7 @@ export type ContactUncheckedCreateWithoutJobChangesInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -3079,6 +3124,7 @@ export type ContactUpdateWithoutJobChangesInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3139,6 +3185,7 @@ export type ContactUncheckedUpdateWithoutJobChangesInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3197,6 +3244,7 @@ export type ContactCreateWithoutCompanySignalDraftsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -3257,6 +3305,7 @@ export type ContactUncheckedCreateWithoutCompanySignalDraftsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -3331,6 +3380,7 @@ export type ContactUpdateWithoutCompanySignalDraftsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3391,6 +3441,7 @@ export type ContactUncheckedUpdateWithoutCompanySignalDraftsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3449,6 +3500,7 @@ export type ContactCreateWithoutArticleMatchesInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -3509,6 +3561,7 @@ export type ContactUncheckedCreateWithoutArticleMatchesInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -3583,6 +3636,7 @@ export type ContactUpdateWithoutArticleMatchesInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3643,6 +3697,7 @@ export type ContactUncheckedUpdateWithoutArticleMatchesInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3701,6 +3756,7 @@ export type ContactCreateWithoutTechDraftsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -3761,6 +3817,7 @@ export type ContactUncheckedCreateWithoutTechDraftsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -3835,6 +3892,7 @@ export type ContactUpdateWithoutTechDraftsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3895,6 +3953,7 @@ export type ContactUncheckedUpdateWithoutTechDraftsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3953,6 +4012,7 @@ export type ContactCreateWithoutPersonProfileInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -4013,6 +4073,7 @@ export type ContactUncheckedCreateWithoutPersonProfileInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -4087,6 +4148,7 @@ export type ContactUpdateWithoutPersonProfileInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4147,6 +4209,7 @@ export type ContactUncheckedUpdateWithoutPersonProfileInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4205,6 +4268,7 @@ export type ContactCreateWithoutRadarDraftsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -4265,6 +4329,7 @@ export type ContactUncheckedCreateWithoutRadarDraftsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -4339,6 +4404,7 @@ export type ContactUpdateWithoutRadarDraftsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4399,6 +4465,7 @@ export type ContactUncheckedUpdateWithoutRadarDraftsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4457,6 +4524,7 @@ export type ContactCreateWithoutLinkedInPostsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -4517,6 +4585,7 @@ export type ContactUncheckedCreateWithoutLinkedInPostsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -4591,6 +4660,7 @@ export type ContactUpdateWithoutLinkedInPostsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4651,6 +4721,7 @@ export type ContactUncheckedUpdateWithoutLinkedInPostsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4709,6 +4780,7 @@ export type ContactCreateWithoutPostCommentDraftsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -4769,6 +4841,7 @@ export type ContactUncheckedCreateWithoutPostCommentDraftsInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -4843,6 +4916,7 @@ export type ContactUpdateWithoutPostCommentDraftsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4903,6 +4977,7 @@ export type ContactUncheckedUpdateWithoutPostCommentDraftsInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4961,6 +5036,7 @@ export type ContactCreateManyOwnerInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -5008,6 +5084,7 @@ export type ContactUpdateWithoutOwnerInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5067,6 +5144,7 @@ export type ContactUncheckedUpdateWithoutOwnerInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5126,6 +5204,7 @@ export type ContactUncheckedUpdateManyWithoutOwnerInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5174,6 +5253,7 @@ export type ContactCreateManyCompanyInput = {
   linkedinUrl: string
   fullName: string
   hebrewFirstName?: string | null
+  hebrewFullName?: string | null
   headline?: string | null
   currentTitle?: string | null
   currentCompany?: string | null
@@ -5220,6 +5300,7 @@ export type ContactUpdateWithoutCompanyInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5280,6 +5361,7 @@ export type ContactUncheckedUpdateWithoutCompanyInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5339,6 +5421,7 @@ export type ContactUncheckedUpdateManyWithoutCompanyInput = {
   linkedinUrl?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   hebrewFirstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hebrewFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   headline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currentCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5507,6 +5590,7 @@ export type ContactSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   linkedinUrl?: boolean
   fullName?: boolean
   hebrewFirstName?: boolean
+  hebrewFullName?: boolean
   headline?: boolean
   currentTitle?: boolean
   currentCompany?: boolean
@@ -5570,6 +5654,7 @@ export type ContactSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   linkedinUrl?: boolean
   fullName?: boolean
   hebrewFirstName?: boolean
+  hebrewFullName?: boolean
   headline?: boolean
   currentTitle?: boolean
   currentCompany?: boolean
@@ -5620,6 +5705,7 @@ export type ContactSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   linkedinUrl?: boolean
   fullName?: boolean
   hebrewFirstName?: boolean
+  hebrewFullName?: boolean
   headline?: boolean
   currentTitle?: boolean
   currentCompany?: boolean
@@ -5670,6 +5756,7 @@ export type ContactSelectScalar = {
   linkedinUrl?: boolean
   fullName?: boolean
   hebrewFirstName?: boolean
+  hebrewFullName?: boolean
   headline?: boolean
   currentTitle?: boolean
   currentCompany?: boolean
@@ -5711,7 +5798,7 @@ export type ContactSelectScalar = {
   companyId?: boolean
 }
 
-export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "hebrewFirstName" | "headline" | "currentTitle" | "currentCompany" | "currentCompanyId" | "companySize" | "seniority" | "function" | "location" | "industry" | "profilePicUrl" | "connectedAt" | "lastSyncedAt" | "removedAt" | "email" | "phone" | "enrichedAt" | "enrichmentSource" | "manualFields" | "enrichmentLog" | "enrichmentRanAt" | "enrichmentError" | "hubspotSyncedAt" | "jobSnapshotTitle" | "jobSnapshotCompany" | "lastJobCheckAt" | "about" | "experience" | "skills" | "education" | "profileScrapedAt" | "radarInclude" | "postWatchEnabled" | "postWatchAddedAt" | "messageLanguage" | "radarAddedAt" | "channels" | "createdAt" | "updatedAt" | "companyId", ExtArgs["result"]["contact"]>
+export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "linkedinUrn" | "linkedinUrl" | "fullName" | "hebrewFirstName" | "hebrewFullName" | "headline" | "currentTitle" | "currentCompany" | "currentCompanyId" | "companySize" | "seniority" | "function" | "location" | "industry" | "profilePicUrl" | "connectedAt" | "lastSyncedAt" | "removedAt" | "email" | "phone" | "enrichedAt" | "enrichmentSource" | "manualFields" | "enrichmentLog" | "enrichmentRanAt" | "enrichmentError" | "hubspotSyncedAt" | "jobSnapshotTitle" | "jobSnapshotCompany" | "lastJobCheckAt" | "about" | "experience" | "skills" | "education" | "profileScrapedAt" | "radarInclude" | "postWatchEnabled" | "postWatchAddedAt" | "messageLanguage" | "radarAddedAt" | "channels" | "createdAt" | "updatedAt" | "companyId", ExtArgs["result"]["contact"]>
 export type ContactInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   jobChanges?: boolean | Prisma.Contact$jobChangesArgs<ExtArgs>
   company?: boolean | Prisma.Contact$companyArgs<ExtArgs>
@@ -5763,6 +5850,20 @@ export type $ContactPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     linkedinUrl: string
     fullName: string
     hebrewFirstName: string | null
+    /**
+     * The person's full name as ISRAELI PRESS writes it — given + family, in Hebrew.
+     * 
+     * Deliberately NOT `hebrewFirstName`, which greetings read ("היי פזית"): a full name
+     * there would address a board member by both names. This field exists because radar
+     * person research cannot work without it — a Hebrew query built from a given name alone
+     * matched every Pazit in Israel, and a Hebrew RESULT cannot be tied back to a contact
+     * whose surname is stored only as "Garfinkel" while the article says "גרפינקל". The
+     * 2026-09-01 probe measured the cost: 0 person-level findings for three of four people.
+     * 
+     * Nullable and hand-filled for now. A transliteration is a fabrication risk aimed at a
+     * real executive, so nothing writes this from a model.
+     */
+    hebrewFullName: string | null
     headline: string | null
     currentTitle: string | null
     currentCompany: string | null
@@ -6275,6 +6376,7 @@ export interface ContactFieldRefs {
   readonly linkedinUrl: Prisma.FieldRef<"Contact", 'String'>
   readonly fullName: Prisma.FieldRef<"Contact", 'String'>
   readonly hebrewFirstName: Prisma.FieldRef<"Contact", 'String'>
+  readonly hebrewFullName: Prisma.FieldRef<"Contact", 'String'>
   readonly headline: Prisma.FieldRef<"Contact", 'String'>
   readonly currentTitle: Prisma.FieldRef<"Contact", 'String'>
   readonly currentCompany: Prisma.FieldRef<"Contact", 'String'>

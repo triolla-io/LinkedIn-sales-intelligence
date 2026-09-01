@@ -180,12 +180,12 @@ export const radarPersonPrepare = inngest.createFunction(
     const personResearch = await step.run("person-web-research", async () => {
       const c = await prisma.contact.findUnique({
         where: { id: contactId },
-        select: { fullName: true, hebrewFirstName: true, currentCompany: true },
+        select: { fullName: true, hebrewFullName: true, hebrewFirstName: true, currentCompany: true },
       });
       if (!c?.fullName) return null;
       return researchPerson({
         fullName: c.fullName,
-        hebrewName: c.hebrewFirstName,
+        hebrewName: c.hebrewFullName ?? c.hebrewFirstName,
         companyName: c.currentCompany ?? "",
       });
     });

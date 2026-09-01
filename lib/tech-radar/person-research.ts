@@ -27,6 +27,7 @@
  */
 import { fetchPoolNews } from "@/lib/tech-radar/fetch-pool-news";
 import { fetchGoogleNewsRss } from "@/lib/news/google-news-rss";
+import { fetchSerperWeb } from "@/lib/news/serper";
 import { readPage as defaultReadPage } from "@/lib/research/read-page";
 import type { NewsResult } from "@/lib/news/types";
 
@@ -73,15 +74,23 @@ export function namesThePerson(
   // false positive here, because everything downstream would have read it as Erez Rachmil's
   // own career move. Only a FULL Hebrew name (given + family) is accepted.
   const he = (input.hebrewName ?? "").trim();
-  if (/\s/.test(he) && he.length > 4 && text.includes(he)) return true;
-  return false;
+  if (!/\s/.test(he) || he.length <= 4) return false;
+  if (text.includes(he)) return true;
+  // The Hebrew SURNAME on its own, but only once a full Hebrew name established it: the
+  // press writes "גרפינקל אמרה" as readily as the full name, and a surname is identifying
+  // in a way a given name is not. Reached only via the guard above, so a record holding
+  // just "פזית" can never get here.
+  const heSurname = he.split(/\s+/).filter((w) => w.length > 2).at(-1);
+  return !!heSurname && text.includes(heSurname);
 }
 
 export type PersonWebResearch = {
   findings: { title: string; url: string; snippet: string; pageText: string | null }[];
   /** The queries actually run. On the report, so an empty result can name what was asked. */
   queries?: string[];
-  /** How many PAID queries the top-up spent. 0 means the whole research was free. */
+  /** How many WEB (serper /search) queries were spent — the primary source. */
+  webQueries?: number;
+  /** How many news-pool queries the last-resort top-up spent. */
   paidQueries?: number;
   /**
    * Results that came back but named only the employer, never the person. A high number
@@ -111,6 +120,8 @@ const DEFAULT_MAX_PAGE_READS = 4;
 const MAX_PAGE_TEXT_CHARS = 4000;
 /** Google News RSS results per query. Free, so this cap is about prompt size, not cost. */
 const RSS_MAX_PER_QUERY = 10;
+/** Web results per query. Ten is what one prompt can carry across six queries. */
+const WEB_MAX_PER_QUERY = 10;
 /**
  * Below this many free findings, spend a paid call; above it, the paid pool buys research
  * nothing it does not already have. Person research is not what a month's quota should die
@@ -170,7 +181,14 @@ export async function researchPerson(
     fetcher?: (
       query: string
     ) => Promise<{ title: string; url: string; snippet: string; source: string; publishedAt: string | null }[]>;
-    /** The FREE Google News RSS fetcher, which is now the primary. Injected in tests. */
+    /**
+     * WEB search — the primary, and the only source that has ever returned anything about
+     * a person. See fetchSerperWeb's note: a news index does not carry an employer's
+     * management page, a conference agenda, or a two-year-old interview, which is where a
+     * person's remit actually lives.
+     */
+    webFetcher?: (query: string) => Promise<NewsResult[]>;
+    /** Free Google News RSS. Demoted to a supplement — it answered nothing on its own. */
     rssFetcher?: (query: string) => Promise<NewsResult[]>;
     readPage?: typeof defaultReadPage;
     maxPageReads?: number;
@@ -194,26 +212,36 @@ export async function researchPerson(
   // provider whose monthly quota is already at zero. A test that means to exercise
   // research injects the seam and neither branch below runs.
   const inTest = !!process.env.VITEST;
+  const web =
+    deps.webFetcher ??
+    (inTest ? async () => [] : (query: string) => fetchSerperWeb(query, { max: WEB_MAX_PER_QUERY }));
   const rss =
     deps.rssFetcher ??
     (inTest ? async () => [] : (query: string) => fetchGoogleNewsRss(query, { max: RSS_MAX_PER_QUERY }));
+
+  // WEB FIRST. Both of the earlier orderings — paid news pool, then free RSS — returned
+  // zero findings that named the person, for every person, because both ask a news index a
+  // question news indexes cannot answer.
   const collected: NewsResult[] = [];
+  let webQueries = 0;
   for (const query of queries) {
-    collected.push(...(await rss(query)));
+    collected.push(...(await web(query)));
+    webQueries += 1;
+  }
+
+  // RSS only tops up when web left us short of a person. Free, so it costs nothing to ask.
+  if (namedIn(collected, input) < MIN_FINDINGS_BEFORE_PAID) {
+    for (const query of queries) collected.push(...(await rss(query)));
   }
 
   // Paid top-up only when free came back thin.
   //
   // No company subscriptions: this pool is one person's, so nothing is shared across
   // companies the way a scan's pool is.
-  // The top-up decision is made on results that NAME THE PERSON, not on raw result count.
-  // Eight results about the employer are not four results about the human, and the whole
-  // point of spending a paid query is to find the human.
-  const namedSoFar = () =>
-    dedupeByUrl(collected).filter((i) => namesThePerson(`${i.title} ${i.snippet ?? ""}`, input)).length;
-
+  // The news-pool top-up is the LAST resort now, and still decided on results that name
+  // the person: eight results about a bank are not four about its executive.
   let paidQueries = 0;
-  if (namedSoFar() < MIN_FINDINGS_BEFORE_PAID && (deps.fetcher || !inTest)) {
+  if (namedIn(collected, input) < MIN_FINDINGS_BEFORE_PAID && (deps.fetcher || !inTest)) {
     const pool = queries.map((query) => ({ query, companyIds: [] as string[] }));
     const news = await fetchPoolNews(pool, deps.fetcher, deps.sleep ? { sleep: deps.sleep } : {});
     collected.push(...news.items);
@@ -239,7 +267,12 @@ export async function researchPerson(
     findings.push({ title: item.title, url: item.url, snippet: item.snippet ?? "", pageText });
   }
 
-  return { findings, queries, paidQueries, discarded: unique.length - named.length };
+  return { findings, queries, paidQueries, webQueries, discarded: unique.length - named.length };
+}
+
+/** How many of these results actually name the person. The gate on every escalation. */
+function namedIn(items: NewsResult[], input: PersonResearchInput): number {
+  return dedupeByUrl(items).filter((i) => namesThePerson(`${i.title} ${i.snippet ?? ""}`, input)).length;
 }
 
 /** Scheme, www, trailing slash and case are noise; the host+path is the story. */

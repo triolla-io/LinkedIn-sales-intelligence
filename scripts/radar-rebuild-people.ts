@@ -243,7 +243,9 @@ async function main() {
     // number nobody scrolls to is a number nobody reads.
     const res = report.researchByPerson.find((r) => r.name === prev.name);
     console.log(
-      `  research: ${res?.findings ?? 0} findings (${res?.paidQueries ?? 0} paid queries, ${res?.discarded ?? 0} about the employer only)`
+      `  research: ${res?.findings ?? 0} findings  ` +
+        `(${res?.webQueries ?? 0} web + ${res?.paidQueries ?? 0} news queries, ` +
+        `${res?.discarded ?? 0} about the employer only)`
     );
     if (!res || res.findings === 0) console.log(`  ⚠ אפס מחקר — המודל נבנה מהתפקיד בלבד`);
 

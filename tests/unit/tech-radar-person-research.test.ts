@@ -66,6 +66,49 @@ describe("buildPersonResearchQueries", () => {
   });
 });
 
+describe("researchPerson — web first", () => {
+  /**
+   * The finding that ended a morning of wrong answers. Same serper key, same query
+   * `פזית גרפינקל בנק הפועלים במה עוסקת`: /news returned nothing and /search returned the
+   * Calcalist piece on her appointment, the bank's own management page and the CAL card
+   * agreement. A person's remit is not this month's news, so a news index cannot hold it.
+   */
+  it("asks WEB search first and never escalates when it finds the person", async () => {
+    const webFetcher = vi.fn(async (q: string) => [
+      { title: `פזית גרפינקל — ${q}`, url: `https://calcalist.co.il/${encodeURIComponent(q)}`, snippet: "", source: "serper-web", publishedAt: null },
+    ]);
+    const rssFetcher = vi.fn();
+    const fetcher = vi.fn();
+    const res = await researchPerson(
+      { fullName: "Pazit Garfinkel", hebrewName: "פזית גרפינקל", companyName: "Bank Hapoalim" },
+      { webFetcher, rssFetcher, fetcher, readPage: async () => null, maxPageReads: 0, sleep: noSleep }
+    );
+    expect(webFetcher).toHaveBeenCalledTimes(6);
+    expect(res.webQueries).toBe(6);
+    expect(rssFetcher).not.toHaveBeenCalled();
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(res.findings.length).toBeGreaterThanOrEqual(4);
+  });
+
+  /** Web found only employer pages: RSS is free, so it is asked before anything is paid. */
+  it("falls back to free RSS before the paid news pool", async () => {
+    const webFetcher = vi.fn(async () => [
+      { title: "חברי הנהלה", url: "https://bankhapoalim.co.il/about", snippet: "", source: "serper-web", publishedAt: null },
+    ]);
+    const rssFetcher = vi.fn(async () => [
+      { title: "ראיון עם פזית גרפינקל", url: "https://ynet.co.il/1", snippet: "", source: "google-news-rss", publishedAt: null },
+    ]);
+    const fetcher = vi.fn(async () => []);
+    const res = await researchPerson(
+      { fullName: "Pazit Garfinkel", hebrewName: "פזית גרפינקל", companyName: "Bank Hapoalim" },
+      { webFetcher, rssFetcher, fetcher, readPage: async () => null, maxPageReads: 0, sleep: noSleep }
+    );
+    expect(rssFetcher).toHaveBeenCalled();
+    expect(res.findings).toHaveLength(1);
+    expect(res.discarded).toBe(1);
+  });
+});
+
 describe("researchPerson — free first", () => {
   /**
    * The paid pool is a TOP-UP now, not the source. It was the only source until

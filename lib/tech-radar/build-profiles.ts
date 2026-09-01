@@ -137,7 +137,7 @@ export type BuildProfilesReport = {
    * AND this path passed no research map at all. Both halves are fixed; this is the meter
    * that says so.
    */
-  researchByPerson: { name: string; findings: number; paidQueries: number; discarded: number }[];
+  researchByPerson: { name: string; findings: number; webQueries: number; paidQueries: number; discarded: number }[];
   /** Anyone built on ZERO findings. Must be empty, and is a defect when it is not. */
   noResearch: string[];
 };
@@ -196,7 +196,7 @@ export async function buildProfilesForMarked(input: {
       about: true, experience: true, profileScrapedAt: true,
       // Layer-4 sources the deep scrape added, plus the Hebrew first name — the same
       // person's press is almost entirely Hebrew, so it is what person research searches on.
-      skills: true, education: true, hebrewFirstName: true,
+      skills: true, education: true, hebrewFirstName: true, hebrewFullName: true,
       personProfile: { select: { id: true, refreshedAt: true } },
     },
   });
@@ -271,7 +271,9 @@ export async function buildProfilesForMarked(input: {
       try {
         personResearch = await research({
           fullName: name,
-          hebrewName: contact.hebrewFirstName,
+          // The FULL Hebrew name when the record has one — a given name alone cannot
+          // identify anyone, which is what made this whole step return nothing.
+          hebrewName: contact.hebrewFullName ?? contact.hebrewFirstName,
           companyName: employer.name,
         });
       } catch {
@@ -281,6 +283,7 @@ export async function buildProfilesForMarked(input: {
     report.researchByPerson.push({
       name,
       findings: personResearch?.findings.length ?? 0,
+      webQueries: personResearch?.webQueries ?? 0,
       paidQueries: personResearch?.paidQueries ?? 0,
       // Results that came back naming only the employer. High here with `findings: 0` is a
       // recall problem; both being zero is a provider problem. Different fixes, so the

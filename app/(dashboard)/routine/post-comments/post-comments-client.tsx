@@ -17,8 +17,8 @@ import { useRoutineModules } from "@/lib/hooks/use-routine-modules";
  *
  * Shape and idiom copied from the two reviewed sibling screens: the draft-card / prepare
  * → "נשלח ✓" two-step and 422-guard handling from radar/approvals-tab.tsx, and the
- * debounced add-picker from radar/people-tab.tsx. Both use bare `bg-[var(--...)]` +
- * `cn()` styling rather than components/ui/*, which this file follows.
+ * debounced add-picker from radar/people-tab.tsx. Both style with bare CSS-variable
+ * utilities plus `cn()` rather than components/ui/*, which this file follows.
  */
 
 const INK_2 = "text-[var(--muted)]";

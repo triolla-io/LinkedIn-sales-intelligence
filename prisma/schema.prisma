@@ -185,6 +185,18 @@ model Contact {
   linkedinUrl      String
   fullName         String
   hebrewFirstName  String?
+  /// The person's full name as ISRAELI PRESS writes it — given + family, in Hebrew.
+  ///
+  /// Deliberately NOT `hebrewFirstName`, which greetings read ("היי פזית"): a full name
+  /// there would address a board member by both names. This field exists because radar
+  /// person research cannot work without it — a Hebrew query built from a given name alone
+  /// matched every Pazit in Israel, and a Hebrew RESULT cannot be tied back to a contact
+  /// whose surname is stored only as "Garfinkel" while the article says "גרפינקל". The
+  /// 2026-09-01 probe measured the cost: 0 person-level findings for three of four people.
+  ///
+  /// Nullable and hand-filled for now. A transliteration is a fabrication risk aimed at a
+  /// real executive, so nothing writes this from a model.
+  hebrewFullName   String?
   headline         String?
   currentTitle     String?
   currentCompany   String?
