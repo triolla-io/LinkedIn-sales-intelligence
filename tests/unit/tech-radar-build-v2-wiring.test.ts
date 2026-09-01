@@ -199,19 +199,48 @@ describe("buildProfilesForMarked feeds the v2 inputs into the build call", () =>
     expect(select).toMatchObject({ skills: true, education: true, hebrewFirstName: true });
   });
 
-  /** The prepare flow researches the person and hands the findings in; the nightly path
-   *  omits the map entirely and must still build. */
-  it("passes personResearch for that contact, and null when there is none", async () => {
+  /** The prepare flow researches the person and hands the findings in — the map is a
+   *  CACHE, and a hit must not be re-researched. */
+  it("prefers the caller's pre-fetched research over researching again", async () => {
     const research = { findings: [{ title: "ראיון", url: "https://x", snippet: "s", pageText: null }] };
+    const researcher = vi.fn();
     await buildProfilesForMarked({
       orgId: "org1", ownerId: "u1",
       personResearchByContact: new Map([["c1", research]]),
+      researcher,
     });
     expect(buildPersonProfile.mock.calls[0][0].personResearch).toBe(research);
+    expect(researcher).not.toHaveBeenCalled();
+  });
 
-    buildPersonProfile.mockClear();
-    await buildProfilesForMarked({ orgId: "org1", ownerId: "u1" });
-    expect(buildPersonProfile.mock.calls[0][0].personResearch).toBeNull();
+  /**
+   * The inverse of the old contract, and the whole point of the 2026-09-01 fix. This used
+   * to assert `personResearch` was NULL when the caller passed no map — which is exactly
+   * what all three real callers do, so every person built by every real path was modelled
+   * from the job title crossed with the employer and nothing else. A person model whose
+   * only inputs are the title and the company cannot be personal, and the axes it produced
+   * were the proof: two axes for a Head of Retail Banking, both derivable from the chair.
+   */
+  it("researches a contact the caller did not pre-fetch, instead of building blind", async () => {
+    const found = { findings: [{ title: "תחומי אחריות", url: "https://y", snippet: "s", pageText: null }] };
+    const researcher = vi.fn().mockResolvedValue(found);
+    const report = await buildProfilesForMarked({ orgId: "org1", ownerId: "u1", researcher });
+
+    expect(researcher).toHaveBeenCalledTimes(1);
+    expect(researcher.mock.calls[0][0]).toMatchObject({ companyName: expect.any(String) });
+    expect(buildPersonProfile.mock.calls[0][0].personResearch).toBe(found);
+    expect(report.noResearch).toEqual([]);
+  });
+
+  /** Zero findings is not a quiet outcome: it means this person was modelled on their
+   *  title alone, and the report has to say whose model that is. */
+  it("names anyone built on zero findings, and never throws on a research failure", async () => {
+    const report = await buildProfilesForMarked({
+      orgId: "org1", ownerId: "u1",
+      researcher: vi.fn().mockRejectedValue(new Error("provider down")),
+    });
+    expect(report.noResearch.length).toBe(1);
+    expect(report.researchByPerson[0]).toMatchObject({ findings: 0, paidQueries: 0 });
   });
 
   /** The fabricated-date check fails OPEN with no moves in hand, so a gate that never

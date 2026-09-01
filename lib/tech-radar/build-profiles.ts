@@ -11,7 +11,7 @@ import { buildPersonProfile, type AxisProposal } from "@/lib/tech-radar/person-p
 import { gateRationales } from "@/lib/tech-radar/rationale-gate";
 import { invalidEntityTags } from "@/lib/tech-radar/rationale-rules";
 import { careerSummary } from "@/lib/tech-radar/career";
-import type { PersonWebResearch } from "@/lib/tech-radar/person-research";
+import { researchPerson, type PersonWebResearch } from "@/lib/tech-radar/person-research";
 import type { BusinessLine } from "@/lib/tech-radar/types";
 import {
   attachAxes, ensureCompanyMonitorAxis, ensureIndustryAxis, ensureEntityAxes,
@@ -129,6 +129,17 @@ export type BuildProfilesReport = {
    * is the case — so each refusal is named here rather than counted.
    */
   entityTagsDropped: string[];
+  /**
+   * Findings per person, and what they cost. `findings: 0` is the loudest number in this
+   * report: it means the model saw only the job title crossed with the employer, which
+   * produces a person indistinguishable from anyone else holding that chair — and it is
+   * exactly what happened on 2026-08-31, when three of four paid providers were at zero
+   * AND this path passed no research map at all. Both halves are fixed; this is the meter
+   * that says so.
+   */
+  researchByPerson: { name: string; findings: number; paidQueries: number }[];
+  /** Anyone built on ZERO findings. Must be empty, and is a defect when it is not. */
+  noResearch: string[];
 };
 
 export async function buildProfilesForMarked(input: {
@@ -144,18 +155,29 @@ export async function buildProfilesForMarked(input: {
    */
   force?: boolean;
   /**
-   * Web research about the PEOPLE, keyed by contact id. The prepare flow
-   * (radar.person.prepare) researches the one person it is onboarding and hands the
-   * findings in; the nightly path omits the map entirely and builds without it, because
-   * researching a whole cohort is a news-quota bill, not a per-run cost.
+   * Web research about the PEOPLE, keyed by contact id — a PRE-FETCHED cache, not the
+   * only source any more. The prepare flow (radar.person.prepare) researches the one
+   * person it is onboarding and hands the findings in; anyone missing from the map is now
+   * researched HERE instead of being modelled without research.
+   *
+   * The old contract was the opposite — "the nightly path omits the map entirely and
+   * builds without it, because researching a whole cohort is a news-quota bill" — and it
+   * was written when research meant paid provider calls. It does not any more (person
+   * research is free Google News RSS first), so the reason for the omission is gone while
+   * its cost stayed: every person rebuilt through this path, including the whole
+   * 2026-08-31 cohort, was built from title x company alone. That is the single biggest
+   * cause of axes that read like anyone's.
    */
   personResearchByContact?: Map<string, PersonWebResearch>;
+  /** Injection seam: tests must never reach a provider. Defaults to researchPerson. */
+  researcher?: typeof researchPerson;
 }): Promise<BuildProfilesReport> {
   const report: BuildProfilesReport = {
     considered: 0, built: 0, refreshed: 0, axesCreated: 0, axesMerged: 0, axesRefused: 0,
     pool: { axes: 0, uniqueQueries: 0 }, thin: [], stages: {}, sameDecision: [],
     hebrewQueriesByPerson: [], noHebrewQuery: [], skipped: [], rejectedByRule: {},
     superseded: { matches: 0, drafts: 0 },
+    researchByPerson: [], noResearch: [],
     domainsByPerson: [], allDerived: [],
     layerQueries: { industry: 0, companyMonitor: 0, person: 0 },
     industryShared: { industries: 0, employers: 0, savedQueries: 0 },
@@ -237,6 +259,32 @@ export async function buildProfilesForMarked(input: {
       continue;
     }
 
+    // Research the person unless the caller already did. This used to be a bare `?? null`
+    // inside the build call — a silent build with no person layer — and that single `??` is
+    // why the 2026-08-31 cohort came back generic: NONE of the three callers of this
+    // function passes the map, so the branch that ran was always the one with no research.
+    let personResearch = input.personResearchByContact?.get(contact.id) ?? null;
+    if (!personResearch) {
+      const research = input.researcher ?? researchPerson;
+      // researchPerson never throws by contract, but a provider-layer surprise must not
+      // cost the whole build: a person modelled on the title is still better than none.
+      try {
+        personResearch = await research({
+          fullName: name,
+          hebrewName: contact.hebrewFirstName,
+          companyName: employer.name,
+        });
+      } catch {
+        personResearch = null;
+      }
+    }
+    report.researchByPerson.push({
+      name,
+      findings: personResearch?.findings.length ?? 0,
+      paidQueries: personResearch?.paidQueries ?? 0,
+    });
+    if (!personResearch || personResearch.findings.length === 0) report.noResearch.push(name);
+
     const draft = await buildPersonProfile({
       fullName: name,
       currentTitle: contact.currentTitle,
@@ -256,9 +304,8 @@ export async function buildProfilesForMarked(input: {
       // tenure is indistinguishable from a real one once it is downstream, which is exactly
       // what the fabricated `dateIso: "2024-01-01"` cost the pilot one field over.
       career: careerSummary(contact.experience),
-      // Present only on the prepare path; the nightly build passes no map and models the
-      // person without it rather than paying a news quota per contact.
-      personResearch: input.personResearchByContact?.get(contact.id) ?? null,
+      // Now present on EVERY path — pre-fetched by the caller, or researched just above.
+      personResearch,
       // The employer's lines of business WITH `forWhom` — the input the audience answer is
       // an intersection over. Without it the model can only copy the company's whole
       // customer base onto one executive, which is the v1 failure this phase exists to fix.
@@ -449,6 +496,10 @@ export async function buildProfilesForMarked(input: {
           domainKind: matched?.kind ?? "derived",
           domainSource: matched?.kind === "found" ? (matched.source ?? null) : null,
           layerEvidence: proposal.layerEvidence,
+          // The stage tag and the adopt axis's outside example, which the build enforced
+          // and then dropped on the floor. Persisted so the mix is readable afterwards.
+          stage: proposal.stage,
+          externalExample: proposal.externalExample,
         },
       };
     });

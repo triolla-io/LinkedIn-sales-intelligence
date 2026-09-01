@@ -270,6 +270,15 @@ From ROLE-3 derive:
   פרטיים ומשקי בית" copied off the employer profile is the company's audience, and if
   it is also this person's, it is because the lines they own say so.
 - scope: {"owns": [line names], "notOwns": [line names]} — from ROLE-3, in Hebrew.
+  notOwns is a HARD FILTER, not the other half of a summary. An item about a line in
+  notOwns is deleted before any other consideration reaches it, so A LINE YOU ARE NOT
+  SURE IS OFF THIS PERSON'S DESK GOES IN NEITHER LIST. Leaving it out costs a little
+  precision; putting it in wrongly silences the one executive who owns the subject.
+  The live case: a Head of Retail Banking who is also described, in public, as leading
+  the bank's small-business customers was given notOwns ["Business Banking"] — which
+  would have filtered away every small-business story before it was ever weighed. When a
+  line is BROADER than what you are excluding, exclude the narrow part or nothing: write
+  "בנקאות עסקית גדולה" rather than "Business Banking" if small businesses are hers.
 
 You are also given CAREER (computed in code — trust it, do not re-derive): tenure in
 the current role and the path into it. Read what the path says about what they own:
