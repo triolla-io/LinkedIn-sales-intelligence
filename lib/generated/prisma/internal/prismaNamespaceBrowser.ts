@@ -104,6 +104,7 @@ export const ModelName = {
   PostCommentDraft: 'PostCommentDraft',
   RadarFeedback: 'RadarFeedback',
   RadarScanRun: 'RadarScanRun',
+  RadarDropout: 'RadarDropout',
   RadarDomain: 'RadarDomain',
   RadarSourcePack: 'RadarSourcePack',
   NewsQueryCache: 'NewsQueryCache'
@@ -1041,6 +1042,23 @@ export const RadarScanRunScalarFieldEnum = {
 } as const
 
 export type RadarScanRunScalarFieldEnum = (typeof RadarScanRunScalarFieldEnum)[keyof typeof RadarScanRunScalarFieldEnum]
+
+
+export const RadarDropoutScalarFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  contactId: 'contactId',
+  url: 'url',
+  host: 'host',
+  title: 'title',
+  shareworthy: 'shareworthy',
+  stature: 'stature',
+  floor: 'floor',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type RadarDropoutScalarFieldEnum = (typeof RadarDropoutScalarFieldEnum)[keyof typeof RadarDropoutScalarFieldEnum]
 
 
 export const RadarDomainScalarFieldEnum = {
