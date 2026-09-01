@@ -192,8 +192,19 @@ async function main() {
     `  tagged       ${show(report.itemsTagged)} of ${show(report.itemsWritten)} written items carry an industry tag` +
       `  (taxonomy offered for ${show(report.taxonomyOffered)} pool items)`
   );
+  // Which of the two failures it is. On 2026-09-01 the answer was the FIRST one and the
+  // report could not say so: the write-up budget had gone entirely to the named channel
+  // (`[...groups.keys()].sort()` puts its empty-string key first), so no written item was
+  // ever eligible for a tag and the tagging layer itself was innocent.
+  console.log(
+    `  eligible     ${show(report.itemsWrittenWithTaxonomy)} of ${show(report.itemsWritten)} written items came from a channel with a taxonomy`
+  );
   if (report.taxonomyOffered > 0 && report.itemsWritten > 0 && report.itemsTagged === 0) {
-    console.log("  ⚠ the tagging layer was asked and answered nothing — floor 1 can only fire on the entity tier");
+    console.log(
+      report.itemsWrittenWithTaxonomy === 0
+        ? "  ⚠ the write-up budget went entirely to channels triaged with no taxonomy — no written item could carry a tag"
+        : "  ⚠ the tagging layer was asked and answered nothing — floor 1 can only fire on the entity tier"
+    );
   }
   if (report.taxonomyOffered === 0 && report.poolItems > 0) {
     console.log("  ⚠ no item was triaged against a taxonomy at all — no pack reached triage this run");

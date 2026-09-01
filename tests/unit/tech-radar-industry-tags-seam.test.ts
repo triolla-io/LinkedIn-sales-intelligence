@@ -89,7 +89,7 @@ vi.mock("@/lib/tech-radar/chooser", async () => {
 const judgeAndDraft = vi.fn();
 vi.mock("@/lib/tech-radar/judge-and-draft", () => ({ judgeAndDraft: (...a: unknown[]) => judgeAndDraft(...a) }));
 
-const { personScan } = await import("@/lib/tech-radar/person-scan");
+const { personScan, capSynthesisByChannel } = await import("@/lib/tech-radar/person-scan");
 const { BANKING_IL_PACK } = await import("@/lib/tech-radar/sources");
 const { OR_FEATURE } = await import("@/lib/tech-radar/types");
 
@@ -192,6 +192,85 @@ function triagePrompt(): string {
   expect(call, "triage was never called").toBeTruthy();
   const body = call![1] as { messages: { role: string; content: string }[] };
   return body.messages.find((m) => m.role === "user")!.content;
+}
+
+/** Every user message triage was actually sent, in call order. */
+function triagePrompts(): string[] {
+  return chat.mock.calls
+    .filter((c) => c[0] === OR_FEATURE.triage)
+    .map((c) => {
+      const body = c[1] as { messages: { role: string; content: string }[] };
+      return body.messages.find((m) => m.role === "user")!.content;
+    });
+}
+
+/** The one triage prompt that carried the closed list. A run has several. */
+function taxonomyPrompt(): string {
+  const hit = triagePrompts().find((p) => p.includes("TAXONOMY"));
+  expect(hit, "no triage call carried a TAXONOMY block").toBeTruthy();
+  return hit!;
+}
+
+/**
+ * A model stand-in that answers the prompt it was actually GIVEN, rather than a fixed
+ * verdict for a fixed url.
+ *
+ * This is the whole difference between the fixtures that stayed green and the production
+ * run that wrote zero tags: a `mockResolvedValue` answers one url no matter how many
+ * items, chunks or channels the scan really sent, so a defect in WHICH prompt a written
+ * item came from is invisible. Here the reply is derived from the rendered prompt — the
+ * urls it lists, and whether it carried a TAXONOMY block at all — so a scan that triages
+ * two channels gets two different answers, exactly as it does in production.
+ */
+function modelAnswersThePrompt(tagFor: (user: string) => string[] | undefined = () => [REAL_TAG]) {
+  chat.mockImplementation(async (feature: string, body: { messages: { role: string; content: string }[] }) => {
+    if (feature !== OR_FEATURE.triage) {
+      return { ok: true, status: 200, data: { choices: [{ message: { content: "{}" } }] } };
+    }
+    const user = body.messages.find((m) => m.role === "user")!.content;
+    const urls = [...user.matchAll(/^\s*\d+\. url=(\S+)$/gm)].map((m) => m[1]);
+    const tags = user.includes("TAXONOMY") ? tagFor(user) : undefined;
+    const verdicts = urls.map((url) => {
+      const v: Record<string, unknown> = {
+        url,
+        shareworthy: 0.9,
+        stature: 0.9,
+        kind: "big_news",
+        publisher: "globes.co.il",
+        staleness: false,
+        israelRelevant: true,
+        categories: ["credit"],
+        technology: null,
+        vendor: null,
+      };
+      if (tags !== undefined) v.industryTags = tags;
+      return v;
+    });
+    return {
+      ok: true,
+      status: 200,
+      data: { choices: [{ message: { content: JSON.stringify({ verdicts }) } }] },
+    };
+  });
+}
+
+/** n pack items, distinct urls, each still squarely inside Pazit's floor-0 scope. */
+function packItems(n: number) {
+  return Array.from({ length: n }, (_, i) => ({
+    ...packItem(),
+    url: `https://www.globes.co.il/news/article.aspx?did=p${i}`,
+  }));
+}
+
+/** n named-channel items — no industry provenance, so triaged with NO taxonomy. */
+function namedItems(n: number) {
+  return Array.from({ length: n }, (_, i) => ({
+    title: `One Zero ${i}`,
+    url: `https://reuters.com/n${i}`,
+    snippet: "s",
+    publishedAt: fresh(),
+    companyIds: ["ax-industry"],
+  }));
 }
 
 function lastReport(): Record<string, unknown> {
@@ -354,5 +433,177 @@ describe("the report says how much of the run got tagged", () => {
     expect(report.taxonomyOffered).toBe(0);
     expect(report.itemsTagged).toBe(0);
     expect(triagePrompt()).not.toContain("TAXONOMY");
+  });
+});
+
+/**
+ * The 2026-09-01 12:0x run, reproduced: 112 pool items triaged against a 50-tag closed
+ * list, 12 items written, ZERO tagged — with the taxonomy provably in the prompt and the
+ * off-list filter provably accepting a verbatim tag.
+ *
+ * The write-up budget is what broke. `worthSharing` inherits the order the triage GROUPS
+ * were iterated in, that order is `[...groups.keys()].sort()`, and the named channel's key
+ * is the empty string — which sorts before every industry key there is. So the first
+ * MAX_SYNTHESIS_PER_RUN survivors were all named-channel verdicts, and the named channel
+ * is triaged with NO taxonomy on purpose, so not one written item could carry a tag no
+ * matter how well the model answered.
+ */
+describe("the write-up budget is spread across channels, not spent in key order", () => {
+  beforeEach(() => {
+    // More survivors than the budget, from BOTH channels — production's shape.
+    fetchSourcePack.mockResolvedValue({
+      items: packItems(15),
+      perSource: [{ host: "globes.co.il", name: "גלובס", items: 15, via: "rss", feedUrl: "https://x/rss" }],
+    });
+    fetchPoolNews.mockResolvedValue({
+      items: namedItems(15), queriesRun: 15, cachedQueries: 0, quotaLikely: false, providerStats: [],
+    });
+    modelAnswersThePrompt();
+    let n = 0;
+    upsertTechItem.mockImplementation(async () => `item-${(n += 1)}`);
+  });
+
+  it("writes up items from the taxonomied channel even when the named channel has more than the budget", async () => {
+    const report = await personScan("org1");
+
+    expect(report.taxonomyOffered).toBe(15);
+    expect(report.itemsWritten).toBe(12);
+    // The number the production run had at zero. A budget spent entirely on one channel is
+    // the same total with none of the value.
+    expect(report.itemsTagged).toBeGreaterThan(0);
+    expect(techItemUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { industryTags: [REAL_TAG] } })
+    );
+  });
+
+  it("says which of the two failures happened: no taxonomied item written, or nothing tagged", async () => {
+    // The model answers [] for every item, so the taxonomied channel IS written up and
+    // still nothing is tagged. That is a different bug from the one above and the report
+    // has to tell them apart.
+    modelAnswersThePrompt(() => []);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const report = await personScan("org1");
+
+    expect(report.itemsTagged).toBe(0);
+    expect(report.itemsWrittenWithTaxonomy).toBeGreaterThan(0);
+    expect(warn.mock.calls.flat().join(" ")).toContain("the model returned no on-list tag");
+    warn.mockRestore();
+  });
+
+  it("cuts the budget deterministically — the same pool always writes up the same items", async () => {
+    const first = await personScan("org1");
+    const firstIds = upsertTechItem.mock.calls.length;
+    expect(firstIds).toBe(12);
+
+    upsertTechItem.mockClear();
+    const second = await personScan("org1");
+
+    expect(second.itemsWritten).toBe(first.itemsWritten);
+    expect(second.itemsTagged).toBe(first.itemsTagged);
+  });
+});
+
+/**
+ * The assertion that would have caught the shape mismatch this bug was first blamed on.
+ *
+ * `RadarSourcePack.taxonomy` is `[{ tag, label }]`, so a prompt builder that interpolated
+ * the entries instead of their `.tag` would render "[object Object]" fifty times, every
+ * tag the model returned would legitimately be off-list, and the drop would be CORRECT
+ * behaviour on a corrupt prompt. That is not what happened here — and now nothing can
+ * quietly make it happen later.
+ */
+describe("the rendered prompt carries the Hebrew list literally", () => {
+  it("renders every tag and every label as text, with no stringified object anywhere", async () => {
+    await personScan("org1");
+
+    const user = taxonomyPrompt();
+    expect(user).not.toContain("[object Object]");
+    expect(user).not.toContain("undefined —");
+    for (const t of BANKING_IL_PACK.taxonomy) {
+      expect(user, `tag missing from the prompt: ${t.tag}`).toContain(`- ${t.tag} — ${t.label}`);
+    }
+  });
+
+  it("survives the off-list filter with a tag read back OUT of the rendered prompt", async () => {
+    // Not a tag copied from the source file — the exact bytes the model was shown. A
+    // normalisation that silently altered the rendered text (a bidi mark, a stripped
+    // hyphen, an NFC/NFD difference) would drop every tag in production while a
+    // hand-written fixture kept passing.
+    modelAnswersThePrompt((user) => {
+      const line = user.split("\n").find((l) => l.startsWith("- "));
+      return [line!.slice(2).split(" — ")[0]];
+    });
+
+    await personScan("org1");
+
+    const user = taxonomyPrompt();
+    const rendered = user.split("\n").find((l) => l.startsWith("- "))!.slice(2).split(" — ")[0];
+    expect(techItemUpdate).toHaveBeenCalledWith({
+      where: { id: "item-1" },
+      data: { industryTags: [rendered] },
+    });
+  });
+});
+
+/** The cut itself, in isolation — the same round-robin discipline capPoolByAxis applies
+ *  one stage earlier, and the reason a taxonomied channel can no longer be starved. */
+describe("capSynthesisByChannel", () => {
+  const item = (url: string, channel: string, stature = 0.9, shareworthy = 0.9) => ({
+    url, channel, stature, shareworthy,
+  });
+
+  it("keeps everything when the budget is not reached", () => {
+    const items = [item("a", ""), item("b", "banking finance")];
+    expect(capSynthesisByChannel(items, 12)).toEqual({ kept: items, dropped: 0 });
+  });
+
+  it("gives every channel a turn before any channel gets a second slot", () => {
+    const items = [
+      ...Array.from({ length: 10 }, (_, i) => item(`https://named/${i}`, "")),
+      ...Array.from({ length: 10 }, (_, i) => item(`https://pack/${i}`, "banking finance")),
+    ];
+
+    const { kept, dropped } = capSynthesisByChannel(items, 4);
+
+    expect(dropped).toBe(16);
+    expect(kept.filter((k) => k.channel === "").length).toBe(2);
+    expect(kept.filter((k) => k.channel === "banking finance").length).toBe(2);
+  });
+
+  it("takes the heaviest item of each channel first, never the heaviest overall", () => {
+    const items = [
+      item("https://named/heavy", "", 1),
+      item("https://named/light", "", 0.6),
+      item("https://pack/light", "banking finance", 0.7),
+    ];
+
+    const { kept } = capSynthesisByChannel(items, 2);
+
+    // The named channel's own best, then the pack's — not the named channel's two.
+    expect(kept.map((k) => k.url)).toEqual(["https://named/heavy", "https://pack/light"]);
+  });
+
+  it("spends the whole budget on one channel when it is the only one left", () => {
+    const items = Array.from({ length: 5 }, (_, i) => item(`https://pack/${i}`, "banking finance"));
+
+    const { kept, dropped } = capSynthesisByChannel(items, 3);
+
+    expect(kept).toHaveLength(3);
+    expect(dropped).toBe(2);
+  });
+
+  it("cuts the same way every time, whatever order the survivors arrived in", () => {
+    const items = [
+      item("https://pack/b", "banking finance", 0.8),
+      item("https://named/a", "", 0.8),
+      item("https://pack/a", "banking finance", 0.8),
+      item("https://named/b", "", 0.8),
+    ];
+
+    const forwards = capSynthesisByChannel(items, 2).kept.map((k) => k.url);
+    const backwards = capSynthesisByChannel([...items].reverse(), 2).kept.map((k) => k.url);
+
+    expect(forwards).toEqual(backwards);
   });
 });

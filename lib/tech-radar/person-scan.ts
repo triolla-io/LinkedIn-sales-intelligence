@@ -83,6 +83,83 @@ export const MAX_QUERIES_PER_AXIS = Number(process.env.RADAR_MAX_QUERIES_PER_AXI
 const MAX_POOL_ITEMS = 200;
 const MAX_SYNTHESIS_PER_RUN = 12;
 
+/** A survivor competing for one of the MAX_SYNTHESIS_PER_RUN write-up slots. */
+type SynthesisRankable = {
+  url: string;
+  /** The triage CHANNEL it came from: an industry key, or "" for the named channel. */
+  channel: string;
+  stature: number;
+  shareworthy: number;
+};
+
+/**
+ * Order inside one channel's bucket, best first. Pure, no LLM, no network.
+ *
+ * Weight before relevance, deliberately: `stature` is the "would a CEO forward this to
+ * another CEO" question, and a run's twelve write-ups should be its twelve heaviest items
+ * rather than its twelve most on-topic ones. The url tie-break is what makes the same
+ * survivors always cut the same way, so an Inngest step replay writes up the same twelve.
+ */
+function synthesisRank(a: SynthesisRankable, b: SynthesisRankable): number {
+  const weight = b.stature - a.stature;
+  if (weight !== 0) return weight;
+  const share = b.shareworthy - a.shareworthy;
+  if (share !== 0) return share;
+  return a.url < b.url ? -1 : a.url > b.url ? 1 : 0;
+}
+
+/**
+ * Which survivors get the write-up budget, spread across triage CHANNELS.
+ *
+ * THE 2026-09-01 BUG. This used to be `worthSharing.slice(0, MAX_SYNTHESIS_PER_RUN)`, and
+ * `worthSharing` inherits the order the triage groups were iterated in — which is
+ * `[...groups.keys()].sort()`, and the named channel's key is the EMPTY STRING, so it
+ * sorts before every industry key there is. A live run triaged 112 pool items against a
+ * 50-tag closed list, wrote 12 items, and tagged NONE of them: all twelve slots had gone
+ * to named-channel verdicts, and the named channel is triaged with NO taxonomy on purpose,
+ * so no written item could carry a tag however well the model answered. The taxonomy was
+ * in the prompt, the model's tags were on the list, and the layer still produced nothing —
+ * because the items it classified never reached a write-up.
+ *
+ * Round-robin, exactly the discipline `capPoolByAxis` already applies one stage earlier
+ * and for the same reason: every channel contributes its best item before any channel
+ * contributes a second, so the cut can never starve one channel. Ranked WITHIN a bucket
+ * and never across it — sorting globally would undo the round-robin.
+ *
+ * Pure and deterministic, so a step replay produces the same twelve.
+ */
+export function capSynthesisByChannel<T extends SynthesisRankable>(
+  items: T[],
+  limit: number
+): { kept: T[]; dropped: number } {
+  if (limit <= 0) return { kept: [], dropped: items.length };
+  if (items.length <= limit) return { kept: items, dropped: 0 };
+
+  const byChannel = new Map<string, T[]>();
+  for (const item of items) {
+    const list = byChannel.get(item.channel);
+    if (list) list.push(item);
+    else byChannel.set(item.channel, [item]);
+  }
+  for (const list of byChannel.values()) list.sort(synthesisRank);
+
+  const channels = [...byChannel.keys()].sort();
+  const kept: T[] = [];
+  for (let round = 0; kept.length < limit; round += 1) {
+    let addedThisRound = false;
+    for (const channel of channels) {
+      if (kept.length >= limit) break;
+      const item = byChannel.get(channel)?.[round];
+      if (!item) continue;
+      kept.push(item);
+      addedThisRound = true;
+    }
+    if (!addedThisRound) break;
+  }
+
+  return { kept, dropped: items.length - kept.length };
+}
+
 /**
  * The narrow paid channel's ceiling, per scan.
  *
@@ -325,6 +402,18 @@ export type PersonScanReport = {
    * doing its job, 0 tagged with n offered is a broken tagging layer.
    */
   itemsTagged: number;
+  /**
+   * Written items that came from a channel triage WAS given a taxonomy for — i.e. items
+   * that could have carried a tag.
+   *
+   * The number that would have diagnosed 2026-09-01 in one read. That run had
+   * taxonomyOffered=112 and itemsTagged=0, which reads as "the tagging layer is broken" —
+   * and the tagging layer was fine. The write-up budget had gone entirely to the named
+   * channel, which is triaged with no taxonomy on purpose, so this field was 0 and no
+   * written item could ever have been tagged. 0 here with n offered is a BUDGET problem;
+   * n here with 0 tagged is a MODEL or prompt problem. Two different bugs, one symptom.
+   */
+  itemsWrittenWithTaxonomy: number;
 };
 
 const EMPTY: PersonScanReport = {
@@ -340,7 +429,7 @@ const EMPTY: PersonScanReport = {
   perSource: [], sourcePacks: [], unresolvedIndustries: [], peopleWithoutPack: [],
   namedQueries: 0, peopleScanned: 0, geoGateSkipped: [], floorCandidates: 0,
   chooserCalls: 0, chooserPicks: 0, floorDrops: {}, dropoutsWritten: 0,
-  taxonomyOffered: 0, itemsTagged: 0,
+  taxonomyOffered: 0, itemsTagged: 0, itemsWrittenWithTaxonomy: 0,
 };
 
 function countBy(reasons: string[]): Record<string, number> {
@@ -845,6 +934,7 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   // the write-up still has to say whether the tagging layer was ever asked anything.
   let taxonomyOffered = 0;
   let itemsTagged = 0;
+  let itemsWrittenWithTaxonomy = 0;
   /**
    * Every rejection, at every gate, for every (item, person) pair.
    *
@@ -871,7 +961,7 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
       | "articlesByLayer" | "perSource" | "sourcePacks" | "unresolvedIndustries"
       | "peopleWithoutPack" | "namedQueries" | "peopleScanned" | "geoGateSkipped"
       | "floorCandidates" | "chooserCalls" | "chooserPicks" | "floorDrops" | "dropoutsWritten"
-      | "taxonomyOffered" | "itemsTagged"
+      | "taxonomyOffered" | "itemsTagged" | "itemsWrittenWithTaxonomy"
     >
   ): Promise<PersonScanReport> => {
     // The evidence first: a scan that crashed on its own reporting must still have saved
@@ -896,13 +986,18 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
       perSource, sourcePacks, unresolvedIndustries, peopleWithoutPack, namedQueries,
       peopleScanned, geoGateSkipped, floorCandidates, chooserCalls, chooserPicks,
       floorDrops: floorDropsOf(), dropoutsWritten, taxonomyOffered, itemsTagged,
+      itemsWrittenWithTaxonomy,
     };
     // Named, never merely counted: a tagging layer that was asked and answered nothing is
     // the exact silence that let 11 untagged items look like a normal run.
     if (report.taxonomyOffered > 0 && report.itemsWritten > 0 && report.itemsTagged === 0) {
       console.warn(
         `[radar] tagging produced NOTHING org=${orgId} offered=${report.taxonomyOffered}` +
-          ` written=${report.itemsWritten} tagged=0 — floor 1 can only fire on the entity tier`
+          ` written=${report.itemsWritten} withTaxonomy=${report.itemsWrittenWithTaxonomy} tagged=0 — ` +
+          (report.itemsWrittenWithTaxonomy === 0
+            ? "the write-up budget went entirely to channels triaged with no taxonomy, so no written item could carry a tag"
+            : "the model returned no on-list tag for any written item") +
+          " — floor 1 can only fire on the entity tier"
       );
     }
     await prisma.radarScanRun.update({
@@ -1305,10 +1400,26 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   // Not every survivor is written up: synthesis is one LLM call plus one page read each,
   // capped at MAX_SYNTHESIS_PER_RUN. Named rather than left as the difference between two
   // other numbers — a drop with no reason code is the thing this file keeps being fixed for.
-  const synthesisCapDropped = Math.max(0, worthSharing.length - MAX_SYNTHESIS_PER_RUN);
-  for (const verdict of worthSharing.slice(0, MAX_SYNTHESIS_PER_RUN)) {
-    const source = itemByUrl.get(verdict.url);
-    if (!source) continue;
+  //
+  // The pool item is resolved BEFORE the cap, not inside the loop: a verdict whose item is
+  // gone cannot be written up, and letting it consume one of the twelve slots would spend
+  // the budget on nothing. Unreachable by construction — parseTriageResponse only returns
+  // urls it was given — so it is counted rather than merely skipped.
+  const survivors = worthSharing
+    .map((verdict) => ({ verdict, source: itemByUrl.get(verdict.url) }))
+    .filter((s): s is { verdict: TriageVerdict; source: ScanPoolItem } => Boolean(s.source))
+    .map(({ verdict, source }) => ({
+      verdict,
+      source,
+      url: verdict.url,
+      channel: source.industryKey ?? "",
+      stature: verdict.stature,
+      shareworthy: verdict.shareworthy,
+    }));
+  const sourceMissing = worthSharing.length - survivors.length;
+  const budget = capSynthesisByChannel(survivors, MAX_SYNTHESIS_PER_RUN);
+  const synthesisCapDropped = budget.dropped;
+  for (const { verdict, source } of budget.kept) {
     try {
       // Read the actual article. Passing `pages: []` meant the model saw a title and a
       // snippet and filled the rest from what it already knew — that is how a Bloomberg
@@ -1335,6 +1446,12 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
       // the column already defaults to []. Both matter because upsertTechItem MERGES into an
       // existing row: writing [] here would erase the tags another pack's pull gave the same
       // story.
+      //
+      // An ABSENT key is also what makes `itemsWrittenWithTaxonomy` readable: it counts the
+      // written items that came from a channel triage was given a taxonomy for, which is the
+      // one number that tells "the budget went to untagged channels" apart from "the model
+      // returned nothing on-list". The 2026-09-01 run needed exactly that distinction.
+      if (verdict.industryTags) itemsWrittenWithTaxonomy += 1;
       if (verdict.industryTags && verdict.industryTags.length > 0) {
         await prisma.techItem.update({ where: { id: itemId }, data: { industryTags: verdict.industryTags } });
         itemsTagged += 1;
@@ -1365,6 +1482,7 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   const writeUpDrops: Record<string, number> = {};
   if (synthesisCapDropped > 0) writeUpDrops.synthesis_cap = synthesisCapDropped;
   if (writeUpFailed > 0) writeUpDrops.write_up_failed = writeUpFailed;
+  if (sourceMissing > 0) writeUpDrops.pool_item_missing = sourceMissing;
   if (written.length === 0) {
     return finish({
       ...EMPTY, axes: axes.length, queriesRun: news.queriesRun, poolItems: keptItems.length, worthSharing: worthSharing.length,
