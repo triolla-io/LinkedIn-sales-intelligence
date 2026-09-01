@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withTenant } from "@/lib/tenancy/with-tenant";
 import { prisma } from "@/lib/prisma";
 import type { PackSource, SourceLang, SourceScope, TaxonomyTag } from "@/lib/tech-radar/sources";
+import { INDUSTRY_FAMILIES, SEED_PACKS, normalizeIndustryKey } from "@/lib/tech-radar/source-packs";
 
 /**
  * The source packs, as an editable thing.
@@ -46,8 +47,9 @@ type PackRow = {
 type PackView = {
   id: string;
   industryKey: string;
-  /** No `label` column exists (the migration stayed additive-minimal) and `industryKey`
-   *  is already written in Hebrew, so it doubles as the human-facing name. */
+  /** No `label` column exists (the migration stayed additive-minimal), and the stored
+   *  `industryKey` is a normalised slug — "banking finance", not "בנקאות ופיננסים". Shown
+   *  raw it would head the screen in English, so the Hebrew name is recovered. */
   label: string;
   /** "org" = this org's own edited copy; "global" = the shared built-in, still unforked. */
   scope: "org" | "global";
@@ -172,6 +174,20 @@ function describeGaps(sources: PackSource[], taxonomy: TaxonomyTag[]): { incompl
   return { incomplete: global < TARGET_PER_HALF || il < TARGET_PER_HALF, gaps };
 }
 
+/**
+ * The Hebrew name for a stored key. Recovered rather than stored: `industryKey` is
+ * `normalizeIndustryKey`'s output (a token-sorted slug), which is the right key and the
+ * wrong headline. The seed's own label wins, then the industry family's; a key belonging
+ * to neither is an industry researched after this code was written, and its slug is the
+ * most honest thing we have to show for it.
+ */
+function labelFor(industryKey: string): string {
+  const fromSeed = SEED_PACKS.find((p) => normalizeIndustryKey(p.industryKey) === industryKey)?.label;
+  if (fromSeed) return fromSeed;
+  const family = INDUSTRY_FAMILIES.find((f) => f.key === industryKey)?.label;
+  return family ?? industryKey;
+}
+
 function toView(row: PackRow): PackView {
   const sources = readSources(row.sources);
   const taxonomy = readTaxonomy(row.taxonomy);
@@ -179,7 +195,7 @@ function toView(row: PackRow): PackView {
   return {
     id: row.id,
     industryKey: row.industryKey,
-    label: row.industryKey,
+    label: labelFor(row.industryKey),
     scope: row.orgId ? "org" : "global",
     sources,
     taxonomy,

@@ -365,3 +365,24 @@ describe("PATCH input guards", () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe("the pack's headline", () => {
+  /**
+   * `industryKey` is `normalizeIndustryKey`'s output — a token-sorted slug, and for the
+   * banking family literally the English "banking finance". Heading the screen with that
+   * would put an English slug above a Hebrew page, so the label is recovered from the
+   * seed (and then from the industry family) rather than stored.
+   */
+  it("shows the seed's Hebrew label for a normalised industry key", async () => {
+    packFindMany.mockResolvedValue([pack({ industryKey: "banking finance" })]);
+    const packs = (await json(await GET(req()))).packs as { label: string; industryKey: string }[];
+    expect(packs[0].industryKey).toBe("banking finance");
+    expect(packs[0].label).toBe("בנקאות ופיננסים — ישראל");
+  });
+
+  it("falls back to the key itself for an industry nobody has seeded", async () => {
+    packFindMany.mockResolvedValue([pack({ industryKey: "aviation" })]);
+    const packs = (await json(await GET(req()))).packs as { label: string }[];
+    expect(packs[0].label).toBe("aviation");
+  });
+});
