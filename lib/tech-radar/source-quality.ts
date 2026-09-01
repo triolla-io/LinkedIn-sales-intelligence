@@ -36,12 +36,24 @@ const AGGREGATOR_HOST_SUFFIXES = [".blogspot.com"];
  */
 const AGGREGATOR_NAME_SHAPES = ["aggregat", "feed", "newswire", "rss", "syndicat"];
 
-/** Israeli, then global. Alphabetized within each group, no comment noise. */
+/**
+ * Israeli, then global. Alphabetized within each group, no comment noise.
+ *
+ * Every host of every source pack (lib/tech-radar/sources.ts) MUST appear here — spec
+ * part 2, item 7. A pack is a human's hand-picked list of outlets worth forwarding, so
+ * the pack and this gate cannot disagree: seven of the banking pack's global ten
+ * (Fintech Futures, The Fintech Times, Finovate, Fintech Nexus, Crowdfund Insider,
+ * Forbes, S&P Global) and funder.co.il were missing, and only `rejectsAsGift`'s leniency
+ * towards `unknown` kept them alive. Kept as a literal rather than derived from the pack
+ * so the gate stays pure data with no dependency on pack shape; the agreement is pinned
+ * by a test that walks the pack.
+ */
 const PUBLISHER_HOSTS = [
   "bizportal.co.il",
   "calcalist.co.il",
   "davar1.co.il",
   "financeisrael.co.il",
+  "funder.co.il",
   "geektime.co.il",
   "globes.co.il",
   "haaretz.co.il",
@@ -55,12 +67,19 @@ const PUBLISHER_HOSTS = [
   "bloomberg.com",
   "cnbc.com",
   "coindesk.com",
+  "crowdfundinsider.com",
   "economist.com",
   "finextra.com",
+  "finovate.com",
+  "fintechfutures.com",
+  "fintechnexus.com",
+  "forbes.com",
   "ft.com",
   "insurancejournal.com",
   "reuters.com",
+  "spglobal.com",
   "techcrunch.com",
+  "thefintechtimes.com",
   "theregister.com",
   "theverge.com",
   "venturebeat.com",
