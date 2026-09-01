@@ -1,3 +1,4 @@
+import { ISRAEL_LOCALE } from "@/lib/news/locale";
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { BANKING_IL_PACK, type PackSource, type SourcePack } from "@/lib/tech-radar/sources";
@@ -308,5 +309,63 @@ describe("the RSS path stays free and ungated", () => {
     for (const metered of ["news/budget", "news/serper", "news/serpapi", "news/tavily", "news/gnews"]) {
       expect(source).not.toContain(`"@/lib/${metered}"`);
     }
+  });
+});
+
+describe("the locale reaches the request, not just the reported feed URL", () => {
+  // The 2026-09-01 zeros: googleNewsSiteFeedUrl spelled hl=he-IL out correctly and the
+  // actual call re-derived the locale from an all-ASCII `site:` query, landing on en-US and
+  // returning 2017-2024 items that the freshness gate then dropped to zero.
+  const heSource = { host: "calcalist.co.il", name: "כלכליסט", lang: "he", scope: "il", enabled: true } as const;
+  const enSource = { host: "bloomberg.com", name: "Bloomberg", lang: "en", scope: "global", enabled: true } as const;
+
+  it("passes the Israeli locale for a Hebrew source with an all-ASCII site: query", async () => {
+    const calls: { query: string; locale: unknown }[] = [];
+    await fetchSourcePack(
+      { industryKey: "banking finance", label: "x", sources: [heSource], taxonomy: [] } as never,
+      {
+        fetchText: async () => null,
+        fetchGoogleNews: async (query, opts) => {
+          calls.push({ query, locale: opts.locale });
+          return [];
+        },
+      }
+    );
+    expect(calls).toHaveLength(1);
+    expect(calls[0].query).toBe("site:calcalist.co.il");
+    expect(calls[0].locale).toEqual(ISRAEL_LOCALE);
+  });
+
+  it("passes null — deliberately US — for a global English source", async () => {
+    const calls: { locale: unknown }[] = [];
+    await fetchSourcePack(
+      { industryKey: "banking finance", label: "x", sources: [enSource], taxonomy: [] } as never,
+      {
+        fetchText: async () => null,
+        fetchGoogleNews: async (_query, opts) => {
+          calls.push({ locale: opts.locale });
+          return [];
+        },
+      }
+    );
+    expect(calls[0].locale).toBeNull();
+  });
+
+  it("the reported feed URL and the request agree on the market", async () => {
+    // They were derived in two places and drifted. One helper now feeds both.
+    let sent: unknown = "unset";
+    const out = await fetchSourcePack(
+      { industryKey: "banking finance", label: "x", sources: [heSource], taxonomy: [] } as never,
+      {
+        fetchText: async () => null,
+        fetchGoogleNews: async (_q, opts) => {
+          sent = opts.locale;
+          return [];
+        },
+      }
+    );
+    const reported = new URL(out.perSource[0].feedUrl);
+    expect(reported.searchParams.get("hl")).toBe(ISRAEL_LOCALE.rssHl);
+    expect(sent).toEqual(ISRAEL_LOCALE);
   });
 });

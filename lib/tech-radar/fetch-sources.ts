@@ -36,7 +36,7 @@
  */
 import type { NewsResult } from "@/lib/news/types";
 import { canonicalizeSourceUrl, isSearchEngineHost } from "@/lib/news/canonical-url";
-import { ISRAEL_LOCALE } from "@/lib/news/locale";
+import { ISRAEL_LOCALE, type QueryLocale } from "@/lib/news/locale";
 import { fetchGoogleNewsRss } from "@/lib/news/google-news-rss";
 import { FRESHNESS_WINDOW_DAYS } from "@/lib/tech-radar/freshness";
 import type { PackSource, SourcePack } from "@/lib/tech-radar/sources";
@@ -81,8 +81,12 @@ export type FetchSourcesDeps = {
   /** Returns the body, or null when the feed could not be read (non-2xx, empty, timeout).
    *  Injected so no test ever touches the network. */
   fetchText?: (url: string) => Promise<string | null>;
-  /** The Google News fallback. Injected for the same reason. */
-  fetchGoogleNews?: (query: string, opts: { days: number; max: number }) => Promise<NewsResult[]>;
+  /** The Google News fallback. Injected for the same reason.
+   *  `locale` is passed EXPLICITLY off `source.lang` — see pullOne. */
+  fetchGoogleNews?: (
+    query: string,
+    opts: { days: number; max: number; locale: QueryLocale | null }
+  ) => Promise<NewsResult[]>;
   /** Sources pulled in parallel. Twenty feeds at once from one IP invites throttling for
    *  no gain — the pull is weekly. */
   concurrency?: number;
@@ -190,10 +194,11 @@ export function parseFeed(xml: string): ParsedFeedItem[] {
 export function googleNewsSiteFeedUrl(source: PackSource): string {
   const url = new URL("https://news.google.com/rss/search");
   url.searchParams.set("q", googleNewsQuery(source));
-  if (source.lang === "he") {
-    url.searchParams.set("hl", ISRAEL_LOCALE.rssHl);
-    url.searchParams.set("gl", ISRAEL_LOCALE.rssGl);
-    url.searchParams.set("ceid", ISRAEL_LOCALE.rssCeid);
+  const locale = localeForSource(source);
+  if (locale) {
+    url.searchParams.set("hl", locale.rssHl);
+    url.searchParams.set("gl", locale.rssGl);
+    url.searchParams.set("ceid", locale.rssCeid);
   } else {
     url.searchParams.set("hl", "en-US");
     url.searchParams.set("gl", "US");
@@ -204,6 +209,12 @@ export function googleNewsSiteFeedUrl(source: PackSource): string {
 
 function googleNewsQuery(source: PackSource): string {
   return source.newsQuery ?? `site:${source.host}`;
+}
+
+/** The single source of truth for a source's market, used by BOTH the reported feed URL
+ *  and the request. Two places deriving this independently is how they drifted apart. */
+function localeForSource(source: PackSource): QueryLocale | null {
+  return source.lang === "he" ? ISRAEL_LOCALE : null;
 }
 
 /** Default reader: body on 2xx, null on anything else. Never throws for a non-2xx —
@@ -282,9 +293,16 @@ async function pullOne(source: PackSource, deps: Required<Pick<FetchSourcesDeps,
   // module doc comment for why this delegates instead of parsing the feed here.
   const feedUrl = googleNewsSiteFeedUrl(source);
   try {
+    // The locale comes off the source's DECLARED language, never off the query text.
+    // This is the line that closes the gap the module note above warned about: the feed
+    // URL googleNewsSiteFeedUrl reports and the request actually sent now carry the same
+    // market. Before it, a bare ASCII `site:calcalist.co.il` went out on hl=en-US and came
+    // back with 2017-2024 items that the freshness gate then dropped to zero — which is
+    // what made five of the ten Israeli sources look silent on 2026-09-01.
     const results = await deps.fetchGoogleNews(googleNewsQuery(source), {
       days: FRESHNESS_WINDOW_DAYS,
       max: deps.maxPerSource,
+      locale: localeForSource(source),
     });
     const items = results.map((r) => ({
       title: r.title,
@@ -310,7 +328,9 @@ async function pullOne(source: PackSource, deps: Required<Pick<FetchSourcesDeps,
 export async function fetchSourcePack(pack: SourcePack, deps: FetchSourcesDeps = {}): Promise<SourcePackFetch> {
   const resolved = {
     fetchText: deps.fetchText ?? defaultFetchText,
-    fetchGoogleNews: deps.fetchGoogleNews ?? ((q: string, o: { days: number; max: number }) => fetchGoogleNewsRss(q, o)),
+    fetchGoogleNews:
+      deps.fetchGoogleNews ??
+      ((q: string, o: { days: number; max: number; locale: QueryLocale | null }) => fetchGoogleNewsRss(q, o)),
     maxPerSource: deps.maxPerSource ?? DEFAULT_MAX_PER_SOURCE,
   };
   const enabled = pack.sources.filter((s) => s.enabled);

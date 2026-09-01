@@ -1,5 +1,5 @@
 import type { NewsResult } from "@/lib/news/types";
-import { localeForQuery } from "@/lib/news/locale";
+import { localeForQuery, type QueryLocale } from "@/lib/news/locale";
 
 /**
  * Google News RSS — https://news.google.com/rss/search. Free, keyless, no per-account
@@ -312,6 +312,15 @@ export function parseGoogleNewsRss(xml: string, now: Date): NewsResult[] {
   return out;
 }
 
+/**
+ * `locale` is a three-state field, and the distinction is load-bearing:
+ *   absent        -> infer from the query text (the historical behaviour)
+ *   QueryLocale   -> use exactly this market
+ *   null          -> use US, deliberately
+ * Presence is tested with `"locale" in opts`, so passing null cannot read as "unset".
+ */
+export type GoogleNewsRssOpts = { days?: number; max?: number; locale?: QueryLocale | null };
+
 export type GoogleNewsRssStats = {
   items: NewsResult[];
   /** <item> blocks found in the feed XML, before any resolution attempt. */
@@ -335,9 +344,18 @@ const EMPTY_STATS: GoogleNewsRssStats = { items: [], itemsSeen: 0, itemsAttempte
  */
 export async function fetchGoogleNewsRssWithStats(
   query: string,
-  opts: { days?: number; max?: number } = {}
+  opts: GoogleNewsRssOpts = {}
 ): Promise<GoogleNewsRssStats> {
-  const locale = localeForQuery(query);
+  // An EXPLICIT locale wins, in both directions — `locale: null` forces US just as a
+  // locale object forces that market. Inference only runs when the caller said nothing.
+  //
+  // Why the override exists: inference reads the QUERY TEXT, so a bare ASCII
+  // `site:calcalist.co.il` carries no Hebrew and went out on hl=en-US, which answers with
+  // items dated 2017-2024 — every one then discarded by the 30-day freshness gate. That is
+  // the whole reason five of the ten Israeli sources in the banking pack returned zero on
+  // 2026-09-01, while ynet and mako delivered purely because their query happened to
+  // contain Hebrew. A source that DECLARES its language must not depend on that accident.
+  const locale = "locale" in opts ? opts.locale : localeForQuery(query);
   const url = new URL("https://news.google.com/rss/search");
   url.searchParams.set("q", query);
   if (locale) {
@@ -423,7 +441,7 @@ export async function fetchGoogleNewsRssWithStats(
  * Thin wrapper over fetchGoogleNewsRssWithStats for callers that only want the articles.
  * Never throws — degrades to [] on any failure, same contract as every other provider.
  */
-export async function fetchGoogleNewsRss(query: string, opts: { days?: number; max?: number } = {}): Promise<NewsResult[]> {
+export async function fetchGoogleNewsRss(query: string, opts: GoogleNewsRssOpts = {}): Promise<NewsResult[]> {
   try {
     return (await fetchGoogleNewsRssWithStats(query, opts)).items;
   } catch {
