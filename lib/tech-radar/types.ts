@@ -270,4 +270,7 @@ export const OR_FEATURE = {
   veto: "tech-radar-veto",
   /** The veto's person-specificity bar, moved to profile build time. */
   rationaleGate: "tech-radar-rationale-gate",
+  /** Floor 2 of the v3 matching pyramid: one Haiku call per person per scan. Its own key
+   *  so ~8 cheap calls a scan never hide inside triage's line in the spend log. */
+  chooser: "tech-radar-chooser",
 } as const;
