@@ -185,6 +185,19 @@ async function main() {
   console.log(`  connected    ${show(report.candidates)}`);
   console.log(`  drafts       ${show(report.drafted)}`);
   console.log(`  vetoed       ${show(report.vetoed)}`);
+  // The closed-taxonomy layer, said out loud. On 2026-09-01 a live run wrote 11 items and
+  // tagged NONE of them, and no line of this report could say so — floor 1 was then
+  // reduced to the entity tier for every person and nothing announced it.
+  console.log(
+    `  tagged       ${show(report.itemsTagged)} of ${show(report.itemsWritten)} written items carry an industry tag` +
+      `  (taxonomy offered for ${show(report.taxonomyOffered)} pool items)`
+  );
+  if (report.taxonomyOffered > 0 && report.itemsWritten > 0 && report.itemsTagged === 0) {
+    console.log("  ⚠ the tagging layer was asked and answered nothing — floor 1 can only fire on the entity tier");
+  }
+  if (report.taxonomyOffered === 0 && report.poolItems > 0) {
+    console.log("  ⚠ no item was triaged against a taxonomy at all — no pack reached triage this run");
+  }
 
   rule("FRESHNESS SPREAD (days old)");
   console.log(

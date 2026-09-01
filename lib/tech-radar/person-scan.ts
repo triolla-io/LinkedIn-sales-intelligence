@@ -308,6 +308,23 @@ export type PersonScanReport = {
   /** RadarDropout rows actually written. Lower than the sum of floorDrops when the
    *  per-run cap trimmed them; 0 with non-empty floorDrops means the write failed. */
   dropoutsWritten: number;
+  /**
+   * Pool items that were triaged WITH a closed taxonomy behind them — i.e. items the
+   * tagging layer was actually asked about. Zero means the layer never ran at all (no pack
+   * resolved, or every item came from the named channel, which is triaged with no
+   * taxonomy on purpose).
+   */
+  taxonomyOffered: number;
+  /**
+   * Written items carrying at least one industry tag.
+   *
+   * The counter this run exists to have: on 2026-09-01 a live scan wrote 11 items and
+   * tagged NONE of them, and the report could not say so — floor 1 could then only ever
+   * fire on the entity tier and the whole closed-taxonomy layer was invisible in its own
+   * absence. Read against `taxonomyOffered`: 0 tagged with 0 offered is a named channel
+   * doing its job, 0 tagged with n offered is a broken tagging layer.
+   */
+  itemsTagged: number;
 };
 
 const EMPTY: PersonScanReport = {
@@ -323,6 +340,7 @@ const EMPTY: PersonScanReport = {
   perSource: [], sourcePacks: [], unresolvedIndustries: [], peopleWithoutPack: [],
   namedQueries: 0, peopleScanned: 0, geoGateSkipped: [], floorCandidates: 0,
   chooserCalls: 0, chooserPicks: 0, floorDrops: {}, dropoutsWritten: 0,
+  taxonomyOffered: 0, itemsTagged: 0,
 };
 
 function countBy(reasons: string[]): Record<string, number> {
@@ -823,6 +841,10 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
   let floorCandidates = 0;
   let chooserCalls = 0;
   let chooserPicks = 0;
+  // Folded into every exit path by finish(), like the fields above: a run that dies before
+  // the write-up still has to say whether the tagging layer was ever asked anything.
+  let taxonomyOffered = 0;
+  let itemsTagged = 0;
   /**
    * Every rejection, at every gate, for every (item, person) pair.
    *
@@ -849,6 +871,7 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
       | "articlesByLayer" | "perSource" | "sourcePacks" | "unresolvedIndustries"
       | "peopleWithoutPack" | "namedQueries" | "peopleScanned" | "geoGateSkipped"
       | "floorCandidates" | "chooserCalls" | "chooserPicks" | "floorDrops" | "dropoutsWritten"
+      | "taxonomyOffered" | "itemsTagged"
     >
   ): Promise<PersonScanReport> => {
     // The evidence first: a scan that crashed on its own reporting must still have saved
@@ -872,8 +895,16 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
       freshness, uniqueQueries, cachedQueries, providerStats, expiredLayer3, articlesByLayer,
       perSource, sourcePacks, unresolvedIndustries, peopleWithoutPack, namedQueries,
       peopleScanned, geoGateSkipped, floorCandidates, chooserCalls, chooserPicks,
-      floorDrops: floorDropsOf(), dropoutsWritten,
+      floorDrops: floorDropsOf(), dropoutsWritten, taxonomyOffered, itemsTagged,
     };
+    // Named, never merely counted: a tagging layer that was asked and answered nothing is
+    // the exact silence that let 11 untagged items look like a normal run.
+    if (report.taxonomyOffered > 0 && report.itemsWritten > 0 && report.itemsTagged === 0) {
+      console.warn(
+        `[radar] tagging produced NOTHING org=${orgId} offered=${report.taxonomyOffered}` +
+          ` written=${report.itemsWritten} tagged=0 — floor 1 can only fire on the entity tier`
+      );
+    }
     await prisma.radarScanRun.update({
       where: { id: run.id },
       data: {
@@ -1167,7 +1198,11 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
     const poolItems: PoolItem[] = items.map((i) => ({
       title: i.title, url: i.url, snippet: i.snippet, publishedAt: i.publishedAt,
     }));
-    verdicts.push(...(await triageAll(poolItems, taxonomy && taxonomy.length > 0 ? taxonomy : undefined)));
+    const offered = taxonomy && taxonomy.length > 0 ? taxonomy : undefined;
+    // Counted where the taxonomy is actually handed over, not where a pack is resolved: a
+    // pack whose items all died before triage bought no classification either.
+    if (offered) taxonomyOffered += poolItems.length;
+    verdicts.push(...(await triageAll(poolItems, offered)));
   }
 
   for (const v of verdicts) {
@@ -1302,6 +1337,7 @@ export async function personScan(orgId: string, opts?: { runId?: string }): Prom
       // story.
       if (verdict.industryTags && verdict.industryTags.length > 0) {
         await prisma.techItem.update({ where: { id: itemId }, data: { industryTags: verdict.industryTags } });
+        itemsTagged += 1;
       }
       written.push({
         itemId,

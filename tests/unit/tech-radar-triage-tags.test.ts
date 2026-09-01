@@ -180,6 +180,22 @@ describe("triageChunk taxonomy prompt", () => {
     expect(user).toMatch(/industryTags/);
   });
 
+  /**
+   * The SYSTEM message's worked example — the shape a small model at temperature 0.1
+   * actually copies — shows the no-taxonomy case and therefore has no `industryTags` key
+   * in it. So when a taxonomy IS supplied, the required output shape has to be restated
+   * WITH the key, in JSON, where the model reads its schema from. Prose alone ("return
+   * industryTags") next to an example that omits it is an invitation to omit it.
+   */
+  it("restates the required JSON shape WITH the industryTags key", async () => {
+    chat.mockResolvedValue(ok(verdict(["תשלומים"], "https://x.com/1")));
+    await triageChunk([item(1)], TAXONOMY);
+
+    const body = chat.mock.calls[0][1] as { messages: { role: string; content: string }[] };
+    const user = body.messages.find((m) => m.role === "user")!.content;
+    expect(user).toContain('"industryTags"');
+  });
+
   /** Unchanged prompt on the company path: no taxonomy block, no new field asked for,
    *  so the existing behaviour and its cost are untouched. */
   it("adds nothing to the prompt when there is no taxonomy", async () => {

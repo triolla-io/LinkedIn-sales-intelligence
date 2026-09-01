@@ -149,6 +149,21 @@ export function normalizeIndustryKey(name: string): string {
 /** The seed packs a brand-new org falls back to, filed under their normalised keys. */
 export const SEED_PACKS: SourcePack[] = [BANKING_IL_PACK];
 
+/**
+ * The pack this platform SHIPS for an industry, or null when it ships none.
+ *
+ * The returned key is the NORMALISED one, never the seed's own Hebrew string
+ * ("בנקאות ופיננסים ישראל"): a pool item carries its pack's `industryKey` as provenance and
+ * floor 0 compares it against the person's `normalizeIndustryKey(label)`. Handing back the
+ * raw key would make every pack item fail floor 0 as an industry mismatch — the same class
+ * of silent, total loss as having no pack at all.
+ */
+export function seedPackFor(industryKey: string): SourcePack | null {
+  if (!industryKey) return null;
+  const seed = SEED_PACKS.find((p) => normalizeIndustryKey(p.industryKey) === industryKey);
+  return seed ? { ...seed, industryKey } : null;
+}
+
 /** One industry actually represented among an org's tracked people. */
 export type OrgIndustry = {
   /** normalizeIndustryKey() output. */
@@ -166,8 +181,9 @@ export type OrgIndustry = {
 
 /** An industry whose people would get NOTHING. Always returned, never merely absent. */
 export type UnresolvedIndustry = OrgIndustry & {
-  /** `no_pack`: nobody has written one. `pack_empty`: a row exists but has no enabled
-   *  source or no taxonomy tag, so it would fetch or classify nothing. */
+  /** `no_pack`: this platform neither ships nor stores one for that industry.
+   *  `pack_empty`: a pack exists but has no enabled source or no taxonomy tag, so it would
+   *  fetch or classify nothing. */
   reason: "no_pack" | "pack_empty";
 };
 
@@ -327,11 +343,19 @@ export async function resolvePacksForOrg(orgId: string): Promise<PackResolution>
     // exist more than once — the schema comment on RadarSourcePack says so and points
     // here for the tie-break.
     const row = forKey.find((r) => r.orgId === orgId) ?? forKey.find((r) => r.orgId === null) ?? null;
-    if (!row) {
+    // No stored row is NOT the same as no pack. `ensureSeedPack` is the only code in the
+    // repo that can insert a RadarSourcePack row, and until 2026-09-01 nothing called it —
+    // the source-packs screen can only EDIT a row that already exists, and there is no
+    // seed script. So the table was empty in production, every industry resolved to
+    // `no_pack`, and the consequences were silent and total: no outlet was pulled (the free
+    // half of the v3 intake), and every triage call was made with `taxonomy: undefined`, so
+    // 11 of 11 items written on 2026-09-01 carried no industry tag and the whole
+    // closed-taxonomy layer never ran. A pack we SHIP is a pack the org has.
+    const pack = row ? packFromRow(row) : seedPackFor(industry.industryKey);
+    if (!pack) {
       unresolved.push({ ...industry, reason: "no_pack" });
       continue;
     }
-    const pack = packFromRow(row);
     // A pack with no enabled source fetches nothing; one with no tag classifies nothing
     // and every tag overlap scores zero for everybody. Both are a quiet zero downstream,
     // so both are named here instead.

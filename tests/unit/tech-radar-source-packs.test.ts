@@ -166,6 +166,56 @@ describe("resolvePacksForOrg", () => {
     expect(out.unresolved[0].labels).toContain("ענף: קמעונאות מזון");
   });
 
+  /**
+   * The 2026-09-01 mechanism. `ensureSeedPack` is the ONLY code that can insert a
+   * RadarSourcePack row and nothing called it, so the table was empty in production: every
+   * industry resolved to `no_pack`, no outlet was pulled, and every triage call was made
+   * with no taxonomy — which is why 11 of 11 written items carried no industry tag. A pack
+   * this platform SHIPS is a pack the org has, row or no row.
+   */
+  it("falls back to the SHIPPED pack when the table holds no row for that industry", async () => {
+    axisFindMany.mockResolvedValue([axis("ענף: בנקאות ישראל", [{ personProfileId: "p1" }])]);
+    packFindMany.mockResolvedValue([]);
+
+    const out = await resolvePacksForOrg("org1");
+    expect(out.unresolved).toEqual([]);
+    expect(out.packs).toHaveLength(1);
+    // The NORMALISED key, not the seed's own "בנקאות ופיננסים ישראל": floor 0 compares an
+    // item's provenance against the person's normalised key, so a raw key would drop every
+    // pack item as an industry mismatch.
+    expect(out.packs[0].industryKey).toBe(BANK_KEY);
+    expect(out.packs[0].taxonomy).toHaveLength(BANKING_IL_PACK.taxonomy.length);
+    expect(out.packs[0].sources.length).toBeGreaterThan(0);
+  });
+
+  it("still ships nothing for an industry nobody wrote a pack for", async () => {
+    axisFindMany.mockResolvedValue([axis("ענף: קמעונאות מזון", [{ personProfileId: "p1" }])]);
+    packFindMany.mockResolvedValue([]);
+
+    const out = await resolvePacksForOrg("org1");
+    expect(out.packs).toEqual([]);
+    expect(out.unresolved).toHaveLength(1);
+    expect(out.unresolved[0].reason).toBe("no_pack");
+  });
+
+  /** A human's edited row is the authority. The seed is the fallback, never an override —
+   *  a curated taxonomy must not be silently replaced by the shipped one. */
+  it("prefers a stored row over the shipped seed", async () => {
+    axisFindMany.mockResolvedValue([axis("ענף: בנקאות ישראל", [{ personProfileId: "p1" }])]);
+    packFindMany.mockResolvedValue([
+      packRow({
+        orgId: "org1",
+        sources: [{ host: "globes.co.il", name: "גלובס", lang: "he", scope: "il", enabled: true }],
+        taxonomy: [{ tag: "אשראי-צרכני", label: "אשראי צרכני" }],
+      }),
+    ]);
+
+    const out = await resolvePacksForOrg("org1");
+    expect(out.packs).toHaveLength(1);
+    expect(out.packs[0].taxonomy).toEqual([{ tag: "אשראי-צרכני", label: "אשראי צרכני" }]);
+    expect(out.packs[0].sources).toHaveLength(1);
+  });
+
   it("resolves Gil Tamir's two duplicate industry axes to a single pack", async () => {
     axisFindMany.mockResolvedValue([
       axis("ענף: Financial Services / שירותים פיננסיים", [{ personProfileId: "gil" }]),

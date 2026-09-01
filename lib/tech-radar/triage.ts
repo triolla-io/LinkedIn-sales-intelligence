@@ -143,6 +143,10 @@ function taxonomyBlock(taxonomy?: readonly TaxonomyTag[]): string {
   return `TAXONOMY — a CLOSED list of ${taxonomy.length} industry tags. \`industryTags\` may contain ONLY values copied verbatim from the left of the dash, at most ${MAX_INDUSTRY_TAGS_PER_ITEM} per item, [] when nothing on the list fits:
 ${lines}
 
+EVERY verdict you return MUST carry an \`industryTags\` array, next to \`categories\`:
+{"url":"...","categories":["..."],"industryTags":["<a tag copied from the list above>"],"vendor":null}
+The example in the system message omits that key because it shows the no-taxonomy case. Here it is required — [] is the right answer when nothing on the list fits, a missing key is not.
+
 ITEMS:
 `;
 }
