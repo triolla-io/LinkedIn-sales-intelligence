@@ -72,6 +72,21 @@ export type SourcePack = {
   label?: string;
   sources: PackSource[];
   taxonomy: TaxonomyTag[];
+  /**
+   * Names whose moves TRAVEL into any market in this industry — the "שחקן גלובלי" road
+   * out of the geography gate (`travels()` in match-floors.ts).
+   *
+   * On the PACK and not on the person, and not hard-coded in the floors either: who
+   * counts as a global player is an industry fact (JPMorgan for a banker, Zara for a
+   * retailer), the floors have no industry, and a person-level list would have to be
+   * re-derived by every profile build. The floors read it through
+   * `FloorPerson.globalPlayers`, which the scan fills from the person's own pack.
+   *
+   * Optional, and an absent list is not a failure: with none, only the country-agnostic
+   * markers in match-floors.ts (global scope words, BIS/IMF/OECD, the report houses) let
+   * a foreign story through, which is the conservative direction.
+   */
+  globalPlayers?: string[];
 };
 
 /**
@@ -176,5 +191,29 @@ export const BANKING_IL_PACK: SourcePack = {
     { tag: "מימון-בר-קיימא", label: "ESG ומימון בר-קיימא" },
     { tag: "תוצאות-כספיות", label: "תוצאות כספיות ודוחות" },
     { tag: "מינויים-ואנשים", label: "מינויים, אנשים ושינויים ארגוניים" },
+  ],
+  /**
+   * The banking/fintech names an Israeli banker reads about whatever country the story
+   * happens in. Both scripts, because the Israeli press writes "ג'יי פי מורגן" and the
+   * wires write "JPMorgan", and a list in one script only is a recall hole with no symptom.
+   *
+   * Kept SHORT and to genuine reference points on purpose: every name added here is a
+   * hole in the geography gate — the gate that stops "a retail bank in the Philippines
+   * launched a feature" from reaching a Bank Hapoalim executive. A rival's local move in
+   * Manila must not travel just because a global brand is mentioned in passing, so the
+   * bar for membership is "an Israeli banker would read this whatever the market", not
+   * "a big company".
+   */
+  globalPlayers: [
+    "JPMorgan", "ג'יי פי מורגן",
+    "Goldman Sachs", "גולדמן זאקס",
+    "HSBC",
+    "Citi", "Citigroup", "סיטי",
+    "Visa", "ויזה",
+    "Mastercard", "מאסטרקארד",
+    "PayPal", "פייפאל",
+    "Stripe", "סטרייפ",
+    "Revolut", "רבולוט",
+    "SWIFT",
   ],
 };

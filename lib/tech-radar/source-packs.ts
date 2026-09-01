@@ -236,8 +236,20 @@ export function packFromRow(row: { industryKey: string; sources: unknown; taxono
   // A row carries no label column (the migration stays additive-minimal), so the Hebrew
   // name is recovered from the seed when the key matches and left unset otherwise —
   // sources.ts documents that a caller with no label shows industryKey.
-  const label = SEED_PACKS.find((p) => normalizeIndustryKey(p.industryKey) === row.industryKey)?.label;
-  return { industryKey: row.industryKey, ...(label ? { label } : {}), sources, taxonomy };
+  //
+  // `globalPlayers` is recovered the same way and for the same reason: the table has no
+  // column for it, and the list is what lets a JPMorgan story out of the geography gate
+  // for a banker (see the field's note in sources.ts). Recovered rather than defaulted to
+  // a hard-coded list here, so an industry with no seed gets an empty list — the
+  // conservative direction — instead of a banker's reference points.
+  const seed = SEED_PACKS.find((p) => normalizeIndustryKey(p.industryKey) === row.industryKey);
+  return {
+    industryKey: row.industryKey,
+    ...(seed?.label ? { label: seed.label } : {}),
+    sources,
+    taxonomy,
+    ...(seed?.globalPlayers?.length ? { globalPlayers: seed.globalPlayers } : {}),
+  };
 }
 
 /**

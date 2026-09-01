@@ -139,9 +139,11 @@ export function rankForPeople(input: RankInput): RankResult {
 /**
  * Days between two messages to the same person.
  *
- * MUST equal QUIET_COOLDOWN_DAYS in lib/tech-radar/quiet.ts (which stays prisma-free and
- * derives the "בהמתנה" copy from the same number) and MIN_DAYS_BETWEEN_MESSAGES in
- * lib/tech-radar/person-scan.ts. A radar with no ask has no right to be frequent.
+ * The CANONICAL copy. MUST equal QUIET_COOLDOWN_DAYS in lib/tech-radar/quiet.ts, which
+ * stays prisma-free and derives the "בהמתנה" copy from the same number. (person-scan.ts
+ * used to carry a third copy that nothing read; it was removed in Phase B, when pacing
+ * moved from ranking to `evaluateRelease` below.) A radar with no ask has no right to be
+ * frequent.
  */
 export const MIN_DAYS_BETWEEN_MESSAGES = 7;
 
