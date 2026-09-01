@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { pilotHoldEnabled, isPilotReviewer } from "@/lib/tech-radar/pilot-gate";
 import DashboardClient from "./dashboard-client";
 import type { ActionInfo, OverviewFeedItem } from "@/components/dashboard/today-overview";
 
@@ -46,6 +47,16 @@ export default async function DashboardPage() {
   const since30 = new Date(now.getTime() - 30 * 864e5);
   const since7 = new Date(now.getTime() - 7 * 864e5);
   const since8w = new Date(startOfToday.getTime() - 55 * 864e5); // 8 דליים שבועיים
+
+  /**
+   * The pilot hold, applied HERE too — the tile and the list must agree.
+   *
+   * The embedded <ApprovalsTab> reads /api/radar/approvals, which hides a held draft from
+   * its owner. This query did not, so on 2026-09-01 the tile read "3 drafts: פזית, ארז,
+   * אלינור" while the list underneath it was empty. A number with nothing beneath it is
+   * worse than a zero: it says the screen is broken when the gate was working.
+   */
+  const hidesHeldDrafts = pilotHoldEnabled() && !isPilotReviewer(session.user.email);
 
   const ownedCompanies = { contacts: { some: { ownerId, removedAt: null } } };
   const ownedContact = { ownerId, removedAt: null };
@@ -128,6 +139,7 @@ export default async function DashboardPage() {
         ownerId,
         status: { in: ["PENDING_REVIEW", "PREPARING", "PREPARED"] },
         supersededAt: null,
+        ...(hidesHeldDrafts ? { pilotHeldAt: null } : {}),
       },
       select: { contact: { select: { fullName: true } } },
       orderBy: { createdAt: "desc" },
