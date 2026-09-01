@@ -58,8 +58,21 @@ function draftRow(over: Record<string, unknown> = {}) {
     id: "d1",
     draftMessage: `היי אביגל, היעד עלה ל-24.02 מיליארד גלון ${CANON}`,
     status: "PENDING_REVIEW",
-    contact: { fullName: "Avigal Soreq", linkedinUrl: "https://linkedin.com/in/avigal" },
-    item: { title: "EPA finalizes RVOs", summary: "EPA set targets of 24.02 billion gallons", sources: [{ url: CANON, title: "t" }] },
+    // messages/radarDrafts: the release gate's pacing signal, read in the same query
+    // (2026-09-01 — pacing moved from draft creation to release). Empty here = never
+    // messaged, so these tests exercise the release path exactly as before.
+    contact: {
+      fullName: "Avigal Soreq",
+      linkedinUrl: "https://linkedin.com/in/avigal",
+      messages: [] as { sentAt: Date }[],
+      radarDrafts: [] as { sentAt: Date | null }[],
+    },
+    item: {
+      title: "EPA finalizes RVOs",
+      summary: "EPA set targets of 24.02 billion gallons",
+      sources: [{ url: CANON, title: "t" }],
+      publishedAt: new Date(Date.now() - 2 * 86_400_000),
+    },
     ...over,
   };
 }

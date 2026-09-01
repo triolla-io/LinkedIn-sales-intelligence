@@ -14,7 +14,7 @@ import { OpenRouterBlockedError } from "@/lib/openrouter/client";
 import { AXIS_FIT_FLOOR } from "@/lib/tech-radar/axis-fit";
 import { FRESHNESS_WINDOW_DAYS } from "@/lib/tech-radar/freshness";
 import { selectRecipientsForItem, type RecipientCandidate } from "@/lib/tech-radar/veto";
-import { rankForPeople, pairKey, type RankCandidate } from "@/lib/tech-radar/person-rank";
+import { rankForPeople, pairKey, STALE_IN_QUEUE_REASON, type RankCandidate } from "@/lib/tech-radar/person-rank";
 import { draftTechMessage } from "@/lib/tech-radar/draft";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
 import { pilotHoldEnabled } from "@/lib/tech-radar/pilot-gate";
@@ -29,7 +29,6 @@ import { deepestLayer, passesLayerFloor, type AxisKindName } from "@/lib/tech-ra
  * change would have to be reverted; an env var expires with the container.
  */
 const MAX_DRAFTS_PER_DAY = Number(process.env.RADAR_MAX_DRAFTS_PER_DAY) || 10;
-const MIN_DAYS_BETWEEN_MESSAGES = 7;
 
 export type JudgeReport = {
   candidates: number;
@@ -111,6 +110,30 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
   });
   if (axes.length === 0) return empty;
 
+  // Aging out in the queue, swept once per run.
+  //
+  // Pacing moved to the release path (person-rank.ts), so a draft can now wait in a
+  // person's queue for days. A draft whose article has crossed the freshness window while
+  // waiting must never be sent — and must not sit on the approvals screen looking
+  // sendable either. It is CLOSED here with a reason a human reads on the decisions tab
+  // ("התיישנה בתור"), which is the honest half of "creation is free, release is paced".
+  //
+  // Scoped to the people this org actually tracks, and `publishedAt: { lt }` excludes
+  // undated items on purpose: `evaluateRelease` explains why an item with no date is not
+  // closed on a date we never had.
+  const subscriberContactIds = [
+    ...new Set(axes.flatMap((a) => a.people.map((p) => p.personProfile.contact.id))),
+  ];
+  const staleInQueue = await prisma.radarDraft.updateMany({
+    where: {
+      contactId: { in: subscriberContactIds },
+      status: "PENDING_REVIEW",
+      supersededAt: null,
+      item: { publishedAt: { lt: new Date(Date.now() - FRESHNESS_WINDOW_DAYS * 86_400_000) } },
+    },
+    data: { status: "DISMISSED", discardReason: STALE_IN_QUEUE_REASON },
+  });
+
   const itemById = new Map<string, (typeof axes)[number]["matches"][number]["item"]>();
   const axisById = new Map(axes.map((a) => [a.id, a]));
 
@@ -158,9 +181,12 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
     }
   }
   if (candidates.length === 0) {
-    return itemsBelowIndustryFloor.size > 0
-      ? { ...empty, dropReasons: { industry_floor: itemsBelowIndustryFloor.size } }
-      : empty;
+    // Even a run with nothing to judge reports what it closed — a sweep whose count
+    // vanishes on the empty path is the same silent drop from a quieter direction.
+    const earlyDrops: Record<string, number> = {};
+    if (itemsBelowIndustryFloor.size > 0) earlyDrops.industry_floor = itemsBelowIndustryFloor.size;
+    if (staleInQueue.count > 0) earlyDrops[STALE_IN_QUEUE_REASON] = staleInQueue.count;
+    return Object.keys(earlyDrops).length > 0 ? { ...empty, dropReasons: earlyDrops } : empty;
   }
 
   const contactIds = [...new Set(candidates.map((c) => c.contactId))];
@@ -175,22 +201,19 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
   // anyway; this is the cheap check that avoids paying to find that out.
   const alreadySeen = new Set(prior.map((d) => pairKey(d.contactId, d.itemId)));
   const recentKinds = new Map<string, string[]>();
-  const daysSince = new Map<string, number>();
-  const now = Date.now();
   for (const d of prior) {
     if (d.status === "VETOED") continue; // never sent, so it is not a message they received
     const kinds = recentKinds.get(d.contactId) ?? [];
     if (kinds.length < 3) kinds.push(d.item.kind);
     recentKinds.set(d.contactId, kinds);
-    if (!daysSince.has(d.contactId)) daysSince.set(d.contactId, (now - d.createdAt.getTime()) / 86_400_000);
   }
 
+  // No pacing argument: a candidate inside someone's 7-day window still becomes a draft
+  // and waits in their queue. The gate is `evaluateRelease`, on the release path.
   const { ranked, dropped } = rankForPeople({
     candidates,
     alreadySeen,
     recentKinds,
-    daysSinceLastMessage: daysSince,
-    minDaysBetweenMessages: MIN_DAYS_BETWEEN_MESSAGES,
     limit: MAX_DRAFTS_PER_DAY,
   });
 
@@ -333,6 +356,7 @@ export async function judgeAndDraft(orgId: string): Promise<JudgeReport> {
   const dropReasons: Record<string, number> = {};
   for (const d of dropped) dropReasons[d.reason] = (dropReasons[d.reason] ?? 0) + 1;
   if (itemsBelowIndustryFloor.size > 0) dropReasons.industry_floor = itemsBelowIndustryFloor.size;
+  if (staleInQueue.count > 0) dropReasons[STALE_IN_QUEUE_REASON] = staleInQueue.count;
   if (draftFailed > 0) dropReasons.draft_failed = draftFailed;
   if (sourceRejected > 0) dropReasons.source_not_publisher = sourceRejected;
 
