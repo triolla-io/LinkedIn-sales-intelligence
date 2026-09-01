@@ -431,15 +431,19 @@
     }
     return out;
   }
-  const clean = (s) => (s || "").replace(/\s+/g, " ").trim();
-  const ABOUT_HEADERS = ["about", "אודות"];
-  const EXPERIENCE_HEADERS = ["experience", "ניסיון"];
-  const SKILLS_HEADERS = ["skills", "כישורים", "מיומנויות"];
-  const EDUCATION_HEADERS = ["education", "השכלה"];
+  const BIDI_MARKS = /[‎‏؜‪-‮⁦-⁩]/g;
+  const clean = (s) => (s || "").replace(BIDI_MARKS, "").replace(/\s+/g, " ").trim();
+  const ABOUT_HEADERS = /^(about|(על\s+)?אודות)$/;
+  const EXPERIENCE_HEADERS = /^(experience|ניסיון)$/;
+  const SKILLS_HEADERS = /^(skills|כישורים|מיומנויות)$/;
+  const EDUCATION_HEADERS = /^(education|השכלה)$/;
+  function headingText(el) {
+    return clean(el == null ? void 0 : el.textContent).replace(/\s*\(\s*\d+\s*\)\s*$/, "").toLowerCase();
+  }
   function findSection(headers) {
     for (const section of Array.from(document.querySelectorAll("section"))) {
       const h2 = section.querySelector("h2");
-      if (h2 && headers.includes(clean(h2.textContent).toLowerCase())) {
+      if (h2 && headers.test(headingText(h2))) {
         return section;
       }
     }
@@ -476,26 +480,41 @@
   }
   const EMPLOYMENT_SUFFIX = /\s*[·•]\s*(Full-time|Part-time|Contract|Internship|Freelance|Self[- ]employed|Seasonal|Temporary|משרה מלאה|משרה חלקית|חוזה|פרילנס)\b.*$/i;
   function entryDescription(li, title) {
-    const paragraphs = Array.from(li.querySelectorAll("p")).map((p) => clean(p.textContent)).filter((t) => t && t !== title && !/\d{4}/.test(t.slice(0, 24)));
+    const paragraphs = Array.from(li.querySelectorAll("p")).map((p) => clean(p.textContent)).filter((t) => t && t !== title && !isRowChrome(t));
     if (!paragraphs.length) return null;
     const best = paragraphs.reduce((a, b) => b.length > a.length ? b : a);
     return best ? best.slice(0, 1500) : null;
   }
+  const EMPLOYMENT_TYPES = /^(full[- ]?time|part[- ]?time|contract|internship|freelance|self[- ]employed|seasonal|temporary|permanent|משרה מלאה|משרה חלקית|חוזה|פרילנס|עצמאי|התמחות|זמני)$/i;
+  const LOCATION_SHAPE = /\b(district|israel|area|region|remote|ישראל|מחוז|אזור|היברידי|מרחוק)\b/i;
+  function looksLikeDates(text) {
+    return /\d{4}/.test(text) || /\b(yrs?|years?|mos?|months?|שנים|שנה|חודשים|חודש)\b/i.test(text);
+  }
+  function isRowChrome(text) {
+    return EMPLOYMENT_TYPES.test(text) || LOCATION_SHAPE.test(text) || looksLikeDates(text);
+  }
+  function rowCompany(row, lines, titleIdx) {
+    var _a, _b, _c, _d;
+    const link = row.querySelector('a[href*="/company/"]') ?? ((_c = (_b = (_a = row.closest("div[componentkey], li")) == null ? void 0 : _a.parentElement) == null ? void 0 : _b.closest("div[componentkey], li")) == null ? void 0 : _c.querySelector('a[href*="/company/"]')) ?? null;
+    const linked = clean(link == null ? void 0 : link.textContent);
+    if (linked && !isRowChrome(linked)) return linked;
+    const after = lines.slice((titleIdx >= 0 ? titleIdx : 0) + 1);
+    const raw = ((_d = after.find((l) => !isRowChrome(l.text))) == null ? void 0 : _d.text) ?? null;
+    if (!raw) return null;
+    return raw.replace(EMPLOYMENT_SUFFIX, "").trim() || null;
+  }
   function readProfileExperience() {
-    var _a, _b, _c;
+    var _a;
     const section = findSection(EXPERIENCE_HEADERS);
     if (!section) return [];
     const results = [];
-    for (const li of Array.from(section.querySelectorAll("li"))) {
-      if ((_a = li.parentElement) == null ? void 0 : _a.closest("li")) continue;
+    for (const li of sectionRows(section)) {
       const lines = leafLines(li);
       if (!lines.length) continue;
       const titleIdx = lines.findIndex((l) => l.bold);
-      const title = (_b = titleIdx >= 0 ? lines[titleIdx] : lines[0]) == null ? void 0 : _b.text;
+      const title = (_a = titleIdx >= 0 ? lines[titleIdx] : lines[0]) == null ? void 0 : _a.text;
       if (!title) continue;
-      const after = lines.slice((titleIdx >= 0 ? titleIdx : 0) + 1);
-      const rawCompany = ((_c = after.find((l) => !/\d{4}/.test(l.text))) == null ? void 0 : _c.text) ?? null;
-      const company = rawCompany ? rawCompany.replace(EMPLOYMENT_SUFFIX, "").trim() || null : null;
+      const company = rowCompany(li, lines, titleIdx);
       const dateLine = lines.find((l) => /\d{4}/.test(l.text)) ?? null;
       results.push({
         title,
@@ -508,14 +527,13 @@
     return results;
   }
   function readProfileSkills() {
-    var _a, _b;
+    var _a;
     const section = findSection(SKILLS_HEADERS);
     if (!section) return [];
     const skills = [];
     const seen = /* @__PURE__ */ new Set();
-    for (const li of Array.from(section.querySelectorAll("li"))) {
-      if ((_a = li.parentElement) == null ? void 0 : _a.closest("li")) continue;
-      const name = (_b = leafLines(li)[0]) == null ? void 0 : _b.text;
+    for (const li of sectionRows(section)) {
+      const name = (_a = leafLines(li)[0]) == null ? void 0 : _a.text;
       if (!name || seen.has(name)) continue;
       seen.add(name);
       skills.push(name);
@@ -528,17 +546,131 @@
     const section = findSection(EDUCATION_HEADERS);
     if (!section) return [];
     const rows = [];
-    for (const li of Array.from(section.querySelectorAll("li"))) {
-      if ((_a = li.parentElement) == null ? void 0 : _a.closest("li")) continue;
+    for (const li of sectionRows(section)) {
       const lines = leafLines(li);
       if (!lines.length) continue;
-      const school = (lines.find((l) => l.bold) ?? lines[0]).text;
+      const schoolLink = clean((_a = li.querySelector('a[href*="/school/"]')) == null ? void 0 : _a.textContent);
+      const school = schoolLink || (lines.find((l) => l.bold) ?? lines[0]).text;
       const degreeLine = lines.map((l) => l.text).find((t) => t !== school) ?? null;
       const [degree, ...rest] = (degreeLine ?? "").split(",").map((s) => s.trim());
       rows.push({ school, degree: degree || null, field: rest.join(", ") || null });
       if (rows.length >= 5) break;
     }
     return rows;
+  }
+  const NAMED_ANCHOR = /anchor/i;
+  function sectionRows(section) {
+    const lis = Array.from(section.querySelectorAll("li")).filter(
+      (li) => {
+        var _a;
+        return !((_a = li.parentElement) == null ? void 0 : _a.closest("li"));
+      }
+    );
+    if (lis.length > 0) return lis;
+    const keyed = Array.from(section.querySelectorAll("div[componentkey]")).filter((el) => {
+      var _a;
+      const key = el.getAttribute("componentkey") ?? "";
+      if (!key || NAMED_ANCHOR.test(key)) return false;
+      if (!clean(el.textContent)) return false;
+      const parentKeyed = (_a = el.parentElement) == null ? void 0 : _a.closest("div[componentkey]");
+      return !parentKeyed || (parentKeyed.getAttribute("componentkey") ?? "") !== key;
+    });
+    const leaves = keyed.filter((el) => !keyed.some((other) => other !== el && el.contains(other)));
+    if (leaves.length > 0) return leaves;
+    return Array.from(section.querySelectorAll('[role="listitem"]'));
+  }
+  function sampleSection(headers) {
+    const section = findSection(headers);
+    if (!section) return { found: false, lis: 0, childTags: [], html: "" };
+    const list = section.querySelector("ul, ol") ?? section;
+    return {
+      found: true,
+      lis: section.querySelectorAll("li").length,
+      childTags: Array.from(list.children).slice(0, 6).map((el) => el.tagName.toLowerCase()),
+      // Attributes stripped: LinkedIn's class soup is noise and would blow the payload past
+      // anything readable, while the TAG structure is the whole question.
+      html: section.innerHTML.replace(/\s(class|id|style|data-[\w-]+|aria-[\w-]+)="[^"]*"/g, "").slice(0, 900)
+    };
+  }
+  function scrollStep(dy) {
+    const before = window.scrollY;
+    window.scrollBy(0, dy);
+    if (window.scrollY !== before) return { moved: window.scrollY - before, via: "window" };
+    let best = null;
+    let bestOverflow = 0;
+    for (const el of Array.from(document.querySelectorAll("div, main, section"))) {
+      const overflow = el.scrollHeight - el.clientHeight;
+      if (overflow > 400 && el.clientHeight > 200 && overflow > bestOverflow) {
+        bestOverflow = overflow;
+        best = el;
+      }
+    }
+    if (!best) return { moved: 0, via: "none" };
+    const elBefore = best.scrollTop;
+    best.scrollTop = elBefore + dy;
+    const moved = best.scrollTop - elBefore;
+    return { moved, via: moved !== 0 ? "container" : "none" };
+  }
+  async function readProfileProgressively(deps = {}) {
+    const scrollBy = deps.scrollBy ?? ((dy) => {
+      lastStep = scrollStep(dy);
+    });
+    const sleep = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
+    const maxScrolls = deps.maxScrolls ?? 8;
+    let lastStep = { via: "none" };
+    const stepPx = deps.stepPx ?? 1200;
+    const settleMs = deps.settleMs ?? 700;
+    let about = null;
+    let experience = [];
+    let education = [];
+    let skills = [];
+    const capture = () => {
+      if (about === null) about = readProfileAbout();
+      if (experience.length === 0) experience = readProfileExperience();
+      if (education.length === 0) education = readProfileEducation();
+      if (skills.length === 0) skills = readProfileSkills();
+    };
+    capture();
+    let scrolls = 0;
+    while ((experience.length === 0 || education.length === 0 || skills.length === 0) && scrolls < maxScrolls) {
+      scrollBy(stepPx);
+      scrolls += 1;
+      await sleep(settleMs);
+      capture();
+    }
+    return {
+      about,
+      experience,
+      education,
+      skills,
+      scrolls,
+      // Which halves were ever seen at all — the difference between "published nothing" and
+      // "we never managed to read it", the distinction that took three runs to get right.
+      revealed: {
+        experience: experience.length > 0,
+        education: education.length > 0,
+        skills: skills.length > 0,
+        about: about !== null
+      },
+      viewport: { w: window.innerWidth, h: window.innerHeight },
+      page: {
+        sections: document.querySelectorAll("section").length,
+        // The actual section headings present, so a wrong-anchor theory can be settled by
+        // reading them instead of by another round of hypotheses.
+        headings: Array.from(document.querySelectorAll("section h2")).map((h) => clean(h.textContent)).filter(Boolean).slice(0, 12),
+        scrollVia: lastStep.via,
+        docHeight: document.documentElement.scrollHeight,
+        hidden: document.hidden
+      },
+      // Only for sections that actually came back empty — a working parser needs no sample,
+      // and the payload crosses a message bridge.
+      samples: {
+        ...education.length === 0 ? { education: sampleSection(EDUCATION_HEADERS) } : {},
+        ...skills.length === 0 ? { skills: sampleSection(SKILLS_HEADERS) } : {},
+        ...about === null ? { about: sampleSection(ABOUT_HEADERS) } : {},
+        ...experience.length === 0 ? { experience: sampleSection(EXPERIENCE_HEADERS) } : {}
+      }
+    };
   }
   function readProfileTopcard() {
     var _a;
@@ -766,14 +898,30 @@
       case "READ_PROFILE_TOPCARD":
         return readProfileTopcard();
       case "READ_PROFILE_FULL": {
+        const scrolled = await readProfileProgressively();
+        window.scrollTo(0, 0);
         const { entries, headline } = readProfileTopcard();
         return {
           headline,
           company: ((_a = entries[0]) == null ? void 0 : _a.company) ?? null,
-          about: readProfileAbout(),
-          experience: readProfileExperience(),
-          skills: readProfileSkills(),
-          education: readProfileEducation()
+          about: scrolled.about,
+          experience: scrolled.experience,
+          skills: scrolled.skills,
+          education: scrolled.education,
+          // Reported so an empty read is diagnosable instead of looking exactly like a person
+          // with an empty profile — the indistinguishability that hid this for weeks, and
+          // that caught two wrong fixes of my own before this one.
+          revealed: {
+            scrolls: scrolled.scrolls,
+            found: scrolled.revealed.experience || scrolled.revealed.education,
+            experience: scrolled.revealed.experience,
+            education: scrolled.revealed.education,
+            skills: scrolled.revealed.skills,
+            about: scrolled.revealed.about,
+            viewport: scrolled.viewport,
+            page: scrolled.page,
+            samples: scrolled.samples
+          }
         };
       }
       case "EXTRACT_COMPANY":

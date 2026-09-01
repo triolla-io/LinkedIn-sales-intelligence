@@ -15,6 +15,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 const axisFindMany = vi.fn();
 const draftFindMany = vi.fn();
 const draftUpsert = vi.fn();
+/**
+ * The stale-in-queue sweep (pacing moved to the release path, 2026-09-01): judgeAndDraft
+ * closes queued drafts whose article crossed the freshness window while waiting. Mocked
+ * to close nothing here so these tests keep testing what they were written for; the sweep
+ * itself is covered by tests/unit/tech-radar-send-release.test.ts.
+ */
+const draftUpdateMany = vi.fn(async () => ({ count: 0 }));
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -22,6 +29,7 @@ vi.mock("@/lib/prisma", () => ({
     radarDraft: {
       findMany: (...a: unknown[]) => draftFindMany(...a),
       upsert: (...a: unknown[]) => draftUpsert(...a),
+      updateMany: (...a: unknown[]) => draftUpdateMany(...a),
     },
   },
 }));

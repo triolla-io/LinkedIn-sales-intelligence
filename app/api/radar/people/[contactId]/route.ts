@@ -74,6 +74,11 @@ async function loadPerson(contactId: string, ownerId: string) {
           axes: {
             select: {
               id: true, mutedAt: true, source: true,
+              // `evidence.stage` is which of the four staged questions produced this axis.
+              // Read for the screen because the mix is the thing a human cannot otherwise
+              // see: two axes both derivable from a job title look exactly like four axes
+              // covering four different appetites.
+              evidence: true,
               axis: { select: { id: true, label: true } },
             },
           },
@@ -182,7 +187,27 @@ export const GET = withTenant(async (req: NextRequest, ctx) => {
       source: AXIS_SOURCE[a.source] ?? "role",
       muted: a.mutedAt != null,
       itemsFound: foundByAxis.get(a.axis.id) ?? 0,
+      stage: (a.evidence as { stage?: string } | null)?.stage ?? null,
     })),
+    /**
+     * The four appetites, and which of them this person actually has an axis for. An
+     * absent `adopt` means nobody is ever shown "here is what is possible" — only "here
+     * is who is attacking you", which is how a person model ends up reading as a
+     * competitor feed. Null stage = an axis built before the tag was persisted.
+     */
+    stageMix: (() => {
+      const own = live.filter((a) => a.source !== "INDUSTRY");
+      const have = new Set(
+        own.map((a) => (a.evidence as { stage?: string } | null)?.stage).filter(Boolean) as string[]
+      );
+      return {
+        present: [...have],
+        missing: ["decision", "competitor", "stop_and_read", "adopt"].filter((x) => !have.has(x)),
+        unknown: own.filter((a) => !(a.evidence as { stage?: string } | null)?.stage).length,
+        thin: own.length < 3,
+        own: own.length,
+      };
+    })(),
     history: drafts.map((d) => ({
       id: d.id,
       status: d.status,

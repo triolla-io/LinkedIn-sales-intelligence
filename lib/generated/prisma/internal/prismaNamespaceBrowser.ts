@@ -104,7 +104,9 @@ export const ModelName = {
   PostCommentDraft: 'PostCommentDraft',
   RadarFeedback: 'RadarFeedback',
   RadarScanRun: 'RadarScanRun',
+  RadarDropout: 'RadarDropout',
   RadarDomain: 'RadarDomain',
+  RadarSourcePack: 'RadarSourcePack',
   NewsQueryCache: 'NewsQueryCache'
 } as const
 
@@ -841,6 +843,7 @@ export const TechItemScalarFieldEnum = {
   title: 'title',
   summary: 'summary',
   categories: 'categories',
+  industryTags: 'industryTags',
   sources: 'sources',
   publishedAt: 'publishedAt',
   thin: 'thin',
@@ -897,6 +900,7 @@ export const RadarAxisScalarFieldEnum = {
   kind: 'kind',
   searchQueries: 'searchQueries',
   weight: 'weight',
+  tagWeight: 'tagWeight',
   subscriberCount: 'subscriberCount',
   status: 'status',
   mergedIntoId: 'mergedIntoId',
@@ -1040,6 +1044,23 @@ export const RadarScanRunScalarFieldEnum = {
 export type RadarScanRunScalarFieldEnum = (typeof RadarScanRunScalarFieldEnum)[keyof typeof RadarScanRunScalarFieldEnum]
 
 
+export const RadarDropoutScalarFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  contactId: 'contactId',
+  url: 'url',
+  host: 'host',
+  title: 'title',
+  shareworthy: 'shareworthy',
+  stature: 'stature',
+  floor: 'floor',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type RadarDropoutScalarFieldEnum = (typeof RadarDropoutScalarFieldEnum)[keyof typeof RadarDropoutScalarFieldEnum]
+
+
 export const RadarDomainScalarFieldEnum = {
   id: 'id',
   orgId: 'orgId',
@@ -1049,6 +1070,19 @@ export const RadarDomainScalarFieldEnum = {
 } as const
 
 export type RadarDomainScalarFieldEnum = (typeof RadarDomainScalarFieldEnum)[keyof typeof RadarDomainScalarFieldEnum]
+
+
+export const RadarSourcePackScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  industryKey: 'industryKey',
+  sources: 'sources',
+  taxonomy: 'taxonomy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RadarSourcePackScalarFieldEnum = (typeof RadarSourcePackScalarFieldEnum)[keyof typeof RadarSourcePackScalarFieldEnum]
 
 
 export const NewsQueryCacheScalarFieldEnum = {

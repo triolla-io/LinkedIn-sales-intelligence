@@ -32,12 +32,88 @@ describe("buildPersonResearchQueries", () => {
     const qs = buildPersonResearchQueries({ fullName: "Pazit Garfinkel", hebrewName: "פזית גרפינקל", companyName: "Bank Hapoalim" });
     expect(qs).toContain('"Pazit Garfinkel" Bank Hapoalim interview');
     expect(qs.some((q) => q.includes("פזית גרפינקל"))).toBe(true);
-    expect(qs.length).toBeLessThanOrEqual(4);
+    expect(qs.length).toBeLessThanOrEqual(6);
     expect(qs).toEqual(buildPersonResearchQueries({ fullName: "Pazit Garfinkel", hebrewName: "פזית גרפינקל", companyName: "Bank Hapoalim" })); // deterministic
   });
   it("omits Hebrew queries when no Hebrew name", () => {
     const qs = buildPersonResearchQueries({ fullName: "John Doe", companyName: "Acme" });
     expect(qs.every((q) => !/[א-ת]/.test(q))).toBe(true);
+  });
+
+  /**
+   * The first two queries must not presuppose a press event. Every query used to be
+   * interview/panel/keynote-shaped, which is a far narrower net than "what does this
+   * person do" — and the whole of Pazit Garfinkel's public agenda sat outside it.
+   */
+  it("asks what the person OWNS before it asks about their press appearances", () => {
+    const qs = buildPersonResearchQueries({ fullName: "Pazit Garfinkel", hebrewName: "פזית גרפינקל", companyName: "Bank Hapoalim" });
+    expect(qs[0]).toContain("תחומי אחריות");
+    expect(qs.slice(0, 2).some((q) => /ראיון|כנס|interview|panel|keynote/.test(q))).toBe(false);
+  });
+
+  /**
+   * `Contact` stores only `hebrewFirstName`, so the caller hands one token in. Quoted as a
+   * phrase that was `"פזית" כנס` — every Pazit in Israel, pinned to nothing. A lone token
+   * goes unquoted and always beside the company, which is what makes it a real constraint.
+   */
+  it("does not quote a lone Hebrew first name as a phrase", () => {
+    const qs = buildPersonResearchQueries({ fullName: "Pazit Garfinkel", hebrewName: "פזית", companyName: "Bank Hapoalim בנק הפועלים" });
+    expect(qs.some((q) => q.includes('"פזית"'))).toBe(false);
+    expect(qs.every((q) => !/[א-ת]/.test(q) || q.includes("בנק הפועלים"))).toBe(true);
+    // A FULL Hebrew name is still quoted — it is specific enough to be a phrase.
+    const full = buildPersonResearchQueries({ fullName: "Pazit Garfinkel", hebrewName: "פזית גרפינקל", companyName: "Bank Hapoalim" });
+    expect(full.some((q) => q.includes('"פזית גרפינקל"'))).toBe(true);
+  });
+});
+
+describe("researchPerson — free first", () => {
+  /**
+   * The paid pool is a TOP-UP now, not the source. It was the only source until
+   * 2026-09-01, and on 2026-08-31 three of the four paid providers were at exactly zero
+   * for the month — so the one input that makes a person model personal returned nothing
+   * for the four people v3 was built for.
+   */
+  it("runs on free RSS and never touches the paid pool when free is enough", async () => {
+    const rssFetcher = vi.fn(async (q: string) => [
+      { title: `t-${q}`, url: `https://calcalist.co.il/${encodeURIComponent(q)}`, snippet: "s", source: "google-news-rss", publishedAt: null },
+    ]);
+    const fetcher = vi.fn();
+    const res = await researchPerson(
+      { fullName: "Pazit Garfinkel", hebrewName: "פזית גרפינקל", companyName: "Bank Hapoalim" },
+      { rssFetcher, fetcher, readPage: async () => null, maxPageReads: 0, sleep: noSleep }
+    );
+    expect(rssFetcher).toHaveBeenCalledTimes(6);
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(res.paidQueries).toBe(0);
+    expect(res.findings.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("tops up from the paid pool only when free came back thin", async () => {
+    const rssFetcher = vi.fn(async () => []);
+    const fetcher = vi.fn(async () => [
+      { title: "paid", url: "https://globes.co.il/a", snippet: "s", source: "serper", publishedAt: null },
+    ]);
+    const res = await researchPerson(
+      { fullName: "Pazit Garfinkel", hebrewName: "פזית גרפינקל", companyName: "Bank Hapoalim" },
+      { rssFetcher, fetcher, readPage: async () => null, maxPageReads: 0, sleep: noSleep }
+    );
+    expect(fetcher).toHaveBeenCalled();
+    expect(res.paidQueries).toBe(6);
+    expect(res.findings.length).toBe(1);
+  });
+
+  /** The same interview is found by several queries and now by two providers on top. */
+  it("dedupes the same story across queries and providers", async () => {
+    const one = { title: "ראיון", url: "https://calcalist.co.il/a/?utm_source=x", snippet: "s", source: "google-news-rss", publishedAt: null };
+    const res = await researchPerson(
+      { fullName: "Pazit Garfinkel", hebrewName: "פזית גרפינקל", companyName: "Bank Hapoalim" },
+      {
+        rssFetcher: async () => [one, { ...one, url: "https://www.calcalist.co.il/a" }],
+        fetcher: async () => [{ ...one, url: "http://calcalist.co.il/a/" }],
+        readPage: async () => null, maxPageReads: 0, sleep: noSleep,
+      }
+    );
+    expect(res.findings).toHaveLength(1);
   });
 });
 

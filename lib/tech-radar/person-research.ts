@@ -26,7 +26,9 @@
  * title and snippet are still evidence.
  */
 import { fetchPoolNews } from "@/lib/tech-radar/fetch-pool-news";
+import { fetchGoogleNewsRss } from "@/lib/news/google-news-rss";
 import { readPage as defaultReadPage } from "@/lib/research/read-page";
+import type { NewsResult } from "@/lib/news/types";
 
 export type PersonResearchInput = {
   fullName: string;
@@ -36,10 +38,23 @@ export type PersonResearchInput = {
 
 export type PersonWebResearch = {
   findings: { title: string; url: string; snippet: string; pageText: string | null }[];
+  /** The queries actually run. On the report, so an empty result can name what was asked. */
+  queries?: string[];
+  /** How many PAID queries the top-up spent. 0 means the whole research was free. */
+  paidQueries?: number;
 };
 
-/** Four queries is the whole search budget for one person. */
-const MAX_QUERIES = 4;
+/**
+ * Six queries, and the first two are ROLE-shaped rather than event-shaped.
+ *
+ * Four was the budget while every query presupposed a press event — interview, panel,
+ * keynote. That is a far narrower net than "what does this person actually do", and on
+ * 2026-09-01 the cost of the difference was measured: Pazit Garfinkel's entire agenda is
+ * public and named — the "בנקאות יוזמת" strategy, פועלים PRO, פועלים ג'וניור, the CAL
+ * card-operating agreement — and not one of the four event queries reached any of it,
+ * while a plain "במה מתעסקת" returned all of it at once.
+ */
+const MAX_QUERIES = 6;
 /** How many results reach the build prompt. Beyond this the tail is noise. */
 const MAX_FINDINGS = 8;
 /** Each read is a live HTTP fetch (or a metered Tavily Extract call) — this is the budget. */
@@ -47,6 +62,16 @@ const DEFAULT_MAX_PAGE_READS = 4;
 /** Per-finding text budget: enough of an interview to be quotable, small enough that
  *  eight findings still fit one prompt. */
 const MAX_PAGE_TEXT_CHARS = 4000;
+/** Google News RSS results per query. Free, so this cap is about prompt size, not cost. */
+const RSS_MAX_PER_QUERY = 10;
+/**
+ * Below this many free findings, spend a paid call; above it, the paid pool buys research
+ * nothing it does not already have. Person research is not what a month's quota should die
+ * on — and on 2026-08-31 it died the other way round: three of four paid providers were at
+ * exactly zero, this module ran only on them, and v3's flagship new input returned nothing
+ * for the four people it was built for.
+ */
+const MIN_FINDINGS_BEFORE_PAID = 4;
 
 /**
  * The queries for one person, in code. Pure and deterministic — the same input always
@@ -61,15 +86,28 @@ export function buildPersonResearchQueries(input: PersonResearchInput): string[]
   const en = input.fullName.trim();
   const he = (input.hebrewName ?? "").trim();
   const company = input.companyName.trim();
-  const queries = [
-    `"${en}" ${company} interview`,
-    `"${en}" ${company} conference panel`,
-    // Hebrew doubles the recall for Israeli executives, whose press coverage is almost
-    // entirely Hebrew. With no Hebrew name to search, that budget buys English breadth
-    // instead rather than going unspent.
-    ...(he ? [`"${he}" ${company} ראיון`, `"${he}" כנס`] : [`"${en}" ${company} keynote`]),
-  ];
-  return queries.slice(0, MAX_QUERIES);
+  // The Hebrew name is quoted as a PHRASE only when it is a full name. `Contact` stores
+  // only `hebrewFirstName`, and the caller passes exactly that — so until 2026-09-01 the
+  // Hebrew half of the budget ran as `"פזית" Bank Hapoalim ראיון` and `"פזית" כנס`: a
+  // quoted lone first name, which matches every Pazit in Israel and pins nothing. A single
+  // token is therefore used UNQUOTED and always beside the company, so a provider still has
+  // to satisfy both — and `currentCompany` carries the Hebrew company name for Israeli
+  // employers ("Bank Hapoalim בנק הפועלים"), which is what makes that pairing land.
+  const heName = he ? (/\s/.test(he) ? `"${he}"` : he) : "";
+  // ROLE-SHAPED FIRST, and first for a reason: these are the queries that answer "what
+  // does this person own", and they run before the budget can be eaten by event queries.
+  // An executive's areas of responsibility are written up far more often than their
+  // conference appearances are.
+  const role = he
+    ? [`${heName} ${company} תחומי אחריות`, `${heName} ${company} אסטרטגיה`]
+    : [`"${en}" ${company} responsibilities`, `"${en}" ${company} strategy`];
+  // Hebrew doubles the recall for Israeli executives, whose press coverage is almost
+  // entirely Hebrew. With no Hebrew name to search, that budget buys English breadth
+  // instead rather than going unspent.
+  const events = he
+    ? [`${heName} ${company} ראיון`, `${heName} ${company} כנס`, `"${en}" ${company} interview`, `"${en}" ${company} conference panel`]
+    : [`"${en}" ${company} interview`, `"${en}" ${company} conference panel`, `"${en}" ${company} keynote`];
+  return [...role, ...events].slice(0, MAX_QUERIES);
 }
 
 /**
@@ -81,9 +119,12 @@ export function buildPersonResearchQueries(input: PersonResearchInput): string[]
 export async function researchPerson(
   input: PersonResearchInput,
   deps: {
+    /** The PAID pool's fetcher (top-up only — see MIN_FINDINGS_BEFORE_PAID). */
     fetcher?: (
       query: string
     ) => Promise<{ title: string; url: string; snippet: string; source: string; publishedAt: string | null }[]>;
+    /** The FREE Google News RSS fetcher, which is now the primary. Injected in tests. */
+    rssFetcher?: (query: string) => Promise<NewsResult[]>;
     readPage?: typeof defaultReadPage;
     maxPageReads?: number;
     /** Pacing between pooled queries; forwarded to fetchPoolNews. Tests pass a no-op. */
@@ -93,17 +134,48 @@ export async function researchPerson(
   const readPage = deps.readPage ?? defaultReadPage;
   const maxReads = Math.max(0, deps.maxPageReads ?? DEFAULT_MAX_PAGE_READS);
 
-  // No company subscriptions: this pool is one person's, so nothing is shared across
-  // companies the way a scan's pool is. fetchPoolNews still dedupes by canonical URL,
-  // which is what collapses the same interview found by three of the four queries.
-  const pool = buildPersonResearchQueries(input).map((query) => ({ query, companyIds: [] as string[] }));
-  const news = await fetchPoolNews(pool, deps.fetcher, deps.sleep ? { sleep: deps.sleep } : {});
+  const queries = buildPersonResearchQueries(input);
 
+  // FREE FIRST. Google News RSS has no quota to exhaust, and by rule 1 above nothing found
+  // here is ever forwarded to anybody — so there was never a reason for the one input that
+  // makes a person model personal to be the input that runs out of money.
+  // Both defaults reach the network, so under vitest a caller that forgot a seam gets an
+  // empty result instead of a live pull. The phase's standing constraint is "never make a
+  // real network call to a news provider in a test", and a constraint enforced only by
+  // everyone remembering it is enforced by nothing — the first caller to forget it here
+  // did not get a clear failure, it got a 5-second timeout AND a live call against a
+  // provider whose monthly quota is already at zero. A test that means to exercise
+  // research injects the seam and neither branch below runs.
+  const inTest = !!process.env.VITEST;
+  const rss =
+    deps.rssFetcher ??
+    (inTest ? async () => [] : (query: string) => fetchGoogleNewsRss(query, { max: RSS_MAX_PER_QUERY }));
+  const collected: NewsResult[] = [];
+  for (const query of queries) {
+    collected.push(...(await rss(query)));
+  }
+
+  // Paid top-up only when free came back thin.
+  //
+  // No company subscriptions: this pool is one person's, so nothing is shared across
+  // companies the way a scan's pool is.
+  let paidQueries = 0;
+  if (dedupeByUrl(collected).length < MIN_FINDINGS_BEFORE_PAID && (deps.fetcher || !inTest)) {
+    const pool = queries.map((query) => ({ query, companyIds: [] as string[] }));
+    const news = await fetchPoolNews(pool, deps.fetcher, deps.sleep ? { sleep: deps.sleep } : {});
+    collected.push(...news.items);
+    paidQueries = pool.length;
+  }
+
+  // Dedupe by normalised URL — the same interview is found by three of the six queries, and
+  // now by two providers on top of that. Same rule as persist.ts's normalizeStoryUrl,
+  // duplicated rather than imported because that module pulls in prisma and this one is
+  // deliberately injectable for tests.
   const findings: PersonWebResearch["findings"] = [];
   let reads = 0;
-  for (const item of news.items.slice(0, MAX_FINDINGS)) {
+  for (const item of dedupeByUrl(collected).slice(0, MAX_FINDINGS)) {
     let pageText: string | null = null;
-    if (reads < maxReads) {
+    if (reads < maxReads && (deps.readPage || !inTest)) {
       reads += 1;
       const page = await readPage(item.url);
       if (page?.text) pageText = page.text.slice(0, MAX_PAGE_TEXT_CHARS);
@@ -111,5 +183,24 @@ export async function researchPerson(
     findings.push({ title: item.title, url: item.url, snippet: item.snippet ?? "", pageText });
   }
 
-  return { findings };
+  return { findings, queries, paidQueries };
+}
+
+/** Scheme, www, trailing slash and case are noise; the host+path is the story. */
+function dedupeByUrl(items: NewsResult[]): NewsResult[] {
+  const seen = new Set<string>();
+  const out: NewsResult[] = [];
+  for (const item of items) {
+    let key: string;
+    try {
+      const u = new URL(item.url);
+      key = `${u.hostname.toLowerCase().replace(/^www\./, "")}${u.pathname.replace(/\/+$/, "").toLowerCase()}`;
+    } catch {
+      key = item.url.trim().toLowerCase();
+    }
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+  }
+  return out;
 }

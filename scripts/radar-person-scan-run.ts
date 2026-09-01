@@ -10,13 +10,15 @@
  * Inngest handler calls, so a script run and an Inngest run behave identically.
  *
  * Dry run by default, exactly like scripts/radar-bootstrap.ts (same house style): it
- * prints the org, the ACTIVE axes with subscribers, each axis's kind and query count,
- * the total DISTINCT query strings the pool would ask for, and the per-provider quota
- * status from newsQuotaStatus() — then exits without a single provider call. That
- * number is what a human checks a quota against before spending it.
+ * prints the org, the ACTIVE axes with subscribers, the SOURCE PACKS the scan would pull
+ * (free — RSS, no quota), the DISTINCT queries the narrow named channel would buy, and
+ * the per-provider quota status from newsQuotaStatus() — then exits without a single
+ * provider call. That last number is what a human checks a quota against before spending
+ * it, and after Phase B it is the ONLY billable part of the intake: the packs cost
+ * nothing, so a big pack pull is not a big bill.
  *
  * --write calls personScan(orgId) for real: real news-provider spend (against the
- * quotas printed above) and real OpenRouter spend (triage + axis-fit + veto + draft,
+ * quotas printed above) and real OpenRouter spend (triage + chooser + veto + draft,
  * against openrouterChat()'s own kill-switch and daily cap). It NEVER sends a message —
  * personScan stops at a PENDING_REVIEW/PREPARED draft; sending is a human action in the
  * app. Nothing in this script — dry run or --write — calls Apollo or Bright Data.
@@ -26,9 +28,8 @@
  *   node_modules/.bin/tsx scripts/radar-person-scan-run.ts --org=<orgId> --write    # for real
  */
 import { prisma } from "@/lib/prisma";
-import { personScan, MAX_QUERIES_PER_AXIS, type PersonScanReport } from "@/lib/tech-radar/person-scan";
-import { buildAxisQueryPool } from "@/lib/tech-radar/axis-fit";
-import { normalizeQuery } from "@/lib/tech-radar/queries";
+import { personScan, poolQueryCount, type PersonScanReport } from "@/lib/tech-radar/person-scan";
+import { resolvePacksForOrg } from "@/lib/tech-radar/source-packs";
 import { layer3Expired } from "@/lib/tech-radar/layers";
 import { newsQuotaStatus } from "@/lib/news/budget";
 
@@ -78,7 +79,7 @@ async function main() {
   const axes = await prisma.radarAxis.findMany({
     where: { orgId: org.id, status: "ACTIVE", people: { some: {} } },
     select: {
-      id: true, label: true, kind: true, searchQueries: true,
+      id: true, label: true, kind: true,
       people: {
         select: {
           evidence: true,
@@ -98,25 +99,41 @@ async function main() {
   for (const a of axes) {
     const eligible = isPoolEligible(a.people);
     const subs = a.people.map((p) => p.personProfile.contact.fullName);
-    const queryCount = Math.min(
-      new Set(a.searchQueries.map(normalizeQuery).filter(Boolean)).size,
-      MAX_QUERIES_PER_AXIS
-    );
-    console.log(`\n  ${a.label}  [${a.kind}]${eligible ? "" : "  ⚠ layer-3 fact expired — excluded from this run's pool"}`);
+    // Phase B: an axis no longer writes queries. It is a CLASSIFICATION tag, and only a
+    // PERSON_ENTITY axis (a name) or a company monitor buys anything at all — through the
+    // narrow named channel below.
+    console.log(`\n  ${a.label}  [${a.kind}]${eligible ? "" : "  ⚠ layer-3 fact expired — buys no named query this run"}`);
     console.log(`    subscribers:  ${subs.join(", ") || "—"}`);
-    console.log(`    query count:  ${queryCount} (capped at ${MAX_QUERIES_PER_AXIS}/axis)`);
   }
 
-  const poolEligibleAxes = axes.filter((a) => isPoolEligible(a.people));
-  const pool = buildAxisQueryPool(
-    poolEligibleAxes.map((a) => ({ id: a.id, searchQueries: a.searchQueries })),
-    normalizeQuery,
-    MAX_QUERIES_PER_AXIS
-  );
+  // ── The free half: which fixed source packs would be pulled ──────────────
+  const resolution = await resolvePacksForOrg(org.id);
+  rule(`SOURCE PACKS (free — RSS, no quota)`);
+  if (resolution.packs.length === 0) console.log("  none — no industry pack resolved, so no outlet would be pulled.");
+  for (const pack of resolution.packs) {
+    const enabled = pack.sources.filter((x) => x.enabled);
+    const il = enabled.filter((x) => x.scope === "il").length;
+    console.log(
+      `  ${(pack.label ?? pack.industryKey).padEnd(28)} sources=${enabled.length} (il=${il} global=${enabled.length - il}) tags=${pack.taxonomy.length}`
+    );
+  }
+  // Never a silent zero: an industry whose people would get nothing is named, which is the
+  // failure shape this codebase has hit repeatedly ("0 נמצאו" that was 25 filtered people).
+  for (const u of resolution.unresolved) {
+    console.log(`  ⚠ ${u.labels.join(" / ") || u.industryKey}: NO USABLE PACK (${u.reason}) — ${u.people} person(s) affected`);
+  }
+  for (const u of resolution.noSubscribers) {
+    console.log(`  · ${u.labels.join(" / ") || u.industryKey}: every subscription muted — represents nobody this scan`);
+  }
+  for (const u of resolution.unkeyed) {
+    console.log(`  ⚠ axis ${u.axisId} ("${u.label}") normalises to no industry at all — a bug report, not a routine outcome`);
+  }
 
-  rule("QUERY POOL");
-  console.log(`  ${poolEligibleAxes.length}/${axes.length} axes pool-eligible (layer-3 query TTL applied)`);
-  console.log(`  ${pool.length} DISTINCT query strings the pool would ask providers for`);
+  // ── The paid half: the narrow named channel ──────────────────────────────
+  const pool = { length: (await poolQueryCount(org.id)).uniqueQueries };
+  rule("NARROW NAMED CHANNEL (the only billable intake)");
+  console.log(`  ${pool.length} DISTINCT queries, built in code from competitor/product and employer NAMES`);
+  console.log(`  no LLM writes any of them — the free-text axis queries of v2 are gone`);
   // POOL_RETRY (see CLAUDE.md "Temporary env overrides"): the pool count above is per
   // QUERY, not per PROVIDER CALL. An empty result retries once, broader, UNLESS
   // POOL_RETRY=off — so real spend can reach up to 2x the query count above, not the
@@ -145,8 +162,8 @@ async function main() {
   // ── Real spend from here down ──────────────────────────────────────────────
   console.log(
     `\nAbout to fire personScan(${org.id}) for real: news-provider spend against the ${pool.length} ` +
-      `queries above, plus OpenRouter spend for triage/axis-fit/veto/draft. It scans, judges, and ` +
-      `drafts — it NEVER sends a message; drafts wait for a human in the app.\n`
+      `named queries above (the pack pull is free), plus OpenRouter spend for triage/chooser/veto/draft. ` +
+      `It scans, judges, and drafts — it NEVER sends a message; drafts wait for a human in the app.\n`
   );
 
   let report: PersonScanReport;
@@ -177,6 +194,37 @@ async function main() {
     `  staleDropped=${show(report.staleDropped)}  undatedDropped=${show(report.undatedDropped)}  poolDropped=${show(report.poolDropped)}`
   );
 
+  rule("SOURCES PULLED");
+  // Rollout step 3 reads THIS before the weekly tick is allowed to run: an empty pull has
+  // to be able to say WHICH outlet went quiet, which is the 2026-08-27 lesson (one
+  // provider silently dropped 100% of its results and it read as a quiet week).
+  if (!report.perSource?.length) console.log("  —");
+  for (const s of report.perSource ?? []) {
+    console.log(
+      `  ${s.host.padEnd(24)} items=${String(s.items).padStart(3)}  via=${s.via}` +
+        `${s.wrapperDrops ? `  wrapperDrops=${s.wrapperDrops}` : ""}${s.error ? `  ERROR: ${s.error}` : ""}`
+    );
+  }
+  for (const p of report.sourcePacks ?? []) {
+    console.log(`  pack ${(p.label ?? p.industryKey).padEnd(24)} sources=${p.sources} tags=${p.taxonomyTags} items=${p.items}`);
+  }
+  for (const u of report.unresolvedIndustries ?? []) {
+    console.log(`  ⚠ ${u.labels.join(" / ") || u.industryKey}: ${u.reason} (${u.people} person(s))`);
+  }
+
+  rule("MATCHING FLOORS");
+  console.log(`  people scanned:      ${show(report.peopleScanned)}`);
+  console.log(`  candidates (floors): ${show(report.floorCandidates)}`);
+  console.log(`  chooser calls:       ${show(report.chooserCalls)}   picks: ${show(report.chooserPicks)}`);
+  console.log(`  dropouts saved:      ${show(report.dropoutsWritten)}`);
+  const floors = Object.entries(report.floorDrops ?? {}).sort((a, b) => b[1] - a[1]);
+  if (floors.length === 0) console.log("  drops: —");
+  for (const [floor, count] of floors) console.log(`  ${String(count).padStart(4)}  ${floor}`);
+  // A SKIPPED gate is not a passed gate. Whoever reads "0 geography drops" has to know
+  // whether the gate ran at all for the people in this run.
+  console.log(`  geography gate SKIPPED for: ${show(report.geoGateSkipped)}`);
+  console.log(`  people with no source pack: ${show(report.peopleWithoutPack)}`);
+
   rule("DROP REASONS");
   const reasons = Object.entries(report.dropReasons ?? {}).sort((a, b) => b[1] - a[1]);
   if (reasons.length === 0) console.log("  —");
@@ -192,12 +240,13 @@ async function main() {
   );
   console.log(`  expiredLayer3 (axes dropped from THIS pool, stale layer-3 fact): ${show(report.expiredLayer3)}`);
 
-  rule("QUERIES");
+  rule("NAMED QUERIES");
   // cachedQueries now lives on PersonScanReport too (2026-08-26 final review, Finding 5) —
   // threaded from fetch-pool-news.ts's PoolResult the same way freshness/uniqueQueries
   // are. This is the number that tells a re-fired scan (within the query cache's
   // EMPTY_CACHE_TTL_MINUTES window) apart from a genuinely quiet week.
   console.log(`  cachedQueries: ${show(report.cachedQueries)}`);
+  console.log(`  namedQueries:  ${show(report.namedQueries)}`);
   console.log(`  uniqueQueries: ${show(report.uniqueQueries)}   queriesRun: ${show(report.queriesRun)}`);
 
   rule("PROVIDER STATS");

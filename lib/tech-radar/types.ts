@@ -167,6 +167,18 @@ export type TriageVerdict = {
   israelRelevant: boolean;
   /** Coarse tags used to prefilter items against a company's focus areas. */
   categories: string[];
+  /**
+   * Members of the industry pack's CLOSED taxonomy — the person-outward matching key
+   * (v3 Phase B). Distinct from `categories`, which stays free text because the
+   * company-outward path in fit.ts scores it by token overlap; that overlap is exactly
+   * what fails on synonyms, which is why the person path gets a closed list instead.
+   *
+   * ABSENT means no taxonomy was offered (the company path, and every verdict written
+   * before Phase B). An empty ARRAY means one was offered and nothing matched — a
+   * finding, and the row a future threshold calibration reads. Collapsing the two would
+   * make a run with no source pack look identical to a run where every item missed.
+   */
+  industryTags?: string[];
   /** Short vendor/technology guess; the write-up stage refines it. */
   technology: string | null;
   vendor: string | null;
@@ -258,4 +270,7 @@ export const OR_FEATURE = {
   veto: "tech-radar-veto",
   /** The veto's person-specificity bar, moved to profile build time. */
   rationaleGate: "tech-radar-rationale-gate",
+  /** Floor 2 of the v3 matching pyramid: one Haiku call per person per scan. Its own key
+   *  so ~8 cheap calls a scan never hide inside triage's line in the spend log. */
+  chooser: "tech-radar-chooser",
 } as const;

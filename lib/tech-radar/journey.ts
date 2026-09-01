@@ -1,5 +1,7 @@
 import { SHAREWORTHY_FLOOR, STATURE_FLOOR } from "./types";
 import { AXIS_FIT_FLOOR } from "./axis-fit";
+import { STALE_IN_QUEUE_REASON } from "./person-rank";
+import { FRESHNESS_WINDOW_DAYS } from "./freshness";
 
 /**
  * One article's path to a message, in five decisions and plain Hebrew.
@@ -181,6 +183,26 @@ export function deriveJourney(input: {
     name: NAMES.personal,
     value: "כן — החלטה שלו",
   };
+
+  // Aged out in the queue. Without this branch the generic DISMISSED copy ("דילגת עליה")
+  // would blame the reader for a decision the system made — the draft waited for the
+  // person's pacing window until its article crossed the freshness window and was closed.
+  if (draft.status === "DISMISSED" && draft.discardReason === STALE_IN_QUEUE_REASON) {
+    return {
+      steps: [
+        read,
+        importance,
+        connection,
+        personal,
+        { key: "draft", state: "fail", name: NAMES.draft, value: "התיישנה בתור" },
+      ],
+      verdict: {
+        tone: "bad",
+        text: `נסגרה — הטיוטה התיישנה בתור: היא חיכתה עד שהכתבה חצתה את חלון ${FRESHNESS_WINDOW_DAYS} הימים, ולכן לא נשלחה.`,
+      },
+      overridable: false,
+    };
+  }
   const draftStep: JourneyStep = {
     key: "draft",
     state: "pass",

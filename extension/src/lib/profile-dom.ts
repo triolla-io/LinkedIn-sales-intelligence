@@ -25,12 +25,47 @@ export interface EducationItem {
   field: string | null;
 }
 
-const clean = (s: string | null | undefined): string => (s || "").replace(/\s+/g, " ").trim();
+/**
+ * Invisible bidirectional-formatting characters LinkedIn injects in RTL locales: the
+ * LRM/RLM marks, the Arabic letter mark, and the embedding/override/isolate controls.
+ *
+ * They are stripped because they defeat exact comparison while being invisible in every
+ * log and every screenshot. On 2026-08-31 all four radar people had their `headline`
+ * stored as a connection-degree badge — "‏· שלישית" — even though readProfileTopcard
+ * already guarded against `startsWith("·")`: in the Hebrew UI the badge's first character
+ * is U+200F, not the middle dot, so the guard never fired. `headline` was one of only
+ * three person facts the radar's layer 4 ever had.
+ */
+const BIDI_MARKS = /[‎‏؜‪-‮⁦-⁩]/g;
 
-const ABOUT_HEADERS = ["about", "אודות"];
-const EXPERIENCE_HEADERS = ["experience", "ניסיון"];
-const SKILLS_HEADERS = ["skills", "כישורים", "מיומנויות"];
-const EDUCATION_HEADERS = ["education", "השכלה"];
+const clean = (s: string | null | undefined): string =>
+  (s || "").replace(BIDI_MARKS, "").replace(/\s+/g, " ").trim();
+
+/**
+ * Section headings, as PATTERNS rather than exact strings.
+ *
+ * Exact matching is what actually broke the deep scrape, and it took six extension
+ * versions to see it because every wrong theory (time, scrolling, virtualization, a 0x0
+ * window) produced the same empty result. The 0.7.6 run finally printed the headings the
+ * page really carries:
+ *
+ *   ["0 התראות", "Elinor Levinson Gafni", "על אודות", "פעילות", "ניסיון", "השכלה",
+ *    "מיומנויות (16)", "המלצות", "תחומי עניין", ...]
+ *
+ * Two mismatches, both invisible to a reader of the code: LinkedIn's Hebrew About heading
+ * is "על אודות", not "אודות" — and the skills heading carries a COUNT, "מיומנויות (16)".
+ * Neither could ever equal its constant. Everything was in the DOM the whole time; nothing
+ * needed scrolling at all (`docHeight` equals the viewport height).
+ */
+const ABOUT_HEADERS = /^(about|(על\s+)?אודות)$/;
+const EXPERIENCE_HEADERS = /^(experience|ניסיון)$/;
+const SKILLS_HEADERS = /^(skills|כישורים|מיומנויות)$/;
+const EDUCATION_HEADERS = /^(education|השכלה)$/;
+
+/** A trailing "(16)" is a live item count, not part of the heading's name. */
+function headingText(el: Element | null | undefined): string {
+  return clean(el?.textContent).replace(/\s*\(\s*\d+\s*\)\s*$/, "").toLowerCase();
+}
 
 /**
  * Find the <section> whose <h2> text (lowercased/trimmed) is one of `headers`. Same
@@ -39,10 +74,10 @@ const EDUCATION_HEADERS = ["education", "השכלה"];
  * the CONNECT invite modal, a different part of the page). LinkedIn ships an English/Hebrew
  * <h2> per section depending on the viewer's UI language, so we match both.
  */
-function findSection(headers: string[]): HTMLElement | null {
+function findSection(headers: RegExp): HTMLElement | null {
   for (const section of Array.from(document.querySelectorAll("section"))) {
     const h2 = section.querySelector("h2");
-    if (h2 && headers.includes(clean(h2.textContent).toLowerCase())) {
+    if (h2 && headers.test(headingText(h2))) {
       return section as HTMLElement;
     }
   }
@@ -114,10 +149,59 @@ const EMPLOYMENT_SUFFIX =
 function entryDescription(li: Element, title: string): string | null {
   const paragraphs = Array.from(li.querySelectorAll("p"))
     .map((p) => clean(p.textContent))
-    .filter((t) => t && t !== title && !/\d{4}/.test(t.slice(0, 24)));
+    // Employment type, location and duration lines are row chrome, not the person's own
+    // account of the role — 0.7.10 stored `description: "Full-time"` for a board member.
+    .filter((t) => t && t !== title && !isRowChrome(t));
   if (!paragraphs.length) return null;
   const best = paragraphs.reduce((a, b) => (b.length > a.length ? b : a));
   return best ? best.slice(0, 1500) : null;
+}
+
+/**
+ * Row chrome that is never the company and never the person's description of the role.
+ *
+ * Taken from what 0.7.10 stored for real: `company: "Full-time"` and
+ * `company: "Jerusalem District, Israel"`, each duplicated into `description`. In the SDUI
+ * render a grouped employer block keeps the company on its header, so a role row carries
+ * only its own title, dates, employment type and location — and "the line after the title"
+ * is whichever of those happens to come first.
+ */
+const EMPLOYMENT_TYPES =
+  /^(full[- ]?time|part[- ]?time|contract|internship|freelance|self[- ]employed|seasonal|temporary|permanent|משרה מלאה|משרה חלקית|חוזה|פרילנס|עצמאי|התמחות|זמני)$/i;
+
+/** "Tel Aviv - Jaffa, Tel Aviv District, Israel", "Jerusalem District, Israel", "Israel". */
+const LOCATION_SHAPE = /\b(district|israel|area|region|remote|ישראל|מחוז|אזור|היברידי|מרחוק)\b/i;
+
+/** A duration/date line: "אוק׳ 2024 - נוכחי · 1 שנה 11 חודשים", "2020 - 2022", "8 שנים 1 חודש". */
+function looksLikeDates(text: string): boolean {
+  return /\d{4}/.test(text) || /\b(yrs?|years?|mos?|months?|שנים|שנה|חודשים|חודש)\b/i.test(text);
+}
+
+function isRowChrome(text: string): boolean {
+  return EMPLOYMENT_TYPES.test(text) || LOCATION_SHAPE.test(text) || looksLikeDates(text);
+}
+
+/**
+ * The employer for one experience row.
+ *
+ * A /company/ link is the only self-describing signal here, so it wins: on the row itself
+ * if present, otherwise on the enclosing group header — which is where a grouped block puts
+ * it. Only when there is no link at all does this fall back to the old "line after the
+ * title" heuristic, which is what the <li> render needs and the only shape it was ever
+ * right for.
+ */
+function rowCompany(row: Element, lines: { text: string }[], titleIdx: number): string | null {
+  const link =
+    row.querySelector('a[href*="/company/"]') ??
+    row.closest("div[componentkey], li")?.parentElement?.closest("div[componentkey], li")?.querySelector('a[href*="/company/"]') ??
+    null;
+  const linked = clean(link?.textContent);
+  if (linked && !isRowChrome(linked)) return linked;
+
+  const after = lines.slice((titleIdx >= 0 ? titleIdx : 0) + 1);
+  const raw = after.find((l) => !isRowChrome(l.text))?.text ?? null;
+  if (!raw) return null;
+  return raw.replace(EMPLOYMENT_SUFFIX, "").trim() || null;
 }
 
 /**
@@ -133,10 +217,7 @@ export function readProfileExperience(): ExperienceItem[] {
   const section = findSection(EXPERIENCE_HEADERS);
   if (!section) return [];
   const results: ExperienceItem[] = [];
-  for (const li of Array.from(section.querySelectorAll("li"))) {
-    // Skip nested <li>s belonging to a grouped multi-role-at-one-company entry — they were
-    // already walked as part of their parent li's leafLines().
-    if (li.parentElement?.closest("li")) continue;
+  for (const li of sectionRows(section)) {
     const lines = leafLines(li);
     if (!lines.length) continue;
     const titleIdx = lines.findIndex((l) => l.bold);
@@ -147,9 +228,7 @@ export function readProfileExperience(): ExperienceItem[] {
     // rest[0] from a title-excluding filter would grab that preceding line instead. Also
     // skip a line that's actually the date range (some layouts put it immediately after
     // the title, before the company).
-    const after = lines.slice((titleIdx >= 0 ? titleIdx : 0) + 1);
-    const rawCompany = after.find((l) => !/\d{4}/.test(l.text))?.text ?? null;
-    const company = rawCompany ? rawCompany.replace(EMPLOYMENT_SUFFIX, "").trim() || null : null;
+    const company = rowCompany(li, lines, titleIdx);
     const dateLine = lines.find((l) => /\d{4}/.test(l.text)) ?? null;
     results.push({
       title,
@@ -176,8 +255,7 @@ export function readProfileSkills(): string[] {
   if (!section) return [];
   const skills: string[] = [];
   const seen = new Set<string>();
-  for (const li of Array.from(section.querySelectorAll("li"))) {
-    if (li.parentElement?.closest("li")) continue;
+  for (const li of sectionRows(section)) {
     const name = leafLines(li)[0]?.text;
     if (!name || seen.has(name)) continue;
     seen.add(name);
@@ -199,17 +277,250 @@ export function readProfileEducation(): EducationItem[] {
   const section = findSection(EDUCATION_HEADERS);
   if (!section) return [];
   const rows: EducationItem[] = [];
-  for (const li of Array.from(section.querySelectorAll("li"))) {
-    if (li.parentElement?.closest("li")) continue;
+  for (const li of sectionRows(section)) {
     const lines = leafLines(li);
     if (!lines.length) continue;
-    const school = (lines.find((l) => l.bold) ?? lines[0]).text;
+    // In the SDUI render nothing is bold — the school is inside an <a href="/school/…">.
+    // Falling back to the first line would file the degree as the institution.
+    const schoolLink = clean(li.querySelector('a[href*="/school/"]')?.textContent);
+    const school = schoolLink || (lines.find((l) => l.bold) ?? lines[0]).text;
     const degreeLine = lines.map((l) => l.text).find((t) => t !== school) ?? null;
     const [degree, ...rest] = (degreeLine ?? "").split(",").map((s) => s.trim());
     rows.push({ school, degree: degree || null, field: rest.join(", ") || null });
     if (rows.length >= 5) break;
   }
   return rows;
+}
+/**
+ * The rows of a profile section, across BOTH renders LinkedIn currently serves.
+ *
+ * Every reader here used to iterate `section.querySelectorAll("li")`, and the 0.7.8 markup
+ * report showed why education and skills always came back empty: the SDUI render has no
+ * <li> at all. Its rows are `<div componentkey=...>` — sometimes a semantic key
+ * ("com.linkedin.sdui.profile.skill(urn, 2)"), sometimes a bare uuid — and the same key can
+ * appear on a row and again on its own child.
+ *
+ * Both renders are live at once (three of four people parsed fine off <li> while the fourth
+ * returned nothing), so the <li> path stays first and the SDUI path is the fallback.
+ *
+ * Three things a componentkey div can be, and only the third is a row:
+ *   - a named layout anchor ("profile_education_top_anchor_…", "ProfileNullStateCardAnchor_…")
+ *   - a wrapper that merely contains other rows
+ *   - an actual entry
+ * So: drop named anchors, drop the empty, de-nest identical keys, and finally drop anything
+ * that contains another candidate — what remains is the leaf-level rows.
+ */
+const NAMED_ANCHOR = /anchor/i;
+
+function sectionRows(section: HTMLElement): Element[] {
+  const lis = Array.from(section.querySelectorAll("li")).filter(
+    (li) => !li.parentElement?.closest("li")
+  );
+  if (lis.length > 0) return lis;
+
+  const keyed = Array.from(section.querySelectorAll<HTMLElement>("div[componentkey]")).filter((el) => {
+    const key = el.getAttribute("componentkey") ?? "";
+    if (!key || NAMED_ANCHOR.test(key)) return false;
+    if (!clean(el.textContent)) return false;
+    // Outermost of a nested identical-key chain: the child repeat carries the same content.
+    const parentKeyed = el.parentElement?.closest("div[componentkey]");
+    return !parentKeyed || (parentKeyed.getAttribute("componentkey") ?? "") !== key;
+  });
+  // Leaf-level only. A card wrapper with its own key would otherwise be parsed as a row
+  // whose leafLines are every entry's text run together.
+  const leaves = keyed.filter((el) => !keyed.some((other) => other !== el && el.contains(other)));
+  if (leaves.length > 0) return leaves;
+
+  return Array.from(section.querySelectorAll('[role="listitem"]'));
+}
+
+/**
+ * One-off structural sample of a section whose reader came back empty.
+ *
+ * TEMPORARY (added 0.7.8). Three parsers fail on real markup — skills, education, and
+ * experience for one of the four people — now that the heading-matching bug no longer
+ * hides them. Guessing at the markup is what produced six wrong fixes already, so the
+ * extension reports the structure itself rather than sending a human to a console: tag
+ * names, row counts, and a trimmed innerHTML sample. Delete once the parsers are written
+ * against reality.
+ */
+function sampleSection(headers: RegExp): { found: boolean; lis: number; childTags: string[]; html: string } {
+  const section = findSection(headers);
+  if (!section) return { found: false, lis: 0, childTags: [], html: "" };
+  const list = section.querySelector("ul, ol") ?? section;
+  return {
+    found: true,
+    lis: section.querySelectorAll("li").length,
+    childTags: Array.from(list.children).slice(0, 6).map((el) => el.tagName.toLowerCase()),
+    // Attributes stripped: LinkedIn's class soup is noise and would blow the payload past
+    // anything readable, while the TAG structure is the whole question.
+    html: section.innerHTML.replace(/\s(class|id|style|data-[\w-]+|aria-[\w-]+)="[^"]*"/g, "").slice(0, 900),
+  };
+}
+
+/**
+ * One scroll step that actually moves something.
+ *
+ * `window.scrollBy` was scrolling nothing: the 0.7.5 run reported a healthy 1440x766
+ * viewport, eight completed steps, and still no lower section on any of the four people —
+ * while the topcard read perfectly. LinkedIn scrolls an inner container, so scrolling the
+ * WINDOW leaves the page exactly where it was and no section ever enters view. Scrolling by
+ * hand worked because a mouse wheel over the content scrolls whatever container is under
+ * the cursor.
+ *
+ * So: try the window, and if its offset did not budge, scroll the tallest genuinely
+ * scrollable element instead. Returns what moved, for the report — a step that moved
+ * nothing is the signal, and its absence is what cost four rounds of guessing.
+ */
+function scrollStep(dy: number): { moved: number; via: "window" | "container" | "none" } {
+  const before = window.scrollY;
+  window.scrollBy(0, dy);
+  if (window.scrollY !== before) return { moved: window.scrollY - before, via: "window" };
+
+  let best: Element | null = null;
+  let bestOverflow = 0;
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>("div, main, section"))) {
+    const overflow = el.scrollHeight - el.clientHeight;
+    // A real scroller, not a one-pixel rounding artifact or a hidden overflow container.
+    if (overflow > 400 && el.clientHeight > 200 && overflow > bestOverflow) {
+      bestOverflow = overflow;
+      best = el;
+    }
+  }
+  if (!best) return { moved: 0, via: "none" };
+  const elBefore = best.scrollTop;
+  best.scrollTop = elBefore + dy;
+  const moved = best.scrollTop - elBefore;
+  return { moved, via: moved !== 0 ? "container" : "none" };
+}
+
+/**
+ * Read the profile WHILE scrolling it, keeping each section the moment it is on screen.
+ *
+ * Three live runs on the same four people taught this, each correcting the last:
+ *   0.7.1  read after 2.3s, never scrolled          -> experience: [] for everyone
+ *   0.7.2  scrolled until EITHER section appeared    -> experience at scrolls:0, education
+ *                                                       never rendered
+ *   0.7.3  scrolled until BOTH appeared, then read   -> found:false after 8 scrolls, and
+ *                                                       NOTHING found, for all four
+ *
+ * The third result explains the first two: LinkedIn VIRTUALIZES the profile. Eight scrolls
+ * of 1200px travel past the sections, which are unmounted as they leave the viewport, so a
+ * reader running at the bottom of the page finds an empty document. "Scroll, then read"
+ * races itself by construction and cannot be fixed by tuning the wait.
+ *
+ * So: capture on every step, first non-empty read per section wins, and a later empty read
+ * can never clobber an earlier capture. Scrolling continues only while something is still
+ * missing, and does not happen at all when the page was already complete.
+ *
+ * Deps are injectable so this is testable without a real virtualizing page.
+ */
+export async function readProfileProgressively(
+  deps: {
+    scrollBy?: (dy: number) => void;
+    sleep?: (ms: number) => Promise<void>;
+    maxScrolls?: number;
+    stepPx?: number;
+    settleMs?: number;
+  } = {}
+): Promise<{
+  about: string | null;
+  experience: ExperienceItem[];
+  education: EducationItem[];
+  skills: string[];
+  scrolls: number;
+  revealed: { experience: boolean; education: boolean; skills: boolean; about: boolean };
+  /** The viewport the read happened in. A zero height explains an empty read completely:
+   *  LinkedIn gates its lower sections on IntersectionObserver, which cannot fire against
+   *  a 0px-tall viewport, and a REUSED automation window that has been minimized lays out
+   *  exactly that way. */
+  viewport: { w: number; h: number };
+  /** What the page looked like when reading finished. `scrollVia: "none"` means no scroll
+   *  moved anything, which is the failure that survived four other explanations. */
+  page: { sections: number; headings: string[]; scrollVia: string; docHeight: number; hidden: boolean };
+  /** TEMPORARY (0.7.8): structural samples of the sections whose parsers return nothing. */
+  samples: Record<string, { found: boolean; lis: number; childTags: string[]; html: string }>;
+}> {
+  const scrollBy = deps.scrollBy ?? ((dy: number) => { lastStep = scrollStep(dy); });
+  const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const maxScrolls = deps.maxScrolls ?? 8;
+  let lastStep: { moved: number; via: string } = { moved: 0, via: "none" };
+  const stepPx = deps.stepPx ?? 1200;
+  const settleMs = deps.settleMs ?? 700;
+
+  let about: string | null = null;
+  let experience: ExperienceItem[] = [];
+  let education: EducationItem[] = [];
+  let skills: string[] = [];
+
+  const capture = () => {
+    if (about === null) about = readProfileAbout();
+    if (experience.length === 0) experience = readProfileExperience();
+    if (education.length === 0) education = readProfileEducation();
+    if (skills.length === 0) skills = readProfileSkills();
+  };
+
+  // The page can already be complete — 0.7.2 found experience at scrolls: 0 — so read
+  // before moving. Scrolling a complete page would only unmount what is already there.
+  capture();
+
+  // Wait for EVERYTHING we read, not for the first thing to arrive. This stop condition
+  // has now been wrong three times, and each fix exposed the next section: stopping at
+  // "either" hid education, stopping at "both" hid skills the moment education started
+  // working. Skills sits below education, so it renders last.
+  //
+  // And what actually makes them appear is the SLEEP, not the scroll: `scrollVia` came
+  // back "none" with docHeight equal to the viewport height, so nothing was ever
+  // scrollable — the SPA simply keeps hydrating. The scroll is harmless and kept for the
+  // renders that do lazy-load on it; the poll is the mechanism.
+  //
+  // A profile can legitimately have no skills and no About (one of the four pilot people
+  // has neither), so the budget is the backstop and those people spend all of it. 8 x 700ms
+  // is a cost worth paying to stop reading half a page.
+  let scrolls = 0;
+  while ((experience.length === 0 || education.length === 0 || skills.length === 0) && scrolls < maxScrolls) {
+    scrollBy(stepPx);
+    scrolls += 1;
+    await sleep(settleMs);
+    capture();
+  }
+
+  return {
+    about,
+    experience,
+    education,
+    skills,
+    scrolls,
+    // Which halves were ever seen at all — the difference between "published nothing" and
+    // "we never managed to read it", the distinction that took three runs to get right.
+    revealed: {
+      experience: experience.length > 0,
+      education: education.length > 0,
+      skills: skills.length > 0,
+      about: about !== null,
+    },
+    viewport: { w: window.innerWidth, h: window.innerHeight },
+    page: {
+      sections: document.querySelectorAll("section").length,
+      // The actual section headings present, so a wrong-anchor theory can be settled by
+      // reading them instead of by another round of hypotheses.
+      headings: Array.from(document.querySelectorAll("section h2"))
+        .map((h) => clean(h.textContent))
+        .filter(Boolean)
+        .slice(0, 12),
+      scrollVia: lastStep.via,
+      docHeight: document.documentElement.scrollHeight,
+      hidden: document.hidden,
+    },
+    // Only for sections that actually came back empty — a working parser needs no sample,
+    // and the payload crosses a message bridge.
+    samples: {
+      ...(education.length === 0 ? { education: sampleSection(EDUCATION_HEADERS) } : {}),
+      ...(skills.length === 0 ? { skills: sampleSection(SKILLS_HEADERS) } : {}),
+      ...(about === null ? { about: sampleSection(ABOUT_HEADERS) } : {}),
+      ...(experience.length === 0 ? { experience: sampleSection(EXPERIENCE_HEADERS) } : {}),
+    },
+  };
 }
 
 /**

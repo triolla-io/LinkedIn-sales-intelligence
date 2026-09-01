@@ -48,12 +48,30 @@ type Person = {
     source: "role" | "company" | "entity" | "manual";
     muted: boolean;
     itemsFound: number;
+    /** Which of the four staged questions produced it. Null on axes built before the
+     *  stage tag was persisted — the build always knew, it just threw it away. */
+    stage: string | null;
   }[];
   history: { id: string; status: string; statusText: string; itemTitle: string; at: string }[];
+  stageMix?: {
+    present: string[];
+    missing: string[];
+    unknown: number;
+    thin: boolean;
+    own: number;
+  };
 };
 
 const INK_2 = "text-[var(--muted)]";
 const INK_3 = "text-[var(--faint)]";
+
+/** The four appetites, in the words a human reads them in. */
+const STAGE_HE: Record<string, string> = {
+  decision: "החלטה שהוא מחזיק",
+  competitor: "מי מתחרה עליו",
+  stop_and_read: "מה יעצור אותו",
+  adopt: "מה אפשר לאמץ",
+};
 
 const SOURCE_HE: Record<Person["axes"][number]["source"], string> = {
   role: "נגזר מהתפקיד ומהחברה",
@@ -302,6 +320,27 @@ export function PersonPage({ contactId }: { contactId: string }) {
         {/* what the system thinks interests him */}
         <div className="bg-surface border border-[var(--separator)] rounded-[20px] p-5 sm:p-7 mt-5">
           <h2 className="text-[15px] font-bold">מה לדעת המערכת מעניין אותו — ואפשר לתקן אותה</h2>
+          {/* The mix, said out loud. A person with two axes, both derivable from their job
+              title, used to render exactly like a person covering all four appetites — the
+              only difference was invisible, and invisible is how it stayed for a week. */}
+          {data.stageMix && (data.stageMix.thin || data.stageMix.missing.length > 0) && (
+            <p className={cn("text-[12.5px] mt-1.5", INK_2)}>
+              {data.stageMix.thin && (
+                <span>
+                  המודל דק: {data.stageMix.own} תחומים משלו (הרצפה היא 3).{" "}
+                </span>
+              )}
+              {data.stageMix.missing.length > 0 && (
+                <span>
+                  חסר לו:{" "}
+                  {data.stageMix.missing.map((x) => STAGE_HE[x] ?? x).join(" · ")}.{" "}
+                </span>
+              )}
+              {data.stageMix.unknown > 0 && (
+                <span>({data.stageMix.unknown} תחומים נבנו לפני שהסוג נשמר.)</span>
+              )}
+            </p>
+          )}
 
           {/* The research's active "no competitors" finding — shown with its reason so a
               human can spot when the model got it wrong and fix the company by hand. */}
@@ -343,6 +382,10 @@ export function PersonPage({ contactId }: { contactId: string }) {
                     {/* The user's own line, marked as theirs: a rebuild leaves it alone,
                         and that promise is only worth something if it is visible. */}
                     {a.source === "manual" && <Chip>ידני</Chip>}
+                    {/* WHICH appetite this axis serves. Until 2026-09-01 the screen showed
+                        only the axis's SOURCE, so a person holding nothing but
+                        competitor axes looked identical to one covering all four. */}
+                    {a.stage && <Chip>{STAGE_HE[a.stage] ?? a.stage}</Chip>}
                     <span className={INK_3}>· {SOURCE_HE[a.source]}</span>
                   </span>
                   <span className={cn("text-[12.5px] shrink-0 flex items-center gap-2", INK_3)}>

@@ -18,8 +18,6 @@ function input(over: Partial<Parameters<typeof rankForPeople>[0]> = {}) {
     candidates: [] as RankCandidate[],
     alreadySeen: new Set<string>(),
     recentKinds: new Map<string, string[]>(),
-    daysSinceLastMessage: new Map<string, number>(),
-    minDaysBetweenMessages: 7,
     limit: 10,
     ...over,
   };
@@ -50,23 +48,29 @@ describe("rankForPeople", () => {
   it("records a reason for every drop", () => {
     const out = rankForPeople(
       input({
-        candidates: [cand({ contactId: "seen" }), cand({ contactId: "soon" }), cand({ contactId: "ok" })],
+        candidates: [cand({ contactId: "seen" }), cand({ contactId: "fatigued" }), cand({ contactId: "ok" })],
         alreadySeen: new Set([pairKey("seen", "i1")]),
-        daysSinceLastMessage: new Map([["soon", 2]]),
+        recentKinds: new Map([["fatigued", ["research", "research", "research"]]]),
       })
     );
     expect(out.ranked.map((c) => c.contactId)).toEqual(["ok"]);
-    expect(out.dropped.map((d) => d.reason).sort()).toEqual(["already_seen", "too_soon"]);
+    expect(out.dropped.map((d) => d.reason).sort()).toEqual(["already_seen", "kind_fatigue"]);
   });
 
-  it("lets through someone who has never been messaged", () => {
+  it("lets a candidate through regardless of when the person was last messaged", () => {
     const out = rankForPeople(input({ candidates: [cand()] }));
     expect(out.ranked).toHaveLength(1);
   });
 
-  it("lets through someone whose pace window has passed", () => {
-    const out = rankForPeople(input({ candidates: [cand()], daysSinceLastMessage: new Map([["c1", 7]]) }));
+  /**
+   * Pacing is a SEND concern (evaluateRelease), not a discovery one. It used to drop the
+   * candidate as `too_soon` here, and a decided pair is never re-judged — so a good
+   * article died because an unrelated message went out four days earlier.
+   */
+  it("no longer drops anyone for pacing", () => {
+    const out = rankForPeople(input({ candidates: [cand()] }));
     expect(out.ranked).toHaveLength(1);
+    expect(out.dropped.map((d) => d.reason)).not.toContain("too_soon");
   });
 
   /** Three of one kind in a row makes a person a topic feed, not someone you thought of. */

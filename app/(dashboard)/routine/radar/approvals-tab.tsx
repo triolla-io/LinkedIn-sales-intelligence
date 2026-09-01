@@ -138,13 +138,16 @@ function DraftCard({ draft, index, onChanged }: { draft: Draft; index: number; o
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = (await res.json()) as { hard?: string[]; soft?: string[]; error?: string };
+      const data = (await res.json()) as { hard?: string[]; soft?: string[]; error?: string; message?: string };
       if (res.status === 422 && data.hard) {
         setHard(data.hard);
         return false;
       }
       if (!res.ok) {
-        setHard([data.error ?? "משהו נכשל — נסה שוב"]);
+        // `message` wins when the server sent one: the release gate (withheld by pacing,
+        // closed because the article aged out in the queue) answers in Hebrew a person
+        // can act on, while `error` is a machine code that would render as jargon.
+        setHard([data.message ?? data.error ?? "משהו נכשל — נסו שוב"]);
         return false;
       }
       setSoft(data.soft ?? []);

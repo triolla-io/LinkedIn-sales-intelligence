@@ -5,11 +5,21 @@ import { Prisma } from "@/lib/generated/prisma/client";
 import { checkDraftEdit } from "@/lib/tech-radar/draft-guard";
 import { firstSourceUrl } from "@/lib/tech-radar/create-drafts";
 import { pilotHoldEnabled, isPilotReviewer } from "@/lib/tech-radar/pilot-gate";
+import { evaluateRelease, STALE_IN_QUEUE_REASON } from "@/lib/tech-radar/person-rank";
 
 /**
  * Radar draft actions — prepare-not-send, same shape as the tech-radar route: LinkedIn
  * goes through a PREPARE_MESSAGE extension task that types the draft and hands the tab
  * over; "sent" is the user's own confirmation that they clicked Send.
+ *
+ * THE RELEASE GATE lives on `prepare` — the act that actually puts a message in front of
+ * a human to send. Creation is free (see person-rank.ts): a candidate inside someone's
+ * 7-day window still becomes a draft and waits in their queue. Here it is either
+ * released, WITHHELD with the window's own Hebrew reason (409, nothing queued, the draft
+ * untouched so it can be released later), or CLOSED because its article aged past the
+ * freshness window while it waited — never sent stale, never dropped without a reason.
+ * `save`, `dismiss` and `sent` are bookkeeping and stay ungated: `sent` in particular
+ * must always record reality, or a real send loses its confirmation step.
  *
  * save runs the TWO-TIER edit guard: hard violations (foreign link, unsourced figure)
  * reject with 422 and change nothing; soft violations save and come back as warnings —
@@ -47,8 +57,29 @@ export const PATCH = withTenant(async (req: NextRequest, ctx) => {
       id: true,
       draftMessage: true,
       status: true,
-      contact: { select: { fullName: true, linkedinUrl: true } },
-      item: { select: { title: true, summary: true, sources: true } },
+      contact: {
+        select: {
+          fullName: true,
+          linkedinUrl: true,
+          // The pacing signal, read through the contact this owner-scoped draft hangs off
+          // — so it needs no second tenancy filter of its own. BOTH channels count: a
+          // campaign/sequence message (SentMessage) and a radar draft this person already
+          // confirmed as sent. Reading only one of them would pace against half the truth.
+          messages: {
+            where: { status: "SENT" },
+            orderBy: { sentAt: "desc" },
+            take: 1,
+            select: { sentAt: true },
+          },
+          radarDrafts: {
+            where: { status: "SENT", sentAt: { not: null } },
+            orderBy: { sentAt: "desc" },
+            take: 1,
+            select: { sentAt: true },
+          },
+        },
+      },
+      item: { select: { title: true, summary: true, sources: true, publishedAt: true } },
     },
   });
   if (!draft) return NextResponse.json({ error: "not_found" }, { status: 404 });
@@ -77,6 +108,53 @@ export const PATCH = withTenant(async (req: NextRequest, ctx) => {
 
     // prepare
     if (!draft.contact.linkedinUrl) return NextResponse.json({ error: "no_linkedin_url" }, { status: 400 });
+
+    // The release gate. Both stops carry `message` in Hebrew, which the approvals card
+    // renders as-is — a withhold or a close that a human cannot read on screen is the
+    // silent-SKIP failure this project has a standing rule against.
+    const lastMessageAt = [
+      draft.contact.messages[0]?.sentAt ?? null,
+      draft.contact.radarDrafts[0]?.sentAt ?? null,
+    ]
+      .filter((d): d is Date => d instanceof Date)
+      .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
+
+    const release = evaluateRelease({
+      itemPublishedAt: draft.item.publishedAt,
+      lastMessageAt,
+      now: new Date(),
+    });
+
+    if (release.action === "close") {
+      // Closed here and not merely refused: the article is past the window, so no later
+      // click can make this sendable. judgeAndDraft sweeps these once per run too; this
+      // is the guard for the gap between sweeps.
+      await prisma.radarDraft.update({
+        where: { id: draft.id },
+        data: { status: "DISMISSED", discardReason: STALE_IN_QUEUE_REASON },
+      });
+      await prisma.radarFeedback.create({
+        data: { draftId: draft.id, event: "DISCARDED", reason: STALE_IN_QUEUE_REASON },
+      });
+      return NextResponse.json(
+        { error: STALE_IN_QUEUE_REASON, message: release.hebrew, ageDays: release.ageDays },
+        { status: 409 }
+      );
+    }
+
+    if (release.action === "withhold") {
+      // Nothing is written: the draft stays PENDING_REVIEW and becomes releasable on its
+      // own once the window opens. Withheld is a DERIVED state, not a stored one.
+      return NextResponse.json(
+        {
+          error: "withheld",
+          reason: release.reason,
+          message: release.hebrew,
+          daysUntilOpen: release.daysUntilOpen,
+        },
+        { status: 409 }
+      );
+    }
 
     // Guarded transition so a double-click cannot queue two prepare tasks.
     const claimed = await prisma.radarDraft.updateMany({

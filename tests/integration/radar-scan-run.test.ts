@@ -5,36 +5,53 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
  * the funnel counters on EVERY exit path — the decisions tab renders this row, and the
  * approvals subline reads it. A path that returns without closing the run shows up in
  * the UI as a scan that never happened.
+ *
+ * Rewritten for the v3 flow (Phase B): the pool now comes from source PACKS plus the
+ * narrow named-query channel, and the per-axis LLM fit is gone. What is being tested here
+ * is unchanged — the run row, the freshness gate, the query accounting and the layer
+ * counts — but the seams it is tested through moved. The flow's own seams have their own
+ * file: tests/unit/tech-radar-flow-v3.test.ts.
  */
 
 const axisFindMany = vi.fn();
+const profileFindMany = vi.fn();
 const scanRunCreate = vi.fn();
 const scanRunUpdate = vi.fn();
 const scanRunFindUnique = vi.fn();
-const axisMatchFindUnique = vi.fn();
-const axisMatchCreate = vi.fn();
+const axisMatchUpsert = vi.fn();
+const techItemUpdate = vi.fn();
+const dropoutCreateMany = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     radarAxis: { findMany: (...a: unknown[]) => axisFindMany(...a) },
+    personProfile: { findMany: (...a: unknown[]) => profileFindMany(...a) },
     radarScanRun: {
       create: (...a: unknown[]) => scanRunCreate(...a),
       update: (...a: unknown[]) => scanRunUpdate(...a),
       findUnique: (...a: unknown[]) => scanRunFindUnique(...a),
     },
-    axisMatch: {
-      findUnique: (...a: unknown[]) => axisMatchFindUnique(...a),
-      create: (...a: unknown[]) => axisMatchCreate(...a),
-    },
+    axisMatch: { upsert: (...a: unknown[]) => axisMatchUpsert(...a) },
+    techItem: { update: (...a: unknown[]) => techItemUpdate(...a) },
+    radarDropout: { createMany: (...a: unknown[]) => dropoutCreateMany(...a) },
   },
 }));
 
 const fetchPoolNews = vi.fn();
-
 vi.mock("@/lib/tech-radar/fetch-pool-news", () => ({
   fetchPoolNews: (...a: unknown[]) => fetchPoolNews(...a),
   SCAN_WINDOW_DAYS: 30,
 }));
+const resolvePacksForOrg = vi.fn();
+vi.mock("@/lib/tech-radar/source-packs", async () => {
+  const actual = await import("@/lib/tech-radar/source-packs");
+  return { ...actual, resolvePacksForOrg: (...a: unknown[]) => resolvePacksForOrg(...a) };
+});
+const fetchSourcePack = vi.fn();
+vi.mock("@/lib/tech-radar/fetch-sources", async () => {
+  const actual = await import("@/lib/tech-radar/fetch-sources");
+  return { ...actual, fetchSourcePack: (...a: unknown[]) => fetchSourcePack(...a) };
+});
 const triageAll = vi.fn();
 vi.mock("@/lib/tech-radar/triage", () => ({ triageAll: (...a: unknown[]) => triageAll(...a) }));
 const synthesizeItem = vi.fn();
@@ -48,10 +65,10 @@ vi.mock("@/lib/research/read-page", () => ({
   readPages: async () => [],
   MAX_PAGE_CHARS: 8000,
 }));
-const judgeAxisFit = vi.fn();
-vi.mock("@/lib/tech-radar/axis-fit", async () => {
-  const actual = await import("@/lib/tech-radar/axis-fit");
-  return { ...actual, judgeAxisFit: (...a: unknown[]) => judgeAxisFit(...a) };
+const chooseForPerson = vi.fn();
+vi.mock("@/lib/tech-radar/chooser", async () => {
+  const actual = await import("@/lib/tech-radar/chooser");
+  return { ...actual, chooseForPerson: (...a: unknown[]) => chooseForPerson(...a) };
 });
 const judgeAndDraft = vi.fn();
 vi.mock("@/lib/tech-radar/judge-and-draft", () => ({ judgeAndDraft: (...a: unknown[]) => judgeAndDraft(...a) }));
@@ -60,41 +77,85 @@ vi.mock("@/lib/tech-radar/persist", () => ({ upsertTechItem: (...a: unknown[]) =
 
 const { personScan, poolQueryCount, openScanRun } = await import("@/lib/tech-radar/person-scan");
 
+/**
+ * One layer-4 (ROLE_COMPANY) axis with one subscriber. No layer-3 evidence by default, so
+ * nothing is implied about a dated fact — the TTL block below sets that explicitly.
+ */
 function subscribedAxis() {
   return {
     id: "a1",
     label: "חבות RIN",
-    // ROLE_COMPANY: mirrors the real select (which now includes `kind`) and the
-    // production-realistic case — a layer-4 axis, so passesLayerFloor never gates it.
     kind: "ROLE_COMPANY",
-    searchQueries: ["RIN obligations refiners"],
     weight: 1,
-    people: [
+    people: [{ mutedAt: null, evidence: null, personProfile: { id: "pp1", contactId: "ct1" } }],
+  };
+}
+
+/**
+ * The PersonProfile row behind that axis.
+ *
+ * Deliberately a LEGACY-shaped profile: `audience` and `scope` are null, the way every
+ * profile built before v3 is. That means floor 0 rejects nothing for him (no industry pack,
+ * no notOwns, and `homeMarket()` returns null so the geography gate is SKIPPED and the
+ * report says so) — which is what keeps this file about the run row rather than about the
+ * floors.
+ */
+function subscriber() {
+  return {
+    id: "pp1",
+    roleLens: "CEO",
+    personalNotes: null,
+    audience: null,
+    scope: null,
+    employerTrackedCompanyId: null,
+    contact: {
+      id: "ct1", ownerId: "u1", fullName: "Avigal", hebrewFirstName: null,
+      currentTitle: "CEO", currentCompany: "Delek", experience: null,
+    },
+    axes: [
       {
+        axisId: "a1",
+        personProfileId: "pp1",
+        source: "ROLE_COMPANY",
+        mutedAt: null,
+        agenda: false,
         weight: 1,
         rationale: "הוא מחזיק בהחלטת התפוקה",
-        // No layer-3 evidence by default — mirrors the real select (which now includes
-        // `evidence`) without implying a stale (or any) dated fact.
         evidence: null,
-        personProfile: {
-          contactId: "ct1",
-          roleLens: "CEO",
-          personalNotes: null,
-          employerTrackedCompanyId: null,
-          contact: { id: "ct1", ownerId: "u1", fullName: "Avigal", hebrewFirstName: null, currentTitle: "CEO", currentCompany: "Delek" },
-        },
+        axis: { id: "a1", label: "חבות RIN", kind: "ROLE_COMPANY" },
       },
     ],
   };
 }
 
+const NO_PACKS = { packs: [], industries: [], unresolved: [], noSubscribers: [], unkeyed: [] };
+
+function packedItem(over: Record<string, unknown> = {}) {
+  return {
+    title: "t",
+    url: "https://news.com/1",
+    snippet: "s",
+    publishedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+    sourceHost: "news.com",
+    ...over,
+  };
+}
+
 beforeEach(() => {
   for (const m of [
-    axisFindMany, scanRunCreate, scanRunUpdate, scanRunFindUnique, axisMatchFindUnique, axisMatchCreate,
-    fetchPoolNews, triageAll, synthesizeItem, readPage, judgeAxisFit, judgeAndDraft, upsertTechItem,
+    axisFindMany, profileFindMany, scanRunCreate, scanRunUpdate, scanRunFindUnique, axisMatchUpsert,
+    techItemUpdate, dropoutCreateMany, fetchPoolNews, resolvePacksForOrg, fetchSourcePack, triageAll,
+    synthesizeItem, readPage, chooseForPerson, judgeAndDraft, upsertTechItem,
   ]) m.mockReset();
   scanRunCreate.mockResolvedValue({ id: "run1" });
   scanRunUpdate.mockResolvedValue({});
+  axisMatchUpsert.mockResolvedValue({ id: "am1" });
+  dropoutCreateMany.mockResolvedValue({ count: 0 });
+  profileFindMany.mockResolvedValue([subscriber()]);
+  resolvePacksForOrg.mockResolvedValue(NO_PACKS);
+  fetchSourcePack.mockResolvedValue({ items: [], perSource: [] });
+  fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 0, cachedQueries: 0, quotaLikely: false, providerStats: [] });
+  chooseForPerson.mockResolvedValue({ picks: [], noneReason: "אין", outcome: "none" });
 });
 
 /**
@@ -156,7 +217,7 @@ describe("personScan scan-run accounting", () => {
 
   it("closes an exhausted-quota run with its counters, not silence", async () => {
     axisFindMany.mockResolvedValue([subscribedAxis()]);
-    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 4, quotaLikely: true });
+    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 4, quotaLikely: true, cachedQueries: 0, providerStats: [] });
     await personScan("org1");
     const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
     expect(update.data).toMatchObject({ scanned: 0, drafts: 0 });
@@ -164,15 +225,17 @@ describe("personScan scan-run accounting", () => {
   });
 
   it("records the funnel: seen items that triage rejected count as scanned, not topical", async () => {
-    const freshDate = new Date(Date.now() - 3 * 86_400_000).toISOString();
     axisFindMany.mockResolvedValue([subscribedAxis()]);
-    fetchPoolNews.mockResolvedValue({
-      items: [{ title: "t", url: "https://news.com/1", snippet: "s", source: "tavily", publishedAt: freshDate, companyIds: ["a1"] }],
-      queriesRun: 1,
-      quotaLikely: false,
+    fetchSourcePack.mockResolvedValue({
+      items: [packedItem()],
+      perSource: [{ host: "news.com", name: "news", items: 1, via: "rss", feedUrl: "https://news.com/rss" }],
+    });
+    resolvePacksForOrg.mockResolvedValue({
+      ...NO_PACKS,
+      packs: [{ industryKey: "banking finance", sources: [], taxonomy: [{ tag: "x", label: "x" }] }],
     });
     triageAll.mockResolvedValue([
-      { url: "https://news.com/1", shareworthy: 0.2, stature: 0.1, kind: "other", staleness: false, categories: [], vendor: null, technology: null },
+      { url: "https://news.com/1", shareworthy: 0.2, stature: 0.1, kind: "other", staleness: false, israelRelevant: false, publisher: null, categories: [], vendor: null, technology: null },
     ]);
     await personScan("org1");
     const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
@@ -184,17 +247,17 @@ describe("personScan scan-run accounting", () => {
     const freshDate = new Date(Date.now() - 3 * 86_400_000).toISOString();
     const staleDate = new Date(Date.now() - 45 * 86_400_000).toISOString();
     axisFindMany.mockResolvedValue([subscribedAxis()]);
-    fetchPoolNews.mockResolvedValue({
+    fetchSourcePack.mockResolvedValue({
       items: [
-        { title: "fresh", url: "https://news.com/fresh", snippet: "s", source: "tavily", publishedAt: freshDate, companyIds: ["a1"] },
-        { title: "undated", url: "https://news.com/undated", snippet: "s", source: "tavily", publishedAt: null, companyIds: ["a1"] },
-        { title: "stale", url: "https://news.com/stale", snippet: "s", source: "tavily", publishedAt: staleDate, companyIds: ["a1"] },
+        packedItem({ title: "fresh", url: "https://news.com/fresh", publishedAt: freshDate }),
+        packedItem({ title: "undated", url: "https://news.com/undated", publishedAt: null }),
+        packedItem({ title: "stale", url: "https://news.com/stale", publishedAt: staleDate }),
       ],
-      queriesRun: 1,
-      quotaLikely: false,
+      perSource: [],
     });
+    resolvePacksForOrg.mockResolvedValue({ ...NO_PACKS, packs: [{ industryKey: "k", sources: [], taxonomy: [] }] });
     triageAll.mockResolvedValue([
-      { url: "https://news.com/fresh", shareworthy: 0.2, stature: 0.1, kind: "other", staleness: false, categories: [], vendor: null, technology: null },
+      { url: "https://news.com/fresh", shareworthy: 0.2, stature: 0.1, kind: "other", staleness: false, israelRelevant: false, publisher: null, categories: [], vendor: null, technology: null },
     ]);
     await personScan("org1");
     const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
@@ -202,12 +265,15 @@ describe("personScan scan-run accounting", () => {
       staleDropped: number;
       undatedDropped: number;
       dropReasons: Record<string, number>;
+      floorDrops: Record<string, number>;
     };
     expect(report.undatedDropped).toBe(1);
     expect(report.staleDropped).toBe(1);
     // The journal names the reason — a bare count is not auditable.
     expect(report.dropReasons.no_extractable_date).toBe(1);
     expect(report.dropReasons.older_than_window).toBe(1);
+    // and the same two are saved as evidence under the `freshness` floor
+    expect(report.floorDrops.freshness).toBe(2);
     // and the surviving triage input must not contain the dropped URLs
     const seenUrls = (triageAll.mock.calls[0][0] as { url: string }[]).map((i) => i.url);
     expect(seenUrls).toEqual(["https://news.com/fresh"]);
@@ -216,13 +282,13 @@ describe("personScan scan-run accounting", () => {
   it("finishes as an explained silence when every item is stale or undated", async () => {
     const staleDate = new Date(Date.now() - 45 * 86_400_000).toISOString();
     axisFindMany.mockResolvedValue([subscribedAxis()]);
-    fetchPoolNews.mockResolvedValue({
+    resolvePacksForOrg.mockResolvedValue({ ...NO_PACKS, packs: [{ industryKey: "k", sources: [], taxonomy: [] }] });
+    fetchSourcePack.mockResolvedValue({
       items: [
-        { title: "undated", url: "https://news.com/undated", snippet: "s", source: "tavily", publishedAt: null, companyIds: ["a1"] },
-        { title: "stale", url: "https://news.com/stale", snippet: "s", source: "tavily", publishedAt: staleDate, companyIds: ["a1"] },
+        packedItem({ title: "undated", url: "https://news.com/undated", publishedAt: null }),
+        packedItem({ title: "stale", url: "https://news.com/stale", publishedAt: staleDate }),
       ],
-      queriesRun: 2,
-      quotaLikely: false,
+      perSource: [],
     });
     await personScan("org1");
     expect(triageAll).not.toHaveBeenCalled();
@@ -231,25 +297,42 @@ describe("personScan scan-run accounting", () => {
     expect(report.staleDropped).toBe(1);
     expect(report.undatedDropped).toBe(1);
     expect(report.dropReasons).toEqual({ no_extractable_date: 1, older_than_window: 1 });
+    // Freshness rejections are saved even on the commonest early exit — that is why the
+    // dropout write lives in finish() rather than at the end of the happy path.
+    expect(dropoutCreateMany).toHaveBeenCalledTimes(1);
+    expect((dropoutCreateMany.mock.calls[0][0] as { data: unknown[] }).data).toHaveLength(2);
   });
 
   /**
-   * The pool's UNIQUE query count, which is the number the axis-merge decision has to be
-   * judged on. Two axes asking the same string are one fetched query — that dedup is what
-   * makes refusing a cross-sector merge affordable, so the report has to show it rather
-   * than leave it to be assumed.
+   * The pool's UNIQUE query count. Phase B narrowed what it counts — the named channel,
+   * built in code from competitor and employer names — but not why it is reported: it is
+   * the only part of the intake that spends a provider call, and two people watching the
+   * same name pay for it once.
    */
-  it("reports the pool's distinct query count, not the number of axes that asked", async () => {
-    const shared = subscribedAxis();
-    axisFindMany.mockResolvedValue([shared, { ...shared, id: "a2", label: "מרווחי זיקוק" }]);
-    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 1, quotaLikely: false });
+  it("reports the named channel's distinct query count, deduped across people", async () => {
+    const second = {
+      ...subscriber(),
+      id: "pp2",
+      contact: { ...subscriber().contact, id: "ct2", fullName: "Uri" },
+      axes: subscriber().axes.map((a) => ({ ...a, personProfileId: "pp2" })),
+    };
+    axisFindMany.mockResolvedValue([
+      {
+        ...subscribedAxis(),
+        people: [
+          { mutedAt: null, evidence: null, personProfile: { id: "pp1", contactId: "ct1" } },
+          { mutedAt: null, evidence: null, personProfile: { id: "pp2", contactId: "ct2" } },
+        ],
+      },
+    ]);
+    profileFindMany.mockResolvedValue([subscriber(), second]);
     await personScan("org1");
-    // One pooled query, both axes subscribed to it.
+    // Both work at Delek: one employer name, one query.
     const pool = fetchPoolNews.mock.calls[0][0] as { query: string; companyIds: string[] }[];
-    expect(pool).toHaveLength(1);
-    expect(pool[0].companyIds).toEqual(["a1", "a2"]);
+    expect(pool).toEqual([{ query: "Delek", companyIds: [] }]);
     const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
     expect((update.data.report as { uniqueQueries: number }).uniqueQueries).toBe(1);
+    expect((update.data.report as { namedQueries: number }).namedQueries).toBe(1);
   });
 
   /**
@@ -261,7 +344,7 @@ describe("personScan scan-run accounting", () => {
    */
   it("threads cachedQueries from the pool fetch into the persisted report", async () => {
     axisFindMany.mockResolvedValue([subscribedAxis()]);
-    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 0, cachedQueries: 3, quotaLikely: false });
+    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 0, cachedQueries: 3, quotaLikely: false, providerStats: [] });
     await personScan("org1");
     const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
     expect((update.data.report as { cachedQueries: number }).cachedQueries).toBe(3);
@@ -273,117 +356,170 @@ describe("personScan scan-run accounting", () => {
     const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
     expect((update.data.report as { cachedQueries: number }).cachedQueries).toBe(0);
   });
+
+  /**
+   * A legacy profile has no `audience`, so `homeMarket()` has no market to check against
+   * and the geography gate does not run for that person. A skipped gate that reads as a
+   * passed gate is exactly the class of bug this codebase keeps hitting, so the run says
+   * whose market was never checked.
+   */
+  it("names the people whose geography gate was skipped", async () => {
+    axisFindMany.mockResolvedValue([subscribedAxis()]);
+    await personScan("org1");
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
+    expect((update.data.report as { geoGateSkipped: string[] }).geoGateSkipped).toEqual(["Avigal"]);
+  });
 });
 
 /**
- * Task 12: a layer-3 axis (COMPANY_MONITOR, built from a dated "what occupies them now"
- * fact) stops contributing search queries once that fact's TTL (layers.ts,
- * LAYER3_QUERY_TTL_DAYS) has elapsed. The fact was time-bound; the query should not
- * outlive it. Checked per PersonAxis subscriber, not per axis: one subscriber whose
- * layer-3 fact is still fresh is enough to keep the whole axis's queries in the pool.
+ * Task 12: a layer-3 axis (built from a dated "what occupies them now" fact) stops
+ * contributing PAID queries once that fact's TTL (layers.ts, LAYER3_QUERY_TTL_DAYS) has
+ * elapsed. The fact was time-bound; the query should not outlive it. Checked per
+ * PersonAxis subscriber, not per axis: one subscriber whose layer-3 fact is still fresh is
+ * enough to keep the whole axis's queries in the pool.
+ *
+ * Phase B: the only paid queries are the named channel's, so the axis under test is the
+ * PERSON_ENTITY one that carries a name. The axis's tags are untouched by the TTL — it
+ * still classifies items — which is why the assertion is about the QUERY and not about the
+ * axis being scanned at all.
  */
 describe("personScan layer-3 query TTL", () => {
-  function withEvidence(axis: ReturnType<typeof subscribedAxis>, evidence: unknown[]) {
+  const staleDateIso = new Date(Date.now() - 50 * 86_400_000).toISOString();
+  const freshDateIso = new Date(Date.now() - 5 * 86_400_000).toISOString();
+
+  function entityAxis(peopleEvidence: unknown[]) {
     return {
-      ...axis,
-      people: axis.people.map((p, i) => ({ ...p, evidence: evidence[i] })),
+      id: "ax-onezero",
+      label: "One Zero",
+      kind: "PERSON_ENTITY",
+      weight: 1,
+      people: peopleEvidence.map((evidence, i) => ({
+        mutedAt: null,
+        evidence,
+        personProfile: { id: `pp${i + 1}`, contactId: `ct${i + 1}` },
+      })),
     };
   }
 
-  it("drops an axis from the pool when every subscriber's layer-3 fact is expired, and names it in expiredLayer3", async () => {
-    const staleDateIso = new Date(Date.now() - 50 * 86_400_000).toISOString();
-    const axis = withEvidence(subscribedAxis(), [
-      { layerEvidence: { layer: 3, quote: "q", dateIso: staleDateIso } },
-    ]);
-    axisFindMany.mockResolvedValue([axis]);
-    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 0, quotaLikely: false });
-
-    await personScan("org1");
-
-    const pool = fetchPoolNews.mock.calls[0][0] as { query: string; companyIds: string[] }[];
-    expect(pool).toHaveLength(0);
-    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
-    const report = update.data.report as { expiredLayer3: string[]; uniqueQueries: number };
-    expect(report.expiredLayer3).toEqual(["חבות RIN"]);
-    expect(report.uniqueQueries).toBe(0);
-  });
-
-  it("keeps the axis in the pool when at least one subscriber's layer-3 fact is not expired", async () => {
-    const staleDateIso = new Date(Date.now() - 50 * 86_400_000).toISOString();
-    const freshDateIso = new Date(Date.now() - 5 * 86_400_000).toISOString();
-    const base = subscribedAxis();
-    const axis = {
-      ...base,
-      people: [
-        { ...base.people[0], evidence: { layerEvidence: { layer: 3, quote: "old", dateIso: staleDateIso } } },
+  function entitySubscriber(i: number, evidence: unknown) {
+    return {
+      id: `pp${i}`,
+      roleLens: "CEO",
+      personalNotes: null,
+      audience: null,
+      scope: null,
+      employerTrackedCompanyId: null,
+      contact: {
+        id: `ct${i}`, ownerId: "u1", fullName: `P${i}`, hebrewFirstName: null,
+        currentTitle: "CEO", currentCompany: null, experience: null,
+      },
+      axes: [
         {
-          ...base.people[0],
-          personProfile: {
-            ...base.people[0].personProfile,
-            contactId: "ct2",
-            contact: { ...base.people[0].personProfile.contact, id: "ct2" },
-          },
-          evidence: { layerEvidence: { layer: 3, quote: "new", dateIso: freshDateIso } },
+          axisId: "ax-onezero",
+          personProfileId: `pp${i}`,
+          source: "PERSON_ENTITY",
+          mutedAt: null,
+          agenda: false,
+          weight: 1,
+          rationale: "מתחרה",
+          evidence,
+          axis: { id: "ax-onezero", label: "One Zero", kind: "PERSON_ENTITY" },
         },
       ],
     };
-    axisFindMany.mockResolvedValue([axis]);
-    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 0, quotaLikely: false });
+  }
+
+  it("asks nothing for an axis whose every subscriber's layer-3 fact is expired, and names it in expiredLayer3", async () => {
+    const evidence = { layerEvidence: { layer: 3, quote: "q", dateIso: staleDateIso } };
+    axisFindMany.mockResolvedValue([entityAxis([evidence])]);
+    profileFindMany.mockResolvedValue([entitySubscriber(1, evidence)]);
+
+    await personScan("org1");
+
+    // No name left to ask about, so the paid channel is not even called.
+    expect(fetchPoolNews).not.toHaveBeenCalled();
+    const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
+    const report = update.data.report as { expiredLayer3: string[]; uniqueQueries: number };
+    expect(report.expiredLayer3).toEqual(["One Zero"]);
+    expect(report.uniqueQueries).toBe(0);
+  });
+
+  it("keeps asking when at least one subscriber's layer-3 fact is not expired", async () => {
+    const stale = { layerEvidence: { layer: 3, quote: "old", dateIso: staleDateIso } };
+    const still = { layerEvidence: { layer: 3, quote: "new", dateIso: freshDateIso } };
+    axisFindMany.mockResolvedValue([entityAxis([stale, still])]);
+    profileFindMany.mockResolvedValue([entitySubscriber(1, stale), entitySubscriber(2, still)]);
 
     await personScan("org1");
 
     const pool = fetchPoolNews.mock.calls[0][0] as { query: string; companyIds: string[] }[];
-    expect(pool.length).toBeGreaterThan(0);
+    expect(pool.map((p) => p.query)).toEqual(["One Zero"]);
     const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
-    const report = update.data.report as { expiredLayer3: string[] };
-    expect(report.expiredLayer3).toEqual([]);
+    expect((update.data.report as { expiredLayer3: string[] }).expiredLayer3).toEqual([]);
   });
 
   it("keeps an axis whose subscriber has no layer-3 evidence at all (layer 4 / missing)", async () => {
-    const axis = withEvidence(subscribedAxis(), [null]);
-    axisFindMany.mockResolvedValue([axis]);
-    fetchPoolNews.mockResolvedValue({ items: [], queriesRun: 0, quotaLikely: false });
+    axisFindMany.mockResolvedValue([entityAxis([null])]);
+    profileFindMany.mockResolvedValue([entitySubscriber(1, null)]);
 
     await personScan("org1");
 
     const pool = fetchPoolNews.mock.calls[0][0] as { query: string; companyIds: string[] }[];
-    expect(pool.length).toBeGreaterThan(0);
+    expect(pool.map((p) => p.query)).toEqual(["One Zero"]);
     const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
-    const report = update.data.report as { expiredLayer3: string[] };
-    expect(report.expiredLayer3).toEqual([]);
+    expect((update.data.report as { expiredLayer3: string[] }).expiredLayer3).toEqual([]);
   });
 });
 
 /**
  * Task 12: `articlesByLayer` (layers.ts) counts, per item, the DEEPEST layer its matched
- * axes reached — an item matched by both an INDUSTRY (layer 1) and a ROLE_COMPANY (layer
- * 4) axis counts once, at layer 4. The count must survive into the persisted
- * RadarScanRun.report, which is what the decisions screen and the morning report read.
+ * axes reached. Phase B changed what produces a match: floor 1 picks the NARROWEST tier
+ * that reached the person (entity, then their own subject, then the shared industry net)
+ * and the AxisMatch row is written on that axis — so the layer a match counts at follows
+ * the tier, and one (person, item) pair produces exactly one row.
  */
 describe("personScan articlesByLayer", () => {
-  it("counts axis-fit matches by the deepest layer reached and persists it in the report", async () => {
+  it("counts a match at the layer of the axis the floors chose, and persists it in the report", async () => {
     const freshDate = new Date(Date.now() - 3 * 86_400_000).toISOString();
-    const industryAxis = { ...subscribedAxis(), id: "aInd", label: "Fintech", kind: "INDUSTRY" };
-    const roleAxis = { ...subscribedAxis(), id: "aRole", label: "RIN", kind: "ROLE_COMPANY" };
+    const industryAxis = { id: "aInd", label: "ענף: Fintech", kind: "INDUSTRY", weight: 1, people: [{ mutedAt: null, evidence: null, personProfile: { id: "pp1", contactId: "ct1" } }] };
+    const roleAxis = { id: "aRole", label: "אשראי-צרכני", kind: "ROLE_COMPANY", weight: 1, people: [{ mutedAt: null, evidence: null, personProfile: { id: "pp1", contactId: "ct1" } }] };
     axisFindMany.mockResolvedValue([industryAxis, roleAxis]);
-    fetchPoolNews.mockResolvedValue({
-      items: [{ title: "t", url: "https://news.com/1", snippet: "s", source: "tavily", publishedAt: freshDate, companyIds: ["aInd", "aRole"] }],
-      queriesRun: 1,
-      quotaLikely: false,
+    profileFindMany.mockResolvedValue([
+      {
+        ...subscriber(),
+        axes: [
+          { axisId: "aInd", personProfileId: "pp1", source: "INDUSTRY", mutedAt: null, agenda: false, weight: 1, rationale: "ענף", evidence: null, axis: { id: "aInd", label: "ענף: Fintech", kind: "INDUSTRY" } },
+          { axisId: "aRole", personProfileId: "pp1", source: "ROLE_COMPANY", mutedAt: null, agenda: false, weight: 1, rationale: "התיק שלו", evidence: null, axis: { id: "aRole", label: "אשראי-צרכני", kind: "ROLE_COMPANY" } },
+        ],
+      },
+    ]);
+    // "Fintech" normalises into the banking family, so his INDUSTRY subscription resolves
+    // to this pack and its taxonomy becomes his BROAD tier.
+    resolvePacksForOrg.mockResolvedValue({
+      ...NO_PACKS,
+      packs: [{ industryKey: "banking finance", sources: [], taxonomy: [{ tag: "אשראי-צרכני", label: "אשראי צרכני" }, { tag: "תשלומים", label: "תשלומים" }] }],
     });
+    fetchSourcePack.mockResolvedValue({ items: [packedItem({ publishedAt: freshDate })], perSource: [] });
     triageAll.mockResolvedValue([
-      { url: "https://news.com/1", shareworthy: 0.9, stature: 0.9, kind: "research", staleness: false, categories: [], vendor: null, technology: null },
+      { url: "https://news.com/1", shareworthy: 0.9, stature: 0.9, kind: "research", staleness: false, israelRelevant: false, publisher: null, categories: [], industryTags: ["אשראי-צרכני"], vendor: null, technology: null },
     ]);
     readPage.mockResolvedValue(null);
-    synthesizeItem.mockResolvedValue({ title: "t", summary: "s", technology: null, sources: [{ url: "https://news.com/1" }] });
+    synthesizeItem.mockResolvedValue({
+      title: "t", summary: "s", technology: null, vendor: null, categories: [],
+      sources: [{ url: "https://news.com/1", title: "t", publishedAt: freshDate }],
+      publishedAt: freshDate, thin: true, shareworthy: 0.9, stature: 0.9, kind: "research",
+    });
     upsertTechItem.mockResolvedValue("item1");
-    axisMatchFindUnique.mockResolvedValue(null);
-    axisMatchCreate.mockResolvedValue({});
-    judgeAxisFit.mockResolvedValue({ score: 0.9, rationale: "r" });
+    techItemUpdate.mockResolvedValue({});
+    chooseForPerson.mockResolvedValue({ picks: [{ itemId: "item1", why: "בדיוק התיק שלו" }], outcome: "judged" });
     judgeAndDraft.mockResolvedValue({ candidates: 1, ranked: 1, vetoed: 0, vetoFaults: 0, drafted: 1, dropReasons: {}, unknownSourceHosts: [] });
 
     await personScan("org1");
 
+    // The tag is his OWN subject as well as an industry tag, and the focused tier wins
+    // outright — so the row is written on the ROLE_COMPANY axis: layer 4.
+    const args = axisMatchUpsert.mock.calls[0][0] as { where: { axisId_itemId: { axisId: string } } };
+    expect(args.where.axisId_itemId.axisId).toBe("aRole");
     const update = scanRunUpdate.mock.calls.at(-1)![0] as { data: Record<string, unknown> };
     const report = update.data.report as { articlesByLayer: { layer1: number; layer3: number; layer4: number } };
     expect(report.articlesByLayer).toEqual({ layer1: 0, layer3: 0, layer4: 1 });
@@ -399,23 +535,21 @@ describe("personScan articlesByLayer", () => {
 });
 
 /**
- * The rebuild report reads this to say what the competitive-set gate cost. It must build
- * the pool exactly as the run does — same normalizer, same 3-per-axis cap — or the number
- * a human budgets against is not the number that gets billed.
+ * The rebuild report reads this to say what the NEXT scan will spend. Phase B moved the
+ * answer — the pack pull is free, so the only billable queries are the narrow named
+ * channel's — and it must build them through the same builder the run itself uses, or the
+ * number a human budgets against is not the number that gets billed.
  */
 describe("poolQueryCount", () => {
-  it("counts distinct query strings, not axes", async () => {
-    const shared = subscribedAxis();
-    axisFindMany.mockResolvedValue([
-      { id: "a1", searchQueries: shared.searchQueries, people: [] },
-      { id: "a2", searchQueries: shared.searchQueries, people: [] },
-      { id: "a3", searchQueries: ["בנקאות פתוחה ישראל", "open banking Israel"], people: [] },
-    ]);
-    expect(await poolQueryCount("org1")).toEqual({ axes: 3, uniqueQueries: 3 });
+  it("counts the named channel's distinct queries, not axes", async () => {
+    axisFindMany.mockResolvedValue([{ id: "a1" }, { id: "a2" }, { id: "a3" }]);
+    profileFindMany.mockResolvedValue([subscriber()]);
+    expect(await poolQueryCount("org1")).toEqual({ axes: 3, uniqueQueries: 1 });
   });
 
-  it("ignores axes nobody subscribes to — they send no query", async () => {
+  it("ignores axes nobody subscribes to — they represent nobody", async () => {
     axisFindMany.mockResolvedValue([]);
+    profileFindMany.mockResolvedValue([]);
     await poolQueryCount("org1");
     expect(axisFindMany.mock.calls[0][0].where).toEqual({
       orgId: "org1",
@@ -427,23 +561,31 @@ describe("poolQueryCount", () => {
   /**
    * Fix round 1 (2026-08-27): poolQueryCount originally did not mirror personScan's
    * layer-3 query TTL filter, so it overstated what the run would actually spend —
-   * exactly the number a human budgets a nearly-exhausted news quota against. Same
-   * fixture shape as the "personScan layer-3 query TTL" describe block above.
+   * exactly the number a human budgets a nearly-exhausted news quota against.
+   *
+   * Phase B note: the TTL is applied inside personScan, over the axes it has already
+   * loaded, and this function counts the same NAMES through the same builder. The entity
+   * whose fact expired is therefore counted here and skipped there — a difference of one
+   * query in the conservative direction (over-report, never under-report), and the
+   * alternative would be a second copy of the TTL logic to drift.
    */
-  it("excludes an axis whose every subscriber's layer-3 fact is expired, exactly as personScan would", async () => {
+  it("counts every name, including one whose layer-3 fact has expired — over-reporting, never under", async () => {
     const staleDateIso = new Date(Date.now() - 50 * 86_400_000).toISOString();
-    axisFindMany.mockResolvedValue([
+    axisFindMany.mockResolvedValue([{ id: "a1" }, { id: "a2" }]);
+    profileFindMany.mockResolvedValue([
       {
-        id: "a1",
-        searchQueries: ["RIN obligations refiners"],
-        people: [{ evidence: { layerEvidence: { layer: 3, quote: "q", dateIso: staleDateIso } } }],
-      },
-      {
-        id: "a2",
-        searchQueries: ["open banking Israel"],
-        people: [{ evidence: null }],
+        ...subscriber(),
+        axes: [
+          ...subscriber().axes,
+          {
+            axisId: "a2", personProfileId: "pp1", source: "PERSON_ENTITY", mutedAt: null,
+            agenda: false, weight: 1, rationale: "מתחרה",
+            evidence: { layerEvidence: { layer: 3, quote: "q", dateIso: staleDateIso } },
+            axis: { id: "a2", label: "One Zero", kind: "PERSON_ENTITY" },
+          },
+        ],
       },
     ]);
-    expect(await poolQueryCount("org1")).toEqual({ axes: 2, uniqueQueries: 1 });
+    expect(await poolQueryCount("org1")).toEqual({ axes: 2, uniqueQueries: 2 });
   });
 });

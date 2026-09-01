@@ -270,6 +270,15 @@ From ROLE-3 derive:
   פרטיים ומשקי בית" copied off the employer profile is the company's audience, and if
   it is also this person's, it is because the lines they own say so.
 - scope: {"owns": [line names], "notOwns": [line names]} — from ROLE-3, in Hebrew.
+  notOwns is a HARD FILTER, not the other half of a summary. An item about a line in
+  notOwns is deleted before any other consideration reaches it, so A LINE YOU ARE NOT
+  SURE IS OFF THIS PERSON'S DESK GOES IN NEITHER LIST. Leaving it out costs a little
+  precision; putting it in wrongly silences the one executive who owns the subject.
+  The live case: a Head of Retail Banking who is also described, in public, as leading
+  the bank's small-business customers was given notOwns ["Business Banking"] — which
+  would have filtered away every small-business story before it was ever weighed. When a
+  line is BROADER than what you are excluding, exclude the narrow part or nothing: write
+  "בנקאות עסקית גדולה" rather than "Business Banking" if small businesses are hers.
 
 You are also given CAREER (computed in code — trust it, do not re-derive): tenure in
 the current role and the path into it. Read what the path says about what they own:
@@ -907,7 +916,25 @@ export function parseProfileResponseWithReason(
       drop(key ? "duplicate" : "label");
       continue;
     }
-    const rationale = str(o.rationale);
+    // The rationale, or one COMPOSED from the two declared sides.
+    //
+    // The first live v3 run lost all four of Pazit Garfinkel's axes to `rationale=4`: the
+    // model returned every other field and simply omitted this one. That is a predictable
+    // consequence of v3's own design — it made `personDecision` and `companyFact` mandatory
+    // and separately declared, so a sentence that merely restates both reads as redundant.
+    //
+    // Composing it is better than asking the prompt again. The rationale's whole job is to
+    // name BOTH sides of the crossing, and the gate's rules check exactly that
+    // (declaresPersonSide / declaresCompanySide) plus "never opens with the job title". A
+    // composed sentence satisfies the structure by construction: it starts with כי, and it
+    // cannot name one side while omitting the other. What the gate still judges is the
+    // SUBSTANCE of those sides, which is where the judgement belongs.
+    const personSide = str(o.personDecision);
+    const companySide = str(o.companyFact);
+    // `||`, not `??`: this file's `str()` returns "" for a missing field rather than null,
+    // so `??` would keep the empty string and never compose.
+    const rationale =
+      str(o.rationale) || (personSide && companySide ? `כי ${personSide}, בזמן ש${companySide}` : "");
     if (!rationale) {
       drop("rationale");
       continue;
@@ -1013,13 +1040,27 @@ export async function buildPersonProfile(input: PersonProfileInput): Promise<Per
       // layers, a domains list and two more fields per axis is more output for the same
       // axes, and a cap only costs what is actually generated — whereas truncation costs
       // the whole call.
-      max_tokens: 6000,
+      //
+      // Raised to 16000 on 2026-08-31, for the third time and by the same failure. The
+      // first live rebuild under the v3 prompt logged `tokens=9492/6000` — output exactly
+      // on the cap — for all four people, and each was reported as `profile_call_failed`
+      // while in fact having cost $0.079: the call succeeded and the JSON was cut mid-object.
+      // v3 added the three-question role analysis, `audience`, `scope` with owns/notOwns,
+      // entity tags and a domains list on top of the four quoted layers, and 6000 could no
+      // longer hold a person with five roles and two degrees. The cap bills only what is
+      // generated, so headroom is free; truncation costs the entire call.
+      max_tokens: 16000,
       response_format: { type: "json_object" },
     },
     // 30s was the cap until the prompt grew to five staged questions and 5000 max_tokens;
     // the 2026-08-26 preview aborted mid-cohort on the first person. The reasoning and the
     // axes share one long response, so this is a slow call by construction.
-    { timeoutMs: 90_000 }
+    // Raised to 240s on 2026-08-31, the same lesson triage.ts already learned: "the whole
+    // chunk is lost on a timeout, so the ceiling has to fit the work". Once max_tokens went
+    // to 16000 the v3 prompt started generating 7-10k output tokens per person, and 90s
+    // aborted mid-generation — which reads as a dead model rather than as a clock. A
+    // generous ceiling costs nothing on a call that finishes; a short one costs the call.
+    { timeoutMs: 240_000 }
   );
   if (!res.ok) {
     console.warn(`[radar] person-profile call FAILED for ${input.fullName}: ${res.status + " " + res.detail}`);

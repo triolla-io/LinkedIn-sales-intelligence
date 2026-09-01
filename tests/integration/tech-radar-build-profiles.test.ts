@@ -572,6 +572,12 @@ describe("persisting the model's receipts (Task 10)", () => {
       domainKind: "found",
       domainSource: "title",
       layerEvidence: { layer: 2, quote: "מוכר תוצאות ספורט ללקוחות פרטיים" },
+      // Persisted from 2026-09-01: the build already ENFORCED both (the stage mix, and
+      // that an adopt axis names an outside example) and then dropped them, so afterwards
+      // nobody could read which axis was which. Asserted here because the whole point of
+      // this test is that the evidence shape is exactly what attachAxes receives.
+      stage: "decision",
+      externalExample: undefined,
     });
   });
 

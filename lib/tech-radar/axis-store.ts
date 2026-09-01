@@ -24,7 +24,7 @@ import {
 } from "@/lib/tech-radar/axis";
 import { MAX_INDUSTRY_QUERIES } from "@/lib/tech-radar/types";
 import type {
-  AxisProposal, AxisLayerEvidence, PersonDomainSource, PersonEntityTag,
+  AxisProposal, AxisLayerEvidence, AxisStage, PersonDomainSource, PersonEntityTag,
 } from "@/lib/tech-radar/person-profile";
 import { resolveMergeQuestions } from "@/lib/tech-radar/axis-merge";
 import { checkAxisLabel } from "@/lib/tech-radar/draft-guard";
@@ -49,6 +49,22 @@ export type PersonAxisEvidence = {
   domainKind: "found" | "derived";
   domainSource: PersonDomainSource | null;
   layerEvidence: AxisLayerEvidence;
+  /**
+   * WHICH of the four staged questions produced this axis.
+   *
+   * It used to be enforced at build time and then thrown away — no column on RadarAxis, no
+   * column here — so the stage mix was invisible the moment the build returned: unqueryable,
+   * unshowable, and impossible to rebalance. That is how Pazit Garfinkel came to hold two
+   * axes, both derivable from her job title alone, with nobody able to see that `adopt` and
+   * the agenda axis had silently produced nothing. Json, so no migration.
+   */
+  stage?: AxisStage;
+  /**
+   * On a stage=adopt axis: WHO does this well elsewhere. The only field that distinguishes
+   * an adopt axis in stored data, and the one a draft needs in order to cite the outside
+   * example at all. Empty string on every other stage, mirroring the prompt's contract.
+   */
+  externalExample?: string;
 };
 
 export type AttachOutcome = {

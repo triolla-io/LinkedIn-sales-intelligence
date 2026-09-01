@@ -28,14 +28,38 @@ import {
 export type PoolItem = { title: string; url: string; snippet: string; publishedAt: string | null };
 
 /**
+ * One entry of an industry pack's closed taxonomy (`RadarSourcePack.taxonomy`).
+ *
+ * Structural on purpose so a pack row can be handed straight in without triage.ts
+ * importing the pack module — this file is imported by the company path too, and by
+ * scripts that have no pack at all.
+ */
+export type TaxonomyTag = { tag: string; label?: string | null };
+
+/**
  * Output budget per item being judged. A flat 1800 was not enough for a 25-item chunk:
  * the first live run came back finish_reason="length", cut off mid-verdict, and the
  * whole chunk parsed to zero. A shareworthy verdict carries three more fields than the
  * old isLaunch one, so 200 rather than 140 — output tokens are the cheap half of the
  * bill and a truncated chunk costs the whole chunk.
+ *
+ * Raised 230 -> 290 when `industryTags` was added (v3 Phase B): a fourth array field
+ * per verdict, up to MAX_INDUSTRY_TAGS_PER_ITEM Hebrew tags, and Hebrew costs more
+ * tokens per character than English. The same truncation arithmetic applies — the
+ * budget is charged per chunk whether the chunk parses or not, so under-budgeting is
+ * the expensive mistake, not over-budgeting.
  */
-const TOKENS_PER_ITEM = 230;
+const TOKENS_PER_ITEM = 290;
 const TOKENS_OVERHEAD = 300;
+
+/**
+ * Tags kept per item, in the order the model returned them (its own confidence order).
+ *
+ * Not cosmetic: Task 6's broad-tier floor asks for >=2 broad tags before an item may
+ * reach a person on industry tags alone. A model that sprays ten recognised tags onto
+ * every article satisfies that floor for everyone and deletes it in practice.
+ */
+export const MAX_INDUSTRY_TAGS_PER_ITEM = 4;
 
 export function triageMaxTokens(itemCount: number): number {
   return TOKENS_OVERHEAD + itemCount * TOKENS_PER_ITEM;
@@ -98,14 +122,33 @@ Return for each item:
 - staleness: true or false
 - israelRelevant: true when the item is ABOUT the Israeli market, Israeli regulation, or an Israeli company — regardless of who published it. An international outlet reporting that an Israeli bank will offer crypto trading IS israelRelevant. A story about Greek banks or Indian securities regulation is NOT, even if the subject matter is identical.
 - categories: 2-5 short lowercase topical tags naming the capability or subject area (e.g. "fraud detection", "payments", "core banking", "identity verification", "data infrastructure"). Plain descriptive nouns, not marketing words — they are matched against a person's interests later.
+- industryTags: ONLY when the user message carries a TAXONOMY block. Then pick the entries from THAT LIST that this item is actually about — copied character for character from the left of the dash. Never invent a tag, never translate one, never send a label instead of its tag: a value that is not on the list is discarded, so it buys nothing. An item that fits nothing on the list gets an empty array; that is a correct answer, not a failure. When there is no TAXONOMY block, omit the key.
 - vendor: the organisation the item is ABOUT, or null
 - technology: the concrete name of the thing, or null
 
 Return strict JSON only — no prose, no fences. Include EVERY input url exactly once:
 {"verdicts":[{"url":"<the url>","shareworthy":0.2,"stature":0.2,"kind":"vendor_launch","publisher":"aws.amazon.com","staleness":false,"israelRelevant":false,"categories":["..."],"vendor":"Amazon","technology":"..."}]}`;
 
-function userPrompt(items: PoolItem[]): string {
-  return items
+/**
+ * The closed list, in the USER message rather than in SYSTEM: it changes per industry
+ * pack, while SYSTEM is one shared constant for every org. An empty or missing taxonomy
+ * renders NOTHING — the company-outward path (scan.ts -> fit.ts) must send the exact
+ * prompt it sent before Phase B, or its cost and its behaviour both move for no reason.
+ */
+function taxonomyBlock(taxonomy?: readonly TaxonomyTag[]): string {
+  if (!taxonomy || taxonomy.length === 0) return "";
+  const lines = taxonomy
+    .map((t) => `- ${t.tag}${t.label ? ` — ${t.label}` : ""}`)
+    .join("\n");
+  return `TAXONOMY — a CLOSED list of ${taxonomy.length} industry tags. \`industryTags\` may contain ONLY values copied verbatim from the left of the dash, at most ${MAX_INDUSTRY_TAGS_PER_ITEM} per item, [] when nothing on the list fits:
+${lines}
+
+ITEMS:
+`;
+}
+
+function userPrompt(items: PoolItem[], taxonomy?: readonly TaxonomyTag[]): string {
+  return taxonomyBlock(taxonomy) + items
     .map(
       (i, n) =>
         `${n + 1}. url=${i.url}\n   title: ${i.title}\n   snippet: ${(i.snippet ?? "").slice(0, 400)}${
@@ -137,8 +180,56 @@ function str(v: unknown): string | null {
   return s ? s : null;
 }
 
-/** Pure. Hallucinated urls are dropped: the model inventing rows is a real failure mode. */
-export function parseTriageResponse(text: string, validUrls: Set<string>): TriageVerdict[] {
+/** Lookup key for the closed list. Hebrew has no case, but the English half of a
+ *  bilingual taxonomy does, and a model re-typing a tag adds and drops spaces. */
+function tagKey(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/**
+ * Same discipline as `asKind`, one step stricter: an off-list tag is DROPPED, never
+ * mapped onto the nearest member.
+ *
+ * A coerced tag is worse than a missing one. `אשראי` is not `אשראי-צרכני`, and a
+ * near-miss snapped onto a real tag puts an article in front of a person on a
+ * judgement no model ever made — untraceable in the decision trail, and it poisons the
+ * calibration evidence Task 7 exists to collect. The one thing that IS canonicalised
+ * is spelling: a match returns the taxonomy's own string, never the model's typing,
+ * because the person side subscribes by that exact value.
+ */
+function industryTagsFrom(v: unknown, allowed: Map<string, string>): string[] {
+  if (!Array.isArray(v)) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of v) {
+    if (typeof raw !== "string") continue;
+    const canonical = allowed.get(tagKey(raw));
+    if (!canonical || seen.has(canonical)) continue;
+    seen.add(canonical);
+    out.push(canonical);
+    if (out.length >= MAX_INDUSTRY_TAGS_PER_ITEM) break;
+  }
+  return out;
+}
+
+/**
+ * Pure. Hallucinated urls are dropped: the model inventing rows is a real failure mode.
+ *
+ * `taxonomy` omitted leaves `industryTags` off the verdict entirely rather than setting
+ * it to [] — see the field's note in types.ts: "no pack was offered" and "a pack was
+ * offered and nothing matched" are different findings and only one of them is evidence
+ * about the taxonomy.
+ */
+export function parseTriageResponse(
+  text: string,
+  validUrls: Set<string>,
+  taxonomy?: readonly TaxonomyTag[]
+): TriageVerdict[] {
+  const allowed = new Map<string, string>();
+  for (const t of taxonomy ?? []) {
+    const tag = typeof t?.tag === "string" ? t.tag.trim() : "";
+    if (tag) allowed.set(tagKey(tag), tag);
+  }
   const parsed = parseJsonLoose<{ verdicts?: unknown }>(text);
   const rows = Array.isArray(parsed?.verdicts) ? parsed.verdicts : [];
   const seen = new Set<string>();
@@ -175,6 +266,7 @@ export function parseTriageResponse(text: string, validUrls: Set<string>): Triag
       // or a model that forgets the key would silently satisfy the acceptance bar.
       israelRelevant: o.israelRelevant === true,
       categories,
+      ...(taxonomy ? { industryTags: industryTagsFrom(o.industryTags, allowed) } : {}),
       technology: str(o.technology),
       vendor: str(o.vendor),
     });
@@ -182,7 +274,10 @@ export function parseTriageResponse(text: string, validUrls: Set<string>): Triag
   return out;
 }
 
-export async function triageChunk(items: PoolItem[]): Promise<TriageVerdict[]> {
+export async function triageChunk(
+  items: PoolItem[],
+  taxonomy?: readonly TaxonomyTag[]
+): Promise<TriageVerdict[]> {
   if (items.length === 0) return [];
   const model =
     process.env.TECH_RADAR_MODEL ?? process.env.COMPANY_SIGNALS_MODEL ?? "anthropic/claude-haiku-4.5";
@@ -192,7 +287,7 @@ export async function triageChunk(items: PoolItem[]): Promise<TriageVerdict[]> {
       model,
       messages: [
         { role: "system", content: SYSTEM },
-        { role: "user", content: userPrompt(items) },
+        { role: "user", content: userPrompt(items, taxonomy) },
       ],
       temperature: 0.1,
       max_tokens: triageMaxTokens(items.length),
@@ -205,19 +300,22 @@ export async function triageChunk(items: PoolItem[]): Promise<TriageVerdict[]> {
   );
   if (!res.ok) throw new Error(`tech-radar triage failed: HTTP ${res.status}`);
   const text: string = res.data.choices?.[0]?.message?.content ?? "";
-  return parseTriageResponse(text, new Set(items.map((i) => i.url)));
+  return parseTriageResponse(text, new Set(items.map((i) => i.url)), taxonomy);
 }
 
 /**
  * Triage the whole pool in chunks. A failing chunk is logged and skipped rather
  * than aborting the run — losing 25 verdicts is far better than losing 150.
  */
-export async function triageAll(items: PoolItem[]): Promise<TriageVerdict[]> {
+export async function triageAll(
+  items: PoolItem[],
+  taxonomy?: readonly TaxonomyTag[]
+): Promise<TriageVerdict[]> {
   const merged = new Map<string, TriageVerdict>();
   for (let i = 0; i < items.length; i += TRIAGE_CHUNK_SIZE) {
     const chunk = items.slice(i, i + TRIAGE_CHUNK_SIZE);
     try {
-      for (const v of await triageChunk(chunk)) {
+      for (const v of await triageChunk(chunk, taxonomy)) {
         if (!merged.has(v.url)) merged.set(v.url, v);
       }
     } catch (err) {

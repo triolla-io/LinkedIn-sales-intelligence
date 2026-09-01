@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { classifySource, rejectsAsGift } from "@/lib/tech-radar/source-quality";
+import { BANKING_IL_PACK } from "@/lib/tech-radar/sources";
 
 /**
  * Gil Tamir's link pointed at streamlinefeed.co.ke, a content farm. A link handed to a
@@ -76,5 +77,31 @@ describe("rejectsAsGift", () => {
 
   it("passes an unknown host — the ruling is: unknown hosts are never rejected", () => {
     expect(rejectsAsGift("https://a-fintech-startup-blog.example.com/post/1")).toBe(false);
+  });
+});
+
+/**
+ * Spec part 2, item 7. The pack is the list of outlets a human hand-picked as worth
+ * forwarding — so the gift gate must not reject them. Before this test SEVEN of the
+ * global ten (Fintech Futures, The Fintech Times, Finovate, Fintech Nexus, Crowdfund
+ * Insider, Forbes, S&P Global) plus funder.co.il were absent from PUBLISHER_HOSTS, and
+ * an `unknown` host only survives because `rejectsAsGift` is lenient — one tightening of
+ * that ruling and the whole pack would have gone silently dark.
+ *
+ * Driven off the pack itself, not a copy of the host list: adding an outlet to a pack
+ * without allowlisting it fails here rather than in a draft handed to Yuval.
+ */
+describe("the seeded source pack and the gift gate agree", () => {
+  it("classifies every host in BANKING_IL_PACK as a publisher", () => {
+    const misclassified = BANKING_IL_PACK.sources
+      .map((s) => ({ host: s.host, ...classifySource(`https://${s.host}/some/article`) }))
+      .filter((r) => r.cls !== "publisher");
+    expect(misclassified).toEqual([]);
+  });
+
+  it("never rejects a pack host as a gift", () => {
+    for (const s of BANKING_IL_PACK.sources) {
+      expect(rejectsAsGift(`https://www.${s.host}/article/1`), s.host).toBe(false);
+    }
   });
 });

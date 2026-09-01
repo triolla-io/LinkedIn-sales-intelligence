@@ -237,6 +237,16 @@ async function main() {
     console.log(`\n  domains: ${foundCount} found / ${derivedCount} derived`);
     if (foundCount === 0) console.log(`  ⚠ כולו נגזר`);
 
+    // Research findings, per person, right where the human is already looking. Zero here
+    // explains every generic axis below it: the model saw the title and the employer and
+    // nothing about the human. Printed even though the JSON report carries it, because a
+    // number nobody scrolls to is a number nobody reads.
+    const res = report.researchByPerson.find((r) => r.name === prev.name);
+    console.log(
+      `  research: ${res?.findings ?? 0} findings (${res?.paidQueries ?? 0} paid queries)`
+    );
+    if (!res || res.findings === 0) console.log(`  ⚠ אפס מחקר — המודל נבנה מהתפקיד בלבד`);
+
     // The two fields the approval actually turns on, before → after. Printed for every
     // person even when unchanged: "the audience did not move" is exactly what a reader
     // checking a rebuild needs to be able to see, and a line that only appears on change

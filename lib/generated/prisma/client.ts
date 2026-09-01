@@ -323,10 +323,43 @@ export type RadarFeedback = Prisma.RadarFeedbackModel
  */
 export type RadarScanRun = Prisma.RadarScanRunModel
 /**
+ * Model RadarDropout
+ * Every item a radar run REJECTED, and which gate killed it.
+ * 
+ * Born 2026-09-01, because until now a rejected item left no trace at all: upsertTechItem
+ * runs on survivors only, so the pool's losers were dropped inside a function that had
+ * already returned. That made every argument about a threshold unanswerable — "would
+ * shareworthy >= 0.55 have let a real gift through?" has no data behind it when the
+ * 0.55-0.59 items were never written down. 2026-08-20's eleven vendor launches and
+ * 2026-08-24's "0 נמצאו" (25 people silently title-filtered) both had to be
+ * reconstructed by re-running the pipeline, and a re-run is not the same run.
+ * 
+ * Written once per run with a single createMany, capped (see DEFAULT_MAX_DROPOUTS_PER_RUN)
+ * and kept HIGHEST-SCORING FIRST: the rows that decide whether a bar should move are the
+ * near-misses. No relation to RadarScanRun — a cascade delete would take the evidence
+ * with the run that produced it, and the evidence outliving the run is the whole point.
+ */
+export type RadarDropout = Prisma.RadarDropoutModel
+/**
  * Model RadarDomain
  * Per-org source reputation. A domain whose items keep getting discarded gets penalised.
  */
 export type RadarDomain = Prisma.RadarDomainModel
+/**
+ * Model RadarSourcePack
+ * The fixed set of outlets one industry's radar reads, plus the closed tag vocabulary
+ * its items are classified into. This is the v3 inversion: instead of axes writing
+ * queries against the whole open web, a known list of publishers is pulled by RSS.
+ * 
+ * Born 2026-08-31 out of a measured ceiling, not a preference: serper, serpapi and
+ * tavily were all at 0 remaining for the month, and Bank Hapoalim's employer research
+ * therefore ran on FIVE news items — which is why its "recent moves" were dated 2024.
+ * RSS pulls are free and unmetered, so the pack has no quota to run out of.
+ * 
+ * A row per (org, industry) rather than a constant in code, because the source list is
+ * edited by a human in the UI (add/remove/replace an outlet) and must not need a deploy.
+ */
+export type RadarSourcePack = Prisma.RadarSourcePackModel
 /**
  * Model NewsQueryCache
  * One fetched news query, kept so a retried or re-fired run never pays for it twice.

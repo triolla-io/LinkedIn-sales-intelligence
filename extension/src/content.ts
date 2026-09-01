@@ -25,6 +25,7 @@ import {
   readProfileExperience,
   readProfileSkills,
   readProfileEducation,
+  readProfileProgressively,
 } from "./lib/profile-dom";
 import { readRecentPosts } from "./lib/posts-dom";
 import { scrapeSearchPage } from "./lib/scrape-search";
@@ -66,16 +67,37 @@ async function handle(msg: PageRequest): Promise<unknown> {
     case "READ_PROFILE_TOPCARD":
       return readProfileTopcard();
     case "READ_PROFILE_FULL": {
-      // Compose every reader here rather than in scrape-profile.ts: they all read the
-      // SAME already-loaded page, so one page-message round-trip beats one per section.
+      // Reading happens DURING the scroll, not after it: LinkedIn virtualizes the profile
+      // and unmounts each section as it leaves the viewport, so a reader that scrolls to
+      // the bottom first finds an empty document — measured live on all four radar people
+      // (0.7.3: found:false after 8 scrolls). Each section is captured the moment it is on
+      // screen and kept.
+      const scrolled = await readProfileProgressively();
+      // The topcard is read after: it sits at the top and survives, and its own reader is
+      // the one that must not be affected by where the page ended up.
+      window.scrollTo(0, 0);
       const { entries, headline } = readProfileTopcard();
       return {
         headline,
         company: entries[0]?.company ?? null,
-        about: readProfileAbout(),
-        experience: readProfileExperience(),
-        skills: readProfileSkills(),
-        education: readProfileEducation(),
+        about: scrolled.about,
+        experience: scrolled.experience,
+        skills: scrolled.skills,
+        education: scrolled.education,
+        // Reported so an empty read is diagnosable instead of looking exactly like a person
+        // with an empty profile — the indistinguishability that hid this for weeks, and
+        // that caught two wrong fixes of my own before this one.
+        revealed: {
+          scrolls: scrolled.scrolls,
+          found: scrolled.revealed.experience || scrolled.revealed.education,
+          experience: scrolled.revealed.experience,
+          education: scrolled.revealed.education,
+          skills: scrolled.revealed.skills,
+          about: scrolled.revealed.about,
+          viewport: scrolled.viewport,
+          page: scrolled.page,
+          samples: scrolled.samples,
+        },
       };
     }
     case "EXTRACT_COMPANY":

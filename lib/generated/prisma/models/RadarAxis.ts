@@ -29,12 +29,14 @@ export type AggregateRadarAxis = {
 
 export type RadarAxisAvgAggregateOutputType = {
   weight: number | null
+  tagWeight: number | null
   subscriberCount: number | null
   medianShareworthy: number | null
 }
 
 export type RadarAxisSumAggregateOutputType = {
   weight: number | null
+  tagWeight: number | null
   subscriberCount: number | null
   medianShareworthy: number | null
 }
@@ -46,6 +48,7 @@ export type RadarAxisMinAggregateOutputType = {
   label: string | null
   kind: $Enums.RadarAxisKind | null
   weight: number | null
+  tagWeight: number | null
   subscriberCount: number | null
   status: $Enums.RadarAxisStatus | null
   mergedIntoId: string | null
@@ -62,6 +65,7 @@ export type RadarAxisMaxAggregateOutputType = {
   label: string | null
   kind: $Enums.RadarAxisKind | null
   weight: number | null
+  tagWeight: number | null
   subscriberCount: number | null
   status: $Enums.RadarAxisStatus | null
   mergedIntoId: string | null
@@ -79,6 +83,7 @@ export type RadarAxisCountAggregateOutputType = {
   kind: number
   searchQueries: number
   weight: number
+  tagWeight: number
   subscriberCount: number
   status: number
   mergedIntoId: number
@@ -92,12 +97,14 @@ export type RadarAxisCountAggregateOutputType = {
 
 export type RadarAxisAvgAggregateInputType = {
   weight?: true
+  tagWeight?: true
   subscriberCount?: true
   medianShareworthy?: true
 }
 
 export type RadarAxisSumAggregateInputType = {
   weight?: true
+  tagWeight?: true
   subscriberCount?: true
   medianShareworthy?: true
 }
@@ -109,6 +116,7 @@ export type RadarAxisMinAggregateInputType = {
   label?: true
   kind?: true
   weight?: true
+  tagWeight?: true
   subscriberCount?: true
   status?: true
   mergedIntoId?: true
@@ -125,6 +133,7 @@ export type RadarAxisMaxAggregateInputType = {
   label?: true
   kind?: true
   weight?: true
+  tagWeight?: true
   subscriberCount?: true
   status?: true
   mergedIntoId?: true
@@ -142,6 +151,7 @@ export type RadarAxisCountAggregateInputType = {
   kind?: true
   searchQueries?: true
   weight?: true
+  tagWeight?: true
   subscriberCount?: true
   status?: true
   mergedIntoId?: true
@@ -246,6 +256,7 @@ export type RadarAxisGroupByOutputType = {
   kind: $Enums.RadarAxisKind
   searchQueries: string[]
   weight: number
+  tagWeight: number | null
   subscriberCount: number
   status: $Enums.RadarAxisStatus
   mergedIntoId: string | null
@@ -286,6 +297,7 @@ export type RadarAxisWhereInput = {
   kind?: Prisma.EnumRadarAxisKindFilter<"RadarAxis"> | $Enums.RadarAxisKind
   searchQueries?: Prisma.StringNullableListFilter<"RadarAxis">
   weight?: Prisma.FloatFilter<"RadarAxis"> | number
+  tagWeight?: Prisma.FloatNullableFilter<"RadarAxis"> | number | null
   subscriberCount?: Prisma.IntFilter<"RadarAxis"> | number
   status?: Prisma.EnumRadarAxisStatusFilter<"RadarAxis"> | $Enums.RadarAxisStatus
   mergedIntoId?: Prisma.StringNullableFilter<"RadarAxis"> | string | null
@@ -309,6 +321,7 @@ export type RadarAxisOrderByWithRelationInput = {
   kind?: Prisma.SortOrder
   searchQueries?: Prisma.SortOrder
   weight?: Prisma.SortOrder
+  tagWeight?: Prisma.SortOrderInput | Prisma.SortOrder
   subscriberCount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   mergedIntoId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -336,6 +349,7 @@ export type RadarAxisWhereUniqueInput = Prisma.AtLeast<{
   kind?: Prisma.EnumRadarAxisKindFilter<"RadarAxis"> | $Enums.RadarAxisKind
   searchQueries?: Prisma.StringNullableListFilter<"RadarAxis">
   weight?: Prisma.FloatFilter<"RadarAxis"> | number
+  tagWeight?: Prisma.FloatNullableFilter<"RadarAxis"> | number | null
   subscriberCount?: Prisma.IntFilter<"RadarAxis"> | number
   status?: Prisma.EnumRadarAxisStatusFilter<"RadarAxis"> | $Enums.RadarAxisStatus
   mergedIntoId?: Prisma.StringNullableFilter<"RadarAxis"> | string | null
@@ -359,6 +373,7 @@ export type RadarAxisOrderByWithAggregationInput = {
   kind?: Prisma.SortOrder
   searchQueries?: Prisma.SortOrder
   weight?: Prisma.SortOrder
+  tagWeight?: Prisma.SortOrderInput | Prisma.SortOrder
   subscriberCount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   mergedIntoId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -384,6 +399,7 @@ export type RadarAxisScalarWhereWithAggregatesInput = {
   kind?: Prisma.EnumRadarAxisKindWithAggregatesFilter<"RadarAxis"> | $Enums.RadarAxisKind
   searchQueries?: Prisma.StringNullableListFilter<"RadarAxis">
   weight?: Prisma.FloatWithAggregatesFilter<"RadarAxis"> | number
+  tagWeight?: Prisma.FloatNullableWithAggregatesFilter<"RadarAxis"> | number | null
   subscriberCount?: Prisma.IntWithAggregatesFilter<"RadarAxis"> | number
   status?: Prisma.EnumRadarAxisStatusWithAggregatesFilter<"RadarAxis"> | $Enums.RadarAxisStatus
   mergedIntoId?: Prisma.StringNullableWithAggregatesFilter<"RadarAxis"> | string | null
@@ -400,6 +416,7 @@ export type RadarAxisCreateInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   trackedCompanyId?: string | null
@@ -422,6 +439,7 @@ export type RadarAxisUncheckedCreateInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   mergedIntoId?: string | null
@@ -442,6 +460,7 @@ export type RadarAxisUpdateInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   trackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -464,6 +483,7 @@ export type RadarAxisUncheckedUpdateInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   mergedIntoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -485,6 +505,7 @@ export type RadarAxisCreateManyInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   mergedIntoId?: string | null
@@ -501,6 +522,7 @@ export type RadarAxisUpdateManyMutationInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   trackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -517,6 +539,7 @@ export type RadarAxisUncheckedUpdateManyInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   mergedIntoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -554,6 +577,7 @@ export type RadarAxisCountOrderByAggregateInput = {
   kind?: Prisma.SortOrder
   searchQueries?: Prisma.SortOrder
   weight?: Prisma.SortOrder
+  tagWeight?: Prisma.SortOrder
   subscriberCount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   mergedIntoId?: Prisma.SortOrder
@@ -565,6 +589,7 @@ export type RadarAxisCountOrderByAggregateInput = {
 
 export type RadarAxisAvgOrderByAggregateInput = {
   weight?: Prisma.SortOrder
+  tagWeight?: Prisma.SortOrder
   subscriberCount?: Prisma.SortOrder
   medianShareworthy?: Prisma.SortOrder
 }
@@ -576,6 +601,7 @@ export type RadarAxisMaxOrderByAggregateInput = {
   label?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   weight?: Prisma.SortOrder
+  tagWeight?: Prisma.SortOrder
   subscriberCount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   mergedIntoId?: Prisma.SortOrder
@@ -592,6 +618,7 @@ export type RadarAxisMinOrderByAggregateInput = {
   label?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   weight?: Prisma.SortOrder
+  tagWeight?: Prisma.SortOrder
   subscriberCount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   mergedIntoId?: Prisma.SortOrder
@@ -603,6 +630,7 @@ export type RadarAxisMinOrderByAggregateInput = {
 
 export type RadarAxisSumOrderByAggregateInput = {
   weight?: Prisma.SortOrder
+  tagWeight?: Prisma.SortOrder
   subscriberCount?: Prisma.SortOrder
   medianShareworthy?: Prisma.SortOrder
 }
@@ -687,16 +715,16 @@ export type RadarAxisUpdatesearchQueriesInput = {
   push?: string | string[]
 }
 
-export type EnumRadarAxisStatusFieldUpdateOperationsInput = {
-  set?: $Enums.RadarAxisStatus
-}
-
 export type NullableFloatFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type EnumRadarAxisStatusFieldUpdateOperationsInput = {
+  set?: $Enums.RadarAxisStatus
 }
 
 export type RadarAxisUpdateOneWithoutMergedFromNestedInput = {
@@ -788,6 +816,7 @@ export type RadarAxisCreateWithoutOrgInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   trackedCompanyId?: string | null
@@ -808,6 +837,7 @@ export type RadarAxisUncheckedCreateWithoutOrgInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   mergedIntoId?: string | null
@@ -858,6 +888,7 @@ export type RadarAxisScalarWhereInput = {
   kind?: Prisma.EnumRadarAxisKindFilter<"RadarAxis"> | $Enums.RadarAxisKind
   searchQueries?: Prisma.StringNullableListFilter<"RadarAxis">
   weight?: Prisma.FloatFilter<"RadarAxis"> | number
+  tagWeight?: Prisma.FloatNullableFilter<"RadarAxis"> | number | null
   subscriberCount?: Prisma.IntFilter<"RadarAxis"> | number
   status?: Prisma.EnumRadarAxisStatusFilter<"RadarAxis"> | $Enums.RadarAxisStatus
   mergedIntoId?: Prisma.StringNullableFilter<"RadarAxis"> | string | null
@@ -874,6 +905,7 @@ export type RadarAxisCreateWithoutMergedFromInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   trackedCompanyId?: string | null
@@ -895,6 +927,7 @@ export type RadarAxisUncheckedCreateWithoutMergedFromInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   mergedIntoId?: string | null
@@ -919,6 +952,7 @@ export type RadarAxisCreateWithoutMergedIntoInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   trackedCompanyId?: string | null
@@ -940,6 +974,7 @@ export type RadarAxisUncheckedCreateWithoutMergedIntoInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   trackedCompanyId?: string | null
@@ -980,6 +1015,7 @@ export type RadarAxisUpdateWithoutMergedFromInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   trackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1001,6 +1037,7 @@ export type RadarAxisUncheckedUpdateWithoutMergedFromInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   mergedIntoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1036,6 +1073,7 @@ export type RadarAxisCreateWithoutPeopleInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   trackedCompanyId?: string | null
@@ -1057,6 +1095,7 @@ export type RadarAxisUncheckedCreateWithoutPeopleInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   mergedIntoId?: string | null
@@ -1092,6 +1131,7 @@ export type RadarAxisUpdateWithoutPeopleInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   trackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1113,6 +1153,7 @@ export type RadarAxisUncheckedUpdateWithoutPeopleInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   mergedIntoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1132,6 +1173,7 @@ export type RadarAxisCreateWithoutMatchesInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   trackedCompanyId?: string | null
@@ -1153,6 +1195,7 @@ export type RadarAxisUncheckedCreateWithoutMatchesInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   mergedIntoId?: string | null
@@ -1188,6 +1231,7 @@ export type RadarAxisUpdateWithoutMatchesInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   trackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1209,6 +1253,7 @@ export type RadarAxisUncheckedUpdateWithoutMatchesInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   mergedIntoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1228,6 +1273,7 @@ export type RadarAxisCreateWithoutDraftsInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   trackedCompanyId?: string | null
@@ -1249,6 +1295,7 @@ export type RadarAxisUncheckedCreateWithoutDraftsInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   mergedIntoId?: string | null
@@ -1284,6 +1331,7 @@ export type RadarAxisUpdateWithoutDraftsInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   trackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1305,6 +1353,7 @@ export type RadarAxisUncheckedUpdateWithoutDraftsInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   mergedIntoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1324,6 +1373,7 @@ export type RadarAxisCreateManyOrgInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   mergedIntoId?: string | null
@@ -1340,6 +1390,7 @@ export type RadarAxisUpdateWithoutOrgInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   trackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1360,6 +1411,7 @@ export type RadarAxisUncheckedUpdateWithoutOrgInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   mergedIntoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1380,6 +1432,7 @@ export type RadarAxisUncheckedUpdateManyWithoutOrgInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   mergedIntoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1397,6 +1450,7 @@ export type RadarAxisCreateManyMergedIntoInput = {
   kind: $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisCreatesearchQueriesInput | string[]
   weight?: number
+  tagWeight?: number | null
   subscriberCount?: number
   status?: $Enums.RadarAxisStatus
   trackedCompanyId?: string | null
@@ -1412,6 +1466,7 @@ export type RadarAxisUpdateWithoutMergedIntoInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   trackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1433,6 +1488,7 @@ export type RadarAxisUncheckedUpdateWithoutMergedIntoInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   trackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1453,6 +1509,7 @@ export type RadarAxisUncheckedUpdateManyWithoutMergedIntoInput = {
   kind?: Prisma.EnumRadarAxisKindFieldUpdateOperationsInput | $Enums.RadarAxisKind
   searchQueries?: Prisma.RadarAxisUpdatesearchQueriesInput | string[]
   weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  tagWeight?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   subscriberCount?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRadarAxisStatusFieldUpdateOperationsInput | $Enums.RadarAxisStatus
   trackedCompanyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1527,6 +1584,7 @@ export type RadarAxisSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   kind?: boolean
   searchQueries?: boolean
   weight?: boolean
+  tagWeight?: boolean
   subscriberCount?: boolean
   status?: boolean
   mergedIntoId?: boolean
@@ -1551,6 +1609,7 @@ export type RadarAxisSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   kind?: boolean
   searchQueries?: boolean
   weight?: boolean
+  tagWeight?: boolean
   subscriberCount?: boolean
   status?: boolean
   mergedIntoId?: boolean
@@ -1570,6 +1629,7 @@ export type RadarAxisSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   kind?: boolean
   searchQueries?: boolean
   weight?: boolean
+  tagWeight?: boolean
   subscriberCount?: boolean
   status?: boolean
   mergedIntoId?: boolean
@@ -1589,6 +1649,7 @@ export type RadarAxisSelectScalar = {
   kind?: boolean
   searchQueries?: boolean
   weight?: boolean
+  tagWeight?: boolean
   subscriberCount?: boolean
   status?: boolean
   mergedIntoId?: boolean
@@ -1598,7 +1659,7 @@ export type RadarAxisSelectScalar = {
   updatedAt?: boolean
 }
 
-export type RadarAxisOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "key" | "label" | "kind" | "searchQueries" | "weight" | "subscriberCount" | "status" | "mergedIntoId" | "trackedCompanyId" | "medianShareworthy" | "createdAt" | "updatedAt", ExtArgs["result"]["radarAxis"]>
+export type RadarAxisOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orgId" | "key" | "label" | "kind" | "searchQueries" | "weight" | "tagWeight" | "subscriberCount" | "status" | "mergedIntoId" | "trackedCompanyId" | "medianShareworthy" | "createdAt" | "updatedAt", ExtArgs["result"]["radarAxis"]>
 export type RadarAxisInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   org?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   mergedInto?: boolean | Prisma.RadarAxis$mergedIntoArgs<ExtArgs>
@@ -1645,6 +1706,13 @@ export type $RadarAxisPayload<ExtArgs extends runtime.Types.Extensions.InternalA
      * Org-level importance, moved by the learning loop.
      */
     weight: number
+    /**
+     * The learning loop's handle on THIS axis as a matching tag: a discarded draft lowers
+     * it, an approved one raises it. Nullable and read by nothing yet — Phase B writes the
+     * structure so the loop can be built on it later, and a null must therefore be read as
+     * "never tuned", not as zero weight.
+     */
+    tagWeight: number | null
     /**
      * Denormalised for the width guard, which fires at >40% of the org's people.
      */
@@ -2097,6 +2165,7 @@ export interface RadarAxisFieldRefs {
   readonly kind: Prisma.FieldRef<"RadarAxis", 'RadarAxisKind'>
   readonly searchQueries: Prisma.FieldRef<"RadarAxis", 'String[]'>
   readonly weight: Prisma.FieldRef<"RadarAxis", 'Float'>
+  readonly tagWeight: Prisma.FieldRef<"RadarAxis", 'Float'>
   readonly subscriberCount: Prisma.FieldRef<"RadarAxis", 'Int'>
   readonly status: Prisma.FieldRef<"RadarAxis", 'RadarAxisStatus'>
   readonly mergedIntoId: Prisma.FieldRef<"RadarAxis", 'String'>
