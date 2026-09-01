@@ -105,6 +105,7 @@ export const ModelName = {
   RadarFeedback: 'RadarFeedback',
   RadarScanRun: 'RadarScanRun',
   RadarDomain: 'RadarDomain',
+  RadarSourcePack: 'RadarSourcePack',
   NewsQueryCache: 'NewsQueryCache'
 } as const
 
@@ -841,6 +842,7 @@ export const TechItemScalarFieldEnum = {
   title: 'title',
   summary: 'summary',
   categories: 'categories',
+  industryTags: 'industryTags',
   sources: 'sources',
   publishedAt: 'publishedAt',
   thin: 'thin',
@@ -897,6 +899,7 @@ export const RadarAxisScalarFieldEnum = {
   kind: 'kind',
   searchQueries: 'searchQueries',
   weight: 'weight',
+  tagWeight: 'tagWeight',
   subscriberCount: 'subscriberCount',
   status: 'status',
   mergedIntoId: 'mergedIntoId',
@@ -1049,6 +1052,19 @@ export const RadarDomainScalarFieldEnum = {
 } as const
 
 export type RadarDomainScalarFieldEnum = (typeof RadarDomainScalarFieldEnum)[keyof typeof RadarDomainScalarFieldEnum]
+
+
+export const RadarSourcePackScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  industryKey: 'industryKey',
+  sources: 'sources',
+  taxonomy: 'taxonomy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RadarSourcePackScalarFieldEnum = (typeof RadarSourcePackScalarFieldEnum)[keyof typeof RadarSourcePackScalarFieldEnum]
 
 
 export const NewsQueryCacheScalarFieldEnum = {

@@ -438,6 +438,7 @@ export const ModelName = {
   RadarFeedback: 'RadarFeedback',
   RadarScanRun: 'RadarScanRun',
   RadarDomain: 'RadarDomain',
+  RadarSourcePack: 'RadarSourcePack',
   NewsQueryCache: 'NewsQueryCache'
 } as const
 
@@ -454,7 +455,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "mcpAccessToken" | "enrichmentSpend" | "userEnrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange" | "companySignal" | "companySignalDraft" | "fintechArticle" | "articleMatch" | "trackedCompany" | "techItem" | "techOpportunity" | "techOpportunityDraft" | "radarAxis" | "personProfile" | "personAxis" | "axisMatch" | "radarDraft" | "linkedInPost" | "postCommentDraft" | "radarFeedback" | "radarScanRun" | "radarDomain" | "newsQueryCache"
+    modelProps: "account" | "session" | "verificationToken" | "organization" | "user" | "contact" | "messageTemplate" | "sentMessage" | "savedView" | "auditEvent" | "mcpAccessToken" | "enrichmentSpend" | "userEnrichmentSpend" | "personEnrichment" | "linkedinSession" | "company" | "campaign" | "campaignRecipient" | "invite" | "import" | "importJob" | "contactList" | "contactListMember" | "sequence" | "sequenceStep" | "sequenceEnrollment" | "sequenceStepExecution" | "extensionTask" | "extensionSession" | "extensionAlert" | "nameTranslation" | "prospectingRun" | "prospectingCompanyTarget" | "connectionRequest" | "prospectingEvent" | "contactJobChange" | "companySignal" | "companySignalDraft" | "fintechArticle" | "articleMatch" | "trackedCompany" | "techItem" | "techOpportunity" | "techOpportunityDraft" | "radarAxis" | "personProfile" | "personAxis" | "axisMatch" | "radarDraft" | "linkedInPost" | "postCommentDraft" | "radarFeedback" | "radarScanRun" | "radarDomain" | "radarSourcePack" | "newsQueryCache"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4454,6 +4455,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    RadarSourcePack: {
+      payload: Prisma.$RadarSourcePackPayload<ExtArgs>
+      fields: Prisma.RadarSourcePackFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RadarSourcePackFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarSourcePackPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RadarSourcePackFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarSourcePackPayload>
+        }
+        findFirst: {
+          args: Prisma.RadarSourcePackFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarSourcePackPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RadarSourcePackFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarSourcePackPayload>
+        }
+        findMany: {
+          args: Prisma.RadarSourcePackFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarSourcePackPayload>[]
+        }
+        create: {
+          args: Prisma.RadarSourcePackCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarSourcePackPayload>
+        }
+        createMany: {
+          args: Prisma.RadarSourcePackCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RadarSourcePackCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarSourcePackPayload>[]
+        }
+        delete: {
+          args: Prisma.RadarSourcePackDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarSourcePackPayload>
+        }
+        update: {
+          args: Prisma.RadarSourcePackUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarSourcePackPayload>
+        }
+        deleteMany: {
+          args: Prisma.RadarSourcePackDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RadarSourcePackUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RadarSourcePackUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarSourcePackPayload>[]
+        }
+        upsert: {
+          args: Prisma.RadarSourcePackUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RadarSourcePackPayload>
+        }
+        aggregate: {
+          args: Prisma.RadarSourcePackAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRadarSourcePack>
+        }
+        groupBy: {
+          args: Prisma.RadarSourcePackGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RadarSourcePackGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RadarSourcePackCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RadarSourcePackCountAggregateOutputType> | number
+        }
+      }
+    }
     NewsQueryCache: {
       payload: Prisma.$NewsQueryCachePayload<ExtArgs>
       fields: Prisma.NewsQueryCacheFieldRefs
@@ -5284,6 +5359,7 @@ export const TechItemScalarFieldEnum = {
   title: 'title',
   summary: 'summary',
   categories: 'categories',
+  industryTags: 'industryTags',
   sources: 'sources',
   publishedAt: 'publishedAt',
   thin: 'thin',
@@ -5340,6 +5416,7 @@ export const RadarAxisScalarFieldEnum = {
   kind: 'kind',
   searchQueries: 'searchQueries',
   weight: 'weight',
+  tagWeight: 'tagWeight',
   subscriberCount: 'subscriberCount',
   status: 'status',
   mergedIntoId: 'mergedIntoId',
@@ -5492,6 +5569,19 @@ export const RadarDomainScalarFieldEnum = {
 } as const
 
 export type RadarDomainScalarFieldEnum = (typeof RadarDomainScalarFieldEnum)[keyof typeof RadarDomainScalarFieldEnum]
+
+
+export const RadarSourcePackScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  industryKey: 'industryKey',
+  sources: 'sources',
+  taxonomy: 'taxonomy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RadarSourcePackScalarFieldEnum = (typeof RadarSourcePackScalarFieldEnum)[keyof typeof RadarSourcePackScalarFieldEnum]
 
 
 export const NewsQueryCacheScalarFieldEnum = {
@@ -6276,6 +6366,7 @@ export type GlobalOmitConfig = {
   radarFeedback?: Prisma.RadarFeedbackOmit
   radarScanRun?: Prisma.RadarScanRunOmit
   radarDomain?: Prisma.RadarDomainOmit
+  radarSourcePack?: Prisma.RadarSourcePackOmit
   newsQueryCache?: Prisma.NewsQueryCacheOmit
 }
 

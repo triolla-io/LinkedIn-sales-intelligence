@@ -1175,28 +1175,34 @@ model TrackedCompany {
 /// `dedupeKey` is derived from normalized vendor + technology (NOT url) so one
 /// launch covered by three outlets collapses to a single row.
 model TechItem {
-  id          String    @id @default(cuid())
-  vendor      String?
-  technology  String
-  title       String
-  summary     String    @db.Text
-  categories  String[]  @default([])
+  id           String    @id @default(cuid())
+  vendor       String?
+  technology   String
+  title        String
+  summary      String    @db.Text
+  categories   String[]  @default([])
+  /// Tags from the CLOSED per-industry taxonomy on RadarSourcePack, attached by triage.
+  /// Separate from `categories` (free-text, still read by the company path): matching a
+  /// person to an item is done by tag overlap, and the 2026-08 fit.ts experience is that
+  /// free text fails silently on synonyms — two spellings of the same idea score zero.
+  /// Only a closed vocabulary makes the overlap deterministic.
+  industryTags String[]  @default([])
   /// [{ url, title, publishedAt }]
-  sources     Json
-  publishedAt DateTime?
+  sources      Json
+  publishedAt  DateTime?
   /// True when synthesized from a search snippet because no page could be read.
-  thin        Boolean   @default(false)
+  thin         Boolean   @default(false)
   /// 0-1 from triage. Stored so a discard can be explained after the fact.
-  shareworthy Float     @default(0)
+  shareworthy  Float     @default(0)
   /// 0-1 from triage: how much WEIGHT the item carries, separate from relevance. A
   /// niche-tool write-up can be perfectly on-topic and still have no gift in it.
-  stature     Float     @default(0)
+  stature      Float     @default(0)
   /// See ItemKind in lib/tech-radar/types.ts. A String, not a Postgres enum: the list
   /// moves as the learning loop teaches us, and a new enum member cannot be used in the
   /// transaction that adds it. Validation lives in asKind().
-  kind        String    @default("other")
-  dedupeKey   String    @unique
-  createdAt   DateTime  @default(now())
+  kind         String    @default("other")
+  dedupeKey    String    @unique
+  createdAt    DateTime  @default(now())
 
   opportunities TechOpportunity[]
   axisMatches   AxisMatch[]
@@ -1317,6 +1323,11 @@ model RadarAxis {
   searchQueries    String[]        @default([])
   /// Org-level importance, moved by the learning loop.
   weight           Float           @default(1)
+  /// The learning loop's handle on THIS axis as a matching tag: a discarded draft lowers
+  /// it, an approved one raises it. Nullable and read by nothing yet — Phase B writes the
+  /// structure so the loop can be built on it later, and a null must therefore be read as
+  /// "never tuned", not as zero weight.
+  tagWeight        Float?
   /// Denormalised for the width guard, which fires at >40% of the org's people.
   subscriberCount  Int             @default(0)
   status           RadarAxisStatus @default(ACTIVE)
@@ -1573,6 +1584,44 @@ model RadarDomain {
   discards Int      @default(0)
 
   @@unique([orgId, domain])
+}
+
+/// The fixed set of outlets one industry's radar reads, plus the closed tag vocabulary
+/// its items are classified into. This is the v3 inversion: instead of axes writing
+/// queries against the whole open web, a known list of publishers is pulled by RSS.
+///
+/// Born 2026-08-31 out of a measured ceiling, not a preference: serper, serpapi and
+/// tavily were all at 0 remaining for the month, and Bank Hapoalim's employer research
+/// therefore ran on FIVE news items — which is why its "recent moves" were dated 2024.
+/// RSS pulls are free and unmetered, so the pack has no quota to run out of.
+///
+/// A row per (org, industry) rather than a constant in code, because the source list is
+/// edited by a human in the UI (add/remove/replace an outlet) and must not need a deploy.
+model RadarSourcePack {
+  id          String   @id @default(cuid())
+  /// Null = a built-in pack every org falls back to; set = that org's edited copy.
+  /// NOTE: Postgres treats NULLs as distinct in a unique index, so the (orgId,
+  /// industryKey) unique below does NOT stop two rows with orgId = NULL for the same
+  /// industry. Resolution therefore prefers the org-scoped row and takes the newest
+  /// global one — see lib/tech-radar/source-packs.ts.
+  orgId       String?
+  /// The normalised industry of the employer research (the same `industry.canonical`
+  /// that creates the INDUSTRY axis), so "בנקאות ישראל" and its English half key the
+  /// same pack instead of quietly making two.
+  industryKey String
+  /// [{ host, name, rss?, lang: "he"|"en", scope: "global"|"il", enabled: boolean }]
+  /// Target: exactly 10 global + 10 Israeli. A target, not a validation rule — a new
+  /// industry legitimately starts incomplete, and rejecting the row would leave that
+  /// industry with no sources at all, which is the worse failure.
+  sources     Json
+  /// [{ tag, label }] — the closed vocabulary (40-60 tags) triage may classify into.
+  /// Closedness is the point: an off-list tag is dropped, never coerced.
+  taxonomy    Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([orgId, industryKey])
+  @@index([industryKey])
 }
 
 /// One fetched news query, kept so a retried or re-fired run never pays for it twice.

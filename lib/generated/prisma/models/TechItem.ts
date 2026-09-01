@@ -75,6 +75,7 @@ export type TechItemCountAggregateOutputType = {
   title: number
   summary: number
   categories: number
+  industryTags: number
   sources: number
   publishedAt: number
   thin: number
@@ -134,6 +135,7 @@ export type TechItemCountAggregateInputType = {
   title?: true
   summary?: true
   categories?: true
+  industryTags?: true
   sources?: true
   publishedAt?: true
   thin?: true
@@ -238,6 +240,7 @@ export type TechItemGroupByOutputType = {
   title: string
   summary: string
   categories: string[]
+  industryTags: string[]
   sources: runtime.JsonValue
   publishedAt: Date | null
   thin: boolean
@@ -278,6 +281,7 @@ export type TechItemWhereInput = {
   title?: Prisma.StringFilter<"TechItem"> | string
   summary?: Prisma.StringFilter<"TechItem"> | string
   categories?: Prisma.StringNullableListFilter<"TechItem">
+  industryTags?: Prisma.StringNullableListFilter<"TechItem">
   sources?: Prisma.JsonFilter<"TechItem">
   publishedAt?: Prisma.DateTimeNullableFilter<"TechItem"> | Date | string | null
   thin?: Prisma.BoolFilter<"TechItem"> | boolean
@@ -298,6 +302,7 @@ export type TechItemOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
   categories?: Prisma.SortOrder
+  industryTags?: Prisma.SortOrder
   sources?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   thin?: Prisma.SortOrder
@@ -322,6 +327,7 @@ export type TechItemWhereUniqueInput = Prisma.AtLeast<{
   title?: Prisma.StringFilter<"TechItem"> | string
   summary?: Prisma.StringFilter<"TechItem"> | string
   categories?: Prisma.StringNullableListFilter<"TechItem">
+  industryTags?: Prisma.StringNullableListFilter<"TechItem">
   sources?: Prisma.JsonFilter<"TechItem">
   publishedAt?: Prisma.DateTimeNullableFilter<"TechItem"> | Date | string | null
   thin?: Prisma.BoolFilter<"TechItem"> | boolean
@@ -341,6 +347,7 @@ export type TechItemOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
   categories?: Prisma.SortOrder
+  industryTags?: Prisma.SortOrder
   sources?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   thin?: Prisma.SortOrder
@@ -366,6 +373,7 @@ export type TechItemScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"TechItem"> | string
   summary?: Prisma.StringWithAggregatesFilter<"TechItem"> | string
   categories?: Prisma.StringNullableListFilter<"TechItem">
+  industryTags?: Prisma.StringNullableListFilter<"TechItem">
   sources?: Prisma.JsonWithAggregatesFilter<"TechItem">
   publishedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"TechItem"> | Date | string | null
   thin?: Prisma.BoolWithAggregatesFilter<"TechItem"> | boolean
@@ -383,6 +391,7 @@ export type TechItemCreateInput = {
   title: string
   summary: string
   categories?: Prisma.TechItemCreatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemCreateindustryTagsInput | string[]
   sources: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Date | string | null
   thin?: boolean
@@ -403,6 +412,7 @@ export type TechItemUncheckedCreateInput = {
   title: string
   summary: string
   categories?: Prisma.TechItemCreatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemCreateindustryTagsInput | string[]
   sources: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Date | string | null
   thin?: boolean
@@ -423,6 +433,7 @@ export type TechItemUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemUpdateindustryTagsInput | string[]
   sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -443,6 +454,7 @@ export type TechItemUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemUpdateindustryTagsInput | string[]
   sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -463,6 +475,7 @@ export type TechItemCreateManyInput = {
   title: string
   summary: string
   categories?: Prisma.TechItemCreatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemCreateindustryTagsInput | string[]
   sources: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Date | string | null
   thin?: boolean
@@ -480,6 +493,7 @@ export type TechItemUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemUpdateindustryTagsInput | string[]
   sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -497,6 +511,7 @@ export type TechItemUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemUpdateindustryTagsInput | string[]
   sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -514,6 +529,7 @@ export type TechItemCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
   categories?: Prisma.SortOrder
+  industryTags?: Prisma.SortOrder
   sources?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
   thin?: Prisma.SortOrder
@@ -573,7 +589,16 @@ export type TechItemCreatecategoriesInput = {
   set: string[]
 }
 
+export type TechItemCreateindustryTagsInput = {
+  set: string[]
+}
+
 export type TechItemUpdatecategoriesInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
+export type TechItemUpdateindustryTagsInput = {
   set?: string[]
   push?: string | string[]
 }
@@ -627,6 +652,7 @@ export type TechItemCreateWithoutOpportunitiesInput = {
   title: string
   summary: string
   categories?: Prisma.TechItemCreatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemCreateindustryTagsInput | string[]
   sources: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Date | string | null
   thin?: boolean
@@ -646,6 +672,7 @@ export type TechItemUncheckedCreateWithoutOpportunitiesInput = {
   title: string
   summary: string
   categories?: Prisma.TechItemCreatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemCreateindustryTagsInput | string[]
   sources: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Date | string | null
   thin?: boolean
@@ -681,6 +708,7 @@ export type TechItemUpdateWithoutOpportunitiesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemUpdateindustryTagsInput | string[]
   sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -700,6 +728,7 @@ export type TechItemUncheckedUpdateWithoutOpportunitiesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemUpdateindustryTagsInput | string[]
   sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -719,6 +748,7 @@ export type TechItemCreateWithoutAxisMatchesInput = {
   title: string
   summary: string
   categories?: Prisma.TechItemCreatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemCreateindustryTagsInput | string[]
   sources: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Date | string | null
   thin?: boolean
@@ -738,6 +768,7 @@ export type TechItemUncheckedCreateWithoutAxisMatchesInput = {
   title: string
   summary: string
   categories?: Prisma.TechItemCreatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemCreateindustryTagsInput | string[]
   sources: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Date | string | null
   thin?: boolean
@@ -773,6 +804,7 @@ export type TechItemUpdateWithoutAxisMatchesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemUpdateindustryTagsInput | string[]
   sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -792,6 +824,7 @@ export type TechItemUncheckedUpdateWithoutAxisMatchesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemUpdateindustryTagsInput | string[]
   sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -811,6 +844,7 @@ export type TechItemCreateWithoutRadarDraftsInput = {
   title: string
   summary: string
   categories?: Prisma.TechItemCreatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemCreateindustryTagsInput | string[]
   sources: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Date | string | null
   thin?: boolean
@@ -830,6 +864,7 @@ export type TechItemUncheckedCreateWithoutRadarDraftsInput = {
   title: string
   summary: string
   categories?: Prisma.TechItemCreatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemCreateindustryTagsInput | string[]
   sources: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Date | string | null
   thin?: boolean
@@ -865,6 +900,7 @@ export type TechItemUpdateWithoutRadarDraftsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemUpdateindustryTagsInput | string[]
   sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -884,6 +920,7 @@ export type TechItemUncheckedUpdateWithoutRadarDraftsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.TechItemUpdatecategoriesInput | string[]
+  industryTags?: Prisma.TechItemUpdateindustryTagsInput | string[]
   sources?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   thin?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -952,6 +989,7 @@ export type TechItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   title?: boolean
   summary?: boolean
   categories?: boolean
+  industryTags?: boolean
   sources?: boolean
   publishedAt?: boolean
   thin?: boolean
@@ -973,6 +1011,7 @@ export type TechItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   title?: boolean
   summary?: boolean
   categories?: boolean
+  industryTags?: boolean
   sources?: boolean
   publishedAt?: boolean
   thin?: boolean
@@ -990,6 +1029,7 @@ export type TechItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   title?: boolean
   summary?: boolean
   categories?: boolean
+  industryTags?: boolean
   sources?: boolean
   publishedAt?: boolean
   thin?: boolean
@@ -1007,6 +1047,7 @@ export type TechItemSelectScalar = {
   title?: boolean
   summary?: boolean
   categories?: boolean
+  industryTags?: boolean
   sources?: boolean
   publishedAt?: boolean
   thin?: boolean
@@ -1017,7 +1058,7 @@ export type TechItemSelectScalar = {
   createdAt?: boolean
 }
 
-export type TechItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "vendor" | "technology" | "title" | "summary" | "categories" | "sources" | "publishedAt" | "thin" | "shareworthy" | "stature" | "kind" | "dedupeKey" | "createdAt", ExtArgs["result"]["techItem"]>
+export type TechItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "vendor" | "technology" | "title" | "summary" | "categories" | "industryTags" | "sources" | "publishedAt" | "thin" | "shareworthy" | "stature" | "kind" | "dedupeKey" | "createdAt", ExtArgs["result"]["techItem"]>
 export type TechItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   opportunities?: boolean | Prisma.TechItem$opportunitiesArgs<ExtArgs>
   axisMatches?: boolean | Prisma.TechItem$axisMatchesArgs<ExtArgs>
@@ -1041,6 +1082,14 @@ export type $TechItemPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     title: string
     summary: string
     categories: string[]
+    /**
+     * Tags from the CLOSED per-industry taxonomy on RadarSourcePack, attached by triage.
+     * Separate from `categories` (free-text, still read by the company path): matching a
+     * person to an item is done by tag overlap, and the 2026-08 fit.ts experience is that
+     * free text fails silently on synonyms — two spellings of the same idea score zero.
+     * Only a closed vocabulary makes the overlap deterministic.
+     */
+    industryTags: string[]
     /**
      * [{ url, title, publishedAt }]
      */
@@ -1499,6 +1548,7 @@ export interface TechItemFieldRefs {
   readonly title: Prisma.FieldRef<"TechItem", 'String'>
   readonly summary: Prisma.FieldRef<"TechItem", 'String'>
   readonly categories: Prisma.FieldRef<"TechItem", 'String[]'>
+  readonly industryTags: Prisma.FieldRef<"TechItem", 'String[]'>
   readonly sources: Prisma.FieldRef<"TechItem", 'Json'>
   readonly publishedAt: Prisma.FieldRef<"TechItem", 'DateTime'>
   readonly thin: Prisma.FieldRef<"TechItem", 'Boolean'>

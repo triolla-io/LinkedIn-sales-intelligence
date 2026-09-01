@@ -328,6 +328,21 @@ export type RadarScanRun = Prisma.RadarScanRunModel
  */
 export type RadarDomain = Prisma.RadarDomainModel
 /**
+ * Model RadarSourcePack
+ * The fixed set of outlets one industry's radar reads, plus the closed tag vocabulary
+ * its items are classified into. This is the v3 inversion: instead of axes writing
+ * queries against the whole open web, a known list of publishers is pulled by RSS.
+ * 
+ * Born 2026-08-31 out of a measured ceiling, not a preference: serper, serpapi and
+ * tavily were all at 0 remaining for the month, and Bank Hapoalim's employer research
+ * therefore ran on FIVE news items — which is why its "recent moves" were dated 2024.
+ * RSS pulls are free and unmetered, so the pack has no quota to run out of.
+ * 
+ * A row per (org, industry) rather than a constant in code, because the source list is
+ * edited by a human in the UI (add/remove/replace an outlet) and must not need a deploy.
+ */
+export type RadarSourcePack = Prisma.RadarSourcePackModel
+/**
  * Model NewsQueryCache
  * One fetched news query, kept so a retried or re-fired run never pays for it twice.
  * Born 2026-08-26: an Inngest step retry re-ran a whole person-scan from the top four times and
