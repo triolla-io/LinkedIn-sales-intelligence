@@ -175,13 +175,50 @@ describe("researchPerson", () => {
       { title: "הוצאת ידיעות ספרים", url: "https://x.co.il/3", snippet: "", source: "google-news-rss", publishedAt: null },
       { title: "ראיון עם פזית גרפינקל על בנקאות דיגיטלית", url: "https://calcalist.co.il/4", snippet: "", source: "google-news-rss", publishedAt: null },
     ]);
-    const res = await researchPerson(
+    // With only a given name on the record, even the ONE genuine article about her is
+    // discarded — her surname is "גרפינקל" in the text and "Garfinkel" on the record, and
+    // those do not match. This assertion IS the recall gap, stated: the fix is a Hebrew
+    // FULL name on the contact, not a looser filter.
+    const givenNameOnly = await researchPerson(
       { fullName: "Pazit Garfinkel", hebrewName: "פזית", companyName: "Bank Hapoalim בנק הפועלים" },
       { rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep }
     );
-    expect(res.findings).toHaveLength(1);
-    expect(res.findings[0].title).toContain("פזית גרפינקל");
-    expect(res.discarded).toBe(3);
+    expect(givenNameOnly.findings).toHaveLength(0);
+    expect(givenNameOnly.discarded).toBe(4);
+
+    // With the full Hebrew name the same four results resolve correctly: the employer's
+    // three stay out and hers comes through.
+    const fullHebrew = await researchPerson(
+      { fullName: "Pazit Garfinkel", hebrewName: "פזית גרפינקל", companyName: "Bank Hapoalim בנק הפועלים" },
+      { rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep }
+    );
+    expect(fullHebrew.findings).toHaveLength(1);
+    expect(fullHebrew.findings[0].title).toContain("פזית גרפינקל");
+    expect(fullHebrew.discarded).toBe(3);
+  });
+
+  /**
+   * Both false positives the prod probe produced. A given name is not an identity: "גיל" is
+   * also the Hebrew inside `גילאי`, and "ארז" belongs to every Erez — including the other
+   * Erez at the same bank, whose resignation would have been read as this one's.
+   */
+  it("refuses a lone Hebrew given name as identification", async () => {
+    const rssFetcher = vi.fn().mockResolvedValue([
+      { title: "INFINITY NADO מיני משגר חרב, גילאי 5+", url: "https://toys.co.il/1", snippet: "", source: "google-news-rss", publishedAt: null },
+      { title: "ארז יוסף פורש מבנק הפועלים", url: "https://globes.co.il/2", snippet: "", source: "google-news-rss", publishedAt: null },
+    ]);
+    const gil = await researchPerson(
+      { fullName: "Gil Tamir", hebrewName: "גיל", companyName: "Phoenix" },
+      { rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep }
+    );
+    expect(gil.findings).toHaveLength(0);
+    expect(gil.discarded).toBe(2);
+
+    const erez = await researchPerson(
+      { fullName: "Erez Rachmil", hebrewName: "ארז", companyName: "Bank Hapoalim" },
+      { rssFetcher, fetcher: vi.fn().mockResolvedValue([]), readPage: async () => null, maxPageReads: 0, sleep: noSleep }
+    );
+    expect(erez.findings).toHaveLength(0);
   });
 
   it("survives an unreadable page — a null read is the normal case, not a failure", async () => {

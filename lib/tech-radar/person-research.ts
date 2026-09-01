@@ -66,8 +66,14 @@ export function namesThePerson(
   // without repeating the given name. Two characters is not a surname, it is a preposition.
   const surname = en.split(/\s+/).filter((w) => w.length > 2).at(-1);
   if (surname && hay.includes(surname)) return true;
+  // A Hebrew GIVEN NAME on its own is not identification, and the 2026-09-01 probe proved
+  // it in the two most embarrassing ways available: "גיל" matched `גילאי 5+` in a toy
+  // advert, and "ארז" matched a Globes story about Erez YOSEF leaving Bank Hapoalim — a
+  // different executive at the right company, which is the single most dangerous kind of
+  // false positive here, because everything downstream would have read it as Erez Rachmil's
+  // own career move. Only a FULL Hebrew name (given + family) is accepted.
   const he = (input.hebrewName ?? "").trim();
-  if (he.length > 2 && text.includes(he)) return true;
+  if (/\s/.test(he) && he.length > 4 && text.includes(he)) return true;
   return false;
 }
 
